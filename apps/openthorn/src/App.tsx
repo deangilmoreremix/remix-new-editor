@@ -56,11 +56,11 @@ function HomePage() {
   useJsonLd({
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'OpenThorn',
+    name: 'Smart Video',
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Web',
     description:
-      'OpenThorn is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.',
+      'Smart Video is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.',
     url: 'https://www.openthorn.app',
     offers: {
       '@type': 'Offer',

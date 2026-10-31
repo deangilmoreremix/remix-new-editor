@@ -18,19 +18,19 @@
 
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { Handle, Position, useReactFlow, useUpdateNodeInternals, Node } from '@xyflow/react';
-import { ALL_MODELS, getModelDefinition } from '../../lib/fal/models.js';
-import { CATEGORY_COLORS, PORT_COLORS, NODE_REGISTRY } from '../../lib/workflows/node-registry.js';
-import { useRunNode } from '../../components/SpacesCanvas.jsx';
-import { useWorkspace, getActiveTimeline } from '../../lib/workspace/workspace-context.jsx';
-import { extractWaveformPeaks } from '../../lib/editor/waveform.js';
-import { ImageCompare } from '../../components/create/image-compare.jsx';
-import { Sam3Modal } from '../../components/create/sam3-modal.jsx';
-import { Sam3CloudModal } from '../../components/create/sam3-cloud-modal.jsx';
-import { FullscreenModal } from '../../components/create/fullscreen-modal.jsx';
-import { addClipToTrack } from '../../lib/editor/timeline-operations.js';
+import { ALL_MODELS, getModelDefinition } from '../../../lib/fal/models.js';
+import { CATEGORY_COLORS, PORT_COLORS, NODE_REGISTRY } from '../../../lib/workflows/node-registry.js';
+import { useRunNode } from '../../SpacesCanvas.jsx';
+import { useWorkspace, getActiveTimeline } from '../../../lib/workspace/workspace-context.jsx';
+import { extractWaveformPeaks } from '../../../lib/editor/waveform.js';
+import { ImageCompare } from '../image-compare.jsx';
+import { Sam3Modal } from '../sam3-modal.jsx';
+import { Sam3CloudModal } from '../sam3-cloud-modal.jsx';
+import { FullscreenModal } from '../fullscreen-modal.jsx';
+import { addClipToTrack } from '../../../lib/editor/timeline-operations.js';
 import { clipEffectiveDuration } from '/src/types/timeline.js';
-import { generateId, timestamp } from '../../lib/workspace/workspace-context.jsx';
-import { getLayerDecomposeStageLabel, isLayerDecomposeNodeType } from '../../lib/workflows/layer-decompose.js';
+import { generateId, timestamp } from '../../../lib/workspace/workspace-context.jsx';
+import { getLayerDecomposeStageLabel, isLayerDecomposeNodeType } from '../../../lib/workflows/layer-decompose.js';
 import { WorkflowNodeData } from '/src/types/workflow.js';
 import { Asset } from '/src/types/project.js';
 

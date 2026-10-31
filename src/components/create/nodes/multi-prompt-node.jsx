@@ -15,7 +15,7 @@
 import { memo, useCallback } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { BaseNodeWrapper } from './base-node.jsx';
-import { useWorkspace } from '../../lib/workspace/workspace-context.jsx';
+import { useWorkspace } from '../../../lib/workspace/workspace-context.jsx';
 
 const DURATION_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 

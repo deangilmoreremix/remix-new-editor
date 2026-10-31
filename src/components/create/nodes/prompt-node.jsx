@@ -10,7 +10,7 @@
 import { memo, useCallback } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { BaseNodeWrapper } from './base-node.jsx';
-import { useWorkspace } from '../../lib/workspace/workspace-context.jsx';
+import { useWorkspace } from '../../../lib/workspace/workspace-context.jsx';
 
 export function PromptNode({ id, data, selected }) {
   const { updateNodeData } = useReactFlow();

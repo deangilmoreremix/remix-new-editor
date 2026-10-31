@@ -4,6 +4,8 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { restyleAction, setActionBusy, setActionRetry } from './studio/studioLayout.js';
+import { notifyGeneration } from './studio/generationNotifications.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
@@ -141,7 +143,7 @@ export async function EffectsStudio() {
   if (effectsBanner) {
     const bannerText = document.createElement('div');
     bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Effects Studio</h1><p class="text-white/60 text-xs">Apply 350+ visual effects to your photos and videos</p>';
+    bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-white/60 text-xs">Apply 350+ visual effects to your photos and videos</p>';
     effectsBanner.appendChild(bannerText);
     topBar.appendChild(effectsBanner);
 
@@ -155,13 +157,13 @@ export async function EffectsStudio() {
       const modal = new TemplateThumbnailModal({
         studioId: 'effects-studio',
         layout: 'panel',
-        studioLabel: 'Effects Studio',
+        studioLabel: 'Vibe Motion',
         accentGradient: 'from-violet-500 to-indigo-500',
       });
       mountThumbnailModal(modal);
     };
   } else {
-    topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Effects Studio</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
+    topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
   }
 
   const tabRow = document.createElement('div');
@@ -303,7 +305,7 @@ export async function EffectsStudio() {
     const { browsePexelsImages } = await import('../lib/studioPexels.js');
     browsePexelsImages({
       title: 'Select Reference Photo',
-      studioName: 'Effects Studio',
+      studioName: 'Vibe Motion',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
         // Pexels photos are not Asset Library rows — drop any previously
@@ -486,7 +488,7 @@ export async function EffectsStudio() {
       appTheme: 'effects-studio',
       layout: 'panel',
       studioId: 'effects-studio',
-      studioName: 'Effects Studio',
+      studioName: 'Vibe Motion',
       aspectRatio: '16:9',
       outputType: 'image',
       onApply: ({ imageUrl }) => {
@@ -506,8 +508,8 @@ export async function EffectsStudio() {
   const generateBtn = document.createElement('button');
 generateBtn.type = 'button';
   generateBtn.className = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all whitespace-nowrap';
-  generateBtn.textContent = 'Apply Effect';
-  generateBtn.setAttribute('aria-label', 'Apply effect');
+  restyleAction(generateBtn);
+  generateBtn.setAttribute('aria-label', 'Generate with the selected effect');
     promptRow.appendChild(generateBtn);
     const effectsPublishBtn = document.createElement('button');
     effectsPublishBtn.type = 'button';
@@ -1005,7 +1007,7 @@ generateBtn.type = 'button';
   const mobileGenBtn = document.createElement('button');
   mobileGenBtn.type = 'button';
   mobileGenBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
-  mobileGenBtn.textContent = 'Apply Effect';
+  restyleAction(mobileGenBtn);
   mobileGenBtn.setAttribute('aria-label', 'Apply effect');
   mobileControls.appendChild(mobileGenBtn);
   const mobilePublishBtn = document.createElement('button');
@@ -1172,8 +1174,11 @@ generateBtn.type = 'button';
 
     generateBtn.disabled = true;
     mobileGenBtn.disabled = true;
-    generateBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
-    mobileGenBtn.innerHTML = generateBtn.innerHTML;
+    setActionBusy(generateBtn, true);
+    setActionBusy(mobileGenBtn, true);
+    const notifyId = `effects:${Date.now()}`;
+    let failed = null;
+    notifyGeneration({ phase: 'start', id: notifyId, studio: 'effects', label: 'Vibe Motion' });
 
     outputPreview.showLoading(`Applying "${selectedEffect}"...`);
     mobileOutputPreview.showLoading('Processing...');
@@ -1198,15 +1203,20 @@ generateBtn.type = 'button';
         await generateSingle(controller);
       }
     } catch (err) {
-      outputPreview.showError(`Error: ${err.message}`);
+      failed = err.message || 'Generation failed';
+      outputPreview.showError(failed);
       mobileOutputPreview.showError('Error');
+      showToast(failed, 'error', 5000);
     } finally {
       clearTimeout(timeoutId);
       controller.abort();
       generateBtn.disabled = false;
       mobileGenBtn.disabled = false;
-      generateBtn.textContent = 'Apply Effect';
-      mobileGenBtn.textContent = 'Apply Effect';
+      notifyGeneration(failed
+        ? { phase: 'error', id: notifyId, studio: 'effects', label: 'Vibe Motion', message: failed }
+        : { phase: 'success', id: notifyId, studio: 'effects', label: 'Vibe Motion' });
+      if (failed) { setActionRetry(generateBtn); setActionRetry(mobileGenBtn); }
+      else { setActionBusy(generateBtn, false); setActionBusy(mobileGenBtn, false); }
     }
   }
 
@@ -1612,7 +1622,7 @@ generateBtn.type = 'button';
     const detailView = new MediaDetailView({
       mediaUrl: url,
       mediaType: outputPreview.getType() || 'image',
-      title: 'Effects Studio Output',
+      title: 'Vibe Motion Output',
       model: activeTab.label || '',
       autoCollapsePrompt: true,
     });

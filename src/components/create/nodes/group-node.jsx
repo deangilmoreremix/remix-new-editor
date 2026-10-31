@@ -8,7 +8,7 @@
 import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { NodeResizer } from '@xyflow/react';
-import { useWorkspace } from '../../lib/workspace/workspace-context.jsx';
+import { useWorkspace } from '../../../lib/workspace/workspace-context.jsx';
 import { WorkflowNodeData } from '/src/types/workflow.js';
 
 /** Swatches offered by the group settings panel. */

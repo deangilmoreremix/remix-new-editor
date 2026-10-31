@@ -19,6 +19,9 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { createPromptComposer, createPill, openComposerPopover, mediaButtonClassName } from './studio/promptComposer.js';
+import { foldIntoMoreMenu, mountStudioResults, restylePill } from './studio/studioLayout.js';
+import { notifyGeneration } from './studio/generationNotifications.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -366,6 +369,7 @@ const COMMERCIAL_MODELS = [
           appTheme: 'commercial-studio',
           onSelect: (prompt) => {
             commercialPrompt = prompt;
+            composer.setPrompt(prompt);
           }
         }).catch(() => {});
       }
@@ -381,7 +385,88 @@ const COMMERCIAL_MODELS = [
   window.addEventListener('click', closeEnhanceMenu);
 
   formCard.appendChild(enhanceMenu);
-  container.appendChild(formCard);
+
+  // ── Upstream Marketing-style composer ──────────────────────────────────
+  // Prompt first, then a footer with the product upload circle, Model /
+  // Scene / Format / Advanced pills and Generate; extras fold into ⋯.
+  const composer = createPromptComposer({
+    placeholder: 'Describe the shot or add art direction (optional)',
+    onSubmit: () => genBtn.click(),
+    textareaFirst: true,
+    positionClass: 'sticky bottom-4 z-30 w-full max-w-[95%] lg:max-w-4xl mx-auto animate-fade-in-up',
+  });
+  if (commercialPrompt) composer.setPrompt(commercialPrompt);
+  composer.textarea.addEventListener('input', () => { commercialPrompt = composer.getPrompt() || null; });
+
+  picker.trigger.className = mediaButtonClassName();
+  picker.trigger.title = 'Upload product image or video';
+  composer.controls.appendChild(picker.trigger);
+
+  restylePill(triggerBtn);
+  triggerBtn.classList.add('text-xs', 'font-semibold');
+  composer.controls.appendChild(modelWrapper);
+  modelWrapper.className = 'flex items-center';
+
+  const scenePill = createPill({ label: selectedScene, title: 'Scene preset' });
+  scenePill.addEventListener('click', () => openComposerPopover(scenePill, {
+    title: 'Scene',
+    items: SCENE_PRESETS.map((sp) => ({ label: sp, selected: sp === selectedScene, onSelect: () => { selectedScene = sp; scenePill.setLabel(sp); } })),
+  }));
+  const formatPill = createPill({ label: `${selectedFormat.name} · ${selectedFormat.ar}`, icon: 'aspect', title: 'Output format' });
+  formatPill.addEventListener('click', () => openComposerPopover(formatPill, {
+    title: 'Format',
+    items: FORMAT_PRESETS.map((f) => ({ label: f.name, description: f.ar, selected: f.name === selectedFormat.name, onSelect: () => { selectedFormat = f; formatPill.setLabel(`${f.name} · ${f.ar}`); } })),
+  }));
+  const advancedPill = createPill({ label: 'Advanced', title: 'Advanced settings' });
+  dynamicControlsContainer.classList.add('hidden', 'max-h-[45vh]', 'overflow-y-auto', 'custom-scrollbar');
+  composer.panel.insertBefore(dynamicControlsContainer, composer.footer);
+  advancedPill.addEventListener('click', () => {
+    const open = dynamicControlsContainer.classList.toggle('hidden') === false;
+    advancedPill.setActive(open);
+  });
+  composer.controls.append(scenePill, formatPill, advancedPill);
+
+  const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
+  foldIntoMoreMenu(composer.controls, [
+    { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
+    { label: 'Stock photo', description: 'Use a Pexels product photo', el: pexelsBtn },
+    { label: 'Custom thumbnail', el: thumbBtn },
+    { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
+    { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
+    { label: 'Recipes', onSelect: enhanceAction('recipe') },
+    { label: 'Monetize', onSelect: enhanceAction('monetize') },
+  ]);
+  composer.panel.appendChild(pexelsCommercialAttr);
+  enhanceMenu.hidden = true;
+  composer.controls.appendChild(enhanceMenu);
+  // The composer's own Generate drives the existing handler.
+  genBtn.hidden = true;
+  composer.controls.appendChild(genBtn);
+  container.appendChild(composer.root);
+
+  const COMMERCIAL_HISTORY_KEY = 'commercial_history';
+  const results = mountStudioResults({
+    container,
+    hero: commBanner,
+    before: composer.root,
+    kind: 'image',
+    historyType: 'image',
+    studio: 'commercial',
+    label: 'Commercial Studio',
+    filenamePrefix: 'product-shot',
+    empty: {
+      heading: 'Create product shots with',
+      highlight: (COMMERCIAL_MODELS.find(m => m.id === selectedModel) || COMMERCIAL_MODELS[0]).name,
+      subtitle: 'Upload a product image, pick a scene and format, then press Generate.',
+      samples: getAssetsForStudio('commercial').map(a => a.thumbnail || a.posterSrc).filter(Boolean).slice(0, 4),
+    },
+    extraActions: (item) => [{ label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'image' }) }],
+    onDelete: () => persistCommercial(),
+  });
+  const persistCommercial = () => {
+    try { localStorage.setItem(COMMERCIAL_HISTORY_KEY, JSON.stringify(results.gallery.items.slice(0, 50))); } catch { /* ignore */ }
+  };
+  try { results.gallery.setItems(JSON.parse(localStorage.getItem(COMMERCIAL_HISTORY_KEY) || '[]')); } catch { /* ignore */ }
 
   const inlineInstructions = createInlineInstructions('commercial');
   inlineInstructions.classList.add('max-w-xl', 'mt-6');
@@ -423,7 +508,11 @@ const COMMERCIAL_MODELS = [
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;
-    genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
+    composer.setGenerating(true);
+    const pendingCard = results.gallery.addPending('Shooting product…');
+    const notifyId = `commercial:${Date.now()}`;
+    notifyGeneration({ phase: 'start', id: notifyId, studio: 'commercial', label: 'Commercial Studio' });
+    let failed = null;
 
     const controller = new AbortController();
 
@@ -446,6 +535,21 @@ const COMMERCIAL_MODELS = [
       }
       const result = await muapi.generateI2I(params);
        if (result?.url) {
+         results.gallery.addItem({ id: result.id || Date.now().toString(), url: result.url, prompt: `${selectedScene}${commercialPrompt ? ` — ${commercialPrompt}` : ''}`, model: selectedModel, aspect_ratio: selectedFormat.ar });
+         persistCommercial();
+         saveGeneration({
+           studio: 'commercial',
+           type: 'image',
+           url: result.url,
+           prompt: `${selectedScene}, professional product photography, commercial quality`,
+           model: selectedModel,
+           parameters: { scene: selectedScene, format: selectedFormat.ar, ...(dynamicControls ? dynamicControls.getPayload({}) : {}) },
+         });
+       } else {
+         throw new Error('No image URL returned by API');
+       }
+       // Previous single-result card, superseded by the results gallery.
+       if (false) {
          resultArea.classList.remove('hidden');
          resultArea.innerHTML = `
            <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
@@ -471,10 +575,15 @@ const COMMERCIAL_MODELS = [
          showToast('Product shot generated successfully!', 'success');
        }
     } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
+      failed = err.message || 'Generation failed';
+      showToast(failed, 'error', 5000);
     } finally {
       genBtn.disabled = false;
-      genBtn.textContent = 'Generate Product Shot';
+      pendingCard.remove();
+      notifyGeneration(failed
+        ? { phase: 'error', id: notifyId, studio: 'commercial', label: 'Commercial Studio', message: failed }
+        : { phase: 'success', id: notifyId, studio: 'commercial', label: 'Commercial Studio' });
+      if (failed) composer.setRetry(); else composer.setGenerating(false);
     }
   };
 

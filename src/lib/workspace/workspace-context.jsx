@@ -399,11 +399,28 @@ function workspaceReducer(state, action) {
       };
     }
 
+    case 'ADD_ELEMENT':
+      return { ...state, elements: [...(state.elements ?? []), action.element] };
+
+    case 'UPDATE_ELEMENT':
+      return {
+        ...state,
+        elements: (state.elements ?? []).map((el) =>
+          el.id === action.element.id ? { ...el, ...action.element, updatedAt: timestamp() } : el,
+        ),
+      };
+
+    case 'REMOVE_ELEMENT':
+      return { ...state, elements: (state.elements ?? []).filter((el) => el.id !== action.elementId) };
+
+    case 'SET_ELEMENTS':
+      return { ...state, elements: action.elements };
+
     case 'HYDRATE': {
       const hydratedSpaces = normalizeWorkflowSpaces(action.payload.spaces, action.payload.nodes, action.payload.edges);
       const activeSpace = resolveActiveSpace(hydratedSpaces, action.payload.activeSpaceId);
       const openSpaceIds = new Set(
-        action.payload.openSpaceIds.filter((spaceId) => hydratedSpaces.some((space) => space.id === spaceId)),
+        Array.from(action.payload.openSpaceIds ?? []).filter((spaceId) => hydratedSpaces.some((space) => space.id === spaceId)),
       );
       if (openSpaceIds.size === 0) {
         openSpaceIds.add(activeSpace.id);
@@ -500,6 +517,15 @@ export function useWorkspace() {
 // Shell Component
 // ---------------------------------------------------------------------------
 
+function loadPersisted(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function WorkspaceShell({ children, initialNodes = [], initialEdges = [] }) {
   const initialSpace = createWorkflowSpace('Space 1', initialNodes, initialEdges);
   const [history, historyDispatch] = useReducer(historyReducer, {
@@ -509,6 +535,10 @@ export function WorkspaceShell({ children, initialNodes = [], initialEdges = [] 
       spaces: [initialSpace],
       activeSpaceId: initialSpace.id,
       openSpaceIds: new Set([initialSpace.id]),
+      assets: [],
+      runningNodeIds: new Set(),
+      timelines: [],
+      elements: loadPersisted('cinegen_elements', []),
     },
     past: [],
     future: [],
@@ -549,6 +579,12 @@ export function WorkspaceShell({ children, initialNodes = [], initialEdges = [] 
       localStorage.setItem('cinegen_active_space', state.activeSpaceId);
     } catch {}
   }, [state.spaces, state.activeSpaceId]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cinegen_elements', JSON.stringify(state.elements ?? []));
+    } catch {}
+  }, [state.elements]);
 
   const dispatch = useCallback((action) => {
     historyDispatch(action);

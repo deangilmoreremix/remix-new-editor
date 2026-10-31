@@ -1,5 +1,6 @@
 import { muapi } from '../lib/muapi.js';
-import { saveGeneration } from '../lib/generationHistory.js';
+import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -22,13 +23,15 @@ import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountImageModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import ExampleGallery from './studios/ExampleGallery.js';
+import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
+import { notifyGeneration } from './studio/generationNotifications.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
@@ -41,6 +44,7 @@ export function ImageStudio() {
   mountStudioChrome(container, { currentRoute: 'image' });
 
     // --- State ---
+    let results = null; // upstream-style empty state + results gallery, mounted with the composer
     const defaultModel = t2iModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
@@ -489,6 +493,7 @@ export function ImageStudio() {
     `, selectedModelName, 'model-btn', 'Select AI generation model');
 
     const updateModelBtnIcon = () => {
+        results?.emptyState?.setHighlight?.(selectedModelName);
         const iconEl = document.getElementById('model-btn-icon');
         if (!iconEl) return;
         const currentModels = imageMode ? i2iModels : t2iModels;
@@ -646,7 +651,51 @@ generateBtn.type = 'button';
     bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
     promptWrapper.appendChild(bar);
+
+    // Upstream composer layout: 38px pills, one ⋯ menu for SmartVideo-only
+    // tools, 40px round upload circle, lime Generate.
+    [modelBtn, arBtn, qualityBtn, advancedBtn].forEach(restylePill);
+    picker.trigger.className = picker.trigger.className.replace('rounded-xl', 'rounded-full').replace('mt-1.5', '');
+    topRow.className = 'flex items-start gap-3';
+    topRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
+    const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
+    foldIntoMoreMenu(controlsLeft, [
+        { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
+        { label: 'Prompt tools', description: 'Quick starters & prompt enhancer', el: toolsBtn },
+        { label: 'Personalize', description: 'Personalize with a contact', el: controlsLeft.querySelector('#v-contact-btn') },
+        { label: 'Custom thumbnail', el: thumbBtn },
+        { label: 'Stock photos', description: 'Use a Pexels photo as reference', el: pexelsBtn },
+        { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
+        { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
+        { label: 'Recipes', onSelect: enhanceAction('recipe') },
+        { label: 'Monetize', onSelect: enhanceAction('monetize') },
+    ]);
+    toolbar.hidden = true;
+    restyleAction(generateBtn);
+    styleComposer({ wrapper: promptWrapper, bar, footer: bottomRow, controls: controlsLeft });
     container.appendChild(promptWrapper);
+
+    results = mountStudioResults({
+        container,
+        hero: heroBanner,
+        before: promptWrapper,
+        kind: 'image',
+        historyType: 'image',
+        studio: 'image',
+        label: 'Image Studio',
+        filenamePrefix: 'smartvideo-image',
+        empty: {
+            heading: 'Start creating with',
+            highlight: selectedModelName,
+            subtitle: 'Describe an image, pick a model and aspect ratio, then press Generate — or upload a reference to transform it.',
+            samples: EXAMPLE_ASSETS.filter(a => a.studio === 'image' && a.thumbnail).slice(0, 4).map(a => a.thumbnail),
+        },
+        extraActions: (item) => [{ label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'image' }) }],
+        onDelete: (item) => {
+            const i = generationHistory.indexOf(item);
+            if (i >= 0) generationHistory.splice(i, 1);
+        },
+    });
 
     const inlineInstructions = createInlineInstructions('image');
     inlineInstructions.classList.add('mt-8');
@@ -771,10 +820,19 @@ generateBtn.type = 'button';
     });
     container.appendChild(advancedPanel);
 
+    // Settings panels open inside the floating composer, above its footer,
+    // instead of far down the page under the quick tips.
+    [toolsPanel, advancedPanel].forEach((panel) => {
+        panel.classList.remove('mt-6');
+        panel.classList.add('max-h-[45vh]', 'overflow-y-auto', 'custom-scrollbar');
+        bar.insertBefore(panel, bottomRow);
+    });
+
     // Advanced panel toggle logic
     const toggleAdvanced = () => {
         showAdvanced = !showAdvanced;
         advancedPanel.classList.toggle('hidden', !showAdvanced);
+        if (showAdvanced && showToolsPanel) { showToolsPanel = false; toolsPanel.classList.add('hidden'); }
         document.getElementById('advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
     };
     
@@ -787,14 +845,13 @@ generateBtn.type = 'button';
     const toggleTools = () => {
         showToolsPanel = !showToolsPanel;
         toolsPanel.classList.toggle('hidden', !showToolsPanel);
-        if (showToolsPanel) {
-            // Close advanced panel when opening tools
-            if (!showAdvanced) {
-                showAdvanced = true;
-                advancedPanel.classList.remove('hidden');
-            }
+        if (showToolsPanel && showAdvanced) {
+            // Only one settings panel open inside the composer at a time.
+            showAdvanced = false;
+            advancedPanel.classList.add('hidden');
+            const advLabel = document.getElementById('advanced-btn-label');
+            if (advLabel) advLabel.textContent = 'Advanced';
         }
-        document.getElementById('tools-btn-label').textContent = showToolsPanel ? 'Tools' : 'Tools';
     };
     
     toolsBtn.onclick = toggleTools;
@@ -895,85 +952,83 @@ generateBtn.type = 'button';
     const dropdown = document.createElement('div');
     dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
+    let modelPickerController = null;
+
+    // Apply a chosen image model id + mode, preserving every studio side effect
+    // (model/ar/quality labels, resolution list, maxImages, dynamic controls).
+    const applyImageModel = (modelId, isImageMode) => {
+        selectedModel = modelId;
+        selectedModelName = (isImageMode ? getI2IModelById(modelId) : getModelById(modelId))?.name || modelId;
+        imageMode = isImageMode;
+        selectedAr = isImageMode
+            ? getAspectRatiosForI2IModel(modelId)[0]
+            : getAspectRatiosForModel(modelId)[0];
+        const label = document.getElementById('model-btn-label');
+        const arLabel = document.getElementById('ar-btn-label');
+        if (label) label.textContent = selectedModelName;
+        if (arLabel) arLabel.textContent = selectedAr;
+        const validResolutions = isImageMode
+            ? getResolutionsForI2IModel(modelId)
+            : getResolutionsForModel(modelId);
+        qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+        if (validResolutions.length > 0) {
+            const qLabel = document.getElementById('quality-btn-label');
+            if (qLabel) qLabel.textContent = validResolutions[0];
+        }
+        if (isImageMode) {
+            picker.setMaxImages(getMaxImagesForI2IModel(modelId));
+        }
+        updateModelBtnIcon();
+        if (dynamicControls) {
+            const resolved = isImageMode ? getI2IModelById(modelId) : getModelById(modelId);
+            dynamicControls.update(getExtendedModel(resolved));
+        }
+    };
+
+    // Open the upstream split-pane picker (provider sidebar, search, categories).
+    // A fresh instance is mounted per open so the selected-model highlight is live.
+    const openImageModelPicker = (anchorBtn) => {
+        modelPickerController?.close();
+        modelPickerController = null;
+        modelPickerController = mountImageModelSelector({
+            anchor: anchorBtn,
+            selectedModelId: selectedModel,
+            allowedModelTypes: ['t2i', 'i2i'],
+            copy: {
+                categories: { t2i: 'Text to Image', i2i: 'Image to Image' },
+                searchPlaceholder: 'Search models...',
+            },
+            onSelectCategory: (catId) => {
+                const isI2I = catId === 'i2i';
+                const nextModels = isI2I ? i2iModels : t2iModels;
+                if (nextModels.length) applyImageModel(nextModels[0].id, isI2I);
+                modelPickerController?.refresh(nextModels[0]?.id || null);
+            },
+            onSelectModel: (entry, catId) => {
+                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
+                // In the "All" category the mode comes from the variant itself,
+                // so edit-only models still get reference-image validation.
+                const isI2I = catId === 'i2i' || (catId !== 't2i' && variant?.mode === 'i2i');
+                if (variant) applyImageModel(variant.model.id, isI2I);
+                closeDropdown();
+            },
+            onClose: () => { modelPickerController = null; },
+        });
+        modelPickerController.open();
+    };
+
     const showDropdown = (type, anchorBtn) => {
         dropdown.innerHTML = '';
         dropdown.classList.remove('opacity-0', 'pointer-events-none');
         dropdown.classList.add('opacity-100', 'pointer-events-auto');
 
-        if (type === 'model') {
-            dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
-            dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
-            const currentModels = imageMode ? i2iModels : t2iModels;
-            mountModelSelector(dropdown, {
-              models: currentModels,
-              selectedModelId: selectedModel,
-              showProviderName: true,
-              categories: [
-                { id: 't2i', label: 'Text to Image', models: t2iModels },
-                { id: 'i2i', label: 'Image to Image', models: i2iModels },
-              ],
-              selectedCategory: imageMode ? 'i2i' : 't2i',
-              onSelectCategory: (catId) => {
-                const newImageMode = catId === 'i2i';
-                imageMode = newImageMode;
-                const nextModels = newImageMode ? i2iModels : t2iModels;
-                selectedModel = nextModels[0].id;
-                selectedModelName = nextModels[0].name;
-                selectedAr = newImageMode
-                  ? getAspectRatiosForI2IModel(selectedModel)[0]
-                  : getAspectRatiosForModel(selectedModel)[0];
-                document.getElementById('model-btn-label').textContent = selectedModelName;
-                document.getElementById('ar-btn-label').textContent = selectedAr;
-                const validResolutions = newImageMode
-                  ? getResolutionsForI2IModel(selectedModel)
-                  : getResolutionsForModel(selectedModel);
-                qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
-                if (validResolutions.length > 0) {
-                  document.getElementById('quality-btn-label').textContent = validResolutions[0];
-                }
-                if (newImageMode) {
-                  picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
-                }
-                updateModelBtnIcon();
-                if (dynamicControls) {
-                  const resolved = newImageMode
-                    ? getI2IModelById(selectedModel)
-                    : getModelById(selectedModel);
-                  dynamicControls.update(getExtendedModel(resolved));
-                }
-              },
-              onSelectModel: (model, categoryId) => {
-                const newImageMode = categoryId === 'i2i';
-                imageMode = newImageMode;
-                selectedModel = model.id;
-                selectedModelName = model.name;
-                selectedAr = newImageMode
-                  ? getAspectRatiosForI2IModel(selectedModel)[0]
-                  : getAspectRatiosForModel(selectedModel)[0];
-                document.getElementById('model-btn-label').textContent = selectedModelName;
-                document.getElementById('ar-btn-label').textContent = selectedAr;
-                const validResolutions = newImageMode
-                  ? getResolutionsForI2IModel(selectedModel)
-                  : getResolutionsForModel(selectedModel);
-                qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
-                if (validResolutions.length > 0) {
-                  document.getElementById('quality-btn-label').textContent = validResolutions[0];
-                }
-                if (newImageMode) {
-                  picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
-                }
-                updateModelBtnIcon();
-                if (dynamicControls) {
-                  const resolved = newImageMode
-                    ? getI2IModelById(selectedModel)
-                    : getModelById(selectedModel);
-                  dynamicControls.update(getExtendedModel(resolved));
-                }
-                closeDropdown();
-              },
-            });
+        // Dismiss the upstream model picker when a different dropdown opens.
+        if (modelPickerController) {
+            modelPickerController.close();
+            modelPickerController = null;
+        }
 
-        } else if (type === 'ar') {
+        if (type === 'ar') {
             dropdown.classList.add('max-w-[240px]');
             dropdown.innerHTML = `<div class="text-[10px] font-bold text-muted uppercase tracking-widest px-3 py-2 border-b border-white/5 mb-2">Aspect Ratio</div>`;
             const list = document.createElement('div');
@@ -1041,6 +1096,10 @@ generateBtn.type = 'button';
     };
 
     const closeDropdown = () => {
+        if (modelPickerController) {
+            modelPickerController.close();
+            modelPickerController = null;
+        }
         dropdown.classList.add('opacity-0', 'pointer-events-none');
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
@@ -1054,19 +1113,12 @@ generateBtn.type = 'button';
 
     modelBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (dropdownOpen === 'model') closeDropdown();
-        else {
-            dropdownOpen = 'model';
-            selectedProvider = 'all';
-            showDropdown('model', modelBtn);
-            const handler = dropdown._outsideClickHandler;
-            if (handler) {
-                window.removeEventListener('click', handler);
-                dropdown._outsideClickHandler = null;
-            }
-            const newHandler = () => closeDropdown();
-            dropdown._outsideClickHandler = newHandler;
-            window.addEventListener('click', newHandler);
+        if (modelPickerController) {
+            modelPickerController.close();
+            modelPickerController = null;
+        } else {
+            closeDropdown();
+            openImageModelPicker(modelBtn);
         }
     });
 
@@ -1124,7 +1176,8 @@ generateBtn.type = 'button';
     historyList.className = 'flex flex-col gap-2 w-full px-2';
     historySidebar.appendChild(historyList);
 
-    container.appendChild(historySidebar);
+    // Results now live in the upstream-style gallery; the old side rail and
+    // full-page canvas are kept detached only for code that still reads them.
 
     // Main canvas
     const canvas = document.createElement('div');
@@ -1168,11 +1221,12 @@ generateBtn.type = 'button';
 
     canvas.appendChild(imageContainer);
     canvas.appendChild(canvasControls);
-    container.appendChild(canvas);
 
     // --- Helper: Show image in canvas ---
     const showImageInCanvas = (imageUrl) => {
-        // Fully hide hero and prompt
+        results.area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+        // eslint-disable-next-line no-unreachable
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
@@ -1205,11 +1259,7 @@ generateBtn.type = 'button';
             request_id: entry.id,
         });
 
-        // Show sidebar
-        historySidebar.classList.remove('translate-x-full', 'opacity-0');
-        historySidebar.classList.add('translate-x-0', 'opacity-100');
-
-        renderHistory();
+        results.gallery.addItem(entry);
     };
 
     const renderHistory = () => {
@@ -1231,6 +1281,18 @@ generateBtn.type = 'button';
             downloadBtn.title = 'Download';
             downloadBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
             overlay.appendChild(downloadBtn);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'hist-delete p-1.5 bg-red-500/80 rounded-lg text-white hover:scale-110 transition-transform';
+            deleteBtn.title = 'Delete';
+            deleteBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (!confirmDeleteGeneration(entry.url, 'image')) return;
+                generationHistory.splice(idx, 1);
+                renderHistory();
+            };
+            overlay.appendChild(deleteBtn);
             thumb.appendChild(overlay);
 
             thumb.onclick = (e) => {
@@ -1276,9 +1338,7 @@ generateBtn.type = 'button';
         const saved = JSON.parse(localStorage.getItem('muapi_history') || '[]');
         if (saved.length > 0) {
             saved.forEach(e => generationHistory.push(e));
-            historySidebar.classList.remove('translate-x-full', 'opacity-0');
-            historySidebar.classList.add('translate-x-0', 'opacity-100');
-            renderHistory();
+            results.gallery.setItems(generationHistory);
         }
     } catch (e) { /* ignore */ }
 
@@ -1362,14 +1422,13 @@ generateBtn.type = 'button';
             return;
         }
 
-        hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
-        generateBtn.disabled = true;
-        generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> Generating...`;
+        const pendingCard = results.gallery.addPending('Generating image…');
+        const notifyId = `image:${Date.now()}`;
+        notifyGeneration({ phase: 'start', id: notifyId, studio: 'image', label: 'Image Studio' });
+        setActionBusy(generateBtn, true);
         const controller = new AbortController();
-        const loadingOverlay = createLoadingOverlay('Generating image...');
-        const progressBar = createProgressBar(0);
-        loadingOverlay.appendChild(progressBar);
-        container.appendChild(loadingOverlay);
+        const pendingJob = createPendingJobTracker('image', { prompt, model: selectedModel, aspect_ratio: selectedAr }, { maxAttempts: 60 });
+        const loadingOverlay = null;
 
         try {
             let res;
@@ -1384,6 +1443,7 @@ generateBtn.type = 'button';
                     image_url: uploadedImageUrls[0], // backward compat for single-image models
                     aspect_ratio: selectedAr,
                     signal: controller.signal,
+                    onRequestId: pendingJob.onRequestId,
                     ...dynamicPayload
                 };
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
@@ -1401,12 +1461,8 @@ generateBtn.type = 'button';
                 const supportsStyleParam = 'style' in modelInputs;
 
                 let finalPrompt = prompt;
-                if (selectedStyle && selectedStyle !== 'None') {
-                    if (supportsStyleParam) {
-                        genParams.style = selectedStyle;
-                    } else {
-                        finalPrompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
-                    }
+                if (selectedStyle && selectedStyle !== 'None' && !supportsStyleParam) {
+                    finalPrompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
                 }
 
                 const genParams = {
@@ -1414,8 +1470,10 @@ generateBtn.type = 'button';
                     prompt: finalPrompt,
                     aspect_ratio: selectedAr,
                     signal: controller.signal,
+                    onRequestId: pendingJob.onRequestId,
                     ...dynamicPayload
                 };
+                if (selectedStyle && selectedStyle !== 'None' && supportsStyleParam) genParams.style = selectedStyle;
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 if (batchCount > 1) genParams.batch_count = batchCount;
                 if (selectedLora) genParams.lora = selectedLora;
@@ -1426,6 +1484,8 @@ generateBtn.type = 'button';
             }
 
             if (res && res.url) {
+                pendingCard.remove();
+                notifyGeneration({ phase: 'success', id: notifyId, studio: 'image', label: 'Image Studio', url: res.url });
                 // Add to history
                 addToHistory({
                     id: res.id || Date.now().toString(),
@@ -1442,18 +1502,25 @@ generateBtn.type = 'button';
                 throw new Error('No image URL returned by API');
             }
         } catch (e) {
-            if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
-            generateBtn.innerHTML = `Error: ${e.message.slice(0, 40)}`;
-            setTimeout(() => {
-                generateBtn.innerHTML = `Generate ✨`;
-                generateBtn.disabled = false;
-            }, 3000);
+            pendingJob.finish();
+            pendingCard.remove();
+            notifyGeneration({ phase: 'error', id: notifyId, studio: 'image', label: 'Image Studio', message: e.message });
+            showToast(e.message || 'Generation failed', 'error', 5000);
+            setActionRetry(generateBtn);
             return;
         }
-        if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
-        generateBtn.disabled = false;
-        generateBtn.innerHTML = `Generate ✨`;
+        pendingJob.finish();
+        setActionBusy(generateBtn, false);
     };
+
+    // Pick up generations that were still running when the page was reloaded.
+    resumePendingJobs('image', {
+        poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+        onResult: (url, job) => {
+            addToHistory({ id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
+            showToast('Recovered a generation that finished while you were away', 'success');
+        },
+    });
 
     const galleryAssets = EXAMPLE_ASSETS.filter(asset => asset.studio === 'image' && !asset.videoSrc);
     if (galleryAssets.length > 0) {

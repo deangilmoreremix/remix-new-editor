@@ -1,4 +1,7 @@
 import { muapi } from '../lib/muapi.js';
+import { restyleAction, setActionBusy, setActionRetry } from './studio/studioLayout.js';
+import { notifyGeneration } from './studio/generationNotifications.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
@@ -962,8 +965,8 @@ export function AudioStudio() {
   // Generate button
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
-  genBtn.textContent = 'Generate Audio';
+  restyleAction(genBtn);
+  genBtn.classList.add('sm:w-full');
   genBtn.setAttribute('aria-label', 'Generate audio');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
@@ -1020,14 +1023,46 @@ export function AudioStudio() {
 
   // Loading overlay
   const loadingOverlay = document.createElement('div');
-  loadingOverlay.className = 'fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm';
+  // Upstream Audio shows progress in the result pane, not a full-page overlay.
+  loadingOverlay.className = 'hidden w-full rounded-2xl border border-white/10 bg-[#111]/80 py-16 flex-col items-center justify-center gap-4';
   loadingOverlay.innerHTML = `
-    <div class="flex flex-col items-center gap-4 p-8 rounded-2xl border border-white/10 bg-card-bg shadow-3xl">
-      <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      <p class="text-sm font-medium text-secondary text-center max-w-xs">Generating audio...</p>
-    </div>
+      <div class="relative w-24 h-24 flex items-center justify-center">
+        <div class="absolute inset-0 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary animate-pulse"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </div>
+      <p class="text-xs font-bold uppercase tracking-widest text-white/60">Generating audio…</p>
   `;
-  container.appendChild(loadingOverlay);
+
+  // ── Upstream two-pane layout: settings sidebar left, results right ──
+  const panes = document.createElement('div');
+  panes.className = 'w-full max-w-6xl flex flex-col lg:flex-row gap-6 items-start';
+  const leftPane = document.createElement('div');
+  leftPane.className = 'w-full lg:w-[400px] lg:shrink-0 flex flex-col gap-4';
+  const rightPane = document.createElement('div');
+  rightPane.className = 'flex-1 min-w-0 w-full flex flex-col gap-4';
+  const emptyCard = document.createElement('div');
+  emptyCard.className = 'w-full rounded-2xl border border-white/10 bg-[#111]/60 py-16 flex flex-col items-center justify-center gap-3 text-center';
+  emptyCard.innerHTML = `
+      <div class="relative w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_40px_rgba(217,255,0,0.15)]">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </div>
+      <div class="text-sm font-bold text-white">Your audio will appear here</div>
+      <div class="text-xs text-white/40 max-w-xs">Pick a model, fill in the settings on the left and press Generate.</div>
+  `;
+  [modelWrapper, formCard].forEach((el) => { el.classList.remove('max-w-xl', 'mb-6'); leftPane.appendChild(el); });
+  [resultArea, editorControls].forEach((el) => el.classList.remove('max-w-xl', 'mt-6', 'mt-4'));
+  rightPane.append(emptyCard, loadingOverlay, resultArea, editorControls, historyGridContainer);
+  panes.append(leftPane, rightPane);
+  container.insertBefore(panes, inlineInstructions);
+  const syncEmptyCard = () => {
+    const busy = !loadingOverlay.classList.contains('hidden');
+    const hasResult = !resultArea.classList.contains('hidden');
+    const hasHistory = historyGridContainer.childElementCount > 0 && historyGridContainer.textContent.trim().length > 0;
+    emptyCard.classList.toggle('hidden', busy || hasResult || hasHistory);
+  };
+  const emptyObserver = new MutationObserver(syncEmptyCard);
+  [loadingOverlay, resultArea].forEach((el) => emptyObserver.observe(el, { attributes: true, attributeFilter: ['class'] }));
+  emptyObserver.observe(historyGridContainer, { childList: true, subtree: true });
 
   function showLoading() {
     loadingOverlay.classList.remove('hidden');
@@ -1317,10 +1352,13 @@ export function AudioStudio() {
     }
 
     audioAbortController = new AbortController();
+    let pendingJob = null;
 
-    genBtn.disabled = true;
-    genBtn.textContent = 'Generating...';
+    setActionBusy(genBtn, true);
     showLoading();
+    const notifyId = `audio:${Date.now()}`;
+    let failed = null;
+    notifyGeneration({ phase: 'start', id: notifyId, studio: 'audio', label: 'Audio Studio' });
 
     cleanupResult();
 
@@ -1369,7 +1407,12 @@ export function AudioStudio() {
         ? await resolveMuapiMediaRefs(audioAttachmentState.videos)
         : [];
 
-      const mergedSchemaParams = { ...resolvedSchemaParams, signal: audioAbortController.signal };
+      pendingJob = createPendingJobTracker('audio', {
+        title: schemaParams.title || prompt || `Generated ${selectedModel.name}`,
+        prompt: processedPrompt,
+        model: selectedModelId,
+      }, { maxAttempts: 180 });
+      const mergedSchemaParams = { ...resolvedSchemaParams, signal: audioAbortController.signal, onRequestId: pendingJob.onRequestId };
       if (resolvedAudioUrl && !mergedSchemaParams.audio_url) {
         mergedSchemaParams.audio_url = resolvedAudioUrl;
       }
@@ -1428,12 +1471,16 @@ export function AudioStudio() {
     } catch (err) {
       console.error('[AudioStudio]', err);
       const errMsg = formatErrorMessage(err, 'Failed to generate audio');
-      showToast(errMsg, 'error');
+      failed = errMsg;
+      showToast(errMsg, 'error', 5000);
     } finally {
+      pendingJob?.finish();
       hideLoading();
       audioAbortController = null;
-      genBtn.disabled = false;
-      genBtn.textContent = 'Generate Audio';
+      notifyGeneration(failed
+        ? { phase: 'error', id: notifyId, studio: 'audio', label: 'Audio Studio', message: failed }
+        : { phase: 'success', id: notifyId, studio: 'audio', label: 'Audio Studio' });
+      if (failed) setActionRetry(genBtn); else setActionBusy(genBtn, false);
     }
   };
 
@@ -1444,6 +1491,15 @@ export function AudioStudio() {
   }
 
   renderHistoryGrid();
+
+  // Pick up generations that were still running when the page was reloaded.
+  resumePendingJobs('audio', {
+    poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+    onResult: (url, job) => {
+      addToHistory({ id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
+      showToast('Recovered a generation that finished while you were away', 'success');
+    },
+  });
 
   // MiniMax H3 example styles — demos that align with this studio, shown as
   // examples at the bottom of the controls. Each card opens a detail modal;

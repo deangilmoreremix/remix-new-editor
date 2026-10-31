@@ -7,6 +7,7 @@
 // Used by the vanilla *Studio.js components and the *Page studio routes.
 import { navigate } from './router.js';
 import { getGroupedStudioRoutes, getStudioIcon, getStudioLabel } from './studioRoutes.js';
+import { enableStudioFileDropDelegation } from './studioFileDrop.js';
 
 const BACK_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
 const MENU_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>';
@@ -49,9 +50,10 @@ export function createStudioNavCluster({ onBack, onMenu, drawer } = {}) {
 // studio root container. Works for every studio surface (vanilla DOM factories,
 // *Page routes, VideoAgent agents). The drawer is mounted on document.body so it is
 // never clipped by studio overflow containers.
-// Returns { topbar, drawer }.
+// Returns { topbar, drawer, fileDrop }.
 export function mountStudioChrome(rootContainer, { title, onBack, currentRoute } = {}) {
   const drawer = mountStudioDrawer(document.body, { currentRoute });
+  const fileDrop = enableStudioFileDropDelegation(rootContainer);
 
   const topbar = document.createElement('div');
   topbar.className = 'studio-topbar';
@@ -72,7 +74,7 @@ export function mountStudioChrome(rootContainer, { title, onBack, currentRoute }
   rootContainer.classList.add('studio-has-chrome');
   rootContainer.insertBefore(topbar, rootContainer.firstChild);
 
-  return { topbar, drawer };
+  return { topbar, drawer, fileDrop };
 }
 
 // Mounts a slide-in drawer (overlay) listing ALL routes, grouped by category.
@@ -85,7 +87,7 @@ export function mountStudioDrawer(rootEl, { onNavigate, currentRoute } = {}) {
     <div class="studio-drawer__backdrop absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     <aside class="studio-drawer__panel absolute left-0 top-0 h-full w-[300px] max-w-[85vw] bg-app-bg border-r border-white/10 overflow-y-auto custom-scrollbar p-4 shadow-2xl flex flex-col">
       <div class="flex items-center justify-between mb-4 shrink-0">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-white/60">All Studios</h2>
+        <h2 class="text-sm font-bold uppercase tracking-wider text-white/40">All Studios</h2>
         <button type="button" class="studio-drawer__close p-2 hover:bg-white/10 rounded-lg text-white/70 hover:text-white" aria-label="Close">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>

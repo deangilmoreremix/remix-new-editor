@@ -18,13 +18,13 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Handle, Position, useReactFlow, Node } from '@xyflow/react';
-import { ALL_MODELS, getModelDefinition } from '../../lib/fal/models.js';
-import { CATEGORY_COLORS, PORT_COLORS } from '../../lib/workflows/node-registry.js';
-import { getApiKey, getKieApiKey, getRunpodApiKey, getRunpodEndpointId, getPodUrl } from '../../lib/utils/api-key.js';
-import { useWorkspace, getActiveTimeline } from '../../lib/workspace/workspace-context.jsx';
-import { addClipToTrack } from '../../lib/editor/timeline-operations.js';
+import { ALL_MODELS, getModelDefinition } from '../../../lib/fal/models.js';
+import { CATEGORY_COLORS, PORT_COLORS } from '../../../lib/workflows/node-registry.js';
+import { getApiKey, getKieApiKey, getRunpodApiKey, getRunpodEndpointId, getPodUrl } from '../../../lib/utils/api-key.js';
+import { useWorkspace, getActiveTimeline } from '../../../lib/workspace/workspace-context.jsx';
+import { addClipToTrack } from '../../../lib/editor/timeline-operations.js';
 import { clipEffectiveDuration } from '/src/types/timeline.js';
-import { generateId, timestamp } from '../../lib/workspace/workspace-context.jsx';
+import { generateId, timestamp } from '../../../lib/workspace/workspace-context.jsx';
 import { WorkflowNodeData } from '/src/types/workflow.js';
 import { Asset } from '/src/types/project.js';
 

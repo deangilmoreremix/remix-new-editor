@@ -2,6 +2,11 @@
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
+import { confirmDeleteGeneration } from '../lib/generationHistory.js';
+import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
+import { controlClassName, CONTROL_LABEL_CLASS } from './studio/promptComposer.js';
+import { notifyGeneration } from './studio/generationNotifications.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
 import { CameraControls } from './CameraControls.js';
@@ -9,7 +14,7 @@ import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTUR
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
-import { mountModelSelector, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountVideoModelSelector } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -71,6 +76,7 @@ export function CinemaStudio() {
   mountStudioChrome(container, { currentRoute: 'cinema' });
 
     // --- State ---
+    let results = null; // upstream-style empty state + results gallery, mounted with the composer
     const currentSettings = {
         prompt: '',
         aspect_ratio: '16:9',
@@ -553,6 +559,8 @@ export function CinemaStudio() {
       } else {
         thumb.classList.add('hidden');
       }
+      // The "reference loaded" note only makes sense while a reference is set.
+      thumb.parentElement?.classList.toggle('hidden', !url);
     }
 
     inputArea.appendChild(inputRow);
@@ -560,7 +568,7 @@ export function CinemaStudio() {
 
     // Small reference preview pill (hidden until an image is uploaded)
     const referencePill = document.createElement('div');
-    referencePill.className = 'flex items-center gap-2 mt-1';
+    referencePill.className = 'hidden flex items-center gap-2 mt-1';
     referencePill.innerHTML = `
       <img id="reference-thumb" class="hidden w-10 h-10 rounded-lg border border-white/10 object-cover" alt="reference" />
       <span class="text-[10px] text-secondary">Reference scene loaded — used as the seed for your cinematic shot.</span>
@@ -608,6 +616,7 @@ export function CinemaStudio() {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
             || t2vModels.find(x => x.id === currentSettings.model)
             || t2vModels[0];
+        results?.emptyState?.setHighlight?.(m ? m.name : currentSettings.model);
         modelBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-[8px] font-black text-black">V</span></div> ${m ? m.name : currentSettings.model}`;
     };
     updateModelBtn();
@@ -643,6 +652,7 @@ export function CinemaStudio() {
     settingsToolbar.appendChild(modelDropdown);
 
     let _modelSelectorOutsideClickHandler = null;
+    let cinemaPickerController = null;
 
     const closeModelDropdown = () => {
         modelDropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
@@ -651,52 +661,61 @@ export function CinemaStudio() {
             document.removeEventListener('click', _modelSelectorOutsideClickHandler);
             _modelSelectorOutsideClickHandler = null;
         }
+        if (cinemaPickerController) {
+            cinemaPickerController.close();
+            cinemaPickerController = null;
+        }
     };
 
-    function showModelDropdown() {
-        const isI2V = !!currentSettings.referenceUrl;
-        const models = isI2V ? i2vModels : t2vModels;
-        mountModelSelector(modelDropdown, {
-          models: [...t2vModels, ...i2vModels],
-          categories: [
-            { id: 't2v', label: 'Text to Video', models: t2vModels },
-            { id: 'i2v', label: 'Image to Video', models: i2vModels },
-          ],
-          selectedCategory: isI2V ? 'i2v' : 't2v',
-          selectedModelId: currentSettings.model,
-          showProviderName: true,
-          headerLabel: isI2V ? 'Image-to-video models' : 'Text-to-video models',
-          autoFocus: true,
-          onSelectCategory: (catId) => {
-            const newI2V = catId === 'i2v';
-            if (newI2V && !currentSettings.referenceUrl) {
-              currentSettings.referenceUrl = '';  // trigger i2v mode UI
-            }
-            const nextModels = newI2V ? i2vModels : t2vModels;
-            currentSettings.model = nextModels[0].id;
-            updateModelBtn();
-            updateControlsForModel();
-          },
-          onSelectModel: (model) => {
-            currentSettings.model = model.id;
-            updateModelBtn();
-            updateControlsForModel();
-            closeModelDropdown();
-          },
+    // Rich split-pane model picker (provider sidebar + category tabs + search),
+    // supporting Text-to-Video (t2v) and Image-to-Video (i2v) catalogs.
+    // Reuses the upstream Image/Video catalog + mountVideoModelSelector so the
+    // studio stays in parity with ImageStudio/VideoStudio pickers.
+    function openCinemaModelPicker(anchorBtn) {
+        cinemaPickerController?.close();
+        cinemaPickerController = null;
+
+        cinemaPickerController = mountVideoModelSelector({
+            anchor: anchorBtn,
+            selectedModelId: currentSettings.model,
+            allowedModelTypes: ['t2v', 'i2v'],
+            copy: {
+                categories: { t2v: 'Text to Video', i2v: 'Image to Video' },
+                searchPlaceholder: 'Search models...',
+            },
+            onSelectCategory: (catId) => {
+                const newI2V = catId === 'i2v';
+                if (newI2V && !currentSettings.referenceUrl) {
+                    currentSettings.referenceUrl = ''; // trigger i2v mode UI
+                }
+                const nextModels = newI2V ? i2vModels : t2vModels;
+                currentSettings.model = nextModels[0].id;
+                updateModelBtn();
+                updateControlsForModel();
+                cinemaPickerController?.refresh(nextModels[0]?.id || null);
+            },
+            onSelectModel: (entry, catId) => {
+                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
+                if (variant) currentSettings.model = variant.model.id;
+                updateModelBtn();
+                updateControlsForModel();
+                closeModelDropdown();
+            },
+            onClose: () => {
+                cinemaPickerController = null;
+            },
         });
+        cinemaPickerController.open();
+    }
 
-        modelDropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-        modelDropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-
-        if (_modelSelectorOutsideClickHandler) {
-            document.removeEventListener('click', _modelSelectorOutsideClickHandler);
-            _modelSelectorOutsideClickHandler = null;
+    function showModelDropdown() {
+        if (cinemaPickerController) {
+            cinemaPickerController.close();
+            cinemaPickerController = null;
+            return;
         }
-        _modelSelectorOutsideClickHandler = (e) => {
-            if (!modelDropdown.contains(e.target) && e.target !== modelBtn) closeModelDropdown();
-        };
-        document.addEventListener('click', _modelSelectorOutsideClickHandler);
-        positionModelSelectorDropdown(modelDropdown, modelBtn, 8, container);
+        closeModelDropdown();
+        openCinemaModelPicker(modelBtn);
     }
 
     // Sync controls (duration/resolution availability) to the selected model.
@@ -745,6 +764,14 @@ export function CinemaStudio() {
         createDropdown(['1K', '2K', '4K'], resBtn.dataset.value, (val) => { updateResBtn(val); resBtn.dataset.touched = '1'; }, resBtn);
     };
     settingsToolbar.appendChild(resBtn);
+
+    // Opens the Advanced Options panel (negative prompt, seed, duration, …).
+    const advancedBtn = document.createElement('button');
+    advancedBtn.type = 'button';
+    advancedBtn.className = resBtn.className;
+    advancedBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg> <span data-advanced-label>Advanced</span>';
+    advancedBtn.onclick = () => toggleAdvanced();
+    settingsToolbar.appendChild(advancedBtn);
     
     // Camera Builder Toggle Button
     const cameraBuilderBtn = document.createElement('button');
@@ -769,8 +796,8 @@ export function CinemaStudio() {
         csCharacterLockBtn.onclick = () => {
             characterLock = !characterLock;
             csCharacterLockBtn.setAttribute('data-character-lock', String(characterLock));
-            csCharacterLockBtn.style.background = characterLock ? 'var(--cyan)' : '';
-            csCharacterLockBtn.style.borderColor = characterLock ? 'var(--cyan)' : '';
+            csCharacterLockBtn.style.background = characterLock ? 'var(--color-primary)' : '';
+            csCharacterLockBtn.style.borderColor = characterLock ? 'var(--color-primary)' : '';
             csCharacterLockKnob.style.left = characterLock ? 'calc(100% - 4px)' : '4px';
         };
     }
@@ -912,9 +939,70 @@ export function CinemaStudio() {
     promptBar.appendChild(buttonsRow);
 
     promptBarWrapper.appendChild(promptBar);
-    // Place the controls ABOVE the inline-instruction tips (which are appended
-    // earlier as `inlineInstructions`), instead of pinning them to the bottom.
+
+    // Upstream Cinema composer: a large start-frame tile beside the prompt,
+    // then 38px pills (Model, AR, Resolution, Advanced, Builder) and a camera
+    // summary pill ("● Camera · lens…") that opens the camera overlay.
+    [modelBtn, arBtn, resBtn, advancedBtn, cameraBuilderBtn].forEach((b) => {
+        restylePill(b);
+        if (b) b.classList.add('text-xs', 'font-semibold');
+    });
+    uploadPicker.trigger.className = 'w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] hover:border-primary/50 hover:bg-white/[0.06] transition-all flex items-center justify-center relative overflow-hidden group';
+    uploadPicker.trigger.title = 'Start frame (optional)';
+    inputRow.className = 'flex items-start gap-4';
+    inputRow.insertBefore(uploadPicker.trigger, inputRow.firstChild);
+    textarea.className = 'flex-1 w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:outline-none resize-none pt-1 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
+    inputRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
+    summaryCard.className = controlClassName({ className: 'max-w-[260px]' });
+    summaryCard.innerHTML = '';
+    dot.className = 'w-2 h-2 rounded-full bg-primary shrink-0 shadow-glow-sm';
+    summaryTitle.className = CONTROL_LABEL_CLASS + ' truncate max-w-[110px]';
+    summaryValue.className = 'text-xs text-white/40 truncate max-w-[120px]';
+    summaryCard.append(dot, summaryTitle, summaryValue);
+    settingsToolbar.appendChild(summaryCard);
+    const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
+    foldIntoMoreMenu(settingsToolbar, [
+        { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
+        { label: 'Character lock', description: 'Keep the same character across shots', onSelect: () => csCharacterLockBtn?.click() },
+        { label: 'Personalize', description: 'Personalize with a contact', el: settingsToolbar.querySelector('#v-contact-btn') },
+        { label: 'Custom thumbnail', el: thumbBtn },
+        { label: 'Stock photo', description: 'Pexels photo as the start frame', el: pexelsRefBtn },
+        { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
+        { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
+        { label: 'Recipes', onSelect: enhanceAction('recipe') },
+        { label: 'Monetize', onSelect: enhanceAction('monetize') },
+    ]);
+    [gtmBtn, characterLockWrap, enhanceMenu].forEach((el) => { if (el) el.hidden = true; });
+    restyleAction(generateBtn);
+    rightGroup.className = 'flex items-center';
+    styleComposer({ wrapper: promptBarWrapper, bar: promptBar, footer: buttonsRow, controls: settingsToolbar });
     container.insertBefore(promptBarWrapper, inlineInstructions);
+
+    results = mountStudioResults({
+        container,
+        hero: cinemaBanner,
+        before: promptBarWrapper,
+        kind: 'video',
+        historyType: 'video',
+        studio: 'cinema',
+        label: 'Cinema Studio',
+        filenamePrefix: 'cinema-shot',
+        empty: {
+            heading: 'Start shooting with',
+            highlight: ((currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model) || t2vModels[0])?.name || 'Cinema Studio',
+            subtitle: 'Write the scene, set camera, lens and look, optionally add a start frame — then Generate.',
+            samples: getAssetsForStudio('cinema').map(a => a.thumbnail || a.posterSrc).filter(Boolean).slice(0, 4),
+        },
+        extraActions: (item) => [
+            { label: 'Load settings', onSelect: () => loadHistoryItem(generationHistory.find(e => e.url === item.url) || { url: item.url }, null) },
+            { label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'video' }) },
+        ],
+        onDelete: (item) => {
+            const i = generationHistory.findIndex(e => e.url === item.url);
+            if (i >= 0) generationHistory.splice(i, 1);
+            try { localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50))); } catch { /* ignore */ }
+        },
+    });
 
     // ==========================================
     // 3B. CAMERA BUILDER PANEL (Collapsible)
@@ -1078,7 +1166,8 @@ export function CinemaStudio() {
     historyList.className = 'flex flex-col gap-2 w-full px-2';
     historySidebar.appendChild(historyList);
 
-    container.appendChild(historySidebar);
+    // Results live in the upstream-style gallery; the old side rail and
+    // full-page canvas stay detached for handlers that still read them.
 
     // ==========================================
     // 4. ADVANCED OPTIONS PANEL (control engine)
@@ -1098,7 +1187,8 @@ export function CinemaStudio() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
     `;
-    advancedPanel.appendChild(advHeader);
+    advancedCard.appendChild(advHeader);
+    advHeader.querySelector('#close-cinema-adv-btn').onclick = () => { if (showAdvanced) toggleAdvanced(); };
 
     const advancedControlsContainer = document.createElement('div');
     advancedControlsContainer.className = 'flex flex-col gap-4';
@@ -1123,10 +1213,15 @@ export function CinemaStudio() {
     });
     container.appendChild(advancedPanel);
 
+    // Advanced settings open inside the floating composer, above its footer.
+    advancedPanel.className = 'w-full animate-fade-in-up hidden max-h-[45vh] overflow-y-auto custom-scrollbar';
+    promptBar.insertBefore(advancedPanel, buttonsRow);
+
     const toggleAdvanced = () => {
       showAdvanced = !showAdvanced;
       advancedPanel.classList.toggle('hidden', !showAdvanced);
-      document.getElementById('advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
+      const label = container.querySelector('[data-advanced-label]');
+      if (label) label.textContent = showAdvanced ? 'Less' : 'Advanced';
     };
 
     // ==========================================
@@ -1162,9 +1257,61 @@ export function CinemaStudio() {
     const downloadBtn = createActionBtn('↓ Download', true);
     const newPromptBtn = createActionBtn('+ New Shot');
 
+    const copyPromptBtn = createActionBtn('⧉ Copy Prompt');
+    const copyMediaBtn = createActionBtn('⧉ Copy Image');
+
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);
+    canvasControls.appendChild(copyPromptBtn);
+    canvasControls.appendChild(copyMediaBtn);
     canvasControls.appendChild(newPromptBtn);
+
+    const flashLabel = (btn, text) => {
+        const original = btn.textContent;
+        btn.textContent = text;
+        setTimeout(() => { btn.textContent = original; }, 1500);
+    };
+
+    copyPromptBtn.onclick = async () => {
+        const text = textarea.value.trim();
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            flashLabel(copyPromptBtn, 'Copied!');
+        } catch {
+            showToast('Could not copy the prompt', 'error');
+        }
+    };
+
+    // Stills are copied as PNG (the only image type browsers accept on the
+    // clipboard); videos, or browsers without image clipboard support, get the link.
+    copyMediaBtn.onclick = async () => {
+        const url = currentResultUrl;
+        if (!url) return;
+        const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url);
+        try {
+            if (!isVideo && window.ClipboardItem) {
+                const blob = await fetch(url).then(r => r.blob());
+                const bitmap = await createImageBitmap(blob);
+                const cvs = document.createElement('canvas');
+                cvs.width = bitmap.width;
+                cvs.height = bitmap.height;
+                cvs.getContext('2d').drawImage(bitmap, 0, 0);
+                const png = await new Promise(resolve => cvs.toBlob(resolve, 'image/png'));
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+            } else {
+                await navigator.clipboard.writeText(url);
+            }
+            flashLabel(copyMediaBtn, 'Copied!');
+        } catch {
+            try {
+                await navigator.clipboard.writeText(url);
+                flashLabel(copyMediaBtn, 'Link copied');
+            } catch {
+                showToast('Could not copy', 'error');
+            }
+        }
+    };
 
     const publishBtn = document.createElement('button');
     publishBtn.type = 'button';
@@ -1175,7 +1322,6 @@ export function CinemaStudio() {
 
     canvas.appendChild(canvasControls);
 
-    container.appendChild(canvas);
 
     // --- History Logic ---
     const renderHistory = () => {
@@ -1209,12 +1355,32 @@ export function CinemaStudio() {
             loadText.className = 'text-[8px] font-bold text-white uppercase';
             loadText.textContent = 'Load';
             overlay.appendChild(loadText);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'hist-delete absolute top-1 right-1 p-1 bg-red-500/80 rounded-md text-white hover:scale-110 transition-transform';
+            deleteBtn.title = 'Delete';
+            deleteBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (!confirmDeleteGeneration(entry.url, 'video')) return;
+                generationHistory.splice(idx, 1);
+                try { localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50))); } catch { /* ignore */ }
+                renderHistory();
+            };
+            overlay.appendChild(deleteBtn);
             thumb.appendChild(overlay);
 
             thumb.onclick = () => loadHistoryItem(entry, thumb);
             historyList.appendChild(thumb);
         });
     };
+
+    const toCard = (entry) => ({
+        url: entry.url,
+        prompt: entry.settings?.prompt || '',
+        model: entry.settings?.model || '',
+        aspect_ratio: entry.settings?.aspect_ratio || '',
+    });
 
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
@@ -1223,7 +1389,7 @@ export function CinemaStudio() {
         } catch (e) {
             // Ignore storage errors (private mode, quota exceeded, etc.)
         }
-        renderHistory();
+        results.gallery.addItem(toCard(entry));
     };
 
     const loadHistoryItem = (entry, thumbElement) => {
@@ -1259,8 +1425,12 @@ export function CinemaStudio() {
 
     const showCanvas = (url) => {
         currentResultUrl = url;
+        results.area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+        // eslint-disable-next-line no-unreachable
         // Render a <video> for cinematic video results, <img> for stills.
         const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url);
+        copyMediaBtn.textContent = isVideo ? '⧉ Copy Link' : '⧉ Copy Image';
         imageContainer.innerHTML = '';
         if (isVideo) {
             const vid = document.createElement('video');
@@ -1328,7 +1498,7 @@ export function CinemaStudio() {
         const saved = JSON.parse(localStorage.getItem('cinema_history') || '[]');
         if (saved.length > 0) {
             saved.forEach(e => generationHistory.push(e));
-            renderHistory();
+            results.gallery.setItems(generationHistory.map(toCard));
         }
     } catch (e) { }
 
@@ -1377,8 +1547,11 @@ export function CinemaStudio() {
             return;
         }
 
-        generateBtn.disabled = true;
-        generateBtn.innerHTML = "SHOOTING...";
+        const pendingCard = results.gallery.addPending('Shooting…');
+        const notifyId = `cinema:${Date.now()}`;
+        notifyGeneration({ phase: 'start', id: notifyId, studio: 'cinema', label: 'Cinema Studio' });
+        setActionBusy(generateBtn, true);
+        let failed = null;
 
         // Compile Prompt — include camera movement + film look so the
         // "Render the shot" step produces a real cinematic video.
@@ -1404,7 +1577,11 @@ export function CinemaStudio() {
             '8K resolution'
         ].filter(Boolean).join(', ');
 
+        let pendingJob = null;
         try {
+            // Advanced settings (negative prompt, seed, …). This was referenced
+            // below but never defined, so every successful render threw.
+            const dynamicPayload = dynamicControls ? dynamicControls.getPayload({}) : {};
             const resolution = (resBtn.dataset.value || '1k').toLowerCase();
             const hasStartFrame = !!currentSettings.referenceUrl;
             const hasEndFrame = !!currentSettings.endFrameUrl;
@@ -1488,10 +1665,14 @@ export function CinemaStudio() {
                 }
             }
 
+            pendingJob = createPendingJobTracker('cinema', {
+                settings: { prompt: basePrompt, ...currentSettings, resolution: dynamicPayload.resolution || resBtn.dataset.value },
+            }, { maxAttempts: 180 });
             let res;
             if (useFrameToFrame) {
                 // First/last-frame: pin both the start and end of the clip.
                 res = await muapi.generateI2V({
+                    ...dynamicPayload,
                     model: resolvedModel,
                     firstFrameUrl,
                     lastFrameUrl,
@@ -1502,6 +1683,7 @@ export function CinemaStudio() {
                     thumbnail_url: customThumbnailUrl || undefined,
                     ...(extraVideos.length ? { reference_videos: extraVideos } : {}),
                     ...(extraAudios.length ? { reference_audios: extraAudios } : {}),
+                    onRequestId: pendingJob.onRequestId,
                 });
             } else if (isRef) {
                 // Image-to-video: use the uploaded still as the seed.
@@ -1528,7 +1710,7 @@ export function CinemaStudio() {
                     ),
                   );
                 }
-                res = await muapi.generateI2V(i2vParams);
+                res = await muapi.generateI2V({ ...dynamicPayload, ...i2vParams, onRequestId: pendingJob.onRequestId });
             } else {
                 let t2vParams = {
                     model: resolvedModel,
@@ -1552,56 +1734,10 @@ export function CinemaStudio() {
                     ),
                   );
                 }
-                res = await muapi.generateVideo(t2vParams);
+                res = await muapi.generateVideo({ ...dynamicPayload, ...t2vParams, onRequestId: pendingJob.onRequestId });
             }
 
 
-    // Prompt Gallery button
-    const promptGalleryBtn = document.createElement('button');
-    promptGalleryBtn.type = 'button';
-    promptGalleryBtn.textContent = '📚 Prompts';
-    promptGalleryBtn.title = 'Browse prompt gallery';
-    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
-    promptGalleryBtn.addEventListener('click', () => {
-      openPromptGallery({
-        appTheme: 'cinema-studio',
-        onSelect: (prompt) => {
-          // Default: try to find a textarea in the studio
-          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
-          if (ta) {
-            ta.value = prompt;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-            ta.focus();
-          }
-        }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
-    });
-
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-    if (!toolbar.querySelector('[aria-label="Open recipe engine"]')) toolbar.appendChild(recipeBtn);
-    if (!toolbar.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) toolbar.appendChild(monetizationBtn);
 
             if (res && res.url) {
                 addToHistory({
@@ -1625,12 +1761,26 @@ export function CinemaStudio() {
 
         } catch (e) {
             console.error(e);
-            showToast('Generation Failed: ' + e.message, 'error');
+            failed = e.message || 'Generation failed';
+            showToast('Generation failed: ' + failed, 'error', 5000);
         } finally {
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = `GENERATE ✨`;
+            pendingJob?.finish();
+            pendingCard.remove();
+            notifyGeneration(failed
+                ? { phase: 'error', id: notifyId, studio: 'cinema', label: 'Cinema Studio', message: failed }
+                : { phase: 'success', id: notifyId, studio: 'cinema', label: 'Cinema Studio' });
+            if (failed) setActionRetry(generateBtn); else setActionBusy(generateBtn, false);
         }
     };
+
+    // Pick up generations that were still running when the page was reloaded.
+    resumePendingJobs('cinema', {
+        poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+        onResult: (url, job) => {
+            addToHistory({ url, timestamp: Date.now(), settings: job.historyMeta.settings || {} });
+            showToast('Recovered a generation that finished while you were away', 'success');
+        },
+    });
 
     const galleryAssets = getAssetsForStudio('cinema');
     if (galleryAssets.length > 0) {

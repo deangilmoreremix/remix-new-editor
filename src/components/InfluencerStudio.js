@@ -1,3 +1,6 @@
+import { restyleAction, setActionBusy, setActionRetry } from './studio/studioLayout.js';
+import { createPill, openComposerPopover } from './studio/promptComposer.js';
+import { notifyGeneration } from './studio/generationNotifications.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
@@ -8,7 +11,6 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { i2iModels } from '../lib/models.js';
 import { createSafeImage } from '../lib/security.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -351,17 +353,22 @@ export async function InfluencerStudio() {
   }
   container.appendChild(header);
 
+  // Model as an upstream-style pill + popover. mountModelSelector rendered
+  // its full list inline here, so every model name showed above the builder.
   const modelSelectorContainer = document.createElement('div');
-  modelSelectorContainer.className = 'w-full max-w-xl mb-6';
+  modelSelectorContainer.className = 'w-full max-w-6xl mb-4 flex justify-start';
+  const modelPill = createPill({ label: selectedModel.name, title: 'Model' });
+  modelPill.addEventListener('click', () => openComposerPopover(modelPill, {
+    title: 'Model',
+    className: 'top-[calc(100%+8px)] bottom-auto w-[280px]',
+    items: i2iModels.map((m) => ({
+      label: m.name,
+      selected: m.id === selectedModel.id,
+      onSelect: () => { selectedModel = m; modelPill.setLabel(m.name); },
+    })),
+  }));
+  modelSelectorContainer.appendChild(modelPill);
   container.appendChild(modelSelectorContainer);
-
-  mountModelSelector(modelSelectorContainer, {
-    models: i2iModels,
-    selectedModelId: selectedModel.id,
-    onSelectModel: (model) => {
-      selectedModel = model;
-    },
-  });
 
   const formCard = document.createElement('div');
   formCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
@@ -457,6 +464,7 @@ export async function InfluencerStudio() {
   shuffleBtn.type = 'button';
   shuffleBtn.innerHTML = `${SVG_SHUF} Shuffle`;
   shuffleBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/10 transition-all w-full mt-1';
+  shuffleBtn.hidden = true; // the preview's top bar has the Shuffle, as upstream
   shuffleBtn.onclick = () => {
     Object.values(TABS_CONFIG).forEach((tab) =>
       tab.subcategories.forEach((sub) => {
@@ -852,7 +860,15 @@ export async function InfluencerStudio() {
   genBtn.textContent = 'Generate Content';
   genBtn.setAttribute('aria-label', 'Generate content');
   formCard.appendChild(genBtn);
-  container.appendChild(formCard);
+  // Upstream AI Influencer has a single Generate (in the preview's top bar);
+  // this one stays as the hidden handler that button drives.
+  genBtn.hidden = true;
+  // Builder and preview side by side on wide screens (upstream's columns).
+  const columns = document.createElement('div');
+  columns.className = 'w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start';
+  formCard.classList.remove('max-w-xl');
+  columns.appendChild(formCard);
+  container.appendChild(columns);
 
   const previewCard = document.createElement('div');
   previewCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 animate-fade-in-up';
@@ -862,22 +878,22 @@ export async function InfluencerStudio() {
   previewHeader.className = 'flex items-center justify-between';
 
   const arGroup = document.createElement('div');
-  arGroup.className = 'flex gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1';
+  arGroup.className = 'inline-flex items-center gap-1 bg-white/[0.03] border border-white/[0.05] rounded-full p-0.5';
   ['3:4', '1:1', '9:16', '16:9'].forEach((r) => {
     const arBtn = document.createElement('button');
     arBtn.type = 'button';
     arBtn.textContent = r;
     const isActive = r === selectedFormat.ar;
     arBtn.className = isActive
-      ? 'px-3 py-1.5 rounded-lg text-xs font-bold btn-secondary-modern transition-all'
-      : 'px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all';
+      ? 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all bg-primary text-black shadow-md shadow-primary/20'
+      : 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all text-white/40 hover:text-white/70';
     arBtn.onclick = () => {
       selectedFormat = { name: selectedFormat.name, ar: r };
       arGroup.querySelectorAll('button').forEach((b) => {
         const active = b.textContent === r;
         b.className = active
-          ? 'px-3 py-1.5 rounded-lg text-xs font-bold btn-secondary-modern transition-all'
-          : 'px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all';
+          ? 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all bg-primary text-black shadow-md shadow-primary/20'
+          : 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all text-white/40 hover:text-white/70';
       });
     };
     arGroup.appendChild(arBtn);
@@ -906,8 +922,7 @@ export async function InfluencerStudio() {
 
   const previewGenBtn = document.createElement('button');
   previewGenBtn.type = 'button';
-  previewGenBtn.innerHTML = `${SVG_BOLT} Generate`;
-  previewGenBtn.className = 'btn-secondary-modern flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all';
+  restyleAction(previewGenBtn);
   previewGenBtn.onclick = () => genBtn.click();
   actionGroup.appendChild(previewGenBtn);
 
@@ -1003,7 +1018,8 @@ export async function InfluencerStudio() {
 
   refreshTagsBar();
   previewCard.appendChild(tagsBar);
-  container.appendChild(previewCard);
+  previewCard.classList.remove('max-w-xl');
+  columns.appendChild(previewCard);
 
   const genArea = document.createElement('div');
   genArea.className = 'w-full max-w-xl mt-4';
@@ -1128,7 +1144,10 @@ export async function InfluencerStudio() {
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;
-    genBtn.innerHTML = `<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...`;
+    setActionBusy(previewGenBtn, true);
+    const notifyId = `influencer:${Date.now()}`;
+    let failed = null;
+    notifyGeneration({ phase: 'start', id: notifyId, studio: 'influencer', label: 'AI Influencer' });
 
     try {
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
@@ -1167,10 +1186,14 @@ export async function InfluencerStudio() {
         showToast('Influencer content generated!', 'success');
       }
     } catch (err) {
-      showToast(`Error: ${err.message}`, 'error');
+      failed = err.message || 'Generation failed';
+      showToast(failed, 'error', 5000);
     } finally {
       genBtn.disabled = false;
-      genBtn.textContent = 'Generate Content';
+      notifyGeneration(failed
+        ? { phase: 'error', id: notifyId, studio: 'influencer', label: 'AI Influencer', message: failed }
+        : { phase: 'success', id: notifyId, studio: 'influencer', label: 'AI Influencer' });
+      if (failed) setActionRetry(previewGenBtn); else setActionBusy(previewGenBtn, false);
     }
   };
 

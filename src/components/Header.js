@@ -1,5 +1,6 @@
 import { getRouteForItem } from '../lib/router.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { muapi } from '../lib/muapi.js';
 
 export function Header(navigate) {
   const header = document.createElement('header');
@@ -25,26 +26,31 @@ export function Header(navigate) {
   logoContainer.onclick = () => navigate('apps');
 
   const menu = document.createElement('nav');
-  menu.className = 'hidden lg:flex items-center gap-5 text-[13px] font-bold text-secondary';
-  const items = ['Explore', 'Image', 'Video', 'Storyboard', 'Edit', 'Character', 'Commercial', 'Upscale', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Audio', 'Avatar', 'Training', 'Video Tools', 'Chat', 'Lip Sync', 'Personalizer', 'Video Agent', 'AI VFX', 'Brand Studio', 'Apps', 'Templates', 'Assist', 'Community', 'Social', 'Landing', 'Brand DNA', 'Campaign', 'Asset Edit', 'Photo Studio', 'Brand Photo Studio', 'Animate'];
+  menu.className = 'hidden xl:flex items-center gap-4 text-[13px] font-bold text-secondary';
+  // Primary studios stay top-level; everything else lives under Tools so the
+  // bar fits on one line instead of overflowing.
+  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Templates'];
 
   const links = {};
 
+  // Top-bar entries open the studios themselves, never the marketing
+  // landing pages (text-to-image etc. are SEO pages with a "Start" CTA).
   const imageDropdownItems = [
-    { label: 'Text to Image', route: 'text-to-image' },
-    { label: 'Image to Image', route: 'image-to-image' },
+    { label: 'Image Studio', route: 'image' },
+    { label: 'Edit Studio', route: 'edit' },
+    { label: 'Upscale', route: 'upscale' },
   ];
 
   const videoDropdownItems = [
-    { label: 'Text to Video', route: 'text-to-video' },
-    { label: 'Image to Video', route: 'image-to-video' },
-    { label: 'Video to Video', route: 'video-to-video' },
-    { label: 'Watermark Remover', route: 'video-watermark' },
+    { label: 'Video Studio', route: 'video' },
+    { label: 'Cinema Studio', route: 'cinema' },
+    { label: 'Video Tools', route: 'videotools' },
+    { label: 'Lip Sync', route: 'lipsync' },
   ];
 
   const createDropdown = (items, parent) => {
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute top-full left-0 mt-2 w-56 bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 py-2';
+    dropdown.className = 'absolute top-full left-0 mt-2 w-[26rem] grid grid-cols-2 bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 py-2';
     dropdown.innerHTML = items.map(d => `<a class="block px-4 py-2 text-sm text-secondary hover:text-white hover:bg-white/5 cursor-pointer">${d.label}</a>`).join('');
     items.forEach((d, i) => {
       dropdown.children[i].onclick = () => navigate(d.route);
@@ -53,21 +59,25 @@ export function Header(navigate) {
   };
 
   const toolsDropdownItems = [
-    { label: 'Storyboard', route: 'storyboard' },
-    { label: 'Character', route: 'character' },
-    { label: 'Vibe Motion', route: 'effects' },
-    { label: 'Cinema Studio', route: 'cinema' },
-    { label: 'AI Influencer', route: 'influencer' },
     { label: 'Commercial', route: 'commercial' },
     { label: 'Upscale', route: 'upscale' },
-    { label: 'Social', route: 'social' },
-    { label: 'Landing', route: 'landing' },
-    { label: 'Brand DNA', route: 'brand-dna' },
-    { label: 'Campaign', route: 'campaign' },
-    { label: 'Asset Edit', route: 'asset-edit' },
-    { label: 'Photo Studio', route: 'photo-studio' },
-    { label: 'Brand Photo Studio', route: 'brand-photo-studio' },
+    { label: 'Audio', route: 'audio' },
+    { label: 'Avatar', route: 'avatar' },
+    { label: 'Training', route: 'training' },
+    { label: 'Video Tools', route: 'videotools' },
+    { label: 'Chat', route: 'chat' },
+    { label: 'Lip Sync', route: 'lipsync' },
+    { label: 'Personalizer', route: 'personalizer' },
+    { label: 'Video Agent', route: 'video-agent' },
+    { label: 'AI VFX', route: 'ai-vfx' },
+    { label: 'CineGen Studio', route: 'cinegen' },
+    { label: 'Brand Studio', route: 'brand' },
     { label: 'Animate', route: 'animate' },
+    { label: 'Website Builder', route: 'website-builder' },
+    { label: 'All Apps', route: 'apps' },
+    { label: 'Assist', route: 'assist' },
+    { label: 'Community', route: 'community' },
+    { label: 'Content Library', route: 'content-library' },
   ];
 
   items.forEach(item => {
@@ -81,7 +91,7 @@ export function Header(navigate) {
     if (item === 'Image') {
       link.classList.remove('text-white');
       link.classList.add('text-white', 'dropdown-trigger');
-      link.onclick = () => navigate('text-to-image');
+      link.onclick = () => navigate('image');
       
       const dropdown = document.createElement('div');
       dropdown.className = 'absolute top-full left-0 mt-2 w-48 bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50';
@@ -97,7 +107,7 @@ export function Header(navigate) {
     if (item === 'Video') {
       link.classList.remove('text-white');
       link.classList.add('text-white', 'dropdown-trigger');
-      link.onclick = () => navigate('text-to-video');
+      link.onclick = () => navigate('video');
       
       const dropdown = document.createElement('div');
       dropdown.className = 'absolute top-full left-0 mt-2 w-48 bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50';
@@ -161,16 +171,6 @@ export function Header(navigate) {
       link.onclick = () => navigate('social');
     } else if (item === 'Landing') {
       link.onclick = () => navigate('landing');
-    } else if (item === 'Brand DNA') {
-      link.onclick = () => navigate('brand-dna');
-    } else if (item === 'Campaign') {
-      link.onclick = () => navigate('campaign');
-    } else if (item === 'Asset Edit') {
-      link.onclick = () => navigate('asset-edit');
-    } else if (item === 'Photo Studio') {
-      link.onclick = () => navigate('photo-studio');
-    } else if (item === 'Brand Photo Studio') {
-      link.onclick = () => navigate('brand-photo-studio');
     } else if (item === 'Animate') {
       link.onclick = () => navigate('animate');
     } else if (item === 'Image' || item === 'Video' || item === 'Tools') {
@@ -189,11 +189,11 @@ export function Header(navigate) {
   leftPart.appendChild(menu);
 
   const mobileMenuBtn = document.createElement('button');
-  mobileMenuBtn.className = 'lg:hidden p-2 text-secondary hover:text-white transition-colors';
+  mobileMenuBtn.className = 'xl:hidden p-2 text-secondary hover:text-white transition-colors';
   mobileMenuBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
 
   const mobileMenu = document.createElement('div');
-  mobileMenu.className = 'lg:hidden fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center gap-4 opacity-0 pointer-events-none transition-opacity duration-300';
+  mobileMenu.className = 'xl:hidden fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-start overflow-y-auto py-16 gap-4 opacity-0 pointer-events-none transition-opacity duration-300';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'absolute top-4 right-4 p-2 text-white';
@@ -210,7 +210,7 @@ export function Header(navigate) {
     link.className = 'text-xl font-bold text-secondary hover:text-white transition-colors cursor-pointer';
     
     if (item === 'Image' || item === 'Video' || item === 'Tools') {
-      const targetRoute = item === 'Image' ? 'text-to-image' : item === 'Video' ? 'text-to-video' : 'storyboard';
+      const targetRoute = item === 'Image' ? 'image' : item === 'Video' ? 'video' : 'apps';
       link.onclick = () => {
         navigate(targetRoute);
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
@@ -367,7 +367,33 @@ export function Header(navigate) {
     window.location.reload();
   };
 
+  // MuAPI credit balance, refreshed after each generation and when the tab
+  // regains focus. Hidden until a balance has been read.
+  const balanceChip = document.createElement('span');
+  balanceChip.className = 'hidden px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-secondary whitespace-nowrap';
+  balanceChip.title = 'MuAPI credit balance';
+  const refreshBalance = async () => {
+    try {
+      const balance = await muapi.getBalance();
+      if (balance === null) { balanceChip.classList.add('hidden'); return; }
+      balanceChip.textContent = `$${balance.toFixed(2)}`;
+      balanceChip.classList.remove('hidden');
+    } catch {
+      balanceChip.classList.add('hidden');
+    }
+  };
+  let lastBalanceCheck = 0;
+  const refreshBalanceOnFocus = () => {
+    if (Date.now() - lastBalanceCheck < 30000) return;
+    lastBalanceCheck = Date.now();
+    refreshBalance();
+  };
+  refreshBalanceOnFocus();
+  window.addEventListener('muapi:job-finished', refreshBalance);
+  window.addEventListener('focus', refreshBalanceOnFocus);
+
   rightPart.appendChild(mobileMenuBtn);
+  rightPart.appendChild(balanceChip);
   rightPart.appendChild(keyBtn);
 
   const headerAuthSlot = document.createElement('div');

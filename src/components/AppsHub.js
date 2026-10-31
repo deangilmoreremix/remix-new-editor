@@ -5,8 +5,6 @@ const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
   { id: 'video', name: 'Video Studio', description: 'Create AI videos from text and images', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', badge: '15+ models', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
   { id: 'cinema', name: 'Cinema Studio', description: 'Cinematic shots with camera controls', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>', badge: '6 cameras', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  { id: 'social', name: 'Social Studio', description: 'Create social media content and posts', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>', badge: 'Social', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  { id: 'landing', name: 'Landing Studio', description: 'Design landing pages and web experiences', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>', badge: 'Web', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
   { id: 'animate', name: 'Animate Studio', description: 'Animate images and create motion graphics', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>', badge: 'Motion', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
 ];
 
@@ -18,10 +16,6 @@ const TOOL_STUDIOS = [
   { id: 'character', name: 'Character Studio', description: 'Consistent character generation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', badge: 'Face ID', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
   { id: 'commercial', name: 'Commercial Studio', description: 'Product photography and ads', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>', badge: 'Ads', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
   { id: 'viral', name: 'Smart Video Viral', description: 'AI-powered viral video generation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', badge: 'Viral', color: 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20' },
-  { id: 'campaign', name: 'Campaign Studio', description: 'Create and manage marketing campaigns', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', badge: 'Campaign', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  { id: 'asset-edit', name: 'Asset Editor', description: 'Edit and enhance your media assets', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>', badge: 'Edit', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
-  { id: 'photo-studio', name: 'Photo Studio', description: 'Professional photo editing and enhancement', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: 'Photos', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
-  { id: 'brand-photo-studio', name: 'Brand Photo Studio', description: 'Generate branded product and lifestyle photos', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: 'Brand', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
 ];
 
 const AI_APPS = [
@@ -35,7 +29,6 @@ const AI_APPS = [
   { id: 'video-agent', name: 'Video Agent', description: 'AI-powered video production assistant', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', badge: 'Agent', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
   { id: 'ai-vfx', name: 'AI VFX', description: 'AI-powered visual effects and compositing', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.39 6.95H22l-6.19 4.5L18.18 22 12 17.5 5.82 22l2.37-8.55L2 8.95h7.61L12 2z"/><circle cx="12" cy="12" r="3"/></svg>', badge: 'VFX', color: 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20' },
   { id: 'brand', name: 'Brand Studio', description: 'Brand-consistent content generation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', badge: 'Brand', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
-  { id: 'brand-dna', name: 'Brand DNA', description: 'Generate brand-consistent visual identity', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', badge: 'Brand', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
 ];
 
 export function AppsHub() {
@@ -46,15 +39,31 @@ export function AppsHub() {
   inner.className = 'w-full px-4 md:px-8 py-8 md:py-12';
 
   const heroSection = document.createElement('div');
-  heroSection.className = 'mb-10 animate-fade-in-up';
+  heroSection.className = 'mb-10 animate-fade-in-up flex flex-col items-center text-center';
+  // Upstream Explore Apps layout: badge pill, large hero, three step cards.
   heroSection.innerHTML = `
-    <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-3">Apps</h1>
-    <p class="text-secondary text-sm md:text-base max-w-xl">All creative tools in one place. Studios, effects, templates, and more.</p>
+    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider mb-5">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> Explore apps
+    </span>
+    <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight mb-3">Every creative tool, one place</h1>
+    <p class="text-white/50 text-sm md:text-base max-w-xl mb-8">Studios, effects, editors and AI apps. Pick one and start creating.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-4xl text-left">
+      ${[
+        ['1', 'Choose an app', 'Image, video, cinema, audio and more — each studio is tuned for one job.'],
+        ['2', 'Create', 'Describe what you want, pick a model and press Generate.'],
+        ['3', 'Keep it', 'Results land in your Library, ready to edit, render or publish.'],
+      ].map(([n, t, d]) => `
+        <div class="rounded-2xl p-6 bg-[#111]/80 border border-white/10">
+          <div class="w-7 h-7 rounded-full bg-primary/15 text-primary text-xs font-black flex items-center justify-center mb-3">${n}</div>
+          <div class="text-sm font-bold text-white mb-1">${t}</div>
+          <div class="text-xs text-white/50 leading-relaxed">${d}</div>
+        </div>`).join('')}
+    </div>
   `;
   inner.appendChild(heroSection);
 
   const searchWrapper = document.createElement('div');
-  searchWrapper.className = 'mb-8 animate-fade-in-up';
+  searchWrapper.className = 'mb-8 animate-fade-in-up flex justify-center';
   searchWrapper.style.animationDelay = '0.1s';
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
@@ -84,14 +93,30 @@ export function AppsHub() {
     onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
   })), true));
 
+  const noResults = document.createElement('div');
+  noResults.className = 'hidden text-center py-16 text-white/50 text-sm';
+  inner.appendChild(noResults);
+
   container.appendChild(inner);
 
   searchInput.oninput = () => {
-    const q = searchInput.value.toLowerCase();
-    container.querySelectorAll('[data-searchable]').forEach(el => {
-      const text = el.dataset.searchable.toLowerCase();
-      el.style.display = text.includes(q) ? '' : 'none';
+    const q = searchInput.value.trim().toLowerCase();
+    let total = 0;
+    container.querySelectorAll('[data-app-section]').forEach(section => {
+      let visible = 0;
+      section.querySelectorAll('[data-searchable]').forEach(el => {
+        const match = el.dataset.searchable.toLowerCase().includes(q);
+        el.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+      // Hide whole sections with no matches and keep their counts honest.
+      section.style.display = visible ? '' : 'none';
+      const count = section.querySelector('[data-app-count]');
+      if (count) count.textContent = String(visible);
+      total += visible;
     });
+    noResults.textContent = `No apps match “${searchInput.value.trim()}”.`;
+    noResults.classList.toggle('hidden', total > 0);
   };
 
   return container;
@@ -103,7 +128,8 @@ function createSection(title, items, isStudio = false) {
 
   const heading = document.createElement('h2');
   heading.className = 'text-lg font-bold text-white mb-4 flex items-center gap-2';
-  heading.innerHTML = `${title} <span class="text-xs font-medium text-muted">${items.length}</span>`;
+  heading.innerHTML = `${title} <span class="text-xs font-medium text-muted" data-app-count>${items.length}</span>`;
+  section.dataset.appSection = '';
   section.appendChild(heading);
 
   const grid = document.createElement('div');
@@ -162,6 +188,8 @@ function createSection(title, items, isStudio = false) {
   return section;
 }
 
+const KNOWN_APP_IDS = new Set([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS].map((s) => s.id));
+
 function createRecentRow() {
   try {
     const recent = JSON.parse(localStorage.getItem('recent_tools') || '[]');
@@ -183,8 +211,10 @@ function createRecentRow() {
       chip.className = 'px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white hover:bg-white/10 transition-all whitespace-nowrap';
       chip.textContent = r.name;
       chip.onclick = () => {
-        if (r.id.includes('-') || r.id.includes('_')) navigate(`template/${r.id}`);
-        else navigate(r.id);
+        // Studio ids like 'video-agent' or 'ai-vfx' contain dashes too, so only
+        // ids that aren't a known app are treated as templates.
+        if (KNOWN_APP_IDS.has(r.id)) navigate(r.id);
+        else navigate(`template/${r.id}`);
       };
       row.appendChild(chip);
     });

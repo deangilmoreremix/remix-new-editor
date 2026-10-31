@@ -42,6 +42,7 @@ const ICONS = {
   'content-library': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
   'studios/product-photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
   'studios/fashion-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  cinegen: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>',
    openthorn: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    'video-agent': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
    'video-agent-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
@@ -80,7 +81,6 @@ export const STUDIO_ROUTES = {
   chat: { label: 'Chat Studio', category: 'Create' },
   lipsync: { label: 'Lip Sync', category: 'Create' },
   influencer: { label: 'AI Influencer', category: 'Create' },
-  landing: { label: 'Landing Page', category: 'Create' },
   templates: { label: 'Templates', category: 'Home' },
   community: { label: 'Community', category: 'Home' },
   assist: { label: 'Assist', category: 'Tools' },
@@ -100,7 +100,6 @@ export const STUDIO_ROUTES = {
   director: { label: 'Director', category: 'Tools' },
   'ai-vfx': { label: 'AI VFX', category: 'Tools' },
   render: { label: 'Video Render', category: 'Tools' },
-  social: { label: 'Social', category: 'Create' },
   timeline: { label: 'Timeline', category: 'Tools' },
   library: { label: 'Library', category: 'Home' },
   'content-library': { label: 'Content Library', category: 'Home' },
@@ -119,10 +118,13 @@ export const STUDIO_ROUTES = {
   'studios/product-photo-studio': { label: 'Product Photo Studio', category: 'Create' },
   'studios/fashion-studio': { label: 'Fashion Studio', category: 'Create' },
   openthorn: { label: 'OpenThorn', category: 'Tools' },
+  cinegen: { label: 'CineGen Studio', category: 'Create' },
 };
 
-// Ordered category groups for the drawer.
-export const STUDIO_CATEGORIES = ['Home', 'Create', 'Generate', 'Pages', 'Tools'];
+// Ordered category groups for the drawer. 'Generate' and 'Pages' routes are
+// marketing landing pages; they stay routable for SEO links but the in-app
+// drawer only lists the applications themselves.
+export const STUDIO_CATEGORIES = ['Home', 'Create', 'Tools'];
 
 export function getStudioIcon(route) {
   return ICONS[route] || FALLBACK_ICON;

@@ -34,6 +34,40 @@ export function BrandStudio() {
   `;
   container.appendChild(hero);
 
+  // Brand tools stay in one Studio; the main application navigation exposes only Brand Studio.
+  const tools = document.createElement('section');
+  tools.className = 'w-full max-w-4xl px-4 mb-8';
+  const toolsTitle = document.createElement('h2');
+  toolsTitle.className = 'text-lg font-bold text-white mb-3';
+  toolsTitle.textContent = 'Brand tools';
+  tools.appendChild(toolsTitle);
+  const toolsGrid = document.createElement('div');
+  toolsGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+  const brandTools = [
+    { route: 'brand-dna', label: 'Brand DNA', description: 'Review and edit your brand identity' },
+    { route: 'campaign', label: 'Campaigns', description: 'Create on-brand campaigns' },
+    { route: 'asset-edit', label: 'Asset Editor', description: 'Edit campaign assets' },
+    { route: 'photo-studio', label: 'Photo Studio', description: 'Create branded photos' },
+    { route: 'animate', label: 'Animate', description: 'Animate branded creative assets' },
+  ];
+  brandTools.forEach(({ route, label, description }) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'text-left rounded-xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition-colors';
+    const title = document.createElement('div');
+    title.className = 'text-sm font-bold text-white';
+    title.textContent = label;
+    const detail = document.createElement('div');
+    detail.className = 'text-xs text-secondary mt-2';
+    detail.textContent = description;
+    btn.append(title, detail);
+    btn.addEventListener('click', () => navigate(route));
+    toolsGrid.appendChild(btn);
+  });
+  tools.appendChild(toolsGrid);
+  container.appendChild(tools);
+
+
   const form = document.createElement('form');
   form.className = 'w-full max-w-2xl px-4 mb-8 animate-fade-in-up';
   form.style.animationDelay = '0.1s';

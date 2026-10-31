@@ -34,7 +34,10 @@
     "verify:video-agent-studio": "node scripts/verify-video-agent-studio.mjs",
     "build:openthorn": "cd apps/openthorn && npx vite build --base=/openthorn/ && rm -rf ../../public/openthorn && cp -r dist ../../public/openthorn",
     "dev:openthorn": "cd apps/openthorn && npm run dev",
-    "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash"
+    "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash",
+    "cinegen:install": "cd apps/cinegen && ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install && npm --prefix web install",
+    "cinegen:build": "npm --prefix apps/cinegen/web run build",
+    "cinegen:start": "NODE_ENV=production npm --prefix apps/cinegen/web run start"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.29.9",
@@ -108,6 +111,7 @@
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/react-virtual": "^3.13.24",
     "@xstate/react": "^6.1.0",
+    "@xyflow/react": "^12.3.6",
     "caniuse-lite": "^1.0.30001813",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
