@@ -1,6 +1,8 @@
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
+import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy } from './studio/studioLayout.js';
+import { notifyGeneration } from './studio/generationNotifications.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { uploadMediaFile } from '../lib/editor/upload.js';
@@ -43,6 +45,7 @@ export function VideoStudio() {
   mountStudioChrome(container, { currentRoute: 'video' });
 
     // --- State ---
+    let results = null; // upstream-style empty state + results gallery, mounted with the composer
     const defaultModel = t2vModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
@@ -909,7 +912,61 @@ generateBtn.type = 'button';
     bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
     promptWrapper.appendChild(bar);
+
+    // Upstream composer layout: media circles row, then the prompt, then a
+    // footer of 38px pills; SmartVideo-only tools fold into one ⋯ menu.
+    [modelBtn, arBtn, durationBtn, resolutionBtn, qualityBtn, advancedBtn].forEach(restylePill);
+    [picker.trigger, lastFrameBtn, endFrameBtn, videoPickerBtn].forEach((b) => {
+        if (b) b.className = b.className.replace('rounded-xl', 'rounded-full').replace('mt-1.5', '');
+    });
+    topRow.className = 'flex items-center gap-2 flex-wrap';
+    topRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
+    bar.insertBefore(textarea, bottomRow);
+    const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
+    foldIntoMoreMenu(controlsLeft, [
+        { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
+        { label: 'Motion & style', description: 'Camera movement, motion strength, style', el: motionStyleBtn },
+        { label: 'Personalize', description: 'Personalize with a contact', el: controlsLeft.querySelector('#v-contact-btn') },
+        { label: 'Custom thumbnail', el: thumbBtn },
+        { label: 'Stock photo', description: 'Pexels photo as the start frame', el: pexelsImageBtn },
+        { label: 'Stock video', description: 'Pexels clip as the source video', el: pexelsVideoBtn },
+        { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
+        { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
+        { label: 'Recipes', onSelect: enhanceAction('recipe') },
+        { label: 'Monetize', onSelect: enhanceAction('monetize') },
+    ]);
+    toolbar.hidden = true;
+    restyleAction(generateBtn);
+    styleComposer({ wrapper: promptWrapper, bar, footer: bottomRow, controls: controlsLeft });
     container.appendChild(promptWrapper);
+
+    results = mountStudioResults({
+        container,
+        hero: heroBanner,
+        before: promptWrapper,
+        kind: 'video',
+        historyType: 'video',
+        studio: 'video',
+        label: 'Video Studio',
+        filenamePrefix: 'smartvideo-video',
+        empty: {
+            heading: 'Start creating with',
+            highlight: selectedModelName,
+            subtitle: 'Describe a shot, or add a start frame or source video, then press Generate.',
+            samples: getAssetsForStudio('video').map(a => a.thumbnail || a.posterSrc).filter(Boolean).slice(0, 4),
+        },
+        extraActions: (item) => [
+            ...(/^seedance-v2\.0-(t2v|i2v)$/.test(item.model || '') ? [{ label: 'Extend', onSelect: () => { lastGenerationId = item.id; lastGenerationModel = item.model; extendBtn.click(); } }] : []),
+            { label: 'Open in Render', onSelect: () => { resultVideo.src = item.url; renderBtn.click(); } },
+            { label: 'Add AI captions', onSelect: () => addCaptionButton({ videoUrl: item.url, appTheme: 'video-studio', onComplete: () => showToast('Captioned video ready') }) },
+            { label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'video' }) },
+        ],
+        onDelete: (item) => {
+            const i = generationHistory.indexOf(item);
+            if (i >= 0) generationHistory.splice(i, 1);
+            try { localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 100))); } catch { /* ignore */ }
+        },
+    });
 
     const inlineInstructions = createInlineInstructions('video');
     inlineInstructions.classList.add('mt-8');
@@ -1085,6 +1142,13 @@ generateBtn.type = 'button';
         </div>
     `;
     container.appendChild(motionStylePanel);
+
+    // Settings panels open inside the floating composer, above its footer.
+    [advancedPanel, motionStylePanel].forEach((panel) => {
+      panel.classList.remove('mt-6', 'mt-4');
+      panel.classList.add('max-h-[45vh]', 'overflow-y-auto', 'custom-scrollbar');
+      bar.insertBefore(panel, bottomRow);
+    });
 
     const toggleMotionStyle = () => {
       showMotionStyle = !showMotionStyle;
@@ -1486,7 +1550,8 @@ generateBtn.type = 'button';
     const historyList = document.createElement('div');
     historyList.className = 'flex flex-col gap-2 w-full px-2';
     historySidebar.appendChild(historyList);
-    container.appendChild(historySidebar);
+    // Results live in the upstream-style gallery; the old side rail and the
+    // full-page canvas stay detached for the handlers that still read them.
 
     // Main canvas
     const canvas = document.createElement('div');
@@ -1591,10 +1656,13 @@ generateBtn.type = 'button';
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
-    container.appendChild(canvas);
 
     // --- Helper: Show video in canvas ---
     const showVideoInCanvas = (videoUrl, genModel) => {
+        results.area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        resultVideo.src = videoUrl;
+        return;
+        // eslint-disable-next-line no-unreachable
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
@@ -1647,9 +1715,7 @@ generateBtn.type = 'button';
             request_id: entry.id,
         });
 
-        historySidebar.classList.remove('translate-x-full', 'opacity-0');
-        historySidebar.classList.add('translate-x-0', 'opacity-100');
-        renderHistory();
+        results.gallery.addItem(entry);
     };
 
     const renderHistory = () => {
@@ -1736,9 +1802,7 @@ generateBtn.type = 'button';
         const saved = JSON.parse(localStorage.getItem('video_history') || '[]');
         if (saved.length > 0) {
             saved.forEach(e => generationHistory.push(e));
-            historySidebar.classList.remove('translate-x-full', 'opacity-0');
-            historySidebar.classList.add('translate-x-0', 'opacity-100');
-            renderHistory();
+            results.gallery.setItems(generationHistory);
         }
     } catch (e) { /* ignore */ }
 
@@ -2018,15 +2082,12 @@ generateBtn.type = 'button';
         abortController = controller;
         const pendingJob = createPendingJobTracker('video', { prompt: enrichedPrompt || '', model: selectedModel }, { maxAttempts: 180 });
 
-        loadingOverlay = createLoadingOverlay('Generating video...');
-        const progressBar = createProgressBar(0);
-        loadingOverlay.appendChild(progressBar);
-        container.appendChild(loadingOverlay);
-        progressHandle = startGenerationProgress({
-            parent: loadingOverlay,
-            type: 'video',
-            message: 'Generating video (this may take a few minutes)...'
-        });
+        // Pending card in the results grid + notification, like upstream.
+        const pendingCard = results.gallery.addPending('Generating video…');
+        const notifyId = `video:${Date.now()}`;
+        notifyGeneration({ phase: 'start', id: notifyId, studio: 'video', label: 'Video Studio' });
+        setActionBusy(generateBtn, true);
+        const progressBar = {};
         showCancel();
 
         // Simulate indeterminate progress since API does not expose progress
@@ -2179,16 +2240,17 @@ generateBtn.type = 'button';
             return;
         } finally {
             pendingJob.finish();
+            pendingCard.remove();
+            notifyGeneration(generationError
+                ? { phase: 'error', id: notifyId, studio: 'video', label: 'Video Studio', message: generationError }
+                : { phase: 'success', id: notifyId, studio: 'video', label: 'Video Studio' });
             clearInterval(progressInterval);
             if (progressHandle) { progressHandle.stop(); progressHandle = null; }
             if (loadingOverlay && loadingOverlay.parentNode) { loadingOverlay.remove(); loadingOverlay = null; }
             resetCancel();
             isLoading = false;
             abortController = null;
-            if (!generationError) {
-                generateBtn.disabled = false;
-                generateBtn.innerHTML = `Generate ✨`;
-            }
+            if (!generationError) setActionBusy(generateBtn, false);
         }
     };
 

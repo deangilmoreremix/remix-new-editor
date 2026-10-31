@@ -33,6 +33,8 @@ export function createEmptyState({ heading = 'Start creating with', highlight = 
     media.className = 'w-full h-full object-cover';
     if (isVideo) { media.muted = true; media.autoplay = true; media.loop = true; media.playsInline = true; }
     else { media.alt = ''; media.loading = 'lazy'; }
+    // A sample that fails to load is dropped rather than shown as a broken tile.
+    media.addEventListener('error', () => card.remove(), { once: true });
     card.appendChild(media);
     cards.appendChild(card);
   });
