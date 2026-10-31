@@ -305,18 +305,7 @@ const triggerBtn = document.createElement('button');
 
     promptGroup.appendChild(enhanceMenu);
     formCard.appendChild(promptGroup);
-    mountPersonalizeTrigger({
-      controlsContainer: formCard,
-      getTextarea: () => promptInput,
-      appId: 'video-tools',
-      // Use the contact's main Full Body Recast video as the source video.
-      onApply: ({ personalization }) => {
-        const video = personalization?.presenterVideo;
-        if (!video?.url) return;
-        videoPicker.setVideo(video.url, video.name || 'Presenter video');
-        showToast(`Using ${video.name || 'the recast presenter video'} as the source video`, 'success');
-      },
-    });
+    mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'video-tools' });
 
   // Dynamic model-specific advanced controls
   dynamicControlsContainer = document.createElement('div');

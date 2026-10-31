@@ -221,17 +221,6 @@ try {
     }
   });
 
-  // Resume Full Body Recasts that were still running when the page closed;
-  // finished results save to the contact's Presenter Videos. Loaded when idle
-  // so it never delays startup.
-  const resumeRecasts = () => {
-    import('./lib/personalization/recastJobs.js')
-      .then((mod) => mod.resumeRecastJobs())
-      .catch((error) => console.warn('[App] Could not resume recasts:', error));
-  };
-  if ('requestIdleCallback' in window) window.requestIdleCallback(resumeRecasts, { timeout: 5000 });
-  else setTimeout(resumeRecasts, 2000);
-
   // Track initialization time
   const initDuration = performance.now() - initStart;
   perfMonitor.trackPageLoad('initialization', initDuration);

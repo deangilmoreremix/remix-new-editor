@@ -471,24 +471,7 @@ export function LipSyncStudio() {
     bottomRow.appendChild(advancedBtn);
 
     bottomRow.appendChild(generateBtn);
-    mountPersonalizeTrigger({
-      controlsContainer: bottomRow,
-      getTextarea: () => textarea,
-      appId: 'lip-sync',
-      // Make the contact's Full Body Recast presenter speak: switch to video
-      // mode and load their main recast video as the source.
-      onApply: ({ personalization }) => {
-        const video = personalization?.presenterVideo;
-        if (!video?.url) return;
-        if (inputMode !== 'video') {
-          inputMode = 'video';
-          updateUIForMode();
-        }
-        uploadedVideoUrl = video.url;
-        updateVideoUploadState('ready', video.name || 'Presenter video');
-        showToast('Using the recast presenter video — add a script to make them speak', 'success');
-      },
-    });
+    mountPersonalizeTrigger({ controlsContainer: bottomRow, getTextarea: () => textarea, appId: 'lip-sync' });
     bar.appendChild(bottomRow);
 
     promptWrapper.appendChild(bar);

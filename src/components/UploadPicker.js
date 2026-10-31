@@ -1542,15 +1542,6 @@ export function createUploadPicker({
         fireOnSelect();
     };
 
-    // Select a video by URL from outside the picker (e.g. a Full Body Recast
-    // presenter video handed over by "Apply personalization").
-    const setVideo = (url, name = '') => {
-        if (!url) return;
-        selectedEntries = [{ url, name, thumbnail: fileIconSvg('video'), type: 'video' }];
-        updateTrigger();
-        fireOnSelect();
-    };
-
     // Accept an Asset Library asset from outside the picker (Library page —
     // "Use in studio"). The asset id never reaches the studio as a URL: it is
     // resolved through the adapter first.
@@ -1579,5 +1570,5 @@ export function createUploadPicker({
         }
     }
 
-    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage, setVideo, selectAsset };
+    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage, selectAsset };
 }

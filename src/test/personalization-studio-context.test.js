@@ -145,33 +145,3 @@ describe('studio personalization context', () => {
   });
 
 });
-
-describe('presenter video in the studio context', () => {
-  const videos = [
-    { id: 'v1', role: 'presenter_video', url: 'https://cdn/old.mp4', mimeType: 'video/mp4' },
-    { id: 'v2', role: 'presenter_video', url: 'https://cdn/new.mp4', mimeType: 'video/mp4' },
-  ];
-  const withVideos = (extra = {}) => ({
-    personalization: {
-      ...profile.personalization,
-      assets: { ...profile.personalization.assets, presenterVideos: videos, ...extra },
-    },
-  });
-
-  it('uses the main presenter video, falling back to the newest', () => {
-    expect(buildPersonalizationContext(withVideos({ primaryPresenterVideoId: 'v1' })).presenterVideo.url).toBe('https://cdn/old.mp4');
-    expect(buildPersonalizationContext(withVideos()).presenterVideo.url).toBe('https://cdn/new.mp4');
-    expect(buildPersonalizationContext(profile).presenterVideo).toBeNull();
-    expect(buildPersonalizationContext(withVideos()).presenterVideos).toHaveLength(2);
-  });
-
-  it('never sends presenter videos as image references', () => {
-    const resolved = resolvePersonalizationForModel(
-      buildPersonalizationContext(withVideos()),
-      { inputs: { image_url: {}, images_list: {} } },
-    );
-    const { context: _context, ...inputs } = resolved;
-    expect(JSON.stringify(inputs)).not.toContain('.mp4');
-  });
-});
-

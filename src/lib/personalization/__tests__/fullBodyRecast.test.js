@@ -200,9 +200,7 @@ describe('guided recast view', () => {
   it('moves the stepper from upload to recast to save', () => {
     expect(activeStep({})).toBe('upload');
     expect(activeStep({ sourceUrl: 'https://cdn/s.mp4' })).toBe('recast');
-    // Saving is automatic, so the Save step is active only while the job saves.
-    expect(activeStep({ sourceUrl: 'https://cdn/s.mp4', resultUrl: 'https://cdn/r.mp4', status: 'saving' })).toBe('save');
-    expect(recastSteps({ saved: true }).find((step) => step.id === 'save').label).toBe('Saved');
+    expect(activeStep({ sourceUrl: 'https://cdn/s.mp4', resultUrl: 'https://cdn/r.mp4' })).toBe('save');
     const saved = recastSteps({ sourceUrl: 'x', resultUrl: 'y', saved: true });
     expect(saved.every((step) => step.done)).toBe(true);
     expect(saved.some((step) => step.active)).toBe(false);
@@ -247,32 +245,5 @@ describe('guided recast view', () => {
   it('formats elapsed time', () => {
     expect(formatElapsed(0)).toBe('0:00');
     expect(formatElapsed(84000)).toBe('1:24');
-  });
-});
-
-describe('background recast footer', () => {
-  const person = {
-    id: 'person-1',
-    name: 'Ana',
-    url: 'https://cdn.example.com/ana.png',
-    role: 'presenter_identity',
-    sourceCategory: 'person',
-  };
-  const footerFor = (patch) => {
-    const session = createPersonalizationImageEditorSession(person);
-    session.mode = 'advanced';
-    Object.assign(session.recast, { open: true, characterId: 'person-1', sourceUrl: 'https://cdn/s.mp4' }, patch);
-    return renderPersonalizationImageEditorPanel(session);
-  };
-
-  it('has no manual save button and says the job can be left running', () => {
-    const html = footerFor({ status: 'generating', jobId: 'job-1', startedAt: Date.now() });
-    expect(html).not.toContain('recast-save');
-    expect(html).toContain('You can close this');
-  });
-
-  it('offers Retry when the job can be re-checked', () => {
-    expect(footerFor({ status: 'error', error: 'Network down', canRetry: true })).toContain('data-editor-action="recast-retry"');
-    expect(footerFor({ status: 'error', error: 'Bad clip', canRetry: false })).not.toContain('recast-retry');
   });
 });

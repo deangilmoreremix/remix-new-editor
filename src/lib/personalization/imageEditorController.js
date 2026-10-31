@@ -19,24 +19,14 @@ import {
 import { makePersonalizationAssetVideoReady } from './videoReady.js';
 import { persistPersonalizationAssetVersion } from './assetDiscoveryService.js';
 import {
+  persistRecastVideo,
   readVideoDuration,
   resolveRecastCharacterUrl,
+  runFullBodyRecast,
   uploadRecastSource,
   validateRecastDuration,
   validateRecastSourceFile,
 } from './fullBodyRecast.js';
-import {
-  cancelRecastJob,
-  getRecastJobs,
-  isRecastJobActive,
-  retryRecastJob,
-  startRecastJob,
-  subscribeRecastJobs,
-} from './recastJobs.js';
-
-const RECASTING_LABEL = 'Recasting the performer… usually 2–5 minutes.';
-// Re-opening a person's recast shows a job that finished within this window.
-const RECENT_RECAST_MS = 60 * 60 * 1000;
 
 function isDataImage(value) {
   return typeof value === 'string' && value.startsWith('data:image/');
@@ -88,9 +78,7 @@ export class PersonalizationImageEditorController {
     this.maskController = null;
     this.onChange = onChange;
     this.onPreview = onPreview;
-    this.contactId = null;
-    this._recastUnsubscribe = null;
-    this._recastPreparing = null;
+    this.recastAbort = null;
   }
 
   _change(render = true) {
@@ -99,8 +87,6 @@ export class PersonalizationImageEditorController {
 
   open(asset, options = {}) {
     this.destroyMask();
-    this._detachRecastJob();
-    this.contactId = options.contactId || null;
     this.session = createPersonalizationImageEditorSession(asset, options);
     this._change(true);
     return this.session;
@@ -108,9 +94,7 @@ export class PersonalizationImageEditorController {
 
   close() {
     this.destroyMask();
-    // Recasts are background jobs: closing the editor only stops watching.
-    this._detachRecastJob();
-    if (this._recastPreparing) this._recastPreparing.cancelled = true;
+    this.cancelRecast();
     this._revokeRecastPreview();
     this.session = null;
     this._change(true);
@@ -559,8 +543,6 @@ export class PersonalizationImageEditorController {
   }
 
   // ── Full Body Recast (open-genjutsu flow) ──────────────────────────────
-  // Recasts run as background jobs (recastJobs.js). The editor only starts
-  // them and mirrors their state, so closing it never stops a recast.
 
   /**
    * @param {{ characters?: Array<{ id: string, name?: string, url: string }> }} [options]
@@ -580,86 +562,7 @@ export class PersonalizationImageEditorController {
     if (!recast.characterId) recast.characterId = session.assetId;
     recast.open = true;
     recast.error = '';
-    if (!recast.jobId) {
-      const job = this._findRecentRecastJob();
-      if (job) this._attachRecastJob(job, { restore: true });
-    } else {
-      this._attachRecastJob(getRecastJobs().find((job) => job.id === recast.jobId) || { id: recast.jobId });
-    }
     this._change(true);
-  }
-
-  /** The newest job started from this asset that is running or finished recently. */
-  _findRecentRecastJob() {
-    const session = this.session;
-    if (!session || !this.contactId) return null;
-    return getRecastJobs({ contactId: this.contactId }).find((job) => (
-      (job.editorAssetId === session.assetId || job.characterAssetId === session.assetId)
-      && job.status !== 'cancelled'
-      && (isRecastJobActive(job) || Date.now() - (job.finishedAt || 0) < RECENT_RECAST_MS)
-    )) || null;
-  }
-
-  _attachRecastJob(job, { restore = false } = {}) {
-    const recast = this.session?.recast;
-    if (!recast || !job?.id) return;
-    this._detachRecastJob();
-    recast.jobId = job.id;
-    if (restore) {
-      const known = job.characterAssetId === this.session.assetId
-        || recast.characters.some((c) => c.id === job.characterAssetId);
-      if (known) recast.characterId = job.characterAssetId;
-      Object.assign(recast, {
-        sourceName: 'Source clip',
-        sourcePreviewUrl: job.sourceUrl || '',
-        sourceUrl: job.sourceUrl || '',
-        duration: job.duration || 0,
-        prompt: job.prompt || '',
-      });
-    }
-    if (job.status) this._syncRecastFromJob(job);
-    this._recastUnsubscribe = subscribeRecastJobs((jobs) => {
-      const latest = jobs.find((candidate) => candidate.id === recast.jobId);
-      if (!latest || this.session?.recast !== recast) return;
-      this._syncRecastFromJob(latest);
-      this._change(true);
-    });
-  }
-
-  _detachRecastJob() {
-    this._recastUnsubscribe?.();
-    this._recastUnsubscribe = null;
-  }
-
-  _syncRecastFromJob(job) {
-    const recast = this.session?.recast;
-    if (!recast) return;
-    recast.startedAt = job.startedAt || recast.startedAt;
-    recast.canRetry = false;
-    if (job.status === 'submitting' || job.status === 'running') {
-      Object.assign(recast, { status: 'generating', statusLabel: RECASTING_LABEL, error: '' });
-    } else if (job.status === 'saving') {
-      Object.assign(recast, { status: 'saving', statusLabel: 'Saving to Presenter Videos…', resultUrl: job.resultUrl, error: '' });
-    } else if (job.status === 'done') {
-      Object.assign(recast, {
-        status: 'done',
-        statusLabel: '',
-        resultUrl: job.savedUrl || job.resultUrl,
-        saved: true,
-        error: '',
-      });
-    } else if (job.status === 'error') {
-      Object.assign(recast, {
-        status: 'error',
-        statusLabel: '',
-        resultUrl: job.resultUrl || '',
-        error: job.error || 'Full body recast failed.',
-        canRetry: Boolean(job.requestId),
-      });
-    } else if (job.status === 'cancelled') {
-      Object.assign(recast, { status: 'idle', statusLabel: '', error: '', jobId: '' });
-      this._detachRecastJob();
-    }
   }
 
   setRecastCharacter(id) {
@@ -667,16 +570,11 @@ export class PersonalizationImageEditorController {
     if (!recast || recast.status === 'generating' || recast.status === 'saving') return;
     const exists = id === this.session.assetId || recast.characters.some((c) => c.id === id);
     if (!exists || recast.characterId === id) return;
-    this._detachRecastJob();
-    Object.assign(recast, {
-      characterId: id,
-      jobId: '',
-      resultUrl: '',
-      saved: false,
-      error: '',
-      canRetry: false,
-    });
-    if (recast.status === 'done' || recast.status === 'error') recast.status = 'idle';
+    recast.characterId = id;
+    recast.resultUrl = '';
+    recast.saved = false;
+    recast.error = '';
+    if (recast.status === 'done') recast.status = 'idle';
     this._change(true);
   }
 
@@ -689,11 +587,11 @@ export class PersonalizationImageEditorController {
     return characters.find((c) => c.id === characterId)?.url || '';
   }
 
-  /** After a recast is saved, start a new one with the same person. */
+  /** After saving, start a new recast with the same person. */
   recastAnother() {
     const recast = this.session?.recast;
     if (!recast) return;
-    this._detachRecastJob();
+    this.cancelRecast();
     this._revokeRecastPreview();
     Object.assign(recast, {
       sourceName: '',
@@ -707,15 +605,13 @@ export class PersonalizationImageEditorController {
       error: '',
       saved: false,
       startedAt: 0,
-      jobId: '',
-      canRetry: false,
     });
     this._change(true);
   }
 
   closeRecast() {
     if (!this.session) return;
-    this._detachRecastJob();
+    this.cancelRecast();
     this.session.recast.open = false;
     this._change(true);
   }
@@ -738,7 +634,6 @@ export class PersonalizationImageEditorController {
       return;
     }
 
-    this._detachRecastJob();
     this._revokeRecastPreview();
     const previewUrl = URL.createObjectURL(file);
     Object.assign(recast, {
@@ -749,8 +644,6 @@ export class PersonalizationImageEditorController {
       resultUrl: '',
       saved: false,
       error: '',
-      jobId: '',
-      canRetry: false,
       status: 'uploading',
       statusLabel: 'Reading clip…',
     });
@@ -793,16 +686,11 @@ export class PersonalizationImageEditorController {
     const characterImage = this.recastCharacterUrl();
     if (!session || !characterImage) return;
     const recast = session.recast;
-    if (!recast.sourceUrl || recast.status === 'generating' || recast.status === 'saving') return;
-    if (!this.contactId) {
-      recast.error = 'Select a contact before starting a recast.';
-      this._change(true);
-      return;
-    }
+    if (!recast.sourceUrl || recast.status === 'generating') return;
 
-    this._detachRecastJob();
-    const preparing = { cancelled: false };
-    this._recastPreparing = preparing;
+    this.cancelRecast();
+    const controller = new AbortController();
+    this.recastAbort = controller;
     Object.assign(recast, {
       status: 'generating',
       startedAt: Date.now(),
@@ -810,63 +698,88 @@ export class PersonalizationImageEditorController {
       error: '',
       resultUrl: '',
       saved: false,
-      jobId: '',
-      canRetry: false,
     });
     this._change(true);
 
     try {
       const character = recast.characters.find((c) => c.id === recast.characterId);
-      const characterName = character?.name || session.name;
       const characterUrl = await resolveRecastCharacterUrl(characterImage, {
         role: session.role,
-        name: characterName,
+        name: character?.name || session.name,
       });
-      if (preparing.cancelled || this.session !== session) return;
+      if (controller.signal.aborted) throw new Error('Recast cancelled');
+      recast.statusLabel = 'Recasting the performer… usually 2–5 minutes.';
+      this._change(true);
 
-      const job = startRecastJob({
-        contactId: this.contactId,
-        editorAssetId: session.assetId,
-        characterAssetId: recast.characterId || session.assetId,
-        characterName,
-        characterImageUrl: characterUrl,
+      const result = await runFullBodyRecast({
         sourceUrl: recast.sourceUrl,
+        characterUrl,
         duration: recast.duration,
         prompt: recast.prompt,
+        signal: controller.signal,
       });
-      this._attachRecastJob(job);
+      if (controller.signal.aborted) throw new Error('Recast cancelled');
+      recast.resultUrl = result.url;
+      recast.model = result.model;
+      recast.status = 'done';
+      recast.statusLabel = '';
     } catch (error) {
-      if (this.session !== session || preparing.cancelled) return;
-      Object.assign(recast, {
-        status: 'error',
-        statusLabel: '',
-        error: error?.message || 'Full body recast failed.',
-      });
+      if (this.session !== session) return;
+      const cancelled = controller.signal.aborted || /cancel/i.test(error?.message || '');
+      recast.status = cancelled ? 'idle' : 'error';
+      recast.statusLabel = '';
+      recast.error = cancelled ? '' : (error?.message || 'Full body recast failed.');
     } finally {
-      if (this._recastPreparing === preparing) this._recastPreparing = null;
+      if (this.recastAbort === controller) this.recastAbort = null;
       if (this.session === session) this._change(true);
     }
   }
 
   cancelRecast() {
-    const recast = this.session?.recast;
-    if (this._recastPreparing) {
-      this._recastPreparing.cancelled = true;
-      this._recastPreparing = null;
-      if (recast) Object.assign(recast, { status: 'idle', statusLabel: '' });
+    if (this.recastAbort) {
+      try { this.recastAbort.abort(); } catch {}
+      this.recastAbort = null;
     }
-    if (recast?.jobId) cancelRecastJob(recast.jobId);
-    if (recast) this._change(true);
   }
 
-  /** Check the same MuAPI request again after a failure. */
-  retryRecast() {
-    const recast = this.session?.recast;
-    if (!recast?.jobId) return;
-    if (!retryRecastJob(recast.jobId)) {
-      this._detachRecastJob();
-      Object.assign(recast, { status: 'idle', error: '', jobId: '', canRetry: false });
+  /**
+   * Store the recast result durably and return the asset fields the modal
+   * needs to add it to the profile as a presenter video.
+   */
+  async saveRecast() {
+    const session = this.session;
+    const recast = session?.recast;
+    if (!recast?.resultUrl) throw new Error('Run a recast before saving.');
+    recast.status = 'saving';
+    recast.statusLabel = 'Saving recast video…';
+    this._change(true);
+    try {
+      const stored = await persistRecastVideo(recast.resultUrl, { name: `${session.name} Recast` });
+      recast.status = 'done';
+      recast.statusLabel = '';
+      return {
+        role: 'presenter_video',
+        name: `${recast.characters.find((c) => c.id === recast.characterId)?.name || session.name} — Full Body Recast`,
+        url: stored.url,
+        originalUrl: stored.url,
+        sourceType: 'AI_GENERATED',
+        mimeType: 'video/mp4',
+        editMetadata: {
+          operation: 'full_body_recast',
+          model: recast.model || null,
+          sourceVideoUrl: recast.sourceUrl,
+          characterAssetId: recast.characterId || session.assetId,
+          providerUrl: recast.resultUrl,
+          durable: stored.durable,
+          prompt: recast.prompt || '',
+        },
+      };
+    } catch (error) {
+      recast.status = 'done';
+      recast.statusLabel = '';
+      recast.error = error?.message || 'Could not save the recast video.';
       this._change(true);
+      throw error;
     }
   }
 
