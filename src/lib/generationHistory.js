@@ -231,6 +231,29 @@ export function deleteGeneration(url, type) {
   } catch (e) {
     // ignore
   }
+  // Fire-and-forget: also drop the cloud copy so it doesn't reappear in Library.
+  deleteFromSupabase(url).catch(() => {});
+}
+
+async function deleteFromSupabase(url) {
+  const fnUrl = getFunctionUrl();
+  if (!fnUrl || !url) return false;
+  const response = await fetch(`${fnUrl}?action=delete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-user-key': getUserKey() },
+    body: JSON.stringify({ url }),
+  });
+  return response.ok;
+}
+
+/**
+ * Asks the user to confirm, then deletes a generation everywhere it is stored.
+ * Returns true when the caller should drop the entry from its own list.
+ */
+export function confirmDeleteGeneration(url, type, confirmFn = (msg) => window.confirm(msg)) {
+  if (!confirmFn('Delete this generation? This cannot be undone.')) return false;
+  deleteGeneration(url, type);
+  return true;
 }
 
 /**

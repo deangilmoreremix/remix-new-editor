@@ -189,6 +189,38 @@ Deno.serve(async (req: Request) => {
   }
 
   // ------------------------------------------------------------------
+  // POST ?action=delete — remove one of the caller's generations by url
+  // ------------------------------------------------------------------
+  if (action === 'delete') {
+    try {
+      const { url: output_url } = await req.json();
+      if (!output_url) {
+        return new Response(
+          JSON.stringify({ error: 'url is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      const { userId } = await ensureUserProfile(supabase, user_key);
+      const { error } = await supabase
+        .from('generation_history')
+        .delete()
+        .eq('user_id', userId)
+        .eq('output_url', output_url);
+      if (error) throw new Error(error.message);
+      return new Response(
+        JSON.stringify({ ok: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (err) {
+      console.error('[generation-history] Delete handler error:', (err as Error).message);
+      return new Response(
+        JSON.stringify({ error: (err as Error).message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
+  // ------------------------------------------------------------------
   // POST — save a generation
   // ------------------------------------------------------------------
   if (req.method === 'POST' || action === 'save') {

@@ -2,6 +2,7 @@
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
+import { confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
@@ -1173,9 +1174,61 @@ export function CinemaStudio() {
     const downloadBtn = createActionBtn('↓ Download', true);
     const newPromptBtn = createActionBtn('+ New Shot');
 
+    const copyPromptBtn = createActionBtn('⧉ Copy Prompt');
+    const copyMediaBtn = createActionBtn('⧉ Copy Image');
+
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(downloadBtn);
+    canvasControls.appendChild(copyPromptBtn);
+    canvasControls.appendChild(copyMediaBtn);
     canvasControls.appendChild(newPromptBtn);
+
+    const flashLabel = (btn, text) => {
+        const original = btn.textContent;
+        btn.textContent = text;
+        setTimeout(() => { btn.textContent = original; }, 1500);
+    };
+
+    copyPromptBtn.onclick = async () => {
+        const text = textarea.value.trim();
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            flashLabel(copyPromptBtn, 'Copied!');
+        } catch {
+            showToast('Could not copy the prompt', 'error');
+        }
+    };
+
+    // Stills are copied as PNG (the only image type browsers accept on the
+    // clipboard); videos, or browsers without image clipboard support, get the link.
+    copyMediaBtn.onclick = async () => {
+        const url = currentResultUrl;
+        if (!url) return;
+        const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url);
+        try {
+            if (!isVideo && window.ClipboardItem) {
+                const blob = await fetch(url).then(r => r.blob());
+                const bitmap = await createImageBitmap(blob);
+                const cvs = document.createElement('canvas');
+                cvs.width = bitmap.width;
+                cvs.height = bitmap.height;
+                cvs.getContext('2d').drawImage(bitmap, 0, 0);
+                const png = await new Promise(resolve => cvs.toBlob(resolve, 'image/png'));
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+            } else {
+                await navigator.clipboard.writeText(url);
+            }
+            flashLabel(copyMediaBtn, 'Copied!');
+        } catch {
+            try {
+                await navigator.clipboard.writeText(url);
+                flashLabel(copyMediaBtn, 'Link copied');
+            } catch {
+                showToast('Could not copy', 'error');
+            }
+        }
+    };
 
     const publishBtn = document.createElement('button');
     publishBtn.type = 'button';
@@ -1220,6 +1273,19 @@ export function CinemaStudio() {
             loadText.className = 'text-[8px] font-bold text-white uppercase';
             loadText.textContent = 'Load';
             overlay.appendChild(loadText);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'hist-delete absolute top-1 right-1 p-1 bg-red-500/80 rounded-md text-white hover:scale-110 transition-transform';
+            deleteBtn.title = 'Delete';
+            deleteBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (!confirmDeleteGeneration(entry.url, 'video')) return;
+                generationHistory.splice(idx, 1);
+                try { localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50))); } catch { /* ignore */ }
+                renderHistory();
+            };
+            overlay.appendChild(deleteBtn);
             thumb.appendChild(overlay);
 
             thumb.onclick = () => loadHistoryItem(entry, thumb);
@@ -1272,6 +1338,7 @@ export function CinemaStudio() {
         currentResultUrl = url;
         // Render a <video> for cinematic video results, <img> for stills.
         const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url);
+        copyMediaBtn.textContent = isVideo ? '⧉ Copy Link' : '⧉ Copy Image';
         imageContainer.innerHTML = '';
         if (isVideo) {
             const vid = document.createElement('video');

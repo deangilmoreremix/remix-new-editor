@@ -1,5 +1,5 @@
 import { muapi } from '../lib/muapi.js';
-import { saveGeneration } from '../lib/generationHistory.js';
+import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
@@ -1227,6 +1227,18 @@ generateBtn.type = 'button';
             downloadBtn.title = 'Download';
             downloadBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
             overlay.appendChild(downloadBtn);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'hist-delete p-1.5 bg-red-500/80 rounded-lg text-white hover:scale-110 transition-transform';
+            deleteBtn.title = 'Delete';
+            deleteBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (!confirmDeleteGeneration(entry.url, 'image')) return;
+                generationHistory.splice(idx, 1);
+                renderHistory();
+            };
+            overlay.appendChild(deleteBtn);
             thumb.appendChild(overlay);
 
             thumb.onclick = (e) => {

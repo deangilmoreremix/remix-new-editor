@@ -1,5 +1,5 @@
 import { muapi } from '../lib/muapi.js';
-import { saveGeneration } from '../lib/generationHistory.js';
+import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { showToast } from '../lib/loading.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
@@ -994,14 +994,24 @@ export function LipSyncStudio() {
             thumb.className = `relative group/thumb cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-300 ${idx === 0 ? 'border-primary shadow-glow' : 'border-white/10 hover:border-white/30'}`;
             thumb.innerHTML = `
                 <video src="${entry.url}" preload="metadata" muted class="w-full aspect-square object-cover"></video>
-                <div class="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
+                <div class="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center gap-1">
                     <button class="hist-download p-1.5 bg-primary rounded-lg text-black hover:scale-110 transition-transform" title="Download">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    </button>
+                    <button class="hist-delete p-1.5 bg-red-500/80 rounded-lg text-white hover:scale-110 transition-transform" title="Delete">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                     </button>
                 </div>
             `;
             thumb.onclick = (e) => {
                 if (e.target.closest('.hist-download')) { downloadFile(entry.url, `lipsync-${entry.id || idx}.mp4`); return; }
+                if (e.target.closest('.hist-delete')) {
+                    if (!confirmDeleteGeneration(entry.url, 'video')) return;
+                    generationHistory.splice(idx, 1);
+                    try { localStorage.setItem('lipsync_history', JSON.stringify(generationHistory.slice(0, 30))); } catch { /* ignore */ }
+                    renderHistory();
+                    return;
+                }
                 showVideoInCanvas(entry.url);
                 historyList.querySelectorAll('div').forEach(t => { t.classList.remove('border-primary', 'shadow-glow'); t.classList.add('border-white/10'); });
                 thumb.classList.remove('border-white/10');

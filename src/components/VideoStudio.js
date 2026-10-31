@@ -1,5 +1,5 @@
 import { muapi } from '../lib/muapi.js';
-import { saveGeneration, deleteGeneration } from '../lib/generationHistory.js';
+import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
@@ -1679,9 +1679,9 @@ generateBtn.type = 'button';
             deleteBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
             deleteBtn.onclick = (e) => {
               e.stopPropagation();
+              if (!confirmDeleteGeneration(entry.url, 'video')) return;
               generationHistory.splice(idx, 1);
               try { localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 100))); } catch {}
-              deleteGeneration(entry.url, 'video');
               renderHistory();
             };
             overlay.appendChild(deleteBtn);
