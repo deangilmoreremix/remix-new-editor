@@ -119,6 +119,25 @@ describe('results gallery', () => {
     confirmSpy.mockRestore();
   });
 
+  it('exposes studio-specific actions from a desktop ⋯ button', () => {
+    const onRemix = vi.fn();
+    const g = createResultsGallery({ kind: 'video', extraActions: () => [{ label: 'Remix this generation', onSelect: onRemix }] });
+    document.body.appendChild(g.root);
+    g.addItem({ id: '1', url: 'https://cdn/a.mp4', prompt: 'p' });
+    g.root.querySelector('[data-action="more"]').click();
+    const row = g.root.querySelector('[data-menu-action="extra"]');
+    expect(row.textContent).toContain('Remix this generation');
+    row.click();
+    expect(onRemix).toHaveBeenCalled();
+    expect(g.root.querySelector('[data-mobile-menu]')).toBeNull();
+  });
+
+  it('has no ⋯ hover button when a studio adds no extra actions', () => {
+    const g = createResultsGallery({ kind: 'image' });
+    g.addItem({ id: '1', url: 'https://cdn/a.png', prompt: 'p' });
+    expect(g.root.querySelector('[data-action="more"]')).toBeNull();
+  });
+
   it('shows a pending card while generating', () => {
     const g = createResultsGallery({ kind: 'video' });
     const pending = g.addPending('Rendering…');

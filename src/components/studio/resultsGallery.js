@@ -186,15 +186,10 @@ export function createResultsGallery({ kind = 'image', historyType = kind, gridC
       b.addEventListener('click', (e) => { e.stopPropagation(); a.run(b); });
       hover.appendChild(b);
     });
-    card.appendChild(hover);
-
-    // Mobile ⋯ menu (44px target)
-    const mobileBtn = document.createElement('button');
-    mobileBtn.type = 'button';
-    mobileBtn.className = 'md:hidden absolute top-2 right-2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-center';
-    mobileBtn.setAttribute('aria-label', 'More actions');
-    mobileBtn.innerHTML = ICON.more;
-    mobileBtn.addEventListener('click', (e) => {
+    // The full action list (including studio-specific ones like Extend or
+    // Remix) lives in one ⋯ menu: a 44px button on phones, and the last
+    // hover button on desktop.
+    const toggleMenu = (e) => {
       e.stopPropagation();
       const existing = card.querySelector('[data-mobile-menu]');
       if (existing) { existing.remove(); return; }
@@ -204,6 +199,7 @@ export function createResultsGallery({ kind = 'image', historyType = kind, gridC
       actions.forEach((a) => {
         const row = document.createElement('button');
         row.type = 'button';
+        row.dataset.menuAction = a.kind;
         row.className = `w-full min-h-11 px-3 rounded-lg text-left text-sm font-semibold flex items-center gap-2 ${a.danger ? 'text-red-400 hover:bg-red-500/10' : 'text-white/80 hover:bg-white/5'}`;
         row.innerHTML = `${ICON[a.kind] || ''}<span></span>`;
         row.querySelector('span').textContent = a.label;
@@ -211,7 +207,29 @@ export function createResultsGallery({ kind = 'image', historyType = kind, gridC
         menu.appendChild(row);
       });
       card.appendChild(menu);
-    });
+      const close = (ev) => { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', close, true); } };
+      setTimeout(() => document.addEventListener('click', close, true), 0);
+    };
+    if (actions.some((a) => a.kind === 'extra')) {
+      const moreHover = document.createElement('button');
+      moreHover.type = 'button';
+      moreHover.title = 'More actions';
+      moreHover.setAttribute('aria-label', 'More actions');
+      moreHover.dataset.action = 'more';
+      moreHover.className = ROUND_BTN;
+      moreHover.innerHTML = ICON.more.replace('width="18" height="18"', 'width="14" height="14"');
+      moreHover.addEventListener('click', toggleMenu);
+      hover.appendChild(moreHover);
+    }
+    card.appendChild(hover);
+
+    // Mobile ⋯ menu (44px target)
+    const mobileBtn = document.createElement('button');
+    mobileBtn.type = 'button';
+    mobileBtn.className = 'md:hidden absolute top-2 right-2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-center';
+    mobileBtn.setAttribute('aria-label', 'More actions');
+    mobileBtn.innerHTML = ICON.more;
+    mobileBtn.addEventListener('click', toggleMenu);
     card.appendChild(mobileBtn);
 
     // Prompt & details footer

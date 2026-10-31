@@ -5,6 +5,8 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { restyleAction, setActionBusy, setActionRetry } from './studio/studioLayout.js';
+import { createSegmented } from './studio/promptComposer.js';
+import { MotionGraphicsPanel } from './studios/MotionGraphicsPanel.js';
 import { notifyGeneration } from './studio/generationNotifications.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -49,7 +51,7 @@ function getEffectsForModel(modelId) {
   return [];
 }
 
-export async function EffectsStudio() {
+async function EffectsCatalogStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
   mountStudioChrome(container, { currentRoute: 'effects' });
@@ -1637,4 +1639,54 @@ generateBtn.type = 'button';
     }
 
     return container;
+}
+
+
+/**
+ * Vibe Motion. Two modes on one page: the effects catalogue (ours) and
+ * upstream's motion-graphics generator with Generate/Edit/Remix.
+ * `?mode=motion` opens the motion-graphics tab directly.
+ */
+export async function EffectsStudio() {
+  const root = document.createElement('div');
+  root.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
+
+  const bar = document.createElement('div');
+  bar.className = 'flex items-center justify-center gap-3 px-4 py-2 border-b border-white/5 bg-app-bg shrink-0 z-20';
+  const body = document.createElement('div');
+  body.className = 'flex-1 min-h-0 relative';
+
+  const catalog = await EffectsCatalogStudio();
+  const motionHost = document.createElement('div');
+  motionHost.className = 'absolute inset-0 overflow-y-auto custom-scrollbar hidden p-4 md:p-6';
+  let motionPanel = null;
+
+  const show = (mode) => {
+    const motion = mode === 'motion';
+    catalog.classList.toggle('hidden', motion);
+    motionHost.classList.toggle('hidden', !motion);
+    if (motion && !motionPanel) {
+      motionPanel = MotionGraphicsPanel();
+      motionHost.appendChild(motionPanel);
+    }
+    try {
+      const url = new URL(window.location.href);
+      if (motion) url.searchParams.set('mode', 'motion'); else url.searchParams.delete('mode');
+      window.history.replaceState({}, '', url);
+    } catch { /* ignore */ }
+  };
+
+  const toggle = createSegmented([{ value: 'effects', label: 'Effects' }, { value: 'motion', label: 'Motion graphics' }], 'effects', show);
+  bar.appendChild(toggle);
+
+  catalog.classList.add('absolute', 'inset-0');
+  body.append(catalog, motionHost);
+  root.append(bar, body);
+
+  if (new URLSearchParams(window.location.search).get('mode') === 'motion') {
+    toggle.setValue('motion');
+    show('motion');
+  }
+  root.cleanup = () => { motionPanel?.cleanup?.(); catalog.cleanup?.(); };
+  return root;
 }
