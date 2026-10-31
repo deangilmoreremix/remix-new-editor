@@ -4,7 +4,7 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
 import { confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
-import { controlClassName, CONTROL_LABEL_CLASS } from './studio/promptComposer.js';
+import { controlClassName, CONTROL_LABEL_CLASS, createSegmented } from './studio/promptComposer.js';
 import { notifyGeneration } from './studio/generationNotifications.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -764,6 +764,21 @@ export function CinemaStudio() {
         createDropdown(['1K', '2K', '4K'], resBtn.dataset.value, (val) => { updateResBtn(val); resBtn.dataset.touched = '1'; }, resBtn);
     };
     settingsToolbar.appendChild(resBtn);
+
+    // Upstream Cinema renders stills; ours renders video. Keep both: a mode
+    // toggle sends the same camera-built prompt to generateImage for stills.
+    let outputMode = 'video';
+    try { if (localStorage.getItem('cinema_output_mode') === 'image') outputMode = 'image'; } catch { /* ignore */ }
+    const modeSeg = createSegmented(
+        [{ value: 'video', label: 'Video' }, { value: 'image', label: 'Image' }],
+        outputMode,
+        (value) => {
+            outputMode = value;
+            try { localStorage.setItem('cinema_output_mode', value); } catch { /* ignore */ }
+        },
+    );
+    modeSeg.dataset.cinemaMode = '';
+    settingsToolbar.insertBefore(modeSeg, settingsToolbar.firstChild);
 
     // Opens the Advanced Options panel (negative prompt, seed, duration, …).
     const advancedBtn = document.createElement('button');
@@ -1584,6 +1599,31 @@ export function CinemaStudio() {
             // below but never defined, so every successful render threw.
             const dynamicPayload = dynamicControls ? dynamicControls.getPayload({}) : {};
             const resolution = (resBtn.dataset.value || '1k').toLowerCase();
+
+            if (outputMode === 'image') {
+                // Still-image render (upstream Cinema behaviour): 1K/2K/4K.
+                const stillRes = (resBtn.dataset.value || '2K').toUpperCase();
+                const { resolveMuapiMediaRef } = await import('../lib/muapiStudioMedia.js');
+                const startUrl = currentSettings.referenceUrl
+                  ? await resolveMuapiMediaRef({ url: currentSettings.referenceUrl, assetId: currentSettings.referenceAssetId })
+                  : null;
+                pendingJob = createPendingJobTracker('cinema', {
+                    settings: { prompt: basePrompt, ...currentSettings, resolution: stillRes },
+                }, { maxAttempts: 120 });
+                const stillModel = startUrl ? 'nano-banana-pro-edit' : 'nano-banana-pro';
+                const still = await muapi.generateImage({
+                    model: getModelById(stillModel) ? stillModel : 'nano-banana-pro',
+                    prompt: finalPrompt,
+                    aspect_ratio: currentSettings.aspect_ratio,
+                    resolution: stillRes,
+                    ...(startUrl && getModelById(stillModel) ? { image_url: startUrl, images_list: [startUrl] } : {}),
+                    onRequestId: pendingJob.onRequestId,
+                });
+                if (!still?.url) throw new Error('No Data');
+                addToHistory({ url: still.url, timestamp: Date.now(), settings: { prompt: basePrompt, ...currentSettings, model: 'nano-banana-pro', resolution: stillRes } });
+                showCanvas(still.url);
+                return;
+            }
             const hasStartFrame = !!currentSettings.referenceUrl;
             const hasEndFrame = !!currentSettings.endFrameUrl;
             const isRef = hasStartFrame;
