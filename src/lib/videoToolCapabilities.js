@@ -395,6 +395,12 @@ function resolveContinuationRequestId(entry) {
   return null;
 }
 
+/** Continuation (extend / 4K) model ids that can continue a video made with `entry.model`. */
+export function getContinuationTargetsForEntry(entry) {
+  if (!entry?.model) return [];
+  return Object.keys(CONTINUATION_TARGETS).filter((id) => getCompatibleContinuationSources(id, [entry]).length > 0);
+}
+
 export function getCompatibleContinuationSources(modelOrId, history = []) {
   const config = getContinuationConfig(modelOrId);
   if (!config) return [];

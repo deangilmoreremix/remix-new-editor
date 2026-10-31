@@ -4,7 +4,7 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
 import { confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
-import { controlClassName, CONTROL_LABEL_CLASS } from './studio/promptComposer.js';
+import { controlClassName, CONTROL_LABEL_CLASS, createSegmented } from './studio/promptComposer.js';
 import { notifyGeneration } from './studio/generationNotifications.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -765,6 +765,21 @@ export function CinemaStudio() {
     };
     settingsToolbar.appendChild(resBtn);
 
+    // Upstream Cinema renders stills; ours renders video. Keep both: a mode
+    // toggle sends the same camera-built prompt to generateImage for stills.
+    let outputMode = 'video';
+    try { if (localStorage.getItem('cinema_output_mode') === 'image') outputMode = 'image'; } catch { /* ignore */ }
+    const modeSeg = createSegmented(
+        [{ value: 'video', label: 'Video' }, { value: 'image', label: 'Image' }],
+        outputMode,
+        (value) => {
+            outputMode = value;
+            try { localStorage.setItem('cinema_output_mode', value); } catch { /* ignore */ }
+        },
+    );
+    modeSeg.dataset.cinemaMode = '';
+    settingsToolbar.insertBefore(modeSeg, settingsToolbar.firstChild);
+
     // Opens the Advanced Options panel (negative prompt, seed, duration, …).
     const advancedBtn = document.createElement('button');
     advancedBtn.type = 'button';
@@ -949,10 +964,32 @@ export function CinemaStudio() {
     });
     uploadPicker.trigger.className = 'w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] hover:border-primary/50 hover:bg-white/[0.06] transition-all flex items-center justify-center relative overflow-hidden group';
     uploadPicker.trigger.title = 'Start frame (optional)';
+    // Drop an image straight onto the start tile (upstream behaviour).
+    {
+        const tile = uploadPicker.trigger;
+        const setDrag = (on) => { tile.classList.toggle('border-primary', on); tile.classList.toggle('bg-primary/10', on); };
+        tile.addEventListener('dragover', (e) => { e.preventDefault(); setDrag(true); });
+        tile.addEventListener('dragleave', () => setDrag(false));
+        tile.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDrag(false);
+            const file = Array.from(e.dataTransfer?.files || []).find((f) => f.type.startsWith('image/'));
+            if (!file) { showToast('Drop an image to use as the start frame.', 'error'); return; }
+            try {
+                const { uploadMediaFile } = await import('../lib/editor/upload.js');
+                const url = await uploadMediaFile(file, { kind: 'image' });
+                uploadPicker.setImage(url);
+            } catch (err) {
+                showToast(`Upload failed: ${err.message || 'try again'}`, 'error');
+            }
+        });
+    }
     inputRow.className = 'flex items-start gap-4';
     inputRow.insertBefore(uploadPicker.trigger, inputRow.firstChild);
     textarea.className = 'flex-1 w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:outline-none resize-none pt-1 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
-    inputRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
+    // Start/End frame and reference uploads stay available as compact round buttons.
+    inputRow.querySelector('.studio-attachment-toolbar')?.classList.add('studio-attachment-toolbar--compact');
     summaryCard.className = controlClassName({ className: 'max-w-[260px]' });
     summaryCard.innerHTML = '';
     dot.className = 'w-2 h-2 rounded-full bg-primary shrink-0 shadow-glow-sm';
@@ -1583,6 +1620,31 @@ export function CinemaStudio() {
             // below but never defined, so every successful render threw.
             const dynamicPayload = dynamicControls ? dynamicControls.getPayload({}) : {};
             const resolution = (resBtn.dataset.value || '1k').toLowerCase();
+
+            if (outputMode === 'image') {
+                // Still-image render (upstream Cinema behaviour): 1K/2K/4K.
+                const stillRes = (resBtn.dataset.value || '2K').toUpperCase();
+                const { resolveMuapiMediaRef } = await import('../lib/muapiStudioMedia.js');
+                const startUrl = currentSettings.referenceUrl
+                  ? await resolveMuapiMediaRef({ url: currentSettings.referenceUrl, assetId: currentSettings.referenceAssetId })
+                  : null;
+                pendingJob = createPendingJobTracker('cinema', {
+                    settings: { prompt: basePrompt, ...currentSettings, resolution: stillRes },
+                }, { maxAttempts: 120 });
+                const stillModel = startUrl ? 'nano-banana-pro-edit' : 'nano-banana-pro';
+                const still = await muapi.generateImage({
+                    model: getModelById(stillModel) ? stillModel : 'nano-banana-pro',
+                    prompt: finalPrompt,
+                    aspect_ratio: currentSettings.aspect_ratio,
+                    resolution: stillRes,
+                    ...(startUrl && getModelById(stillModel) ? { image_url: startUrl, images_list: [startUrl] } : {}),
+                    onRequestId: pendingJob.onRequestId,
+                });
+                if (!still?.url) throw new Error('No Data');
+                addToHistory({ url: still.url, timestamp: Date.now(), settings: { prompt: basePrompt, ...currentSettings, model: 'nano-banana-pro', resolution: stillRes } });
+                showCanvas(still.url);
+                return;
+            }
             const hasStartFrame = !!currentSettings.referenceUrl;
             const hasEndFrame = !!currentSettings.endFrameUrl;
             const isRef = hasStartFrame;

@@ -1,9 +1,9 @@
 import { muapi } from '../lib/muapi.js';
+import { formatErrorMessage } from '../lib/errorMessages.js';
 import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { showToast } from '../lib/loading.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { uploadMediaFile } from '../lib/editor/upload.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -326,6 +326,28 @@ export function LipSyncStudio() {
     statusRow.appendChild(imageStatusLabel);
     statusRow.appendChild(document.createTextNode(' · '));
     statusRow.appendChild(audioStatusLabel);
+
+    // Preview the uploaded audio in place (upstream's in-slot play/pause).
+    const audioPlayBtn = document.createElement('button');
+    audioPlayBtn.type = 'button';
+    audioPlayBtn.hidden = true;
+    audioPlayBtn.dataset.audioPreview = '';
+    audioPlayBtn.className = 'w-5 h-5 rounded-full bg-primary text-black text-[9px] leading-none flex items-center justify-center';
+    audioPlayBtn.setAttribute('aria-label', 'Play audio');
+    audioPlayBtn.textContent = '▶';
+    let previewAudio = null;
+    const stopPreview = () => { previewAudio?.pause(); previewAudio = null; audioPlayBtn.textContent = '▶'; audioPlayBtn.setAttribute('aria-label', 'Play audio'); };
+    audioPlayBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!uploadedAudioUrl) return;
+        if (previewAudio && !previewAudio.paused) { stopPreview(); return; }
+        previewAudio = new Audio(uploadedAudioUrl);
+        previewAudio.addEventListener('ended', stopPreview);
+        previewAudio.play().catch(() => stopPreview());
+        audioPlayBtn.textContent = '❚❚';
+        audioPlayBtn.setAttribute('aria-label', 'Pause audio');
+    });
+    statusRow.appendChild(audioPlayBtn);
     bar.appendChild(statusRow);
 
     const pexelsLipSyncAttr = document.createElement('div');
@@ -820,10 +842,33 @@ export function LipSyncStudio() {
         }
     };
 
+    // Upload progress as a percentage inside the slot's spinner (upstream's progress ring).
+    // uploadMediaFile is a protected entry point (no progress hook), so go through
+    // muapi.uploadFile directly and map errors the same way.
+    const uploadWithProgress = async (file, { onProgress }) => {
+        try {
+            const url = await muapi.uploadFile(file, { onProgress });
+            if (!url) throw new Error('Upload returned no URL');
+            return url;
+        } catch (err) {
+            throw new Error(formatErrorMessage(err));
+        }
+    };
+    const progressReporter = (btn, cls) => (percent) => {
+        const el = btn.querySelector(`.${cls}-spinner span`);
+        if (!el) return;
+        const showing = percent > 0 && percent < 100;
+        el.textContent = showing ? `${Math.round(percent)}%` : '◌';
+        el.classList.toggle('animate-spin', !showing);
+        el.classList.toggle('text-[10px]', showing);
+    };
+
     const updateAudioUploadState = (state, filename) => {
         const icon = audioUploadBtn.querySelector('.audio-icon');
         const spinner = audioUploadBtn.querySelector('.audio-spinner');
         const ready = audioUploadBtn.querySelector('.audio-ready');
+        audioPlayBtn.hidden = state !== 'ready';
+        if (state !== 'ready') stopPreview();
         if (state === 'idle') {
             icon.classList.remove('hidden'); icon.classList.add('flex');
             spinner.classList.add('hidden'); spinner.classList.remove('flex');
@@ -859,6 +904,31 @@ export function LipSyncStudio() {
         imageFileInput.click();
     };
 
+    // Drop a file on an upload button to use it (upstream Lip Sync supports
+    // dragging media onto each slot); it runs the same handler as a click.
+    const enableDrop = (btn, input, kind) => {
+        let depth = 0;
+        const ring = (on) => { btn.classList.toggle('ring-2', on); btn.classList.toggle('ring-primary', on); };
+        btn.addEventListener('dragenter', (e) => { e.preventDefault(); depth += 1; ring(true); });
+        btn.addEventListener('dragover', (e) => e.preventDefault());
+        btn.addEventListener('dragleave', () => { depth = Math.max(0, depth - 1); if (!depth) ring(false); });
+        btn.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            depth = 0;
+            ring(false);
+            const file = Array.from(e.dataTransfer?.files || []).find((f) => f.type.startsWith(`${kind}/`));
+            if (!file) { showToast(`Drop ${kind === 'audio' ? 'an audio' : `a ${kind}`} file here.`, 'error'); return; }
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            input.files = transfer.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    };
+    enableDrop(imageUploadBtn, imageFileInput, 'image');
+    enableDrop(videoUploadBtn, videoFileInput, 'video');
+    enableDrop(audioUploadBtn, audioFileInput, 'audio');
+
     imageFileInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -866,7 +936,7 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => imageFileInput.click()); return; }
         updateImageUploadState('loading');
         try {
-            const url = await uploadMediaFile(file);
+            const url = await uploadWithProgress(file, { onProgress: progressReporter(imageUploadBtn, 'image') });
             uploadedImageUrl = url;
             updateImageUploadState('ready', file.name);
         } catch (err) {
@@ -897,7 +967,7 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => videoFileInput.click()); return; }
         updateVideoUploadState('loading');
         try {
-            const url = await uploadMediaFile(file);
+            const url = await uploadWithProgress(file, { onProgress: progressReporter(videoUploadBtn, 'video') });
             uploadedVideoUrl = url;
             updateVideoUploadState('ready', file.name);
         } catch (err) {
@@ -928,7 +998,7 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => audioFileInput.click()); return; }
         updateAudioUploadState('loading');
         try {
-            const url = await uploadMediaFile(file);
+            const url = await uploadWithProgress(file, { onProgress: progressReporter(audioUploadBtn, 'audio') });
             uploadedAudioUrl = url;
             updateAudioUploadState('ready', file.name);
         } catch (err) {

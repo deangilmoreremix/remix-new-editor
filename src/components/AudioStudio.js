@@ -662,12 +662,7 @@ export function AudioStudio() {
 
   // Attachment toolbar for audio references
   const audioAttachmentState = { audio: null, images: [], videos: [] };
-  const attachmentToolbar = createAttachmentToolbar({
-    container: promptGroup,
-    getTextarea: () => promptInput,
-    acceptStartFrame: false,
-    acceptEndFrame: false,
-    onUpload: async (key, file) => {
+  const ingestAttachment = async (key, file) => {
       try {
         if (key === 'audio') {
           const apiKey = apiKeyManager.getKey();
@@ -693,8 +688,37 @@ export function AudioStudio() {
         const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
         showToast(await describeMuapiUploadError(err), 'error');
       }
-    },
+  };
+  const attachmentToolbar = createAttachmentToolbar({
+    container: promptGroup,
+    getTextarea: () => promptInput,
+    acceptStartFrame: false,
+    acceptEndFrame: false,
+    onUpload: ingestAttachment,
   });
+
+  // Dropping an audio file anywhere on the page uses it as the audio input
+  // (upstream Audio Studio), the same as the Audio button.
+  const dropOverlay = document.createElement('div');
+  dropOverlay.className = 'hidden fixed inset-0 z-[90] items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-none';
+  dropOverlay.innerHTML = '<div class="px-8 py-6 rounded-2xl border-2 border-dashed border-primary text-primary font-bold">Drop audio to use as input</div>';
+  let dropDepth = 0;
+  const hasFiles = (e) => Array.from(e.dataTransfer?.types || []).includes('Files');
+  container.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; e.preventDefault(); dropDepth += 1; dropOverlay.classList.remove('hidden'); dropOverlay.classList.add('flex'); });
+  container.addEventListener('dragover', (e) => { if (hasFiles(e)) e.preventDefault(); });
+  container.addEventListener('dragleave', (e) => { if (!hasFiles(e)) return; dropDepth = Math.max(0, dropDepth - 1); if (!dropDepth) { dropOverlay.classList.add('hidden'); dropOverlay.classList.remove('flex'); } });
+  container.addEventListener('drop', async (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dropDepth = 0;
+    dropOverlay.classList.add('hidden');
+    dropOverlay.classList.remove('flex');
+    const files = Array.from(e.dataTransfer.files || []);
+    const audio = files.find((f) => f.type.startsWith('audio/'));
+    if (!audio) { showToast('Drop an audio file (mp3, wav, m4a…)', 'error'); return; }
+    await ingestAttachment('audio', audio);
+  });
+  container.appendChild(dropOverlay);
 
   const enhanceMenu = document.createElement('div');
   enhanceMenu.className = 'overflow-menu shrink-0';
@@ -1124,10 +1148,16 @@ export function AudioStudio() {
       <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
         <div id="waveform-container" class="w-full h-24 mb-3 rounded-xl overflow-hidden bg-white/5"></div>
         <div class="flex items-center gap-3 mb-3">
-          <button id="waveform-play-btn" class="w-10 h-10 bg-primary hover:bg-primary/80 text-black rounded-xl flex items-center justify-center transition-all">
+          <button id="waveform-play-btn" aria-label="Play" class="w-12 h-12 bg-primary hover:bg-primary/80 text-black rounded-full flex items-center justify-center transition-all">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </button>
           <span id="waveform-time" class="text-xs font-bold text-secondary tabular-nums">0:00 / 0:00</span>
+          <div class="ml-auto flex items-center gap-2">
+            <button type="button" id="waveform-mute-btn" aria-label="Mute" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-secondary hover:text-white flex items-center justify-center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M19 5a10 10 0 010 14"/></svg>
+            </button>
+            <input type="range" id="waveform-volume" min="0" max="100" step="1" value="100" aria-label="Volume" class="w-24 accent-primary h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer">
+          </div>
         </div>
         <audio id="waveform-audio" class="hidden" src="${url}" type="audio/mpeg"></audio>
         <a href="${url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
@@ -1213,6 +1243,20 @@ export function AudioStudio() {
           playBtn.onclick = () => {
             wavesurfer.playPause();
           };
+        }
+
+        const volume = resultArea.querySelector('#waveform-volume');
+        const muteBtn = resultArea.querySelector('#waveform-mute-btn');
+        let muted = false;
+        const syncVolume = () => {
+          wavesurfer.setVolume(muted ? 0 : Number(volume.value) / 100);
+          muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+          muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+          muteBtn.classList.toggle('text-primary', muted);
+        };
+        if (volume && muteBtn) {
+          volume.oninput = () => { if (muted && Number(volume.value) > 0) muted = false; syncVolume(); };
+          muteBtn.onclick = () => { muted = !muted; syncVolume(); };
         }
 
         waveformContainer.onclick = (e) => {

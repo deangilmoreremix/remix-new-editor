@@ -920,6 +920,18 @@ export async function InfluencerStudio() {
   };
   actionGroup.appendChild(shuffleActionBtn);
 
+  // Reset clears every chosen attribute (upstream's builder Reset).
+  const resetBtn = document.createElement('button');
+  resetBtn.type = 'button';
+  resetBtn.textContent = 'Reset';
+  resetBtn.className = 'px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/10 transition-all';
+  resetBtn.onclick = () => {
+    Object.keys(selectedOptions).forEach((key) => delete selectedOptions[key]);
+    refreshAttrGrid();
+    refreshTagsBar();
+  };
+  actionGroup.appendChild(resetBtn);
+
   const previewGenBtn = document.createElement('button');
   previewGenBtn.type = 'button';
   restyleAction(previewGenBtn);
@@ -1056,6 +1068,9 @@ export async function InfluencerStudio() {
 
   const renderHistory = () => {
     historyList.innerHTML = '';
+    const count = generationHistory.length;
+    historyLabel.textContent = `Generated · ${count} character${count === 1 ? '' : 's'}`;
+    historyLabel.className = 'text-[9px] font-bold text-muted uppercase tracking-widest mb-2 text-center px-1';
     generationHistory.slice(0, 50).forEach((entry, idx) => {
       const thumb = document.createElement('div');
       thumb.className = `relative group/thumb cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-300 ${idx === 0 ? 'border-primary shadow-glow' : 'border-white/10 hover:border-white/30'}`;

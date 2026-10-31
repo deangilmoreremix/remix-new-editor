@@ -13,6 +13,7 @@ import {
 import { ENHANCE_TAGS, QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { openDrawModal } from './studio/drawModal.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
@@ -31,6 +32,8 @@ import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loadi
 import { showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
+import { createPill, openComposerPopover } from './studio/promptComposer.js';
+import { createMediaSlot } from './studio/mediaSlot.js';
 import { notifyGeneration } from './studio/generationNotifications.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
@@ -44,11 +47,23 @@ export function ImageStudio() {
   mountStudioChrome(container, { currentRoute: 'image' });
 
     // --- State ---
+    let syncImageModelExtras = () => {};
     let results = null; // upstream-style empty state + results gallery, mounted with the composer
-    const defaultModel = t2iModels[0];
+    let swapUrl = null; // face image for models with a swapField (e.g. AI Image Face Swap)
+    let selectedEffect = null; // effect preset for models with a `name` enum input
+    // Remember the last text-to-image model and aspect ratio between visits.
+    const SETTINGS_KEY = 'image_studio_settings';
+    const savedSettings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; } catch { return {}; } })();
+    const saveSettings = () => {
+        if (imageMode) return;
+        try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ model: selectedModel, ar: selectedAr })); } catch { /* ignore */ }
+    };
+    const defaultModel = t2iModels.find((m) => m.id === savedSettings.model) || t2iModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
-    let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '1:1';
+    let selectedAr = (savedSettings.ar && getAspectRatiosForModel(defaultModel.id).includes(savedSettings.ar))
+        ? savedSettings.ar
+        : (defaultModel.inputs?.aspect_ratio?.default || '1:1');
     let dropdownOpen = null;
     let selectedProvider = 'all';
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
@@ -657,20 +672,116 @@ generateBtn.type = 'button';
     [modelBtn, arBtn, qualityBtn, advancedBtn].forEach(restylePill);
     picker.trigger.className = picker.trigger.className.replace('rounded-xl', 'rounded-full').replace('mt-1.5', '');
     topRow.className = 'flex items-start gap-3';
-    topRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
+    // Start/End frame and reference uploads stay available as compact round buttons.
+    topRow.querySelector('.studio-attachment-toolbar')?.classList.add('studio-attachment-toolbar--compact');
     const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
-    foldIntoMoreMenu(controlsLeft, [
+    const moreMenuBtn = foldIntoMoreMenu(controlsLeft, [
         { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
         { label: 'Prompt tools', description: 'Quick starters & prompt enhancer', el: toolsBtn },
         { label: 'Personalize', description: 'Personalize with a contact', el: controlsLeft.querySelector('#v-contact-btn') },
         { label: 'Custom thumbnail', el: thumbBtn },
         { label: 'Stock photos', description: 'Use a Pexels photo as reference', el: pexelsBtn },
+        {
+            label: 'Draw / sketch',
+            description: 'Sketch a reference for the model to follow',
+            onSelect: () => openDrawModal({
+                backgroundUrl: uploadedImageUrls[0] || undefined,
+                onDone: async (file, { destination } = {}) => {
+                    try {
+                        const { uploadFileToStorage } = await import('../lib/uploadService.js');
+                        const url = await uploadFileToStorage(file);
+                        if (destination === 'video') {
+                            // Hand the sketch to Video Studio as its start frame.
+                            try { localStorage.setItem('video_prefill_start_frame', url); } catch { /* ignore */ }
+                            const { navigate } = await import('../lib/router.js');
+                            navigate('video');
+                            return;
+                        }
+                        picker.setImage(url);
+                        showToast('Sketch added as reference', 'success');
+                    } catch (err) {
+                        showToast('Sketch upload failed: ' + (err.message || 'try again'), 'error');
+                    }
+                },
+            }),
+        },
         { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
         { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
         { label: 'Recipes', onSelect: enhanceAction('recipe') },
         { label: 'Monetize', onSelect: enhanceAction('monetize') },
     ]);
     toolbar.hidden = true;
+
+    // ── Upstream Image functions: batch stepper, effect type, face-swap slot ──
+    const BATCH_MAX = 4;
+    const batchWrap = document.createElement('div');
+    batchWrap.className = 'flex items-center h-[38px] rounded-md border border-white/[0.06] bg-[#16161a]/60 text-white text-xs font-semibold overflow-hidden';
+    batchWrap.dataset.batchStepper = '';
+    const batchMinus = document.createElement('button');
+    const batchPlus = document.createElement('button');
+    const batchLabel = document.createElement('span');
+    [batchMinus, batchPlus].forEach((b) => { b.type = 'button'; b.className = 'w-8 h-full hover:bg-white/10 text-white/70 disabled:opacity-30'; });
+    batchMinus.textContent = '−';
+    batchMinus.setAttribute('aria-label', 'Fewer images');
+    batchPlus.textContent = '+';
+    batchPlus.setAttribute('aria-label', 'More images');
+    batchLabel.className = 'px-2 tabular-nums min-w-[36px] text-center';
+    const setBatch = (n) => {
+        batchCount = Math.max(1, Math.min(BATCH_MAX, n));
+        batchLabel.textContent = `${batchCount}/${BATCH_MAX}`;
+        batchMinus.disabled = batchCount <= 1;
+        batchPlus.disabled = batchCount >= BATCH_MAX;
+        try { dynamicControls?.setValue?.('batch_count', batchCount); } catch { /* control hidden in this mode */ }
+    };
+    batchMinus.onclick = () => setBatch(batchCount - 1);
+    batchPlus.onclick = () => setBatch(batchCount + 1);
+    batchWrap.append(batchMinus, batchLabel, batchPlus);
+    setBatch(batchCount);
+    controlsLeft.insertBefore(batchWrap, moreMenuBtn);
+
+    const effectPill = createPill({ label: 'Effect', title: 'Effect type' });
+    effectPill.classList.add('hidden');
+    effectPill.addEventListener('click', () => {
+        const model = getExtendedModel(imageMode ? getI2IModelById(selectedModel) : getModelById(selectedModel));
+        const options = model?.inputs?.name?.enum || [];
+        openComposerPopover(effectPill, {
+            title: 'Effect',
+            items: options.map((name) => ({ label: name, selected: name === selectedEffect, onSelect: () => { selectedEffect = name; effectPill.setLabel(name); } })),
+        });
+    });
+    controlsLeft.insertBefore(effectPill, moreMenuBtn);
+
+    const swapSlot = createMediaSlot({
+        icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></svg>',
+        title: 'Swap face image',
+        onFiles: async ([file]) => {
+            swapSlot.setProgress(1);
+            try {
+                swapUrl = await muapi.uploadFile(file, { onProgress: (p) => swapSlot.setProgress(Math.min(99, p)) });
+                swapSlot.setPreview(swapUrl);
+            } catch (err) {
+                showToast(`Upload failed: ${err.message || 'try again'}`, 'error', 5000);
+            } finally {
+                swapSlot.setProgress(100);
+            }
+        },
+        onClear: () => { swapUrl = null; },
+    });
+    swapSlot.el.classList.add('hidden');
+    topRow.insertBefore(swapSlot.el, textarea);
+
+    // Show the effect and face controls only for models that take them.
+    const syncModelExtras = () => {
+        const model = getExtendedModel(imageMode ? getI2IModelById(selectedModel) : getModelById(selectedModel));
+        const effects = model?.inputs?.name?.enum || [];
+        effectPill.classList.toggle('hidden', effects.length === 0);
+        if (!effects.includes(selectedEffect)) { selectedEffect = effects[0] || null; effectPill.setLabel(selectedEffect || 'Effect'); }
+        const needsSwap = !!(imageMode && model?.swapField);
+        swapSlot.el.classList.toggle('hidden', !needsSwap);
+        if (!needsSwap) { swapUrl = null; swapSlot.setPreview(null); }
+    };
+    syncImageModelExtras = syncModelExtras;
+    syncModelExtras();
     restyleAction(generateBtn);
     styleComposer({ wrapper: promptWrapper, bar, footer: bottomRow, controls: controlsLeft });
     container.appendChild(promptWrapper);
@@ -983,6 +1094,8 @@ generateBtn.type = 'button';
             const resolved = isImageMode ? getI2IModelById(modelId) : getModelById(modelId);
             dynamicControls.update(getExtendedModel(resolved));
         }
+        syncImageModelExtras();
+        saveSettings();
     };
 
     // Open the upstream split-pane picker (provider sidebar, search, categories).
@@ -1050,6 +1163,7 @@ generateBtn.type = 'button';
                 item.onclick = (e) => {
                     e.stopPropagation();
                     selectedAr = r;
+                    saveSettings();
                     document.getElementById('ar-btn-label').textContent = r;
                     closeDropdown();
                 };
@@ -1409,6 +1523,10 @@ generateBtn.type = 'button';
                 showInlineError(container, 'Please upload a reference image first.');
                 return;
             }
+            if (getI2IModelById(selectedModel)?.swapField && !swapUrl) {
+                showInlineError(container, 'Please upload a swap face image first.');
+                return;
+            }
         } else {
             if (!prompt) {
                 showInlineError(container, 'Please enter a prompt to generate an image.');
@@ -1447,6 +1565,8 @@ generateBtn.type = 'button';
                     ...dynamicPayload
                 };
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
+                if (swapUrl) genParams.swap_url = swapUrl;
+                if (selectedEffect) genParams.name = selectedEffect;
                 if (prompt) genParams.prompt = prompt;
                 if (batchCount > 1) genParams.batch_count = batchCount;
                 if (selectedLora) genParams.lora = selectedLora;
@@ -1475,6 +1595,7 @@ generateBtn.type = 'button';
                 };
                 if (selectedStyle && selectedStyle !== 'None' && supportsStyleParam) genParams.style = selectedStyle;
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
+                if (selectedEffect) genParams.name = selectedEffect;
                 if (batchCount > 1) genParams.batch_count = batchCount;
                 if (selectedLora) genParams.lora = selectedLora;
                 if (loraWeight !== 1.0) genParams.lora_weight = loraWeight;

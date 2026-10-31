@@ -1,6 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
+import { createPill, openComposerPopover } from './studio/promptComposer.js';
 import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy } from './studio/studioLayout.js';
 import { notifyGeneration } from './studio/generationNotifications.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -9,6 +10,8 @@ import { uploadMediaFile } from '../lib/editor/upload.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { createSafeVideo } from '../lib/security.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
+import { createCostLine } from './studio/costEstimate.js';
+import { getContinuationTargetsForEntry, buildVideoToolPayload } from '../lib/videoToolCapabilities.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -54,6 +57,8 @@ export function VideoStudio() {
     let selectedResolution = defaultModel.inputs?.resolution?.default || '';
     let selectedQuality = defaultModel.inputs?.quality?.default || '';
     let lastGenerationId = null;
+    let extendTargetId = null;
+    const continuationLabel = (id) => (/4k/i.test(id) ? 'Upscale to 4K' : `Extend (${id.replace(/-extend.*$/, '').replace(/^veo3\.1.*/, 'Veo 3.1').replace(/^grok-imagine/, 'Grok Imagine').replace(/^seedance-v2\.0/, 'Seedance 2.0').replace(/^seedance-2-vip/, 'Seedance 2 VIP').replace(/^seedance-2/, 'Seedance 2')})`);
     let lastGenerationModel = null;
     let nativeAudio = false;
     let characterLock = false;
@@ -72,6 +77,7 @@ export function VideoStudio() {
     let uploadedImageUrl = null;
     let uploadedEndImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
+    let refreshVideoCost = () => {};
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
@@ -557,6 +563,14 @@ export function VideoStudio() {
             videoPrefill = raw;
         }
     } catch { /* ignore */ }
+    // A sketch from Image Studio's Draw modal arrives as the start frame.
+    try {
+        const startFrame = localStorage.getItem('video_prefill_start_frame');
+        if (startFrame) {
+            localStorage.removeItem('video_prefill_start_frame');
+            setTimeout(() => picker.setImage(startFrame), 150);
+        }
+    } catch { /* ignore */ }
     if (!videoPrefill) {
         const staged = consumeStudioPrefill('video');
         if (staged) {
@@ -909,6 +923,13 @@ generateBtn.type = 'button';
     generateBtn.innerHTML = `Generate ✨`;
 
     bottomRow.appendChild(controlsLeft);
+    // Estimated price for video-to-video runs (upstream's estimateV2VCost); best-effort.
+    const costLine = createCostLine({ estimate: (params) => muapi.estimateV2VCost(params) });
+    refreshVideoCost = (model) => {
+        if (!v2vMode || !uploadedVideoUrl || !model) { costLine.refresh(null); return; }
+        costLine.refresh(model.id, { model: model.id, ...buildVideoToolPayload(model, { video_url: uploadedVideoUrl }) });
+    };
+    bottomRow.appendChild(costLine.el);
     bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
     promptWrapper.appendChild(bar);
@@ -920,8 +941,47 @@ generateBtn.type = 'button';
         if (b) b.className = b.className.replace('rounded-xl', 'rounded-full').replace('mt-1.5', '');
     });
     topRow.className = 'flex items-center gap-2 flex-wrap';
-    topRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
+    // Start/End frame and reference uploads stay available as compact round buttons.
+    topRow.querySelector('.studio-attachment-toolbar')?.classList.add('studio-attachment-toolbar--compact');
     bar.insertBefore(textarea, bottomRow);
+    // Source / workflow pill (upstream's Video modes): picks the matching model
+    // and asks for the media that mode needs.
+    const WORKFLOWS = [
+        { id: 'text', label: 'Text to video', kind: 't2v' },
+        { id: 'image', label: 'Animate image', kind: 'i2v' },
+        { id: 'keyframes', label: 'Keyframes (start + end)', kind: 'i2v', model: 'seedance-2-first-last-frame' },
+        { id: 'references', label: 'References', kind: 'i2v', model: 'seedance-2-omni-reference' },
+        { id: 'edit', label: 'Edit video', kind: 'v2v', model: 'wan2.2-edit-video' },
+        { id: 'extend', label: 'Extend uploaded video', kind: 'v2v', model: 'wan2.7-video-extend' },
+        { id: 'motion', label: 'Motion transfer', kind: 'v2v', model: 'wan2.2-animate' },
+    ];
+    const workflowPill = createPill({ label: 'Source', title: 'Video source / workflow' });
+    workflowPill.dataset.workflowPill = '';
+    const applyWorkflow = (w) => {
+        const list = w.kind === 'v2v' ? v2vModels : w.kind === 'i2v' ? i2vModels : t2vModels;
+        const model = list.find((m) => m.id === w.model) || list[0];
+        if (!model) return;
+        if (w.kind !== 'v2v' && uploadedVideoUrl) { uploadedVideoUrl = null; showVideoIcon(); }
+        if (w.kind !== 'i2v' && imageMode) { picker.reset(); uploadedImageUrl = null; }
+        imageMode = w.kind === 'i2v';
+        v2vMode = w.kind === 'v2v';
+        selectedModel = model.id;
+        selectedModelName = model.name;
+        const label = document.getElementById('v-model-btn-label');
+        if (label) label.textContent = selectedModelName;
+        workflowPill.setLabel(w.label);
+        updateModelBtnIcon();
+        updateControlsForModel(selectedModel);
+        textarea.disabled = false;
+        if (w.kind === 'i2v' && !uploadedImageUrl) picker.trigger.click();
+        if (w.kind === 'v2v' && !uploadedVideoUrl) videoFileInput.click();
+    };
+    workflowPill.addEventListener('click', () => openComposerPopover(workflowPill, {
+        title: 'Source',
+        items: WORKFLOWS.map((w) => ({ label: w.label, onSelect: () => applyWorkflow(w) })),
+    }));
+    controlsLeft.insertBefore(workflowPill, controlsLeft.firstChild);
+
     const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
     foldIntoMoreMenu(controlsLeft, [
         { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
@@ -956,7 +1016,10 @@ generateBtn.type = 'button';
             samples: getAssetsForStudio('video').map(a => a.thumbnail || a.posterSrc).filter(Boolean).slice(0, 4),
         },
         extraActions: (item) => [
-            ...(/^seedance-v2\.0-(t2v|i2v)$/.test(item.model || '') ? [{ label: 'Extend', onSelect: () => { lastGenerationId = item.id; lastGenerationModel = item.model; extendBtn.click(); } }] : []),
+            ...getContinuationTargetsForEntry(item).map((targetId) => ({
+                label: continuationLabel(targetId),
+                onSelect: () => { lastGenerationId = item.id; lastGenerationModel = item.model; extendTargetId = targetId; extendBtn.click(); },
+            })),
             { label: 'Open in Render', onSelect: () => { resultVideo.src = item.url; renderBtn.click(); } },
             { label: 'Add AI captions', onSelect: () => addCaptionButton({ videoUrl: item.url, appTheme: 'video-studio', onComplete: () => showToast('Captioned video ready') }) },
             { label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'video' }) },
@@ -1204,6 +1267,7 @@ generateBtn.type = 'button';
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
+        refreshVideoCost(model);
 
         // Native audio toggle — only show for models that support it
         const vNativeAudioRow = advancedPanel.querySelector('#v-native-audio-row');
@@ -1889,7 +1953,10 @@ generateBtn.type = 'button';
 
         try {
             const catalog = await muapi.getModelCatalog();
-            const extendModel = catalog.find(m => m.requiresRequestId === true || m.id.endsWith('-extend'));
+            const wantedId = extendTargetId;
+            extendTargetId = null;
+            const extendModel = (wantedId && catalog.find(m => m.id === wantedId))
+                || catalog.find(m => m.requiresRequestId === true || m.id.endsWith('-extend'));
             if (extendModel) {
                 extendModelId = extendModel.id;
                 extendModelName = extendModel.name;
@@ -2160,6 +2227,7 @@ generateBtn.type = 'button';
                         prompt: enrichedPrompt,
                         model: selectedModel,
                         aspect_ratio: selectedAr,
+                        resolution: i2vParams.resolution || undefined,
                         duration: selectedDuration,
                         timestamp: new Date().toISOString()
                     });
@@ -2222,6 +2290,7 @@ generateBtn.type = 'button';
                     prompt: enrichedPrompt,
                     model: selectedModel,
                     aspect_ratio: selectedAr,
+                    resolution: params.resolution || undefined,
                     duration: selectedDuration,
                     timestamp: new Date().toISOString()
                 });

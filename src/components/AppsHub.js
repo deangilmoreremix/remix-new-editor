@@ -1,5 +1,8 @@
 import { navigate } from '../lib/router.js';
 import { getStudioThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { muapi } from '../lib/muapi.js';
+import { showToast } from '../lib/loading.js';
+import { TEMPLATE_APPS, ECOSYSTEM_APPS } from '../data/upstreamApps.js';
 
 const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
@@ -96,6 +99,15 @@ export function AppsHub() {
   const noResults = document.createElement('div');
   noResults.className = 'hidden text-center py-16 text-white/50 text-sm';
   inner.appendChild(noResults);
+
+  // Upstream Explore Apps: revenue-ready template apps (GitHub + demo links)
+  // and the wider MuAPI ecosystem (request access).
+  inner.appendChild(createTemplateSection('Revenue-ready templates', 'Fork, add your MuAPI key, deploy — Stripe is pre-wired.', TEMPLATE_APPS, null));
+  inner.appendChild(createTemplateSection('MuAPI ecosystem apps', 'Ask for a template and we\'ll send you the details.', ECOSYSTEM_APPS, (app) => openInterestModal(app)));
+  const comingSoon = document.createElement('div');
+  comingSoon.className = 'flex justify-center pb-10';
+  comingSoon.innerHTML = '<div class="inline-flex items-center gap-3 px-4 py-2 bg-white/5 rounded-full border border-white/5"><span class="block w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span><span class="text-[9px] font-black text-white/40 uppercase tracking-widest">MuAPI ecosystem — more templates coming soon</span></div>';
+  inner.appendChild(comingSoon);
 
   container.appendChild(inner);
 
@@ -231,4 +243,111 @@ function saveRecent(id, name) {
     filtered.unshift({ id, name });
     localStorage.setItem('recent_tools', JSON.stringify(filtered.slice(0, 12)));
   } catch { /* ignore */ }
+}
+
+
+const LINK_BTN = 'flex-1 py-2 rounded-md text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all border';
+
+/** A grid of external apps. `onRequest` set → both buttons open the access modal; otherwise real links. */
+function createTemplateSection(title, subtitle, apps, onRequest) {
+  const section = document.createElement('div');
+  section.className = 'mb-10 animate-fade-in-up';
+  section.dataset.appSection = '';
+
+  const heading = document.createElement('h2');
+  heading.className = 'text-lg font-bold text-white mb-1 flex items-center gap-2';
+  heading.innerHTML = `${title} <span class="text-xs font-medium text-muted" data-app-count>${apps.length}</span>`;
+  const sub = document.createElement('p');
+  sub.className = 'text-xs text-white/40 mb-4';
+  sub.textContent = subtitle;
+  section.append(heading, sub);
+
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+  apps.forEach((app) => {
+    const card = document.createElement('div');
+    card.className = 'group bg-[#0a0a0a] border border-white/5 rounded-lg flex flex-col overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-[#0f0f0f]';
+    card.dataset.searchable = `${app.name} ${app.description || ''} ${app.category || ''}`;
+
+    const thumb = document.createElement('div');
+    thumb.className = 'relative h-40 w-full overflow-hidden bg-white/5';
+    if (app.thumbnail) {
+      const img = document.createElement('img');
+      img.src = app.thumbnail;
+      img.alt = app.name;
+      img.loading = 'lazy';
+      img.className = 'w-full h-full object-cover transition-transform duration-500 group-hover:scale-110';
+      img.onerror = () => { img.remove(); thumb.classList.add('bg-gradient-to-br', 'from-primary/10', 'to-purple-600/10'); };
+      thumb.appendChild(img);
+    }
+    card.appendChild(thumb);
+
+    const body = document.createElement('div');
+    body.className = 'p-4 flex flex-col flex-1 gap-3';
+    const name = document.createElement('h3');
+    name.className = 'text-sm font-bold text-white truncate';
+    name.textContent = app.name;
+    const cat = document.createElement('p');
+    cat.className = 'text-[10px] text-white/40 font-bold uppercase tracking-widest';
+    cat.textContent = app.category || 'Template';
+    const desc = document.createElement('p');
+    desc.className = 'text-xs text-white/50 leading-relaxed line-clamp-2 min-h-[2.5rem]';
+    desc.textContent = app.description || '';
+    const actions = document.createElement('div');
+    actions.className = 'flex items-center gap-2 pt-1';
+
+    const mk = (label, href) => {
+      const el = document.createElement(onRequest ? 'button' : 'a');
+      if (onRequest) { el.type = 'button'; el.onclick = () => onRequest(app); }
+      else { el.href = href || '#'; el.target = '_blank'; el.rel = 'noopener noreferrer'; }
+      el.className = `${LINK_BTN} ${label === 'GitHub' ? 'bg-white/5 text-white border-white/5 hover:bg-white/10' : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'}`;
+      el.textContent = label;
+      return el;
+    };
+    actions.append(mk('GitHub', app.repo), mk('Demo', app.hosted));
+    body.append(name, cat, desc, actions);
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+  section.appendChild(grid);
+  return section;
+}
+
+function openInterestModal(app) {
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center px-6';
+  overlay.innerHTML = `
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" data-close></div>
+    <div class="relative bg-[#0a0a0a] border border-white/10 w-full max-w-md rounded-2xl p-8 space-y-6 shadow-2xl" role="dialog" aria-modal="true">
+      <div class="flex flex-col items-center text-center space-y-3">
+        <h2 class="text-2xl font-black text-white uppercase tracking-tight" data-title></h2>
+        <p class="text-sm font-medium text-white/40 leading-relaxed px-4" data-body></p>
+      </div>
+      <div class="space-y-3">
+        <button type="button" data-submit class="w-full py-4 bg-primary text-black rounded-md text-sm font-black uppercase tracking-widest disabled:opacity-50">Get Template</button>
+        <button type="button" data-close class="w-full py-4 bg-white/5 border border-white/10 text-white/60 rounded-md text-sm font-bold uppercase tracking-widest hover:bg-white/10">Maybe Later</button>
+      </div>
+    </div>`;
+  overlay.querySelector('[data-title]').textContent = `Deploy ${app.name}`;
+  overlay.querySelector('[data-body]').textContent = `Enter your details and we'll send you the ${app.name} template along with setup instructions so you can deploy and start earning immediately.`;
+  const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  overlay.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', close));
+  const submit = overlay.querySelector('[data-submit]');
+  submit.addEventListener('click', async () => {
+    submit.disabled = true;
+    submit.textContent = 'Sending details…';
+    try {
+      await muapi.registerAppInterest(app.name);
+      showToast("Got it! We'll send you the template details shortly.", 'success');
+      setTimeout(close, 1200);
+    } catch (err) {
+      submit.disabled = false;
+      submit.textContent = 'Get Template';
+      const needsKey = /key|auth|401|403/i.test(err.message || '');
+      showToast(needsKey ? 'Add your MuAPI key first, then try again.' : 'Failed to register interest. Please try again later.', 'error', 5000);
+    }
+  });
+  document.body.appendChild(overlay);
 }

@@ -1,4 +1,221 @@
 // Auto-generated from models_dump.json
+// Shared input definitions copied from upstream (used by the synced entries below).
+const SEEDANCE_25_ASPECT_RATIO_INPUT = Object.freeze({
+  enum: Object.freeze(["adaptive", "16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "9:21"]),
+  type: "string",
+  title: "Aspect Ratio",
+  name: "aspect_ratio",
+  description: "Aspect ratio of the output video.",
+  default: "16:9",
+});
+const SEEDANCE_25_RESOLUTION_INPUT = Object.freeze({
+  enum: Object.freeze(["480p", "720p", "1080p", "4K"]),
+  type: "string",
+  title: "Resolution",
+  name: "resolution",
+  description: "Output video resolution.",
+  default: "1080p",
+});
+const SEEDANCE_HIGH_BITRATE_INPUT = Object.freeze({
+  type: "boolean",
+  title: "High Bitrate",
+  name: "high_bitrate",
+  description: "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+  default: false,
+});
+const SEEDANCE_GENERATE_AUDIO_INPUT = Object.freeze({
+  type: "boolean",
+  title: "Generate Audio",
+  name: "generate_audio",
+  description: "Whether to generate audio for the video.",
+  default: true,
+});
+const SEEDANCE_15_EXTEND_INPUTS = Object.freeze({
+  resolution: {
+    type: "string", title: "Resolution", name: "resolution",
+    enum: ["480p", "720p"], default: "720p",
+  },
+  duration: {
+    type: "int", title: "Duration", name: "duration",
+    default: 5, minValue: 4, maxValue: 12, step: 1,
+  },
+  generate_audio: SEEDANCE_GENERATE_AUDIO_INPUT,
+  camera_fixed: {
+    type: "boolean", title: "Camera Fixed", name: "camera_fixed",
+    description: "Keep the camera still.", default: false,
+  },
+});
+const SEEDANCE_25_SEED_INPUT = Object.freeze({
+  type: "int",
+  title: "Seed",
+  name: "seed",
+  description: "Random seed for reproducible generation. Use -1 for random.",
+  minValue: -1,
+  maxValue: 4294967295,
+});
+const GROK_ASPECT_RATIO_INPUT = Object.freeze({
+  type: "string", title: "Aspect Ratio", name: "aspect_ratio",
+  enum: Object.freeze(["9:16", "16:9", "2:3", "3:2", "1:1"]),
+  default: "2:3",
+});
+const GROK_RESOLUTION_INPUT = Object.freeze({
+  type: "string", title: "Resolution", name: "resolution",
+  enum: Object.freeze(["480p", "720p"]), default: "480p",
+});
+const GROK_DURATION_INPUT = Object.freeze({
+  type: "int", title: "Duration", name: "duration",
+  default: 6, minValue: 6, maxValue: 30, step: 1,
+});
+const GROK_IMAGE_INPUT = Object.freeze({
+  type: "array", title: "Image URLs", name: "images_list",
+  items: Object.freeze({ type: "string" }), minItems: 1, maxItems: 7,
+});
+const GROK_STYLE_INPUT = Object.freeze({
+  type: "string", title: "Style", name: "mode", configurable: true,
+  enum: Object.freeze(["normal", "fun", "spicy"]), default: "normal",
+});
+const MINIMAX_H3_OPEN_SEED_INPUT = Object.freeze({
+  type: "integer",
+  title: "Seed",
+  name: "seed",
+  description: "Random seed. Use -1 for random.",
+  default: -1,
+});
+
+// Wan inputs verified against https://api.muapi.ai/openapi.json on 2026-09-09.
+const WAN_AUDIO_INPUT = Object.freeze({
+  type: "string", field: "audio", title: "Guiding audio", name: "audio_url",
+  description: "Audio to guide the video.",
+});
+const WAN_NEGATIVE_PROMPT_INPUT = Object.freeze({
+  type: "string", title: "Negative prompt", name: "negative_prompt",
+  description: "What to leave out of the video.",
+});
+const WAN_22_RESOLUTION_INPUT = Object.freeze({
+  type: "string", title: "Resolution", name: "resolution",
+  enum: Object.freeze(["480p", "720p"]), default: "480p",
+});
+const WAN_27_RESOLUTION_INPUT = Object.freeze({
+  type: "string", title: "Resolution", name: "resolution",
+  enum: Object.freeze(["720p", "1080p"]), default: "720p",
+});
+
+// Happy Horse inputs verified against https://api.muapi.ai/openapi.json on 2026-09-09.
+const HAPPY_HORSE_SEED_INPUT = Object.freeze({
+  type: "int", title: "Seed", name: "seed",
+  description: "Optional seed for repeatable results.",
+  minValue: 0, maxValue: 2147483647, step: 1,
+});
+const HAPPY_HORSE_EDIT_INPUTS = Object.freeze({
+  prompt: { type: "string", title: "Prompt", name: "prompt" },
+  video_url: { type: "string", title: "Source video", name: "video_url" },
+  images_list: {
+    type: "array", items: { type: "string" }, title: "Reference images",
+    name: "images_list", maxItems: 5,
+  },
+  audio_setting: {
+    type: "string", title: "Audio", name: "audio_setting",
+    enum: ["auto", "origin"], default: "auto",
+  },
+  seed: HAPPY_HORSE_SEED_INPUT,
+});
+
+// Kling inputs verified against https://api.muapi.ai/openapi.json on 2026-09-09.
+// Output sizes are recorded only for documented routes;
+// resolution selects an endpoint and is not a native request parameter.
+const KLING_ASPECT_RATIO_INPUT = Object.freeze({
+  type: "string", title: "Aspect Ratio", name: "aspect_ratio",
+  enum: Object.freeze(["16:9", "9:16", "1:1"]), default: "16:9",
+});
+const KLING_AUDIO_INPUT = Object.freeze({
+  type: "boolean", title: "Generate audio", name: "generate_audio", default: true,
+});
+const KLING_SOUND_INPUT = Object.freeze({
+  type: "boolean", title: "Generate audio", name: "sound", default: true,
+});
+const KLING_KEEP_SOUND_INPUT = Object.freeze({
+  type: "boolean", title: "Keep original sound", name: "keep_original_sound",
+  default: true,
+});
+const KLING_MOTION_INPUTS = Object.freeze({
+  prompt: { type: "string", title: "Prompt", name: "prompt" },
+  image_url: { type: "string", field: "image", title: "Character image", name: "image_url" },
+  video_url: { type: "string", field: "video", title: "Motion video", name: "video_url" },
+  character_orientation: {
+    type: "string", title: "Character orientation", name: "character_orientation",
+    enum: ["image", "video"], default: "image",
+  },
+});
+const KLING_3_MOTION_INPUTS = Object.freeze({
+  ...KLING_MOTION_INPUTS,
+  keep_original_sound: KLING_KEEP_SOUND_INPUT,
+});
+const KLING_O1_EDIT_INPUTS = Object.freeze({
+  prompt: { type: "string", title: "Prompt", name: "prompt" },
+  video_url: { type: "string", field: "video", title: "Source video", name: "video_url" },
+  images_list: {
+    type: "array", items: { type: "string" }, title: "Reference images",
+    name: "images_list", maxItems: 4,
+  },
+  keep_original_sound: KLING_KEEP_SOUND_INPUT,
+});
+const KLING_O1_PRO_EDIT_INPUTS = Object.freeze({
+  ...KLING_O1_EDIT_INPUTS,
+  aspect_ratio: KLING_ASPECT_RATIO_INPUT,
+});
+const KLING_OMNI_REFERENCE_INPUT = Object.freeze({
+  type: "array", items: { type: "string" }, title: "Reference images",
+  name: "images_list", minItems: 1, maxItems: 4,
+});
+
+const VIDU_REFERENCE_INPUT = Object.freeze({
+  type: "array", items: { type: "string" }, title: "Reference images",
+  name: "images_list", minItems: 1,
+});
+const VIDU_Q2_MUSIC_INPUT = Object.freeze({
+  type: "boolean", title: "Background music", name: "bgm", default: false,
+  description: "Sets duration to 4 seconds.", descriptionKey: "musicDuration",
+});
+// Q2 music requires four seconds only on the regular text/image routes.
+const VIDU_Q2_MUSIC_RULES = Object.freeze([
+  { when: { bgm: [true] }, options: { durations: [4] } },
+]);
+const VIDU_2_FORMAT_RULES = Object.freeze([
+  { when: { resolution: ["360p", "720p"] }, options: { aspectRatios: ["16:9"] } },
+  { when: { resolution: ["1080p"] }, options: { aspectRatios: ["1:1"] } },
+]);
+
+// PixVerse 4.5 supports five seconds at 1080p; 5.5 also supports eight.
+const PIXVERSE_45_DURATION_RULES = Object.freeze([
+  { when: { resolution: ["1080p"] }, options: { durations: [5] } },
+]);
+const PIXVERSE_55_DURATION_RULES = Object.freeze([
+  { when: { resolution: ["1080p"] }, options: { durations: [5, 8] } },
+]);
+const PIXVERSE_55_SETTINGS = Object.freeze({
+  style: {
+    type: "string", title: "Style", name: "style",
+    enum: ["none", "anime", "3d_animation", "clay", "comic", "cyberpunk"], default: "none",
+  },
+  thinking: {
+    type: "string", title: "Prompt enhancement", name: "thinking",
+    enum: ["auto", "enabled", "disabled"], default: "auto",
+    description: "Let the model refine your description.",
+  },
+  audio: {
+    type: "boolean", title: "Generate audio", name: "audio", default: false,
+  },
+  multi_clip: {
+    type: "boolean", title: "Multiple shots", name: "multi_clip", default: false,
+    description: "Use several shots with camera changes.",
+  },
+});
+
+const LTX_GENERATE_AUDIO_INPUT = Object.freeze({
+  type: "boolean", title: "Generate Audio", name: "generate_audio",
+  description: "Whether to generate audio.", default: true,
+});
+
 export const t2iModels = [
   {
     "id": "nano-banana",
@@ -2035,7 +2252,2182 @@ export const t2iModels = [
         "default": "1K"
       }
     }
-  }
+  },
+  {
+      "id": "hidream-i1-fast",
+      "name": "HiDream I1 Fast",
+      "endpoint": "hidream_i1_fast_image",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A colorful cartoon-style cat sitting on a skateboard, wide smile, playful background, 2D flat illustration style."
+          ],
+          "description": "Text prompt describing the image. The length of the prompt must be between 2 and 3000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "width": {
+          "title": "Width",
+          "name": "width",
+          "type": "int",
+          "description": "Width of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
+          "default": 1024,
+          "minValue": 128,
+          "maxValue": 2048,
+          "step": 64
+        },
+        "height": {
+          "title": "Height",
+          "name": "height",
+          "type": "int",
+          "description": "Height of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
+          "default": 1024,
+          "minValue": 128,
+          "maxValue": 2048,
+          "step": 64
+        },
+        "num_images": {
+          "title": "Number of images",
+          "name": "num_images",
+          "type": "int",
+          "description": "Number of images generated in single request. Each number will charge separately",
+          "default": 1,
+          "minValue": 1,
+          "maxValue": 4,
+          "step": 1
+        }
+      },
+      "provider": "hidream",
+      "provider_name": "Hidream"
+    },
+  {
+      "id": "hidream-i1-dev",
+      "name": "HiDream I1 Dev",
+      "endpoint": "hidream_i1_dev_image",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A colorful cartoon-style cat sitting on a skateboard, wide smile, playful background, 2D flat illustration style."
+          ],
+          "description": "Text prompt describing the image. The length of the prompt must be between 2 and 3000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "width": {
+          "title": "Width",
+          "name": "width",
+          "type": "int",
+          "description": "Width of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
+          "default": 1024,
+          "minValue": 128,
+          "maxValue": 2048,
+          "step": 64
+        },
+        "height": {
+          "title": "Height",
+          "name": "height",
+          "type": "int",
+          "description": "Height of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
+          "default": 1024,
+          "minValue": 128,
+          "maxValue": 2048,
+          "step": 64
+        },
+        "num_images": {
+          "title": "Number of images",
+          "name": "num_images",
+          "type": "int",
+          "description": "Number of images generated in single request. Each number will charge separately",
+          "default": 1,
+          "minValue": 1,
+          "maxValue": 4,
+          "step": 1
+        }
+      },
+      "provider": "hidream",
+      "provider_name": "Hidream"
+    },
+  {
+      "id": "hidream-i1-full",
+      "name": "HiDream I1 Full",
+      "endpoint": "hidream_i1_full_image",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A majestic elven queen standing in a glowing forest, wearing intricate golden armor with emerald details, sunlight rays filtering through the trees, ultra-detailed fantasy concept art."
+          ],
+          "description": "Text prompt describing the image. The length of the prompt must be between 2 and 3000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "width": {
+          "title": "Width",
+          "name": "width",
+          "type": "int",
+          "description": "Width of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
+          "default": 1024,
+          "minValue": 128,
+          "maxValue": 2048,
+          "step": 64
+        },
+        "height": {
+          "title": "Height",
+          "name": "height",
+          "type": "int",
+          "description": "Height of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
+          "default": 1024,
+          "minValue": 128,
+          "maxValue": 2048,
+          "step": 64
+        },
+        "num_images": {
+          "title": "Number of images",
+          "name": "num_images",
+          "type": "int",
+          "description": "Number of images generated in single request. Each number will charge separately",
+          "default": 1,
+          "minValue": 1,
+          "maxValue": 4,
+          "step": 1
+        }
+      },
+      "provider": "hidream",
+      "provider_name": "Hidream"
+    },
+  {
+      "id": "bytedance-seedream-v3",
+      "name": "Seedream 3.0",
+      "endpoint": "bytedance-seedream-image",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A magical forest with glowing mushrooms and a crystal river under a starry sky, dreamy and ethereal style."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "3:4",
+            "4:3"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output image.",
+          "default": "1:1"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "nano-banana-2-1",
+      "name": "Nano Banana 2.1",
+      "endpoint": "nano-banana-2-1",
+      "family": "nano",
+      "inputs": {
+        "prompt": {
+          "description": "Positive prompt for generation.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "examples": [
+            "A futuristic cityscape with glowing neon lights reflected in rain-soaked streets, ultra-detailed 4K photography."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "1:4",
+            "1:8",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:1",
+            "4:3",
+            "4:5",
+            "5:4",
+            "8:1",
+            "9:16",
+            "16:9",
+            "21:9",
+            "auto"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image.",
+          "default": "auto"
+        },
+        "resolution": {
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated image.",
+          "default": "1k"
+        },
+        "output_format": {
+          "enum": [
+            "jpg",
+            "png"
+          ],
+          "title": "Output Format",
+          "name": "output_format",
+          "type": "string",
+          "description": "The format of the output image.",
+          "default": "jpg"
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "z-image-p",
+      "name": "Z-Image P",
+      "endpoint": "z-image-p",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A tiny Earth-like planet floating inside a glass bottle placed on a wooden table, clouds slowly swirling around the planet, extremely detailed macro photography style"
+          ],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the desired image content."
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "The negative prompt for image generation",
+          "default": ""
+        },
+        "width": {
+          "title": "Width",
+          "name": "width",
+          "type": "integer",
+          "description": "Width of the output image.",
+          "default": 1024,
+          "minValue": 64,
+          "maxValue": 1440,
+          "step": 1
+        },
+        "height": {
+          "title": "Height",
+          "name": "height",
+          "type": "integer",
+          "description": "Height of the output image.",
+          "default": 1024,
+          "minValue": 64,
+          "maxValue": 1440,
+          "step": 1
+        },
+        "seed": {
+          "title": "Seed",
+          "name": "seed",
+          "type": "int",
+          "description": "Random seed for generation. Set to -1 for random.",
+          "default": -1
+        },
+        "flow_shift": {
+          "title": "Flow Shift",
+          "name": "flow_shift",
+          "type": "number",
+          "description": "Increase if you get too many blurry/dark/bad images. Decrease to try increasing detail.",
+          "default": 3.0,
+          "minValue": 0.3,
+          "maxValue": 7.0,
+          "step": 0.1
+        },
+        "batch_size": {
+          "title": "Batch Size",
+          "name": "batch_size",
+          "type": "integer",
+          "description": "Number of images to generate.",
+          "default": 1,
+          "minValue": 1,
+          "maxValue": 4,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "qwen-image-2.0",
+      "name": "Qwen Image 2.0",
+      "endpoint": "qwen-image-2.0",
+      "inputs": {
+        "prompt": {
+          "description": "A description of the image you want to generate.",
+          "title": "Prompt",
+          "type": "string",
+          "name": "prompt",
+          "examples": [
+            "An ancient library where bookshelves slowly transform into giant trees, glowing books hanging like fruits, magical forest atmosphere, warm cinematic light"
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "type": "string",
+          "name": "aspect_ratio",
+          "default": "16:9",
+          "description": "Aspect ratio of the output image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "qwen-image-2.0-pro",
+      "name": "Qwen Image 2.0 Pro",
+      "endpoint": "qwen-image-2.0-pro",
+      "inputs": {
+        "prompt": {
+          "description": "A description of the image you want to generate.",
+          "title": "Prompt",
+          "type": "string",
+          "name": "prompt",
+          "examples": [
+            "A massive transparent whale floating through the sky above a city, inside its body a fully lit miniature city with skyscrapers and highways, surreal cinematic lighting, ultra detailed"
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "type": "string",
+          "name": "aspect_ratio",
+          "default": "16:9",
+          "description": "Aspect ratio of the output image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "flux-2-klein-4b-turbo",
+      "name": "Flux 2 Klein 4B Turbo",
+      "endpoint": "flux-2-klein-4b-turbo",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A small round robot sitting at a café table outdoors, holding a tiny cup of coffee with both hands."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "flux-2-klein-9b-turbo",
+      "name": "Flux 2 Klein 9B Turbo",
+      "endpoint": "flux-2-klein-9b-turbo",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cute corgi puppy wearing a tiny yellow raincoat stands on a wet sidewalk after rain."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "wan2.7-text-to-image",
+      "name": "Wan 2.7 Image",
+      "endpoint": "wan2.7-text-to-image",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A single raindrop frozen mid-air containing an entire futuristic city inside it, skyscrapers distorted by water refraction, macro ultra detailed."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "9:21",
+            "3:2",
+            "2:3"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1"
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable thinking mode for enhanced reasoning and better image quality. Increases generation time.",
+          "default": true
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan2.7-text-to-image-pro",
+      "name": "Wan 2.7 Image Pro",
+      "endpoint": "wan2.7-text-to-image-pro",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A busy street market floating high in the sky on giant platforms, vendors selling food while clouds pass through the stalls, dynamic lighting, cinematic wide shot."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable thinking mode for enhanced reasoning and better image quality. Increases generation time.",
+          "default": true
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "9:21",
+            "3:2",
+            "2:3"
+          ]
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "midjourney-v7",
+      "name": "Midjourney V7",
+      "endpoint": "midjourney-v7",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A forgotten royal bathhouse hidden deep inside sandstone cliffs during monsoon rain, warm candlelight reflecting across flooded marble floors, silk curtains moving gently with humid wind, subtle human presence, atmospheric depth, breathtaking architectural detail, timeless cinematic realism, premium editorial composition"
+          ],
+          "description": "Text description of the image to generate.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [],
+          "description": "Optional reference image URL. Influences the style and content of the generation.",
+          "field": "image",
+          "type": "string",
+          "title": "Reference Image URL",
+          "name": "image_url"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "3:4",
+            "4:3",
+            "21:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output image aspect ratio.",
+          "default": "1:1"
+        },
+        "stylize": {
+          "type": "int",
+          "title": "Stylize",
+          "name": "stylize",
+          "description": "Controls how artistic the result is. Range: 0–1000. Lower = more literal, higher = more stylized.",
+          "default": 100,
+          "minValue": 0,
+          "maxValue": 1000,
+          "step": 10
+        },
+        "chaos": {
+          "type": "int",
+          "title": "Chaos",
+          "name": "chaos",
+          "description": "Controls variation between the 4 images. Range: 0–100. Higher = more diverse.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 100,
+          "step": 1
+        },
+        "weird": {
+          "type": "int",
+          "title": "Weird",
+          "name": "weird",
+          "description": "Adds unconventional aesthetics. Range: 0–3000.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 3000,
+          "step": 50
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "Things to exclude from the image, e.g. \"text, watermark\".",
+          "examples": [
+            "text, watermark, blurry"
+          ]
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Reproducibility seed. Range: 0–4294967295. Same seed + same prompt ≈ similar result.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 4294967295,
+          "step": 1
+        }
+      },
+      "provider": "midjourney",
+      "provider_name": "Midjourney"
+    },
+  {
+      "id": "midjourney-v8",
+      "name": "Midjourney V8",
+      "endpoint": "midjourney-v8",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A celestial cartographer mapping moving constellations inside a circular observatory suspended above waterfalls, rotating brass instruments casting shifting shadows, star reflections flowing across polished stone floors, elegant cinematic framing, highly detailed textures, dreamlike realism, sophisticated visual storytelling."
+          ],
+          "description": "Text description of the image to generate.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [],
+          "description": "Optional reference image URL. Influences the style and content of the generation.",
+          "field": "image",
+          "type": "string",
+          "title": "Reference Image URL",
+          "name": "image_url"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "3:4",
+            "4:3",
+            "21:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output image aspect ratio.",
+          "default": "1:1"
+        },
+        "stylize": {
+          "type": "int",
+          "title": "Stylize",
+          "name": "stylize",
+          "description": "Controls how artistic the result is. Range: 0–1000. Lower = more literal, higher = more stylized.",
+          "default": 100,
+          "minValue": 0,
+          "maxValue": 1000,
+          "step": 10
+        },
+        "chaos": {
+          "type": "int",
+          "title": "Chaos",
+          "name": "chaos",
+          "description": "Controls variation between the 4 images. Range: 0–100. Higher = more diverse.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 100,
+          "step": 1
+        },
+        "weird": {
+          "type": "int",
+          "title": "Weird",
+          "name": "weird",
+          "description": "Adds unconventional aesthetics. Range: 0–3000.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 3000,
+          "step": 50
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "Things to exclude from the image, e.g. \"text, watermark\".",
+          "examples": [
+            "text, watermark, blurry"
+          ]
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Reproducibility seed. Range: 0–4294967295. Same seed + same prompt ≈ similar result.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 4294967295,
+          "step": 1
+        }
+      },
+      "provider": "midjourney",
+      "provider_name": "Midjourney"
+    },
+  {
+      "id": "midjourney-niji",
+      "name": "Midjourney Niji",
+      "endpoint": "midjourney-niji",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "An enormous traveling greenhouse drifting across frozen northern seas on mechanical legs, glass walls glowing warmly during a snowstorm, botanists tending rare luminous plants inside, cinematic atmosphere, intricate environmental storytelling, layered reflections on ice, emotionally rich composition, ultra-detailed realism, luxury cinematic aesthetic."
+          ],
+          "description": "Text description of the image to generate.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [],
+          "description": "Optional reference image URL. Influences the style and content of the generation.",
+          "field": "image",
+          "type": "string",
+          "title": "Reference Image URL",
+          "name": "image_url"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "3:4",
+            "4:3",
+            "21:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output image aspect ratio.",
+          "default": "1:1"
+        },
+        "stylize": {
+          "type": "int",
+          "title": "Stylize",
+          "name": "stylize",
+          "description": "Controls how artistic the result is. Range: 0–1000. Lower = more literal, higher = more stylized.",
+          "default": 100,
+          "minValue": 0,
+          "maxValue": 1000,
+          "step": 10
+        },
+        "chaos": {
+          "type": "int",
+          "title": "Chaos",
+          "name": "chaos",
+          "description": "Controls variation between the 4 images. Range: 0–100. Higher = more diverse.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 100,
+          "step": 1
+        },
+        "weird": {
+          "type": "int",
+          "title": "Weird",
+          "name": "weird",
+          "description": "Adds unconventional aesthetics. Range: 0–3000.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 3000,
+          "step": 50
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "Things to exclude from the image, e.g. \"text, watermark\".",
+          "examples": [
+            "text, watermark, blurry"
+          ]
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Reproducibility seed. Range: 0–4294967295. Same seed + same prompt ≈ similar result.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 4294967295,
+          "step": 1
+        }
+      },
+      "provider": "midjourney",
+      "provider_name": "Midjourney"
+    },
+  {
+      "id": "grok-imagine-text-to-image-quality",
+      "name": "Grok Imagine Image Quality",
+      "endpoint": "grok-imagine-text-to-image-quality",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A futuristic samurai standing under glowing neon lights in a rainy cyberpunk alley, reflections on wet pavement, dramatic rim lighting, highly detailed armor, cinematic atmosphere, ultra-realistic style."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "9:16",
+            "16:9",
+            "2:3",
+            "3:2",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output image. Get 6 images each time.",
+          "default": "1:1"
+        }
+      },
+      "provider": "grok",
+      "provider_name": "xAI"
+    },
+  {
+      "id": "flux-2-klein-4b-text-to-image-lora",
+      "name": "Flux 2 Klein 4B LoRA",
+      "endpoint": "flux-2-klein-4b-text-to-image-lora",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A small round robot sitting at a café table outdoors, holding a tiny cup of coffee, soft morning light, cute illustration style."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "lora_list": {
+          "examples": [
+            {
+              "path": "https://huggingface.co/example/lora/resolve/main/lora.safetensors",
+              "scale": 1
+            }
+          ],
+          "title": "LoRA List",
+          "name": "lora_list",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "format": "url",
+                "title": "Path",
+                "name": "path",
+                "description": "URL or path to the LoRA weights."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "description": "The LoRA weight multiplier. Default value: 1",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1
+              }
+            }
+          },
+          "description": "Up to 3 LoRA adapters to apply during generation.",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "flux-2-klein-9b-text-to-image-lora",
+      "name": "Flux 2 Klein 9B LoRA",
+      "endpoint": "flux-2-klein-9b-text-to-image-lora",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A regal fantasy queen on a crystal throne, ornate crown, ethereal lighting, cinematic detail."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "lora_list": {
+          "examples": [
+            {
+              "path": "https://huggingface.co/example/lora/resolve/main/lora.safetensors",
+              "scale": 1
+            }
+          ],
+          "title": "LoRA List",
+          "name": "lora_list",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "format": "url",
+                "title": "Path",
+                "name": "path",
+                "description": "URL or path to the LoRA weights."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "description": "The LoRA weight multiplier. Default value: 1",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1
+              }
+            }
+          },
+          "description": "Up to 3 LoRA adapters to apply during generation.",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "kling-o3-image",
+      "name": "Kling O3 Image",
+      "endpoint": "kling-o3-image",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Two rival street magicians performing impossible tricks inside a moving subway train during heavy rain, passengers frozen in shock as playing cards transform into living birds mid-air, reflections streaking across wet windows, chaotic cinematic energy, realistic motion blur, expressive human reactions, ultra detailed modern fashion, dramatic handheld camera feel, premium cinematic realism"
+          ],
+          "description": "Text prompt describing the image to generate. Maximum 2,000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "21:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output image aspect ratio.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K",
+            "4K"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output image resolution.",
+          "default": "1K"
+        },
+        "num_images": {
+          "type": "int",
+          "title": "Number of Images",
+          "name": "num_images",
+          "description": "How many images to generate per request.",
+          "default": 1,
+          "minValue": 1,
+          "maxValue": 9,
+          "step": 1
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "nano-banana-2-lite",
+      "name": "Nano Banana 2 Lite",
+      "endpoint": "nano-banana-2-lite",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the desired image content.",
+          "examples": [
+            "A giant upside-down umbrella floating over an entire city, collecting rainwater into glowing rivers that flow upward into the sky, surreal cinematic realism, moody weather."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image.",
+          "default": "1:1"
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "qwen3-text-to-image",
+      "name": "Qwen Image 3.0",
+      "endpoint": "qwen3-text-to-image",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the image to generate."
+        },
+        "resolution": {
+          "enum": ["1k", "2k"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "1k"
+        },
+        "aspect_ratio": {
+          "enum": ["1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16", "21:9"],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "default": "16:9"
+        },
+        "output_format": {
+          "enum": ["png", "jpeg"],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "default": "png"
+        },
+        "prompt_extend": {
+          "type": "boolean",
+          "title": "Intelligent Prompt Extend",
+          "name": "prompt_extend",
+          "default": true
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt"
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "qwen3-pro-text-to-image",
+      "name": "Qwen Image 3.0 Pro",
+      "endpoint": "qwen3-pro-text-to-image",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the image to generate."
+        },
+        "resolution": {
+          "enum": ["1k", "2k"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "1k"
+        },
+        "aspect_ratio": {
+          "enum": ["1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16", "21:9"],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "default": "16:9"
+        },
+        "output_format": {
+          "enum": ["png", "jpeg"],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "default": "png"
+        },
+        "prompt_extend": {
+          "type": "boolean",
+          "title": "Intelligent Prompt Extend",
+          "name": "prompt_extend",
+          "default": true
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt"
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "z-image-base-text-to-image-lora",
+      "name": "Z-Image Base LoRA",
+      "endpoint": "z-image-base-text-to-image-lora",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "The positive prompt for the generation.",
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Reference Image URL",
+          "name": "image_url",
+          "field": "image",
+          "description": "URL of the reference image to guide generation (optional)."
+        },
+        "loras": {
+          "type": "array",
+          "title": "LoRAs",
+          "name": "loras",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "title": "LoRA Path / Model ID",
+                "name": "path",
+                "description": "Civitai model ID (e.g. civitai:1642876@1864626) or HuggingFace URL/path."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1,
+                "description": "Weight / strength scale of the LoRA."
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "21:9",
+            "9:21"
+          ],
+          "default": "1:1",
+          "description": "Output aspect ratio, automatically mapped to pixel dimensions."
+        },
+        "strength": {
+          "type": "number",
+          "title": "Strength",
+          "name": "strength",
+          "default": 0.6,
+          "minValue": 0.0,
+          "maxValue": 1.0,
+          "step": 0.01,
+          "description": "Controls the strength of the transformation for reference image."
+        },
+        "output_format": {
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "enum": [
+            "jpeg",
+            "png",
+            "webp"
+          ],
+          "default": "jpeg",
+          "description": "Format of the generated image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "z-image-turbo-text-to-image-lora",
+      "name": "Z-Image Turbo LoRA",
+      "endpoint": "z-image-turbo-text-to-image-lora",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "The positive prompt for the generation.",
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ]
+        },
+        "loras": {
+          "type": "array",
+          "title": "LoRAs",
+          "name": "loras",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "title": "LoRA Path / Model ID",
+                "name": "path",
+                "description": "Civitai model ID (e.g. civitai:1642876@1864626) or HuggingFace URL/path."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1,
+                "description": "Weight / strength scale of the LoRA."
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "21:9",
+            "9:21"
+          ],
+          "default": "1:1",
+          "description": "Output aspect ratio, automatically mapped to pixel dimensions."
+        },
+        "output_format": {
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "enum": [
+            "jpeg",
+            "png",
+            "webp"
+          ],
+          "default": "jpeg",
+          "description": "Format of the generated image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "grok-imagine-image-2",
+      "name": "Grok Imagine Image 2.0",
+      "endpoint": "grok-imagine-image-2",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A high-contrast halftone portrait of a young man rendered entirely in fine white dots on a black background, sharp facial detail, editorial poster style."
+          ],
+          "description": "Text prompt describing the desired image. Max 5000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "16:9",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Width-to-height ratio of the generated image.",
+          "default": "1:1"
+        }
+      },
+      "provider": "xai",
+      "provider_name": "xAI"
+    },
+  {
+      "id": "flux-1-dev-style-lora-inference",
+      "name": "Flux Dev Style LoRA Inference",
+      "endpoint": "flux-1-dev-style-lora-inference",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the image.",
+          "examples": [
+            "A portrait in the trained style, studio lighting."
+          ]
+        },
+        "lora_url": {
+          "type": "string",
+          "title": "LoRA URL",
+          "name": "lora_url",
+          "description": "The LoRA file URL returned in `outputs` from a completed flux-1-dev-style-lora-trainer job.",
+          "examples": [
+            "https://cdn.muapi.ai/outputs/generated/example.safetensors"
+          ]
+        },
+        "lora_weight": {
+          "type": "float",
+          "title": "LoRA Weight",
+          "name": "lora_weight",
+          "description": "LoRA weight multiplier.",
+          "default": 1.0,
+          "minValue": 0.0,
+          "maxValue": 4.0,
+          "step": 0.01
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image.",
+          "default": "1:1"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "krea-v2-turbo",
+      "name": "Krea 2 Turbo",
+      "endpoint": "krea-v2-turbo",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "The positive prompt for the generation.",
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed, vibrant colors, volumetric lighting, photorealistic."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "field": "image",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "Optional source image URL. When provided, the model runs image-to-image from it; the output keeps the source aspect ratio.",
+          "examples": [
+            ""
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "1:2",
+            "2:1",
+            "1:3",
+            "3:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "9:21",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image.",
+          "default": "1:1"
+        },
+        "resolution": {
+          "enum": [
+            "1k",
+            "2k"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Total output resolution tier: 1k (~1 megapixel) or 2k (~4 megapixels, generated natively).",
+          "default": "1k"
+        },
+        "strength": {
+          "type": "float",
+          "title": "Strength",
+          "name": "strength",
+          "description": "Image-to-image strength (0-1). Higher values repaint the source image more freely. Only used when image is set.",
+          "default": 0.8,
+          "minValue": 0.0,
+          "maxValue": 1.0,
+          "step": 0.01
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "The random seed to use for the generation. -1 means a random seed will be used.",
+          "default": -1,
+          "minValue": -1,
+          "maxValue": 2147483647,
+          "step": 1
+        }
+      },
+      "provider": "krea",
+      "provider_name": "Krea"
+    },
+  {
+      "id": "krea-v2-turbo-lora",
+      "name": "Krea 2 Turbo LoRA",
+      "endpoint": "krea-v2-turbo-lora",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "The positive prompt for the generation.",
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed, vibrant colors, volumetric lighting, photorealistic."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "field": "image",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "Optional source image URL. When provided, the model runs image-to-image from it; the output keeps the source aspect ratio.",
+          "examples": [
+            ""
+          ]
+        },
+        "loras": {
+          "type": "array",
+          "title": "LoRAs",
+          "name": "loras",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "title": "LoRA Path / Model ID",
+                "name": "path",
+                "description": "Civitai model ID or HuggingFace URL/path."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1,
+                "description": "Weight / strength scale of the LoRA."
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "1:2",
+            "2:1",
+            "1:3",
+            "3:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "9:21",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image.",
+          "default": "1:1"
+        },
+        "resolution": {
+          "enum": [
+            "1k",
+            "2k"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Total output resolution tier: 1k (~1 megapixel) or 2k (~4 megapixels, generated natively).",
+          "default": "1k"
+        },
+        "strength": {
+          "type": "float",
+          "title": "Strength",
+          "name": "strength",
+          "description": "Image-to-image strength (0-1). Higher values repaint the source image more freely. Only used when image is set.",
+          "default": 0.8,
+          "minValue": 0.0,
+          "maxValue": 1.0,
+          "step": 0.01
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "The random seed to use for the generation. -1 means a random seed will be used.",
+          "default": -1,
+          "minValue": -1,
+          "maxValue": 2147483647,
+          "step": 1
+        }
+      },
+      "provider": "krea",
+      "provider_name": "Krea"
+    },
+  {
+      "id": "muse-image-text-to-image",
+      "name": "Muse Image",
+      "endpoint": "muse-image-text-to-image",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cozy reading nook by a rain-streaked window, warm lamp light, potted plants, soft cinematic color grading."
+          ],
+          "description": "Text prompt describing the image to generate. Include subject, scene, composition, lighting, mood, and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Output image dimensions.",
+          "default": "1:1"
+        },
+        "output_format": {
+          "enum": [
+            "webp",
+            "png",
+            "jpeg"
+          ],
+          "title": "Output Format",
+          "name": "output_format",
+          "type": "string",
+          "description": "Image file format.",
+          "default": "webp"
+        }
+      },
+      "provider": "meta",
+      "provider_name": "Meta"
+    },
+  {
+      "id": "qwen-image-text-to-image-lora",
+      "name": "Qwen Image LoRA",
+      "endpoint": "qwen-image-text-to-image-lora",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "default": "1:1",
+          "examples": [
+            "1:1"
+          ],
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio of generated image. Mapped internally to resolution size."
+        },
+        "loras": {
+          "examples": [
+            {
+              "path": "https://huggingface.co/example/lora/resolve/main/lora.safetensors",
+              "scale": 1
+            }
+          ],
+          "title": "LoRAs",
+          "name": "loras",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "format": "url",
+                "title": "Path",
+                "name": "path",
+                "description": "URL or path to the LoRA weights."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "description": "Weight multiplier scale.",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        },
+        "output_format": {
+          "default": "jpeg",
+          "examples": [
+            "jpeg"
+          ],
+          "enum": [
+            "jpeg",
+            "png",
+            "webp"
+          ],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "description": "File format of output image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "qwen-image-text-to-image-2512-lora",
+      "name": "Qwen Image 2512 LoRA",
+      "endpoint": "qwen-image-text-to-image-2512-lora",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "default": "1:1",
+          "examples": [
+            "1:1"
+          ],
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio of generated image. Mapped internally to resolution size."
+        },
+        "loras": {
+          "examples": [
+            {
+              "path": "https://huggingface.co/example/lora/resolve/main/lora.safetensors",
+              "scale": 1
+            }
+          ],
+          "title": "LoRAs",
+          "name": "loras",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "format": "url",
+                "title": "Path",
+                "name": "path",
+                "description": "URL or path to the LoRA weights."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "description": "Weight multiplier scale.",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        },
+        "output_format": {
+          "default": "jpeg",
+          "examples": [
+            "jpeg"
+          ],
+          "enum": [
+            "jpeg",
+            "png",
+            "webp"
+          ],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "description": "File format of output image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "gpt-image-2.5-flare-text-to-image",
+      "name": "GPT Image 2.5 Flare Text to Image",
+      "endpoint": "gpt-image-2.5-flare-text-to-image",
+      "family": "gpt-image-2.5",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A girl doing livestream makeup tutorials while tiny workers inside her mirror physically repaint the reflection in real time, miniature ladders, paint buckets, glowing vanity lights, cluttered modern bedroom aesthetic, insanely detailed reflections, playful surreal realism, highly creative composition, luxury commercial quality."
+          ],
+          "description": "Text prompt describing the image to generate. Maximum 20,000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "auto",
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "27:16",
+            "16:27",
+            "9:8",
+            "8:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output image aspect ratio. Note: images with aspect ratio 'auto' (or unspecified) will only be converted to 1K; 1:1 cannot be converted to 4K — otherwise the task will fail to create.",
+          "default": "auto"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K",
+            "4K"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Image resolution. Note: images with a 1:1 aspect ratio cannot be converted to 4K. Images with aspect ratio 'auto' (or unspecified) will only be converted to 1K; otherwise the task will fail to create.",
+          "default": "2K"
+        },
+        "quality": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "type": "string",
+          "title": "Quality",
+          "name": "quality",
+          "description": "Output quality tier. \"high\" is rendered by the primary provider; \"low\", \"medium\", \"xhigh\", and \"max\" render on an alternate provider with a wider quality range.",
+          "default": "high"
+        }
+      },
+      "provider": "openai",
+      "provider_name": "KIE_AI",
+      "description": "Generate high-fidelity images from text prompts using GPT-Image-2.5 Flare, OpenAI's default GPT Image 2.5 tier, with sharper detail, richer textures, and up to 50% lower latency than GPT Image 2.",
+      "example_url": "https://cdn.muapi.ai/assets/97abf8ec-65f6-4057-92df-2c5a4f1a29df.avif",
+      "image_url": "https://cdn.muapi.ai/assets/97abf8ec-65f6-4057-92df-2c5a4f1a29df.avif"
+    },
+  {
+      "id": "gpt-image-2.5-sunburst-text-to-image",
+      "name": "GPT Image 2.5 Sunburst Text to Image",
+      "endpoint": "gpt-image-2.5-sunburst-text-to-image",
+      "family": "gpt-image-2.5",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A girl doing livestream makeup tutorials while tiny workers inside her mirror physically repaint the reflection in real time, miniature ladders, paint buckets, glowing vanity lights, cluttered modern bedroom aesthetic, insanely detailed reflections, playful surreal realism, highly creative composition, luxury commercial quality."
+          ],
+          "description": "Text prompt describing the image to generate. Maximum 20,000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "auto",
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "27:16",
+            "16:27",
+            "9:8",
+            "8:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output image aspect ratio. Note: images with aspect ratio 'auto' (or unspecified) will only be converted to 1K; 1:1 cannot be converted to 4K — otherwise the task will fail to create.",
+          "default": "auto"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K",
+            "4K"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Image resolution. Note: images with a 1:1 aspect ratio cannot be converted to 4K. Images with aspect ratio 'auto' (or unspecified) will only be converted to 1K; otherwise the task will fail to create.",
+          "default": "2K"
+        },
+        "quality": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "type": "string",
+          "title": "Quality",
+          "name": "quality",
+          "description": "Output quality tier. \"high\" is rendered by the primary provider; \"low\", \"medium\", \"xhigh\", and \"max\" render on an alternate provider with a wider quality range.",
+          "default": "high"
+        }
+      },
+      "provider": "openai",
+      "provider_name": "KIE_AI",
+      "description": "Generate high-fidelity images from text prompts using GPT-Image-2.5 Sunburst, OpenAI's slower, higher-precision GPT Image 2.5 tier, tuned for maximum edit precision on premium creative work.",
+      "example_url": "https://cdn.muapi.ai/assets/d0d4707f-33e4-40bb-899d-e3265ae23670.avif",
+      "image_url": "https://cdn.muapi.ai/assets/d0d4707f-33e4-40bb-899d-e3265ae23670.avif"
+    },
+  {
+      "id": "qwen2-1-text-to-image",
+      "name": "Qwen2 1 Text to Image",
+      "endpoint": "qwen2-1-text-to-image",
+      "family": "qwen2-1",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "The prompt that describes the image content, style and composition you want to generate. Any language is supported, up to 5000 characters.",
+          "examples": [
+            "A corgi wearing a yellow rain hat sitting on stone steps after the rain, shallow depth of field"
+          ]
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "The output aspect ratio. The actual pixel size also depends on resolution.",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "16:9",
+            "9:16",
+            "21:9",
+            "9:21"
+          ],
+          "default": "1:1"
+        },
+        "resolution": {
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "The output resolution tier. 1K is the faster option; 2K produces four times the pixels and takes longer.",
+          "enum": [
+            "1K",
+            "2K"
+          ],
+          "default": "1K"
+        },
+        "background": {
+          "type": "string",
+          "title": "Background",
+          "name": "background",
+          "description": "Background type. Transparent outputs a PNG or WebP with a real alpha channel and cannot be used with JPEG.",
+          "enum": [
+            "opaque",
+            "transparent"
+          ],
+          "default": "opaque"
+        },
+        "output_format": {
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "description": "The output image format. jpeg has no alpha channel and cannot be combined with a transparent background.",
+          "enum": [
+            "png",
+            "webp",
+            "jpeg"
+          ],
+          "default": "png"
+        },
+        "enhance_prompt": {
+          "type": "boolean",
+          "title": "Enhance Prompt",
+          "name": "enhance_prompt",
+          "description": "Rewrites the prompt into a fuller scene description before generating, which noticeably improves quality.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "The random seed. Omit it to generate with a random seed."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KIE_AI",
+      "description": "Qwen 2.1 Text to Image generates high-fidelity images from text prompts with intelligent prompt rewriting, transparent backgrounds, and up to 2K resolution.",
+      "example_url": "https://cdn.muapi.ai/assets/image_download_8.avif",
+      "image_url": "https://cdn.muapi.ai/assets/image_download_8.avif"
+    },
+  {
+      "id": "seedream-5.0-flash",
+      "name": "Seedream 5.0 Flash",
+      "endpoint": "seedream-5.0-flash",
+      "family": "seedream-5",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the image to generate",
+          "examples": [
+            "A full-process cafe design SaaS promotional image, clean isometric store layout with labeled zones, warm lighting, 16:9."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "2:3",
+            "3:2",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output image.",
+          "default": "1:1"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output resolution: 1K (basic) or 2K (high).",
+          "default": "1K"
+        },
+        "output_format": {
+          "enum": [
+            "png",
+            "jpeg"
+          ],
+          "title": "Output Format",
+          "name": "output_format",
+          "type": "string",
+          "description": "Format of the output image.",
+          "default": "png"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "KIE_AI",
+      "description": "Seedream 5.0 Flash is ByteDance's fast, low-cost Seedream 5 text-to-image tier, delivering photorealistic 1K and 2K images with strong prompt adherence and in-image text for high-volume creative workflows.",
+      "example_url": "https://cdn.muapi.ai/assets/2d089b7e-0bbd-43b1-87b0-1b25516d9c41.avif",
+      "image_url": "https://cdn.muapi.ai/assets/2d089b7e-0bbd-43b1-87b0-1b25516d9c41.avif"
+    },
+  {
+      "id": "ideogram-v4",
+      "name": "Ideogram 4.0",
+      "endpoint": "ideogram-v4",
+      "family": "ideogram",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A premium editorial poster on a flat deep forest-green background. One vivid orange lily in a sculptural cobalt-blue glass vase on the right; on the empty left, large elegant cream-white serif typography spelling exactly BOTANICA on a single line. No other text. Museum-quality botanical still life, subtle paper texture, generous negative space."
+          ],
+          "description": "Text prompt describing the image (up to 4,000 characters). Put any text to render in the image in quotes or spell it out exactly.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output image.",
+          "default": "1:1"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output resolution. Same price at 1K and 2K.",
+          "default": "1K"
+        }
+      },
+      "provider": "ideogram",
+      "provider_name": "Ideogram"
+    }
 ];
 ;
 
@@ -2774,7 +5166,3988 @@ export const t2vModels = [
       "description": "Omni-reference image URL for character/style consistency."
     }
   }
-}];
+},
+  {
+      "id": "veo3.1-lite-text-to-video",
+      "name": "Veo 3.1 Lite",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video."
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "duration": {
+          "enum": [
+            8
+          ],
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds",
+          "default": 8
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "1080p"
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "veo3.1-extend-video",
+      "name": "Veo 3.1 Extend",
+      "requiresRequestId": true,
+      "endpoint": "veo3.1-extend-video",
+      "inputs": {
+        "request_id": {
+          "examples": [
+            ""
+          ],
+          "description": "Request ID of the original video generation. Must be a valid Id returned from the video generation interface.",
+          "format": "text",
+          "type": "string",
+          "title": "Request Id",
+          "name": "request_id",
+          "placeholder": "abcdefg-123-456-789-a1b2c3d4e5f6"
+        },
+        "prompt": {
+          "examples": [
+            ""
+          ],
+          "description": "Text prompt describing the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "veo3.1-4k-video",
+      "name": "Veo 3.1 4K",
+      "requiresRequestId": true,
+      "endpoint": "veo3.1-4k-video",
+      "inputs": {
+        "request_id": {
+          "examples": [
+            ""
+          ],
+          "description": "Request ID of the original video generation. Must be a valid Id returned from the video generation interface.",
+          "format": "text",
+          "type": "string",
+          "title": "Request Id",
+          "name": "request_id",
+          "placeholder": "a8a09145bde3fb496ecd00ce4777a295"
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "seedance-2-t2v",
+      "name": "Seedance 2 T2V",
+      "endpoint": "seedance-v2.0-t2v",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A determined penguin straps itself into a homemade rocket sled on an icy mountain. The rocket ignites with a massive burst and launches the penguin across the frozen landscape at insane speed, blasting through snowdrifts and leaving a fiery trail behind."
+          ],
+          "type": "string",
+          "title": "Prompt",
+          "description": "Text prompt describing the video. To use a fictional character, reference it inline with @character:<id> (the request_id from a completed Seedance 2 Character generation). Multiple characters are supported. Example: '@character:ab539e5f walks on the beach at sunset'."
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4"
+          ],
+          "title": "Aspect Ratio",
+          "type": "string",
+          "default": "16:9"
+        },
+        "duration": {
+          "enum": [
+            5,
+            10,
+            15
+          ],
+          "title": "Duration",
+          "type": "integer",
+          "default": 5
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "title": "Quality",
+          "type": "string",
+          "default": "basic"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-extend",
+      "name": "Seedance 2 Extend",
+      "requiresRequestId": true,
+      "endpoint": "seedance-v2.0-extend",
+      "inputs": {
+        "request_id": {
+          "examples": [
+            "cab9517f-1818-4910-8d66-292701c78c2d"
+          ],
+          "description": "Request ID of the original Seedance 2.0 video generation.",
+          "format": "text",
+          "type": "string",
+          "title": "Request Id",
+          "name": "request_id",
+          "placeholder": "abcdefg-123-456-789-a1b2c3d4e5f6"
+        },
+        "prompt": {
+          "examples": [
+            ""
+          ],
+          "description": "Optional prompt to guide the extension. Reference additional images with @image2…@image9, videos with @video1…@video3, and audio with @audio1…@audio3 — the source video's last frame is always @image1.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Up to 8 additional reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @image(N+1) in the prompt (the source video's last frame is @image1).",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 8
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio clip URLs (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Output video aspect ratio (only used when reference images/videos/audio are provided)."
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "title": "Quality",
+          "type": "string",
+          "name": "quality",
+          "default": "basic"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "ltx-2.3-text-to-video",
+      "name": "LTX 2.3",
+      "endpoint": "ltx-2.3-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A high-speed train suddenly bursts through the wall of a quiet apartment building and races straight through the living rooms and hallways. Furniture flies everywhere as the train blasts through multiple floors before exiting the other side of the building."
+          ],
+          "description": "Text prompt describing the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the generated video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "seed": {
+          "title": "Seed",
+          "name": "seed",
+          "type": "int",
+          "description": "Random seed. -1 for random.",
+          "default": -1
+        }
+      },
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+  {
+      "id": "seedance-2-new-t2v",
+      "name": "Seedance 2 New T2V",
+      "endpoint": "seedance-2.0-new-t2v",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "type": "string",
+          "title": "Quality",
+          "name": "quality",
+          "description": "high = standard model (slower, better quality); basic = fast model.",
+          "default": "basic"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds (4–15).",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "grok-imagine-extend",
+      "name": "Grok Imagine Extend",
+      "requiresRequestId": true,
+      "promptRequired": true,
+      "endpoint": "grok-imagine-extend",
+      "inputs": {
+        "request_id": {
+          "examples": [
+            ""
+          ],
+          "description": "Request ID of the original video generation. Must be a valid ID returned from a previous Grok Imagine video generation.",
+          "format": "text",
+          "type": "string",
+          "title": "Request Id",
+          "name": "request_id",
+          "placeholder": "abcdefg-123-456-789-a1b2c3d4e5f6"
+        },
+        "prompt": {
+          "examples": [
+            "Continue the scene with the camera slowly panning right to reveal a vast ocean horizon, golden sunset light reflecting on the water."
+          ],
+          "description": "Text prompt describing how to continue the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "extend_times": {
+          "enum": [
+            6,
+            10
+          ],
+          "title": "Extend Duration",
+          "name": "extend_times",
+          "type": "integer",
+          "description": "Duration in seconds to extend the video.",
+          "default": 6
+        },
+        "resolution": GROK_RESOLUTION_INPUT
+      },
+      "provider": "grok",
+      "provider_name": "xAI"
+    },
+  {
+      "id": "pixverse-v6-t2v",
+      "name": "PixVerse V6",
+      "endpoint": "pixverse-v6-t2v",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate.",
+          "examples": [
+            "A young woman sprints through a dense futuristic city street when gravity suddenly shifts sideways. Cars slide across buildings, streetlights bend, and debris floats mid-air. She jumps between tilted surfaces while the camera dynamically rotates with the changing gravity, creating a disorienting chase sequence with intense motion blur and sparks flying."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16",
+            "2:3",
+            "3:2",
+            "21:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "540p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 1,
+          "maxValue": 15,
+          "step": 1
+        },
+        "generate_audio_switch": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio_switch",
+          "description": "Enable AI-generated audio for the video.",
+          "default": false
+        }
+      },
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+  {
+      "id": "wan2.7-text-to-video",
+      "name": "Wan2.7",
+      "endpoint": "wan2.7-text-to-video",
+      "family": "wan2.7",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description",
+          "examples": [
+            "A cinematic video..."
+          ]
+        },
+        "audio_url": {
+          "type": "string",
+          "title": "Audio URL",
+          "name": "audio_url",
+          "description": "Audio file to guide generation",
+          "field": "audio",
+          "examples": []
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "The aspect ratio of the generated video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution",
+          "default": "720p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video duration in seconds (2-15).",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 15,
+          "step": 1
+        },
+        "negative_prompt": {
+          "examples": [],
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "What not to generate"
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "seedance-2-t2v-480p",
+      "name": "Seedance 2 T2V 480P",
+      "endpoint": "seedance-2.0-t2v-480p",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A determined penguin straps itself into a homemade rocket sled on an icy mountain. The rocket ignites with a massive burst and launches the penguin across the frozen landscape at insane speed, blasting through snowdrifts and leaving a fiery trail behind."
+          ],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video. To use a fictional character, reference it inline with @character:<id> (the request_id from a completed Seedance 2 Character generation). Multiple characters are supported. Example: '@character:ab539e5f walks on the beach at sunset'."
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "title": "Quality",
+          "name": "quality",
+          "type": "string",
+          "description": "high=$0.15/sec, basic=$0.12/sec",
+          "default": "basic"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-text-to-video",
+      "name": "Seedance 2",
+      "endpoint": "seedance-2-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate. Use @character:<id> to anchor the video to a Seedance 2 character — automatically switches to image-to-video mode.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-text-to-video-fast",
+      "name": "Seedance 2.0 Fast",
+      "endpoint": "seedance-2-text-to-video-fast",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate. Use @character:<id> to anchor the video to a Seedance 2 character — automatically switches to image-to-video mode.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-text-to-video",
+      "name": "Seedance 2 VIP",
+      "endpoint": "seedance-2-vip-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate. Use @character:<id> to anchor the video to a Seedance 2 character — automatically switches to image-to-video mode. Use @omni-character:<char_id> for a trained Kinovi character.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-text-to-video-fast",
+      "name": "Seedance 2 VIP Text to Video Fast",
+      "endpoint": "seedance-2-vip-text-to-video-fast",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate. Use @character:<id> to anchor the video to a Seedance 2 character — automatically switches to image-to-video mode. Use @omni-character:<char_id> for a trained Kinovi character.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "happy-horse-1-text-to-video-1080p",
+      "name": "HappyHorse 1.0 1080P",
+      "endpoint": "happy-horse-1-text-to-video-1080p",
+      "fixedParameters": { "resolution": "1080p" },
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video content.",
+          "examples": [
+            "A horse hosting a live cooking show confidently flips a pancake into the air, but the pancake catches fire and triggers a chain reaction of explosions throughout the kitchen. Pots launch into the air, flames burst from ovens, and the horse continues cooking like nothing is wrong."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1-text-to-video-720p",
+      "name": "HappyHorse 1.0 720P",
+      "endpoint": "happy-horse-1-text-to-video-720p",
+      "fixedParameters": { "resolution": "720p" },
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video content.",
+          "examples": [
+            "Inside a crowded airplane cabin, a horse wearing a pilot uniform suddenly realizes the plane is flying upside down. Passengers and luggage slam into the ceiling while drink carts roll wildly through the aisle. The horse panics and runs toward the cockpit as turbulence shakes the entire plane violently."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "seedance-2-vip-text-to-video-1080p",
+      "name": "Seedance 2 VIP Text to Video 1080P",
+      "endpoint": "sd-2-vip-text-to-video-1080p",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-text-to-video-fast-1080p",
+      "name": "Seedance 2 VIP Text to Video Fast 1080P",
+      "endpoint": "sd-2-vip-text-to-video-fast-1080p",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "kling-v3.0-4k-text-to-video",
+      "fixedParameters": { resolution: "4K" },
+      "name": "Kling 3.0 4K",
+      "endpoint": "kling-v3.0-4k-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A close-up view of a mechanical watch lying open on a dark surface. As the video plays, the internal gears begin turning smoothly, tiny springs flex and release, and the balance wheel oscillates rhythmically. Light reflections glide across polished metal parts while the camera slowly pans sideways, revealing the layered precision of the mechanism. Studio lighting, macro detail, clean background, calm and satisfying motion."
+          ],
+          "description": "Text prompt describing the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated video"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "generate_audio": KLING_AUDIO_INPUT
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "vidu-q3-pro-text-to-video",
+      "name": "Vidu Q3 Pro",
+      "endpoint": "vidu-q3-pro-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The whale crashes downward through the street, releasing an enormous wave of water that floods the city instantly. Cars flip and streetlights bend while the camera dives through the rushing floodwater beside the whale."
+          ],
+          "description": "Text prompt describing the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "540p",
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 1,
+          "maxValue": 16,
+          "step": 1
+        },
+        "audio": {
+          "type": "boolean",
+          "title": "Audio",
+          "name": "audio",
+          "description": "Whether to generate audio for the video.",
+          "default": false
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q3-turbo-text-to-video",
+      "name": "Vidu Q3 Turbo",
+      "endpoint": "vidu-q3-turbo-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A tiny astronaut standing on a kitchen countertop beside giant cooking equipment, dramatic cinematic scale contrast"
+          ],
+          "description": "Text prompt describing the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "540p",
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 1,
+          "maxValue": 16,
+          "step": 1
+        },
+        "audio": {
+          "type": "boolean",
+          "title": "Audio",
+          "name": "audio",
+          "description": "Whether to generate audio for the video.",
+          "default": false
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q2-pro-text-to-video",
+      "name": "Vidu Q2 Pro",
+      "endpoint": "vidu-q2-pro-text-to-video",
+      "commonParameterRules": VIDU_Q2_MUSIC_RULES,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A lone astronaut walks slowly across a cracked Martian plain at dusk, her boots kicking up rust-coloured dust. The camera tracks beside her in a slow dolly as twin moons rise over distant mesas, soft volumetric light spilling across her visor."
+          ],
+          "description": "Text prompt describing the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 8,
+          "step": 1
+        },
+        "bgm": VIDU_Q2_MUSIC_INPUT,
+        "movement_amplitude": {
+          "enum": [
+            "auto",
+            "small",
+            "medium",
+            "large"
+          ],
+          "title": "Movement Amplitude",
+          "name": "movement_amplitude",
+          "type": "string",
+          "description": "The movement amplitude of objects in the frame.",
+          "default": "auto"
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q2-turbo-text-to-video",
+      "name": "Vidu Q2 Turbo",
+      "endpoint": "vidu-q2-turbo-text-to-video",
+      "commonParameterRules": VIDU_Q2_MUSIC_RULES,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A skateboarder carves down a sunlit Tokyo backstreet at golden hour. The camera follows in a smooth tracking shot as neon signs flicker on."
+          ],
+          "description": "Text prompt describing the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 8,
+          "step": 1
+        },
+        "bgm": VIDU_Q2_MUSIC_INPUT,
+        "movement_amplitude": {
+          "enum": [
+            "auto",
+            "small",
+            "medium",
+            "large"
+          ],
+          "title": "Movement Amplitude",
+          "name": "movement_amplitude",
+          "type": "string",
+          "description": "The movement amplitude of objects in the frame.",
+          "default": "auto"
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "seedance-2-vip-extend",
+      "name": "Seedance 2 VIP Extend",
+      "requiresRequestId": true,
+      "endpoint": "sd-2-vip-extend",
+      "inputs": {
+        "request_id": {
+          "examples": [
+            "cab9517f-1818-4910-8d66-292701c78c2d"
+          ],
+          "description": "Request ID of the original Seedance 2.0 video generation.",
+          "format": "text",
+          "type": "string",
+          "title": "Request Id",
+          "name": "request_id",
+          "placeholder": "abcdefg-123-456-789-a1b2c3d4e5f6"
+        },
+        "prompt": {
+          "examples": [
+            ""
+          ],
+          "description": "Optional prompt to guide the extension. Reference additional images with @image2…@image9, videos with @video1…@video3, and audio with @audio1…@audio3 — the source video's last frame is always @image1.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Up to 8 additional reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @image(N+1) in the prompt (the source video's last frame is @image1).",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 8
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio clip URLs (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Output video aspect ratio (only used when reference images/videos/audio are provided)."
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "title": "Quality",
+          "type": "string",
+          "name": "quality",
+          "default": "basic"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-extend-1080p",
+      "name": "Seedance 2 VIP Extend 1080P",
+      "requiresRequestId": true,
+      "endpoint": "sd-2-vip-extend-1080p",
+      "inputs": {
+        "request_id": {
+          "examples": [
+            "cab9517f-1818-4910-8d66-292701c78c2d"
+          ],
+          "description": "Request ID of the original Seedance 2.0 video generation.",
+          "format": "text",
+          "type": "string",
+          "title": "Request Id",
+          "name": "request_id",
+          "placeholder": "abcdefg-123-456-789-a1b2c3d4e5f6"
+        },
+        "prompt": {
+          "examples": [
+            ""
+          ],
+          "description": "Optional prompt to guide the extension. Reference additional images with @image2…@image9, videos with @video1…@video3, and audio with @audio1…@audio3 — the source video's last frame is always @image1.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Up to 8 additional reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @image(N+1) in the prompt (the source video's last frame is @image1).",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 8
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio clip URLs (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Output video aspect ratio (only used when reference images/videos/audio are provided)."
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "title": "Quality",
+          "type": "string",
+          "name": "quality",
+          "default": "high"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "kling-v3.0-omni-standard-text-to-video",
+      "fixedParameters": { resolution: "720p" },
+      "name": "Kling 3.0 Omni Standard",
+      "endpoint": "kling-v3.0-omni-standard-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cyberpunk samurai crouched on a rooftop edge during a thunderstorm, glowing katana in hand. The samurai instantly launches forward across rooftops at extreme speed. Rain sprays behind each landing while he slices through neon signs and wall-runs across skyscrapers. The camera whips aggressively around every movement."
+          ],
+          "description": "Text prompt. Reference images via <<<image_N>>> (1-indexed). If omitted, <<<image_1>>> is auto-prepended.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "9:16",
+            "16:9",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Aspect ratio of the output video."
+        },
+        "duration": {
+          "enum": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Duration of the generated video in seconds.",
+          "default": 5
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "When enabled, generate native audio with the video (adds to cost).",
+          "default": false
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "kling-v3.0-omni-pro-text-to-video",
+      "fixedParameters": { resolution: "1080p" },
+      "name": "Kling 3.0 Omni Pro",
+      "endpoint": "kling-v3.0-omni-pro-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A destroyed city street with broken buildings, smoke, and rubble everywhere. A colossal hand descends from the clouds and begins rebuilding the city like toy blocks. Buildings rise from rubble, roads reconnect, and cars reassemble in reverse. The camera moves through the reconstruction as the hand reshapes the world."
+          ],
+          "description": "Text prompt. Reference images via <<<image_N>>> (1-indexed). If omitted, <<<image_1>>> is auto-prepended.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "9:16",
+            "16:9",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Aspect ratio of the output video."
+        },
+        "duration": {
+          "enum": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Duration of the generated video in seconds.",
+          "default": 5
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "When enabled, generate native audio with the video (adds to cost).",
+          "default": false
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "kling-v3.0-omni-4k-text-to-video",
+      "fixedParameters": { resolution: "4K" },
+      "name": "Kling 3.0 Omni 4K",
+      "endpoint": "kling-v3.0-omni-4k-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A destroyed city street with broken buildings, smoke, and rubble everywhere. A colossal hand descends from the clouds and begins rebuilding the city like toy blocks. Buildings rise from rubble, roads reconnect, and cars reassemble in reverse. The camera moves through the reconstruction as the hand reshapes the world."
+          ],
+          "description": "Text prompt. Reference images via <<<image_N>>> (1-indexed). If omitted, <<<image_1>>> is auto-prepended.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "9:16",
+            "16:9",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Aspect ratio of the output video."
+        },
+        "duration": {
+          "enum": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Duration of the generated video in seconds.",
+          "default": 5
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "gemini-omni-text-to-video",
+      "name": "Gemini Omni Flash",
+      "endpoint": "gemini-omni-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video content. Gemini Omni supports rich multimodal prompts including scene composition, camera direction, dialogue, and ambient audio cues.",
+          "examples": [
+            "A clock begins ticking louder and rapidly grows larger, breaking through the table and floor. Its gears spin violently as the hands rotate uncontrollably. Walls crack apart as the giant clock expands until it fills the entire apartment."
+          ]
+        },
+        "duration": {
+          "enum": [
+            4,
+            6,
+            8,
+            10
+          ],
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds.",
+          "default": 8
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution. 720p and 1080p are the same price; 4K costs more.",
+          "default": "1080p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "audio_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio IDs",
+          "name": "audio_ids",
+          "description": "Up to 3 voice profile IDs returned by the Gemini Omni Audio endpoint.",
+          "maxItems": 3
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed (0–2147483647). Fix for reproducibility; results may still vary due to model stochasticity.",
+          "minValue": 0,
+          "maxValue": 2147483647,
+          "default": 0
+        },
+        "character_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Character IDs",
+          "name": "character_ids",
+          "description": "Up to 3 character IDs from Gemini Omni Character to feature in the video.",
+          "maxItems": 3
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "kling-v3-turbo-standard-text-to-video",
+      "fixedParameters": { resolution: "720p" },
+      "name": "Kling 3.0 Turbo Standard",
+      "endpoint": "kling-v3-turbo-standard-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate.",
+          "examples": [
+            "The biker accelerates instantly as the city folds into impossible geometric shapes around him. Roads twist vertically and buildings rotate through the air. Sparks fly during aggressive drifts while the camera tracks tightly behind."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9",
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "The aspect ratio of the generated video."
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds (3–15).",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "kling-v3-turbo-pro-text-to-video",
+      "fixedParameters": { resolution: "1080p" },
+      "name": "Kling 3.0 Turbo Pro",
+      "endpoint": "kling-v3-turbo-pro-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate.",
+          "examples": [
+            "A player slams the ball through the hoop and the court instantly erupts into lava. Shockwaves crack the arena floor while flaming debris blasts upward into the crowd. The camera swings dramatically around the impact."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "default": "16:9",
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "The aspect ratio of the generated video."
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds (3–15).",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "seedance-2.5-text-to-video",
+      "name": "Seedance 2.5",
+      "endpoint": "seedance-2.5-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-text-to-video-480p",
+      "name": "Seedance 2.5 480p",
+      "endpoint": "seedance-2.5-text-to-video-480p",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-mini-text-to-video",
+      "name": "Seedance 2.0 Mini",
+      "endpoint": "seedance-2-mini-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A golden retriever running through a sunlit meadow, slow motion, vibrant summer colors, wide angle shot."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate AI audio synchronized with the video.",
+          "default": true
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "happy-horse-1.1-text-to-video-1080p",
+      "name": "HappyHorse 1.1 1080P",
+      "endpoint": "happy-horse-1.1-text-to-video-1080p",
+      "fixedParameters": { "resolution": "1080p" },
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video content.",
+          "examples": [
+            "A horse hosting a live cooking show confidently flips a pancake into the air, but the pancake catches fire and triggers a chain reaction of explosions throughout the kitchen."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1.1-text-to-video-720p",
+      "name": "HappyHorse 1.1 720P",
+      "endpoint": "happy-horse-1.1-text-to-video-720p",
+      "fixedParameters": { "resolution": "720p" },
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video content.",
+          "examples": [
+            "A horse hosting a live cooking show confidently flips a pancake into the air, but the pancake catches fire and triggers a chain reaction of explosions throughout the kitchen."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "seedance-2-mini-omni-reference",
+      "name": "Seedance 2 Mini Omni Reference",
+      "endpoint": "seedance-2-mini-omni-reference",
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The character walks forward confidently in a sunny meadow, camera follows from behind."
+          ],
+          "description": "Text prompt. Reference images with @image1..@image9, videos with @video1..@video3, audio with @audio1..@audio3.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v1.5-pro-i2v.jpg"
+          ],
+          "description": "Up to 9 reference images (JPEG/PNG/WebP). Referenced in prompt via @image1..@image9.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [
+            ""
+          ],
+          "description": "Up to 3 reference video clips (MP4, total max 15s). Referenced in prompt via @video1..@video3.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [
+            ""
+          ],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Referenced in prompt via @audio1..@audio3.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate AI audio synchronized with the video.",
+          "default": true
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-text-to-video-4k",
+      "name": "Seedance 2 VIP Text to Video 4K",
+      "endpoint": "sd-2-vip-text-to-video-4k",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-text-to-video",
+      "name": "Seedance 2.5 Spicy",
+      "endpoint": "seedance-2.5-spicy-text-to-video",
+      "inputs": {
+        "resolution": SEEDANCE_25_RESOLUTION_INPUT,
+        "generate_audio": SEEDANCE_GENERATE_AUDIO_INPUT,
+        "prompt": {
+          "examples": [
+            "A high-contrast, adrenaline-fueled chase through a rain-soaked neon megacity at night, sparks and shattering glass in slow motion, aggressive handheld camera energy, exaggerated color grading, 4K cinematic quality."
+          ],
+          "description": "Text prompt describing the video scene and motion. Spicy mode favors bolder, higher-contrast, more expressive results.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "seed": SEEDANCE_25_SEED_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-spicy-text-to-video",
+      "name": "Seedance 2 Spicy",
+      "endpoint": "seedance-2-spicy-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate. Use @character:<id> to anchor the video to a Seedance 2 character — automatically switches to image-to-video mode. Use @omni-character:<char_id> for a trained Kinovi character.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-spicy-text-to-video-fast",
+      "name": "Seedance 2 Spicy Text to Video Fast",
+      "endpoint": "seedance-2-spicy-text-to-video-fast",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video to generate. Use @character:<id> to anchor the video to a Seedance 2 character — automatically switches to image-to-video mode. Use @omni-character:<char_id> for a trained Kinovi character.",
+          "examples": [
+            "A cinematic shot of a futuristic city at night with neon lights reflecting on wet streets."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-mini-spicy-text-to-video",
+      "name": "Seedance 2 Mini Spicy",
+      "endpoint": "seedance-2-mini-spicy-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A golden retriever running through a sunlit meadow, slow motion, vibrant summer colors, wide angle shot."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate AI audio synchronized with the video.",
+          "default": true
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "minimax-h3-text-to-video",
+      "name": "MiniMax H3",
+      "endpoint": "minimax-h3-text-to-video",
+      "family": "minimax-h3",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video to generate."
+        },
+        "aspect_ratio": {
+          "enum": ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": ["2k"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "2k"
+        },
+        "duration": {
+          "enum": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "default": 5
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "minimax-h3-open-text-to-video",
+      "name": "MiniMax H3 Base FL2VA",
+      "endpoint": "minimax-h3-open-text-to-video",
+      "family": "minimax-h3",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video to generate."
+        },
+        "aspect_ratio": {
+          "enum": ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "9:21"],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": ["480p", "768p"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "480p"
+        },
+        "duration": {
+          "enum": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "default": 5
+        },
+        "seed": MINIMAX_H3_OPEN_SEED_INPUT
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "flux-3-text-to-video",
+      "name": "FLUX 3",
+      "endpoint": "flux-3-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A drone shot glides over a bioluminescent forest at night, fireflies drifting between glowing trees, gentle mist rolling across the forest floor, cinematic color grading."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized native audio for the video.",
+          "default": true
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "wan3.0-text-to-video",
+      "name": "Wan 3.0",
+      "endpoint": "wan3.0-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the video you want to create.",
+          "examples": [
+            "A cinematic aerial shot of mist moving through a mountain valley at sunrise."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video frame dimensions.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video length in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 30
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable deep-thinking mode for complex prompts.",
+          "default": false
+        },
+        "enable_audio": {
+          "type": "boolean",
+          "title": "Enable Audio",
+          "name": "enable_audio",
+          "description": "Include a generated audio track with the video.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility. Use -1 for a random seed.",
+          "default": -1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan3.0-spicy-text-to-video",
+      "name": "Wan 3.0 Spicy",
+      "endpoint": "wan3.0-spicy-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the bold, high-motion video you want to create.",
+          "examples": [
+            "A dramatic cinematic scene with bold camera movement through a neon-lit city at night."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video frame dimensions.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video length in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 30
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable deep-thinking mode for complex prompts.",
+          "default": false
+        },
+        "enable_audio": {
+          "type": "boolean",
+          "title": "Enable Audio",
+          "name": "enable_audio",
+          "description": "Include a generated audio track with the video.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility. Use -1 for a random seed.",
+          "default": -1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "seedance-2.5-text-to-video-1080p",
+      "name": "Seedance 2.5 1080p",
+      "endpoint": "seedance-2.5-text-to-video-1080p",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-text-to-video-4k",
+      "name": "Seedance 2.5 4K",
+      "endpoint": "seedance-2.5-text-to-video-4k",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-text-to-video",
+      "name": "Seedance 2.5 Intl",
+      "endpoint": "seedance-2.5-intl-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-text-to-video-480p",
+      "name": "Seedance 2.5 Intl 480p",
+      "endpoint": "seedance-2.5-intl-text-to-video-480p",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-text-to-video-480p",
+      "name": "Seedance 2.5 Spicy 480p",
+      "endpoint": "seedance-2.5-spicy-text-to-video-480p",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-text-to-video-1080p",
+      "name": "Seedance 2.5 Intl 1080p",
+      "endpoint": "seedance-2.5-intl-text-to-video-1080p",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-text-to-video-1080p",
+      "name": "Seedance 2.5 Spicy 1080p",
+      "endpoint": "seedance-2.5-spicy-text-to-video-1080p",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-text-to-video-4k",
+      "name": "Seedance 2.5 Intl 4K",
+      "endpoint": "seedance-2.5-intl-text-to-video-4k",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-text-to-video-4k",
+      "name": "Seedance 2.5 Spicy 4K",
+      "endpoint": "seedance-2.5-spicy-text-to-video-4k",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic tracking shot through a city park after rain, soft cloudy light, wet pavement reflections, smooth camera movement."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "minimax-h3-text-to-video-lora",
+      "name": "MiniMax H3 Text to Video LoRA",
+      "endpoint": "minimax-h3-text-to-video-lora",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the video scene, action, camera movement, and soundtrack.",
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "768p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution. 768p is native canvas, 480p is faster.",
+          "default": "480p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Output video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed (-1 for random)",
+          "default": -1,
+          "minValue": -1,
+          "maxValue": 2147483647
+        },
+        "loras": {
+          "type": "array",
+          "title": "LoRAs",
+          "name": "loras",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "title": "LoRA Path / Model ID",
+                "name": "path",
+                "description": "Civitai model ID or HuggingFace URL/path."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1,
+                "description": "Weight / strength scale of the LoRA."
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "ltx-2.5-text-to-video",
+      "name": "LTX 2.5",
+      "endpoint": "ltx-2.5-text-to-video",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic ocean wave crashing onto golden sand at sunrise, highly detailed photorealistic 4k."
+          ],
+          "description": "The positive prompt for the generation.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated media in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p",
+            "2k",
+            "4k"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Video resolution.",
+          "default": "720p"
+        },
+        "seed": {
+          "title": "Seed",
+          "name": "seed",
+          "type": "int",
+          "description": "The random seed to use for the generation. -1 means random.",
+          "default": -1
+        }
+      },
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+  {
+      "id": "wan3.0-prime-text-to-video",
+      "name": "Wan 3.0 Prime",
+      "endpoint": "wan3.0-prime-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the video you want to create.",
+          "examples": [
+            "A cinematic aerial shot of mist moving through a mountain valley at sunrise."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video frame dimensions.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video length in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 30
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable deep-thinking mode for complex prompts.",
+          "default": false
+        },
+        "enable_audio": {
+          "type": "boolean",
+          "title": "Enable Audio",
+          "name": "enable_audio",
+          "description": "Include a generated audio track with the video.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility. Use -1 for a random seed.",
+          "default": -1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "flux-3-text-to-video-draft",
+      "name": "FLUX 3 Text to Video Draft",
+      "endpoint": "flux-3-text-to-video-draft",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A drone shot glides over a bioluminescent forest at night, fireflies drifting between glowing trees."
+          ],
+          "description": "Describe the subject, action, environment, camera movement, timing, mood, lighting, and visual style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "9:16"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized native audio for the video.",
+          "default": true
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "gemini-omni-flash-1-1-text-to-video",
+      "name": "Gemini Omni 1.1 Flash",
+      "endpoint": "gemini-omni-flash-1-1-text-to-video",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video content \u2014 visuals, camera direction, dialogue, and ambient audio cues.",
+          "examples": [
+            "A street musician plays a violin on a rainy Paris evening, raindrops tap the cobblestones, a slow melancholic melody, distant caf\u00e9 chatter."
+          ]
+        },
+        "image_urls": {
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "image_urls",
+          "description": "Up to 7 reference images used as auxiliary conditioning (not a starting keyframe). Each counts as 1 quota unit against the shared 7-unit total with video and character_ids.",
+          "maxItems": 7
+        },
+        "video_url": {
+          "field": "video",
+          "type": "string",
+          "title": "Reference Video",
+          "name": "video_url",
+          "description": "A reference video clip, max 100MB / 30s. Counts as 2 quota units."
+        },
+        "trim_start": {
+          "type": "number",
+          "title": "Video Trim Start (s)",
+          "name": "trim_start",
+          "description": "Start time, in seconds, of the reference video window.",
+          "default": 0
+        },
+        "trim_end": {
+          "type": "number",
+          "title": "Video Trim End (s)",
+          "name": "trim_end",
+          "description": "End time, in seconds, of the reference video window. Window must not exceed 10 seconds.",
+          "default": 10
+        },
+        "audio_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio IDs",
+          "name": "audio_ids",
+          "description": "Up to 3 voice profile IDs from the Gemini Omni Audio endpoint. Each counts as 1 quota unit.",
+          "maxItems": 3
+        },
+        "character_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Character IDs",
+          "name": "character_ids",
+          "description": "Up to 3 character IDs from Gemini Omni Character. Each counts as 1 quota unit.",
+          "maxItems": 3
+        },
+        "duration": {
+          "enum": [
+            4,
+            6,
+            8,
+            10
+          ],
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds. Ignored when a reference video is provided \u2014 output duration is then determined by the model.",
+          "default": 8
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Billed per second of output: $0.10/s at 720p, $0.15/s at 1080p, $0.30/s at 4K.",
+          "default": "720p"
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed (0\u20132147483647). Fix for reproducibility; results may still vary due to model stochasticity.",
+          "minValue": 0,
+          "maxValue": 2147483647,
+          "default": 0
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "openai-sora-2-pro-storyboard",
+      "name": "OpenAI Sora 2 Pro Storyboard",
+      "endpoint": "openai-sora-2-pro-storyboard",
+      "family": "sora",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": false,
+      "inputs": {
+        "shots": {
+          "examples": [
+            {
+              "scene": "A quiet street at dawn, cobblestone path glistening from overnight rain, street lamps just going off, soft ambient light.",
+              "duration": 1.2
+            }
+          ],
+          "title": "Shots",
+          "name": "shots",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "scene": {
+                "type": "string",
+                "format": "text",
+                "title": "Scene",
+                "name": "scene",
+                "description": "Scene description/prompt."
+              },
+              "duration": {
+                "type": "number",
+                "name": "duration",
+                "title": "Duration",
+                "description": "Duration in seconds.",
+                "minValue": 0,
+                "maxValue": 10,
+                "step": 0.01,
+                "default": 1
+              }
+            }
+          },
+          "description": "Array of scene objects defining the storyboard sequence. Each scene contains a duration and description.",
+          "maxItems": 30
+        },
+        "duration": {
+          "enum": [
+            10,
+            15,
+            25
+          ],
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds",
+          "default": 10
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Upload or provide image urls.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "9:16"
+        }
+      },
+      "provider": "openai",
+      "provider_name": "KIE_AI",
+      "description": "Sora 2 Pro enables creators to structure video narratives by chaining multiple scenes through storyboard “cards.” Each card defines a segment of the video—setting, characters, actions, timing—and the model stitches them into a cohesive multi-scene video. This gives you more control over pacing, transitions, and storytelling flow.",
+      "example_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/sora-2-pro-i2v.mp4",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/sora-2-pro-i2v.avif"
+    },
+  {
+      "id": "happy-horse-1-text-to-video",
+      "name": "Happy Horse 1 Text to Video",
+      "endpoint": "happy-horse-1-text-to-video",
+      "family": "happy-horse-1",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video content.",
+          "examples": [
+            "Inside a crowded airplane cabin, a horse wearing a pilot uniform suddenly realizes the plane is flying upside down. Passengers and luggage slam into the ceiling while drink carts roll wildly through the aisle. The horse panics and runs toward the cockpit as turbulence shakes the entire plane violently."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheaper, 1080p is more expensive.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KINOVI",
+      "description": "Happy Horse 1.0 Text to Video — generate expressive, stylized video clips from text prompts. Selectable output resolution (720p/1080p) — price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/dae1fa68-52a2-4627-8364-762202f8601b.avif",
+      "image_url": "https://cdn.muapi.ai/assets/dae1fa68-52a2-4627-8364-762202f8601b.avif"
+    },
+  {
+      "id": "happy-horse-1.1-text-to-video",
+      "name": "Happy Horse 1.1 Text to Video",
+      "endpoint": "happy-horse-1.1-text-to-video",
+      "family": "happy-horse-1.1",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video content.",
+          "examples": [
+            "A horse hosting a live cooking show confidently flips a pancake into the air, but the pancake catches fire and triggers a chain reaction of explosions throughout the kitchen."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheaper, 1080p is more expensive.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KINOVI",
+      "description": "Happy Horse 1.1 Text to Video — generate expressive video clips from text prompts with vivid character motion. Selectable output resolution (720p/1080p) — price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/860030ab-d3e8-41a7-8d2f-4e16308e0bc1.avif",
+      "image_url": "https://cdn.muapi.ai/assets/860030ab-d3e8-41a7-8d2f-4e16308e0bc1.avif"
+    },
+  {
+      "id": "minimax-h3-max-text-to-video",
+      "name": "MiniMax H3 Max Text to Video",
+      "endpoint": "minimax-h3-max-text-to-video",
+      "family": "minimax-h3-max",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the video scene, action, camera movement, and style.",
+          "examples": [
+            "A cinematic tracking shot of a silver sports car driving through a rain-soaked city at night."
+          ]
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "default": "16:9"
+        },
+        "resolution": {
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "enum": [
+            "480p",
+            "768p",
+            "1080p"
+          ],
+          "default": "768p",
+          "description": "Output resolution. 1080p applies latent refinement from a 768p source."
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "enum": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "default": 5,
+          "description": "Output duration in seconds."
+        },
+        "prompt_expansion_mode": {
+          "type": "string",
+          "title": "Prompt Expansion Mode",
+          "name": "prompt_expansion_mode",
+          "enum": [
+            "disabled",
+            "balanced",
+            "quality"
+          ],
+          "default": "balanced",
+          "description": "Prompt rewriting effort. 'quality' can add up to ~30s of processing."
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "MINIMAX",
+      "description": "MiniMax H3 Max Text to Video creates high-fidelity video up to 1080p from a written prompt through the Muapi API.",
+      "example_url": "https://cdn.muapi.ai/assets/image_download_28.avif",
+      "image_url": "https://cdn.muapi.ai/assets/image_download_28.avif"
+    },
+  {
+      "id": "minimax-h3-max-turbo-text-to-video",
+      "name": "MiniMax H3 Max Turbo Text to Video",
+      "endpoint": "minimax-h3-max-turbo-text-to-video",
+      "family": "minimax-h3-max",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the video scene, action, camera movement, and style.",
+          "examples": [
+            "A cinematic tracking shot of a silver sports car driving through a rain-soaked city at night."
+          ]
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "default": "16:9"
+        },
+        "resolution": {
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "enum": [
+            "480p",
+            "768p",
+            "1080p"
+          ],
+          "default": "768p"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "enum": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "default": 5,
+          "description": "Output duration in seconds."
+        },
+        "prompt_expansion_mode": {
+          "type": "string",
+          "title": "Prompt Expansion Mode",
+          "name": "prompt_expansion_mode",
+          "enum": [
+            "disabled",
+            "balanced",
+            "quality"
+          ],
+          "default": "balanced",
+          "description": "Prompt rewriting effort level."
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "MINIMAX",
+      "description": "MiniMax H3 Max Turbo Text to Video is a faster, lower-cost H3 Max mode that creates video up to 1080p from a written prompt through the Muapi API.",
+      "example_url": "https://cdn.muapi.ai/assets/image_download_28.avif",
+      "image_url": "https://cdn.muapi.ai/assets/image_download_28.avif"
+    },
+  {
+      "id": "seedance-2-mini-spicy-omni-reference",
+      "name": "Seedance 2 Mini Spicy Omni Reference",
+      "endpoint": "seedance-2-mini-spicy-omni-reference",
+      "family": "seedance-2.0-mini",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The character walks forward confidently in a sunny meadow, camera follows from behind."
+          ],
+          "description": "Text prompt. Reference images with @image1..@image9, videos with @video1..@video3, audio with @audio1..@audio3.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v1.5-pro-i2v.jpg"
+          ],
+          "description": "Up to 9 reference images (JPEG/PNG/WebP). Referenced in prompt via @image1..@image9.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [
+            ""
+          ],
+          "description": "Up to 3 reference video clips (MP4, total max 15s). Referenced in prompt via @video1..@video3.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [
+            ""
+          ],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Referenced in prompt via @audio1..@audio3.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate AI audio synchronized with the video.",
+          "default": true
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "KIE_AI",
+      "description": "Seedance 2 Mini Spicy Omni Reference generates video from a text prompt with optional image, video, and audio references. Cost-efficient mini-tier model for reference-driven workflows, with reduced content-safety filtering for more creative freedom.",
+      "example_url": "https://cdn.muapi.ai/assets/2d77df89-9492-4c7d-b434-7684d0ce3bb8.avif",
+      "image_url": "https://cdn.muapi.ai/assets/2d77df89-9492-4c7d-b434-7684d0ce3bb8.avif"
+    }];
 
 export const getVideoModelById = (id) => t2vModels.find(m => m.id === id);
 
@@ -2823,6 +9196,7 @@ export const i2iModels = [
     "endpoint": "ai-image-face-swap",
     "family": "tools",
     "imageField": "image_url",
+    "swapField": "swap_url",
     "hasPrompt": false,
     "inputs": {
       "target_index": {
@@ -5178,7 +11552,2405 @@ export const i2iModels = [
       "default": false
     }
   }
-}];;
+},
+  {
+      "id": "image-passthrough",
+      "name": "Image Passthrough",
+      "endpoint": "image-passthrough",
+      "family": "image",
+      "imageField": "image_url",
+      "hasPrompt": false,
+      "inputs": {
+        "make_input": {
+          "type": "boolean",
+          "title": "Make Input",
+          "name": "make_input",
+          "default": true
+        }
+      },
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+  {
+      "id": "Api Node",
+      "name": "Api Node",
+      "endpoint": "Api Node",
+      "family": "wavespeed",
+      "imageField": "image_url",
+      "hasPrompt": false,
+      "inputs": {
+        "model_url": {
+          "type": "string",
+          "title": "Model URL",
+          "name": "model_url",
+          "description": "Url of the wavespeed model",
+          "examples": [
+            ""
+          ]
+        },
+        "api_key": {
+          "type": "string",
+          "title": "API Key",
+          "name": "api_key",
+          "description": "API key for authentication",
+          "examples": [
+            ""
+          ]
+        }
+      },
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+  {
+      "id": "nano-banana-2-1-edit",
+      "name": "Nano Banana 2.1 Edit",
+      "endpoint": "nano-banana-2-1-edit",
+      "family": "nano",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "maxImages": 14,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Positive prompt for generation.",
+          "examples": [
+            "Transform the portrait into a cyberpunk style with neon lighting, metallic accessories, and a rain-soaked city background, maintaining the subject's facial features."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "1:4",
+            "1:8",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:1",
+            "4:3",
+            "4:5",
+            "5:4",
+            "8:1",
+            "9:16",
+            "16:9",
+            "21:9",
+            "auto"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image.",
+          "default": "auto"
+        },
+        "resolution": {
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated image.",
+          "default": "1k"
+        },
+        "output_format": {
+          "enum": [
+            "jpg",
+            "png"
+          ],
+          "title": "Output Format",
+          "name": "output_format",
+          "type": "string",
+          "description": "The format of the output image.",
+          "default": "jpg"
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "qwen-image-2.0-edit",
+      "name": "Qwen Image 2.0",
+      "endpoint": "qwen-image-2.0-edit",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "description": "A description of the edits you want to make.",
+          "title": "Prompt",
+          "type": "string",
+          "name": "prompt",
+          "examples": [
+            "Turn the coffee cup into a miniature volcano where the coffee erupts like lava and smoke rises dramatically from the cup."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/qwen-image-2.0-edit-in.jpg"
+          ],
+          "description": "Upload up to 9 image URLs.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "type": "string",
+          "name": "aspect_ratio",
+          "default": "16:9",
+          "description": "Aspect ratio of the output image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "qwen-image-2.0-pro-edit",
+      "name": "Qwen Image 2.0 Pro",
+      "endpoint": "qwen-image-2.0-pro-edit",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "description": "A description of the edits you want to make.",
+          "title": "Prompt",
+          "type": "string",
+          "name": "prompt",
+          "examples": [
+            "Transform the office into a dense tropical jungle with vines covering the desks, plants growing through the floor, and sunlight beams shining through broken ceiling panels."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/qwen-image-2.0-pro-edit-in.jpg"
+          ],
+          "description": "Upload up to 6 image URLs.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 6
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "type": "string",
+          "name": "aspect_ratio",
+          "default": "16:9",
+          "description": "The aspect ratio of the generated image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "flux-2-klein-4b-turbo-edit",
+      "name": "Flux 2 Klein 4B Turbo Edit",
+      "endpoint": "flux-2-klein-4b-turbo-edit",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Add a tiny blue knitted scarf around the kitten’s neck."
+          ],
+          "description": "Text prompt describing the image, what you want the final edited image to look like.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/flux-2-klein-4b-edit-in.jpg"
+          ],
+          "description": "List of URLs of input images for editing.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 4
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "flux-2-klein-9b-turbo-edit",
+      "name": "Flux 2 Klein 9B Turbo Edit",
+      "endpoint": "flux-2-klein-9b-turbo-edit",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Add a small red bow tie around the puppy’s neck."
+          ],
+          "description": "Text prompt describing the image, what you want the final edited image to look like.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/flux-2-klein-9b-edit-in.jpg"
+          ],
+          "description": "List of URLs of input images for editing.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 4
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "portrait-stylist",
+      "name": "AI Portrait Stylist",
+      "endpoint": "portrait-stylist",
+      "inputs": {
+        "image_url": {
+          "type": "string",
+          "name": "image_url",
+          "title": "Image URL",
+          "description": "Upload a clear portrait photo.",
+          "field": "image",
+          "examples": [
+            "https://cdn.muapi.ai/outputs/d09a771a8b2a45f1b0b5e6aba5955f1b.jpg"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "name": "name",
+          "description": "Select the portrait effect to apply.",
+          "enum": [
+            "Voluminous Frizzy Hair",
+            "Platinum Blonde Hair",
+            "Deep Burgundy Hair",
+            "Jet Black Hair",
+            "Bold Hair Highlights",
+            "Bold Red Lipstick",
+            "Smokey Eye Makeup",
+            "Glossy Nude Makeup",
+            "Winged Eyeliner",
+            "Party Glam Makeup",
+            "Aviator Sunglasses",
+            "Oversized Sunglasses",
+            "Modern Transparent Glasses",
+            "Bold Fashion Hat",
+            "Bright Pink Outfit",
+            "Black Leather Jacket",
+            "White Formal Shirt",
+            "Neon Green Hoodie",
+            "Cinematic Lighting",
+            "Cyberpunk Lighting"
+          ],
+          "default": "Voluminous Frizzy Hair"
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "name": "aspect_ratio",
+          "title": "Aspect Ratio",
+          "description": "Output aspect ratio.",
+          "enum": [
+            "auto",
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ],
+          "default": "auto"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "seedance-2-character",
+      "name": "Seedance 2 Character",
+      "endpoint": "seedance-2-character",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Outfit Description",
+          "name": "prompt",
+          "description": "Describe the outfit or costume the character should wear.",
+          "examples": [
+            "A red leather jacket with black jeans and white sneakers"
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/956660418681/1b84d57d-0869-40f7-8ceb-85ea38074022.jpg"
+          ],
+          "description": "1–3 reference photos of the character to build the sheet from.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 3
+        },
+        "character_name": {
+          "type": "string",
+          "format": "text",
+          "title": "Character Name",
+          "name": "character_name",
+          "description": "Optional label to identify this character.",
+          "examples": [
+            "A Hero"
+          ]
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "wan2.7-image-edit",
+      "name": "Wan 2.7 Image Edit",
+      "endpoint": "wan2.7-image-edit",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Turn the dog into a royal king sitting on a throne, wearing a crown and luxurious robes, dramatic golden lighting."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/wan2.7-image-edit-in.jpg"
+          ],
+          "description": "Upload or provide the input image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URL",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "9:21",
+            "3:2",
+            "2:3"
+          ]
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan2.7-image-edit-pro",
+      "name": "Wan 2.7 Image Edit Pro",
+      "endpoint": "wan2.7-image-edit-pro",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Convert the entire scene into an underwater environment where the buildings are covered in coral, fish swim through the streets, and light rays pass through the water."
+          ],
+          "description": "Text prompt describing the image.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/wan2.7-image-edit-pro-in.jpg"
+          ],
+          "description": "Upload or provide the input image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URL",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "9:21",
+            "3:2",
+            "2:3"
+          ]
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "flux-2-klein-4b-edit-lora",
+      "name": "Flux 2 Klein 4B Edit LoRA",
+      "endpoint": "flux-2-klein-4b-edit-lora",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Add a tiny blue knitted scarf around the kitten's neck, keep pose, lighting, and background unchanged."
+          ],
+          "description": "Editing instruction describing the desired change.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/flux-2-klein-4b-edit-in.jpg"
+          ],
+          "description": "List of 1-3 reference image URLs to edit.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 3
+        },
+        "lora_list": {
+          "examples": [
+            {
+              "path": "https://huggingface.co/example/lora/resolve/main/lora.safetensors",
+              "scale": 1
+            }
+          ],
+          "title": "LoRA List",
+          "name": "lora_list",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "format": "url",
+                "title": "Path",
+                "name": "path",
+                "description": "URL or path to the LoRA weights."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "description": "The LoRA weight multiplier. Default value: 1",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1
+              }
+            }
+          },
+          "description": "Up to 3 LoRA adapters to apply during the edit.",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "flux-2-klein-9b-edit-lora",
+      "name": "Flux 2 Klein 9B Edit LoRA",
+      "endpoint": "flux-2-klein-9b-edit-lora",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Add ornate gold filigree to the costume while preserving the pose, lighting, and background scene."
+          ],
+          "description": "Editing instruction describing the desired change.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/flux-2-klein-9b-edit-in.jpg"
+          ],
+          "description": "List of 1-3 reference image URLs to edit.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 3
+        },
+        "lora_list": {
+          "examples": [
+            {
+              "path": "https://huggingface.co/example/lora/resolve/main/lora.safetensors",
+              "scale": 1
+            }
+          ],
+          "title": "LoRA List",
+          "name": "lora_list",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "format": "url",
+                "title": "Path",
+                "name": "path",
+                "description": "URL or path to the LoRA weights."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "description": "The LoRA weight multiplier. Default value: 1",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1
+              }
+            }
+          },
+          "description": "Up to 3 LoRA adapters to apply during the edit.",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image",
+          "default": "1:1"
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "kling-o3-image-edit",
+      "name": "Kling O3 Image Edit",
+      "endpoint": "kling-o3-image-edit",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Preserve the original composition, people placements, facial identities, DJ setup, and rooftop party mood from the source image. Transform the entire scene into a tiny miniature rooftop party built on top of a moving RC toy truck driving across a messy apartment floor. Surround the tiny party with giant everyday household objects like shoes, cables, snack packets, books, and soda cans towering like skyscrapers. Keep the same party energy and realistic interactions while introducing playful scale contrast, macro photography depth, cinematic lighting, and highly detailed miniature-world realism."
+          ],
+          "description": "Text instructions describing the desired transformation. Maximum 2,000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/kling-o3-image-edit-in.jpg"
+          ],
+          "description": "Upload or provide reference images to transform. Up to 10 images supported.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 10
+        },
+        "aspect_ratio": {
+          "enum": [
+            "auto",
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "21:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output image aspect ratio. Use 'auto' to follow the reference image.",
+          "default": "auto"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K",
+            "4K"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output image resolution.",
+          "default": "1K"
+        },
+        "num_images": {
+          "type": "int",
+          "title": "Number of Images",
+          "name": "num_images",
+          "description": "How many images to generate per request.",
+          "default": 1,
+          "minValue": 1,
+          "maxValue": 9,
+          "step": 1
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "nano-banana-2-lite-edit",
+      "name": "Nano Banana 2 Lite",
+      "endpoint": "nano-banana-2-lite-edit",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the desired image content.",
+          "examples": [
+            "Transform the cat into a cosmic creature made of stars, nebula clouds, and glowing galaxies while preserving its sitting pose and facial expression. Add orbiting miniature planets around its body."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/nano-banana-2-lite-edit-in.jpg"
+          ],
+          "description": "Reference image URLs to edit. Up to 14 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 14
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "The aspect ratio of the generated image.",
+          "default": "1:1"
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "bytedance-seedream-5.0-pro-edit",
+      "name": "Seedream 5.0 Pro",
+      "endpoint": "seedream-5.0-pro-edit",
+      "imageField": "images_list",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the desired modification",
+          "examples": [
+            "Keep the model's pose and the flowing shape of the liquid dress unchanged. Change the clothing material from silver metal to completely transparent clear water. Lighting changes from reflection to refraction."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://static.aiquickdraw.com/tools/example/1764851484363_ScV1s2aq.webp"
+          ],
+          "description": "One or more reference image URLs to edit.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 10
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "2:3",
+            "3:2"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output image. 16:9 and 9:16 do not support 2K resolution.",
+          "default": "1:1"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output image resolution.",
+          "default": "1K"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "qwen3-image-to-image",
+      "name": "Qwen 3 Image to Image",
+      "endpoint": "qwen3-image-to-image",
+      "family": "qwen3",
+      "imageField": "images_list",
+      "maxImages": 3,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the desired image edit."
+        },
+        "images_list": {
+          "type": "array",
+          "field": "images_list",
+          "title": "Input Images",
+          "name": "images_list",
+          "maxItems": 3,
+          "items": {"type": "string"}
+        },
+        "resolution": {
+          "enum": ["1k", "2k"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "1k"
+        },
+        "aspect_ratio": {
+          "enum": ["1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16", "21:9"],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "default": "16:9"
+        },
+        "output_format": {
+          "enum": ["png", "jpeg"],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "default": "png"
+        },
+        "prompt_extend": {
+          "type": "boolean",
+          "title": "Intelligent Prompt Extend",
+          "name": "prompt_extend",
+          "default": true
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt"
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "qwen3-pro-image-to-image",
+      "name": "Qwen 3 Pro Image to Image",
+      "endpoint": "qwen3-pro-image-to-image",
+      "family": "qwen3",
+      "imageField": "images_list",
+      "maxImages": 3,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the desired image edit."
+        },
+        "images_list": {
+          "type": "array",
+          "field": "images_list",
+          "title": "Input Images",
+          "name": "images_list",
+          "maxItems": 3,
+          "items": {"type": "string"}
+        },
+        "resolution": {
+          "enum": ["1k", "2k"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "1k"
+        },
+        "aspect_ratio": {
+          "enum": ["1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16", "21:9"],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "default": "16:9"
+        },
+        "output_format": {
+          "enum": ["png", "jpeg"],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "default": "png"
+        },
+        "prompt_extend": {
+          "type": "boolean",
+          "title": "Intelligent Prompt Extend",
+          "name": "prompt_extend",
+          "default": true
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt"
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "z-image-turbo-image-to-image-lora",
+      "name": "Z-Image Turbo Image to Image LoRA",
+      "endpoint": "z-image-turbo-image-to-image-lora",
+      "imageField": "image_url",
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "The positive prompt for the generation.",
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Reference Image URL",
+          "name": "image_url",
+          "field": "image",
+          "description": "Reference image URL to guide generation style or composition."
+        },
+        "loras": {
+          "type": "array",
+          "title": "LoRAs",
+          "name": "loras",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "title": "LoRA Path / Model ID",
+                "name": "path",
+                "description": "Civitai model ID (e.g. civitai:1642876@1864626) or HuggingFace URL/path."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1,
+                "description": "Weight / strength scale of the LoRA."
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "21:9",
+            "9:21"
+          ],
+          "default": "1:1",
+          "description": "Output aspect ratio, automatically mapped to pixel dimensions."
+        },
+        "strength": {
+          "type": "number",
+          "title": "Strength",
+          "name": "strength",
+          "default": 0.6,
+          "minValue": 0.0,
+          "maxValue": 1.0,
+          "step": 0.01,
+          "description": "Controls the strength of the transformation for reference image."
+        },
+        "output_format": {
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "enum": [
+            "jpeg",
+            "png",
+            "webp"
+          ],
+          "default": "jpeg",
+          "description": "Format of the generated image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "qwen-image-edit-2511-lora",
+      "name": "Qwen Image Edit 2511 LoRA",
+      "endpoint": "qwen-image-edit-2511-lora",
+      "imageField": "images_list",
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ],
+          "description": "Text prompt describing the image edits.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/qwen-image-edit-2511-in.jpg"
+          ],
+          "description": "The images to edit (maximum 3 reference images).",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "default": "1:1",
+          "examples": [
+            "1:1"
+          ],
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio of generated image."
+        },
+        "loras": {
+          "examples": [
+            {
+              "path": "https://huggingface.co/example/lora/resolve/main/lora.safetensors",
+              "scale": 1
+            }
+          ],
+          "title": "LoRAs",
+          "name": "loras",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "format": "url",
+                "title": "Path",
+                "name": "path",
+                "description": "URL or path to the LoRA weights."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "description": "Weight multiplier scale.",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        },
+        "output_format": {
+          "default": "jpeg",
+          "examples": [
+            "jpeg"
+          ],
+          "enum": [
+            "jpeg",
+            "png",
+            "webp"
+          ],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "description": "Format of the output image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "qwen-image-edit-lora",
+      "name": "Qwen Image Edit LoRA",
+      "endpoint": "qwen-image-edit-lora",
+      "imageField": "image_url",
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "default": "A cinematic ocean wave at sunrise, highly detailed",
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the image edits."
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/902675646946/c0951838-8bc5-4598-8e8e-941df16446fa.jpg"
+          ],
+          "description": "URL of the input image.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "aspect_ratio": {
+          "default": "1:1",
+          "examples": [
+            "1:1"
+          ],
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio of generated image."
+        },
+        "loras": {
+          "examples": [
+            [
+              {
+                "path": "https://huggingface.co/example/lora/resolve/main/lora.safetensors",
+                "scale": 1
+              }
+            ]
+          ],
+          "title": "LoRAs",
+          "name": "loras",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "format": "url",
+                "title": "Path",
+                "name": "path",
+                "description": "URL or path to the LoRA weights."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "description": "Weight multiplier scale.",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        },
+        "output_format": {
+          "default": "jpeg",
+          "examples": [
+            "jpeg"
+          ],
+          "enum": [
+            "jpeg",
+            "png",
+            "webp"
+          ],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "description": "Format of the output image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "face-expression-change",
+      "name": "Face Expression Change",
+      "endpoint": "face-expression-change",
+      "imageField": "images_list",
+      "inputs": {
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/qwen-image-edit-plus-lora-in.jpg"
+          ],
+          "description": "Upload or provide image urls.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "default": "1:1",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio of generated image."
+        },
+        "rotate_right_left": {
+          "title": "Rotate Right-Left (degrees\u00b0)",
+          "name": "rotate_right_left",
+          "type": "int",
+          "description": "Rotate camera left (positive) or right (negative) in degrees. Positive values rotate left, negative values rotate right.",
+          "default": 0,
+          "minValue": -90,
+          "maxValue": 90,
+          "step": 1
+        },
+        "move_forward": {
+          "title": "Move Forward \u2192 Close-Up",
+          "name": "move_forward",
+          "type": "int",
+          "description": "Move camera forward (0=no movement, 10=close-up)",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 10,
+          "step": 0.1
+        },
+        "vertical_angle": {
+          "title": "Vertical Angle (Bird \u2b04 Worm)",
+          "name": "vertical_angle",
+          "type": "int",
+          "description": "Adjust vertical camera angle (-1=bird's eye view/looking down, 0=neutral, 1=worm's-eye view/looking up)",
+          "default": 0,
+          "minValue": -1,
+          "maxValue": 1,
+          "step": 0.1
+        },
+        "wide_angle_lens": {
+          "type": "boolean",
+          "title": "Wide-Angle Lens",
+          "name": "wide_angle_lens",
+          "description": "Enable wide-angle lens effect",
+          "default": false
+        },
+        "output_format": {
+          "default": "jpeg",
+          "examples": [
+            "jpeg"
+          ],
+          "enum": [
+            "jpeg",
+            "png",
+            "webp"
+          ],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "description": "Format of the output image."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "muse-image-edit",
+      "name": "Muse Image Edit",
+      "endpoint": "muse-image-edit",
+      "imageField": "images_list",
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Combine these into one scene, matching the lighting and color grade of the first image."
+          ],
+          "description": "Text instruction describing the desired edit or transformation.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Reference images to edit or combine. Supports up to 10 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 10
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Output layout dimensions. Leave empty to use the source image's dimensions."
+        },
+        "output_format": {
+          "enum": [
+            "webp",
+            "png",
+            "jpeg"
+          ],
+          "title": "Output Format",
+          "name": "output_format",
+          "type": "string",
+          "description": "Image file format.",
+          "default": "webp"
+        }
+      },
+      "provider": "meta",
+      "provider_name": "Meta"
+    },
+  {
+      "id": "gemini-omni-character",
+      "name": "Gemini Omni Character",
+      "endpoint": "gemini-omni-character",
+      "family": "gemini-omni",
+      "imageField": "images_list",
+      "hasPrompt": false,
+      "inputs": {
+        "descriptions": {
+          "type": "string",
+          "title": "Character Description",
+          "name": "descriptions",
+          "description": "Describe the character's appearance, identity, style, and personality.",
+          "examples": [
+            "A young woman with short silver hair, wearing a dark trench coat, confident and composed demeanor."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Provide exactly 1 reference image of the character. Maximum 20 MB. Must be a publicly accessible URL.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "character_name": {
+          "type": "string",
+          "title": "Character Name",
+          "name": "character_name",
+          "description": "Optional display name for the character.",
+          "examples": [
+            "Aria"
+          ]
+        },
+        "audio_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Voice Profile IDs",
+          "name": "audio_ids",
+          "description": "Optional list of voice profile IDs from Gemini Omni Audio to associate with this character.",
+          "examples": [
+            "a8f1c2d3e4f5b6a7"
+          ]
+        }
+      },
+      "provider": "google",
+      "provider_name": "KIE_AI",
+      "description": "Generate a reusable character from a single reference image and a text description. Optionally attach a voice profile created with Gemini Omni Audio to give the character a consistent voice in future video generations.",
+      "example_url": "https://cdn.muapi.ai/assets/1df8a9c3-7c30-4fe7-bf2b-d89f2a5e40f1.avif",
+      "image_url": "https://cdn.muapi.ai/assets/1df8a9c3-7c30-4fe7-bf2b-d89f2a5e40f1.avif"
+    },
+  {
+      "id": "bytedance-seedream-5.0-pro-layer",
+      "name": "Bytedance Seedream 5.0 Pro Layer",
+      "endpoint": "bytedance-seedream-5.0-pro-layer",
+      "family": "seedream-5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description of layer decomposition rules or elements to extract.",
+          "examples": [
+            "Split the content in the image into 4 layers by combining text and subject elements."
+          ]
+        },
+        "image_url": {
+          "examples": [
+            "https://static.aiquickdraw.com/tools/example/1786019968051_cKRYLHHu.png"
+          ],
+          "description": "Upload or provide source image URL to decompose into separate layer components.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "resolution": {
+          "enum": [
+            "auto",
+            "1K",
+            "1.5K",
+            "2K"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Target image resolution level.",
+          "default": "auto"
+        },
+        "output_format": {
+          "enum": [
+            "png",
+            "jpeg"
+          ],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "description": "File format of generated image layers.",
+          "default": "png"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "KIE_AI",
+      "description": "Decompose complex images into clean, editable multi-layer assets with ByteDance Seedream 5 Pro Layer Decomposition.",
+      "example_url": "https://cdn.muapi.ai/assets/9c8cc044-ed81-4990-a437-e15405ab130c.avif",
+      "image_url": "https://cdn.muapi.ai/assets/9c8cc044-ed81-4990-a437-e15405ab130c.avif"
+    },
+  {
+      "id": "grok-imagine-image-2-edit",
+      "name": "Grok Imagine Image 2 Edit",
+      "endpoint": "grok-imagine-image-2-edit",
+      "family": "grok",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the subject's jacket to a teal windbreaker, keep everything else in the scene unchanged."
+          ],
+          "description": "Text prompt describing the desired edit. Max 5000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "request_id": {
+          "examples": [
+            "189245"
+          ],
+          "description": "The request_id returned by a prior grok-imagine-image-2 generation to edit.",
+          "type": "string",
+          "title": "Source Request ID",
+          "name": "request_id"
+        },
+        "mask_indexs": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Mask Segment Indexes",
+          "name": "mask_indexs",
+          "description": "Optional index numbers of segments from the source image to restrict the edit to.",
+          "maxItems": 20
+        }
+      },
+      "provider": "grok",
+      "provider_name": "KIE_AI",
+      "description": "Grok Imagine Image 2.0 Edit applies a targeted, natural-language edit to a prior Grok Imagine Image 2.0 generation, changing only the described region while preserving the rest of the composition, style, and subject.",
+      "example_url": "https://cdn.muapi.ai/assets/8fed6c7f-cd7c-488a-94fe-2dad94efa448.avif",
+      "image_url": "https://cdn.muapi.ai/assets/8fed6c7f-cd7c-488a-94fe-2dad94efa448.avif"
+    },
+  {
+      "id": "gpt-image-2.5-flare-image-to-image",
+      "name": "GPT Image 2.5 Flare Image to Image",
+      "endpoint": "gpt-image-2.5-flare-image-to-image",
+      "family": "gpt-image-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change only the beverage bottle in the center to a matte black can labeled \"PEAK\", keeping the exact same lighting, shadows, reflective surface, background props, and camera angle. Do not change anything else in the scene."
+          ],
+          "description": "Text instructions describing the desired transformation. Maximum 20,000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/gpt-image-2-image-to-image-in.jpg"
+          ],
+          "description": "Upload or provide input images to transform. Up to 16 images supported.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 16
+        },
+        "aspect_ratio": {
+          "enum": [
+            "auto",
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "27:16",
+            "16:27",
+            "9:8",
+            "8:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output image aspect ratio. Note: images with aspect ratio 'auto' (or unspecified) will only be converted to 1K; 1:1 cannot be converted to 4K — otherwise the task will fail to create.",
+          "default": "auto"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K",
+            "4K"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Image resolution. Note: images with a 1:1 aspect ratio cannot be converted to 4K. Images with aspect ratio 'auto' (or unspecified) will only be converted to 1K; otherwise the task will fail to create.",
+          "default": "2K"
+        },
+        "quality": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "type": "string",
+          "title": "Quality",
+          "name": "quality",
+          "description": "Output quality tier. \"high\" is rendered by the primary provider; \"low\", \"medium\", \"xhigh\", and \"max\" render on an alternate provider with a wider quality range.",
+          "default": "high"
+        }
+      },
+      "provider": "openai",
+      "provider_name": "KIE_AI",
+      "description": "Transform and edit existing images using GPT-Image-2.5 Flare, OpenAI's default GPT Image 2.5 tier. Precision editing changes only what you ask for while preserving the rest of the scene, and multi-turn consistency keeps earlier edits intact across a chain of changes.",
+      "example_url": "https://cdn.muapi.ai/assets/dc2079a3-b9d9-4654-86d6-81974fa9d0f1.avif",
+      "image_url": "https://cdn.muapi.ai/assets/dc2079a3-b9d9-4654-86d6-81974fa9d0f1.avif"
+    },
+  {
+      "id": "gpt-image-2.5-sunburst-image-to-image",
+      "name": "GPT Image 2.5 Sunburst Image to Image",
+      "endpoint": "gpt-image-2.5-sunburst-image-to-image",
+      "family": "gpt-image-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change only the beverage bottle in the center to a matte black can labeled \"PEAK\", keeping the exact same lighting, shadows, reflective surface, background props, and camera angle. Do not change anything else in the scene."
+          ],
+          "description": "Text instructions describing the desired transformation. Maximum 20,000 characters.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/gpt-image-2-image-to-image-in.jpg"
+          ],
+          "description": "Upload or provide input images to transform. Up to 16 images supported.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 16
+        },
+        "aspect_ratio": {
+          "enum": [
+            "auto",
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "27:16",
+            "16:27",
+            "9:8",
+            "8:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output image aspect ratio. Note: images with aspect ratio 'auto' (or unspecified) will only be converted to 1K; 1:1 cannot be converted to 4K — otherwise the task will fail to create.",
+          "default": "auto"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K",
+            "4K"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Image resolution. Note: images with a 1:1 aspect ratio cannot be converted to 4K. Images with aspect ratio 'auto' (or unspecified) will only be converted to 1K; otherwise the task will fail to create.",
+          "default": "2K"
+        },
+        "quality": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "type": "string",
+          "title": "Quality",
+          "name": "quality",
+          "description": "Output quality tier. \"high\" is rendered by the primary provider; \"low\", \"medium\", \"xhigh\", and \"max\" render on an alternate provider with a wider quality range.",
+          "default": "high"
+        }
+      },
+      "provider": "openai",
+      "provider_name": "KIE_AI",
+      "description": "Transform and edit existing images using GPT-Image-2.5 Sunburst, OpenAI's slower, higher-precision GPT Image 2.5 tier, tuned for maximum edit precision on a single critical edit.",
+      "example_url": "https://cdn.muapi.ai/assets/17776e8a-5679-4c77-9db6-f24025642bdf.avif",
+      "image_url": "https://cdn.muapi.ai/assets/17776e8a-5679-4c77-9db6-f24025642bdf.avif"
+    },
+  {
+      "id": "topaz-upscale-image-creative",
+      "name": "Topaz Upscale Image Creative",
+      "endpoint": "topaz-upscale-image-creative",
+      "family": "topaz-2-image-creative",
+      "imageField": "image_url",
+      "hasPrompt": false,
+      "inputs": {
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/imagemodels/topaz-upscaler-in.jpg"
+          ],
+          "description": "Input image to upscale.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "model": {
+          "description": "Topaz creative upscale model variant.",
+          "type": "string",
+          "title": "Model",
+          "name": "model",
+          "enum": [
+            "Bloom 2",
+            "Bloom",
+            "Bloom Realism"
+          ],
+          "default": "Bloom 2"
+        },
+        "upscale_factor": {
+          "description": "Factor to upscale the image by.",
+          "type": "number",
+          "title": "Upscale Factor",
+          "name": "upscale_factor",
+          "default": 2
+        },
+        "autoprompt": {
+          "description": "Automatically generate a creative-detail prompt.",
+          "type": "boolean",
+          "title": "Autoprompt",
+          "name": "autoprompt"
+        },
+        "creativity": {
+          "description": "Creative detail strength (1-9).",
+          "type": "int",
+          "title": "Creativity",
+          "name": "creativity",
+          "minValue": 1,
+          "maxValue": 9,
+          "step": 1
+        },
+        "color_preservation": {
+          "description": "Preserve original color palette.",
+          "type": "boolean",
+          "title": "Color Preservation",
+          "name": "color_preservation"
+        },
+        "crop_to_fill": {
+          "description": "Crop the output to exactly fill the target aspect ratio.",
+          "type": "boolean",
+          "title": "Crop To Fill",
+          "name": "crop_to_fill",
+          "default": false
+        },
+        "output_format": {
+          "description": "Output image file format.",
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "enum": [
+            "jpeg",
+            "png"
+          ],
+          "default": "jpeg"
+        }
+      },
+      "provider": "topaz",
+      "provider_name": "FAL_AI",
+      "description": "Upscale an image with Topaz's creative/generative-detail model, adding plausible new fine detail while enlarging up to 4x.",
+      "example_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/imagemodels/topaz-upscaler.jpg",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/imagemodels/topaz-upscaler.jpg"
+    },
+  {
+      "id": "topaz-upscale-image-generative",
+      "name": "Topaz Upscale Image Generative",
+      "endpoint": "topaz-upscale-image-generative",
+      "family": "topaz-2-image-generative",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": false,
+      "inputs": {
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/imagemodels/topaz-upscaler-in.jpg"
+          ],
+          "description": "Input image to upscale.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "model": {
+          "description": "Topaz generative upscale model variant.",
+          "type": "string",
+          "title": "Model",
+          "name": "model",
+          "enum": [
+            "Wonder 3.5",
+            "Wonder 3",
+            "Wonder 2",
+            "Wonder",
+            "Recover 3",
+            "Standard MAX",
+            "Redefine",
+            "Recovery V2",
+            "Recovery"
+          ],
+          "default": "Wonder 3"
+        },
+        "upscale_factor": {
+          "description": "Factor to upscale the image by.",
+          "type": "number",
+          "title": "Upscale Factor",
+          "name": "upscale_factor",
+          "default": 2
+        },
+        "crop_to_fill": {
+          "description": "Crop the output to exactly fill the target aspect ratio.",
+          "type": "boolean",
+          "title": "Crop To Fill",
+          "name": "crop_to_fill",
+          "default": false
+        },
+        "output_format": {
+          "description": "Output image file format.",
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "enum": [
+            "jpeg",
+            "png"
+          ],
+          "default": "jpeg"
+        },
+        "subject_detection": {
+          "description": "Which region of the image to prioritize enhancement on.",
+          "type": "string",
+          "title": "Subject Detection",
+          "name": "subject_detection",
+          "enum": [
+            "All",
+            "Foreground",
+            "Background"
+          ],
+          "default": "All"
+        },
+        "face_enhancement": {
+          "description": "Enable dedicated face enhancement.",
+          "type": "boolean",
+          "title": "Face Enhancement",
+          "name": "face_enhancement",
+          "default": true
+        },
+        "face_enhancement_strength": {
+          "description": "Strength of face enhancement.",
+          "type": "number",
+          "title": "Face Enhancement Strength",
+          "name": "face_enhancement_strength",
+          "default": 0.8
+        },
+        "face_enhancement_creativity": {
+          "description": "Creativity applied to face enhancement.",
+          "type": "number",
+          "title": "Face Enhancement Creativity",
+          "name": "face_enhancement_creativity",
+          "default": 0
+        },
+        "enhancement_strength": {
+          "description": "Overall enhancement strength tier.",
+          "type": "string",
+          "title": "Enhancement Strength",
+          "name": "enhancement_strength",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "creativity": {
+          "description": "Creative detail strength (1-6).",
+          "type": "int",
+          "title": "Creativity",
+          "name": "creativity",
+          "minValue": 1,
+          "maxValue": 6,
+          "step": 1
+        },
+        "texture": {
+          "description": "Texture detail strength (1-5).",
+          "type": "int",
+          "title": "Texture",
+          "name": "texture",
+          "minValue": 1,
+          "maxValue": 5,
+          "step": 1
+        },
+        "prompt": {
+          "description": "Optional text prompt to guide generative detail.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "autoprompt": {
+          "description": "Automatically generate a guiding prompt.",
+          "type": "boolean",
+          "title": "Autoprompt",
+          "name": "autoprompt"
+        },
+        "sharpen": {
+          "description": "Sharpening amount (0-1).",
+          "type": "number",
+          "title": "Sharpen",
+          "name": "sharpen"
+        },
+        "denoise": {
+          "description": "Denoising amount (0-1).",
+          "type": "number",
+          "title": "Denoise",
+          "name": "denoise"
+        },
+        "detail": {
+          "description": "Fine-detail amount (0-1).",
+          "type": "number",
+          "title": "Detail",
+          "name": "detail"
+        }
+      },
+      "provider": "topaz",
+      "provider_name": "FAL_AI",
+      "description": "Upscale an image with Topaz's Wonder/Recover generative models, reconstructing realistic fine detail, textures, and faces at high resolution.",
+      "example_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/imagemodels/topaz-upscaler.jpg",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/imagemodels/topaz-upscaler.jpg"
+    },
+  {
+      "id": "topaz-upscale-image-precision",
+      "name": "Topaz Upscale Image Precision",
+      "endpoint": "topaz-upscale-image-precision",
+      "family": "topaz-2-image-precision",
+      "imageField": "image_url",
+      "hasPrompt": false,
+      "inputs": {
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/imagemodels/topaz-upscaler-in.jpg"
+          ],
+          "description": "Input image to upscale.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "model": {
+          "description": "Topaz precision upscale model variant.",
+          "type": "string",
+          "title": "Model",
+          "name": "model",
+          "enum": [
+            "Standard V2",
+            "High Fidelity V3",
+            "High Fidelity V2",
+            "Low Resolution V2",
+            "CGI",
+            "Text Refine",
+            "Faces"
+          ],
+          "default": "Standard V2"
+        },
+        "upscale_factor": {
+          "description": "Factor to upscale the image by.",
+          "type": "number",
+          "title": "Upscale Factor",
+          "name": "upscale_factor",
+          "default": 2
+        },
+        "output_format": {
+          "description": "Output image file format.",
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "enum": [
+            "jpeg",
+            "png"
+          ],
+          "default": "jpeg"
+        },
+        "crop_to_fill": {
+          "description": "Crop the output to exactly fill the target aspect ratio.",
+          "type": "boolean",
+          "title": "Crop To Fill",
+          "name": "crop_to_fill",
+          "default": false
+        },
+        "subject_detection": {
+          "description": "Which region of the image to prioritize enhancement on.",
+          "type": "string",
+          "title": "Subject Detection",
+          "name": "subject_detection",
+          "enum": [
+            "All",
+            "Foreground",
+            "Background"
+          ],
+          "default": "All"
+        },
+        "face_enhancement": {
+          "description": "Enable dedicated face enhancement.",
+          "type": "boolean",
+          "title": "Face Enhancement",
+          "name": "face_enhancement",
+          "default": true
+        },
+        "face_enhancement_creativity": {
+          "description": "Creativity applied to face enhancement.",
+          "type": "number",
+          "title": "Face Enhancement Creativity",
+          "name": "face_enhancement_creativity",
+          "default": 0
+        },
+        "face_enhancement_strength": {
+          "description": "Strength of face enhancement.",
+          "type": "number",
+          "title": "Face Enhancement Strength",
+          "name": "face_enhancement_strength",
+          "default": 0.8
+        },
+        "sharpen": {
+          "description": "Sharpening amount (0-1).",
+          "type": "number",
+          "title": "Sharpen",
+          "name": "sharpen"
+        },
+        "denoise": {
+          "description": "Denoising amount (0-1).",
+          "type": "number",
+          "title": "Denoise",
+          "name": "denoise"
+        },
+        "fix_compression": {
+          "description": "Reduce compression artifacts (0-1).",
+          "type": "number",
+          "title": "Fix Compression",
+          "name": "fix_compression"
+        },
+        "strength": {
+          "description": "Overall enhancement strength (0.01-1).",
+          "type": "number",
+          "title": "Strength",
+          "name": "strength"
+        }
+      },
+      "provider": "topaz",
+      "provider_name": "FAL_AI",
+      "description": "Upscale an image faithfully with Topaz's precision models (Standard/High Fidelity/CGI/Text Refine/Faces), preserving the original look while sharpening fine detail.",
+      "example_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/imagemodels/topaz-upscaler.jpg",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/imagemodels/topaz-upscaler.jpg"
+    },
+  {
+      "id": "qwen2-1-image-to-image",
+      "name": "Qwen2 1 Image to Image",
+      "endpoint": "qwen2-1-image-to-image",
+      "family": "qwen2-1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "The prompt describing the result you want. When mask_url is supplied, describe what should be generated inside the white area of the mask.",
+          "examples": [
+            "Replace the backpack in the first image with the colour scheme from the second image, and leave everything else unchanged"
+          ]
+        },
+        "images_list": {
+          "description": "Reference images, given as an array of 1 to 10 URLs. Order matters when the prompt refers to 'the first image', 'the second image'.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Input Images",
+          "name": "images_list",
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "maxItems": 10
+        },
+        "mask_url": {
+          "type": "string",
+          "title": "Mask URL",
+          "name": "mask_url",
+          "description": "Inpainting mask (white = area to change, black = kept unchanged) that switches the request into local-edit mode. Must be used with exactly one reference image."
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output aspect ratio. Defaults to the first reference image's ratio. Ignored in local-edit mode.",
+          "enum": [
+            "auto",
+            "1:1",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "16:9",
+            "9:16",
+            "21:9",
+            "9:21"
+          ],
+          "default": "auto"
+        },
+        "resolution": {
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution tier. 1K is the faster option; 2K produces four times the pixels and takes longer.",
+          "enum": [
+            "1K",
+            "2K"
+          ],
+          "default": "1K"
+        },
+        "background": {
+          "type": "string",
+          "title": "Background",
+          "name": "background",
+          "description": "Background type. Transparent outputs a PNG or WebP with a real alpha channel and cannot be used with JPEG.",
+          "enum": [
+            "opaque",
+            "transparent"
+          ],
+          "default": "opaque"
+        },
+        "output_format": {
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "description": "Output image format. jpeg has no alpha channel and cannot be combined with a transparent background.",
+          "enum": [
+            "png",
+            "webp",
+            "jpeg"
+          ],
+          "default": "png"
+        },
+        "enhance_prompt": {
+          "type": "boolean",
+          "title": "Enhance Prompt",
+          "name": "enhance_prompt",
+          "description": "Rewrites the prompt into a fuller scene description before generating, which noticeably improves quality. Ignored in local-edit mode.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "The random seed. Omit it to generate with a random seed."
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KIE_AI",
+      "description": "Qwen 2.1 Image to Image edits and recombines up to 10 reference images from a text prompt, with an optional inpainting mask for precise local edits.",
+      "example_url": "https://cdn.muapi.ai/assets/image_download_7.avif",
+      "image_url": "https://cdn.muapi.ai/assets/image_download_7.avif"
+    },
+  {
+      "id": "seedream-5.0-flash-edit",
+      "name": "Seedream 5.0 Flash Edit",
+      "endpoint": "seedream-5.0-flash-edit",
+      "family": "seedream-5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the desired modification",
+          "examples": [
+            "Keep the model's pose and the flowing shape of the liquid dress unchanged. Change the clothing material from silver metal to completely transparent clear water. Lighting changes from reflection to refraction."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://static.aiquickdraw.com/tools/example/1764851484363_ScV1s2aq.webp"
+          ],
+          "description": "Upload or provide up to 10 reference images (JPEG, PNG, WebP; max 30MB each).",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 10
+        },
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "2:3",
+            "3:2",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output image.",
+          "default": "1:1"
+        },
+        "resolution": {
+          "enum": [
+            "1K",
+            "2K"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output resolution: 1K (basic) or 2K (high).",
+          "default": "1K"
+        },
+        "output_format": {
+          "enum": [
+            "png",
+            "jpeg"
+          ],
+          "title": "Output Format",
+          "name": "output_format",
+          "type": "string",
+          "description": "Format of the output image.",
+          "default": "png"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "KIE_AI",
+      "description": "Seedream 5.0 Flash Edit is ByteDance's fast, low-cost image-to-image tier, editing or combining up to 10 reference images from a text instruction at 1K or 2K.",
+      "example_url": "https://cdn.muapi.ai/assets/fb9474e2-d72d-4179-b769-5c516622e245.avif",
+      "image_url": "https://cdn.muapi.ai/assets/fb9474e2-d72d-4179-b769-5c516622e245.avif"
+    },
+  {
+      "id": "seedream-5.0-flash-layerize",
+      "name": "Seedream 5.0 Flash Layerize",
+      "endpoint": "seedream-5.0-flash-layerize",
+      "family": "seedream-5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": false,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional. Describe which elements to separate; supports <bbox>x1 y1 x2 y2</bbox> (0-1000 normalized). Leave empty to auto-detect main elements.",
+          "examples": [
+            "Separate the title text <bbox>179 58 809 197</bbox> and the parrot <bbox>330 274 641 991</bbox> into independent layers"
+          ]
+        },
+        "image_url": {
+          "examples": [
+            "https://static.aiquickdraw.com/tools/example/1786019968051_cKRYLHHu.png"
+          ],
+          "description": "Source image to decompose (exactly 1; PNG, JPEG, WebP, BMP, TIFF, GIF; max 30MB).",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "resolution": {
+          "enum": [
+            "auto",
+            "1K",
+            "1.5K",
+            "2K"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Target image resolution level.",
+          "default": "auto"
+        },
+        "output_format": {
+          "enum": [
+            "png",
+            "jpeg"
+          ],
+          "type": "string",
+          "title": "Output Format",
+          "name": "output_format",
+          "description": "Format of the base image only; separated layers are always PNG.",
+          "default": "jpeg"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "KIE_AI",
+      "description": "Decompose a composite image into a base image plus clean, separate layer assets with Seedream 5.0 Flash Layer Decomposition. Optionally target elements with prompts or <bbox> regions.",
+      "example_url": "https://cdn.muapi.ai/assets/9c8cc044-ed81-4990-a437-e15405ab130c.avif",
+      "image_url": "https://cdn.muapi.ai/assets/9c8cc044-ed81-4990-a437-e15405ab130c.avif"
+    }];;
 
 // Auto-generated from schema_data.json — Image to Video models
 export const i2vModels = [
@@ -8498,7 +17270,9517 @@ export const i2vModels = [
       "description": "Omni-reference image URL for character/style consistency."
     }
   }
-}];;
+},
+  {
+      "id": "veo3.1-lite-image-to-video",
+      "name": "Veo 3.1 Lite",
+      "endpoint": "veo3.1-lite-image-to-video",
+      "family": "veo3.1",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video."
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio of the output video.",
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "The duration of the generated video in seconds",
+          "enum": [
+            8
+          ],
+          "default": 8
+        },
+        "resolution": {
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "The resolution of the generated video.",
+          "enum": [
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "default": "1080p"
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "kling-v3.0-omni-standard-image-to-video",
+      "fixedParameters": { resolution: "720p" },
+      "name": "Kling v3.0 Omni Standard Image To Video",
+      "endpoint": "kling-v3.0-omni-standard-image-to-video",
+      "family": "kling-v3.0-omni",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "maxImages": 4,
+      "inputs": {
+        "images_list": KLING_OMNI_REFERENCE_INPUT,
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video.",
+          "examples": [
+            "During an intense basketball game, gravity suddenly breaks apart. Players begin running sideways across the arena walls while the court folds upward into impossible angles. The basketball floats briefly before being slammed through the hoop as the camera rotates dynamically with the shifting gravity."
+          ]
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio of the output video.",
+          "enum": [
+            "9:16",
+            "16:9",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds.",
+          "enum": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "default": 5
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "When enabled, generate native audio with the video (adds to cost).",
+          "default": false
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "kling-v3.0-omni-pro-image-to-video",
+      "fixedParameters": { resolution: "1080p" },
+      "name": "Kling v3.0 Omni Pro Image To Video",
+      "endpoint": "kling-v3.0-omni-pro-image-to-video",
+      "family": "kling-v3.0-omni",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "maxImages": 4,
+      "inputs": {
+        "images_list": KLING_OMNI_REFERENCE_INPUT,
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video.",
+          "examples": [
+            "A high-speed train races forward nonstop while the environment transforms every few seconds—from snowy mountains to neon cyberpunk city to volcanic wasteland. Sparks fly from the tracks as the camera stays tightly locked alongside the speeding train during each violent world transition."
+          ]
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio of the output video.",
+          "enum": [
+            "9:16",
+            "16:9",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds.",
+          "enum": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "default": 5
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "When enabled, generate native audio with the video (adds to cost).",
+          "default": false
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "kling-v3.0-omni-4k-image-to-video",
+      "fixedParameters": { resolution: "4K" },
+      "name": "Kling v3.0 Omni 4K Image To Video",
+      "endpoint": "kling-v3.0-omni-4k-image-to-video",
+      "family": "kling-v3.0-omni",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "maxImages": 4,
+      "inputs": {
+        "images_list": KLING_OMNI_REFERENCE_INPUT,
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video.",
+          "examples": [
+            "A cat in @image1 wakes up and walks towards the camera in slow motion."
+          ]
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio of the output video.",
+          "enum": [
+            "9:16",
+            "16:9",
+            "1:1"
+          ],
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds.",
+          "enum": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "default": 5
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "ltx-2.3-image-to-video",
+      "name": "LTX 2.3",
+      "endpoint": "ltx-2.3-image-to-video",
+      "family": "ltx2.3",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The snail accelerates unexpectedly, smashing through trees while the miniature city erupts into chaos. Flying cars zip around the shell trying to stabilize the city as neon signs flicker and sparks fly from collapsing towers."
+          ],
+          "description": "Text prompt describing the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/ltx-2.3-image-to-video.png"
+          ],
+          "description": "URL of the input image.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "seed": {
+          "title": "Seed",
+          "name": "seed",
+          "type": "int",
+          "description": "Random seed. -1 for random.",
+          "default": -1
+        }
+      },
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+  {
+      "id": "seedance-2-new-first-last",
+      "name": "Seedance 2 New First Last",
+      "endpoint": "seedance-2.0-new-first-last",
+      "family": "sd-v2.0",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the video content between frames.",
+          "examples": [
+            "A smooth cinematic transition between two scenes."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 image = first frame anchor; 2 images = first and last frame.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "type": "string",
+          "title": "Quality",
+          "name": "quality",
+          "description": "high = standard model; basic = fast model.",
+          "default": "basic"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds (4–15).",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-omni-reference",
+      "name": "Seedance 2 Omni Reference",
+      "endpoint": "seedance-2.0-omni-reference",
+      "family": "sd-v2.0",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "@image1 is the main character reference. A person walking on the beach at sunset, cinematic lighting"
+          ],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images, @video1…@video3 for videos, @audio1…@audio3 for audio. To use a character sheet, reference it with @character:<request_id> (from a completed Seedance 2 Character generation). To use a trained Omni Reference character, reference it with @omni-character:<character_id> where character_id is the value returned by Omni Reference Train Character (e.g. char_1775422630065_4vbana). Both methods can be combined in the same prompt. Multiple characters are supported. Example: '@omni-character:char_1775422630065_4vbana walking through a neon-lit city at night'."
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-omni-reference.png"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio clip URLs (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Output video aspect ratio."
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "title": "Quality",
+          "name": "quality",
+          "type": "string",
+          "default": "high",
+          "description": "Generation quality. 'high' uses the standard model ($0.30/sec output + $0.09/sec per input video second). 'basic' uses the fast model (~2x speed, $0.21/sec output + $0.063/sec per input video second). Video reference inputs incur an additional 30% surcharge based on their combined duration."
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds (4–15).",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "pixverse-v6-i2v",
+      "name": "Pixverse v6 I2V",
+      "endpoint": "pixverse-v6-i2v",
+      "family": "pixverse-v6",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video motion and content.",
+          "examples": [
+            "Cracks spread across the statue as it suddenly comes to life. Stone pieces fall off while glowing energy emerges from inside. The statue pulls itself free from the sand and takes a heavy step forward, shaking the ground as dust rises into the air."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/pixverse-v6-i2v.mp4"
+          ],
+          "description": "Upload or provide the input image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URL",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "540p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 1,
+          "maxValue": 15,
+          "step": 1
+        },
+        "thinking_type": {
+          "enum": [
+            "auto",
+            "enabled",
+            "disabled"
+          ],
+          "type": "string",
+          "title": "Prompt Optimization",
+          "name": "thinking_type",
+          "description": "Controls prompt enhancement. 'enabled' rewrites the prompt, 'disabled' uses it as-is, 'auto' lets the model decide.",
+          "default": "auto"
+        },
+        "generate_audio_switch": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio_switch",
+          "description": "Enable AI-generated audio for the video.",
+          "default": false
+        }
+      },
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+  {
+      "id": "pixverse-v6-transition",
+      "name": "PixVerse V6 Transition",
+      "endpoint": "pixverse-v6-transition",
+      "family": "pixverse-v6",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "endImageRequired": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "aspectRatioMode": "inherited",
+      "parameterNotice": "Start and end frames are required. Aspect ratio is determined by the input frames.",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the transition or video content.",
+          "examples": [
+            "Water suddenly bursts through the walls and windows, flooding the room violently. Furniture lifts and begins floating as currents swirl. Fish appear and swim through the space while light rays ripple through the water. The camera drifts with the flow."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Starting Image",
+          "name": "image_url",
+          "description": "Upload starting image.",
+          "field": "image",
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/pixverse-v6-transition.jpg"
+          ]
+        },
+        "last_image": {
+          "type": "string",
+          "title": "Ending Image",
+          "name": "last_image",
+          "description": "Upload ending image.",
+          "field": "image",
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/pixverse-v6-transition-1.jpg"
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16",
+            "2:3",
+            "3:2",
+            "21:9"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video orientation.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "540p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Video output quality.",
+          "default": "720p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Total length of the video.",
+          "default": 5,
+          "minValue": 1,
+          "maxValue": 15,
+          "step": 1
+        },
+        "thinking_type": {
+          "type": "boolean",
+          "title": "Enhanced Thinking",
+          "name": "thinking_type",
+          "description": "Enable enhanced thinking for more complex transitions.",
+          "default": false
+        },
+        "style": {
+          "enum": [
+            "anime",
+            "3d_animation",
+            "clay",
+            "comic",
+            "cyberpunk"
+          ],
+          "type": "string",
+          "title": "Style",
+          "name": "style",
+          "description": "Visual style of the generation."
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "What to avoid in the generation."
+        },
+        "generate_audio_switch": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio_switch",
+          "description": "Whether to generate background audio for the video.",
+          "default": false
+        }
+      },
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+  {
+      "id": "wan2.7-image-to-video",
+      "name": "Wan2.7",
+      "endpoint": "wan2.7-image-to-video",
+      "family": "wan2.7",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "aspectRatioMode": "inherited",
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description"
+        },
+        "image_url": {
+          "examples": [],
+          "type": "string",
+          "title": "Image Url",
+          "name": "image_url",
+          "description": "First frame image",
+          "field": "image"
+        },
+        "last_image": {
+          "examples": [],
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "description": "Last frame image (optional)",
+          "field": "image"
+        },
+        "audio_url": {
+          "examples": [],
+          "type": "string",
+          "title": "Audio URL",
+          "name": "audio_url",
+          "description": "Audio file to guide generation",
+          "field": "audio"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "720p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video duration in seconds (2-15).",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 15,
+          "step": 1
+        },
+        "negative_prompt": {
+          "examples": [],
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "What not to generate"
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan2.7-reference-to-video",
+      "name": "Wan 2.7 Reference",
+      "endpoint": "wan2.7-reference-to-video",
+      "family": "wan2.7",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired motion and scene.",
+          "examples": [
+            "A person walking in the rain..."
+          ]
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Array of reference image URLs (jpg/png). Max 4 items.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 4
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Array of reference video URLs (mp4/mov). Max 4 items.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 4
+        },
+        "image_url": {
+          "examples": [],
+          "type": "string",
+          "title": "Image Url",
+          "name": "image_url",
+          "description": "URL to a single reference image.",
+          "field": "image"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "The aspect ratio of the generated video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution",
+          "default": "720p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video duration in seconds (2-10).",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 10
+        },
+        "negative_prompt": {
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "What not to generate",
+          "examples": [
+            "blurry, low quality, distorted"
+          ]
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "seedance-2-i2v-480p",
+      "name": "Seedance 2 I2V 480P",
+      "endpoint": "seedance-2.0-i2v-480p",
+      "family": "sd-v2.0",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The lightbulb suddenly rockets across the room like a missile, smashing through curtains while water spins violently inside. The fish darts through swirling currents as the bulb ricochets off walls and finally bursts into floating droplets."
+          ],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video animation. Reference uploaded images using @image1, @image2, … @imageN (1-based, matching images_list order). To use a fictional character, reference it with @character:<id> (request_id from a completed Seedance 2 Character generation) — characters are automatically appended to images_list. Multiple characters are supported."
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-i2v.jpg"
+          ],
+          "description": "Upload up to 9 image URLs. Reference them in the prompt using @image1, @image2, … @image9.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "title": "Quality",
+          "name": "quality",
+          "type": "string",
+          "description": "high=$0.15/sec, basic=$0.12/sec",
+          "default": "basic"
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-omni-reference-480p",
+      "name": "Seedance 2 Omni Reference 480P",
+      "endpoint": "seedance-2.0-omni-reference-480p",
+      "family": "sd-v2.0",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "@image1 is the main character reference. A person walking on the beach at sunset, cinematic lighting"
+          ],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images, @video1…@video3 for videos, @audio1…@audio3 for audio. To use a fictional character, reference it with @character:<id> (request_id from a completed Seedance 2 Character generation) — characters are automatically appended to images_list. Multiple characters are supported."
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-omni-reference.png"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio clip URLs (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Output video aspect ratio."
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "title": "Quality",
+          "name": "quality",
+          "type": "string",
+          "default": "basic",
+          "description": "Generation quality. 'high' uses the standard model ($0.24/sec output + $0.072/sec per input video second). 'basic' uses the fast model ($0.18/sec output + $0.054/sec per input video second). Video reference inputs incur an additional 30% surcharge based on their combined duration."
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds (8–15).",
+          "default": 8,
+          "minValue": 8,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-image-to-video",
+      "name": "Seedance 2",
+      "endpoint": "seedance-2-image-to-video",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the video animation. Use @character:<id> to reference a completed Seedance 2 Character generation.",
+          "examples": [
+            "The person walks forward with a smile."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 image uses it as the start frame (first_last_frames mode). 2–9 images switches to omni_reference mode — reference them in your prompt with @image1, @image2, etc.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-image-to-video-fast",
+      "name": "Seedance 2 Image to Video Fast",
+      "endpoint": "seedance-2-image-to-video-fast",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the video animation. Use @character:<id> to reference a completed Seedance 2 Character generation.",
+          "examples": [
+            "The person walks forward with a smile."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 image uses it as the start frame (first_last_frames mode). 2–9 images switches to omni_reference mode — reference them in your prompt with @image1, @image2, etc.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-first-last-frame",
+      "name": "Seedance 2 First Last Frame",
+      "endpoint": "seedance-2-first-last-frame",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the transition between frames.",
+          "examples": [
+            "Two people having a street interview, the interviewer holds a microphone."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 image = first frame only; 2 images = first and last frame. Use 'adaptive' aspect ratio to match the reference image geometry.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio. 'adaptive' matches the reference image (recommended); concrete ratios may crop or pad.",
+          "default": "adaptive"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-first-last-frame-fast",
+      "name": "Seedance 2 First Last Frame Fast",
+      "endpoint": "seedance-2-first-last-frame-fast",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "lastImageField": "images_list",
+      "endImageRequired": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the transition between frames.",
+          "examples": [
+            "Two people having a street interview, the interviewer holds a microphone."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 image = first frame only; 2 images = first and last frame. Use 'adaptive' aspect ratio to match the reference image geometry.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio. 'adaptive' matches the reference image (recommended); concrete ratios may crop or pad.",
+          "default": "adaptive"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-omni-reference-no-video",
+      "name": "Seedance 2 Omni Reference No Video",
+      "endpoint": "seedance-2-omni-reference-no-video",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images and @audio1…@audio3 for audio. To use a character sheet, reference it with @character:<request_id> (from a completed Seedance 2 Character generation). To use a trained Omni Reference character, reference it with @omni-character:<character_id> where character_id is the value returned by Omni Reference Train Character (e.g. char_1775422630065_4vbana). Both methods can be combined in the same prompt. Multiple characters are supported. Example: '@omni-character:char_1775422630065_4vbana walking through a neon-lit city at night'.",
+          "examples": [
+            "@image1 is the main character. The person walks along a city street at sunset, cinematic lighting."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "minItems": 1,
+          "maxItems": 9
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Output video aspect ratio."
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds (4–15).",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-omni-reference-no-video-fast",
+      "name": "Seedance 2 Omni Reference No Video Fast",
+      "endpoint": "seedance-2-omni-reference-no-video-fast",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images and @audio1…@audio3 for audio. To use a character sheet, reference it with @character:<request_id> (from a completed Seedance 2 Character generation). To use a trained Omni Reference character, reference it with @omni-character:<character_id> where character_id is the value returned by Omni Reference Train Character (e.g. char_1775422630065_4vbana). Both methods can be combined in the same prompt. Multiple characters are supported. Example: '@omni-character:char_1775422630065_4vbana walking through a neon-lit city at night'.",
+          "examples": [
+            "@image1 is the main character. The person walks along a city street at sunset, cinematic lighting."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "minItems": 1,
+          "maxItems": 9
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9",
+          "description": "Output video aspect ratio."
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds (4–15).",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-image-to-video",
+      "name": "Seedance 2 VIP",
+      "endpoint": "seedance-2-vip-image-to-video",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the video animation. Use @character:<id> to reference a completed Seedance 2 Character generation. Use @omni-character:<char_id> for a trained Kinovi character.",
+          "examples": [
+            "The person walks forward with a smile."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 or 2 images used as start frame (and optional end frame). Provide 1 image to animate from it, or 2 images for a start-to-end transition.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-image-to-video-fast",
+      "name": "Seedance 2 VIP Image to Video Fast",
+      "endpoint": "seedance-2-vip-image-to-video-fast",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the video animation. Use @character:<id> to reference a completed Seedance 2 Character generation. Use @omni-character:<char_id> for a trained Kinovi character.",
+          "examples": [
+            "The person walks forward with a smile."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 or 2 images used as start frame (and optional end frame).",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-first-last-frame",
+      "name": "Seedance 2 VIP First Last Frame",
+      "endpoint": "seedance-2-vip-first-last-frame",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "lastImageField": "images_list",
+      "endImageRequired": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the transition between frames.",
+          "examples": [
+            "Two people having a street interview, the interviewer holds a microphone."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 image = first frame only; 2 images = first and last frame. Use 'adaptive' aspect ratio to match the reference image geometry.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio. 'adaptive' matches the reference image (recommended); concrete ratios may crop or pad.",
+          "default": "adaptive"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-first-last-frame-fast",
+      "name": "Seedance 2 VIP First Last Frame Fast",
+      "endpoint": "seedance-2-vip-first-last-frame-fast",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "lastImageField": "images_list",
+      "endImageRequired": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the transition between frames.",
+          "examples": [
+            "Two people having a street interview, the interviewer holds a microphone."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 image = first frame only; 2 images = first and last frame. Use 'adaptive' aspect ratio to match the reference image geometry.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio. 'adaptive' matches the reference image (recommended); concrete ratios may crop or pad.",
+          "default": "adaptive"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-omni-reference",
+      "name": "Seedance 2 VIP Omni Reference",
+      "endpoint": "seedance-2-vip-omni-reference",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images, @video1…@video3 for videos, and @audio1…@audio3 for audio. Use @character:<request_id> for a Seedance 2 character sheet or @omni-character:<char_id> for a trained Kinovi character. Multiple characters are supported.",
+          "examples": [
+            "@image1 is the main character. The person walks along a city street at sunset, cinematic lighting."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-omni-reference-fast",
+      "name": "Seedance 2 VIP Omni Reference Fast",
+      "endpoint": "seedance-2-vip-omni-reference-fast",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images, @video1…@video3 for videos, and @audio1…@audio3 for audio. Use @character:<request_id> for a Seedance 2 character sheet or @omni-character:<char_id> for a trained Kinovi character. Multiple characters are supported.",
+          "examples": [
+            "@image1 is the main character. The person walks along a city street at sunset, cinematic lighting."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "happy-horse-1-image-to-video-1080p",
+      "name": "Happy Horse 1 Image to Video 1080P",
+      "endpoint": "happy-horse-1-image-to-video-1080p",
+      "fixedParameters": { "resolution": "1080p" },
+      "family": "happy-horse-1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the motion.",
+          "examples": [
+            "A tiny horse wearing boxing gloves stands in front of a massive battle robot in the middle of a city street. The horse suddenly charges fearlessly and punches the robot so hard that cars flip over and nearby windows shatter from the impact shockwave."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-image-to-video-1080p.jpg"
+          ],
+          "description": "Upload or provide the image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1-image-to-video-720p",
+      "name": "Happy Horse 1 Image to Video 720P",
+      "endpoint": "happy-horse-1-image-to-video-720p",
+      "fixedParameters": { "resolution": "720p" },
+      "family": "happy-horse-1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the motion.",
+          "examples": [
+            "The motorcycle suddenly accelerates uncontrollably through traffic while the horse struggles to stay balanced. Cars swerve out of the way, sparks scrape across the road during sharp turns, and the camera tracks inches away from the speeding bike."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-image-to-video-720p.jpg"
+          ],
+          "description": "Upload or provide the image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "veo-4-image-to-video",
+      "name": "Veo 4",
+      "endpoint": "veo-4-image-to-video",
+      "family": "veo-4",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "inputs": {
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Upload or provide the image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the motion and camera movement.",
+          "examples": [
+            "Camera slowly pans left, parallax depth, cinematic lighting."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 8,
+          "minValue": 5,
+          "maxValue": 30,
+          "step": 1
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "seedance-2-vip-image-to-video-1080p",
+      "name": "Seedance 2 VIP Image to Video 1080P",
+      "endpoint": "sd-2-vip-image-to-video-1080p",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-i2v.jpg"
+          ],
+          "description": "Upload or provide the start frame image.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the video motion.",
+          "examples": [
+            "Slow cinematic pan, dramatic lighting shift."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-image-to-video-fast-1080p",
+      "name": "Seedance 2 VIP Image to Video Fast 1080P",
+      "endpoint": "sd-2-vip-image-to-video-fast-1080p",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-i2v.jpg"
+          ],
+          "description": "Upload or provide the start frame image.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the video motion.",
+          "examples": [
+            "Slow cinematic pan, dramatic lighting shift."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-omni-reference-1080p",
+      "name": "Seedance 2 VIP Omni Reference 1080P",
+      "endpoint": "sd-2-vip-omni-reference-1080p",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images, @video1…@video3 for videos, and @audio1…@audio3 for audio. Use @character:<request_id> for a Seedance 2 character sheet or @omni-character:<char_id> for a trained Kinovi character. Multiple characters are supported.",
+          "examples": [
+            "@image1 is the main character. The person walks along a city street at sunset, cinematic lighting."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-omni-reference-fast-1080p",
+      "name": "Seedance 2 VIP Omni Reference Fast 1080P",
+      "endpoint": "sd-2-vip-omni-reference-fast-1080p",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images, @video1…@video3 for videos, and @audio1…@audio3 for audio. Use @character:<request_id> for a Seedance 2 character sheet or @omni-character:<char_id> for a trained Kinovi character. Multiple characters are supported.",
+          "examples": [
+            "@image1 is the main character. The person walks along a city street at sunset, cinematic lighting."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-first-last-frame-1080p",
+      "name": "Seedance 2 VIP First Last Frame 1080P",
+      "endpoint": "sd-2-vip-first-last-frame-1080p",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the transition between frames.",
+          "examples": [
+            "Two people having a street interview, the interviewer holds a microphone."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 image = first frame only; 2 images = first and last frame. Use 'adaptive' aspect ratio to match the reference image geometry.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio. 'adaptive' matches the reference image (recommended); concrete ratios may crop or pad.",
+          "default": "adaptive"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "kling-v3.0-4k-image-to-video",
+      "fixedParameters": { resolution: "4K" },
+      "name": "Kling v3.0 4K",
+      "endpoint": "kling-v3.0-4k-image-to-video",
+      "family": "kling-v3.0",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "aspectRatioMode": "inherited",
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The camera begins on the railway station platform beside a stationary train as morning sunlight filters through the roof. Passengers make small natural movements while the train doors are open. The camera moves forward and enters the train, transitioning smoothly into a window-seat point of view. As the doors close, the train starts moving. The view shifts fully to the window, showing the city passing by outside with gentle motion blur, buildings and trees sliding past. Sunlight reflects on the glass, faint interior reflections appear, and the ride feels calm and realistic with smooth, cinematic motion."
+          ],
+          "description": "Text prompt describing the video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/kling-v3.0-pro-image-to-video1.jpg"
+          ],
+          "description": "URL of the input image used to generate video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "last_image": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/kling-v3.0-pro-image-to-video2.jpg"
+          ],
+          "description": "URL of the input last image.",
+          "field": "image",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "generate_audio": KLING_AUDIO_INPUT
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "vidu-q3-pro-image-to-video",
+      "name": "Vidu Q3 Pro",
+      "endpoint": "vidu-q3-pro-image-to-video",
+      "family": "vidu-q3-pro",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The floating train suddenly accelerates violently through the sky while sections of the track collapse behind it. Sparks explode beneath the wheels as the camera races alongside the train through tight gaps between skyscrapers. Pieces of the city break apart during the chase."
+          ],
+          "description": "Text prompt describing the motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/vidu-q3-pro-image-to-video.jpg"
+          ],
+          "description": "URL of the starting frame image.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "540p",
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 1,
+          "maxValue": 16,
+          "step": 1
+        },
+        "audio": {
+          "type": "boolean",
+          "title": "Audio",
+          "name": "audio",
+          "description": "Whether to generate audio for the video.",
+          "default": false
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q3-pro-first-last-frames",
+      "name": "Vidu Q3 Pro First Last Frames",
+      "endpoint": "vidu-q3-pro-first-last-frames",
+      "family": "vidu-q3-pro",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The frozen bird begins cracking from within as glowing orange light shines through the ice. Steam bursts outward while flames ignite across the wings. The sculpture violently shatters apart and transforms into a blazing phoenix that launches upward through fire and smoke."
+          ],
+          "description": "Text prompt describing the transition.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/vidu-q3-pro-first-last-frames-1.jpg"
+          ],
+          "description": "URL of the starting (first) frame image.",
+          "field": "image",
+          "type": "string",
+          "title": "First Image URL",
+          "name": "image_url"
+        },
+        "last_image": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/vidu-q3-pro-first-last-frames-2.jpg"
+          ],
+          "description": "URL of the ending (last) frame image.",
+          "field": "image",
+          "type": "string",
+          "title": "Last Image URL",
+          "name": "last_image"
+        },
+        "resolution": {
+          "enum": [
+            "540p",
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 1,
+          "maxValue": 16,
+          "step": 1
+        },
+        "audio": {
+          "type": "boolean",
+          "title": "Audio",
+          "name": "audio",
+          "description": "Whether to generate audio for the video.",
+          "default": false
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q3-turbo-image-to-video",
+      "name": "Vidu Q3 Turbo",
+      "endpoint": "vidu-q3-turbo-image-to-video",
+      "family": "vidu-q3-turbo",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The shark crashes through moving traffic, flipping cars into the air while water bursts across the highway. The camera races alongside the destruction as vehicles spin and explode behind the creature."
+          ],
+          "description": "Text prompt describing the motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/vidu-q3-turbo-image-to-video.jpg"
+          ],
+          "description": "URL of the starting frame image.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "540p",
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 1,
+          "maxValue": 16,
+          "step": 1
+        },
+        "audio": {
+          "type": "boolean",
+          "title": "Audio",
+          "name": "audio",
+          "description": "Whether to generate audio for the video.",
+          "default": false
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q3-turbo-first-last-frames",
+      "name": "Vidu Q3 Turbo First Last Frames",
+      "endpoint": "vidu-q3-turbo-first-last-frames",
+      "family": "vidu-q3-turbo",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Dark smoke begins leaking from the woman’s body and rapidly expands outward. Her form dissolves into swirling vapor while glowing eyes emerge from the smoke cloud. The alley fills with violent rotating smoke as the camera circles aggressively around the transformation."
+          ],
+          "description": "Text prompt describing the transition.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/vidu-q3-turbo-first-last-frames-1.jpg"
+          ],
+          "description": "URL of the starting (first) frame image.",
+          "field": "image",
+          "type": "string",
+          "title": "First Image URL",
+          "name": "image_url"
+        },
+        "last_image": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/vidu-q3-turbo-first-last-frames-2.jpg"
+          ],
+          "description": "URL of the ending (last) frame image.",
+          "field": "image",
+          "type": "string",
+          "title": "Last Image URL",
+          "name": "last_image"
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "540p",
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 1,
+          "maxValue": 16,
+          "step": 1
+        },
+        "audio": {
+          "type": "boolean",
+          "title": "Audio",
+          "name": "audio",
+          "description": "Whether to generate audio for the video.",
+          "default": false
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q4-image-to-video",
+      "name": "Vidu Q4",
+      "endpoint": "vidu-q4-image-to-video",
+      "family": "vidu-q4",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": false,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The astronaut waves and the camera slowly moves up."
+          ],
+          "description": "Text description of the motion and scene. Optional.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/vidu-q3-pro-image-to-video.jpg"
+          ],
+          "description": "First-frame image URL. The video inherits this image's aspect ratio.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "resolution": {
+          "enum": [
+            "540p",
+            "720p",
+            "1080p",
+            "2k",
+            "4k"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video length in seconds (3-16).",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 16,
+          "step": 1
+        },
+        "audio": {
+          "type": "boolean",
+          "title": "Audio",
+          "name": "audio",
+          "description": "Generate synchronized audio (dialogue and sound effects).",
+          "default": true
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q4-reference-to-video",
+      "name": "Vidu Q4 Reference",
+      "endpoint": "vidu-q4-reference-to-video",
+      "family": "vidu-q4",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "maxImages": 15,
+      "inputs": {
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs (1 to 15).",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Image URLs",
+          "name": "images_list",
+          "maxItems": 15
+        },
+        "prompt": {
+          "examples": [
+            "In the scene of reference image 1, the person in reference image 2 turns to the person in reference image 3 and says: \"What are you doing?\""
+          ],
+          "description": "Describe the video; refer to inputs by order, e.g. reference image 2.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Output aspect ratio.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "540p",
+            "720p",
+            "1080p",
+            "2k",
+            "4k"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video length in seconds (3-16).",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 16,
+          "step": 1
+        },
+        "audio": {
+          "type": "boolean",
+          "title": "Audio",
+          "name": "audio",
+          "description": "Generate synchronized audio (dialogue and sound effects).",
+          "default": true
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q2-pro-image-to-video",
+      "name": "Vidu Q2 Pro",
+      "endpoint": "vidu-q2-pro-image-to-video",
+      "commonParameterRules": VIDU_Q2_MUSIC_RULES,
+      "family": "vidu-q2",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The subject turns toward the camera as warm sunlight drifts across their face. The camera pushes in slowly while wind moves through their hair."
+          ],
+          "description": "Text prompt describing the motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/vidu-q2-turbo-1.jpg"
+          ],
+          "description": "URL of the starting frame image.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video. Match this to your source image to avoid cropping.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 8,
+          "step": 1
+        },
+        "bgm": VIDU_Q2_MUSIC_INPUT,
+        "movement_amplitude": {
+          "enum": [
+            "auto",
+            "small",
+            "medium",
+            "large"
+          ],
+          "title": "Movement Amplitude",
+          "name": "movement_amplitude",
+          "type": "string",
+          "description": "The movement amplitude of objects in the frame.",
+          "default": "auto"
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "vidu-q2-turbo-image-to-video",
+      "name": "Vidu Q2 Turbo",
+      "endpoint": "vidu-q2-turbo-image-to-video",
+      "commonParameterRules": VIDU_Q2_MUSIC_RULES,
+      "family": "vidu-q2",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The subject smiles softly as the camera slowly orbits around them. Warm rim light catches the edges of their hair."
+          ],
+          "description": "Text prompt describing the motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/vidu-q2-turbo-1.jpg"
+          ],
+          "description": "URL of the starting frame image.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video. Match this to your source image to avoid cropping.",
+          "default": "16:9"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 8,
+          "step": 1
+        },
+        "bgm": VIDU_Q2_MUSIC_INPUT,
+        "movement_amplitude": {
+          "enum": [
+            "auto",
+            "small",
+            "medium",
+            "large"
+          ],
+          "title": "Movement Amplitude",
+          "name": "movement_amplitude",
+          "type": "string",
+          "description": "The movement amplitude of objects in the frame.",
+          "default": "auto"
+        }
+      },
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+  {
+      "id": "happy-horse-1-reference-to-video-1080p",
+      "name": "HappyHorse 1.0 Reference 1080P",
+      "endpoint": "happy-horse-1-reference-to-video-1080p",
+      "fixedParameters": { "resolution": "1080p" },
+      "family": "happy-horse-1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video. Up to 5,000 non-Chinese (or 2,500 Chinese) characters.",
+          "examples": [
+            "Place @image1 inside @image2 running across countertops while giant cooking disasters happen everywhere. Exploding soup pots, flying vegetables, and fire bursts create chaos as the tiny horse desperately escapes through the oversized kitchen."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-1080p-1.jpg",
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-1080p-2.jpg"
+          ],
+          "description": "1-9 reference image URLs. JPEG/PNG/WEBP, >=400px shortest side, <=10 MB each.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "minItems": 1,
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "seed": HAPPY_HORSE_SEED_INPUT
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1-reference-to-video-720p",
+      "name": "HappyHorse 1.0 Reference 720P",
+      "endpoint": "happy-horse-1-reference-to-video-720p",
+      "fixedParameters": { "resolution": "720p" },
+      "family": "happy-horse-1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video. Up to 5,000 non-Chinese (or 2,500 Chinese) characters.",
+          "examples": [
+            "Use @image1 riding inside @image2 at extreme speed through a massive supermarket. The rocket cart blasts through aisles, launches over checkout counters, and sends products exploding everywhere while the camera chases closely behind through the chaos."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-720p-1.jpg",
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-720p-2.jpg"
+          ],
+          "description": "1-9 reference image URLs. JPEG/PNG/WEBP, >=400px shortest side, <=10 MB each.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "minItems": 1,
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "seed": HAPPY_HORSE_SEED_INPUT
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "gemini-omni-image-to-video",
+      "name": "Gemini Omni",
+      "endpoint": "gemini-omni-image-to-video",
+      "family": "gemini-omni",
+      "imageField": "image_urls",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired motion and scene. Gemini Omni supports rich multimodal prompts including camera direction, dialogue, and ambient audio cues.",
+          "examples": [
+            "The suitcase opens by itself and tiny landscapes start unfolding out of it—mountains, forests, oceans, entire cities. Each world expands outward onto the platform, growing larger and larger while miniature weather systems form above them."
+          ]
+        },
+        "image_urls": {
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "image_urls",
+          "description": "Upload 1–7 reference images for the video. Maximum 20 MB each.",
+          "examples": [
+            "https://cdn.muapi.ai/assets/gemini-omni-image-to-video.jpg"
+          ],
+          "maxItems": 7
+        },
+        "duration": {
+          "enum": [
+            4,
+            6,
+            8,
+            10
+          ],
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds.",
+          "default": 8
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution. 720p and 1080p are the same price; 4K costs more.",
+          "default": "1080p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "audio_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio IDs",
+          "name": "audio_ids",
+          "description": "Up to 3 voice profile IDs returned by the Gemini Omni Audio endpoint.",
+          "maxItems": 3
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed (0–2147483647). Fix for reproducibility; results may still vary due to model stochasticity.",
+          "minValue": 0,
+          "maxValue": 2147483647,
+          "default": 0
+        },
+        "character_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Character IDs",
+          "name": "character_ids",
+          "description": "Up to 3 character IDs from Gemini Omni Character to feature in the video.",
+          "maxItems": 3
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "grok-imagine-video-1-5-preview",
+      "name": "Grok Imagine Video 1.5 Preview",
+      "endpoint": "grok-imagine-video-1-5-preview",
+      "family": "video-generation",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description for video generation.",
+          "examples": [
+            "The whale suddenly begins swimming through the apartment as if the room is underwater. Furniture crashes into walls, water bursts outward, and the whale breaks through multiple rooms while the camera follows beside it."
+          ]
+        },
+        "images_list": GROK_IMAGE_INPUT,
+        "aspect_ratio": {
+          "enum": [
+            "auto",
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Aspect ratio for the generated video. Use 'auto' to match the input image.",
+          "default": "auto"
+        },
+        "resolution": GROK_RESOLUTION_INPUT,
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 8,
+          "minValue": 1,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "grok",
+      "provider_name": "xAI"
+    },
+  {
+      "id": "kling-v3-turbo-standard-image-to-video",
+      "fixedParameters": { resolution: "720p" },
+      "name": "Kling v3 Turbo Standard",
+      "endpoint": "kling-v3-turbo-standard-image-to-video",
+      "family": "kling-v3.0",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "aspectRatioMode": "inherited",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video.",
+          "examples": [
+            "The kitchen explodes into chaos as soup erupts upward, giant vegetables crash across the counter, and flames burst from the stove. The tiny astronaut sprints between falling objects while the camera follows inches behind."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "URL of the input image used to generate video.",
+          "field": "image",
+          "examples": [
+            "https://cdn.muapi.ai/assets/kling-v3-turbo-standard-image-to-video.jpg"
+          ]
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds (3–15).",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "kling-v3-turbo-pro-image-to-video",
+      "fixedParameters": { resolution: "1080p" },
+      "name": "Kling v3 Turbo Pro",
+      "endpoint": "kling-v3-turbo-pro-image-to-video",
+      "family": "kling-v3.0",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "aspectRatioMode": "inherited",
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video.",
+          "examples": [
+            "Cracks spread rapidly through the ice before it explodes outward in massive shards. The titan awakens violently, roaring as it tears itself free and sends snowstorms spiraling outward. The camera circles aggressively during the awakening."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "URL of the input image used to generate video.",
+          "field": "image",
+          "examples": [
+            "https://cdn.muapi.ai/assets/kling-v3-turbo-pro-image-to-video.jpg"
+          ]
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds (3–15).",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "seedance-2.5-image-to-video",
+      "name": "Seedance 2.5",
+      "endpoint": "seedance-2.5-image-to-video",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-mini-image-to-video",
+      "name": "Seedance 2 Mini",
+      "endpoint": "seedance-2-mini-image-to-video",
+      "family": "seedance-2.0-mini",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A slow cinematic push toward a subject on a sunlit rooftop, gentle breeze in the hair."
+          ],
+          "description": "Text prompt guiding the video animation.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v1.5-pro-i2v.jpg"
+          ],
+          "description": "1 image = start frame. 2-9 images = reference images; reference them in your prompt with @image1, @image2, etc.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate AI audio synchronized with the video.",
+          "default": true
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "happy-horse-1.1-image-to-video-1080p",
+      "name": "Happy Horse 1.1 Image to Video 1080P",
+      "endpoint": "happy-horse-1.1-image-to-video-1080p",
+      "fixedParameters": { "resolution": "1080p" },
+      "family": "happy-horse-1.1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the motion.",
+          "examples": [
+            "A tiny horse wearing boxing gloves stands in front of a massive battle robot. The horse suddenly charges fearlessly and punches the robot so hard that cars flip over."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-image-to-video-1080p.jpg"
+          ],
+          "description": "Upload or provide the image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1.1-image-to-video-720p",
+      "name": "Happy Horse 1.1 Image to Video 720P",
+      "endpoint": "happy-horse-1.1-image-to-video-720p",
+      "fixedParameters": { "resolution": "720p" },
+      "family": "happy-horse-1.1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the motion.",
+          "examples": [
+            "A tiny horse wearing boxing gloves stands in front of a massive battle robot. The horse suddenly charges fearlessly and punches the robot so hard that cars flip over."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-image-to-video-1080p.jpg"
+          ],
+          "description": "Upload or provide the image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1.1-reference-to-video-1080p",
+      "name": "HappyHorse 1.1 Reference 1080P",
+      "endpoint": "happy-horse-1.1-reference-to-video-1080p",
+      "fixedParameters": { "resolution": "1080p" },
+      "family": "happy-horse-1.1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video. Up to 5,000 characters.",
+          "examples": [
+            "Place @image1 inside @image2 running across countertops while giant cooking disasters happen everywhere. Exploding soup pots, flying vegetables, and fire bursts create chaos."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-1080p-1.jpg",
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-1080p-2.jpg"
+          ],
+          "description": "1-9 reference image URLs. JPEG/PNG/WEBP, >=400px shortest side, <=10 MB each.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "minItems": 1,
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "seed": HAPPY_HORSE_SEED_INPUT
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1.1-reference-to-video-720p",
+      "name": "HappyHorse 1.1 Reference 720P",
+      "endpoint": "happy-horse-1.1-reference-to-video-720p",
+      "fixedParameters": { "resolution": "720p" },
+      "family": "happy-horse-1.1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video. Up to 5,000 characters.",
+          "examples": [
+            "Place @image1 inside @image2 running across countertops while giant cooking disasters happen everywhere. Exploding soup pots, flying vegetables, and fire bursts create chaos."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-1080p-1.jpg",
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-1080p-2.jpg"
+          ],
+          "description": "1-9 reference image URLs. JPEG/PNG/WEBP, >=400px shortest side, <=10 MB each.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "minItems": 1,
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "seed": HAPPY_HORSE_SEED_INPUT
+      },
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "seedance-2-vip-image-to-video-4k",
+      "name": "Seedance 2 VIP Image to Video 4K",
+      "endpoint": "sd-2-vip-image-to-video-4k",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-i2v.jpg"
+          ],
+          "description": "Upload or provide the start frame image.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the video motion.",
+          "examples": [
+            "Slow cinematic pan, dramatic lighting shift."
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-first-last-frame-4k",
+      "name": "Seedance 2 VIP First Last Frame 4K",
+      "endpoint": "sd-2-vip-first-last-frame-4k",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the transition between frames.",
+          "examples": [
+            "Two people having a street interview, the interviewer holds a microphone."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 image = first frame only; 2 images = first and last frame. Use ‘adaptive’ aspect ratio to match the reference image geometry.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio. ‘adaptive’ matches the reference image (recommended); concrete ratios may crop or pad.",
+          "default": "adaptive"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-vip-omni-reference-4k",
+      "name": "Seedance 2 VIP Omni Reference 4K",
+      "endpoint": "sd-2-vip-omni-reference-4k",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images, @video1…@video3 for videos, and @audio1…@audio3 for audio. Use @character:<request_id> for a Seedance 2 character sheet or @omni-character:<char_id> for a trained Kinovi character. Multiple characters are supported.",
+          "examples": [
+            "@image1 is the main character. The person walks along a city street at sunset, cinematic lighting."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": SEEDANCE_HIGH_BITRATE_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-image-to-video",
+      "name": "Seedance 2.5 Spicy",
+      "endpoint": "seedance-2.5-spicy-image-to-video",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "resolution": SEEDANCE_25_RESOLUTION_INPUT,
+        "generate_audio": SEEDANCE_GENERATE_AUDIO_INPUT,
+        "prompt": {
+          "examples": [
+            "Bold, high-energy dolly forward through a neon-drenched alley at night, sparks flying off a passing train, exaggerated lighting contrast, dramatic camera shake, photorealistic 4K quality."
+          ],
+          "description": "Text prompt describing the video motion and style. Spicy mode favors bolder, higher-contrast, more expressive results.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v1.5-pro-i2v.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": SEEDANCE_25_SEED_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-image-to-video-480p",
+      "name": "Seedance 2.5 Image to Video 480p",
+      "endpoint": "seedance-2.5-image-to-video-480p",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-first-last-frame",
+      "name": "Seedance 2.5 First & Last Frame",
+      "endpoint": "seedance-2.5-first-last-frame",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-first-last-frame-480p",
+      "name": "Seedance 2.5 First Last Frame 480p",
+      "endpoint": "seedance-2.5-first-last-frame-480p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-omni-reference",
+      "name": "Seedance 2.5 Omni Reference",
+      "endpoint": "seedance-2.5-omni-reference",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-omni-reference-480p",
+      "name": "Seedance 2.5 Omni Reference 480p",
+      "endpoint": "seedance-2.5-omni-reference-480p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-spicy-image-to-video",
+      "name": "Seedance 2 Spicy",
+      "endpoint": "seedance-2-spicy-image-to-video",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the video animation. Use @character:<id> to reference a completed Seedance 2 Character generation. Use @omni-character:<char_id> for a trained Kinovi character.",
+          "examples": [
+            "The person walks forward with a smile."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 or 2 images used as start frame (and optional end frame). Provide 1 image to animate from it, or 2 images for a start-to-end transition.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-spicy-image-to-video-fast",
+      "name": "Seedance 2 Spicy Image to Video Fast",
+      "endpoint": "seedance-2-spicy-image-to-video-fast",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description guiding the video animation. Use @character:<id> to reference a completed Seedance 2 Character generation. Use @omni-character:<char_id> for a trained Kinovi character.",
+          "examples": [
+            "The person walks forward with a smile."
+          ]
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "1 or 2 images used as start frame (and optional end frame).",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-mini-spicy-image-to-video",
+      "name": "Seedance 2 Mini Spicy",
+      "endpoint": "seedance-2-mini-spicy-image-to-video",
+      "family": "seedance-2.0-mini",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A slow cinematic push toward a subject on a sunlit rooftop, gentle breeze in the hair."
+          ],
+          "description": "Text prompt guiding the video animation.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v1.5-pro-i2v.jpg"
+          ],
+          "description": "1 image = start frame. 2-9 images = reference images; reference them in your prompt with @image1, @image2, etc.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "3:4",
+            "4:3",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate AI audio synchronized with the video.",
+          "default": true
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "minimax-h3-image-to-video",
+      "name": "MiniMax H3 Image to Video",
+      "endpoint": "minimax-h3-image-to-video",
+      "family": "minimax-h3",
+      "imageField": "image_url",
+      "lastImageField": "last_image_url",
+      "aspectRatioMode": "inherited",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Motion prompt describing the desired video."
+        },
+        "image_url": {
+          "type": "string",
+          "field": "image",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "last_image_url": {
+          "type": "string",
+          "field": "image",
+          "title": "Last Image URL",
+          "name": "last_image_url"
+        },
+        "resolution": {
+          "enum": ["2k"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "2k"
+        },
+        "duration": {
+          "enum": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "default": 5
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "minimax-h3-reference-to-video",
+      "name": "MiniMax H3 Reference",
+      "endpoint": "minimax-h3-reference-to-video",
+      "family": "minimax-h3",
+      "imageField": "reference_images",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Prompt describing the desired video."
+        },
+        "reference_images": {
+          "type": "array",
+          "field": "image",
+          "title": "Reference Images",
+          "name": "reference_images",
+          "maxItems": 9,
+          "items": {"type": "string"}
+        },
+        "reference_videos": {
+          "type": "array",
+          "field": "video",
+          "title": "Reference Videos",
+          "name": "reference_videos",
+          "maxItems": 3,
+          "items": {"type": "string"}
+        },
+        "reference_audios": {
+          "type": "array",
+          "field": "audio",
+          "title": "Reference Audio",
+          "name": "reference_audios",
+          "maxItems": 3,
+          "items": {"type": "string"}
+        },
+        "aspect_ratio": {
+          "enum": ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": ["2k"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "2k"
+        },
+        "duration": {
+          "enum": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "default": 5
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "minimax-h3-open-image-to-video",
+      "name": "MiniMax H3 Open Image to Video",
+      "endpoint": "minimax-h3-open-image-to-video",
+      "family": "minimax-h3",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "aspectRatioMode": "inherited",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Motion prompt describing the desired video."
+        },
+        "image_url": {
+          "type": "string",
+          "field": "image",
+          "title": "First Frame Image URL",
+          "name": "image_url"
+        },
+        "last_image": {
+          "type": "string",
+          "field": "image",
+          "title": "Last Frame Image URL",
+          "name": "last_image"
+        },
+        "resolution": {
+          "enum": ["480p", "768p"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "480p"
+        },
+        "duration": {
+          "enum": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "default": 5
+        },
+        "seed": MINIMAX_H3_OPEN_SEED_INPUT
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "minimax-h3-open-reference-to-video",
+      "name": "MiniMax H3 Base Ref2VA",
+      "endpoint": "minimax-h3-open-reference-to-video",
+      "family": "minimax-h3",
+      "imageField": "images_list",
+      "maxImages": 9,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Prompt describing the desired video."
+        },
+        "images_list": {
+          "type": "array",
+          "field": "images_list",
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 9,
+          "items": {"type": "string"}
+        },
+        "videos_list": {
+          "type": "array",
+          "field": "videos_list",
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 3,
+          "items": {"type": "string"}
+        },
+        "audios_list": {
+          "type": "array",
+          "field": "audios_list",
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 3,
+          "items": {"type": "string"}
+        },
+        "aspect_ratio": {
+          "enum": ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "9:21"],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": ["480p", "768p"],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "default": "480p"
+        },
+        "duration": {
+          "enum": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "default": 5
+        },
+        "seed": MINIMAX_H3_OPEN_SEED_INPUT
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "flux-3-image-to-video",
+      "name": "FLUX 3",
+      "endpoint": "flux-3-image-to-video",
+      "family": "flux-3",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A drone shot glides over a bioluminescent forest at night, fireflies drifting between glowing trees, gentle mist rolling across the forest floor, cinematic color grading."
+          ],
+          "description": "Text prompt describing the video scene and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Start frame image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized native audio for the video.",
+          "default": true
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "wan3.0-image-to-video",
+      "name": "Wan 3.0",
+      "endpoint": "wan3.0-image-to-video",
+      "family": "wan3.0",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the motion and scene you want to create.",
+          "examples": [
+            "The camera slowly pushes in as a breeze moves through the subject's hair."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "Source image to animate.",
+          "field": "image",
+          "examples": []
+        },
+        "last_image": {
+          "type": "string",
+          "title": "Last Frame Image URL",
+          "name": "last_image",
+          "description": "Optional end-frame image to guide how the video should end.",
+          "field": "image",
+          "examples": []
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video frame dimensions.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video length in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 30
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable deep-thinking mode for complex prompts.",
+          "default": false
+        },
+        "enable_audio": {
+          "type": "boolean",
+          "title": "Enable Audio",
+          "name": "enable_audio",
+          "description": "Include a generated audio track with the video.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility. Use -1 for a random seed.",
+          "default": -1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan3.0-spicy-image-to-video",
+      "name": "Wan 3.0 Spicy",
+      "endpoint": "wan3.0-spicy-image-to-video",
+      "family": "wan3.0-spicy",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the bold, high-motion scene you want to create with the Spicy variant.",
+          "examples": [
+            "The camera pushes through the storm as dramatic light and high-energy motion build around the subject."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "Source image to animate.",
+          "field": "image",
+          "examples": []
+        },
+        "last_image": {
+          "type": "string",
+          "title": "Last Frame Image URL",
+          "name": "last_image",
+          "description": "Optional end-frame image to guide how the video should end.",
+          "field": "image",
+          "examples": []
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video frame dimensions.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video length in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 30
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable deep-thinking mode for complex prompts.",
+          "default": false
+        },
+        "enable_audio": {
+          "type": "boolean",
+          "title": "Enable Audio",
+          "name": "enable_audio",
+          "description": "Include a generated audio track with the video.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility. Use -1 for a random seed.",
+          "default": -1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "seedance-2.5-image-to-video-1080p",
+      "name": "Seedance 2.5 Image to Video 1080p",
+      "endpoint": "seedance-2.5-image-to-video-1080p",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-image-to-video-4k",
+      "name": "Seedance 2.5 Image to Video 4K",
+      "endpoint": "seedance-2.5-image-to-video-4k",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-first-last-frame-1080p",
+      "name": "Seedance 2.5 First Last Frame 1080p",
+      "endpoint": "seedance-2.5-first-last-frame-1080p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-first-last-frame-4k",
+      "name": "Seedance 2.5 First Last Frame 4K",
+      "endpoint": "seedance-2.5-first-last-frame-4k",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-omni-reference-1080p",
+      "name": "Seedance 2.5 Omni Reference 1080p",
+      "endpoint": "seedance-2.5-omni-reference-1080p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-omni-reference-4k",
+      "name": "Seedance 2.5 Omni Reference 4K",
+      "endpoint": "seedance-2.5-omni-reference-4k",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-image-to-video",
+      "name": "Seedance 2.5 Intl",
+      "endpoint": "seedance-2.5-intl-image-to-video",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-image-to-video-480p",
+      "name": "Seedance 2.5 Intl Image to Video 480p",
+      "endpoint": "seedance-2.5-intl-image-to-video-480p",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-image-to-video-480p",
+      "name": "Seedance 2.5 Spicy Image to Video 480p",
+      "endpoint": "seedance-2.5-spicy-image-to-video-480p",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-image-to-video-1080p",
+      "name": "Seedance 2.5 Intl Image to Video 1080p",
+      "endpoint": "seedance-2.5-intl-image-to-video-1080p",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-image-to-video-1080p",
+      "name": "Seedance 2.5 Spicy Image to Video 1080p",
+      "endpoint": "seedance-2.5-spicy-image-to-video-1080p",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-image-to-video-4k",
+      "name": "Seedance 2.5 Intl Image to Video 4K",
+      "endpoint": "seedance-2.5-intl-image-to-video-4k",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-image-to-video-4k",
+      "name": "Seedance 2.5 Spicy Image to Video 4K",
+      "endpoint": "seedance-2.5-spicy-image-to-video-4k",
+      "family": "seedance-2.5",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Animate the park scene with gentle wind moving the trees, subtle water ripples, and a slow cinematic push forward."
+          ],
+          "description": "Text prompt describing the desired motion and style.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "URL of the input image to animate into video.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-first-last-frame",
+      "name": "Seedance 2.5 Intl First Last Frame",
+      "endpoint": "seedance-2.5-intl-first-last-frame",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-first-last-frame",
+      "name": "Seedance 2.5 Spicy First Last Frame",
+      "endpoint": "seedance-2.5-spicy-first-last-frame",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-first-last-frame-480p",
+      "name": "Seedance 2.5 Intl First Last Frame 480p",
+      "endpoint": "seedance-2.5-intl-first-last-frame-480p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-first-last-frame-480p",
+      "name": "Seedance 2.5 Spicy First Last Frame 480p",
+      "endpoint": "seedance-2.5-spicy-first-last-frame-480p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-first-last-frame-1080p",
+      "name": "Seedance 2.5 Intl First Last Frame 1080p",
+      "endpoint": "seedance-2.5-intl-first-last-frame-1080p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-first-last-frame-1080p",
+      "name": "Seedance 2.5 Spicy First Last Frame 1080p",
+      "endpoint": "seedance-2.5-spicy-first-last-frame-1080p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-first-last-frame-4k",
+      "name": "Seedance 2.5 Intl First Last Frame 4K",
+      "endpoint": "seedance-2.5-intl-first-last-frame-4k",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-first-last-frame-4k",
+      "name": "Seedance 2.5 Spicy First Last Frame 4K",
+      "endpoint": "seedance-2.5-spicy-first-last-frame-4k",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a smooth transition from a cloudy sky to a quiet riverside park path, with natural camera movement and realistic lighting."
+          ],
+          "description": "Text prompt describing the transition and motion.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [
+            "https://samplelib.com/jpeg/sample-clouds-400x300.jpg",
+            "https://samplelib.com/jpeg/sample-city-park-400x300.jpg"
+          ],
+          "description": "Exactly 2 images: [first_frame, last_frame].",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "First and Last Frame Images",
+          "name": "images_list",
+          "maxItems": 2
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-omni-reference",
+      "name": "Seedance 2.5 Intl Omni Reference",
+      "endpoint": "seedance-2.5-intl-omni-reference",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-omni-reference",
+      "name": "Seedance 2.5 Spicy Omni Reference",
+      "endpoint": "seedance-2.5-spicy-omni-reference",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-omni-reference-480p",
+      "name": "Seedance 2.5 Intl Omni Reference 480p",
+      "endpoint": "seedance-2.5-intl-omni-reference-480p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-omni-reference-480p",
+      "name": "Seedance 2.5 Spicy Omni Reference 480p",
+      "endpoint": "seedance-2.5-spicy-omni-reference-480p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-omni-reference-1080p",
+      "name": "Seedance 2.5 Intl Omni Reference 1080p",
+      "endpoint": "seedance-2.5-intl-omni-reference-1080p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-omni-reference-1080p",
+      "name": "Seedance 2.5 Spicy Omni Reference 1080p",
+      "endpoint": "seedance-2.5-spicy-omni-reference-1080p",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-omni-reference-4k",
+      "name": "Seedance 2.5 Intl Omni Reference 4K",
+      "endpoint": "seedance-2.5-intl-omni-reference-4k",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-omni-reference-4k",
+      "name": "Seedance 2.5 Spicy Omni Reference 4K",
+      "endpoint": "seedance-2.5-spicy-omni-reference-4k",
+      "family": "seedance-2.5",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Create a calm cinematic park sequence. Use the images for environment style, the video clips for camera motion and street rhythm, and the audio as mood reference."
+          ],
+          "description": "Text prompt describing the desired video, referencing the provided images, video clips, and audio as environment, motion, and mood cues.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs. Up to 10 clips.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "videos_list",
+          "maxItems": 10
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT,
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "omni_reference_task_type": {
+          "enum": [
+            "auto",
+            "reference",
+            "edit",
+            "extend"
+          ],
+          "title": "Omni Reference Task Type",
+          "name": "omni_reference_task_type",
+          "type": "string",
+          "description": "Hint for the omni-reference subtask type, so ratio/duration constraint mismatches are caught at submission time instead of failing asynchronously. auto lets the model infer the type from the prompt; reference has no special ratio/duration constraints; edit and extend both require ratio=adaptive (edit additionally requires duration=-1). The model still re-derives the actual task type from the prompt during processing, so a mismatch can still surface as an async error.",
+          "default": "auto"
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "wan2.7-image-to-video-spicy",
+      "name": "Wan 2.7 Spicy",
+      "endpoint": "wan2.7-image-to-video-spicy",
+      "family": "wan2.7-spicy",
+      "imageField": "image_url",
+      "aspectRatioMode": "inherited",
+      "hasPrompt": true,
+      "inputs": {
+        "image_url": {
+          "examples": [],
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "Source image to animate into video",
+          "field": "image"
+        },
+        "prompt": {
+          "examples": [],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Positive text prompt describing the desired motion and scene"
+        },
+        "negative_prompt": {
+          "examples": [],
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "What not to generate"
+        },
+        "audio_url": {
+          "examples": [],
+          "type": "string",
+          "title": "Audio URL",
+          "name": "audio_url",
+          "description": "Optional audio file to guide generation",
+          "field": "audio"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution",
+          "default": "720p"
+        },
+        "duration": {
+          "enum": [
+            5,
+            10,
+            15
+          ],
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds",
+          "default": 5
+        },
+        "shot_type": {
+          "enum": [
+            "single",
+            "multi"
+          ],
+          "type": "string",
+          "title": "Shot Type",
+          "name": "shot_type",
+          "description": "Single continuous shot or multi-shot sequence",
+          "default": "single"
+        },
+        "enable_prompt_expansion": {
+          "type": "boolean",
+          "title": "Enable Prompt Expansion",
+          "name": "enable_prompt_expansion",
+          "description": "Automatically expand and optimize the prompt",
+          "default": false
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility (-1 for random)",
+          "default": -1,
+          "minValue": -1,
+          "maxValue": 2147483647,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan2.6-image-to-video-spicy",
+      "name": "Wan 2.6 Spicy",
+      "endpoint": "wan2.6-image-to-video-spicy",
+      "family": "wan2.6-spicy",
+      "imageField": "image_url",
+      "aspectRatioMode": "inherited",
+      "hasPrompt": true,
+      "inputs": {
+        "image_url": {
+          "examples": [],
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "Source image to animate into video",
+          "field": "image"
+        },
+        "prompt": {
+          "examples": [],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Positive text prompt describing the desired motion and scene"
+        },
+        "negative_prompt": {
+          "examples": [],
+          "type": "string",
+          "title": "Negative Prompt",
+          "name": "negative_prompt",
+          "description": "What not to generate"
+        },
+        "audio_url": {
+          "examples": [],
+          "type": "string",
+          "title": "Audio URL",
+          "name": "audio_url",
+          "description": "Optional audio file to guide generation",
+          "field": "audio"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution",
+          "default": "720p"
+        },
+        "duration": {
+          "enum": [
+            5,
+            10,
+            15
+          ],
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds",
+          "default": 5
+        },
+        "shot_type": {
+          "enum": [
+            "single",
+            "multi"
+          ],
+          "type": "string",
+          "title": "Shot Type",
+          "name": "shot_type",
+          "description": "Single continuous shot or multi-shot sequence",
+          "default": "single"
+        },
+        "enable_prompt_expansion": {
+          "type": "boolean",
+          "title": "Enable Prompt Expansion",
+          "name": "enable_prompt_expansion",
+          "description": "Automatically expand and optimize the prompt",
+          "default": false
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility (-1 for random)",
+          "default": -1,
+          "minValue": -1,
+          "maxValue": 2147483647,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "minimax-h3-image-to-video-lora",
+      "name": "MiniMax H3 Image to Video LoRA",
+      "endpoint": "minimax-h3-image-to-video-lora",
+      "family": "minimax-h3",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "aspectRatioMode": "inherited",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired motion, scene, and soundtrack.",
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "field": "image",
+          "title": "Start Frame Image URL",
+          "name": "image_url",
+          "description": "First-frame image URL. The output canvas follows this image's aspect ratio.",
+          "examples": [
+            ""
+          ]
+        },
+        "last_image": {
+          "examples": [
+            ""
+          ],
+          "description": "Optional last-frame image URL for frame interpolation.",
+          "field": "image",
+          "type": "string",
+          "title": "Last Frame Image URL",
+          "name": "last_image"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "768p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution. 768p is native canvas, 480p is faster.",
+          "default": "480p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Output video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed (-1 for random)",
+          "default": -1,
+          "minValue": -1,
+          "maxValue": 2147483647
+        },
+        "loras": {
+          "type": "array",
+          "title": "LoRAs",
+          "name": "loras",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "title": "LoRA Path / Model ID",
+                "name": "path",
+                "description": "Civitai model ID or HuggingFace URL/path."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1,
+                "description": "Weight / strength scale of the LoRA."
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "minimax-h3-reference-to-video-lora",
+      "name": "MiniMax H3 Reference to Video LoRA",
+      "endpoint": "minimax-h3-reference-to-video-lora",
+      "family": "minimax-h3",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video. Refer to reference inputs as <Picture 1..9>, <Video 1..3>, and <Audio 1..3>.",
+          "examples": [
+            "A cinematic ocean wave at sunrise with <Picture 1> character walking, highly detailed"
+          ]
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs (up to 9).",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Reference video URLs (up to 3). Total reference video duration is budgeted to 15 seconds.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Video URLs",
+          "name": "videos_list",
+          "maxItems": 3
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Standalone reference audio URLs (up to 3, trimmed to 15s each).",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio URLs",
+          "name": "audios_list",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "768p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution. 768p is native canvas, 480p is faster.",
+          "default": "480p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Output video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed (-1 for random)",
+          "default": -1,
+          "minValue": -1,
+          "maxValue": 2147483647
+        },
+        "loras": {
+          "type": "array",
+          "title": "LoRAs",
+          "name": "loras",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "title": "LoRA Path / Model ID",
+                "name": "path",
+                "description": "Civitai model ID or HuggingFace URL/path."
+              },
+              "scale": {
+                "type": "number",
+                "title": "Scale",
+                "name": "scale",
+                "minValue": 0,
+                "maxValue": 4,
+                "step": 0.01,
+                "default": 1,
+                "description": "Weight / strength scale of the LoRA."
+              }
+            }
+          },
+          "description": "List of LoRAs to apply (maximum 3).",
+          "maxItems": 3
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "ltx-2.5-image-to-video",
+      "name": "LTX 2.5",
+      "endpoint": "ltx-2.5-image-to-video",
+      "family": "ltx2.5",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "aspectRatioMode": "inherited",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic camera zoom into the scene with dynamic natural motion."
+          ],
+          "description": "The positive prompt for the generation.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [],
+          "field": "image",
+          "description": "The starting frame image for generation.",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "last_image": {
+          "examples": [],
+          "field": "image",
+          "description": "Optional last-frame image for the generation.",
+          "type": "string",
+          "title": "Last Image URL",
+          "name": "last_image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated media in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p",
+            "2k",
+            "4k"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Video resolution.",
+          "default": "720p"
+        },
+        "seed": {
+          "title": "Seed",
+          "name": "seed",
+          "type": "int",
+          "description": "The random seed to use for the generation. -1 means random.",
+          "default": -1
+        }
+      },
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+  {
+      "id": "wan3.0-reference-to-video",
+      "name": "Wan 3.0 Reference to Video",
+      "endpoint": "wan3.0-reference-to-video",
+      "family": "wan3.0",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the video you want to create. Reference media are identified by their array order.",
+          "examples": [
+            "The two people from the reference images meet on the rainy street shown in the reference video."
+          ]
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Up to 10 reference images for visual coherence guidance.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Image URLs",
+          "name": "images_list",
+          "maxItems": 10
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Up to 5 reference video clips (MP4/MOV, 1-15s each); total reference + generated duration must not exceed 30s.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Video URLs",
+          "name": "videos_list",
+          "maxItems": 5
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Up to 5 reference audio clips (total duration up to 15s) for soundtrack synchronization.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio URLs",
+          "name": "audios_list",
+          "maxItems": 5
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video frame dimensions.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video length in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 30
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable deep-thinking mode for complex scene understanding.",
+          "default": false
+        },
+        "enable_audio": {
+          "type": "boolean",
+          "title": "Enable Audio",
+          "name": "enable_audio",
+          "description": "Include a generated audio track with the video.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility. Use -1 for a random seed.",
+          "default": -1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan3.0-prime-image-to-video",
+      "name": "Wan 3.0 Prime",
+      "endpoint": "wan3.0-prime-image-to-video",
+      "family": "wan3.0",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the motion and scene you want to create.",
+          "examples": [
+            "The camera slowly pushes in as a breeze moves through the subject's hair."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "Source image to animate.",
+          "field": "image",
+          "examples": []
+        },
+        "last_image": {
+          "type": "string",
+          "title": "Last Frame Image URL",
+          "name": "last_image",
+          "description": "Optional end-frame image to guide how the video should end.",
+          "field": "image",
+          "examples": []
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video frame dimensions.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video length in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 30
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable deep-thinking mode for complex prompts.",
+          "default": false
+        },
+        "enable_audio": {
+          "type": "boolean",
+          "title": "Enable Audio",
+          "name": "enable_audio",
+          "description": "Include a generated audio track with the video.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility. Use -1 for a random seed.",
+          "default": -1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan3.0-prime-reference-to-video",
+      "name": "Wan 3.0 Prime Reference to Video",
+      "endpoint": "wan3.0-prime-reference-to-video",
+      "family": "wan3.0",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the video you want to create. Reference media are identified by their array order.",
+          "examples": [
+            "The two people from the reference images meet on the rainy street shown in the reference video."
+          ]
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Up to 10 reference images for visual coherence guidance.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Image URLs",
+          "name": "images_list",
+          "maxItems": 10
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Up to 5 reference video clips (MP4/MOV, 1-15s each); total reference + generated duration must not exceed 30s.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Video URLs",
+          "name": "videos_list",
+          "maxItems": 5
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Up to 5 reference audio clips (total duration up to 15s) for soundtrack synchronization.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio URLs",
+          "name": "audios_list",
+          "maxItems": 5
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video frame dimensions.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video length in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 30
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable deep-thinking mode for complex scene understanding.",
+          "default": false
+        },
+        "enable_audio": {
+          "type": "boolean",
+          "title": "Enable Audio",
+          "name": "enable_audio",
+          "description": "Include a generated audio track with the video.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility. Use -1 for a random seed.",
+          "default": -1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan3.0-spicy-reference-to-video",
+      "name": "Wan 3.0 Spicy Reference to Video",
+      "endpoint": "wan3.0-spicy-reference-to-video",
+      "family": "wan3.0-spicy",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the bold, high-motion video you want to create. Reference media are identified by their array order.",
+          "examples": [
+            "The two people from the reference images meet on the rainy street shown in the reference video."
+          ]
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Up to 10 reference images for visual coherence guidance.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Image URLs",
+          "name": "images_list",
+          "maxItems": 10
+        },
+        "videos_list": {
+          "examples": [],
+          "description": "Up to 5 reference video clips (MP4/MOV, 1-15s each); total reference + generated duration must not exceed 30s.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Video URLs",
+          "name": "videos_list",
+          "maxItems": 5
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Up to 5 reference audio clips (total duration up to 15s) for soundtrack synchronization.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio URLs",
+          "name": "audios_list",
+          "maxItems": 5
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "adaptive",
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video frame dimensions.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "description": "Video length in seconds.",
+          "default": 5,
+          "minValue": 2,
+          "maxValue": 30
+        },
+        "thinking_mode": {
+          "type": "boolean",
+          "title": "Thinking Mode",
+          "name": "thinking_mode",
+          "description": "Enable deep-thinking mode for complex scene understanding.",
+          "default": false
+        },
+        "enable_audio": {
+          "type": "boolean",
+          "title": "Enable Audio",
+          "name": "enable_audio",
+          "description": "Include a generated audio track with the video.",
+          "default": true
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducibility. Use -1 for a random seed.",
+          "default": -1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "flux-3-start-end-to-video",
+      "name": "FLUX 3 Start End to Video",
+      "endpoint": "flux-3-start-end-to-video",
+      "family": "flux-3",
+      "imageField": "image_url",
+      "lastImageField": "end_image_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The scene morphs from a busy daytime street to the same street quiet at night, streetlights turning on."
+          ],
+          "description": "Describe the action or transformation connecting the start and end images.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Initial visual keyframe for the transition.",
+          "field": "image",
+          "type": "string",
+          "title": "Start Image URL",
+          "name": "image_url"
+        },
+        "end_image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Final visual keyframe for the transition.",
+          "field": "image",
+          "type": "string",
+          "title": "End Image URL",
+          "name": "end_image_url"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized native audio for the video.",
+          "default": true
+        }
+      },
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "gemini-omni-flash-1-1-image-to-video",
+      "name": "Gemini Omni Flash 1.1",
+      "endpoint": "gemini-omni-flash-1-1-image-to-video",
+      "family": "gemini-omni",
+      "imageField": "first_frame_url",
+      "lastImageField": "last_frame_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video content \u2014 visuals, camera direction, dialogue, and ambient audio cues.",
+          "examples": [
+            "A street musician plays a violin on a rainy Paris evening, raindrops tap the cobblestones, a slow melancholic melody, distant caf\u00e9 chatter."
+          ]
+        },
+        "first_frame_url": {
+          "field": "image",
+          "type": "string",
+          "title": "First Frame Image",
+          "name": "first_frame_url",
+          "description": "Starting keyframe image the video is generated from."
+        },
+        "last_frame_url": {
+          "field": "image",
+          "type": "string",
+          "title": "Last Frame Image",
+          "name": "last_frame_url",
+          "description": "Optional ending keyframe image. Requires first_frame_url to also be set."
+        },
+        "duration": {
+          "enum": [
+            4,
+            6,
+            8,
+            10
+          ],
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Duration of the generated video in seconds.",
+          "default": 8
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Billed per second of output: $0.10/s at 720p, $0.15/s at 1080p, $0.30/s at 4K.",
+          "default": "720p"
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed (0\u20132147483647). Fix for reproducibility; results may still vary due to model stochasticity.",
+          "minValue": 0,
+          "maxValue": 2147483647,
+          "default": 0
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "gemini-omni-flash-1-1-reference-to-video",
+      "name": "Gemini Omni 1.1 Flash Reference",
+      "endpoint": "gemini-omni-flash-1-1-reference-to-video",
+      "family": "gemini-omni",
+      "imageField": "image_urls",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "The text prompt describing the video. Reference media is addressed in the prompt in list order, e.g. <IMAGE_REF_0>, <VIDEO_REF_0>.",
+          "examples": [
+            "A cat inspired by <IMAGE_REF_0> walks through the setting in <VIDEO_REF_0>."
+          ]
+        },
+        "image_urls": {
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "image_urls",
+          "description": "URLs of reference images to incorporate into the video, referenced in the prompt as <IMAGE_REF_0>, <IMAGE_REF_1>, etc.",
+          "maxItems": 7
+        },
+        "reference_video_urls": {
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Videos",
+          "name": "reference_video_urls",
+          "description": "Up to 3 reference video clips, each at most 3 seconds long, referenced in the prompt as <VIDEO_REF_0>, <VIDEO_REF_1>, etc.",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Billed per second of generated video: $0.048/s at 360p, $0.16/s at 720p, $0.24/s at 1080p, $0.48/s at 4K.",
+          "default": "720p"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Duration of the generated video, in seconds.",
+          "minValue": 3,
+          "maxValue": 10,
+          "default": 8
+        }
+      },
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "minimax-h3-image-to-video-spicy",
+      "name": "MiniMax H3 Spicy",
+      "endpoint": "minimax-h3-image-to-video-spicy",
+      "family": "minimax-h3-spicy",
+      "imageField": "image_url",
+      "lastImageField": "last_image",
+      "aspectRatioMode": "inherited",
+      "hasPrompt": true,
+      "inputs": {
+        "image_url": {
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "field": "image",
+          "description": "Required starting image URL. The output canvas follows this image's aspect ratio.",
+          "examples": [
+            "https://cdn.muapi.ai/assets/image_download_11.avif"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional description of the scene, action, camera movement, lighting, and mood.",
+          "examples": [
+            "A cinematic ocean wave at sunrise, highly detailed"
+          ]
+        },
+        "last_image": {
+          "type": "string",
+          "title": "Last Image URL",
+          "name": "last_image",
+          "field": "image",
+          "description": "Optional final-frame image URL for interpolation."
+        },
+        "resolution": {
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "enum": [
+            "480p",
+            "768p"
+          ],
+          "default": "480p",
+          "description": "Output video resolution."
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "enum": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "default": 5,
+          "description": "Output video duration in seconds."
+        },
+        "seed": {
+          "type": "integer",
+          "title": "Seed",
+          "name": "seed",
+          "default": -1,
+          "description": "Random seed. Negative values use a random seed."
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+  {
+      "id": "happy-horse-1-image-to-video",
+      "name": "Happy Horse 1 Image to Video",
+      "endpoint": "happy-horse-1-image-to-video",
+      "family": "happy-horse-1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the motion.",
+          "examples": [
+            "The motorcycle suddenly accelerates uncontrollably through traffic while the horse struggles to stay balanced. Cars swerve out of the way, sparks scrape across the road during sharp turns, and the camera tracks inches away from the speeding bike."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheaper, 1080p is more expensive.",
+          "default": "720p"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-image-to-video-720p.jpg"
+          ],
+          "description": "Upload or provide the image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KINOVI",
+      "description": "Happy Horse 1.0 Image to Video — bring still images to life with fluid, expressive animation. Selectable output resolution (720p/1080p) — price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/f4310d95-79d1-4b55-ac05-17d13971f056.avif",
+      "image_url": "https://cdn.muapi.ai/assets/f4310d95-79d1-4b55-ac05-17d13971f056.avif"
+    },
+  {
+      "id": "happy-horse-1-reference-to-video",
+      "name": "Happy Horse 1 Reference to Video",
+      "endpoint": "happy-horse-1-reference-to-video",
+      "family": "happy-horse-1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video. Up to 5,000 non-Chinese (or 2,500 Chinese) characters.",
+          "examples": [
+            "Use @image1 riding inside @image2 at extreme speed through a massive supermarket. The rocket cart blasts through aisles, launches over checkout counters, and sends products exploding everywhere while the camera chases closely behind through the chaos."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheaper, 1080p is more expensive.",
+          "default": "720p"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-720p-1.jpg",
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-720p-2.jpg"
+          ],
+          "description": "1-9 reference image URLs. JPEG/PNG/WEBP, >=400px shortest side, <=10 MB each.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Optional random seed for reproducibility (0-2147483647).",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 2147483647,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KINOVI",
+      "description": "Happy Horse 1.0 Reference to Video - generate expressive video clips conditioned on 1-9 reference images plus a text prompt. Selectable output resolution (720p/1080p) - price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/0c9eb59d-a77d-42ac-b62a-8a3b2151bb1d.avif",
+      "image_url": "https://cdn.muapi.ai/assets/0c9eb59d-a77d-42ac-b62a-8a3b2151bb1d.avif"
+    },
+  {
+      "id": "happy-horse-1.1-image-to-video",
+      "name": "Happy Horse 1.1 Image to Video",
+      "endpoint": "happy-horse-1.1-image-to-video",
+      "family": "happy-horse-1.1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": false,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Optional text description guiding the motion.",
+          "examples": [
+            "A tiny horse wearing boxing gloves stands in front of a massive battle robot. The horse suddenly charges fearlessly and punches the robot so hard that cars flip over."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheaper, 1080p is more expensive.",
+          "default": "720p"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-image-to-video-1080p.jpg"
+          ],
+          "description": "Upload or provide the image to animate.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image",
+          "name": "images_list",
+          "maxItems": 1
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KINOVI",
+      "description": "Happy Horse 1.1 Image to Video — bring still images to life with fluid, expressive animation. Selectable output resolution (720p/1080p) — price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/7135055f-1ea3-47fb-addc-781187b37eca.avif",
+      "image_url": "https://cdn.muapi.ai/assets/7135055f-1ea3-47fb-addc-781187b37eca.avif"
+    },
+  {
+      "id": "happy-horse-1.1-reference-to-video",
+      "name": "Happy Horse 1.1 Reference to Video",
+      "endpoint": "happy-horse-1.1-reference-to-video",
+      "family": "happy-horse-1.1",
+      "imageField": "images_list",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text description of the desired video. Up to 5,000 characters.",
+          "examples": [
+            "Place @image1 inside @image2 running across countertops while giant cooking disasters happen everywhere. Exploding soup pots, flying vegetables, and fire bursts create chaos."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheaper, 1080p is more expensive.",
+          "default": "720p"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-1080p-1.jpg",
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-1080p-2.jpg"
+          ],
+          "description": "1-9 reference image URLs. JPEG/PNG/WEBP, >=400px shortest side, <=10 MB each.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 3,
+          "maxValue": 15,
+          "step": 1
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Optional random seed for reproducibility (0-2147483647).",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 2147483647,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KINOVI",
+      "description": "Happy Horse 1.1 Reference to Video — generate video conditioned on 1-9 reference images plus a text prompt. Selectable output resolution (720p/1080p) — price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/27cdc430-3695-43f1-952a-4fe968d88862.avif",
+      "image_url": "https://cdn.muapi.ai/assets/27cdc430-3695-43f1-952a-4fe968d88862.avif"
+    },
+  {
+      "id": "minimax-h3-max-image-to-video",
+      "name": "MiniMax H3 Max Image to Video",
+      "endpoint": "minimax-h3-max-image-to-video",
+      "family": "minimax-h3-max",
+      "imageField": "image_url",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the motion, action, and camera movement.",
+          "examples": [
+            "The camera slowly pushes in as the subject turns toward the light and fabric moves in a soft breeze."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "Starting frame image. The output canvas follows this image.",
+          "field": "image",
+          "examples": []
+        },
+        "end_image_url": {
+          "type": "string",
+          "title": "End Image URL",
+          "name": "end_image_url",
+          "description": "Optional final frame image. Can be used alone for end-keyframe generation.",
+          "field": "image",
+          "examples": []
+        },
+        "resolution": {
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "enum": [
+            "480p",
+            "768p",
+            "1080p"
+          ],
+          "default": "768p"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "enum": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "default": 5,
+          "description": "Output duration in seconds."
+        },
+        "prompt_expansion_mode": {
+          "type": "string",
+          "title": "Prompt Expansion Mode",
+          "name": "prompt_expansion_mode",
+          "enum": [
+            "disabled",
+            "balanced",
+            "quality"
+          ],
+          "default": "balanced",
+          "description": "Prompt rewriting effort. 'quality' can add up to ~30s of processing."
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "MINIMAX",
+      "description": "MiniMax H3 Max Image to Video animates a source image with a motion prompt at up to 1080p through the Muapi API.",
+      "example_url": "https://cdn.muapi.ai/assets/image_download_27.avif",
+      "image_url": "https://cdn.muapi.ai/assets/image_download_27.avif"
+    },
+  {
+      "id": "minimax-h3-max-reference-to-video",
+      "name": "MiniMax H3 Max Reference to Video",
+      "endpoint": "minimax-h3-max-reference-to-video",
+      "family": "minimax-h3-max",
+      "imageField": "reference_images",
+      "videoField": "reference_videos",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the video scene and how the references should be used (e.g. 'Image 1', 'Video 1').",
+          "examples": [
+            "Use the references to create a cinematic product reveal with a slow camera orbit."
+          ]
+        },
+        "reference_images": {
+          "type": "array",
+          "title": "Reference Images",
+          "name": "reference_images",
+          "description": "Reference image URLs (up to 9). Provide at least one image or video reference. Max 12 combined reference files.",
+          "maxItems": 9,
+          "field": "images_list",
+          "items": {
+            "type": "string"
+          },
+          "examples": []
+        },
+        "reference_videos": {
+          "type": "array",
+          "title": "Reference Videos",
+          "name": "reference_videos",
+          "description": "Reference video URLs (up to 3; 2-15s each, 15s combined max). Provide at least one image or video reference.",
+          "maxItems": 3,
+          "field": "videos_list",
+          "items": {
+            "type": "string"
+          },
+          "examples": []
+        },
+        "reference_audios": {
+          "type": "array",
+          "title": "Reference Audio",
+          "name": "reference_audios",
+          "description": "Optional reference audio URLs (up to 3; 2-15s each, 15s combined max). Audio cannot be used alone.",
+          "maxItems": 3,
+          "field": "audios_list",
+          "items": {
+            "type": "string"
+          },
+          "examples": []
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "enum": [
+            "adaptive",
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "default": "adaptive"
+        },
+        "resolution": {
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "enum": [
+            "480p",
+            "768p",
+            "1080p"
+          ],
+          "default": "768p"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "enum": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "default": 5,
+          "description": "Output duration in seconds."
+        },
+        "prompt_expansion_mode": {
+          "type": "string",
+          "title": "Prompt Expansion Mode",
+          "name": "prompt_expansion_mode",
+          "enum": [
+            "disabled",
+            "balanced",
+            "quality"
+          ],
+          "default": "balanced",
+          "description": "Prompt rewriting effort. 'quality' can add up to ~30s of processing."
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "MINIMAX",
+      "description": "MiniMax H3 Max Reference to Video creates high-fidelity video from a prompt plus image, video, and optional audio references through the Muapi API.",
+      "example_url": "https://cdn.muapi.ai/assets/image_download_26.avif",
+      "image_url": "https://cdn.muapi.ai/assets/image_download_26.avif"
+    },
+  {
+      "id": "minimax-h3-max-turbo-image-to-video",
+      "name": "MiniMax H3 Max Turbo Image to Video",
+      "endpoint": "minimax-h3-max-turbo-image-to-video",
+      "family": "minimax-h3-max",
+      "imageField": "image_url",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Describe the motion, action, and camera movement.",
+          "examples": [
+            "The camera slowly pushes in as the subject turns toward the light and fabric moves in a soft breeze."
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url",
+          "description": "Starting frame image. The output canvas follows this image.",
+          "field": "image",
+          "examples": []
+        },
+        "end_image_url": {
+          "type": "string",
+          "title": "End Image URL",
+          "name": "end_image_url",
+          "description": "Optional final frame image. Can be used alone for end-keyframe generation.",
+          "field": "image",
+          "examples": []
+        },
+        "resolution": {
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "enum": [
+            "480p",
+            "768p",
+            "1080p"
+          ],
+          "default": "768p"
+        },
+        "duration": {
+          "type": "integer",
+          "title": "Duration",
+          "name": "duration",
+          "enum": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "default": 5,
+          "description": "Output duration in seconds."
+        },
+        "prompt_expansion_mode": {
+          "type": "string",
+          "title": "Prompt Expansion Mode",
+          "name": "prompt_expansion_mode",
+          "enum": [
+            "disabled",
+            "balanced",
+            "quality"
+          ],
+          "default": "balanced",
+          "description": "Prompt rewriting effort level."
+        }
+      },
+      "provider": "minimax",
+      "provider_name": "MINIMAX",
+      "description": "MiniMax H3 Max Turbo Image to Video is a faster, lower-cost H3 Max mode that animates a source image at up to 1080p through the Muapi API.",
+      "example_url": "https://cdn.muapi.ai/assets/image_download_27.avif",
+      "image_url": "https://cdn.muapi.ai/assets/image_download_27.avif"
+    },
+  {
+      "id": "seedance-2-spicy-omni-reference",
+      "name": "Seedance 2 Spicy Omni Reference",
+      "endpoint": "seedance-2-spicy-omni-reference",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images, @video1…@video3 for videos, and @audio1…@audio3 for audio. Use @character:<request_id> for a Seedance 2 character sheet or @omni-character:<char_id> for a trained omni-character. Multiple characters are supported.",
+          "examples": [
+            "@image1 is the main character. The person walks along a city street at sunset, cinematic lighting."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheapest, 4K is most expensive.",
+          "default": "720p"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "KINOVI",
+      "description": "Seedance 2 Spicy Omni Reference by ByteDance. Same VIP-tier priority routing as Seedance 2 VIP Omni Reference, generating videos from up to 9 image references, 3 video clips, and 3 audio references, with reduced content-safety filtering for more creative freedom. Reference materials in your prompt with @image1…@image9, @video1…@video3, and @audio1…@audio3. Selectable output resolution (720p/1080p/4K) — price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/75c82e2e-3772-4289-9f7b-2cb794643bea.avif",
+      "image_url": "https://cdn.muapi.ai/assets/75c82e2e-3772-4289-9f7b-2cb794643bea.avif"
+    },
+  {
+      "id": "seedance-2-spicy-omni-reference-fast",
+      "name": "Seedance 2 Spicy Omni Reference Fast",
+      "endpoint": "seedance-2-spicy-omni-reference-fast",
+      "family": "sd-2",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Video description. Use @image1…@image9 to reference images, @video1…@video3 for videos, and @audio1…@audio3 for audio. Use @character:<request_id> for a Seedance 2 character sheet or @omni-character:<char_id> for a trained omni-character. Multiple characters are supported.",
+          "examples": [
+            "@image1 is the main character. The person walks along a city street at sunset, cinematic lighting."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheapest, 4K is most expensive.",
+          "default": "720p"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/ai-images/186/712345784292/4a8c5c70-abcc-4920-873e-b0e219986453.jpg"
+          ],
+          "description": "Up to 9 reference image URLs (JPEG/PNG/WebP). Each Nth image corresponds to @imageN in the prompt.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "video_files": {
+          "examples": [],
+          "description": "Up to 3 reference video clip URLs (MP4, max 15s each). Each Nth video corresponds to @videoN in the prompt.",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video Reference URLs",
+          "name": "video_files",
+          "maxItems": 3
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio files (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ],
+          "type": "string",
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "description": "Output video aspect ratio.",
+          "default": "16:9"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Video duration in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "KINOVI",
+      "description": "Seedance 2 Spicy Omni Reference Fast by ByteDance. Faster video generation using up to 9 image references, up to 3 video clips, and up to 3 audio references with priority routing, and reduced content-safety filtering for more creative freedom. Reference materials in your prompt with @image1…@image9, @video1…@video3, and @audio1…@audio3. Selectable output resolution (720p/1080p/4K) — price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/75c82e2e-3772-4289-9f7b-2cb794643bea.avif",
+      "image_url": "https://cdn.muapi.ai/assets/75c82e2e-3772-4289-9f7b-2cb794643bea.avif"
+    }];;
 
 export const getI2IModelById = (id) => i2iModels.find(m => m.id === id);
 export const getI2VModelById = (id) => i2vModels.find(m => m.id === id);
@@ -8812,7 +27094,3875 @@ export const v2vModels = [
         "default": 0.2
       }
     }
-  }
+  },
+  {
+      "id": "kling-v2.6-std-motion-control",
+      "name": "Kling 2.6 Standard Motion Control",
+      "endpoint": "kling-v2.6-std-motion-control",
+      "family": "kling",
+      "videoField": "video_url",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "inputs": KLING_MOTION_INPUTS,
+      "promptRequired": true,
+      "description": "Kling v2.6 Pro Motion Control allows precise control over camera movement, subject motion, and scene dynamics during video generation.",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "kling-v3.0-std-motion-control",
+      "name": "Kling 3.0 Standard Motion Control",
+      "endpoint": "kling-v3.0-std-motion-control",
+      "family": "kling",
+      "videoField": "video_url",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "inputs": KLING_3_MOTION_INPUTS,
+      "description": "Kling V3.0 Standard Motion Control allows for precise control over the camera and subject movement in generated videos.",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "mmaudio-v2-video-to-video",
+      "name": "MMAudio v2",
+      "endpoint": "mmaudio-v2/video-to-video",
+      "family": "mmaudio",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "description": "MMAudio-v2 generates high-quality, synchronized audio from video or text inputs.",
+      "provider": "mmaudio",
+      "provider_name": "MMAudio"
+    },
+  {
+      "id": "runway-aleph-v2v",
+      "name": "Runway Aleph",
+      "endpoint": "runway-aleph-v2v",
+      "family": "runway",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "description": "Transform any input video into a new visual style or scene while preserving motion and structure.",
+      "provider": "runway",
+      "provider_name": "RunwayML"
+    },
+  {
+      "id": "ai-dance-effects",
+      "name": "AI Dance Effects",
+      "endpoint": "ai-dance-effects",
+      "family": "effects",
+      "videoField": "video_url",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "description": "Bring your characters and worlds to life with AI Dance Effects — a creative video effect that adds playful, dynamic, and cinematic motion to your generations.",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+  {
+      "id": "ai-video-upscaler",
+      "name": "AI Video Upscaler",
+      "endpoint": "ai-video-upscaler",
+      "family": "tools",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "description": "The AI Video Upscaler is a powerful tool designed to enhance the resolution and quality of videos.",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+  {
+      "id": "wan2.2-edit-video",
+      "name": "Wan2.2 Edit Video",
+      "endpoint": "wan2.2-edit-video",
+      "family": "wan2.2",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "resolution": WAN_22_RESOLUTION_INPUT
+      },
+      "description": "Easily modify existing videos using simple text commands.",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "heygen-video-translate",
+      "name": "HeyGen Video Translate",
+      "endpoint": "heygen-video-translate",
+      "family": "tools",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "description": "Convert any video into 175+ languages with synchronized voice translation, AI-voice cloning, and accurate lip sync.",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+  {
+      "id": "topaz-video-upscale",
+      "name": "Topaz Video Upscale",
+      "endpoint": "topaz-video-upscale",
+      "family": "topaz",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "description": "The AI Video Upscaler is a powerful tool designed to enhance the resolution and quality of videos.",
+      "provider": "topaz",
+      "provider_name": "Topaz Labs"
+    },
+  {
+      "id": "ai-video-upscaler-pro",
+      "name": "AI Video Upscaler Pro",
+      "endpoint": "ai-video-upscaler-pro",
+      "family": "tools",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "description": "The AI Video Upscaler is a powerful tool designed to enhance the resolution and quality of videos.",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+  {
+      "id": "remix-video",
+      "name": "Remix Video",
+      "endpoint": "remix-video",
+      "family": "tools",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "description": "Transform and resize your videos effortlessly with remix video tool.",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+  {
+      "id": "kling-o1-video-edit",
+      "name": "Kling O1 Pro Edit",
+      "endpoint": "kling-o1-video-edit",
+      "family": "kling-o1",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "maxImages": 4,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "required": [
+        "prompt",
+        "images_list",
+        "video_url"
+      ],
+      "inputs": KLING_O1_PRO_EDIT_INPUTS,
+      "description": "Kling O1 Video Edit lets you send an existing video clip plus an instruction/prompt to edit or transform the clip while preserving temporal coherence and subject identity.",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "kling-o1-video-edit-fast",
+      "name": "Kling O1 Pro Edit Fast",
+      "endpoint": "kling-o1-video-edit-fast",
+      "family": "kling-o1",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "maxImages": 4,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "required": [
+        "prompt",
+        "images_list",
+        "video_url"
+      ],
+      "inputs": KLING_O1_PRO_EDIT_INPUTS,
+      "description": "Video Edit Fast is the lightweight, high-speed editing mode of Kling O1.",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "kling-o1-standard-video-edit",
+      "name": "Kling O1 Standard Edit",
+      "endpoint": "kling-o1-standard-video-edit",
+      "family": "kling-o1",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "maxImages": 4,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "required": [
+        "prompt",
+        "images_list",
+        "video_url"
+      ],
+      "inputs": KLING_O1_EDIT_INPUTS,
+      "description": "Kling O1 Standard Video-to-Video Edit modifies an existing video while preserving its original structure, motion, and realism.",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "wan2.2-spicy-video-extend",
+      "name": "Wan2.2 Spicy Video Extend",
+      "endpoint": "wan2.2-spicy-video-extend",
+      "family": "wan2.2",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "resolution": WAN_22_RESOLUTION_INPUT,
+        "duration": {
+          "type": "integer", "title": "Duration", "name": "duration",
+          "enum": [5, 8], "default": 5
+        }
+      },
+      "description": "Wan-2.2-spicy Video Extend continues an existing video by generating new frames that match the original style but add stronger motion, bolder effects, and spicier dramatics.",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "seedance-v1.5-pro-video-extend",
+      "name": "Seedance v1.5 Pro Video Extend",
+      "endpoint": "seedance-v1.5-pro-video-extend",
+      "family": "seedance-v1.5-pro",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": SEEDANCE_15_EXTEND_INPUTS,
+      "description": "Seedance v1.5 Pro Video Extend continues an existing video by generating additional frames that match the original scene’s style, lighting, motion, and mood.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2-watermark-remover",
+      "name": "Seedance 2 Watermark Remover",
+      "endpoint": "seedance-2.0-watermark-remover",
+      "family": "sd-v2.0",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "description": "🎉 FREE for a limited time — Remove SD 2.0 watermarks from videos using LaMa AI inpainting.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "ai-captions",
+      "name": "AI Captions",
+      "endpoint": "ai-captions",
+      "family": "tools",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "description": "Add AI-generated animated captions to any video using Vadoo's caption engine.",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+  {
+      "id": "ltx-2.3-video-extend",
+      "name": "LTX 2.3 Extend",
+      "endpoint": "ltx-2.3-video-extend",
+      "family": "ltx2.3",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "inputs": {
+        "duration": {
+          "title": "Extend duration",
+          "name": "duration",
+          "type": "integer",
+          "enum": Array.from({ length: 20 }, (_, index) => index + 1),
+          "default": 5
+        }
+      },
+      "description": "LTX-2.3 Video Extend seamlessly continues an existing video clip by generating additional frames that match the original motion, style, and scene composition.",
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+  {
+      "id": "seedance-2-video-watermark-remover-pro",
+      "name": "Seedance 2 Video Watermark Remover Pro",
+      "endpoint": "seedance-2-video-watermark-remover-pro",
+      "family": "sd-v2.0",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "description": "SD 2 Video Watermark Remover Pro uses the SD 2 AI model to remove watermarks, logos, and overlaid text from videos with high accuracy.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "pixverse-v6-extend",
+      "name": "PixVerse V6 Extend",
+      "endpoint": "pixverse-v6-extend",
+      "family": "pixverse-v6",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "resolution": {
+          "type": "string", "title": "Resolution", "name": "resolution",
+          "enum": ["360p", "540p", "720p", "1080p"], "default": "720p"
+        },
+        "duration": {
+          "type": "integer", "title": "Duration", "name": "duration",
+          "enum": Array.from({ length: 15 }, (_, index) => index + 1), "default": 5
+        },
+        "generate_audio_switch": {
+          "type": "boolean", "title": "Generate audio", "name": "generate_audio_switch",
+          "default": false
+        },
+        "negative_prompt": {
+          "type": "string", "title": "Negative prompt", "name": "negative_prompt"
+        },
+        "style": {
+          "type": "string", "title": "Style", "name": "style",
+          "enum": ["anime", "3d_animation", "clay", "comic", "cyberpunk"]
+        }
+      },
+      "description": "Extend any existing video with new frames using PixVerse V6.",
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+  {
+      "id": "wan2.7-video-extend",
+      "name": "Wan 2.7 Extend",
+      "endpoint": "wan2.7-video-extend",
+      "family": "wan2.7",
+      "videoField": "video_url",
+      "audioField": "audio_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "audio_url": WAN_AUDIO_INPUT,
+        "negative_prompt": WAN_NEGATIVE_PROMPT_INPUT,
+        "resolution": WAN_27_RESOLUTION_INPUT,
+        "duration": {
+          "type": "integer", "title": "Duration", "name": "duration",
+          "minValue": 5, "maxValue": 15, "default": 5
+        }
+      },
+      "description": "Extend existing videos seamlessly with Wan 2.7.",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "wan2.7-video-edit",
+      "name": "Wan 2.7 Edit",
+      "endpoint": "wan2.7-video-edit",
+      "family": "wan2.7",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "maxImages": 3,
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "negative_prompt": WAN_NEGATIVE_PROMPT_INPUT,
+        "resolution": WAN_27_RESOLUTION_INPUT,
+        "duration": {
+          "type": "integer", "title": "Duration", "name": "duration",
+          "description": "Use 0 to match the source video length, up to 10 seconds.",
+          "minValue": 0, "maxValue": 10, "default": 0
+        },
+        "audio_setting": {
+          "type": "string", "title": "Audio", "name": "audio_setting",
+          "description": "Follow the prompt or keep the source audio.",
+          "enum": ["auto", "origin"], "default": "auto"
+        }
+      },
+      "description": "Perform prompt-driven video editing with multi-image reference support.",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "happy-horse-1-video-edit-1080p",
+      "name": "HappyHorse 1.0 Edit 1080P",
+      "endpoint": "happy-horse-1-video-edit-1080p",
+      "fixedParameters": { "resolution": "1080p" },
+      "family": "happy-horse-1",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "maxImages": 5,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": HAPPY_HORSE_EDIT_INPUTS,
+      "description": "Happy Horse 1.0 Video Edit (1080p) - modify an input video at 1080p using a natural-language instruction with optional reference images.",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1-video-edit-720p",
+      "name": "HappyHorse 1.0 Edit 720P",
+      "endpoint": "happy-horse-1-video-edit-720p",
+      "fixedParameters": { "resolution": "720p" },
+      "family": "happy-horse-1",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "maxImages": 5,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": HAPPY_HORSE_EDIT_INPUTS,
+      "description": "Happy Horse 1.0 Video Edit (720p) - modify an input video at 720p using a natural-language instruction with optional reference images.",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1.1-video-edit-1080p",
+      "name": "Happy Horse 1.1 Video Edit 1080P",
+      "endpoint": "happy-horse-1.1-video-edit-1080p",
+      "fixedParameters": { "resolution": "1080p" },
+      "family": "happy-horse-1.1",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "maxImages": 5,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": HAPPY_HORSE_EDIT_INPUTS,
+      "description": "Happy Horse 1.1 Video Edit (1080p) — modify an input video using natural-language instructions with optional reference images.",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "happy-horse-1.1-video-edit-720p",
+      "name": "Happy Horse 1.1 Video Edit 720P",
+      "endpoint": "happy-horse-1.1-video-edit-720p",
+      "fixedParameters": { "resolution": "720p" },
+      "family": "happy-horse-1.1",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "maxImages": 5,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": HAPPY_HORSE_EDIT_INPUTS,
+      "description": "Happy Horse 1.1 Video Edit (720p) — modify an input video using natural-language instructions with optional reference images.",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+  {
+      "id": "gemini-omni-video-edit",
+      "name": "Gemini Omni Video Edit",
+      "endpoint": "gemini-omni-video-edit",
+      "family": "gemini-omni",
+      "videoField": "video_url",
+      "imageField": "image_urls",
+      "maxImages": 7,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "description": "Gemini Omni Video Edit — natively multimodal video-to-video editing.",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "video-background-remover",
+      "name": "Video Background Remover",
+      "endpoint": "video-background-remover",
+      "family": "tools",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "description": "Video Background Remover automatically removes the background from any video, producing a clean cutout of the subject with a transparent or solid-color backdrop.",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+  {
+      "id": "kling-v2.6-pro-motion-control",
+      "name": "Kling 2.6 Pro Motion Control",
+      "endpoint": "kling-v2.6-pro-motion-control",
+      "family": "kling-v2.6",
+      "videoField": "video_url",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "inputs": KLING_MOTION_INPUTS,
+      "promptRequired": true,
+      "description": "Kling v2.6 Pro Motion Control allows precise control over camera movement, subject motion, and scene dynamics during video generation.",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+  {
+      "id": "infinitetalk-video-to-video",
+      "name": "InfiniteTalk",
+      "endpoint": "infinitetalk-video-to-video",
+      "family": "infinite-talk",
+      "videoField": "video_url",
+      "audioField": "audio_url",
+      "hasPrompt": true,
+      "required": [
+        "video_url",
+        "audio_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            ""
+          ],
+          "description": "The prompt to generate the video",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/infinite-input-video.mp4"
+          ],
+          "description": "URL of the input video.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "audio_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/infinite-video-audio.wav"
+          ],
+          "description": "The URL for uploading audio files.",
+          "field": "audio",
+          "type": "string",
+          "title": "Audio URL",
+          "name": "audio_url"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "480p"
+        }
+      },
+      "description": "InfiniteTalk Video-to-Video enhances or transforms existing videos by syncing the subject\u2019s lip movements and facial expressions with new dialogue or speech. Instead of starting from a still image, you provide a video clip, and the model seamlessly reanimates the speaker\u2019s mouth and expressions to match the script.",
+      "provider": "infinite-talk",
+      "provider_name": "Infinite Talk"
+    },
+  {
+      "id": "wan2.2-animate",
+      "name": "Wan2.2 Animate",
+      "endpoint": "wan2.2-animate",
+      "family": "wan2.2",
+      "videoField": "video_url",
+      "imageField": "image_url",
+      "hasPrompt": true,
+      "required": [
+        "image_url",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            ""
+          ],
+          "description": "Optional prompt for generating video.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "image_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/wan2.2-animate-image.jpg"
+          ],
+          "description": "URL of the input image.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/wan2.2-animate-in.mp4"
+          ],
+          "description": "URL of the input video.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "mode": {
+          "configurable": true,
+          "enum": [
+            "animate",
+            "replace"
+          ],
+          "title": "Mode",
+          "name": "mode",
+          "type": "string",
+          "description": "Animate Mode: animate the character in input image with movements from the input video. Replace Mode: replace the character in input video with the character in input image.",
+          "default": "animate"
+        },
+        "resolution": {
+          "enum": [
+            "480p",
+            "720p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "The resolution of the generated video.",
+          "default": "480p"
+        }
+      },
+      "description": "Wan2.2 Animate is a video-to-video model for animating a character or replacing a character in existing video clips. It replicates holistic movement and facial expressions from a reference video or pose while preserving the target character\u2019s appearance. You upload both an image (for the character) and a video containing motion/expression, and the model generates a video where the character in your image moves like the reference. Supports 480p or 720p, up to 120 seconds",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+  {
+      "id": "volcengine-video-to-video-lip-sync",
+      "name": "Volcengine Lipsync",
+      "endpoint": "volcengine-video-to-video-lip-sync",
+      "family": "volcengine-lipsync",
+      "videoField": "video_url",
+      "audioField": "audio_url",
+      "hasPrompt": false,
+      "required": [
+        "mode",
+        "video_url",
+        "audio_url"
+      ],
+      "inputs": {
+        "mode": {
+          "enum": [
+            "lite",
+            "basic"
+          ],
+          "type": "string",
+          "title": "Mode",
+          "name": "mode",
+          "description": "Service mode. 'lite' is for single-person frontal videos with faster processing. 'basic' is for single-person complex scenes, supporting scene segmentation and speaker identification.",
+          "default": "lite"
+        },
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/muapi/data/volcengine-lipsync-video.mp4"
+          ],
+          "description": "Video URL. Supported resolution: 360p-1080p. Videos above 1080p are compressed to 1080p; below 360p is not supported. Supported formats: MOV, MP4, HDR. Max file size: 500MB.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "audio_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/muapi/data/volcengine-lipsync-audio.mp3"
+          ],
+          "description": "Target pure vocal audio URL used to drive the video's lip movements. Max file size: 10MB.",
+          "field": "audio",
+          "type": "string",
+          "title": "Audio URL",
+          "name": "audio_url"
+        },
+        "separate_vocal": {
+          "type": "boolean",
+          "title": "Separate Vocal",
+          "name": "separate_vocal",
+          "description": "Enable vocal separation to suppress background noise.",
+          "default": false
+        },
+        "open_scenedet": {
+          "type": "boolean",
+          "title": "Scene Detection",
+          "name": "open_scenedet",
+          "description": "Enable scene segmentation and speaker identification. Only supported in Basic mode.",
+          "default": false
+        },
+        "align_audio": {
+          "type": "boolean",
+          "title": "Align Audio (Loop Video)",
+          "name": "align_audio",
+          "description": "Supported in Lite mode. Whether to loop the video when the audio is longer than the video.",
+          "default": true
+        },
+        "align_audio_reverse": {
+          "type": "boolean",
+          "title": "Align Audio Reverse",
+          "name": "align_audio_reverse",
+          "description": "Supported in Lite mode. Whether to loop the video in reverse (backward). Requires align_audio to be true.",
+          "default": false
+        },
+        "templ_start_seconds": {
+          "type": "int",
+          "title": "Template Start Seconds",
+          "name": "templ_start_seconds",
+          "description": "Supported in Lite mode. Start time of the template video, in seconds.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 60,
+          "step": 1
+        }
+      },
+      "description": "Drive a video's lip movements to match a target audio track, producing a lip-synced video output.",
+      "provider": "volcengine-lipsync",
+      "provider_name": "Volcengine Lipsync"
+    },
+  {
+      "id": "seedance-2.5-video-edit",
+      "name": "Seedance 2.5 Video Edit",
+      "endpoint": "seedance-2.5-video-edit",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-video-edit-480p",
+      "name": "Seedance 2.5 Video Edit 480p",
+      "endpoint": "seedance-2.5-video-edit-480p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit 480p edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-video-edit-1080p",
+      "name": "Seedance 2.5 Video Edit 1080p",
+      "endpoint": "seedance-2.5-video-edit-1080p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit 1080p edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-video-edit-4k",
+      "name": "Seedance 2.5 Video Edit 4K",
+      "endpoint": "seedance-2.5-video-edit-4k",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit 4K edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-video-extend",
+      "name": "Seedance 2.5 Video Extend",
+      "endpoint": "seedance-2.5-video-extend",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-video-extend-480p",
+      "name": "Seedance 2.5 Video Extend 480p",
+      "endpoint": "seedance-2.5-video-extend-480p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend 480p extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-video-extend-1080p",
+      "name": "Seedance 2.5 Video Extend 1080p",
+      "endpoint": "seedance-2.5-video-extend-1080p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend 1080p extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-video-extend-4k",
+      "name": "Seedance 2.5 Video Extend 4K",
+      "endpoint": "seedance-2.5-video-extend-4k",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend 4K extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-video-edit",
+      "name": "Seedance 2.5 Intl Video Edit",
+      "endpoint": "seedance-2.5-intl-video-edit",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed. This international-region endpoint is served via a Dreamina-hosted deployment of the same Seedance 2.5 model, for traffic outside mainland China.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-video-edit",
+      "name": "Seedance 2.5 Spicy Video Edit",
+      "endpoint": "seedance-2.5-spicy-video-edit",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed. This Spicy endpoint is the relaxed-moderation sibling of the standard tier, with lighter content-safety filtering and bolder, higher-contrast output.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-video-edit-480p",
+      "name": "Seedance 2.5 Intl Video Edit 480p",
+      "endpoint": "seedance-2.5-intl-video-edit-480p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit 480p edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed. This international-region endpoint is served via a Dreamina-hosted deployment of the same Seedance 2.5 model, for traffic outside mainland China.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-video-edit-480p",
+      "name": "Seedance 2.5 Spicy Video Edit 480p",
+      "endpoint": "seedance-2.5-spicy-video-edit-480p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit 480p edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed. This Spicy endpoint is the relaxed-moderation sibling of the standard tier, with lighter content-safety filtering and bolder, higher-contrast output.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-video-edit-1080p",
+      "name": "Seedance 2.5 Intl Video Edit 1080p",
+      "endpoint": "seedance-2.5-intl-video-edit-1080p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit 1080p edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed. This international-region endpoint is served via a Dreamina-hosted deployment of the same Seedance 2.5 model, for traffic outside mainland China.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-video-edit-1080p",
+      "name": "Seedance 2.5 Spicy Video Edit 1080p",
+      "endpoint": "seedance-2.5-spicy-video-edit-1080p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit 1080p edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed. This Spicy endpoint is the relaxed-moderation sibling of the standard tier, with lighter content-safety filtering and bolder, higher-contrast output.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-video-edit-4k",
+      "name": "Seedance 2.5 Intl Video Edit 4K",
+      "endpoint": "seedance-2.5-intl-video-edit-4k",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit 4K edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed. This international-region endpoint is served via a Dreamina-hosted deployment of the same Seedance 2.5 model, for traffic outside mainland China.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-video-edit-4k",
+      "name": "Seedance 2.5 Spicy Video Edit 4K",
+      "endpoint": "seedance-2.5-spicy-video-edit-4k",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "images_list",
+      "imageOptional": true,
+      "audioField": "audios_list",
+      "maxImages": 30,
+      "maxAudios": 10,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Change the lighting to golden hour and add light fog to the environment."
+          ],
+          "description": "Instructions for the edit \u2014 lighting, style, weather, environment, or specific elements to change. Automatically prefixed with \"Edit the input video.\"",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-edit-in.mp4"
+          ],
+          "description": "URL of the video to edit. Videos longer than 30s are trimmed to 30s.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "images_list": {
+          "examples": [],
+          "description": "Reference image URLs guiding subject identity or style. Up to 30 images.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 30
+        },
+        "audios_list": {
+          "examples": [],
+          "description": "Reference audio URLs guiding audio generation. Up to 10 files.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Audio",
+          "name": "audios_list",
+          "maxItems": 10
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate new audio. If false, the input video's original audio is preserved.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Edit 4K edits an input video from a natural-language prompt. The reference video drives subject identity, composition, and motion while the model rewrites lighting, style, weather, environment, or specific elements as instructed. This Spicy endpoint is the relaxed-moderation sibling of the standard tier, with lighter content-safety filtering and bolder, higher-contrast output.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-video-extend",
+      "name": "Seedance 2.5 Intl Video Extend",
+      "endpoint": "seedance-2.5-intl-video-extend",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt. This international-region endpoint is served via a Dreamina-hosted deployment of the same Seedance 2.5 model, for traffic outside mainland China.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-video-extend",
+      "name": "Seedance 2.5 Spicy Video Extend",
+      "endpoint": "seedance-2.5-spicy-video-extend",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt. This Spicy endpoint is the relaxed-moderation sibling of the standard tier, with lighter content-safety filtering and bolder, higher-contrast output.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-video-extend-480p",
+      "name": "Seedance 2.5 Intl Video Extend 480p",
+      "endpoint": "seedance-2.5-intl-video-extend-480p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend 480p extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt. This international-region endpoint is served via a Dreamina-hosted deployment of the same Seedance 2.5 model, for traffic outside mainland China.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-video-extend-480p",
+      "name": "Seedance 2.5 Spicy Video Extend 480p",
+      "endpoint": "seedance-2.5-spicy-video-extend-480p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend 480p extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt. This Spicy endpoint is the relaxed-moderation sibling of the standard tier, with lighter content-safety filtering and bolder, higher-contrast output.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-video-extend-1080p",
+      "name": "Seedance 2.5 Intl Video Extend 1080p",
+      "endpoint": "seedance-2.5-intl-video-extend-1080p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend 1080p extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt. This international-region endpoint is served via a Dreamina-hosted deployment of the same Seedance 2.5 model, for traffic outside mainland China.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-video-extend-1080p",
+      "name": "Seedance 2.5 Spicy Video Extend 1080p",
+      "endpoint": "seedance-2.5-spicy-video-extend-1080p",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend 1080p extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt. This Spicy endpoint is the relaxed-moderation sibling of the standard tier, with lighter content-safety filtering and bolder, higher-contrast output.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-intl-video-extend-4k",
+      "name": "Seedance 2.5 Intl Video Extend 4K",
+      "endpoint": "seedance-2.5-intl-video-extend-4k",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend 4K extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt. This international-region endpoint is served via a Dreamina-hosted deployment of the same Seedance 2.5 model, for traffic outside mainland China.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "seedance-2.5-spicy-video-extend-4k",
+      "name": "Seedance 2.5 Spicy Video Extend 4K",
+      "endpoint": "seedance-2.5-spicy-video-extend-4k",
+      "family": "seedance-2.5",
+      "videoField": "video_url",
+      "imageField": "last_image",
+      "imageOptional": true,
+      "lastImageField": "last_image",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The car keeps driving down the coastal road as the sun sets, camera slowly pulling back."
+          ],
+          "description": "Desired cinematic continuation \u2014 action, camera movement, lighting, mood.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://cdn.muapi.ai/assets/seedance-2.5-video-extend-in.mp4"
+          ],
+          "description": "URL of the video to extend. Generation continues from its last frame.",
+          "type": "string",
+          "title": "Video Url",
+          "name": "video_url",
+          "field": "video"
+        },
+        "last_image": {
+          "examples": [],
+          "description": "Optional target frame URL. When set, the continuation interpolates from the input video's final frame toward this image.",
+          "type": "string",
+          "title": "Last Image",
+          "name": "last_image",
+          "field": "image"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension clip in seconds.",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 30,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized audio for the new segment.",
+          "default": true
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Random seed for reproducible generation. Use -1 for random.",
+          "minValue": -1,
+          "maxValue": 4294967295,
+          "examples": [
+            42
+          ]
+        },
+        "high_bitrate": {
+          "type": "boolean",
+          "title": "High Bitrate",
+          "name": "high_bitrate",
+          "description": "Enable high bitrate mode for better visual fidelity. Produces larger files.",
+          "default": false
+        },
+        "aspect_ratio": SEEDANCE_25_ASPECT_RATIO_INPUT
+      },
+      "description": "Seedance 2.5 Video Extend 4K extends an input video with a new cinematic continuation generated from its last frame and a natural-language prompt. This Spicy endpoint is the relaxed-moderation sibling of the standard tier, with lighter content-safety filtering and bolder, higher-contrast output.",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+  {
+      "id": "flux-3-video-extend",
+      "name": "FLUX 3 Video Extend",
+      "endpoint": "flux-3-video-extend",
+      "family": "flux-3",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The camera pulls back to reveal a sunrise breaking over the skyline, birds taking flight."
+          ],
+          "description": "Text prompt describing how the video should continue.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/flux-3-video.mp4"
+          ],
+          "description": "URL of the source video to extend. Must be under 50 MB and under 15 seconds.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "title": "Resolution",
+          "name": "resolution",
+          "type": "string",
+          "description": "Output video resolution.",
+          "default": "720p"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Length of the extension in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized native audio for the extended video.",
+          "default": true
+        }
+      },
+      "description": "FLUX 3 Video Extend continues an existing video clip with prompt-guided motion, scene development, and camera movement \u2014 with optional native synchronized audio \u2014 using Black Forest Labs' unified image/video/audio architecture. Source clips must be under 50 MB and under 15 seconds.",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "flux-3-video-upscaler",
+      "name": "FLUX Video Upscale",
+      "endpoint": "flux-3-video-upscaler",
+      "family": "flux-3",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "operation": "upscale",
+      "required": [
+        "video_url"
+      ],
+      "inputs": {
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/flux-3-video.mp4"
+          ],
+          "description": "URL of the source video to upscale.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "prompt": {
+          "examples": [
+            "Sharpen fine detail and preserve natural film grain."
+          ],
+          "description": "Optional text prompt describing the desired enhancement direction, detail style, or visual refinement.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "upscale_factor": {
+          "title": "Upscale Factor",
+          "name": "upscale_factor",
+          "type": "number",
+          "description": "Multiplier controlling output resolution scaling.",
+          "default": 2,
+          "minValue": 1,
+          "maxValue": 4,
+          "step": 0.5
+        },
+        "creativity": {
+          "enum": [
+            0,
+            1
+          ],
+          "title": "Creativity",
+          "name": "creativity",
+          "type": "int",
+          "description": "0 = Precise (higher fidelity to source), 1 = Creative (more reconstruction, higher pricing tier).",
+          "default": 0
+        }
+      },
+      "description": "FLUX 3 Video Upscaler raises FLUX 3 (or any) video output beyond its native resolution, preserving motion coherence and native audio sync while sharpening detail \u2014 useful since FLUX 3 Video launches capped at 720p ahead of a planned 1080p+ rollout.",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "flux-3-video-extend-draft",
+      "name": "FLUX 3 Video Extend Draft",
+      "endpoint": "flux-3-video-extend-draft",
+      "family": "flux-3",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "extend",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "The camera pulls back to reveal a sunrise breaking over the skyline, birds taking flight."
+          ],
+          "description": "Describe the next action, scene development, camera movement, mood, lighting, and visual continuity.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/flux-3-video.mp4"
+          ],
+          "description": "URL of the source video to extend. Must be under 50 MB and under 15 seconds.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video."
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "Draft extension length in seconds.",
+          "default": 5,
+          "minValue": 5,
+          "maxValue": 20,
+          "step": 1
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "title": "Generate Audio",
+          "name": "generate_audio",
+          "description": "Whether to generate synchronized native audio for the draft extension.",
+          "default": true
+        }
+      },
+      "description": "FLUX 3 Video Extend Draft is a fast, lower-cost draft mode for testing continuity, camera movement, and visual consistency before extending a clip with FLUX 3 Video Extend.",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+  {
+      "id": "gemini-omni-flash-1-1-edit",
+      "name": "Gemini Omni 1.1 Flash Edit",
+      "endpoint": "gemini-omni-flash-1-1-edit",
+      "family": "gemini-omni",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "promptRequired": true,
+      "operation": "edit",
+      "required": [
+        "prompt",
+        "video_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "A simple instruction describing the edit.",
+          "examples": [
+            "Make this video anime. Keep everything else the same."
+          ]
+        },
+        "video_url": {
+          "field": "video",
+          "type": "string",
+          "title": "Source Video",
+          "name": "video_url",
+          "description": "URL of the video to edit."
+        },
+        "resolution": {
+          "enum": [
+            "360p",
+            "720p",
+            "1080p",
+            "4k"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Billed per second of source video (rounded up, min 3s / max 10s billed): $0.048/s at 360p, $0.16/s at 720p, $0.24/s at 1080p, $0.48/s at 4K.",
+          "default": "720p"
+        }
+      },
+      "description": "Gemini Omni 1.1 Flash Video Edit \u2014 restyle or edit a source video with a single text instruction, powered by Gemini Omni's natively multimodal any-to-any model.",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+  {
+      "id": "depth-anything",
+      "name": "Depth Anything V2",
+      "endpoint": "depth-anything",
+      "family": "video",
+      "videoField": "video_url",
+      "imageField": "image_url",
+      "imageOptional": true,
+      "hasPrompt": false,
+      "inputs": {
+        "video_url": {
+          "type": "string",
+          "title": "Video URL",
+          "field": "video",
+          "name": "video_url",
+          "description": "The URL of the driving video to extract a per-frame depth map from. Provide exactly one of video_url or image_url.",
+          "examples": [
+            "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+          ]
+        },
+        "image_url": {
+          "type": "string",
+          "title": "Image URL",
+          "field": "image",
+          "name": "image_url",
+          "description": "The URL of a single image to generate a depth map from. Provide exactly one of video_url or image_url.",
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedream-5.0-edit.jpg"
+          ]
+        }
+      },
+      "description": "Extract a per-frame depth map from a video or image using Depth Anything V2, for use as a motion/structure control signal in AI video generation.",
+      "provider": "video",
+      "provider_name": "Video"
+    },
+  {
+      "id": "runway-act-two-v2v",
+      "name": "Runway Act Two V2V",
+      "endpoint": "runway-act-two-v2v",
+      "family": "runway",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "inputs": {
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/videos/186/949545949165/ae612a72-578f-4eb2-a33c-9deea0017b28.mp4"
+          ],
+          "description": "URL of the input video. An video of your character. In the output, the character will use the reference video performance in its original static environment.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "reference_video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/videos/186/703170005884/a024ec71-10b5-4d41-ab84-2055fb3f14b3.mp4"
+          ],
+          "description": "A video URL pointing to a video of a person performing in the manner that you would like your character to perform.",
+          "field": "video",
+          "type": "string",
+          "title": "Reference Video URL",
+          "name": "reference_video_url"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output video.",
+          "default": "16:9"
+        }
+      },
+      "provider": "runway",
+      "description": "Take an existing character video and sync it with the motion from a reference video. This lets you update facial expressions, head turns, and speech gestures while keeping the original look and style. It’s perfect for reshooting performances, dubbing, or animating characters without re-rendering visuals.",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/muapi/homepage/runway-act-two-v2v.avif"
+    },
+  {
+      "id": "luma-flash-reframe",
+      "name": "Luma Flash Reframe",
+      "endpoint": "luma-flash-reframe",
+      "family": "luma",
+      "imageField": "image_url",
+      "videoField": "video_url",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": false,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            ""
+          ],
+          "description": "Optional prompt for reframing.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/videos/186/251774920487/6cc08197-125a-42f4-96cc-9c2440f69c18.mp4"
+          ],
+          "description": "URL of the input video to reframe.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4",
+            "21:9",
+            "9:21"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "description": "Aspect ratio of the output image.",
+          "default": "1:1"
+        },
+        "image_url": {
+          "examples": [
+            null
+          ],
+          "description": "Optional URL of the first frame image for reframing.",
+          "field": "image",
+          "type": "string",
+          "title": "Image URL",
+          "name": "image_url"
+        },
+        "duration": {
+          "enum": [
+            5,
+            8,
+            10
+          ],
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the generated video in seconds.",
+          "default": 5
+        }
+      },
+      "provider": "luma",
+      "provider_name": "KIE_AI",
+      "description": "Transform and resize your videos effortlessly with Ray 2 Flash Reframe. This tool intelligently expands or adjusts your video’s aspect ratio—adding visually consistent content to the sides, top, or bottom—without altering the original subject.",
+      "example_url": "https://d3adwkbyhxyrtq.cloudfront.net/aivideo/videos/186/396136358051/luma-reframe.mp4",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/luma-reframe.avif"
+    },
+  {
+      "id": "seedance-2-video-edit",
+      "name": "Seedance 2 Video Edit",
+      "endpoint": "seedance-v2.0-video-edit",
+      "family": "sd-v2.0",
+      "imageField": "images_list",
+      "videoField": "video_urls",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Replace the running man with @image1. Preserve the exact running motion, speed, and camera shake. Ensure the armor glows dynamically with the environment lighting and reflects passing car lights. Maintain realistic foot contact with the ground and motion blur consistency."
+          ],
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text prompt describing the video edit."
+        },
+        "video_urls": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-video-edit-in.avif"
+          ],
+          "description": "Upload up to 1 video URL. (Max size: 10MB, Max duration: 15s)",
+          "field": "videos_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Video URLs",
+          "name": "video_urls",
+          "maxItems": 1
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-video-edit.jpg"
+          ],
+          "description": "Upload up to 9 image URLs.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Image URLs",
+          "name": "images_list",
+          "maxItems": 9
+        },
+        "audio_files": {
+          "examples": [],
+          "description": "Up to 3 reference audio clip URLs (MP3/WAV, total max 15s). Each Nth audio corresponds to @audioN in the prompt.",
+          "field": "audios_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Audio Reference URLs",
+          "name": "audio_files",
+          "maxItems": 3
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4"
+          ],
+          "title": "Aspect Ratio",
+          "name": "aspect_ratio",
+          "type": "string",
+          "default": "16:9"
+        },
+        "quality": {
+          "enum": [
+            "high",
+            "basic"
+          ],
+          "title": "Quality",
+          "name": "quality",
+          "type": "string",
+          "default": "basic"
+        },
+        "duration": {
+          "type": "int",
+          "title": "Duration (seconds)",
+          "name": "duration",
+          "description": "Output video duration in seconds (4–15).",
+          "default": 5,
+          "minValue": 4,
+          "maxValue": 15,
+          "step": 1
+        }
+      },
+      "provider": "bytedance",
+      "provider_name": "PI_API",
+      "description": "SD 2.0 Video Edit modifies existing videos based on text prompts and optional reference images.",
+      "example_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-video-edit.mp4",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/seedance-v2.0-video-edit.avif"
+    },
+  {
+      "id": "happy-horse-1-video-edit",
+      "name": "Happy Horse 1 Video Edit",
+      "endpoint": "happy-horse-1-video-edit",
+      "family": "happy-horse-1",
+      "imageField": "images_list",
+      "videoField": "video_url",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Edit instruction describing the change to apply to the video.",
+          "examples": [
+            "Replace the horse with @image1 and transform the kitchen environment to match @image2 while preserving the original running path and camera movement. Add larger fire bursts, exploding soup pots, flying vegetables, steam clouds, and frantic comedic reactions from the raccoon chef."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheaper, 1080p is more expensive.",
+          "default": "720p"
+        },
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-1080p.mp4"
+          ],
+          "description": "Source video URL. MP4/MOV (H.264 recommended), 3-60s, <=100 MB, longer side <=2160px, shorter >=320px, frame rate >8 fps.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-video-edit-720p-1.jpg",
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-video-edit-720p-2.jpg"
+          ],
+          "description": "Optional 0-5 reference image URLs to guide the edit.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 5
+        },
+        "audio_setting": {
+          "enum": [
+            "auto",
+            "origin"
+          ],
+          "type": "string",
+          "title": "Audio Setting",
+          "name": "audio_setting",
+          "description": "Audio strategy: 'auto' lets the model decide, 'origin' preserves source audio.",
+          "default": "auto"
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Optional random seed for reproducibility (0-2147483647).",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 2147483647,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KINOVI",
+      "description": "Happy Horse 1.0 Video Edit - modify an input video using a natural-language instruction with optional reference images. Selectable output resolution (720p/1080p) - price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/f2d805a3-e08b-478c-92cc-9a9e9c0cee92.avif",
+      "image_url": "https://cdn.muapi.ai/assets/f2d805a3-e08b-478c-92cc-9a9e9c0cee92.avif"
+    },
+  {
+      "id": "happy-horse-1.1-video-edit",
+      "name": "Happy Horse 1.1 Video Edit",
+      "endpoint": "happy-horse-1.1-video-edit",
+      "family": "happy-horse-1.1",
+      "imageField": "images_list",
+      "videoField": "video_url",
+      "imageOptional": true,
+      "hasPrompt": true,
+      "promptRequired": true,
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Edit instruction describing the change to apply to the video.",
+          "examples": [
+            "Replace the horse with @image1 and replace the shopping cart with @image2 while preserving the original high-speed motion and camera movement."
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ],
+          "type": "string",
+          "title": "Resolution",
+          "name": "resolution",
+          "description": "Output resolution. Price scales with resolution: 720p is cheaper, 1080p is more expensive.",
+          "default": "720p"
+        },
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-reference-to-video-720p.mp4"
+          ],
+          "description": "Source video URL. MP4/MOV (H.264 recommended), 3-60s, <=100 MB, longer side <=2160px, shorter >=320px, frame rate >8 fps.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "images_list": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-video-edit-1080p-1.jpg",
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/happy-horse-1-video-edit-1080p-2.jpg"
+          ],
+          "description": "Optional 0-5 reference image URLs to guide the edit.",
+          "field": "images_list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Images",
+          "name": "images_list",
+          "maxItems": 5
+        },
+        "audio_setting": {
+          "enum": [
+            "auto",
+            "origin"
+          ],
+          "type": "string",
+          "title": "Audio Setting",
+          "name": "audio_setting",
+          "description": "Audio strategy: 'auto' lets the model decide, 'origin' preserves source audio.",
+          "default": "auto"
+        },
+        "seed": {
+          "type": "int",
+          "title": "Seed",
+          "name": "seed",
+          "description": "Optional random seed for reproducibility (0-2147483647).",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 2147483647,
+          "step": 1
+        }
+      },
+      "provider": "alibaba",
+      "provider_name": "KINOVI",
+      "description": "Happy Horse 1.1 Video Edit — modify an input video using natural-language instructions with optional reference images. Selectable output resolution (720p/1080p) — price scales with the resolution chosen.",
+      "example_url": "https://cdn.muapi.ai/assets/5da8b3c4-56db-4b80-8187-36b02ae584d9.avif",
+      "image_url": "https://cdn.muapi.ai/assets/5da8b3c4-56db-4b80-8187-36b02ae584d9.avif"
+    },
+  {
+      "id": "topaz-upscale-video-creative",
+      "name": "Topaz Upscale Video Creative",
+      "endpoint": "topaz-upscale-video-creative",
+      "family": "topaz-2-video-creative",
+      "videoField": "video_url",
+      "hasPrompt": true,
+      "promptRequired": false,
+      "inputs": {
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/topaz-upscaler-in.mp4"
+          ],
+          "description": "Input video to upscale.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "prompt": {
+          "description": "Optional text prompt to guide creative detail (limits input to 450 frames when set).",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "creativity": {
+          "description": "Creative detail strength (0-1).",
+          "type": "number",
+          "title": "Creativity",
+          "name": "creativity",
+          "default": 0.5
+        },
+        "realism": {
+          "description": "Realism strength (0-1).",
+          "type": "number",
+          "title": "Realism",
+          "name": "realism"
+        },
+        "sharp": {
+          "description": "Sharpening amount (0-1).",
+          "type": "number",
+          "title": "Sharp",
+          "name": "sharp"
+        },
+        "upscale_factor": {
+          "description": "Factor to upscale the video by.",
+          "type": "number",
+          "title": "Upscale Factor",
+          "name": "upscale_factor",
+          "default": 2
+        },
+        "target_fps": {
+          "description": "Target output frame rate.",
+          "type": "int",
+          "title": "Target FPS",
+          "name": "target_fps",
+          "minValue": 16,
+          "maxValue": 60,
+          "step": 1
+        },
+        "H264_output": {
+          "description": "Encode output using H.264 instead of the default codec.",
+          "type": "boolean",
+          "title": "H264 Output",
+          "name": "H264_output",
+          "default": false
+        }
+      },
+      "provider": "topaz",
+      "provider_name": "FAL_AI",
+      "description": "Upscale a video with Topaz's Astra 2 creative diffusion model, generating new plausible detail while enlarging up to 4x and up to 4K.",
+      "example_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/topaz-upscaler.mp4",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/topaz-upscaler.avif"
+    },
+  {
+      "id": "topaz-upscale-video-generative",
+      "name": "Topaz Upscale Video Generative",
+      "endpoint": "topaz-upscale-video-generative",
+      "family": "topaz-2-video-generative",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "inputs": {
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/topaz-upscaler-in.mp4"
+          ],
+          "description": "Input video to upscale.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "model": {
+          "description": "Topaz Starlight generative upscale model variant.",
+          "type": "string",
+          "title": "Model",
+          "name": "model",
+          "enum": [
+            "Starlight Precise 2.6",
+            "Starlight HQ",
+            "Starlight Mini",
+            "Starlight Sharp",
+            "Starlight Fast 2"
+          ],
+          "default": "Starlight Precise 2.6"
+        },
+        "upscale_factor": {
+          "description": "Factor to upscale the video by.",
+          "type": "number",
+          "title": "Upscale Factor",
+          "name": "upscale_factor",
+          "default": 2
+        },
+        "target_fps": {
+          "description": "Target output frame rate.",
+          "type": "int",
+          "title": "Target FPS",
+          "name": "target_fps",
+          "minValue": 16,
+          "maxValue": 60,
+          "step": 1
+        },
+        "softness": {
+          "description": "Softness level, Starlight Precise 2.6 only (1-5).",
+          "type": "int",
+          "title": "Softness",
+          "name": "softness",
+          "minValue": 1,
+          "maxValue": 5,
+          "step": 1
+        },
+        "H264_output": {
+          "description": "Encode output using H.264 instead of the default codec.",
+          "type": "boolean",
+          "title": "H264 Output",
+          "name": "H264_output",
+          "default": false
+        }
+      },
+      "provider": "topaz",
+      "provider_name": "FAL_AI",
+      "description": "Upscale a video with Topaz's Starlight generative models, reconstructing clean, temporally consistent detail for heavily degraded or low-resolution footage.",
+      "example_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/topaz-upscaler.mp4",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/topaz-upscaler.avif"
+    },
+  {
+      "id": "topaz-upscale-video-precision",
+      "name": "Topaz Upscale Video Precision",
+      "endpoint": "topaz-upscale-video-precision",
+      "family": "topaz-2-video-precision",
+      "videoField": "video_url",
+      "hasPrompt": false,
+      "inputs": {
+        "video_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/topaz-upscaler-in.mp4"
+          ],
+          "description": "Input video to upscale.",
+          "field": "video",
+          "type": "string",
+          "title": "Video URL",
+          "name": "video_url"
+        },
+        "model": {
+          "description": "Topaz precision upscale model variant (Proteus/Iris/Dione/Artemis/Gaia/Rhea/Theia families).",
+          "type": "string",
+          "title": "Model",
+          "name": "model",
+          "enum": [
+            "Proteus",
+            "Proteus Natural",
+            "Iris",
+            "Iris Low Quality",
+            "Dione DV",
+            "Dione TV",
+            "Dione Robust",
+            "Dione Dehalo",
+            "Dione Robust Dehalo",
+            "Artemis High Quality",
+            "Artemis Medium Quality",
+            "Artemis Low Quality",
+            "Artemis Strong Halo",
+            "Artemis Medium Halo",
+            "Artemis Aliasing & Moire",
+            "Gaia HQ",
+            "Gaia CG",
+            "Gaia 2",
+            "Rhea",
+            "Theia Fine Tune Detail",
+            "Theia Fine Tune Fidelity"
+          ],
+          "default": "Proteus"
+        },
+        "upscale_factor": {
+          "description": "Factor to upscale the video by.",
+          "type": "number",
+          "title": "Upscale Factor",
+          "name": "upscale_factor",
+          "default": 2
+        },
+        "target_fps": {
+          "description": "Target output frame rate.",
+          "type": "int",
+          "title": "Target FPS",
+          "name": "target_fps",
+          "minValue": 16,
+          "maxValue": 60,
+          "step": 1
+        },
+        "compression": {
+          "description": "Compression-artifact reduction amount (0-1).",
+          "type": "number",
+          "title": "Compression",
+          "name": "compression"
+        },
+        "noise": {
+          "description": "Noise reduction amount (0-1).",
+          "type": "number",
+          "title": "Noise",
+          "name": "noise"
+        },
+        "halo": {
+          "description": "Halo/ringing reduction amount (0-1).",
+          "type": "number",
+          "title": "Halo",
+          "name": "halo"
+        },
+        "grain": {
+          "description": "Film-grain amount to add back (0-0.1).",
+          "type": "number",
+          "title": "Grain",
+          "name": "grain"
+        },
+        "recover_detail": {
+          "description": "Detail recovery amount (0-1).",
+          "type": "number",
+          "title": "Recover Detail",
+          "name": "recover_detail"
+        },
+        "H264_output": {
+          "description": "Encode output using H.264 instead of the default codec.",
+          "type": "boolean",
+          "title": "H264 Output",
+          "name": "H264_output",
+          "default": false
+        }
+      },
+      "provider": "topaz",
+      "provider_name": "FAL_AI",
+      "description": "Upscale a video faithfully with Topaz's precision model library (Proteus, Artemis, Iris, Dione, Gaia, Rhea, Theia), tuned for clean broadcast/CGI/animation sources.",
+      "example_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/topaz-upscaler.mp4",
+      "image_url": "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/topaz-upscaler.avif"
+    }
 ];
 
 export const getV2VModelById = (id) => v2vModels.find(m => m.id === id);
@@ -8982,7 +31132,87 @@ export const lipsyncModels = [
       "default": false
     }
   }
-}];
+},
+  {
+      "id": "volcengine-video-to-video-lip-sync",
+      "name": "Volcengine Video to Video Lip Sync",
+      "endpoint": "volcengine-video-to-video-lip-sync",
+      "family": "volcengine-lipsync",
+      "category": "video",
+      "hasPrompt": false,
+      "description": "Drive a video's lip movements to match a target audio track, producing a lip-synced video output.",
+      "inputs": {
+        "mode": {
+          "enum": [
+            "lite",
+            "basic"
+          ],
+          "type": "string",
+          "title": "Mode",
+          "name": "mode",
+          "description": "Service mode. 'lite' is for single-person frontal videos with faster processing. 'basic' is for single-person complex scenes, supporting scene segmentation and speaker identification.",
+          "default": "lite"
+        }
+      }
+    },
+  {
+      "id": "kling-v1-avatar-standard",
+      "name": "Kling v1 Avatar Standard",
+      "endpoint": "kling-v1-avatar-standard",
+      "family": "kling-v1",
+      "category": "image",
+      "hasPrompt": true,
+      "description": "Kling AI Avatar Standard creates talking avatar videos from a single image + audio input."
+    },
+  {
+      "id": "kling-v1-avatar-pro",
+      "name": "Kling v1 Avatar Pro",
+      "endpoint": "kling-v1-avatar-pro",
+      "family": "kling-v1",
+      "category": "image",
+      "hasPrompt": true,
+      "description": "Kling AI Avatar Pro is the premium tier for making high-quality talking avatars."
+    },
+  {
+      "id": "kling-v2-avatar-standard",
+      "name": "Kling v2 Avatar Standard",
+      "endpoint": "kling-v2-avatar-standard",
+      "family": "kling-v2",
+      "category": "image",
+      "hasPrompt": true,
+      "description": "AI-Avatar v2 Standard generates a talking-avatar video from a reference image and an audio dialogue."
+    },
+  {
+      "id": "kling-v2-avatar-pro",
+      "name": "Kling v2 Avatar Pro",
+      "endpoint": "kling-v2-avatar-pro",
+      "family": "kling-v2",
+      "category": "image",
+      "hasPrompt": true,
+      "description": "AI-Avatar v2 Pro takes a reference image of a person/character and an audio dialogue clip, then generates a realistic talking-avatar video."
+    },
+  {
+      "id": "omnihuman-1-5",
+      "name": "Omnihuman 1 5",
+      "endpoint": "omnihuman-1-5",
+      "family": "omnihuman",
+      "category": "image",
+      "hasPrompt": true,
+      "description": "Generate realistic talking head video from portrait image and audio using KIE OmniHuman 1.5.",
+      "inputs": {
+        "output_resolution": {
+          "enum": [
+            "720",
+            "1080"
+          ],
+          "type": "string",
+          "title": "Output Resolution",
+          "name": "output_resolution",
+          "description": "Output video resolution.",
+          "default": "1080"
+        }
+      }
+    }];
 
 export const getLipSyncModelById = (id) => lipsyncModels.find(m => m.id === id);
 
@@ -9115,7 +31345,1464 @@ export const audioModels = [
       }
     }
   }
-}];;
+},
+  {
+      "id": "suno-generate-sounds",
+      "name": "Suno Generate Sounds",
+      "endpoint": "suno-generate-sounds",
+      "family": "suno",
+      "description": "Generate sound effects using Suno chirp-crow model.",
+      "required": [
+        "prompt"
+      ],
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "sounds task type supports up to 500 characters.",
+          "examples": [
+            "A car passing by"
+          ]
+        },
+        "model": {
+          "enum": [
+            "V5"
+          ],
+          "type": "string",
+          "title": "Model",
+          "name": "model",
+          "description": "The model to use",
+          "default": "V5"
+        },
+        "sound_loop": {
+          "type": "boolean",
+          "title": "Loop",
+          "name": "sound_loop",
+          "description": "Whether to loop the generated sound.",
+          "default": false
+        },
+        "sound_tempo": {
+          "type": "int",
+          "title": "Sound Tempo",
+          "name": "sound_tempo",
+          "description": "Sound tempo",
+          "minValue": 1,
+          "maxValue": 300,
+          "step": 1,
+          "default": 1
+        },
+        "sound_key": {
+          "enum": [
+            "Any",
+            "Cm",
+            "C#m",
+            "Dm",
+            "D#m",
+            "Em",
+            "Fm",
+            "F#m",
+            "Gm",
+            "G#m",
+            "Am",
+            "A#m",
+            "Bm",
+            "C",
+            "C#",
+            "D",
+            "D#",
+            "E",
+            "F",
+            "F#",
+            "G",
+            "G#",
+            "A",
+            "A#",
+            "B"
+          ],
+          "type": "string",
+          "title": "Sound Key",
+          "name": "sound_key",
+          "description": "Musical key",
+          "default": "Any"
+        },
+        "grab_lyrics": {
+          "type": "boolean",
+          "title": "Grab Lyrics",
+          "name": "grab_lyrics",
+          "description": "Whether to fetch lyric subtitles after generation is completed.",
+          "default": false
+        }
+      }
+    },
+  {
+      "id": "suno-add-vocals",
+      "name": "Suno Add Vocals",
+      "endpoint": "suno-add-vocals",
+      "family": "suno",
+      "description": "Add vocals to an instrumental track.",
+      "required": [
+        "prompt",
+        "title",
+        "style",
+        "audio_url"
+      ],
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt (Lyrics)",
+          "name": "prompt",
+          "description": "Lyrics to sing",
+          "examples": [
+            "[Verse 1]\nHello world..."
+          ]
+        },
+        "audio_url": {
+          "type": "string",
+          "title": "Instrumental Audio",
+          "name": "audio_url",
+          "description": "URL of instrumental track",
+          "field": "audio"
+        },
+        "style": {
+          "type": "string",
+          "title": "Style",
+          "name": "style",
+          "description": "Vocal style",
+          "examples": [
+            "Pop"
+          ]
+        },
+        "negative_tags": {
+          "type": "string",
+          "title": "Negative Tags",
+          "name": "negative_tags",
+          "description": "Excluded styles"
+        },
+        "model": {
+          "enum": [
+            "V4",
+            "V4_5",
+            "V4_5PLUS",
+            "V5"
+          ],
+          "title": "Model",
+          "name": "model",
+          "type": "string",
+          "description": "The AI model version to use.",
+          "default": "V5"
+        },
+        "vocal_gender": {
+          "enum": [
+            "male",
+            "female"
+          ],
+          "title": "Vocal Gender",
+          "name": "vocal_gender",
+          "type": "string",
+          "description": "Vocal gender preference.",
+          "default": "male"
+        },
+        "style_weight": {
+          "title": "Style Weight",
+          "name": "style_weight",
+          "type": "int",
+          "description": "Strength of style adherence (0-1).",
+          "minValue": 0,
+          "maxValue": 1,
+          "step": 0.05,
+          "default": 0.65
+        },
+        "weirdness_constraint": {
+          "title": "Weirdness Constraint",
+          "name": "weirdness_constraint",
+          "type": "int",
+          "description": "Experimental deviation (0-1).",
+          "minValue": 0,
+          "maxValue": 1,
+          "step": 0.01,
+          "default": 0.65
+        },
+        "audio_weight": {
+          "title": "Audio Weight",
+          "name": "audio_weight",
+          "type": "int",
+          "description": "Balance weight (0-1).",
+          "minValue": 0,
+          "maxValue": 1,
+          "step": 0.01,
+          "default": 0.65
+        },
+        "title": {
+          "type": "string",
+          "title": "Title",
+          "name": "title",
+          "description": "Track title",
+          "default": "New Vocal Track"
+        }
+      }
+    },
+  {
+      "id": "suno-generate-mashup",
+      "name": "Suno Geneate Mashup",
+      "endpoint": "suno-generate-mashup",
+      "family": "suno",
+      "description": "Create a mashup using 1-5 audio tracks.",
+      "required": [
+        "audios_list"
+      ],
+      "inputs": {
+        "audios_list": {
+          "type": "array",
+          "title": "Mashup Tracks",
+          "name": "audios_list",
+          "description": "Upload up to 2 audio files to mashup music from multiple audio tracks.",
+          "field": "audios_list",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Creative guidance"
+        },
+        "style": {
+          "type": "string",
+          "title": "Style",
+          "name": "style",
+          "description": "Mashup style"
+        },
+        "instrumental": {
+          "type": "boolean",
+          "title": "Instrumental",
+          "name": "instrumental",
+          "description": "If true: Only style is required else style, and prompt are required (with prompt used as the exact lyrics)",
+          "default": true
+        },
+        "model": {
+          "enum": [
+            "V4",
+            "V4_5",
+            "V4_5PLUS",
+            "V5"
+          ],
+          "title": "Model",
+          "name": "model",
+          "type": "string",
+          "description": "The AI model version to use.",
+          "default": "V5"
+        },
+        "vocal_gender": {
+          "enum": [
+            "male",
+            "female"
+          ],
+          "title": "Vocal Gender",
+          "name": "vocal_gender",
+          "type": "string",
+          "description": "Vocal gender preference.",
+          "default": "male"
+        },
+        "style_weight": {
+          "title": "Style Weight",
+          "name": "style_weight",
+          "type": "int",
+          "description": "Strength of style adherence (0-1).",
+          "minValue": 0,
+          "maxValue": 1,
+          "step": 0.05,
+          "default": 0.65
+        },
+        "weirdness_constraint": {
+          "title": "Weirdness Constraint",
+          "name": "weirdness_constraint",
+          "type": "int",
+          "description": "Experimental deviation (0-1).",
+          "minValue": 0,
+          "maxValue": 1,
+          "step": 0.05,
+          "default": 0.65
+        },
+        "audio_weight": {
+          "title": "Audio Weight",
+          "name": "audio_weight",
+          "type": "int",
+          "description": "Balance weight (0-1).",
+          "minValue": 0,
+          "maxValue": 1,
+          "step": 0.05,
+          "default": 0.65
+        },
+        "title": {
+          "type": "string",
+          "title": "Title",
+          "name": "title",
+          "description": "Mashup title",
+          "default": "New Mashup"
+        }
+      }
+    },
+  {
+      "id": "suno-add-instrumental",
+      "name": "Suno Add Instrumental",
+      "endpoint": "suno-add-instrumental",
+      "family": "suno",
+      "description": "Add instrumental backing to acapella audio.",
+      "required": [
+        "title",
+        "tags",
+        "audio_url"
+      ],
+      "inputs": {
+        "audio_url": {
+          "type": "string",
+          "title": "Vocal Audio",
+          "name": "audio_url",
+          "description": "URL of vocal track",
+          "field": "audio"
+        },
+        "tags": {
+          "type": "string",
+          "title": "Tags",
+          "name": "tags",
+          "description": "Instrumental styles",
+          "examples": [
+            "Orchestral"
+          ]
+        },
+        "negative_tags": {
+          "type": "string",
+          "title": "Negative Tags",
+          "name": "negative_tags",
+          "description": "Excluded styles"
+        },
+        "model": {
+          "enum": [
+            "V4",
+            "V4_5",
+            "V4_5PLUS",
+            "V5"
+          ],
+          "title": "Model",
+          "name": "model",
+          "type": "string",
+          "description": "The AI model version to use.",
+          "default": "V5"
+        },
+        "vocal_gender": {
+          "enum": [
+            "male",
+            "female"
+          ],
+          "title": "Vocal Gender",
+          "name": "vocal_gender",
+          "type": "string",
+          "description": "Vocal gender preference.",
+          "default": "male"
+        },
+        "style_weight": {
+          "title": "Style Weight",
+          "name": "style_weight",
+          "type": "int",
+          "description": "Strength of style adherence (0-1).",
+          "minValue": 0,
+          "maxValue": 1,
+          "step": 0.05,
+          "default": 0.65
+        },
+        "weirdness_constraint": {
+          "title": "Weirdness Constraint",
+          "name": "weirdness_constraint",
+          "type": "int",
+          "description": "Experimental deviation (0-1).",
+          "minValue": 0,
+          "maxValue": 1,
+          "step": 0.05,
+          "default": 0.65
+        },
+        "audio_weight": {
+          "title": "Audio Weight",
+          "name": "audio_weight",
+          "type": "int",
+          "description": "Balance weight (0-1).",
+          "minValue": 0,
+          "maxValue": 1,
+          "step": 0.05,
+          "default": 0.65
+        },
+        "title": {
+          "type": "string",
+          "title": "Title",
+          "name": "title",
+          "description": "Track title",
+          "default": "Instrumental Song"
+        }
+      }
+    },
+  {
+      "id": "suno-voice-clone",
+      "name": "Suno Voice Cloning",
+      "endpoint": "suno-voice-clone",
+      "family": "suno",
+      "description": "Clone your singing voice in two takes for use with Suno music generation. Submit a 10-second sample, then read back a fresh random phrase the system generates (anti-deepfake liveness check), and receive a reusable voice_id you can drop into Suno music creation. Free during preview.",
+      "required": [
+        "audio_url"
+      ],
+      "inputs": {
+        "audio_url": {
+          "examples": [
+            "https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/minimax-voice-clone-in.wav"
+          ],
+          "description": "URL of a clean 10-second recording of the voice to clone. Mono is fine. The provider extracts a vocal segment between vocal_start_s and vocal_end_s.",
+          "field": "audio",
+          "type": "string",
+          "title": "Voice Sample URL",
+          "name": "audio_url"
+        },
+        "voice_name": {
+          "type": "string",
+          "title": "Voice Name",
+          "name": "voice_name",
+          "description": "A short label for your voice, shown in the voice picker (optional).",
+          "placeholder": "My Voice"
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "name": "description",
+          "description": "Free-form description of this voice (optional).",
+          "placeholder": "Warm female alto, slight rasp."
+        },
+        "style": {
+          "type": "string",
+          "title": "Style Tags",
+          "name": "style",
+          "description": "Comma-separated style hints used at music generation time (optional).",
+          "placeholder": "Pop, Female Vocal"
+        },
+        "language": {
+          "enum": [
+            "en",
+            "zh",
+            "es",
+            "fr",
+            "pt",
+            "de",
+            "ja",
+            "ko",
+            "hi",
+            "ru"
+          ],
+          "title": "Language",
+          "name": "language",
+          "type": "string",
+          "description": "Language the voice sample is spoken in.",
+          "default": "en"
+        },
+        "vocal_start_s": {
+          "type": "int",
+          "title": "Vocal Start (seconds)",
+          "name": "vocal_start_s",
+          "description": "Start time of the vocal segment within the sample.",
+          "default": 0,
+          "minValue": 0,
+          "maxValue": 60,
+          "step": 1
+        },
+        "vocal_end_s": {
+          "type": "int",
+          "title": "Vocal End (seconds)",
+          "name": "vocal_end_s",
+          "description": "End time of the vocal segment within the sample. Must be greater than Vocal Start.",
+          "default": 10,
+          "minValue": 1,
+          "maxValue": 60,
+          "step": 1
+        }
+      }
+    },
+  {
+      "id": "mmaudio-v2-text-to-audio",
+      "name": "MM Audio V2",
+      "endpoint": "mmaudio-v2/text-to-audio",
+      "family": "mmaudio",
+      "description": "Convert text into natural-sounding speech using mmAudio-v2. Ideal for voiceovers, virtual assistants, and content narration with lifelike clarity and tone.",
+      "required": [
+        "prompt"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Indian holy music"
+          ],
+          "description": "The prompt to generate the audio for.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt"
+        },
+        "duration": {
+          "title": "Duration",
+          "name": "duration",
+          "type": "int",
+          "description": "The duration of the audio to generate.",
+          "default": 8,
+          "minValue": 1,
+          "maxValue": 30,
+          "step": 1
+        }
+      }
+    },
+  {
+      "id": "elevenlabs-text-to-dialogue-v3",
+      "name": "ElevenLabs Text to Dialogue V3",
+      "endpoint": "elevenlabs-text-to-dialogue-v3",
+      "family": "audio-generation",
+      "description": "Generate expressive, multilingual text-to-dialogue content using the ElevenLabs Text To Dialogue V3 model.",
+      "required": [
+        "dialogue"
+      ],
+      "inputs": {
+        "dialogue": {
+          "type": "array",
+          "title": "Dialogue Script",
+          "description": "List of speaker turns.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "title": "Text",
+                "description": "Speech text for the character."
+              },
+              "voice_id": {
+                "type": "string",
+                "title": "Voice ID",
+                "description": "ElevenLabs voice ID. Select a popular voice or paste your own custom voice ID.",
+                "typing": true,
+                "enum": [
+                  {
+                    "label": "James - Husky, Engaging and Bold",
+                    "value": "ZQe5CZNOzWyzPSCn5a3c"
+                  },
+                  {
+                    "label": "Arabella - Mysterious and Emotive",
+                    "value": "Z3R5wn05IrDiVCyEkUrK"
+                  },
+                  {
+                    "label": "Bradford - Expressive and Articulate",
+                    "value": "NNl6r8mD7vthiJatiJt1"
+                  },
+                  {
+                    "label": "Xavier - Dominating, Metallic Announcer",
+                    "value": "YOq2y2Up4RgXP2HyXjE5"
+                  },
+                  {
+                    "label": "Taksh - Calm, Serious and Smooth",
+                    "value": "qDuRKMlYmrm8trt5QyBn"
+                  },
+                  {
+                    "label": "Monika Sogam - Deep and Natural",
+                    "value": "iP95p4xoKVk53GoZ742B"
+                  },
+                  {
+                    "label": "Mark - Casual, Relaxed and Light",
+                    "value": "UgBBYS2sOqTuMpoF3BR0"
+                  },
+                  {
+                    "label": "Adeline - Feminine and Conversational",
+                    "value": "5l5f8iK3YPeGga21rQIX"
+                  },
+                  {
+                    "label": "Sam - Support Agent",
+                    "value": "yoZ06aMxZJJ28mfd3POQ"
+                  },
+                  {
+                    "label": "Spuds Oxley - Wise and Approachable",
+                    "value": "NOpBlnGInO9m6vDvFkFC"
+                  },
+                  {
+                    "label": "Eve - Authentic, Energetic and Happy",
+                    "value": "scOwDtmlLZohaFMFCHFe"
+                  },
+                  {
+                    "label": "Callum - Husky Trickster",
+                    "value": "N2lVS1w4EtoT3dr4eOWO"
+                  },
+                  {
+                    "label": "Laura - Enthusiast, Quirky Attitude",
+                    "value": "FGY2WhTYpPnrIDTdsKH5"
+                  },
+                  {
+                    "label": "Brian - Deep, Resonant and Comforting",
+                    "value": "zPhCVfO2NBER7bRLIdbq"
+                  },
+                  {
+                    "label": "Nathan - Virtual Radio Host",
+                    "value": "nPczCjzI2devNBz1zQrb"
+                  },
+                  {
+                    "label": "Charlie - Natural",
+                    "value": "IKne3meq5aSn9XLyUdCD"
+                  },
+                  {
+                    "label": "George - Warm",
+                    "value": "JBFqnCBsd6RMkjVDRZzb"
+                  },
+                  {
+                    "label": "Sarah - Soft",
+                    "value": "EXAVITQu4vr4xnSDxMaL"
+                  },
+                  {
+                    "label": "Charlotte - Clear",
+                    "value": "XB0fDUnXU5powFXDhCwa"
+                  },
+                  {
+                    "label": "Hope - Bubbly, Gossipy and Girly",
+                    "value": "tnSpp4vdxKPjI9w0GnoV"
+                  },
+                  {
+                    "label": "Finn - Youthful, Eager and Energetic",
+                    "value": "DYkrAHD8iwork3YSUBbs"
+                  },
+                  {
+                    "label": "Tom - Conversations and Books",
+                    "value": "56AoDkrOh6qfVPDXZ7Pt"
+                  },
+                  {
+                    "label": "Lucy - Fresh and Casual",
+                    "value": "lcMyyd2HUfFzxdCaC4Ta"
+                  },
+                  {
+                    "label": "Tiffany - Natural and Welcoming",
+                    "value": "6aDn1KB0hjpdcocrUkmq"
+                  },
+                  {
+                    "label": "Brock - Commanding and Loud Sergeant",
+                    "value": "7ftFdxRlmR6Z9V3nTdUh"
+                  },
+                  {
+                    "label": "Viraj - Rich and Soft",
+                    "value": "bajNon13EdhNMndG3z05"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "text",
+              "voice_id"
+            ]
+          }
+        },
+        "stability": {
+          "type": "number",
+          "title": "Stability",
+          "description": "Determines voice stability and randomness (0 to 1, default 0.5).",
+          "default": 0.5
+        },
+        "language_code": {
+          "type": "string",
+          "title": "Language Code",
+          "description": "Target language for dialogue. Leave empty for automatic language detection.",
+          "default": null,
+          "enum": [
+            "af",
+            "ar",
+            "hy",
+            "as",
+            "az",
+            "be",
+            "bn",
+            "bs",
+            "bg",
+            "ca",
+            "ceb",
+            "ny",
+            "hr",
+            "cs",
+            "da",
+            "nl",
+            "en",
+            "et",
+            "fil",
+            "fi",
+            "fr",
+            "gl",
+            "ka",
+            "de",
+            "el",
+            "gu",
+            "ha",
+            "he",
+            "hi",
+            "hu",
+            "is",
+            "id",
+            "ga",
+            "it",
+            "ja",
+            "jv",
+            "kn",
+            "kk",
+            "ky",
+            "ko",
+            "lv",
+            "ln",
+            "lt",
+            "lb",
+            "mk",
+            "ms",
+            "ml",
+            "zh",
+            "mr",
+            "ne",
+            "no",
+            "ps",
+            "fa",
+            "pl",
+            "pt",
+            "pa",
+            "ro",
+            "ru",
+            "sr",
+            "sd",
+            "sk",
+            "sl",
+            "so",
+            "es",
+            "sw",
+            "sv",
+            "ta",
+            "te",
+            "th",
+            "tr",
+            "uk",
+            "ur",
+            "vi",
+            "cy"
+          ]
+        }
+      }
+    },
+  {
+      "id": "suno-convert-to-wav",
+      "name": "Suno Convert to WAV",
+      "endpoint": "suno-convert-to-wav",
+      "family": "suno",
+      "description": "Converts an existing Suno-generated music track to high-quality, uncompressed WAV format for professional editing and processing.",
+      "required": [
+        "task_id",
+        "audio_id"
+      ],
+      "inputs": {
+        "task_id": {
+          "examples": [
+            "5c79b5b3-1234-4a12-9f10-abcdef8be8e"
+          ],
+          "description": "The request_id returned from a prior Generate Music / Remix Music / Extend Music request whose track you want to convert.",
+          "type": "string",
+          "title": "Task ID",
+          "name": "task_id"
+        },
+        "audio_id": {
+          "examples": [
+            "e231e123-4567-89ab-cdef-0123456789ab"
+          ],
+          "description": "The id of the specific audio track to convert, taken from the `audio_ids` list returned in that task's output.",
+          "type": "string",
+          "title": "Audio ID",
+          "name": "audio_id"
+        }
+      }
+    },
+  {
+      "id": "gemini-3-1-flash-tts",
+      "name": "Gemini 3.1 Flash TTS",
+      "endpoint": "gemini-3-1-flash-tts",
+      "family": "gemini-tts",
+      "description": "Gemini 3.1 Flash TTS turns written dialogue into expressive, natural multi-speaker speech with fine-grained control over voice, accent, emotional style, and pace.",
+      "required": [
+        "speakers",
+        "dialogue_turns"
+      ],
+      "inputs": {
+        "speakers": {
+          "type": "array",
+          "title": "Speakers",
+          "name": "speakers",
+          "description": "List of speaker voice configurations. Each dialogue turn references a speaker by its ID.",
+          "examples": [
+            [
+              {
+                "speaker_id": "Speaker 1",
+                "voice_name": "Fenrir",
+                "audio_profile": "A stern and weary gatekeeper",
+                "accent": "British (RP)",
+                "style": "Deadpan",
+                "pace": "Natural"
+              },
+              {
+                "speaker_id": "Speaker 2",
+                "voice_name": "Puck",
+                "audio_profile": "A determined and courageous traveler seeking answers.",
+                "accent": "American (Gen)",
+                "style": "Empathetic",
+                "pace": "Staccato"
+              }
+            ]
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "speaker_id": {
+                "type": "string",
+                "title": "Speaker ID",
+                "description": "Speaker identifier. Must be in \"Speaker N\" format (e.g. \"Speaker 1\")."
+              },
+              "voice_name": {
+                "type": "string",
+                "title": "Voice",
+                "description": "Prebuilt Gemini voice name.",
+                "enum": [
+                  "Achernar",
+                  "Achird",
+                  "Algenib",
+                  "Algieba",
+                  "Alnilam",
+                  "Aoede",
+                  "Autonoe",
+                  "Callirrhoe",
+                  "Charon",
+                  "Despina",
+                  "Enceladus",
+                  "Erinome",
+                  "Fenrir",
+                  "Gacrux",
+                  "Iapetus",
+                  "Kore",
+                  "Laomedeia",
+                  "Leda",
+                  "Orus",
+                  "Puck",
+                  "Pulcherrima",
+                  "Rasalgethi",
+                  "Sadachbia",
+                  "Sadaltager",
+                  "Schedar",
+                  "Sulafat",
+                  "Umbriel",
+                  "Vindemiatrix",
+                  "Zephyr",
+                  "Zubenelgenubi"
+                ]
+              },
+              "audio_profile": {
+                "type": "string",
+                "title": "Audio Profile",
+                "description": "Optional natural-language description of the persona, e.g. \"A warm and soothing narrator\"."
+              },
+              "accent": {
+                "type": "string",
+                "title": "Accent",
+                "description": "Speaking accent.",
+                "enum": [
+                  "Neutral",
+                  "American (Gen)",
+                  "American (Valley)",
+                  "American (South)",
+                  "British (RP)",
+                  "British (Brixton)",
+                  "Transatlantic",
+                  "Australian"
+                ],
+                "default": "Neutral"
+              },
+              "style": {
+                "type": "string",
+                "title": "Style",
+                "description": "Emotional delivery style.",
+                "enum": [
+                  "Vocal Smile",
+                  "Newscaster",
+                  "Whisper",
+                  "Empathetic",
+                  "Promo/Hype",
+                  "Deadpan"
+                ],
+                "default": "Empathetic"
+              },
+              "pace": {
+                "type": "string",
+                "title": "Pace",
+                "description": "Speaking pace.",
+                "enum": [
+                  "Natural",
+                  "Rapid Fire",
+                  "The Drift",
+                  "Staccato"
+                ],
+                "default": "Natural"
+              }
+            },
+            "required": [
+              "speaker_id",
+              "voice_name",
+              "accent",
+              "style",
+              "pace"
+            ]
+          }
+        },
+        "dialogue_turns": {
+          "type": "array",
+          "title": "Dialogue Turns",
+          "name": "dialogue_turns",
+          "description": "Ordered list of dialogue lines. Each turn's speaker_id must match a speaker defined above. Text may include tone tags like [shouting] or [whispers].",
+          "examples": [
+            [
+              {
+                "speaker_id": "Speaker 1",
+                "text": "[shouting] Halt, traveler! The northern pass is sealed by order of the council."
+              },
+              {
+                "speaker_id": "Speaker 2",
+                "text": "[determination] I carry a message for the elder. Step aside, or I will force my way through."
+              },
+              {
+                "speaker_id": "Speaker 1",
+                "text": "[caution] No one passes. [pensive] The elder is... he's no longer receiving visitors."
+              },
+              {
+                "speaker_id": "Speaker 2",
+                "text": "It's too late. [whispers] The shadow... it reached him first. [urgency] You need to leave. [shouting] Now."
+              }
+            ]
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "speaker_id": {
+                "type": "string",
+                "title": "Speaker ID",
+                "description": "ID of the speaker delivering this line (e.g. \"Speaker 1\")."
+              },
+              "text": {
+                "type": "string",
+                "title": "Text",
+                "description": "The line to speak. Supports inline tone tags. Max 10000 characters."
+              }
+            },
+            "required": [
+              "speaker_id",
+              "text"
+            ]
+          }
+        },
+        "scene": {
+          "type": "string",
+          "title": "Scene",
+          "name": "scene",
+          "description": "Optional scene description that sets the acoustic setting, e.g. \"A quiet, warm room with a fireplace crackling softly.\"",
+          "default": ""
+        },
+        "sample_context": {
+          "type": "string",
+          "title": "Sample Context",
+          "name": "sample_context",
+          "description": "Optional overall tone/style, e.g. \"Audiobook style narration. Tone is gentle and inviting.\"",
+          "default": ""
+        },
+        "temperature": {
+          "type": "number",
+          "title": "Temperature",
+          "name": "temperature",
+          "description": "Sampling temperature (0-2). Higher values produce more varied delivery.",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 2
+        }
+      }
+    },
+  {
+      "id": "gemini-2-5-pro-tts",
+      "name": "Gemini 2.5 Pro TTS",
+      "endpoint": "gemini-2-5-pro-tts",
+      "family": "gemini-tts",
+      "description": "Gemini 2.5 Pro TTS is Google's premium text-to-speech model for studio-quality, high-fidelity multi-speaker audio with expressive control over voice, accent, emotional style, and pace.",
+      "required": [
+        "speakers",
+        "dialogue_turns"
+      ],
+      "inputs": {
+        "speakers": {
+          "type": "array",
+          "title": "Speakers",
+          "name": "speakers",
+          "description": "List of speaker voice configurations. Each dialogue turn references a speaker by its ID.",
+          "examples": [
+            [
+              {
+                "speaker_id": "Speaker 1",
+                "voice_name": "Fenrir",
+                "audio_profile": "A stern and weary gatekeeper",
+                "accent": "British (RP)",
+                "style": "Deadpan",
+                "pace": "Natural"
+              },
+              {
+                "speaker_id": "Speaker 2",
+                "voice_name": "Puck",
+                "audio_profile": "A determined and courageous traveler seeking answers.",
+                "accent": "American (Gen)",
+                "style": "Empathetic",
+                "pace": "Staccato"
+              }
+            ]
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "speaker_id": {
+                "type": "string",
+                "title": "Speaker ID",
+                "description": "Speaker identifier. Must be in \"Speaker N\" format (e.g. \"Speaker 1\")."
+              },
+              "voice_name": {
+                "type": "string",
+                "title": "Voice",
+                "description": "Prebuilt Gemini voice name.",
+                "enum": [
+                  "Achernar",
+                  "Achird",
+                  "Algenib",
+                  "Algieba",
+                  "Alnilam",
+                  "Aoede",
+                  "Autonoe",
+                  "Callirrhoe",
+                  "Charon",
+                  "Despina",
+                  "Enceladus",
+                  "Erinome",
+                  "Fenrir",
+                  "Gacrux",
+                  "Iapetus",
+                  "Kore",
+                  "Laomedeia",
+                  "Leda",
+                  "Orus",
+                  "Puck",
+                  "Pulcherrima",
+                  "Rasalgethi",
+                  "Sadachbia",
+                  "Sadaltager",
+                  "Schedar",
+                  "Sulafat",
+                  "Umbriel",
+                  "Vindemiatrix",
+                  "Zephyr",
+                  "Zubenelgenubi"
+                ]
+              },
+              "audio_profile": {
+                "type": "string",
+                "title": "Audio Profile",
+                "description": "Optional natural-language description of the persona, e.g. \"A warm and soothing narrator\"."
+              },
+              "accent": {
+                "type": "string",
+                "title": "Accent",
+                "description": "Speaking accent.",
+                "enum": [
+                  "Neutral",
+                  "American (Gen)",
+                  "American (Valley)",
+                  "American (South)",
+                  "British (RP)",
+                  "British (Brixton)",
+                  "Transatlantic",
+                  "Australian"
+                ],
+                "default": "Neutral"
+              },
+              "style": {
+                "type": "string",
+                "title": "Style",
+                "description": "Emotional delivery style.",
+                "enum": [
+                  "Vocal Smile",
+                  "Newscaster",
+                  "Whisper",
+                  "Empathetic",
+                  "Promo/Hype",
+                  "Deadpan"
+                ],
+                "default": "Empathetic"
+              },
+              "pace": {
+                "type": "string",
+                "title": "Pace",
+                "description": "Speaking pace.",
+                "enum": [
+                  "Natural",
+                  "Rapid Fire",
+                  "The Drift",
+                  "Staccato"
+                ],
+                "default": "Natural"
+              }
+            },
+            "required": [
+              "speaker_id",
+              "voice_name",
+              "accent",
+              "style",
+              "pace"
+            ]
+          }
+        },
+        "dialogue_turns": {
+          "type": "array",
+          "title": "Dialogue Turns",
+          "name": "dialogue_turns",
+          "description": "Ordered list of dialogue lines. Each turn's speaker_id must match a speaker defined above. Text may include tone tags like [shouting] or [whispers].",
+          "examples": [
+            [
+              {
+                "speaker_id": "Speaker 1",
+                "text": "[shouting] Halt, traveler! The northern pass is sealed by order of the council."
+              },
+              {
+                "speaker_id": "Speaker 2",
+                "text": "[determination] I carry a message for the elder. Step aside, or I will force my way through."
+              },
+              {
+                "speaker_id": "Speaker 1",
+                "text": "[caution] No one passes. [pensive] The elder is... he's no longer receiving visitors."
+              },
+              {
+                "speaker_id": "Speaker 2",
+                "text": "It's too late. [whispers] The shadow... it reached him first. [urgency] You need to leave. [shouting] Now."
+              }
+            ]
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "speaker_id": {
+                "type": "string",
+                "title": "Speaker ID",
+                "description": "ID of the speaker delivering this line (e.g. \"Speaker 1\")."
+              },
+              "text": {
+                "type": "string",
+                "title": "Text",
+                "description": "The line to speak. Supports inline tone tags. Max 10000 characters."
+              }
+            },
+            "required": [
+              "speaker_id",
+              "text"
+            ]
+          }
+        },
+        "scene": {
+          "type": "string",
+          "title": "Scene",
+          "name": "scene",
+          "description": "Optional scene description that sets the acoustic setting, e.g. \"A quiet, warm room with a fireplace crackling softly.\"",
+          "default": ""
+        },
+        "sample_context": {
+          "type": "string",
+          "title": "Sample Context",
+          "name": "sample_context",
+          "description": "Optional overall tone/style, e.g. \"Audiobook style narration. Tone is gentle and inviting.\"",
+          "default": ""
+        },
+        "temperature": {
+          "type": "number",
+          "title": "Temperature",
+          "name": "temperature",
+          "description": "Sampling temperature (0-2). Higher values produce more varied delivery.",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 2
+        }
+      }
+    },
+  {
+      "id": "elevenlabs-tts-turbo-2-5",
+      "name": "ElevenLabs TTS Turbo 2.5",
+      "endpoint": "elevenlabs-tts-turbo-2-5",
+      "family": "audio-generation",
+      "description": "Convert text to natural-sounding speech with adjustable voice stability, similarity, and speed.",
+      "required": ["prompt"],
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Text to convert to speech."
+        },
+        "voice_id": {
+          "type": "string",
+          "title": "Voice ID",
+          "name": "voice_id",
+          "default": "21m00Tcm4TlvDq8ikWAM",
+          "enum": [
+            {"label": "James — Husky, Engaging and Bold", "value": "ZQe5CZNOzWyzPSCn5a3c"},
+            {"label": "Arabella — Mysterious and Emotive", "value": "Z3R5wn05IrDiVCyEkUrK"},
+            {"label": "Bradford — Expressive and Articulate", "value": "NNl6r8mD7vthiJatiJt1"},
+            {"label": "Xavier — Dominating, Metallic Announcer", "value": "YOq2y2Up4RgXP2HyXjE5"},
+            {"label": "Taksh — Calm, Serious and Smooth", "value": "qDuRKMlYmrm8trt5QyBn"},
+            {"label": "Monika Sogam — Deep and Natural", "value": "iP95p4xoKVk53GoZ742B"},
+            {"label": "Mark — Casual, Relaxed and Light", "value": "UgBBYS2sOqTuMpoF3BR0"},
+            {"label": "Adeline — Feminine and Conversational", "value": "5l5f8iK3YPeGga21rQIX"},
+            {"label": "Sam — Support Agent", "value": "yoZ06aMxZJJ28mfd3POQ"},
+            {"label": "Spuds Oxley — Wise and Approachable", "value": "NOpBlnGInO9m6vDvFkFC"},
+            {"label": "Eve — Authentic, Energetic and Happy", "value": "scOwDtmlLZohaFMFCHFe"},
+            {"label": "Callum — Husky Trickster", "value": "N2lVS1w4EtoT3dr4eOWO"},
+            {"label": "Laura — Enthusiast, Quirky Attitude", "value": "FGY2WhTYpPnrIDTdsKH5"},
+            {"label": "Brian — Deep, Resonant and Comforting", "value": "zPhCVfO2NBER7bRLIdbq"},
+            {"label": "Nathan — Virtual Radio Host", "value": "nPczCjzI2devNBz1zQrb"},
+            {"label": "Charlie — Natural", "value": "IKne3meq5aSn9XLyUdCD"},
+            {"label": "George — Warm", "value": "JBFqnCBsd6RMkjVDRZzb"},
+            {"label": "Sarah — Soft", "value": "EXAVITQu4vr4xnSDxMaL"},
+            {"label": "Charlotte — Clear", "value": "XB0fDUnXU5powFXDhCwa"},
+            {"label": "Hope — Bubbly, Gossipy and Girly", "value": "tnSpp4vdxKPjI9w0GnoV"},
+            {"label": "Finn — Youthful, Eager and Energetic", "value": "DYkrAHD8iwork3YSUBbs"},
+            {"label": "Tom — Conversations and Books", "value": "56AoDkrOh6qfVPDXZ7Pt"},
+            {"label": "Lucy — Fresh and Casual", "value": "lcMyyd2HUfFzxdCaC4Ta"},
+            {"label": "Tiffany — Natural and Welcoming", "value": "6aDn1KB0hjpdcocrUkmq"},
+            {"label": "Brock — Commanding and Loud Sergeant", "value": "7ftFdxRlmR6Z9V3nTdUh"},
+            {"label": "Viraj — Rich and Soft", "value": "bajNon13EdhNMndG3z05"}
+          ]
+        },
+        "stability": {
+          "type": "number",
+          "title": "Stability",
+          "name": "stability",
+          "default": 0.5
+        },
+        "similarity_boost": {
+          "type": "number",
+          "title": "Similarity Boost",
+          "name": "similarity_boost",
+          "default": 0.75
+        },
+        "speed": {
+          "type": "number",
+          "title": "Speed",
+          "name": "speed",
+          "default": 1
+        },
+        "language_code": {
+          "enum": ["en", "fr", "de", "ja", "vi", "hu", "no"],
+          "type": "string",
+          "title": "Language Code",
+          "name": "language_code"
+        }
+      }
+    },
+  {
+      "id": "minimax-music-3.0",
+      "name": "MiniMax Music 3.0",
+      "endpoint": "minimax-music-3.0",
+      "family": "minimax-music",
+      "description": "Generate a full song with vocals or an instrumental-only track from a text prompt and structured lyrics with MiniMax Music 3.0.",
+      "required": [
+        "prompt",
+        "lyrics"
+      ],
+      "inputs": {
+        "prompt": {
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "description": "Prompt for the music generation \u2014 style, mood, and instrumentation.",
+          "examples": [
+            "An upbeat synth-pop anthem with driving drums and a soaring chorus"
+          ]
+        },
+        "lyrics": {
+          "type": "string",
+          "title": "Lyrics",
+          "name": "lyrics",
+          "description": "10-3000 characters. A newline separates lyric lines, a double newline adds a pause, and ## marks a section to add instrumental accompaniment.",
+          "examples": [
+            "[Verse]\nWalking through the city lights\n\n##\n[Chorus]\nWe are shining, we are free"
+          ]
+        },
+        "bitrate": {
+          "enum": [
+            60000,
+            32000,
+            64000,
+            128000,
+            256000
+          ],
+          "type": "integer",
+          "title": "Bitrate",
+          "name": "bitrate",
+          "description": "Audio bitrate.",
+          "default": 256000
+        },
+        "sample_rate": {
+          "enum": [
+            16000,
+            24000,
+            32000,
+            44100
+          ],
+          "type": "integer",
+          "title": "Sample Rate",
+          "name": "sample_rate",
+          "description": "Audio sample rate.",
+          "default": 44100
+        },
+        "is_instrumental": {
+          "type": "boolean",
+          "title": "Instrumental Only",
+          "name": "is_instrumental",
+          "description": "Whether to generate instrumental music with no vocals.",
+          "default": false
+        }
+      }
+    },
+  {
+      "id": "elevenlabs-v4",
+      "name": "Eleven v4",
+      "endpoint": "elevenlabs-v4",
+      "family": "audio-generation",
+      "description": "Eleven v4 is ElevenLabs' latest text-to-speech model, delivering highly expressive, natural single-voice narration. Send up to 2,000 characters and get back a studio-quality MP3 \u2014 ideal for voiceovers, audiobooks, ads and app audio.",
+      "required": [
+        "prompt"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Welcome to the future of voice. This is Eleven v4, speaking with natural rhythm and emotion."
+          ],
+          "description": "Text to speak (up to 2,000 characters).",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "maxLength": 2000
+        },
+        "voice_id": {
+          "enum": [
+            "voice_daniel",
+            "voice_liam"
+          ],
+          "title": "Voice",
+          "name": "voice_id",
+          "type": "string",
+          "description": "Voice to use for the narration.",
+          "default": "voice_daniel"
+        }
+      }
+    },
+  {
+      "id": "fish-s2-1-pro",
+      "name": "Fish Audio S2.1 Pro",
+      "endpoint": "fish-s2-1-pro",
+      "family": "audio-generation",
+      "description": "Fish Audio S2.1 Pro is a high-fidelity text-to-speech model built for long-form narration. Send up to 10,000 characters in one request and get back a natural-sounding MP3. Billed per UTF-8 byte of text.",
+      "required": [
+        "prompt"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "Welcome to the show. Today we look at how voice models have changed the way we tell stories."
+          ],
+          "description": "Text to speak (up to 10,000 characters). Billed per UTF-8 byte; non-Latin scripts use 3-4 bytes per character.",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "maxLength": 10000
+        },
+        "voice_id": {
+          "enum": [
+            "voice_fish_narrator"
+          ],
+          "title": "Voice",
+          "name": "voice_id",
+          "type": "string",
+          "description": "Voice to use for the narration.",
+          "default": "voice_fish_narrator"
+        }
+      }
+    },
+  {
+      "id": "lyria-3-pro",
+      "name": "Lyria 3 Pro",
+      "endpoint": "lyria-3-pro",
+      "family": "lyria",
+      "description": "Lyria 3 Pro is Google's flagship music model: describe a genre, mood, instruments and structure and it composes a full-length song of up to three minutes, returned as an MP3.",
+      "required": [
+        "prompt"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "An upbeat synth-pop song about driving at night, shimmering arpeggios, punchy drums, female vocals, anthemic chorus."
+          ],
+          "description": "Describe the music: genre, mood, tempo, instruments, structure, and lyrics if you want vocals (up to 2,000 characters).",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "maxLength": 2000
+        }
+      }
+    },
+  {
+      "id": "lyria-3",
+      "name": "Lyria 3",
+      "endpoint": "lyria-3",
+      "family": "lyria",
+      "description": "Lyria 3 generates short, high-quality music clips of up to 30 seconds from a text prompt \u2014 perfect for jingles, intros, loops and background tracks. Returned as an MP3.",
+      "required": [
+        "prompt"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A warm lo-fi hip hop loop with mellow Rhodes chords, vinyl crackle and a laid-back drum groove."
+          ],
+          "description": "Describe the music clip: genre, mood, tempo and instruments (up to 2,000 characters).",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "maxLength": 2000
+        }
+      }
+    },
+  {
+      "id": "lyria-2",
+      "name": "Lyria 2",
+      "endpoint": "lyria-2",
+      "family": "lyria",
+      "description": "Lyria 2 is Google's instrumental music generation model. Describe the style and mood in a text prompt and get a roughly 30-second instrumental track as an MP3.",
+      "required": [
+        "prompt"
+      ],
+      "inputs": {
+        "prompt": {
+          "examples": [
+            "A cinematic orchestral build with soaring strings, deep brass and thundering timpani."
+          ],
+          "description": "Describe the instrumental music: genre, mood, tempo and instruments (up to 2,000 characters).",
+          "type": "string",
+          "title": "Prompt",
+          "name": "prompt",
+          "maxLength": 2000
+        }
+      }
+    }];;
 
 export const getAudioModelById = (id) => audioModels.find(m => m.id === id);
 

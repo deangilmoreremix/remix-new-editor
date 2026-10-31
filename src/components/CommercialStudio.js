@@ -19,7 +19,9 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
-import { createPromptComposer, createPill, openComposerPopover, mediaButtonClassName } from './studio/promptComposer.js';
+import { createPromptComposer, createPill, createSegmented, openComposerPopover, mediaButtonClassName } from './studio/promptComposer.js';
+import { createMarketingAdMode, validateAd, buildAdParams } from './studios/MarketingAdMode.js';
+import { createPendingJobTracker } from '../lib/pendingJobs.js';
 import { foldIntoMoreMenu, mountStudioResults, restylePill } from './studio/studioLayout.js';
 import { notifyGeneration } from './studio/generationNotifications.js';
 
@@ -426,6 +428,25 @@ const COMMERCIAL_MODELS = [
   });
   composer.controls.append(scenePill, formatPill, advancedPill);
 
+  // ── Mode: product shot (ours) | ad video (upstream Marketing) ──────────
+  const adMode = createMarketingAdMode();
+  const shotOnly = [modelWrapper, scenePill, formatPill, advancedPill];
+  let mode = 'shot';
+  const SHOT_PLACEHOLDER = 'Describe the shot or add art direction (optional)';
+  const AD_PLACEHOLDER = 'Describe your ad script... Use @image1 for product, @image2 for avatar.';
+  let results = null; // assigned when the results grid is mounted below
+  const modeToggle = createSegmented([{ value: 'shot', label: 'Product shot' }, { value: 'ad', label: 'Ad video' }], 'shot', (v) => {
+    mode = v;
+    shotOnly.forEach((el) => el.classList.toggle('hidden', v === 'ad'));
+    if (v === 'ad') dynamicControlsContainer.classList.add('hidden');
+    adMode.setActive(v === 'ad');
+    composer.textarea.placeholder = v === 'ad' ? AD_PLACEHOLDER : SHOT_PLACEHOLDER;
+    picker.trigger.title = v === 'ad' ? 'Product image — shows up as @image1' : 'Upload product image or video';
+    results?.emptyState?.setHighlight(v === 'ad' ? 'Marketing Studio' : (COMMERCIAL_MODELS.find(m => m.id === selectedModel) || COMMERCIAL_MODELS[0]).name);
+  });
+  composer.controls.prepend(modeToggle);
+  composer.controls.append(adMode.el);
+
   const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
   foldIntoMoreMenu(composer.controls, [
     { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
@@ -445,7 +466,7 @@ const COMMERCIAL_MODELS = [
   container.appendChild(composer.root);
 
   const COMMERCIAL_HISTORY_KEY = 'commercial_history';
-  const results = mountStudioResults({
+  results = mountStudioResults({
     container,
     hero: commBanner,
     before: composer.root,
@@ -498,7 +519,48 @@ const COMMERCIAL_MODELS = [
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
+  // Ad video: product + avatar + references + a format preset → Seedance 2 omni-reference.
+  async function runAd() {
+    const script = composer.getPrompt();
+    composer.clearError();
+    const problem = validateAd({ script, productUrl: uploadedUrl });
+    if (problem) { composer.showError(problem); return; }
+    if (!(await requireEntitlement())) return;
+    if (!apiKeyManager.getMuapiKey()) { AuthModal(() => runAd()); return; }
+
+    genBtn.disabled = true;
+    composer.setGenerating(true);
+    const pendingCard = results.gallery.addPending('Making your ad…');
+    const notifyId = `commercial-ad:${Date.now()}`;
+    notifyGeneration({ phase: 'start', id: notifyId, studio: 'commercial', label: 'Commercial Studio' });
+    const pendingJob = createPendingJobTracker('commercial', { prompt: script }, { maxAttempts: 900 });
+    let failed = null;
+    try {
+      const params = buildAdParams(adMode.state, { script, productUrl: uploadedUrl });
+      const res = await muapi.generateMarketingStudioAd({ ...params, onRequestId: pendingJob.onRequestId });
+      if (!res?.url) throw new Error('No video URL returned by API');
+      results.gallery.addItem({ id: res.id || String(Date.now()), url: res.url, prompt: script, model: `Ad · ${adMode.state.format.name}`, aspect_ratio: `${adMode.state.ratio} · ${adMode.state.duration}s` });
+      persistCommercial();
+      saveGeneration({
+        studio: 'commercial', type: 'video', url: res.url, prompt: script, model: 'seedance-2-vip-omni-reference',
+        parameters: { format: adMode.state.format.name, aspect_ratio: adMode.state.ratio, resolution: adMode.state.res, duration: adMode.state.duration },
+      });
+    } catch (err) {
+      failed = err.message || 'Marketing generation failed';
+      showToast(failed, 'error', 5000);
+    } finally {
+      pendingJob.finish();
+      pendingCard.remove();
+      genBtn.disabled = false;
+      notifyGeneration(failed
+        ? { phase: 'error', id: notifyId, studio: 'commercial', label: 'Commercial Studio', message: failed }
+        : { phase: 'success', id: notifyId, studio: 'commercial', label: 'Commercial Studio' });
+      if (failed) composer.setRetry(); else composer.setGenerating(false);
+    }
+  }
+
   genBtn.onclick = async () => {
+    if (mode === 'ad') return runAd();
     if (!(await requireEntitlement())) return;
     if (!uploadedUrl) {
       showToast('Upload a product image or video first', 'error');
