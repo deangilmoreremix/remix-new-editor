@@ -51,32 +51,32 @@ agent marketplace) are not comparable and are out of scope.
 - Audio: schema-driven fields, lyrics, uploads, history grid, prompt chips. Ours also has a voice selector and share.
 - Influencer: Face / Body / Style attribute builder (~128 options). Ours also has history delete.
 
-## Model catalog (Phase 1 — PLANNED)
+## Model catalog (synced)
 
-| | Upstream | Ours |
+`scripts/sync-upstream-models.py` (dry-run by default, `--write` to apply) added 355 upstream
+models across text/image-to-image/video, audio and lip sync, plus shared constants. The build
+catalog (`public/api/model-catalog.json`) now includes audio and lip-sync pools.
+
+## API layer
+
+| Upstream call | Ours | Status |
 |---|---|---|
-| Text to image | 84 | 48 |
-| Image to image | 88 | 55 |
-| Text to video | 108 | 43 |
-| Image to video | 176 | 60 |
-| Video to video | 75 | 7 |
-| Audio | 22 | 6 |
-| Lip sync | 15 | 9 |
+| motion-graphics, motion-graphics-edit | `runMotionGraphics`, `runMotionGraphicsEdit` | ADDED (live endpoint unverified) |
+| Marketing Studio ad (Seedance 2 omni-reference) | `generateMarketingStudioAd` | ADDED (live endpoint unverified) |
+| history, delete media | `getHistory`, `deleteMedia` | ADDED (not yet merged into Library UI) |
+| calculate_dynamic_cost, estimate-cost | `calculateDynamicCost`, `estimateV2VCost` | ADDED (no UI cost line yet) |
+| app/interest(s) | `registerAppInterest`, `getAppInterests` | ADDED — needs `muapi-proxy` redeploy |
 
-Upstream counts include resolution variants. Notable missing families:
-Ideogram 4, Nano Banana 2.1, GPT Image 2/2.5, Midjourney v7/v8, Seedream 5,
-Seedance 2.5, Vidu Q4, Veo 4 / 3.1 lite·4K·extend, Kling 3.0 Omni/Turbo,
-MiniMax H3, Wan 3.0, LTX 2.5, PixVerse v6, Runway Aleph / Act-Two,
-ElevenLabs v4, Fish S2.1, Lyria 3, Gemini TTS, OmniHuman 1.5.
+## Per-studio status
 
-## Per-studio gaps (Phase 3 — PLANNED)
-
-| Studio | Gap |
-|---|---|
-| Image | Draw / sketch reference; face-swap input slot |
-| Video | References, edit-video, extend-uploaded-video and motion-transfer modes; extend for every compatible model (not just Seedance); audio input slot; draw reference |
-| Effects | Motion-graphics generate, edit-previous-result, "Remix this" (depends on MuAPI motion-graphics endpoints being available) |
-| Commercial | Ad-video mode (product + avatar + script), avatar presets, duration / resolution |
-| Apps | GitHub / demo links; "request this app" |
-| Lip Sync | OmniHuman 1.5 and Volcengine models (via Phase 1) |
-| Influencer | Confirm Shuffle |
+| Studio | Added from upstream | Still open |
+|---|---|---|
+| Image | Face-swap slot, batch stepper in every mode, effect-type picker, attachment strip | Draw / sketch modal, settings persistence |
+| Video | Attachment strip (start/end frame, references) | Source/workflow menu, extend for all models, audio slot, grouped variants |
+| Cinema | Attachment strip | Image/Video toggle (stills, 1K/2K/4K), drop on start tile |
+| Lip Sync | Drag-drop onto upload buttons | In-slot audio play/pause, upload progress |
+| Audio | Premium player (volume, mute), page-wide drop | — |
+| Effects | Motion graphics tab: Generate / Edit / Remix | — |
+| Commercial | Ad-video mode: avatars, formats, references | — |
+| Influencer | Builder Reset | "Generated · N characters" gallery column |
+| Apps | Template apps, GitHub/Demo links, interest modal | — |
