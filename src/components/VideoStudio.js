@@ -9,6 +9,7 @@ import { uploadMediaFile } from '../lib/editor/upload.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { createSafeVideo } from '../lib/security.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
+import { getContinuationTargetsForEntry } from '../lib/videoToolCapabilities.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -54,6 +55,8 @@ export function VideoStudio() {
     let selectedResolution = defaultModel.inputs?.resolution?.default || '';
     let selectedQuality = defaultModel.inputs?.quality?.default || '';
     let lastGenerationId = null;
+    let extendTargetId = null;
+    const continuationLabel = (id) => (/4k/i.test(id) ? 'Upscale to 4K' : `Extend (${id.replace(/-extend.*$/, '').replace(/^veo3\.1.*/, 'Veo 3.1').replace(/^grok-imagine/, 'Grok Imagine').replace(/^seedance-v2\.0/, 'Seedance 2.0').replace(/^seedance-2-vip/, 'Seedance 2 VIP').replace(/^seedance-2/, 'Seedance 2')})`);
     let lastGenerationModel = null;
     let nativeAudio = false;
     let characterLock = false;
@@ -957,7 +960,10 @@ generateBtn.type = 'button';
             samples: getAssetsForStudio('video').map(a => a.thumbnail || a.posterSrc).filter(Boolean).slice(0, 4),
         },
         extraActions: (item) => [
-            ...(/^seedance-v2\.0-(t2v|i2v)$/.test(item.model || '') ? [{ label: 'Extend', onSelect: () => { lastGenerationId = item.id; lastGenerationModel = item.model; extendBtn.click(); } }] : []),
+            ...getContinuationTargetsForEntry(item).map((targetId) => ({
+                label: continuationLabel(targetId),
+                onSelect: () => { lastGenerationId = item.id; lastGenerationModel = item.model; extendTargetId = targetId; extendBtn.click(); },
+            })),
             { label: 'Open in Render', onSelect: () => { resultVideo.src = item.url; renderBtn.click(); } },
             { label: 'Add AI captions', onSelect: () => addCaptionButton({ videoUrl: item.url, appTheme: 'video-studio', onComplete: () => showToast('Captioned video ready') }) },
             { label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'video' }) },
@@ -1890,7 +1896,10 @@ generateBtn.type = 'button';
 
         try {
             const catalog = await muapi.getModelCatalog();
-            const extendModel = catalog.find(m => m.requiresRequestId === true || m.id.endsWith('-extend'));
+            const wantedId = extendTargetId;
+            extendTargetId = null;
+            const extendModel = (wantedId && catalog.find(m => m.id === wantedId))
+                || catalog.find(m => m.requiresRequestId === true || m.id.endsWith('-extend'));
             if (extendModel) {
                 extendModelId = extendModel.id;
                 extendModelName = extendModel.name;
@@ -2161,6 +2170,7 @@ generateBtn.type = 'button';
                         prompt: enrichedPrompt,
                         model: selectedModel,
                         aspect_ratio: selectedAr,
+                        resolution: i2vParams.resolution || undefined,
                         duration: selectedDuration,
                         timestamp: new Date().toISOString()
                     });
@@ -2223,6 +2233,7 @@ generateBtn.type = 'button';
                     prompt: enrichedPrompt,
                     model: selectedModel,
                     aspect_ratio: selectedAr,
+                    resolution: params.resolution || undefined,
                     duration: selectedDuration,
                     timestamp: new Date().toISOString()
                 });
