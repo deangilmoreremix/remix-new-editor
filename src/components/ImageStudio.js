@@ -686,10 +686,17 @@ generateBtn.type = 'button';
             description: 'Sketch a reference for the model to follow',
             onSelect: () => openDrawModal({
                 backgroundUrl: uploadedImageUrls[0] || undefined,
-                onDone: async (file) => {
+                onDone: async (file, { destination } = {}) => {
                     try {
                         const { uploadFileToStorage } = await import('../lib/uploadService.js');
                         const url = await uploadFileToStorage(file);
+                        if (destination === 'video') {
+                            // Hand the sketch to Video Studio as its start frame.
+                            try { localStorage.setItem('video_prefill_start_frame', url); } catch { /* ignore */ }
+                            const { navigate } = await import('../lib/router.js');
+                            navigate('video');
+                            return;
+                        }
                         picker.setImage(url);
                         showToast('Sketch added as reference', 'success');
                     } catch (err) {

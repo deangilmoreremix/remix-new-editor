@@ -561,6 +561,14 @@ export function VideoStudio() {
             videoPrefill = raw;
         }
     } catch { /* ignore */ }
+    // A sketch from Image Studio's Draw modal arrives as the start frame.
+    try {
+        const startFrame = localStorage.getItem('video_prefill_start_frame');
+        if (startFrame) {
+            localStorage.removeItem('video_prefill_start_frame');
+            setTimeout(() => picker.setImage(startFrame), 150);
+        }
+    } catch { /* ignore */ }
     if (!videoPrefill) {
         const staged = consumeStudioPrefill('video');
         if (staged) {

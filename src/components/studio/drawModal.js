@@ -13,7 +13,7 @@ const COLORS = ['#d9ff00', '#ffffff', '#ff4d4d', '#4da3ff', '#000000'];
 
 /**
  * @param {object} opts
- * @param {(file: File) => void | Promise<void>} opts.onDone — receives the PNG
+ * @param {(file: File, info: { destination: 'image' | 'video' }) => void | Promise<void>} opts.onDone — receives the PNG
  * @param {string} [opts.backgroundUrl] — optional image to draw over
  * @param {number} [opts.width] @param {number} [opts.height]
  */
@@ -32,6 +32,7 @@ export function openDrawModal({ onDone, backgroundUrl, width = 1024, height = 10
       <div class="flex-1 min-h-0 overflow-auto flex justify-center"><canvas data-canvas class="max-w-full max-h-[62vh] rounded-xl bg-white touch-none cursor-crosshair"></canvas></div>
       <div class="flex justify-end gap-2">
         <button type="button" data-cancel class="px-4 py-2 rounded-full bg-white/10 text-white text-sm font-semibold">Cancel</button>
+        <button type="button" data-done-video class="px-4 py-2 rounded-full bg-white/10 text-white text-sm font-semibold">Animate as video</button>
         <button type="button" data-done class="px-5 py-2 rounded-full bg-primary text-black text-sm font-bold">Use as reference</button>
       </div>
     </div>`;
@@ -184,13 +185,13 @@ export function openDrawModal({ onDone, backgroundUrl, width = 1024, height = 10
   document.addEventListener('keydown', onKey);
   overlay.querySelector('[data-cancel]').addEventListener('click', close);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-  overlay.querySelector('[data-done]').addEventListener('click', () => {
-    canvas.toBlob(async (blob) => {
-      if (!blob) return;
-      close();
-      await onDone(new File([blob], `sketch-${Date.now()}.png`, { type: 'image/png' }));
-    }, 'image/png');
-  });
+  const finish = (destination) => canvas.toBlob(async (blob) => {
+    if (!blob) return;
+    close();
+    await onDone(new File([blob], `sketch-${Date.now()}.png`, { type: 'image/png' }), { destination });
+  }, 'image/png');
+  overlay.querySelector('[data-done]').addEventListener('click', () => finish('image'));
+  overlay.querySelector('[data-done-video]').addEventListener('click', () => finish('video'));
 
   pushUndo();
   document.body.appendChild(overlay);
