@@ -1,6 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
+import { createPill, openComposerPopover } from './studio/promptComposer.js';
 import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy } from './studio/studioLayout.js';
 import { notifyGeneration } from './studio/generationNotifications.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -926,6 +927,44 @@ generateBtn.type = 'button';
     // Start/End frame and reference uploads stay available as compact round buttons.
     topRow.querySelector('.studio-attachment-toolbar')?.classList.add('studio-attachment-toolbar--compact');
     bar.insertBefore(textarea, bottomRow);
+    // Source / workflow pill (upstream's Video modes): picks the matching model
+    // and asks for the media that mode needs.
+    const WORKFLOWS = [
+        { id: 'text', label: 'Text to video', kind: 't2v' },
+        { id: 'image', label: 'Animate image', kind: 'i2v' },
+        { id: 'keyframes', label: 'Keyframes (start + end)', kind: 'i2v', model: 'seedance-2-first-last-frame' },
+        { id: 'references', label: 'References', kind: 'i2v', model: 'seedance-2-omni-reference' },
+        { id: 'edit', label: 'Edit video', kind: 'v2v', model: 'wan2.2-edit-video' },
+        { id: 'extend', label: 'Extend uploaded video', kind: 'v2v', model: 'wan2.7-video-extend' },
+        { id: 'motion', label: 'Motion transfer', kind: 'v2v', model: 'wan2.2-animate' },
+    ];
+    const workflowPill = createPill({ label: 'Source', title: 'Video source / workflow' });
+    workflowPill.dataset.workflowPill = '';
+    const applyWorkflow = (w) => {
+        const list = w.kind === 'v2v' ? v2vModels : w.kind === 'i2v' ? i2vModels : t2vModels;
+        const model = list.find((m) => m.id === w.model) || list[0];
+        if (!model) return;
+        if (w.kind !== 'v2v' && uploadedVideoUrl) { uploadedVideoUrl = null; showVideoIcon(); }
+        if (w.kind !== 'i2v' && imageMode) { picker.reset(); uploadedImageUrl = null; }
+        imageMode = w.kind === 'i2v';
+        v2vMode = w.kind === 'v2v';
+        selectedModel = model.id;
+        selectedModelName = model.name;
+        const label = document.getElementById('v-model-btn-label');
+        if (label) label.textContent = selectedModelName;
+        workflowPill.setLabel(w.label);
+        updateModelBtnIcon();
+        updateControlsForModel(selectedModel);
+        textarea.disabled = false;
+        if (w.kind === 'i2v' && !uploadedImageUrl) picker.trigger.click();
+        if (w.kind === 'v2v' && !uploadedVideoUrl) videoFileInput.click();
+    };
+    workflowPill.addEventListener('click', () => openComposerPopover(workflowPill, {
+        title: 'Source',
+        items: WORKFLOWS.map((w) => ({ label: w.label, onSelect: () => applyWorkflow(w) })),
+    }));
+    controlsLeft.insertBefore(workflowPill, controlsLeft.firstChild);
+
     const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
     foldIntoMoreMenu(controlsLeft, [
         { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
