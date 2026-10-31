@@ -53,6 +53,7 @@ export function createPendingJobTracker(studioType, historyMeta = {}, { maxAttem
             savePendingJob({ requestId: rid, studioType, historyMeta, maxAttempts, interval, submittedAt: Date.now() });
         },
         finish() {
+            if (typeof window !== 'undefined') window.dispatchEvent(new Event('muapi:job-finished'));
             if (!requestId) return;
             inFlight.delete(requestId);
             removePendingJob(requestId);

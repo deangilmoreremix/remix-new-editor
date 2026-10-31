@@ -64,3 +64,14 @@ describe('pending job resume', () => {
     expect(resultUrlOf({})).toBeNull();
   });
 });
+
+describe('job finished event', () => {
+  it('tells the header to refresh the balance when a generation settles', () => {
+    const listener = vi.fn();
+    window.addEventListener('muapi:job-finished', listener);
+    const tracker = createPendingJobTracker('image', {});
+    tracker.finish();
+    expect(listener).toHaveBeenCalledTimes(1);
+    window.removeEventListener('muapi:job-finished', listener);
+  });
+});

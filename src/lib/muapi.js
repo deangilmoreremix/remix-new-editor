@@ -122,6 +122,24 @@ export class MuapiClient {
         return { 'Content-Type': 'application/json' };
     }
 
+    /**
+     * MuAPI credit balance for the user's own key (upstream shows this in its
+     * shell). Returns a number, or null when no key is set or it can't be read.
+     */
+    async getBalance(signal) {
+        if (!this.apiKeyManager.getMuapiKey()) return null;
+        const response = await fetch(this.proxyUrl, {
+            method: 'POST',
+            headers: this._getMuapiHeaders(),
+            body: JSON.stringify({ endpoint: 'account/balance', params: {}, generationType: 'list', studioType: 'image' }),
+            signal,
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        const balance = Number(data?.balance ?? data?.data?.balance);
+        return Number.isFinite(balance) ? balance : null;
+    }
+
     async getModelSchema(modelId) {
         const url = `${this.muapiBaseUrl}/models/${encodeURIComponent(modelId)}`;
         const res = await fetch(url, { headers: this._getMuapiHeaders() });
@@ -348,7 +366,9 @@ export class MuapiClient {
                 if (!response.ok) {
                     if (response.status >= 500) continue;
                     if (response.status === 404) {
-                        throw new Error('Request not found - may have expired');
+                        const notFound = new Error('Request not found - may have expired');
+                        notFound.terminal = true;
+                        throw notFound;
                     }
                     const errText = await response.text();
                     throw new Error(`Poll Failed: ${response.status} - ${errText.slice(0, 100)}`);
@@ -371,21 +391,38 @@ export class MuapiClient {
                   }
                 }
 
-                this.validateResponse(data, 'poll');
+                // Failed jobs carry an `error` field; report them (terminally)
+                // before validateResponse turns that into a retryable API error.
+                if (status !== 'failed' && status !== 'error') this.validateResponse(data, 'poll');
 
                 if (status === 'completed' || status === 'succeeded' || status === 'success') {
                     return data;
                 }
 
                 if (status === 'failed' || status === 'error') {
-                    throw new Error(`Generation failed: ${data.error || 'Unknown error'}`);
+                    // MuAPI refunds failed jobs; say so, like upstream's generationLifecycle.
+                    const cost = data.cost;
+                    let refund = '';
+                    if (cost?.refunded === true) {
+                        const credits = cost.amount_credits;
+                        refund = Number.isFinite(credits)
+                            ? ` Refunded ${credits} credit${credits === 1 ? '' : 's'}.`
+                            : ' The generation cost was refunded.';
+                    }
+                    const detail = typeof data.error === 'string' ? data.error : (data.error?.message || 'Unknown error');
+                    const err = new Error(`Generation failed: ${detail}${refund}`);
+                    err.requestId = requestId;
+                    err.generationResult = data;
+                    err.terminal = true;
+                    throw err;
                 }
 
             } catch (error) {
                 if (error.name === 'AbortError') {
                     throw new Error('Request cancelled');
                 }
-                if (attempt === maxAttempts) throw error;
+                // A failed or expired job won't change; only retry transient errors.
+                if (error.terminal || attempt === maxAttempts) throw error;
             }
         }
 

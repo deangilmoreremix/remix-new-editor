@@ -1,5 +1,6 @@
 import { getRouteForItem } from '../lib/router.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { muapi } from '../lib/muapi.js';
 
 export function Header(navigate) {
   const header = document.createElement('header');
@@ -366,7 +367,33 @@ export function Header(navigate) {
     window.location.reload();
   };
 
+  // MuAPI credit balance, refreshed after each generation and when the tab
+  // regains focus. Hidden until a balance has been read.
+  const balanceChip = document.createElement('span');
+  balanceChip.className = 'hidden px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-secondary whitespace-nowrap';
+  balanceChip.title = 'MuAPI credit balance';
+  const refreshBalance = async () => {
+    try {
+      const balance = await muapi.getBalance();
+      if (balance === null) { balanceChip.classList.add('hidden'); return; }
+      balanceChip.textContent = `$${balance.toFixed(2)}`;
+      balanceChip.classList.remove('hidden');
+    } catch {
+      balanceChip.classList.add('hidden');
+    }
+  };
+  let lastBalanceCheck = 0;
+  const refreshBalanceOnFocus = () => {
+    if (Date.now() - lastBalanceCheck < 30000) return;
+    lastBalanceCheck = Date.now();
+    refreshBalance();
+  };
+  refreshBalanceOnFocus();
+  window.addEventListener('muapi:job-finished', refreshBalance);
+  window.addEventListener('focus', refreshBalanceOnFocus);
+
   rightPart.appendChild(mobileMenuBtn);
+  rightPart.appendChild(balanceChip);
   rightPart.appendChild(keyBtn);
 
   const headerAuthSlot = document.createElement('div');
