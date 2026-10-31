@@ -964,6 +964,27 @@ export function CinemaStudio() {
     });
     uploadPicker.trigger.className = 'w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] hover:border-primary/50 hover:bg-white/[0.06] transition-all flex items-center justify-center relative overflow-hidden group';
     uploadPicker.trigger.title = 'Start frame (optional)';
+    // Drop an image straight onto the start tile (upstream behaviour).
+    {
+        const tile = uploadPicker.trigger;
+        const setDrag = (on) => { tile.classList.toggle('border-primary', on); tile.classList.toggle('bg-primary/10', on); };
+        tile.addEventListener('dragover', (e) => { e.preventDefault(); setDrag(true); });
+        tile.addEventListener('dragleave', () => setDrag(false));
+        tile.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDrag(false);
+            const file = Array.from(e.dataTransfer?.files || []).find((f) => f.type.startsWith('image/'));
+            if (!file) { showToast('Drop an image to use as the start frame.', 'error'); return; }
+            try {
+                const { uploadMediaFile } = await import('../lib/editor/upload.js');
+                const url = await uploadMediaFile(file, { kind: 'image' });
+                uploadPicker.setImage(url);
+            } catch (err) {
+                showToast(`Upload failed: ${err.message || 'try again'}`, 'error');
+            }
+        });
+    }
     inputRow.className = 'flex items-start gap-4';
     inputRow.insertBefore(uploadPicker.trigger, inputRow.firstChild);
     textarea.className = 'flex-1 w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:outline-none resize-none pt-1 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';

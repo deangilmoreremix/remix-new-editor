@@ -842,6 +842,16 @@ export function LipSyncStudio() {
         }
     };
 
+    // Upload progress as a percentage inside the slot's spinner (upstream's progress ring).
+    const progressReporter = (btn, cls) => (percent) => {
+        const el = btn.querySelector(`.${cls}-spinner span`);
+        if (!el) return;
+        const showing = percent > 0 && percent < 100;
+        el.textContent = showing ? `${Math.round(percent)}%` : '◌';
+        el.classList.toggle('animate-spin', !showing);
+        el.classList.toggle('text-[10px]', showing);
+    };
+
     const updateAudioUploadState = (state, filename) => {
         const icon = audioUploadBtn.querySelector('.audio-icon');
         const spinner = audioUploadBtn.querySelector('.audio-spinner');
@@ -915,7 +925,7 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => imageFileInput.click()); return; }
         updateImageUploadState('loading');
         try {
-            const url = await uploadMediaFile(file);
+            const url = await uploadMediaFile(file, { onProgress: progressReporter(imageUploadBtn, 'image') });
             uploadedImageUrl = url;
             updateImageUploadState('ready', file.name);
         } catch (err) {
@@ -946,7 +956,7 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => videoFileInput.click()); return; }
         updateVideoUploadState('loading');
         try {
-            const url = await uploadMediaFile(file);
+            const url = await uploadMediaFile(file, { onProgress: progressReporter(videoUploadBtn, 'video') });
             uploadedVideoUrl = url;
             updateVideoUploadState('ready', file.name);
         } catch (err) {
@@ -977,7 +987,7 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => audioFileInput.click()); return; }
         updateAudioUploadState('loading');
         try {
-            const url = await uploadMediaFile(file);
+            const url = await uploadMediaFile(file, { onProgress: progressReporter(audioUploadBtn, 'audio') });
             uploadedAudioUrl = url;
             updateAudioUploadState('ready', file.name);
         } catch (err) {

@@ -51,10 +51,19 @@ export function ImageStudio() {
     let results = null; // upstream-style empty state + results gallery, mounted with the composer
     let swapUrl = null; // face image for models with a swapField (e.g. AI Image Face Swap)
     let selectedEffect = null; // effect preset for models with a `name` enum input
-    const defaultModel = t2iModels[0];
+    // Remember the last text-to-image model and aspect ratio between visits.
+    const SETTINGS_KEY = 'image_studio_settings';
+    const savedSettings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; } catch { return {}; } })();
+    const saveSettings = () => {
+        if (imageMode) return;
+        try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ model: selectedModel, ar: selectedAr })); } catch { /* ignore */ }
+    };
+    const defaultModel = t2iModels.find((m) => m.id === savedSettings.model) || t2iModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
-    let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '1:1';
+    let selectedAr = (savedSettings.ar && getAspectRatiosForModel(defaultModel.id).includes(savedSettings.ar))
+        ? savedSettings.ar
+        : (defaultModel.inputs?.aspect_ratio?.default || '1:1');
     let dropdownOpen = null;
     let selectedProvider = 'all';
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
@@ -1079,6 +1088,7 @@ generateBtn.type = 'button';
             dynamicControls.update(getExtendedModel(resolved));
         }
         syncImageModelExtras();
+        saveSettings();
     };
 
     // Open the upstream split-pane picker (provider sidebar, search, categories).
@@ -1146,6 +1156,7 @@ generateBtn.type = 'button';
                 item.onclick = (e) => {
                     e.stopPropagation();
                     selectedAr = r;
+                    saveSettings();
                     document.getElementById('ar-btn-label').textContent = r;
                     closeDropdown();
                 };

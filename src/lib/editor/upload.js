@@ -27,7 +27,7 @@ import { formatErrorMessage } from '../errorMessages.js';
 
 export async function uploadMediaFile(file, options = {}) {
   try {
-    const url = await muapi.uploadFile(file);
+    const url = await muapi.uploadFile(file, options.onProgress ? { onProgress: options.onProgress } : undefined);
     if (!url) {
       const noUrl = new Error('Upload returned no URL');
       noUrl.status = 0;
