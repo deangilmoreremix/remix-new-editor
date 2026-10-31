@@ -5,8 +5,6 @@ const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
   { id: 'video', name: 'Video Studio', description: 'Create AI videos from text and images', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', badge: '15+ models', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
   { id: 'cinema', name: 'Cinema Studio', description: 'Cinematic shots with camera controls', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>', badge: '6 cameras', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  { id: 'social', name: 'Social Studio', description: 'Create social media content and posts', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>', badge: 'Social', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  { id: 'landing', name: 'Landing Studio', description: 'Design landing pages and web experiences', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>', badge: 'Web', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
   { id: 'animate', name: 'Animate Studio', description: 'Animate images and create motion graphics', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>', badge: 'Motion', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
 ];
 
@@ -41,15 +39,31 @@ export function AppsHub() {
   inner.className = 'w-full px-4 md:px-8 py-8 md:py-12';
 
   const heroSection = document.createElement('div');
-  heroSection.className = 'mb-10 animate-fade-in-up';
+  heroSection.className = 'mb-10 animate-fade-in-up flex flex-col items-center text-center';
+  // Upstream Explore Apps layout: badge pill, large hero, three step cards.
   heroSection.innerHTML = `
-    <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-3">Apps</h1>
-    <p class="text-secondary text-sm md:text-base max-w-xl">All creative tools in one place. Studios, effects, templates, and more.</p>
+    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider mb-5">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> Explore apps
+    </span>
+    <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight mb-3">Every creative tool, one place</h1>
+    <p class="text-white/50 text-sm md:text-base max-w-xl mb-8">Studios, effects, editors and AI apps. Pick one and start creating.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-4xl text-left">
+      ${[
+        ['1', 'Choose an app', 'Image, video, cinema, audio and more — each studio is tuned for one job.'],
+        ['2', 'Create', 'Describe what you want, pick a model and press Generate.'],
+        ['3', 'Keep it', 'Results land in your Library, ready to edit, render or publish.'],
+      ].map(([n, t, d]) => `
+        <div class="rounded-2xl p-6 bg-[#111]/80 border border-white/10">
+          <div class="w-7 h-7 rounded-full bg-primary/15 text-primary text-xs font-black flex items-center justify-center mb-3">${n}</div>
+          <div class="text-sm font-bold text-white mb-1">${t}</div>
+          <div class="text-xs text-white/50 leading-relaxed">${d}</div>
+        </div>`).join('')}
+    </div>
   `;
   inner.appendChild(heroSection);
 
   const searchWrapper = document.createElement('div');
-  searchWrapper.className = 'mb-8 animate-fade-in-up';
+  searchWrapper.className = 'mb-8 animate-fade-in-up flex justify-center';
   searchWrapper.style.animationDelay = '0.1s';
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
@@ -79,14 +93,30 @@ export function AppsHub() {
     onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
   })), true));
 
+  const noResults = document.createElement('div');
+  noResults.className = 'hidden text-center py-16 text-white/50 text-sm';
+  inner.appendChild(noResults);
+
   container.appendChild(inner);
 
   searchInput.oninput = () => {
-    const q = searchInput.value.toLowerCase();
-    container.querySelectorAll('[data-searchable]').forEach(el => {
-      const text = el.dataset.searchable.toLowerCase();
-      el.style.display = text.includes(q) ? '' : 'none';
+    const q = searchInput.value.trim().toLowerCase();
+    let total = 0;
+    container.querySelectorAll('[data-app-section]').forEach(section => {
+      let visible = 0;
+      section.querySelectorAll('[data-searchable]').forEach(el => {
+        const match = el.dataset.searchable.toLowerCase().includes(q);
+        el.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+      // Hide whole sections with no matches and keep their counts honest.
+      section.style.display = visible ? '' : 'none';
+      const count = section.querySelector('[data-app-count]');
+      if (count) count.textContent = String(visible);
+      total += visible;
     });
+    noResults.textContent = `No apps match “${searchInput.value.trim()}”.`;
+    noResults.classList.toggle('hidden', total > 0);
   };
 
   return container;
@@ -98,7 +128,8 @@ function createSection(title, items, isStudio = false) {
 
   const heading = document.createElement('h2');
   heading.className = 'text-lg font-bold text-white mb-4 flex items-center gap-2';
-  heading.innerHTML = `${title} <span class="text-xs font-medium text-muted">${items.length}</span>`;
+  heading.innerHTML = `${title} <span class="text-xs font-medium text-muted" data-app-count>${items.length}</span>`;
+  section.dataset.appSection = '';
   section.appendChild(heading);
 
   const grid = document.createElement('div');
@@ -157,6 +188,8 @@ function createSection(title, items, isStudio = false) {
   return section;
 }
 
+const KNOWN_APP_IDS = new Set([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS].map((s) => s.id));
+
 function createRecentRow() {
   try {
     const recent = JSON.parse(localStorage.getItem('recent_tools') || '[]');
@@ -178,8 +211,10 @@ function createRecentRow() {
       chip.className = 'px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white hover:bg-white/10 transition-all whitespace-nowrap';
       chip.textContent = r.name;
       chip.onclick = () => {
-        if (r.id.includes('-') || r.id.includes('_')) navigate(`template/${r.id}`);
-        else navigate(r.id);
+        // Studio ids like 'video-agent' or 'ai-vfx' contain dashes too, so only
+        // ids that aren't a known app are treated as templates.
+        if (KNOWN_APP_IDS.has(r.id)) navigate(r.id);
+        else navigate(`template/${r.id}`);
       };
       row.appendChild(chip);
     });
