@@ -16,14 +16,17 @@ import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
+import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
+import { notifyGeneration } from './studio/generationNotifications.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 export function LipSyncStudio() {
+    let results = null; // upstream-style empty state + results gallery, mounted with the composer
     const container = document.createElement('div');
-    container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+    container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
   mountStudioChrome(container, { currentRoute: 'lipsync' });
 
     // --- State ---
@@ -84,12 +87,12 @@ export function LipSyncStudio() {
 
     const imageModeBtn = document.createElement('button');
     imageModeBtn.type = 'button';
-    imageModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-primary bg-primary/10 text-primary';
+    imageModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 bg-primary text-black shadow-md shadow-primary/20';
     imageModeBtn.textContent = '🖼 Portrait Image';
 
     const videoModeBtn = document.createElement('button');
     videoModeBtn.type = 'button';
-    videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
+    videoModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-white/40 hover:text-white/70';
     videoModeBtn.textContent = '🎬 Video';
 
     modeToggleRow.appendChild(modeLabel);
@@ -475,7 +478,69 @@ export function LipSyncStudio() {
     bar.appendChild(bottomRow);
 
     promptWrapper.appendChild(bar);
+
+    // Upstream Lip Sync composer: Image/Video segmented control above round
+    // upload circles, the prompt, then a footer of 38px pills (Model,
+    // Resolution, Advanced) and Generate; SmartVideo-only tools go in ⋯.
+    modeLabel.hidden = true;
+    modeToggleRow.className = 'inline-flex items-center gap-1 bg-white/[0.03] border border-white/[0.05] rounded-full p-0.5 self-start';
+    [imageUploadBtn, videoUploadBtn, audioUploadBtn].forEach((b) => {
+        b.className = b.className.replace('rounded-xl', 'rounded-full').replace('w-14 h-14', 'w-12 h-12');
+        b.querySelectorAll('.rounded-xl').forEach((el) => el.classList.replace('rounded-xl', 'rounded-full'));
+    });
+    uploadsRow.className = 'flex items-center gap-2 flex-wrap';
+    bar.insertBefore(textarea, statusRow);
+    statusRow.className = 'flex items-center gap-2 text-[11px] text-white/40';
+    textarea.className = 'w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:outline-none resize-none pt-1 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
+    const lsControls = document.createElement('div');
+    [modelBtn, resolutionBtn, advancedBtn].forEach((b) => { restylePill(b); lsControls.appendChild(b); });
+    modelBtn.querySelector('#ls-model-btn-label')?.setAttribute('class', 'text-xs font-semibold text-current opacity-70 group-hover:text-primary group-hover:opacity-100 transition-all');
+    nativeAudioRow.className = nativeAudioRow.className.includes('hidden') ? 'hidden flex items-center gap-2' : 'flex items-center gap-2';
+    lsControls.appendChild(nativeAudioRow);
+    const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
+    foldIntoMoreMenu(lsControls, [
+        { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
+        { label: 'Personalize', description: 'Personalize with a contact', el: bottomRow.querySelector('#v-contact-btn') },
+        { label: 'Custom thumbnail', el: thumbBtn },
+        { label: 'Stock photo', description: 'Pexels portrait', el: pexelsImageBtn },
+        { label: 'Stock video', description: 'Pexels source video', el: pexelsVideoBtn },
+        { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
+        { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
+        { label: 'Recipes', onSelect: enhanceAction('recipe') },
+        { label: 'Monetize', onSelect: enhanceAction('monetize') },
+    ]);
+    actionToolbar.hidden = true;
+    bottomRow.innerHTML = '';
+    restyleAction(generateBtn);
+    bottomRow.append(lsControls, generateBtn);
+    styleComposer({ wrapper: promptWrapper, bar, footer: bottomRow, controls: lsControls });
     container.appendChild(promptWrapper);
+
+    results = mountStudioResults({
+        container,
+        hero: heroBanner,
+        before: promptWrapper,
+        kind: 'video',
+        historyType: 'video',
+        studio: 'lipsync',
+        label: 'Lip Sync Studio',
+        filenamePrefix: 'lipsync',
+        empty: {
+            heading: 'Make it talk with',
+            highlight: getCurrentModels()[0]?.name || 'Lip Sync',
+            subtitle: 'Add a portrait image or a video plus an audio track, then press Generate.',
+            samples: [],
+        },
+        extraActions: (item) => [
+            { label: 'Add AI captions', onSelect: () => addCaptionButton({ videoUrl: item.url, appTheme: 'lipsync-studio', onComplete: () => showToast('Captioned video ready') }) },
+            { label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'video' }) },
+        ],
+        onDelete: (item) => {
+            const i = generationHistory.findIndex(e => e.url === item.url);
+            if (i >= 0) generationHistory.splice(i, 1);
+            try { localStorage.setItem('lipsync_history', JSON.stringify(generationHistory.slice(0, 30))); } catch { /* ignore */ }
+        },
+    });
 
     const advancedPanel = document.createElement('div');
     advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
@@ -506,7 +571,10 @@ export function LipSyncStudio() {
       onChange: (key, value) => {
       }
     });
-    container.appendChild(advancedPanel);
+    // Advanced settings open inside the floating composer, above its footer.
+    advancedPanel.classList.remove('mt-6', 'mt-4');
+    advancedPanel.classList.add('max-h-[45vh]', 'overflow-y-auto', 'custom-scrollbar');
+    bar.insertBefore(advancedPanel, bottomRow);
 
     const toggleAdvanced = () => {
         showAdvanced = !showAdvanced;
@@ -632,13 +700,13 @@ export function LipSyncStudio() {
     // ==========================================
     const updateUIForMode = () => {
         if (inputMode === 'image') {
-            imageModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-primary bg-primary/10 text-primary';
-            videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
+            imageModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 bg-primary text-black shadow-md shadow-primary/20';
+            videoModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-white/40 hover:text-white/70';
             imageUploadBtn.classList.remove('hidden');
             videoUploadBtn.classList.add('hidden');
         } else {
-            videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-primary bg-primary/10 text-primary';
-            imageModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
+            videoModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 bg-primary text-black shadow-md shadow-primary/20';
+            imageModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-white/40 hover:text-white/70';
             videoUploadBtn.classList.remove('hidden');
             imageUploadBtn.classList.add('hidden');
         }
@@ -896,7 +964,7 @@ export function LipSyncStudio() {
     const historyList = document.createElement('div');
     historyList.className = 'flex flex-col gap-2 w-full px-2';
     historySidebar.appendChild(historyList);
-    container.appendChild(historySidebar);
+    // Results live in the upstream-style gallery; the side rail and canvas stay detached.
 
     // Main canvas
     const canvas = document.createElement('div');
@@ -944,9 +1012,12 @@ export function LipSyncStudio() {
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
-    container.appendChild(canvas);
 
     const showVideoInCanvas = (videoUrl) => {
+        resultVideo.src = videoUrl;
+        results.area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+        // eslint-disable-next-line no-unreachable
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
         resultVideo.src = videoUrl;
@@ -982,9 +1053,7 @@ export function LipSyncStudio() {
         } catch (e) {
             // Ignore storage errors (private mode, quota exceeded, etc.)
         }
-        historySidebar.classList.remove('translate-x-full', 'opacity-0');
-        historySidebar.classList.add('translate-x-0', 'opacity-100');
-        renderHistory();
+        results.gallery.addItem(entry);
     };
 
     const renderHistory = () => {
@@ -1039,9 +1108,7 @@ export function LipSyncStudio() {
         const saved = JSON.parse(localStorage.getItem('lipsync_history') || '[]');
         if (saved.length > 0) {
             saved.forEach(e => generationHistory.push(e));
-            historySidebar.classList.remove('translate-x-full', 'opacity-0');
-            historySidebar.classList.add('translate-x-0', 'opacity-100');
-            renderHistory();
+            results.gallery.setItems(generationHistory);
         }
     } catch { /* ignore */ }
 
@@ -1123,9 +1190,10 @@ export function LipSyncStudio() {
         const apiKey = apiKeyManager.getKey();
         if (!apiKey) { AuthModal(() => generateBtn.click()); return; }
 
-        hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
-        generateBtn.disabled = true;
-        generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> Generating...`;
+        const pendingCard = results.gallery.addPending('Syncing lips…');
+        const notifyId = `lipsync:${Date.now()}`;
+        notifyGeneration({ phase: 'start', id: notifyId, studio: 'lipsync', label: 'Lip Sync Studio' });
+        setActionBusy(generateBtn, true);
         lipsyncAbortController = new AbortController();
 
         let hadError = false;
@@ -1183,12 +1251,15 @@ export function LipSyncStudio() {
         } catch (e) {
             hadError = true;
             if (capturedRequestId) removePendingJob(capturedRequestId);
-            hero.classList.remove('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
-            generateBtn.innerHTML = `Error: ${e.message.slice(0, 60)}`;
-            setTimeout(() => { generateBtn.innerHTML = `Generate ✨`; }, 4000);
+            showToast(e.message || 'Generation failed', 'error', 5000);
+            notifyGeneration({ phase: 'error', id: notifyId, studio: 'lipsync', label: 'Lip Sync Studio', message: e.message });
         } finally {
-            generateBtn.disabled = false;
-            if (!hadError) generateBtn.innerHTML = `Generate ✨`;
+            pendingCard.remove();
+            if (hadError) setActionRetry(generateBtn);
+            else {
+                setActionBusy(generateBtn, false);
+                notifyGeneration({ phase: 'success', id: notifyId, studio: 'lipsync', label: 'Lip Sync Studio' });
+            }
             lipsyncAbortController = null;
         }
     };
