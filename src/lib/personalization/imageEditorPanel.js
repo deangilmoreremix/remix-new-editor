@@ -39,9 +39,6 @@ export function createRecastState() {
     resultUrl: '',
     error: '',
     saved: false,
-    startedAt: 0,
-    characters: [],
-    characterId: '',
   };
 }
 
@@ -537,34 +534,6 @@ function renderPanelTabs(session) {
   `;
 }
 
-export function recastSteps(recast = {}) {
-  const has = (value) => Boolean(value);
-  return [
-    { id: 'upload', label: 'Upload clip', done: has(recast.sourceUrl), active: !recast.sourceUrl },
-    { id: 'person', label: 'Choose person', done: true, active: false },
-    { id: 'recast', label: 'Recast', done: has(recast.resultUrl), active: has(recast.sourceUrl) && !recast.resultUrl },
-    { id: 'save', label: 'Save', done: has(recast.saved), active: has(recast.resultUrl) && !recast.saved },
-  ];
-}
-
-export function formatElapsed(ms) {
-  const total = Math.max(0, Math.floor((Number(ms) || 0) / 1000));
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
-}
-
-function renderRecastStepper(recast) {
-  return `
-    <ol class="pm-recast-steps" aria-label="Recast steps">
-      ${recastSteps(recast).map((step, index) => `
-        <li class="${step.done ? 'done' : ''} ${step.active ? 'active' : ''}" ${step.active ? 'aria-current="step"' : ''}>
-          <span class="pm-recast-step-num">${step.done && !step.active ? '✓' : index + 1}</span>
-          <span class="pm-recast-step-label">${escapeHtml(step.label)}</span>
-        </li>
-      `).join('')}
-    </ol>
-  `;
-}
-
 function recastPanel(label, content) {
   return `
     <figure class="pm-recast-panel">
@@ -591,50 +560,30 @@ export function renderRecastView(session) {
       <label class="pm-recast-drop" data-recast-drop>
         ${fileInput}
         <span class="pm-recast-drop-icon" aria-hidden="true">⬆</span>
-        <strong>Upload a performance clip</strong>
-        <span>One person, head to toe in view · MP4 or MOV · 4–30 s</span>
+        <strong>Upload performance clip</strong>
+        <span>Drop or click · MP4 or MOV · 4–30 sec · 50 MB</span>
       </label>
     `;
 
-  const characterId = recast.characterId || session.assetId;
-  const selected = characterId === session.assetId
-    ? { name: session.name, url: current?.dataUrl }
-    : (recast.characters || []).find((c) => c.id === characterId) || {};
-  const characters = recast.characters || [];
-  const picker = characters.length > 1 ? `
-    <div class="pm-recast-people" role="radiogroup" aria-label="Choose the person">
-      ${characters.map((c) => `
-        <button type="button" role="radio" class="pm-recast-person ${c.id === characterId ? 'active' : ''}" aria-checked="${c.id === characterId ? 'true' : 'false'}" data-recast-character="${escapeHtml(c.id)}" title="${escapeHtml(c.name || 'Person')}" ${busy ? 'disabled' : ''}>
-          <img src="${escapeHtml(c.id === session.assetId ? (current?.dataUrl || c.url) : c.url)}" alt="${escapeHtml(c.name || 'Person')}" />
-        </button>
-      `).join('')}
-    </div>
-  ` : '';
-  const character = selected.url
-    ? `<img src="${escapeHtml(selected.url)}" alt="${escapeHtml(selected.name || 'Character reference')}" />${picker}`
+  const character = current?.dataUrl
+    ? `<img src="${escapeHtml(current.dataUrl)}" alt="Character reference" />`
     : '<div class="pm-recast-empty">No character image</div>';
 
   let result;
   if (recast.resultUrl) {
     result = `<video src="${escapeHtml(recast.resultUrl)}" muted loop playsinline autoplay preload="auto" data-recast-video="result"></video>`;
   } else if (recast.status === 'generating') {
-    result = `
-      <div class="pm-recast-overlay pm-recast-overlay-static">
-        <span class="pm-spinner"></span>
-        <span>${escapeHtml(recast.statusLabel || 'Recasting…')}</span>
-        <span class="pm-recast-elapsed" data-recast-elapsed data-started-at="${Number(recast.startedAt) || 0}">${formatElapsed(recast.startedAt ? Date.now() - recast.startedAt : 0)}</span>
-      </div>`;
+    result = `<div class="pm-recast-overlay pm-recast-overlay-static"><span class="pm-spinner"></span>${escapeHtml(recast.statusLabel || 'Recasting…')}</div>`;
   } else {
-    result = `<div class="pm-recast-empty"><span aria-hidden="true">✦</span>${recast.sourceUrl ? 'Ready — click Recast' : 'Your recast appears here'}</div>`;
+    result = '<div class="pm-recast-empty"><span aria-hidden="true">✦</span>Your recast appears here</div>';
   }
 
-  const canRun = Boolean(recast.sourceUrl) && !busy && Boolean(selected.url);
+  const canRun = Boolean(recast.sourceUrl) && !busy && Boolean(current?.dataUrl);
   return `
     <div class="pm-recast" data-recast-view>
-      ${renderRecastStepper(recast)}
       <div class="pm-recast-grid">
         ${recastPanel('Source performance', source)}
-        ${recastPanel(characters.length > 1 ? 'Character · tap to change' : 'Character image', character)}
+        ${recastPanel('Character image', character)}
         ${recastPanel('Recast result', result)}
       </div>
       <div class="pm-recast-controls">
@@ -643,15 +592,7 @@ export function renderRecastView(session) {
           ? '<button type="button" class="pm-btn pm-btn-secondary" data-editor-action="recast-cancel">Cancel</button>'
           : `<button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-run" ${canRun ? '' : 'disabled'}>✦ ${recast.resultUrl ? 'Recast Again' : 'Recast Full Body'}</button>`}
       </div>
-      <details class="pm-recast-tips">
-        <summary>Tips for a great result</summary>
-        <ul>
-          <li>Use a clip with one person, head to toe in frame, and a steady camera.</li>
-          <li>Pick a well-lit, front-facing photo of the new person; full-body photos work best.</li>
-          <li>The clip's movement, camera and location are kept. The result is silent.</li>
-          <li>Recasts usually take 2–5 minutes. Keep this editor open while it runs.</li>
-        </ul>
-      </details>
+      <p class="pm-recast-note">Keeps the source clip's movement, camera and location and swaps in this character. The result is silent; the source soundtrack is not added back.</p>
     </div>
   `;
 }
@@ -667,9 +608,9 @@ function renderFooter(session) {
         <div class="pm-editor-footer-msg">${message}</div>
         <div class="pm-asset-actions">
           <button type="button" class="pm-btn pm-btn-secondary" data-editor-action="recast-close" ${recast.status === 'saving' ? 'disabled' : ''}>← Back to Image</button>
-          ${recast.saved
-            ? '<button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-another">＋ Recast Another</button>'
-            : `<button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-save" ${recast.status !== 'done' || !recast.resultUrl ? 'disabled' : ''}>Save Recast Video</button>`}
+          <button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-save" ${recast.status !== 'done' || !recast.resultUrl || recast.saved ? 'disabled' : ''}>
+            ${recast.saved ? 'Saved' : 'Save Recast Video'}
+          </button>
         </div>
       </div>
     `;

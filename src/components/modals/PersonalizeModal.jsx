@@ -58,13 +58,12 @@ import {
   findBusinesses,
   researchBusiness,
 } from '../../lib/personalization/businessDiscoveryService.js';
-import { formatElapsed, renderPersonalizationImageEditorPanel } from '../../lib/personalization/imageEditorPanel.js';
+import { renderPersonalizationImageEditorPanel } from '../../lib/personalization/imageEditorPanel.js';
 import { PersonalizationImageEditorController } from '../../lib/personalization/imageEditorController.js';
 import { makePersonalizationAssetVideoReady } from '../../lib/personalization/videoReady.js';
 import { buildPersonalizationContext } from '../../lib/personalization/studioContext.js';
 
 const CONTACTS_KEY = 'remix_contacts';
-const IDENTITY_ROLES = Object.freeze(['presenter_identity', 'face_identity', 'character_identity']);
 const PROFILES_KEY = 'remix_contact_profiles';
 const IMPORTED_IMAGE_ROLE_OPTIONS = Object.freeze([
   ['presenter_identity', 'Person / Presenter'],
@@ -2043,8 +2042,8 @@ export class PersonalizeModal extends BaseModal {
           position:relative; display:inline-flex; flex-direction:column; align-items:center; gap:4px;
           max-width:120px;
         }
-        .pm-form .pm-asset-role-move {
-          width:100%; max-width:120px; min-height:0; padding:3px 4px; border-radius:6px;
+        .pm-asset-role-move {
+          width:100%; max-width:120px; padding:3px 4px; border-radius:6px;
           border:1px solid var(--border-color); background:var(--bg-panel); color:var(--text-secondary);
           font:inherit; font-size:8px;
         }
@@ -2282,68 +2281,7 @@ export class PersonalizeModal extends BaseModal {
           flex:1; min-width:0; border:1px solid var(--border-color); border-radius:9px; background:var(--bg-app);
           color:var(--text-primary); padding:8px 10px; font:inherit; font-size:11px;
         }
-        /* Assets tab quick start */
-        .pm-quickstart { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:8px; }
-        .pm-quick-card {
-          display:flex; align-items:center; gap:10px; min-width:0; text-align:left; cursor:pointer;
-          padding:10px; border-radius:12px; border:1px solid var(--border-color);
-          background:var(--bg-panel); color:var(--text-primary); font:inherit;
-          transition:border-color var(--transition-fast), transform var(--transition-fast);
-        }
-        .pm-quick-card:hover:not(:disabled) { border-color:var(--pm-primary); transform:translateY(-1px); }
-        .pm-quick-card:disabled { opacity:.5; cursor:not-allowed; }
-        .pm-quick-card-primary { border-color:var(--pm-primary); background:var(--pm-soft); }
-        .pm-quick-thumb {
-          flex:none; width:40px; height:40px; border-radius:10px; object-fit:cover;
-          display:inline-flex; align-items:center; justify-content:center;
-        }
-        .pm-quick-thumb-empty { background:var(--bg-app); border:1px dashed var(--border-color); color:var(--text-muted); font-size:16px; }
-        .pm-quick-text { display:flex; flex-direction:column; gap:3px; min-width:0; }
-        .pm-quick-text strong { font-size:12px; font-weight:750; }
-        .pm-quick-text span { font-size:10px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .pm-assets-status { font-size:11px; color:#22c55e; }
-        .pm-assets-heading { margin-top:4px; }
-        .pm-collapsible { border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
-        .pm-collapsible > summary {
-          display:flex; align-items:center; gap:10px; padding:11px 14px; cursor:pointer; list-style:none;
-        }
-        .pm-collapsible > summary::-webkit-details-marker { display:none; }
-        .pm-collapsible > summary::before { content:'▸'; color:var(--text-muted); font-size:10px; transition:transform var(--transition-fast); }
-        .pm-collapsible[open] > summary::before { transform:rotate(90deg); }
-        .pm-collapsible-summary { margin-left:auto; font-size:10px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%; }
-        .pm-collapsible-body { display:flex; flex-direction:column; gap:10px; padding:0 14px 14px; }
-        .pm-asset-recast {
-          width:100%; padding:3px 4px; border-radius:6px; border:1px solid var(--pm-primary);
-          background:var(--pm-soft); color:var(--pm-primary); font:inherit; font-size:9px; font-weight:700; cursor:pointer;
-        }
-
-        /* Guided recast */
-        .pm-recast-steps { display:flex; gap:6px; margin:0; padding:0; list-style:none; flex:none; }
-        .pm-recast-steps li {
-          flex:1; min-width:0; display:flex; align-items:center; gap:6px; padding:5px 8px; border-radius:999px;
-          background:var(--bg-panel); color:var(--text-muted); font-size:10px; font-weight:700;
-        }
-        .pm-recast-steps li.done { color:var(--text-secondary); }
-        .pm-recast-steps li.active { background:var(--pm-soft); color:var(--pm-primary); }
-        .pm-recast-step-num {
-          flex:none; width:18px; height:18px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center;
-          background:var(--bg-app); font-size:9px;
-        }
-        .pm-recast-steps li.done .pm-recast-step-num { background:rgba(34,197,94,.18); color:#22c55e; }
-        .pm-recast-steps li.active .pm-recast-step-num { background:var(--pm-primary); color:var(--pm-on-primary); }
-        .pm-recast-step-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .pm-recast-people {
-          position:absolute; left:6px; right:6px; bottom:6px; z-index:2; display:flex; gap:5px; justify-content:center;
-          padding:5px; border-radius:10px; background:rgba(0,0,0,.6); backdrop-filter:blur(6px); overflow-x:auto;
-        }
-        .pm-recast-person { flex:none; width:34px; height:34px; padding:0; border-radius:8px; border:2px solid transparent; overflow:hidden; cursor:pointer; background:none; }
-        .pm-recast-person.active { border-color:var(--pm-primary); }
-        .pm-recast-person:disabled { opacity:.5; cursor:not-allowed; }
-        .pm-recast-person img { width:100%; height:100%; object-fit:cover; display:block; }
-        .pm-recast-elapsed { font-variant-numeric:tabular-nums; font-size:18px; font-weight:800; }
-        .pm-recast-tips { flex:none; font-size:10px; color:var(--text-muted); }
-        .pm-recast-tips summary { cursor:pointer; font-weight:700; color:var(--text-secondary); }
-        .pm-recast-tips ul { margin:6px 0 0; padding-left:16px; line-height:1.5; }
+        .pm-recast-note { margin:0; font-size:9px; line-height:1.45; color:var(--text-muted); }
         .pm-mask-toolbar {
           display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px;
           border:1px solid var(--border-color); border-radius:10px; background:var(--bg-panel);
@@ -2372,10 +2310,6 @@ export class PersonalizeModal extends BaseModal {
           .pm-recast-drop { width:calc(100% - 10px); height:calc(100% - 34px); margin-top:24px; padding:6px; font-size:8px; }
           .pm-recast-drop strong { font-size:10px; }
           .pm-recast-controls { flex-direction:column; }
-          .pm-quickstart { grid-template-columns:1fr; }
-          .pm-recast-step-label { display:none; }
-          .pm-recast-steps li { justify-content:center; }
-          .pm-recast-person { width:26px; height:26px; }
           .pm-editor-compare { grid-template-columns:1fr; }
         }
         @media (max-width: 720px) {
@@ -2773,10 +2707,7 @@ export class PersonalizeModal extends BaseModal {
         : `<select class="pm-asset-role-move" data-imported-asset-role="${escapeHtml(asset.id)}" aria-label="Move ${escapeHtml(asset.name || title)} to another role">
             ${IMPORTED_IMAGE_ROLE_OPTIONS.map(([role, label]) => `<option value="${role}" ${asset.role === role ? 'selected' : ''}>${label}</option>`).join('')}
           </select>`;
-      const recastControl = IDENTITY_ROLES.includes(asset.role)
-        ? `<button type="button" class="pm-asset-recast" data-action="open-recast-for-asset" data-asset-id="${escapeHtml(asset.id)}" title="Recast ${escapeHtml(asset.name || 'this person')} into a video">⇄ Recast</button>`
-        : '';
-      return `<span class="pm-asset-thumb-wrap">${preview}${recastControl}${moveControl}<button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || title)}">×</button></span>`;
+      return `<span class="pm-asset-thumb-wrap">${preview}${moveControl}<button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || title)}">×</button></span>`;
     }).join('');
     return `
       <div class="pm-asset-role-card" ${uploadRole ? `data-asset-drop-role="${escapeHtml(uploadRole)}"` : ''}>
@@ -2916,44 +2847,18 @@ export class PersonalizeModal extends BaseModal {
       return `<div class="pm-form">${editorHtml}</div>`;
     }
 
-    const pendingReview = visibleDiscovered.filter((asset) => !asset.rejected && !asset.importedAssetId).length;
-    const discoverBusy = this.isDiscoveringBusinessAssets || this.isAnalyzingBusinessAssets
-      || this.isBatchVideoReady || this.isImportingBusinessAssets;
-    const options = profile.personalization.generationOptions || {};
-    const brandSummary = `Logo: ${options.exactLogoHandling === 'ai-reference' ? 'AI reference' : 'exact overlay'} · CTA: ${options.exactCtaHandling === 'ai-generated' ? 'AI generated' : 'exact end card'}`;
-
     return `
       <div class="pm-form">
         ${editorHtml}
-        ${this.imageEditorSession ? '' : this._renderAssetQuickStart(profile, business)}
-        ${this.assetDiscoveryError ? `<div class="pm-error" role="alert">${escapeHtml(this.assetDiscoveryError)}</div>` : ''}
-        ${this.assetDiscoveryStatus ? `<div class="pm-assets-status" role="status">${escapeHtml(this.assetDiscoveryStatus)}</div>` : ''}
-
-        <div class="pm-section-header pm-assets-heading">
-          <span class="pm-section-label">Your assets</span>
-          <span class="pm-preview-pill pm-preview-pill-muted">SmartVideo AI Asset Library</span>
-        </div>
-        <div class="pm-asset-role-grid">
-          ${this._assetRoleCard('Person / Presenter', 'Face, body, side/profile, presenter and identity references.', identities, 'presenter_identity')}
-          ${this._assetRoleCard('Logo', 'Primary and alternate brand logos.', logos, 'logo')}
-          ${this._assetRoleCard('Products / Services', 'Products, services, completed work and marketing subjects.', products, 'product_reference')}
-          ${this._assetRoleCard('Brand References', 'Brand imagery, environments and style references.', assets.brandReferences || [], 'brand_reference')}
-          ${this._assetRoleCard('First Frame', 'Explicit opening-frame asset; never auto-assigned by discovery.', single(assets.firstFrame), 'first_frame')}
-          ${this._assetRoleCard('Last Frame', 'Explicit ending-frame asset; never auto-assigned by discovery.', single(assets.lastFrame), 'last_frame')}
-          ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic), 'cta_graphic')}
-          ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [], 'saved_reference')}
-          ${this._assetRoleCard('Audio References', 'Reusable audio references for models that explicitly support reference audio.', assets.audio || [], 'audio_reference')}
-          ${this._assetRoleCard('Presenter Videos', 'Full Body Recast results: this person performing in a source clip. Make one with “Recast a video with this person” above.', assets.presenterVideos || [])}
-        </div>
-
-        ${this._assetSection(
-          'discover',
-          'Find Business Assets',
-          business.website ? `Scan ${business.website}` : 'Add a website in Business / Client',
-          `
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Find Business Assets</span>
+            <span class="pm-business-status">${escapeHtml(this.assetDiscoveryStatus || '')}</span>
+          </div>
           <div class="pm-preview-empty">
             SmartVideo AI checks the business website with free/static discovery first. Vision analysis is a separate explicit action, so discovery itself does not spend OpenAI image-analysis credits.
           </div>
+          ${this.assetDiscoveryError ? `<div class="pm-error" role="alert">${escapeHtml(this.assetDiscoveryError)}</div>` : ''}
           <div class="pm-asset-actions">
             <button type="button" class="pm-btn pm-btn-primary" data-action="discover-business-assets" ${!business.website || this.isDiscoveringBusinessAssets ? 'disabled' : ''}>
               ${this.isDiscoveringBusinessAssets ? 'Finding assets…' : 'Find Business Assets'}
@@ -2969,27 +2874,25 @@ export class PersonalizeModal extends BaseModal {
             </button>
           </div>
           ${business.website ? `<div class="pm-preview-empty">Website: ${escapeHtml(business.website)}</div>` : '<div class="pm-preview-empty">Add a Website in Business / Client before running discovery.</div>'}
-          `,
-          { attention: discoverBusy },
-        )}
+        </div>
 
-        ${visibleDiscovered.length ? this._assetSection(
-          'review',
-          'Discovered Asset Review',
-          pendingReview ? `${pendingReview} of ${visibleDiscovered.length} to review` : `${visibleDiscovered.length} reviewed`,
-          `
+        ${visibleDiscovered.length ? `
+          <div class="pm-section">
+            <div class="pm-section-header">
+              <span class="pm-section-label">Discovered Asset Review</span>
+              <span class="pm-preview-pill pm-preview-pill-muted">${visibleDiscovered.length} candidates</span>
+            </div>
             <div class="pm-discovered-grid">
               ${visibleDiscovered.map((asset) => this._renderDiscoveredAssetCard(asset)).join('')}
             </div>
-          `,
-          { attention: pendingReview > 0 },
-        ) : ''}
+          </div>
+        ` : ''}
 
-        ${this._assetSection(
-          'brand',
-          'Exact Brand Handling',
-          brandSummary,
-          `
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Exact Brand Handling</span>
+            <span class="pm-preview-pill pm-preview-pill-muted">Deterministic by default</span>
+          </div>
           <div class="pm-preview-empty">
             Keep exact logos, CTA wording, phone numbers, and URLs out of generative redraws when fidelity matters. These settings travel with studio/Personalizer handoffs.
           </div>
@@ -3009,8 +2912,30 @@ export class PersonalizeModal extends BaseModal {
               </select>
             </label>
           </div>
-          `,
-        )}
+        </div>
+
+        <div class="pm-section">
+          <div class="pm-section-header">
+            <span class="pm-section-label">Reusable personalization assets</span>
+            <span class="pm-preview-pill pm-preview-pill-muted">SmartVideo AI Asset Library</span>
+          </div>
+          <div class="pm-preview-empty">
+            Imported assets use SmartVideo-controlled storage. Existing RNE avatar/logo/product assets remain visible for backward compatibility.
+          </div>
+        </div>
+
+        <div class="pm-asset-role-grid">
+          ${this._assetRoleCard('Person / Presenter', 'Face, body, side/profile, presenter and identity references.', identities, 'presenter_identity')}
+          ${this._assetRoleCard('Logo', 'Primary and alternate brand logos.', logos, 'logo')}
+          ${this._assetRoleCard('Products / Services', 'Products, services, completed work and marketing subjects.', products, 'product_reference')}
+          ${this._assetRoleCard('Brand References', 'Brand imagery, environments and style references.', assets.brandReferences || [], 'brand_reference')}
+          ${this._assetRoleCard('First Frame', 'Explicit opening-frame asset; never auto-assigned by discovery.', single(assets.firstFrame), 'first_frame')}
+          ${this._assetRoleCard('Last Frame', 'Explicit ending-frame asset; never auto-assigned by discovery.', single(assets.lastFrame), 'last_frame')}
+          ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic), 'cta_graphic')}
+          ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [], 'saved_reference')}
+          ${this._assetRoleCard('Audio References', 'Reusable audio references for models that explicitly support reference audio.', assets.audio || [], 'audio_reference')}
+          ${this._assetRoleCard('Presenter Videos', 'Full Body Recast results: this person performing in a source clip. Create one from a person asset → Edit → Full Body Recast.', assets.presenterVideos || [])}
+        </div>
       </div>
     `;
   }
@@ -3066,7 +2991,6 @@ export class PersonalizeModal extends BaseModal {
         throw new Error('Could not save the uploaded asset to the selected profile.');
       }
       this.assetDiscoveryStatus = `✓ Uploaded ${file.name}`;
-      return asset;
     } catch (error) {
       this.assetDiscoveryError = error?.message || 'Asset upload failed.';
       this.assetDiscoveryStatus = '';
@@ -3076,7 +3000,7 @@ export class PersonalizeModal extends BaseModal {
     }
   }
 
-  async _handleManualAssetUpload(role, onUploaded = null) {
+  async _handleManualAssetUpload(role) {
     if (!role) return;
     const input = document.createElement('input');
     input.type = 'file';
@@ -3091,8 +3015,7 @@ export class PersonalizeModal extends BaseModal {
     input.onchange = async () => {
       const file = input.files?.[0];
       try {
-        const asset = file ? await this._uploadPersonalizationAssetFile(role, file) : null;
-        if (asset && onUploaded) onUploaded(asset);
+        if (file) await this._uploadPersonalizationAssetFile(role, file);
       } catch {
         // Error is already surfaced in the Assets tab.
       } finally {
@@ -3501,95 +3424,6 @@ export class PersonalizeModal extends BaseModal {
   _closeAssetEditor() {
     this.assetEditorAssetId = null;
     this.imageEditorController.close();
-  }
-
-  _identityAssets(profile) {
-    return getAllPersonalizationAssets(profile || {}).filter(
-      (asset) => asset?.id && asset.url && IDENTITY_ROLES.includes(asset.role)
-    );
-  }
-
-  _primaryIdentity(profile) {
-    const identities = this._identityAssets(profile);
-    const primaryId = profile?.personalization?.assets?.primaryIdentityId;
-    return identities.find((asset) => asset.id === primaryId) || identities[0] || null;
-  }
-
-  /** Open the editor on a saved profile asset, optionally straight into Full Body Recast. */
-  _openEditorForAsset(assetId, { recast = false } = {}) {
-    this._openAssetEditor(assetId, 'imported');
-    const controller = this.imageEditorController;
-    if (!recast || !controller.session) return;
-    const characters = this._identityAssets(this._selectedUnifiedProfile())
-      .map((asset) => ({ id: asset.id, name: asset.name || 'Person', url: asset.url }));
-    controller.openRecast({ characters });
-  }
-
-  /** Quick-start cards: use the primary person, or ask for a photo first. */
-  _handleQuickStart(kind) {
-    const recast = kind === 'recast';
-    const person = this._primaryIdentity(this._selectedUnifiedProfile());
-    if (person) {
-      this._openEditorForAsset(person.id, { recast });
-      return;
-    }
-    this._handleManualAssetUpload('presenter_identity', (asset) => {
-      this._openEditorForAsset(asset.id, { recast });
-    });
-  }
-
-  _renderAssetQuickStart(profile, business) {
-    const person = this._primaryIdentity(profile);
-    const personThumb = person
-      ? `<img class="pm-quick-thumb" src="${escapeHtml(person.url)}" alt="" />`
-      : '<span class="pm-quick-thumb pm-quick-thumb-empty" aria-hidden="true">+</span>';
-    const personHint = person
-      ? `Uses ${escapeHtml(person.name || 'your presenter')}`
-      : 'Add a photo of the person first';
-    const busy = this.isDiscoveringBusinessAssets;
-    return `
-      <div class="pm-quickstart" role="group" aria-label="Quick start">
-        <button type="button" class="pm-quick-card pm-quick-card-primary" data-action="quick-recast">
-          ${personThumb}
-          <span class="pm-quick-text">
-            <strong>⇄ Recast a video with this person</strong>
-            <span>Swap them into any 4–30 s clip · ${personHint}</span>
-          </span>
-        </button>
-        <button type="button" class="pm-quick-card" data-action="quick-edit-presenter">
-          ${personThumb}
-          <span class="pm-quick-text">
-            <strong>✎ Edit presenter photo</strong>
-            <span>Clean up, cut out or restyle · ${personHint}</span>
-          </span>
-        </button>
-        <button type="button" class="pm-quick-card" data-action="discover-business-assets" ${!business.website || busy ? 'disabled' : ''}>
-          <span class="pm-quick-thumb pm-quick-thumb-empty" aria-hidden="true">⌕</span>
-          <span class="pm-quick-text">
-            <strong>${busy ? 'Finding assets…' : 'Find business assets'}</strong>
-            <span>${business.website ? `Scan ${escapeHtml(business.website)}` : 'Add a website in Business / Client'}</span>
-          </span>
-        </button>
-      </div>
-    `;
-  }
-
-  /**
-   * A collapsible Assets-tab section. It opens on its own when it needs
-   * attention; once the user toggles it, their choice wins across re-renders.
-   */
-  _assetSection(key, title, summary, body, { attention = false } = {}) {
-    const state = this._assetSectionState || (this._assetSectionState = new Map());
-    const open = state.has(key) ? state.get(key) : attention;
-    return `
-      <details class="pm-collapsible" data-asset-section="${escapeHtml(key)}" ${open ? 'open' : ''}>
-        <summary>
-          <span class="pm-section-label">${escapeHtml(title)}</span>
-          <span class="pm-collapsible-summary">${escapeHtml(summary)}</span>
-        </summary>
-        <div class="pm-collapsible-body">${body}</div>
-      </details>
-    `;
   }
 
   _persistEditorAnalysis() {
@@ -4665,29 +4499,6 @@ export class PersonalizeModal extends BaseModal {
           };
         });
 
-        scope.querySelectorAll('[data-action="open-recast-for-asset"]').forEach((btn) => {
-          btn.onclick = (e) => {
-            e.stopPropagation();
-            this._openEditorForAsset(btn.dataset.assetId, { recast: true });
-          };
-        });
-
-        scope.querySelectorAll('[data-action="quick-recast"], [data-action="quick-edit-presenter"]').forEach((btn) => {
-          btn.onclick = (e) => {
-            e.stopPropagation();
-            this._handleQuickStart(btn.dataset.action === 'quick-recast' ? 'recast' : 'edit');
-          };
-        });
-
-        // Remember sections the user opens/closes; refreshBody re-renders them.
-        scope.querySelectorAll('details[data-asset-section] > summary').forEach((summary) => {
-          summary.onclick = () => {
-            const details = summary.parentElement;
-            const state = this._assetSectionState || (this._assetSectionState = new Map());
-            setTimeout(() => state.set(details.dataset.assetSection, details.open), 0);
-          };
-        });
-
         scope.querySelectorAll('[data-audience]').forEach((btn) => {
           btn.onclick = (e) => {
             e.stopPropagation();
@@ -4755,7 +4566,6 @@ export class PersonalizeModal extends BaseModal {
         else if (action === 'recast-run') controller.runRecast();
         else if (action === 'recast-cancel') controller.cancelRecast();
         else if (action === 'recast-save') this._handleSaveRecast();
-        else if (action === 'recast-another') controller.recastAnother();
       };
     });
 
@@ -4861,31 +4671,8 @@ export class PersonalizeModal extends BaseModal {
 
   _bindRecastView(scope) {
     const controller = this.imageEditorController;
-    clearInterval(this._recastTimer);
-    this._recastTimer = null;
     const view = scope.querySelector('[data-recast-view]');
     if (!view) return;
-
-    view.querySelectorAll('[data-recast-character]').forEach((btn) => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        controller.setRecastCharacter(btn.dataset.recastCharacter);
-      };
-    });
-
-    // Tick the elapsed time in place rather than re-rendering the modal.
-    const elapsed = view.querySelector('[data-recast-elapsed]');
-    const startedAt = Number(elapsed?.dataset.startedAt) || 0;
-    if (elapsed && startedAt) {
-      this._recastTimer = setInterval(() => {
-        if (!elapsed.isConnected) {
-          clearInterval(this._recastTimer);
-          this._recastTimer = null;
-          return;
-        }
-        elapsed.textContent = formatElapsed(Date.now() - startedAt);
-      }, 1000);
-    }
 
     view.querySelectorAll('[data-recast-file]').forEach((input) => {
       input.onchange = () => {

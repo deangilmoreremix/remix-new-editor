@@ -544,68 +544,13 @@ export class PersonalizationImageEditorController {
 
   // ── Full Body Recast (open-genjutsu flow) ──────────────────────────────
 
-  /**
-   * @param {{ characters?: Array<{ id: string, name?: string, url: string }> }} [options]
-   *   People the user can recast with. The asset being edited is always first.
-   */
-  openRecast({ characters } = {}) {
-    const session = this.session;
-    if (!session) return;
-    session.mode = 'advanced';
-    session.maskMode = false;
+  openRecast() {
+    if (!this.session) return;
+    this.session.mode = 'advanced';
+    this.session.maskMode = false;
     this.destroyMask();
-    const recast = session.recast;
-    if (Array.isArray(characters)) {
-      const others = characters.filter((c) => c?.id && c.url && c.id !== session.assetId);
-      recast.characters = [{ id: session.assetId, name: session.name, url: session.originalUrl }, ...others];
-    }
-    if (!recast.characterId) recast.characterId = session.assetId;
-    recast.open = true;
-    recast.error = '';
-    this._change(true);
-  }
-
-  setRecastCharacter(id) {
-    const recast = this.session?.recast;
-    if (!recast || recast.status === 'generating' || recast.status === 'saving') return;
-    const exists = id === this.session.assetId || recast.characters.some((c) => c.id === id);
-    if (!exists || recast.characterId === id) return;
-    recast.characterId = id;
-    recast.resultUrl = '';
-    recast.saved = false;
-    recast.error = '';
-    if (recast.status === 'done') recast.status = 'idle';
-    this._change(true);
-  }
-
-  /** Image URL for the selected person. The edited asset uses its current version. */
-  recastCharacterUrl() {
-    const session = this.session;
-    if (!session) return '';
-    const { characterId, characters } = session.recast;
-    if (!characterId || characterId === session.assetId) return this.currentVersion()?.dataUrl || '';
-    return characters.find((c) => c.id === characterId)?.url || '';
-  }
-
-  /** After saving, start a new recast with the same person. */
-  recastAnother() {
-    const recast = this.session?.recast;
-    if (!recast) return;
-    this.cancelRecast();
-    this._revokeRecastPreview();
-    Object.assign(recast, {
-      sourceName: '',
-      sourcePreviewUrl: '',
-      sourceUrl: '',
-      duration: 0,
-      prompt: '',
-      status: 'idle',
-      statusLabel: '',
-      resultUrl: '',
-      error: '',
-      saved: false,
-      startedAt: 0,
-    });
+    this.session.recast.open = true;
+    this.session.recast.error = '';
     this._change(true);
   }
 
@@ -683,8 +628,8 @@ export class PersonalizationImageEditorController {
 
   async runRecast() {
     const session = this.session;
-    const characterImage = this.recastCharacterUrl();
-    if (!session || !characterImage) return;
+    const current = this.currentVersion();
+    if (!session || !current?.dataUrl) return;
     const recast = session.recast;
     if (!recast.sourceUrl || recast.status === 'generating') return;
 
@@ -693,7 +638,6 @@ export class PersonalizationImageEditorController {
     this.recastAbort = controller;
     Object.assign(recast, {
       status: 'generating',
-      startedAt: Date.now(),
       statusLabel: 'Preparing character image…',
       error: '',
       resultUrl: '',
@@ -702,13 +646,12 @@ export class PersonalizationImageEditorController {
     this._change(true);
 
     try {
-      const character = recast.characters.find((c) => c.id === recast.characterId);
-      const characterUrl = await resolveRecastCharacterUrl(characterImage, {
+      const characterUrl = await resolveRecastCharacterUrl(current.dataUrl, {
         role: session.role,
-        name: character?.name || session.name,
+        name: session.name,
       });
       if (controller.signal.aborted) throw new Error('Recast cancelled');
-      recast.statusLabel = 'Recasting the performer… usually 2–5 minutes.';
+      recast.statusLabel = 'Recasting the performer… this usually takes a few minutes.';
       this._change(true);
 
       const result = await runFullBodyRecast({
@@ -759,7 +702,7 @@ export class PersonalizationImageEditorController {
       recast.statusLabel = '';
       return {
         role: 'presenter_video',
-        name: `${recast.characters.find((c) => c.id === recast.characterId)?.name || session.name} — Full Body Recast`,
+        name: `${session.name} — Full Body Recast`,
         url: stored.url,
         originalUrl: stored.url,
         sourceType: 'AI_GENERATED',
@@ -768,7 +711,7 @@ export class PersonalizationImageEditorController {
           operation: 'full_body_recast',
           model: recast.model || null,
           sourceVideoUrl: recast.sourceUrl,
-          characterAssetId: recast.characterId || session.assetId,
+          characterAssetId: session.assetId,
           providerUrl: recast.resultUrl,
           durable: stored.durable,
           prompt: recast.prompt || '',
