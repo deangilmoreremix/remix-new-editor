@@ -757,6 +757,14 @@ export function CinemaStudio() {
         createDropdown(['1K', '2K', '4K'], resBtn.dataset.value, (val) => { updateResBtn(val); resBtn.dataset.touched = '1'; }, resBtn);
     };
     settingsToolbar.appendChild(resBtn);
+
+    // Opens the Advanced Options panel (negative prompt, seed, duration, …).
+    const advancedBtn = document.createElement('button');
+    advancedBtn.type = 'button';
+    advancedBtn.className = resBtn.className;
+    advancedBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg> <span data-advanced-label>Advanced</span>';
+    advancedBtn.onclick = () => toggleAdvanced();
+    settingsToolbar.appendChild(advancedBtn);
     
     // Camera Builder Toggle Button
     const cameraBuilderBtn = document.createElement('button');
@@ -781,8 +789,8 @@ export function CinemaStudio() {
         csCharacterLockBtn.onclick = () => {
             characterLock = !characterLock;
             csCharacterLockBtn.setAttribute('data-character-lock', String(characterLock));
-            csCharacterLockBtn.style.background = characterLock ? 'var(--cyan)' : '';
-            csCharacterLockBtn.style.borderColor = characterLock ? 'var(--cyan)' : '';
+            csCharacterLockBtn.style.background = characterLock ? 'var(--color-primary)' : '';
+            csCharacterLockBtn.style.borderColor = characterLock ? 'var(--color-primary)' : '';
             csCharacterLockKnob.style.left = characterLock ? 'calc(100% - 4px)' : '4px';
         };
     }
@@ -1110,7 +1118,8 @@ export function CinemaStudio() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
     `;
-    advancedPanel.appendChild(advHeader);
+    advancedCard.appendChild(advHeader);
+    advHeader.querySelector('#close-cinema-adv-btn').onclick = () => { if (showAdvanced) toggleAdvanced(); };
 
     const advancedControlsContainer = document.createElement('div');
     advancedControlsContainer.className = 'flex flex-col gap-4';
@@ -1138,7 +1147,8 @@ export function CinemaStudio() {
     const toggleAdvanced = () => {
       showAdvanced = !showAdvanced;
       advancedPanel.classList.toggle('hidden', !showAdvanced);
-      document.getElementById('advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
+      const label = container.querySelector('[data-advanced-label]');
+      if (label) label.textContent = showAdvanced ? 'Less' : 'Advanced';
     };
 
     // ==========================================
@@ -1643,52 +1653,6 @@ export function CinemaStudio() {
             }
 
 
-    // Prompt Gallery button
-    const promptGalleryBtn = document.createElement('button');
-    promptGalleryBtn.type = 'button';
-    promptGalleryBtn.textContent = '📚 Prompts';
-    promptGalleryBtn.title = 'Browse prompt gallery';
-    promptGalleryBtn.setAttribute('aria-label', 'Open prompt gallery');
-    promptGalleryBtn.className = 'btn-ghost-modern shrink-0';
-    promptGalleryBtn.addEventListener('click', () => {
-      openPromptGallery({
-        appTheme: 'cinema-studio',
-        onSelect: (prompt) => {
-          // Default: try to find a textarea in the studio
-          const ta = document.querySelector('textarea') || document.querySelector('[data-prompt]');
-          if (ta) {
-            ta.value = prompt;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-            ta.focus();
-          }
-        }
-      }).catch((err) => console.error('[PromptGallery] open failed:', err));
-    });
-
-    // Recipe Engine button
-    const recipeBtn = document.createElement('button');
-    recipeBtn.type = 'button';
-    recipeBtn.textContent = '📋 Recipes';
-    recipeBtn.title = 'Browse AI recipes';
-    recipeBtn.setAttribute('aria-label', 'Open recipe engine');
-    recipeBtn.className = 'btn-ghost-modern shrink-0';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
-    });
-
-
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = "💼 Smart Video AI Monetize";
-    monetizationBtn.title = "Open Smart Video AI Monetization Hub";
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern shrink-0';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
-    });
-    if (!toolbar.querySelector('[aria-label="Open recipe engine"]')) toolbar.appendChild(recipeBtn);
-    if (!toolbar.querySelector('[aria-label="Open Smart Video AI Monetization Hub"]')) toolbar.appendChild(monetizationBtn);
 
             if (res && res.url) {
                 addToHistory({
