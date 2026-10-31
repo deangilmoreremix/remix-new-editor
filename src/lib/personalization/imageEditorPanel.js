@@ -42,6 +42,8 @@ export function createRecastState() {
     startedAt: 0,
     characters: [],
     characterId: '',
+    jobId: '',
+    canRetry: false,
   };
 }
 
@@ -543,7 +545,8 @@ export function recastSteps(recast = {}) {
     { id: 'upload', label: 'Upload clip', done: has(recast.sourceUrl), active: !recast.sourceUrl },
     { id: 'person', label: 'Choose person', done: true, active: false },
     { id: 'recast', label: 'Recast', done: has(recast.resultUrl), active: has(recast.sourceUrl) && !recast.resultUrl },
-    { id: 'save', label: 'Save', done: has(recast.saved), active: has(recast.resultUrl) && !recast.saved },
+    // Saving is automatic: the background job stores the video when it's ready.
+    { id: 'save', label: recast.saved ? 'Saved' : 'Auto-save', done: has(recast.saved), active: recast.status === 'saving' },
   ];
 }
 
@@ -638,7 +641,7 @@ export function renderRecastView(session) {
         ${recastPanel('Recast result', result)}
       </div>
       <div class="pm-recast-controls">
-        <input type="text" maxlength="1000" value="${escapeHtml(recast.prompt || '')}" placeholder="Optional direction, e.g. keep the hand gesture natural" data-recast-prompt ${busy ? 'disabled' : ''} />
+        <input type="text" id="pm-recast-prompt" maxlength="1000" value="${escapeHtml(recast.prompt || '')}" placeholder="Optional direction, e.g. keep the hand gesture natural" data-recast-prompt ${busy ? 'disabled' : ''} />
         ${recast.status === 'generating'
           ? '<button type="button" class="pm-btn pm-btn-secondary" data-editor-action="recast-cancel">Cancel</button>'
           : `<button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-run" ${canRun ? '' : 'disabled'}>✦ ${recast.resultUrl ? 'Recast Again' : 'Recast Full Body'}</button>`}
@@ -659,17 +662,18 @@ export function renderRecastView(session) {
 function renderFooter(session) {
   const recast = session.recast || {};
   if (recast.open) {
-    const message = recast.error
-      ? `<span class="pm-editor-footer-error" role="alert">${escapeHtml(recast.error)}</span>`
-      : (recast.saved ? '<span class="pm-editor-good">✓ Saved to Presenter Videos</span>' : '');
+    const running = recast.status === 'generating' || recast.status === 'saving';
+    let message = '';
+    if (recast.error) message = `<span class="pm-editor-footer-error" role="alert">${escapeHtml(recast.error)}</span>`;
+    else if (recast.saved) message = '<span class="pm-editor-good">✓ Saved to Presenter Videos</span>';
+    else if (running && recast.jobId) message = '<span>You can close this — the video saves to Presenter Videos when it’s ready.</span>';
     return `
       <div class="pm-editor-footer pm-editor-footer-sticky">
         <div class="pm-editor-footer-msg">${message}</div>
         <div class="pm-asset-actions">
-          <button type="button" class="pm-btn pm-btn-secondary" data-editor-action="recast-close" ${recast.status === 'saving' ? 'disabled' : ''}>← Back to Image</button>
-          ${recast.saved
-            ? '<button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-another">＋ Recast Another</button>'
-            : `<button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-save" ${recast.status !== 'done' || !recast.resultUrl ? 'disabled' : ''}>Save Recast Video</button>`}
+          <button type="button" class="pm-btn pm-btn-secondary" data-editor-action="recast-close">← Back to Image</button>
+          ${recast.canRetry ? '<button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-retry">↻ Retry</button>' : ''}
+          ${recast.saved ? '<button type="button" class="pm-btn pm-btn-primary" data-editor-action="recast-another">＋ Recast Another</button>' : ''}
         </div>
       </div>
     `;

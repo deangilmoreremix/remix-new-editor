@@ -4,9 +4,11 @@ import {
   createPersonalizationAsset,
   ensurePersonalizationProfile,
   getAllPersonalizationAssets,
+  getPrimaryPresenterVideo,
   movePersonalizationAsset,
   normalizeBusinessProfile,
   removePersonalizationAsset,
+  setPrimaryPresenterVideo,
   updatePersonalizationBusiness,
 } from '../lib/personalization/personalizationProfile.js';
 import { buildVariables, resolveToken } from '../components/personalize/tokenSchema.js';
@@ -104,3 +106,33 @@ describe('unified personalization profile', () => {
   });
 
 });
+
+describe('presenter videos', () => {
+  const video = (id) => createPersonalizationAsset({
+    id, role: 'presenter_video', name: id, url: `https://cdn/${id}.mp4`, mimeType: 'video/mp4',
+  });
+
+  it('keeps recast videos out of saved references and makes the newest the main one', () => {
+    let profile = addPersonalizationAsset({ id: 'c1' }, video('a'));
+    profile = addPersonalizationAsset(profile, video('b'));
+    const assets = profile.personalization.assets;
+    expect(assets.presenterVideos.map((v) => v.id)).toEqual(['a', 'b']);
+    expect(assets.savedReferences).toHaveLength(0);
+    expect(getPrimaryPresenterVideo(profile).id).toBe('b');
+    expect(getAllPersonalizationAssets(profile).map((v) => v.id)).toEqual(['a', 'b']);
+  });
+
+  it('lets the user pick the main video and falls back when it is removed', () => {
+    let profile = addPersonalizationAsset({ id: 'c1' }, video('a'));
+    profile = addPersonalizationAsset(profile, video('b'));
+    profile = setPrimaryPresenterVideo(profile, 'a');
+    expect(getPrimaryPresenterVideo(profile).id).toBe('a');
+    expect(setPrimaryPresenterVideo(profile, 'missing').personalization.assets.primaryPresenterVideoId).toBe('a');
+
+    profile = removePersonalizationAsset(profile, 'a');
+    expect(profile.personalization.assets.primaryPresenterVideoId).toBe('b');
+    profile = removePersonalizationAsset(profile, 'b');
+    expect(getPrimaryPresenterVideo(profile)).toBeNull();
+  });
+});
+

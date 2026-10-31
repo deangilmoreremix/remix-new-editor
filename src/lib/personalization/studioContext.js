@@ -1,4 +1,4 @@
-import { ensurePersonalizationProfile } from './personalizationProfile.js';
+import { ensurePersonalizationProfile, getPrimaryPresenterVideo } from './personalizationProfile.js';
 
 function assetUrl(asset) {
   return typeof asset === 'string'
@@ -113,6 +113,9 @@ export function buildPersonalizationContext(profile = {}) {
     ctaGraphic: assets.ctaGraphic || null,
     audio: [...(assets.audio || [])],
     savedReferences: [...(assets.savedReferences || [])],
+    // Full Body Recast videos. Video only: never merged into image references.
+    presenterVideo: getPrimaryPresenterVideo(normalized),
+    presenterVideos: [...(assets.presenterVideos || [])],
     generationOptions: { ...generationOptions },
     exactOverlays: {
       logo: logo || null,

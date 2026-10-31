@@ -59,6 +59,7 @@ export const EMPTY_PERSONALIZATION_ASSETS = Object.freeze({
   audio: [],
   savedReferences: [],
   presenterVideos: [],
+  primaryPresenterVideoId: null,
 });
 
 function cleanString(value) {
@@ -176,6 +177,7 @@ export function normalizePersonalizationAssets(input = {}) {
     audio: normalizeArray(input.audio),
     savedReferences: normalizeArray(input.savedReferences),
     presenterVideos: normalizeArray(input.presenterVideos),
+    primaryPresenterVideoId: input.primaryPresenterVideoId || null,
   };
 }
 
@@ -294,7 +296,9 @@ export function addPersonalizationAsset(profile, asset) {
   } else if (asset.role === 'presenter_video') {
     // Kept apart from savedReferences: those are passed to models as image
     // references, and a recast video must never be sent as an image input.
+    // The newest recast becomes the main presenter video.
     dedupePush(assets.presenterVideos, asset);
+    assets.primaryPresenterVideoId = asset.id;
   } else {
     dedupePush(assets.savedReferences, asset);
   }
@@ -338,6 +342,9 @@ export function removePersonalizationAsset(profile, assetId) {
     audio,
     savedReferences,
     presenterVideos,
+    primaryPresenterVideoId: presenterVideos.some((asset) => asset.id === a.primaryPresenterVideoId)
+      ? a.primaryPresenterVideoId
+      : (presenterVideos[presenterVideos.length - 1]?.id || null),
   };
 
   return {
@@ -348,6 +355,28 @@ export function removePersonalizationAsset(profile, assetId) {
       updatedAt: new Date().toISOString(),
     },
   };
+}
+
+export function setPrimaryPresenterVideo(profile, assetId) {
+  const normalized = ensurePersonalizationProfile(profile);
+  const assets = normalized.personalization.assets;
+  if (!assets.presenterVideos.some((asset) => asset?.id === assetId)) return normalized;
+  return {
+    ...normalized,
+    personalization: {
+      ...normalized.personalization,
+      assets: { ...assets, primaryPresenterVideoId: assetId },
+      updatedAt: new Date().toISOString(),
+    },
+  };
+}
+
+/** The main presenter video, falling back to the newest one. */
+export function getPrimaryPresenterVideo(profile = {}) {
+  const { presenterVideos, primaryPresenterVideoId } = ensurePersonalizationProfile(profile).personalization.assets;
+  return presenterVideos.find((asset) => asset?.id === primaryPresenterVideoId)
+    || presenterVideos[presenterVideos.length - 1]
+    || null;
 }
 
 export function movePersonalizationAsset(profile, assetId, nextRole) {

@@ -38,11 +38,13 @@ import {
   createPersonalizationAsset,
   ensurePersonalizationProfile,
   getAllPersonalizationAssets,
+  getPrimaryPresenterVideo,
   normalizeBusinessProfile,
   movePersonalizationAsset,
   removePersonalizationAsset,
   setDiscoveredPersonalizationAssets,
   setPersonalizationGenerationOptions,
+  setPrimaryPresenterVideo,
   updatePersonalizationAsset,
   updatePersonalizationBusiness,
 } from '../../lib/personalization/personalizationProfile.js';
@@ -62,6 +64,12 @@ import { formatElapsed, renderPersonalizationImageEditorPanel } from '../../lib/
 import { PersonalizationImageEditorController } from '../../lib/personalization/imageEditorController.js';
 import { makePersonalizationAssetVideoReady } from '../../lib/personalization/videoReady.js';
 import { buildPersonalizationContext } from '../../lib/personalization/studioContext.js';
+import {
+  dismissRecastJob,
+  getRecastJobs,
+  isRecastJobActive,
+  subscribeRecastJobs,
+} from '../../lib/personalization/recastJobs.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const IDENTITY_ROLES = Object.freeze(['presenter_identity', 'face_identity', 'character_identity']);
@@ -316,6 +324,9 @@ export class PersonalizeModal extends BaseModal {
     // root node), so querySelector('.modal-overlay') would search descendants
     // only and always return null — set the attribute on the overlay directly.
     if (this.overlay) this.overlay.setAttribute('aria-describedby', 'pm-subtitle');
+    // Background recasts update the Assets tab (chips, badges, Presenter Videos).
+    this._unsubscribeRecastJobs?.();
+    this._unsubscribeRecastJobs = subscribeRecastJobs(() => this._onRecastJobsChanged());
     this._wireEvents();
     this._refreshContactsList();
     this._refreshProfileSummary();
@@ -2300,7 +2311,7 @@ export class PersonalizeModal extends BaseModal {
         .pm-quick-thumb-empty { background:var(--bg-app); border:1px dashed var(--border-color); color:var(--text-muted); font-size:16px; }
         .pm-quick-text { display:flex; flex-direction:column; gap:3px; min-width:0; }
         .pm-quick-text strong { font-size:12px; font-weight:750; }
-        .pm-quick-text span { font-size:10px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .pm-quick-text > span:not(.pm-quick-chip) { font-size:10px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .pm-assets-status { font-size:11px; color:#22c55e; }
         .pm-assets-heading { margin-top:4px; }
         .pm-collapsible { border:1px solid var(--border-color); border-radius:12px; background:var(--bg-card); }
@@ -2316,6 +2327,31 @@ export class PersonalizeModal extends BaseModal {
           width:100%; padding:3px 4px; border-radius:6px; border:1px solid var(--pm-primary);
           background:var(--pm-soft); color:var(--pm-primary); font:inherit; font-size:9px; font-weight:700; cursor:pointer;
         }
+
+        /* Background recast status */
+        .pm-quick-chip {
+          display:inline-flex; align-items:center; gap:5px; align-self:flex-start; margin-top:3px;
+          padding:3px 8px; border-radius:999px; font-size:10px; font-weight:700; white-space:nowrap;
+        }
+        .pm-quick-chip .pm-spinner { width:10px; height:10px; }
+        .pm-quick-chip b { font-variant-numeric:tabular-nums; }
+        .pm-quick-chip.is-running { background:var(--bg-app); color:var(--pm-primary); }
+        .pm-quick-chip.is-done { background:rgba(34,197,94,.16); color:#22c55e; }
+        .pm-quick-chip.is-error { background:rgba(239,68,68,.14); color:#ef4444; }
+        .pm-asset-job-badge {
+          position:absolute; top:-5px; left:-5px; z-index:1; width:18px; height:18px; border-radius:999px;
+          display:inline-flex; align-items:center; justify-content:center; font-size:10px;
+          background:var(--bg-app); border:1px solid var(--border-color);
+        }
+        .pm-asset-job-badge.is-done { background:#22c55e; border-color:#22c55e; color:#fff; }
+        .pm-asset-thumb-pending { display:inline-flex; align-items:center; justify-content:center; background:var(--bg-app); border:1px dashed var(--pm-primary); }
+        .pm-asset-video-label { font-size:9px; color:var(--pm-primary); font-variant-numeric:tabular-nums; }
+        .pm-asset-main {
+          width:100%; padding:3px 4px; border-radius:6px; border:1px solid var(--border-color);
+          background:var(--bg-panel); color:var(--text-secondary); font:inherit; font-size:9px; font-weight:700; cursor:pointer;
+        }
+        .pm-asset-main.active { border-color:var(--pm-primary); background:var(--pm-soft); color:var(--pm-primary); }
+        .pm-apply-hint { margin-right:auto; font-size:11px; color:var(--pm-primary, #29d3f2); font-weight:600; }
 
         /* Guided recast */
         .pm-recast-steps { display:flex; gap:6px; margin:0; padding:0; list-style:none; flex:none; }
@@ -2773,10 +2809,14 @@ export class PersonalizeModal extends BaseModal {
         : `<select class="pm-asset-role-move" data-imported-asset-role="${escapeHtml(asset.id)}" aria-label="Move ${escapeHtml(asset.name || title)} to another role">
             ${IMPORTED_IMAGE_ROLE_OPTIONS.map(([role, label]) => `<option value="${role}" ${asset.role === role ? 'selected' : ''}>${label}</option>`).join('')}
           </select>`;
+      const personJob = IDENTITY_ROLES.includes(asset.role) ? this._recastJobForPerson(asset.id) : null;
+      const jobBadge = personJob && (isRecastJobActive(personJob) || personJob.status === 'done')
+        ? `<span class="pm-asset-job-badge ${isRecastJobActive(personJob) ? 'is-running' : 'is-done'}" title="${isRecastJobActive(personJob) ? 'Recast in progress' : 'Recast ready'}">${isRecastJobActive(personJob) ? '⏳' : '✓'}</span>`
+        : '';
       const recastControl = IDENTITY_ROLES.includes(asset.role)
         ? `<button type="button" class="pm-asset-recast" data-action="open-recast-for-asset" data-asset-id="${escapeHtml(asset.id)}" title="Recast ${escapeHtml(asset.name || 'this person')} into a video">⇄ Recast</button>`
         : '';
-      return `<span class="pm-asset-thumb-wrap">${preview}${recastControl}${moveControl}<button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || title)}">×</button></span>`;
+      return `<span class="pm-asset-thumb-wrap">${jobBadge}${preview}${recastControl}${moveControl}<button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || title)}">×</button></span>`;
     }).join('');
     return `
       <div class="pm-asset-role-card" ${uploadRole ? `data-asset-drop-role="${escapeHtml(uploadRole)}"` : ''}>
@@ -2943,7 +2983,7 @@ export class PersonalizeModal extends BaseModal {
           ${this._assetRoleCard('CTA Graphic', 'Exact CTA/logo/phone/URL graphics for deterministic final use.', single(assets.ctaGraphic), 'cta_graphic')}
           ${this._assetRoleCard('Saved References', 'Reusable references available to compatible generation models.', assets.savedReferences || [], 'saved_reference')}
           ${this._assetRoleCard('Audio References', 'Reusable audio references for models that explicitly support reference audio.', assets.audio || [], 'audio_reference')}
-          ${this._assetRoleCard('Presenter Videos', 'Full Body Recast results: this person performing in a source clip. Make one with “Recast a video with this person” above.', assets.presenterVideos || [])}
+          ${this._presenterVideosCard(assets)}
         </div>
 
         ${this._assetSection(
@@ -3495,12 +3535,25 @@ export class PersonalizeModal extends BaseModal {
     this.imageEditorController.open(asset, {
       source: resolvedSource,
       businessContext: this._editorBusinessContext(),
+      contactId: getSelectedContactId(),
     });
   }
 
   _closeAssetEditor() {
     this.assetEditorAssetId = null;
     this.imageEditorController.close();
+  }
+
+  _handleSetMainPresenterVideo(assetId) {
+    const id = getSelectedContactId();
+    const profile = id ? _getProfile(id) : null;
+    if (!profile || !assetId) return;
+    const next = setPrimaryPresenterVideo(profile, assetId);
+    next.updatedAt = new Date().toISOString();
+    if (!this._persistSelectedProfile(next)) {
+      this.assetDiscoveryError = 'Could not update the main presenter video.';
+    }
+    this.refreshBody();
   }
 
   _identityAssets(profile) {
@@ -3523,12 +3576,22 @@ export class PersonalizeModal extends BaseModal {
     const characters = this._identityAssets(this._selectedUnifiedProfile())
       .map((asset) => ({ id: asset.id, name: asset.name || 'Person', url: asset.url }));
     controller.openRecast({ characters });
+    const jobId = controller.session?.recast?.jobId;
+    const job = jobId ? getRecastJobs().find((candidate) => candidate.id === jobId) : null;
+    if (job?.status === 'done') dismissRecastJob(job.id);
   }
 
   /** Quick-start cards: use the primary person, or ask for a photo first. */
   _handleQuickStart(kind) {
     const recast = kind === 'recast';
-    const person = this._primaryIdentity(this._selectedUnifiedProfile());
+    const profile = this._selectedUnifiedProfile();
+    const person = this._primaryIdentity(profile);
+    // A running or finished recast takes the user back to that job.
+    const job = recast ? this._latestRecastJob() : null;
+    if (job && this._identityAssets(profile).some((asset) => asset.id === job.editorAssetId)) {
+      this._openEditorForAsset(job.editorAssetId, { recast: true });
+      return;
+    }
     if (person) {
       this._openEditorForAsset(person.id, { recast });
       return;
@@ -3554,6 +3617,7 @@ export class PersonalizeModal extends BaseModal {
           <span class="pm-quick-text">
             <strong>⇄ Recast a video with this person</strong>
             <span>Swap them into any 4–30 s clip · ${personHint}</span>
+            ${this._recastChip(this._latestRecastJob())}
           </span>
         </button>
         <button type="button" class="pm-quick-card" data-action="quick-edit-presenter">
@@ -4672,6 +4736,13 @@ export class PersonalizeModal extends BaseModal {
           };
         });
 
+        scope.querySelectorAll('[data-action="set-main-presenter-video"]').forEach((btn) => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            this._handleSetMainPresenterVideo(btn.dataset.assetId);
+          };
+        });
+
         scope.querySelectorAll('[data-action="quick-recast"], [data-action="quick-edit-presenter"]').forEach((btn) => {
           btn.onclick = (e) => {
             e.stopPropagation();
@@ -4725,6 +4796,8 @@ export class PersonalizeModal extends BaseModal {
 
         this._bindImageEditorActions(scope);
       }
+      this._startRecastTicker();
+      this._updateApplyHint();
     }
 
   _bindImageEditorActions(scope) {
@@ -4754,7 +4827,7 @@ export class PersonalizeModal extends BaseModal {
         else if (action === 'recast-close') controller.closeRecast();
         else if (action === 'recast-run') controller.runRecast();
         else if (action === 'recast-cancel') controller.cancelRecast();
-        else if (action === 'recast-save') this._handleSaveRecast();
+        else if (action === 'recast-retry') controller.retryRecast();
         else if (action === 'recast-another') controller.recastAnother();
       };
     });
@@ -4859,10 +4932,121 @@ export class PersonalizeModal extends BaseModal {
     this._mountActiveEditorMask();
   }
 
+  _onRecastJobsChanged() {
+    if (!this.overlay || this._activeTab() !== 'assets') return;
+    // While a recast is open the editor re-renders from its own subscription.
+    if (this.imageEditorSession?.recast?.open) return;
+    this.refreshBody();
+  }
+
+  destroy() {
+    this._unsubscribeRecastJobs?.();
+    this._unsubscribeRecastJobs = null;
+    clearInterval(this._recastTicker);
+    this._recastTicker = null;
+    super.destroy();
+  }
+
+  /** Tick every visible "m:ss" recast timer in place instead of re-rendering. */
+  _startRecastTicker() {
+    clearInterval(this._recastTicker);
+    this._recastTicker = null;
+    if (!this.overlay?.querySelector('[data-recast-elapsed]')) return;
+    this._recastTicker = setInterval(() => {
+      const timers = this.overlay?.querySelectorAll('[data-recast-elapsed]') || [];
+      if (!timers.length) {
+        clearInterval(this._recastTicker);
+        this._recastTicker = null;
+        return;
+      }
+      timers.forEach((el) => {
+        const startedAt = Number(el.dataset.startedAt) || 0;
+        if (startedAt) el.textContent = formatElapsed(Date.now() - startedAt);
+      });
+    }, 1000);
+  }
+
+  /** Tell the user Apply will also hand over the main recast video. */
+  _updateApplyHint() {
+    const footer = this.overlay?.querySelector('.modal-footer');
+    const applyBtn = footer?.querySelector('[data-personalize-action="apply"]');
+    if (!applyBtn) return;
+    let hint = footer.querySelector('#pm-apply-hint');
+    const video = getPrimaryPresenterVideo(this._selectedUnifiedProfile() || {});
+    if (!video) {
+      hint?.remove();
+      return;
+    }
+    if (!hint) {
+      hint = document.createElement('span');
+      hint.id = 'pm-apply-hint';
+      hint.className = 'pm-apply-hint';
+      applyBtn.parentNode.insertBefore(hint, footer.querySelector('[data-personalize-action]'));
+    }
+    hint.textContent = `⇄ Includes ${video.name || 'the recast video'}`;
+  }
+
+  /** Newest job for the contact that the user hasn't dismissed yet. */
+  _latestRecastJob() {
+    const contactId = getSelectedContactId();
+    if (!contactId) return null;
+    return getRecastJobs({ contactId }).find((job) => job.status !== 'cancelled') || null;
+  }
+
+  _recastJobForPerson(assetId) {
+    const contactId = getSelectedContactId();
+    if (!contactId || !assetId) return null;
+    return getRecastJobs({ contactId }).find((job) => job.status !== 'cancelled'
+      && (job.characterAssetId === assetId || job.editorAssetId === assetId)) || null;
+  }
+
+  _recastChip(job) {
+    if (!job) return '';
+    if (isRecastJobActive(job)) {
+      const label = job.status === 'saving' ? 'Saving…' : 'Recasting…';
+      return `<span class="pm-quick-chip is-running"><span class="pm-spinner"></span>${label} <b data-recast-elapsed data-started-at="${Number(job.startedAt) || 0}">${formatElapsed(Date.now() - (job.startedAt || Date.now()))}</b></span>`;
+    }
+    if (job.status === 'done') return `<span class="pm-quick-chip is-done">✓ ${escapeHtml(job.characterName || 'Recast')} is ready</span>`;
+    if (job.status === 'error') return '<span class="pm-quick-chip is-error">Failed — open to retry</span>';
+    return '';
+  }
+
+  _presenterVideosCard(assets) {
+    const videos = [...(assets.presenterVideos || [])].reverse();
+    const mainId = getPrimaryPresenterVideo({ personalization: { assets } })?.id;
+    const running = getRecastJobs({ contactId: getSelectedContactId() }).filter(isRecastJobActive);
+    const pending = running.map((job) => `
+      <span class="pm-asset-thumb-wrap">
+        <span class="pm-asset-thumb pm-asset-thumb-pending" title="${escapeHtml(job.characterName || 'Recast')} — in progress">
+          <span class="pm-spinner"></span>
+        </span>
+        <span class="pm-asset-video-label" data-recast-elapsed data-started-at="${Number(job.startedAt) || 0}">${formatElapsed(Date.now() - (job.startedAt || Date.now()))}</span>
+      </span>
+    `).join('');
+    const thumbs = videos.map((asset) => {
+      const isMain = asset.id === mainId;
+      return `
+        <span class="pm-asset-thumb-wrap">
+          <video class="pm-asset-thumb" src="${escapeHtml(asset.url)}" muted loop playsinline preload="metadata" controls title="${escapeHtml(asset.name || 'Presenter video')}"></video>
+          <button type="button" class="pm-asset-main ${isMain ? 'active' : ''}" data-action="set-main-presenter-video" data-asset-id="${escapeHtml(asset.id)}" aria-pressed="${isMain ? 'true' : 'false'}" title="${isMain ? 'Main video — used by Apply personalization' : 'Use this video for Apply personalization'}">${isMain ? '★ Main' : '☆ Set as main'}</button>
+          <button type="button" class="pm-asset-delete" data-action="delete-personalization-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="Delete ${escapeHtml(asset.name || 'presenter video')}">×</button>
+        </span>
+      `;
+    }).join('');
+    return `
+      <div class="pm-asset-role-card">
+        <div class="pm-asset-role-head">
+          <span class="pm-asset-role-title">Presenter Videos</span>
+          <span class="pm-asset-role-count">${videos.length}</span>
+        </div>
+        <div class="pm-asset-role-copy">Full Body Recast results. The ★ main video is handed to Lip Sync and Video Tools when you apply personalization.</div>
+        ${pending || thumbs ? `<div class="pm-asset-thumbs">${pending}${thumbs}</div>` : '<div class="pm-empty" style="padding:0;">No recasts yet — use “Recast a video with this person” above.</div>'}
+      </div>
+    `;
+  }
+
   _bindRecastView(scope) {
     const controller = this.imageEditorController;
-    clearInterval(this._recastTimer);
-    this._recastTimer = null;
     const view = scope.querySelector('[data-recast-view]');
     if (!view) return;
 
@@ -4872,20 +5056,6 @@ export class PersonalizeModal extends BaseModal {
         controller.setRecastCharacter(btn.dataset.recastCharacter);
       };
     });
-
-    // Tick the elapsed time in place rather than re-rendering the modal.
-    const elapsed = view.querySelector('[data-recast-elapsed]');
-    const startedAt = Number(elapsed?.dataset.startedAt) || 0;
-    if (elapsed && startedAt) {
-      this._recastTimer = setInterval(() => {
-        if (!elapsed.isConnected) {
-          clearInterval(this._recastTimer);
-          this._recastTimer = null;
-          return;
-        }
-        elapsed.textContent = formatElapsed(Date.now() - startedAt);
-      }, 1000);
-    }
 
     view.querySelectorAll('[data-recast-file]').forEach((input) => {
       input.onchange = () => {
@@ -4926,34 +5096,6 @@ export class PersonalizeModal extends BaseModal {
       if (!result.paused) result.onplay();
     } else if (source) {
       source.controls = true;
-    }
-  }
-
-  async _handleSaveRecast() {
-    const controller = this.imageEditorController;
-    const session = controller.session;
-    if (!session?.recast?.resultUrl) return;
-    try {
-      const fields = await controller.saveRecast();
-      const id = getSelectedContactId();
-      let profile = id ? _getProfile(id) : null;
-      if (!profile) throw new Error('Select a contact profile before saving the recast video.');
-
-      profile = addPersonalizationAsset(profile, createPersonalizationAsset(fields));
-      profile.updatedAt = new Date().toISOString();
-      profile.variables = buildVariables(profile, profile.variables || {});
-      if (!this._persistSelectedProfile(profile)) {
-        throw new Error('The recast video could not be saved to the selected profile.');
-      }
-      session.recast.saved = true;
-      session.recast.error = '';
-      this.assetDiscoveryStatus = '✓ Full body recast saved to Presenter Videos';
-    } catch (error) {
-      if (controller.session === session) {
-        session.recast.error = error?.message || 'Could not save the recast video.';
-      }
-    } finally {
-      this.refreshBody();
     }
   }
 

@@ -100,18 +100,51 @@ export async function runFullBodyRecast({
 
   const result = await muapi.processV2V({
     model: FULL_BODY_MODEL,
+    ...buildRecastPayload({ sourceUrl, characterUrl, duration, prompt }),
+    studioType: 'personalize-recast',
+  }, signal);
+
+  const url = recastOutputUrl(result);
+  if (!url) throw new Error('The recast finished but returned no video.');
+  return { url, model: FULL_BODY_MODEL };
+}
+
+function recastOutputUrl(result) {
+  return result?.url || result?.outputs?.[0] || result?.output?.url || '';
+}
+
+/** The open-genjutsu motion-control payload. */
+export function buildRecastPayload({ sourceUrl, characterUrl, duration, prompt = '' } = {}) {
+  if (!sourceUrl) throw new Error('Upload a source performance clip first.');
+  if (!characterUrl) throw new Error('A character image is required.');
+  const payload = {
     video_url: sourceUrl,
     images_list: [characterUrl],
     aspect_ratio: 'adaptive',
     duration: clampRecastDuration(duration),
     generate_audio: false,
-    prompt: String(prompt || '').trim() || undefined,
-    studioType: 'personalize-recast',
-  }, signal);
+  };
+  const direction = String(prompt || '').trim();
+  if (direction) payload.prompt = direction;
+  return payload;
+}
 
-  const url = result?.url || result?.outputs?.[0] || result?.output?.url;
+/**
+ * Submit without waiting, so the request id can be stored and polling can
+ * resume after the editor closes or the page reloads.
+ */
+export async function submitRecast(payload) {
+  muapi._requireMuapiKey?.();
+  const { requestId } = await muapi.submitOnly(FULL_BODY_MODEL, payload, null, 'v2v', 'personalize-recast');
+  if (!requestId) throw new Error('The recast service did not return a request ID.');
+  return requestId;
+}
+
+export async function pollRecast(requestId, signal) {
+  const result = await muapi.pollForResult(requestId, 120, 2000, signal);
+  const url = recastOutputUrl(result);
   if (!url) throw new Error('The recast finished but returned no video.');
-  return { url, model: FULL_BODY_MODEL };
+  return url;
 }
 
 /**
