@@ -89,3 +89,36 @@
   flex-wrap: wrap;
   margin-bottom: 8px;
 }
+
+/* Compact variant used inside the floating studio composer: 40px round icon
+   buttons (upstream's media-circle contract) with the label in the tooltip. */
+.studio-attachment-toolbar--compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.studio-attachment-toolbar--compact .studio-attachment-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border-radius: 9999px;
+  flex-direction: row;
+}
+
+.studio-attachment-toolbar--compact .studio-attachment-label {
+  display: none;
+}
+
+.studio-attachment-toolbar--compact .studio-attachment-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.studio-attachment-toolbar--compact .studio-attachment-btn.is-dragging {
+  border-color: var(--color-primary, #d9ff00);
+}

@@ -657,7 +657,8 @@ generateBtn.type = 'button';
     [modelBtn, arBtn, qualityBtn, advancedBtn].forEach(restylePill);
     picker.trigger.className = picker.trigger.className.replace('rounded-xl', 'rounded-full').replace('mt-1.5', '');
     topRow.className = 'flex items-start gap-3';
-    topRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
+    // Start/End frame and reference uploads stay available as compact round buttons.
+    topRow.querySelector('.studio-attachment-toolbar')?.classList.add('studio-attachment-toolbar--compact');
     const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
     foldIntoMoreMenu(controlsLeft, [
         { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },

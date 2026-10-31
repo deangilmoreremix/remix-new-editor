@@ -920,7 +920,8 @@ generateBtn.type = 'button';
         if (b) b.className = b.className.replace('rounded-xl', 'rounded-full').replace('mt-1.5', '');
     });
     topRow.className = 'flex items-center gap-2 flex-wrap';
-    topRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
+    // Start/End frame and reference uploads stay available as compact round buttons.
+    topRow.querySelector('.studio-attachment-toolbar')?.classList.add('studio-attachment-toolbar--compact');
     bar.insertBefore(textarea, bottomRow);
     const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
     foldIntoMoreMenu(controlsLeft, [

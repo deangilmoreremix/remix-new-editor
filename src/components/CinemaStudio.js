@@ -952,7 +952,8 @@ export function CinemaStudio() {
     inputRow.className = 'flex items-start gap-4';
     inputRow.insertBefore(uploadPicker.trigger, inputRow.firstChild);
     textarea.className = 'flex-1 w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:outline-none resize-none pt-1 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
-    inputRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
+    // Start/End frame and reference uploads stay available as compact round buttons.
+    inputRow.querySelector('.studio-attachment-toolbar')?.classList.add('studio-attachment-toolbar--compact');
     summaryCard.className = controlClassName({ className: 'max-w-[260px]' });
     summaryCard.innerHTML = '';
     dot.className = 'w-2 h-2 rounded-full bg-primary shrink-0 shadow-glow-sm';
