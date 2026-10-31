@@ -140,6 +140,127 @@ export class MuapiClient {
         return Number.isFinite(balance) ? balance : null;
     }
 
+    // ─── Calls ported from upstream Open-Generative-AI's muapi.js ────────────
+    // All go through the same edge proxy as every other generate call, so the
+    // user's key never leaves the proxy header path.
+
+    /** POST a job, report its request id, and poll to completion. */
+    async _submitAndPoll(endpoint, payload, params = {}, signal, { generationType = 'video', studioType = 'video', maxAttempts = 900, interval = 2000 } = {}) {
+        this._requireMuapiKey();
+        await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
+        const response = await fetch(this.proxyUrl, {
+            method: 'POST',
+            headers: this._getMuapiHeaders(),
+            body: JSON.stringify({ endpoint, params: payload, generationType, studioType }),
+            signal: effectiveSignal,
+        });
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+        }
+        const submitData = await response.json();
+        this.validateResponse(submitData, 'submit');
+        const requestId = submitData.request_id || submitData.id;
+        if (requestId) params?.onRequestId?.(requestId);
+        if (!requestId) {
+            const url = submitData.outputs?.[0] || submitData.url || submitData.output?.url;
+            return { ...submitData, url };
+        }
+        const result = await this.pollForResult(requestId, maxAttempts, interval, effectiveSignal);
+        const url = result.outputs?.[0] || result.url || result.output?.url;
+        return { ...result, id: result.id || requestId, request_id: requestId, url };
+    }
+
+    /** Vibe Motion: generate a motion-graphics clip from a prompt. */
+    async runMotionGraphics(params, signal) {
+        if (!params?.prompt?.trim()) throw new Error('Describe the motion graphic you want first.');
+        return this._submitAndPoll('motion-graphics', {
+            prompt: params.prompt,
+            aspect_ratio: params.aspect_ratio || '16:9',
+            duration_seconds: params.duration_seconds || 6,
+        }, params, signal, { studioType: 'effects' });
+    }
+
+    /** Vibe Motion: edit an earlier motion-graphics generation (needs its request id). */
+    async runMotionGraphicsEdit(params, signal) {
+        if (!params?.request_id) throw new Error('Pick the generation you want to edit.');
+        if (!params?.edit_prompt?.trim()) throw new Error('Describe the change you want to make.');
+        return this._submitAndPoll('motion-graphics-edit', {
+            request_id: params.request_id,
+            edit_prompt: params.edit_prompt,
+            aspect_ratio: params.aspect_ratio || '16:9',
+            duration_seconds: params.duration_seconds || 6,
+        }, params, signal, { studioType: 'effects' });
+    }
+
+    /** Marketing: product + avatar + reference ad video (Seedance 2 omni-reference). */
+    async generateMarketingStudioAd(params, signal) {
+        const endpoint = params.resolution === '1080p' ? 'sd-2-vip-omni-reference-1080p' : 'seedance-2-vip-omni-reference';
+        return this._submitAndPoll(endpoint, {
+            prompt: params.prompt,
+            aspect_ratio: params.aspect_ratio || '16:9',
+            duration: params.duration || 5,
+            images_list: params.images_list || [],
+            video_files: params.video_files || [],
+        }, params, signal, { studioType: 'commercial' });
+    }
+
+    /** Call a MuAPI route through the proxy and return its JSON (no polling). */
+    async _proxyRequest(endpoint, { params = {}, generationType = 'list', apiMethod, studioType = 'social' } = {}, signal) {
+        this._requireMuapiKey();
+        const body = { endpoint, params, generationType, studioType };
+        if (apiMethod) body.apiMethod = apiMethod;
+        const response = await fetch(this.proxyUrl, {
+            method: 'POST',
+            headers: this._getMuapiHeaders(),
+            body: JSON.stringify(body),
+            signal,
+        });
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Request failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+        }
+        return response.json();
+    }
+
+    /** Server-side generation history, one page at a time. */
+    async getHistory({ cursor, limit = 50 } = {}, signal) {
+        const query = [];
+        if (cursor) query.push(`cursor=${encodeURIComponent(cursor)}`);
+        if (limit) query.push(`limit=${encodeURIComponent(String(limit))}`);
+        return this._proxyRequest(`history${query.length ? `?${query.join('&')}` : ''}`, { generationType: 'list' }, signal);
+    }
+
+    /** Remove a generation's stored media on the server. */
+    async deleteMedia(requestId, signal) {
+        if (!requestId) throw new Error('A request id is required to delete media.');
+        return this._proxyRequest(`predictions/${encodeURIComponent(requestId)}/media`, { generationType: 'list', apiMethod: 'DELETE' }, signal);
+    }
+
+    /** Price a task before running it. Returns the raw cost payload. */
+    async calculateDynamicCost(taskName, payload, signal) {
+        return this._proxyRequest('app/calculate_dynamic_cost', { params: { task_name: taskName, payload }, generationType: 'social' }, signal);
+    }
+
+    /** Price a video-to-video run. `params.model` is a catalog id; the rest is the job payload. */
+    async estimateV2VCost(params, signal) {
+        const { model, signal: _s, onRequestId: _o, ...payload } = params || {};
+        const endpoint = (getModelById(model)?.endpoint || model || '').toLowerCase();
+        if (!endpoint) throw new Error('A video-to-video model is required to estimate cost.');
+        return this._proxyRequest(`models/${endpoint}/estimate-cost`, { params: payload, generationType: 'social' }, signal);
+    }
+
+    /** Apps: tell MuAPI which template app the user wants (proxy routes this outside /api/v1). */
+    async registerAppInterest(appName, signal) {
+        if (!appName) throw new Error('An app name is required.');
+        return this._proxyRequest('app/interest', { params: { app_name: appName }, generationType: 'social' }, signal);
+    }
+
+    async getAppInterests(signal) {
+        return this._proxyRequest('app/interests', { generationType: 'list' }, signal);
+    }
+
     async getModelSchema(modelId) {
         const url = `${this.muapiBaseUrl}/models/${encodeURIComponent(modelId)}`;
         const res = await fetch(url, { headers: this._getMuapiHeaders() });
