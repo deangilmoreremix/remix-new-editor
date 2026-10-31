@@ -949,7 +949,10 @@ generateBtn.type = 'button';
             },
             onSelectModel: (entry, catId) => {
                 const variant = entry.variantsByMode[catId] || entry.defaultVariant;
-                if (variant) applyImageModel(variant.model.id, catId === 'i2i');
+                // In the "All" category the mode comes from the variant itself,
+                // so edit-only models still get reference-image validation.
+                const isI2I = catId === 'i2i' || (catId !== 't2i' && variant?.mode === 'i2i');
+                if (variant) applyImageModel(variant.model.id, isI2I);
                 closeDropdown();
             },
             onClose: () => { modelPickerController = null; },
