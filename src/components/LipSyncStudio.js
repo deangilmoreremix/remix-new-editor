@@ -1,9 +1,9 @@
 import { muapi } from '../lib/muapi.js';
+import { formatErrorMessage } from '../lib/errorMessages.js';
 import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { showToast } from '../lib/loading.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { uploadMediaFile } from '../lib/editor/upload.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -843,6 +843,17 @@ export function LipSyncStudio() {
     };
 
     // Upload progress as a percentage inside the slot's spinner (upstream's progress ring).
+    // uploadMediaFile is a protected entry point (no progress hook), so go through
+    // muapi.uploadFile directly and map errors the same way.
+    const uploadWithProgress = async (file, { onProgress }) => {
+        try {
+            const url = await muapi.uploadFile(file, { onProgress });
+            if (!url) throw new Error('Upload returned no URL');
+            return url;
+        } catch (err) {
+            throw new Error(formatErrorMessage(err));
+        }
+    };
     const progressReporter = (btn, cls) => (percent) => {
         const el = btn.querySelector(`.${cls}-spinner span`);
         if (!el) return;
@@ -925,7 +936,7 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => imageFileInput.click()); return; }
         updateImageUploadState('loading');
         try {
-            const url = await uploadMediaFile(file, { onProgress: progressReporter(imageUploadBtn, 'image') });
+            const url = await uploadWithProgress(file, { onProgress: progressReporter(imageUploadBtn, 'image') });
             uploadedImageUrl = url;
             updateImageUploadState('ready', file.name);
         } catch (err) {
@@ -956,7 +967,7 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => videoFileInput.click()); return; }
         updateVideoUploadState('loading');
         try {
-            const url = await uploadMediaFile(file, { onProgress: progressReporter(videoUploadBtn, 'video') });
+            const url = await uploadWithProgress(file, { onProgress: progressReporter(videoUploadBtn, 'video') });
             uploadedVideoUrl = url;
             updateVideoUploadState('ready', file.name);
         } catch (err) {
@@ -987,7 +998,7 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => audioFileInput.click()); return; }
         updateAudioUploadState('loading');
         try {
-            const url = await uploadMediaFile(file, { onProgress: progressReporter(audioUploadBtn, 'audio') });
+            const url = await uploadWithProgress(file, { onProgress: progressReporter(audioUploadBtn, 'audio') });
             uploadedAudioUrl = url;
             updateAudioUploadState('ready', file.name);
         } catch (err) {
