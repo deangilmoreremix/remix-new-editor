@@ -13,6 +13,7 @@ import {
 import { ENHANCE_TAGS, QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { openDrawModal } from './studio/drawModal.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
@@ -671,6 +672,23 @@ generateBtn.type = 'button';
         { label: 'Personalize', description: 'Personalize with a contact', el: controlsLeft.querySelector('#v-contact-btn') },
         { label: 'Custom thumbnail', el: thumbBtn },
         { label: 'Stock photos', description: 'Use a Pexels photo as reference', el: pexelsBtn },
+        {
+            label: 'Draw / sketch',
+            description: 'Sketch a reference for the model to follow',
+            onSelect: () => openDrawModal({
+                backgroundUrl: uploadedImageUrls[0] || undefined,
+                onDone: async (file) => {
+                    try {
+                        const { uploadFileToStorage } = await import('../lib/uploadService.js');
+                        const url = await uploadFileToStorage(file);
+                        picker.setImage(url);
+                        showToast('Sketch added as reference', 'success');
+                    } catch (err) {
+                        showToast('Sketch upload failed: ' + (err.message || 'try again'), 'error');
+                    }
+                },
+            }),
+        },
         { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
         { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
         { label: 'Recipes', onSelect: enhanceAction('recipe') },

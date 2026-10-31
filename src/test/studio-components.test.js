@@ -188,3 +188,20 @@ describe('generation notifications', () => {
     expect(JSON.parse(localStorage.getItem('smartvideo_generation_notifications'))).toHaveLength(3);
   });
 });
+
+describe('draw modal', () => {
+  it('opens with tools, supports undo availability, and cancels cleanly', async () => {
+    const { openDrawModal } = await import('../components/studio/drawModal.js');
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+      fillRect: vi.fn(), drawImage: vi.fn(), getImageData: vi.fn(() => ({})), putImageData: vi.fn(),
+      beginPath: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(), strokeRect: vi.fn(), fillText: vi.fn(),
+    }));
+    openDrawModal({ onDone: vi.fn() });
+    const modal = document.querySelector('[data-drawModal], [data-draw-modal]');
+    expect(modal).not.toBeNull();
+    expect([...modal.querySelectorAll('[data-tool]')].map((b) => b.dataset.tool)).toEqual(['pencil', 'eraser', 'rect', 'arrow', 'text']);
+    expect(modal.querySelector('[data-action="undo"]').disabled).toBe(true);
+    modal.querySelector('[data-cancel]').click();
+    expect(document.querySelector('[data-draw-modal]')).toBeNull();
+  });
+});
