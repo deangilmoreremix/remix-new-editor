@@ -696,6 +696,9 @@ export class MuapiClient {
         if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
         if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
 
+        // Face-swap style models name their second image through `swapField`.
+        if (modelInfo?.swapField && params.swap_url) finalPayload[modelInfo.swapField] = params.swap_url;
+
         // Character consistency params
         if (params.first_frame_url) finalPayload.first_frame_url = params.first_frame_url;
         if (params.last_frame_url) finalPayload.last_frame_url = params.last_frame_url;

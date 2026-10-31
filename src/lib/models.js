@@ -9196,6 +9196,7 @@ export const i2iModels = [
     "endpoint": "ai-image-face-swap",
     "family": "tools",
     "imageField": "image_url",
+    "swapField": "swap_url",
     "hasPrompt": false,
     "inputs": {
       "target_index": {

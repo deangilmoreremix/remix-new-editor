@@ -99,3 +99,14 @@ describe('upstream API calls', () => {
     await expect(client.registerAppInterest('')).rejects.toThrow(/app name/);
   });
 });
+
+describe('face-swap image models', () => {
+  test('generateI2I sends the second image under the model swapField', async () => {
+    const client = new MuapiClient();
+    await client.apiKeyManager.setMuapiKey('test-muapi-key');
+    const calls = mockProxy({ body: { request_id: 'fs-1' } }, { body: { status: 'completed', outputs: ['https://cdn.muapi.ai/outputs/fs-unique-1.png'] } });
+    await client.generateI2I({ model: 'ai-image-face-swap', image_url: 'https://cdn.example.com/target.png', images_list: ['https://cdn.example.com/target.png'], swap_url: 'https://cdn.example.com/face.png' });
+    expect(calls[0].endpoint).toBe('ai-image-face-swap');
+    expect(calls[0].params.swap_url).toBe('https://cdn.example.com/face.png');
+  });
+});
