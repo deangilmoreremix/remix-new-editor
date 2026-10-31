@@ -69,17 +69,19 @@ catalog (`public/api/model-catalog.json`) now includes audio and lip-sync pools.
 
 ## Per-studio status
 
-| Studio | Added from upstream | Still open |
-|---|---|---|
-| Image | Face-swap slot, batch stepper in every mode, effect-type picker, attachment strip, Draw / sketch modal (draw-to-edit: pencil, eraser, rectangle, arrow, text, undo/redo) | Draw-to-video and sketch-to-video tabs; settings persistence |
-| Video | Attachment strip (start/end frame, references, audio), Extend / 4K from the result menu for every compatible model (Seedance, Veo 3.1, Grok) | Source/workflow menu (motion transfer `wan2.2-animate`, edit video), grouped variants |
-| Cinema | Attachment strip, Image/Video output toggle (stills at 1K/2K/4K, persisted) | Drop on start tile |
-| Lip Sync | Drag-drop onto upload buttons, in-slot audio play/pause | Upload progress percentage |
-| Audio | Premium player (volume, mute), page-wide drop | — |
-| Effects | Motion graphics tab: Generate / Edit / Remix | — |
-| Commercial | Ad-video mode: avatars, formats, references | — |
-| Influencer | Builder Reset | "Generated · N characters" gallery column |
-| Apps | Template apps, GitHub/Demo links, interest modal | — |
+| Studio | Added from upstream |
+|---|---|
+| Image | Face-swap slot, batch stepper in every mode, effect-type picker, attachment strip, Draw / sketch modal (pencil, eraser, rectangle, arrow, text, undo/redo; reference image or hand-off to Video as a start frame), remembers model + aspect ratio |
+| Video | Attachment strip (start/end frame, references, audio), Extend / 4K from the result menu for every compatible model (Seedance, Veo 3.1, Grok), Source / workflow menu (text, animate image, keyframes, references, edit, extend, motion transfer), V2V cost estimate, sketch hand-off |
+| Cinema | Attachment strip, Image/Video output toggle (stills at 1K/2K/4K, persisted), drop an image on the start tile |
+| Lip Sync | Drag-drop onto upload buttons, in-slot audio play/pause, upload progress % |
+| Audio | Premium player (volume, mute), page-wide drop |
+| Effects | Motion graphics tab: Generate / Edit / Remix |
+| Commercial | Ad-video mode: avatars, formats, references |
+| Influencer | Builder Reset, "Generated · N characters" history column |
+| Apps | Template apps, GitHub/Demo links, interest modal |
+| Library | Server history (`getHistory`) merged with local history |
 
-Held back until the endpoint is confirmed against a real MuAPI key: the cost line next to Generate
-(`calculateDynamicCost`, `estimateV2VCost`) and merging server history (`getHistory`) into the Library.
+Best-effort, unverified against a real key: V2V cost line (`estimateV2VCost`) and server history merge —
+both hide themselves on any error. Upstream itself only calls `estimateV2VCost`; `calculateDynamicCost` is
+defined there but unused by any studio, so it stays an API-layer function.

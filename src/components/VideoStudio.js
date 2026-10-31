@@ -10,7 +10,8 @@ import { uploadMediaFile } from '../lib/editor/upload.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { createSafeVideo } from '../lib/security.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
-import { getContinuationTargetsForEntry } from '../lib/videoToolCapabilities.js';
+import { createCostLine } from './studio/costEstimate.js';
+import { getContinuationTargetsForEntry, buildVideoToolPayload } from '../lib/videoToolCapabilities.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -76,6 +77,7 @@ export function VideoStudio() {
     let uploadedImageUrl = null;
     let uploadedEndImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
+    let refreshVideoCost = () => {};
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
@@ -921,6 +923,13 @@ generateBtn.type = 'button';
     generateBtn.innerHTML = `Generate ✨`;
 
     bottomRow.appendChild(controlsLeft);
+    // Estimated price for video-to-video runs (upstream's estimateV2VCost); best-effort.
+    const costLine = createCostLine({ estimate: (params) => muapi.estimateV2VCost(params) });
+    refreshVideoCost = (model) => {
+        if (!v2vMode || !uploadedVideoUrl || !model) { costLine.refresh(null); return; }
+        costLine.refresh(model.id, { model: model.id, ...buildVideoToolPayload(model, { video_url: uploadedVideoUrl }) });
+    };
+    bottomRow.appendChild(costLine.el);
     bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
     promptWrapper.appendChild(bar);
@@ -1258,6 +1267,7 @@ generateBtn.type = 'button';
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
+        refreshVideoCost(model);
 
         // Native audio toggle — only show for models that support it
         const vNativeAudioRow = advancedPanel.querySelector('#v-native-audio-row');

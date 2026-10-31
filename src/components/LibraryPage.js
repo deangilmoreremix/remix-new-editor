@@ -94,6 +94,18 @@ export function LibraryPage() {
       ].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
     }
 
+    // Fold in MuAPI's own history when a key is configured (best-effort).
+    try {
+      const { apiKeyManager } = await import('../lib/apiKeyManager.js');
+      if (apiKeyManager.getKey()) {
+        const [{ muapi }, { fetchServerHistory, mergeServerHistory }] = await Promise.all([
+          import('../lib/muapi.js'),
+          import('../lib/serverHistory.js'),
+        ]);
+        items = mergeServerHistory(items, (await fetchServerHistory(muapi)).filter((i) => i.type !== 'audio'));
+      }
+    } catch { /* server history is optional */ }
+
     return items;
   }
 
