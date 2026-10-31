@@ -326,6 +326,28 @@ export function LipSyncStudio() {
     statusRow.appendChild(imageStatusLabel);
     statusRow.appendChild(document.createTextNode(' · '));
     statusRow.appendChild(audioStatusLabel);
+
+    // Preview the uploaded audio in place (upstream's in-slot play/pause).
+    const audioPlayBtn = document.createElement('button');
+    audioPlayBtn.type = 'button';
+    audioPlayBtn.hidden = true;
+    audioPlayBtn.dataset.audioPreview = '';
+    audioPlayBtn.className = 'w-5 h-5 rounded-full bg-primary text-black text-[9px] leading-none flex items-center justify-center';
+    audioPlayBtn.setAttribute('aria-label', 'Play audio');
+    audioPlayBtn.textContent = '▶';
+    let previewAudio = null;
+    const stopPreview = () => { previewAudio?.pause(); previewAudio = null; audioPlayBtn.textContent = '▶'; audioPlayBtn.setAttribute('aria-label', 'Play audio'); };
+    audioPlayBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!uploadedAudioUrl) return;
+        if (previewAudio && !previewAudio.paused) { stopPreview(); return; }
+        previewAudio = new Audio(uploadedAudioUrl);
+        previewAudio.addEventListener('ended', stopPreview);
+        previewAudio.play().catch(() => stopPreview());
+        audioPlayBtn.textContent = '❚❚';
+        audioPlayBtn.setAttribute('aria-label', 'Pause audio');
+    });
+    statusRow.appendChild(audioPlayBtn);
     bar.appendChild(statusRow);
 
     const pexelsLipSyncAttr = document.createElement('div');
@@ -824,6 +846,8 @@ export function LipSyncStudio() {
         const icon = audioUploadBtn.querySelector('.audio-icon');
         const spinner = audioUploadBtn.querySelector('.audio-spinner');
         const ready = audioUploadBtn.querySelector('.audio-ready');
+        audioPlayBtn.hidden = state !== 'ready';
+        if (state !== 'ready') stopPreview();
         if (state === 'idle') {
             icon.classList.remove('hidden'); icon.classList.add('flex');
             spinner.classList.add('hidden'); spinner.classList.remove('flex');

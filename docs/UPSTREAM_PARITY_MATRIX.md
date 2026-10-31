@@ -71,12 +71,15 @@ catalog (`public/api/model-catalog.json`) now includes audio and lip-sync pools.
 
 | Studio | Added from upstream | Still open |
 |---|---|---|
-| Image | Face-swap slot, batch stepper in every mode, effect-type picker, attachment strip | Draw / sketch modal, settings persistence |
-| Video | Attachment strip (start/end frame, references) | Source/workflow menu, extend for all models, audio slot, grouped variants |
-| Cinema | Attachment strip | Image/Video toggle (stills, 1K/2K/4K), drop on start tile |
-| Lip Sync | Drag-drop onto upload buttons | In-slot audio play/pause, upload progress |
+| Image | Face-swap slot, batch stepper in every mode, effect-type picker, attachment strip, Draw / sketch modal (draw-to-edit: pencil, eraser, rectangle, arrow, text, undo/redo) | Draw-to-video and sketch-to-video tabs; settings persistence |
+| Video | Attachment strip (start/end frame, references, audio), Extend / 4K from the result menu for every compatible model (Seedance, Veo 3.1, Grok) | Source/workflow menu (motion transfer `wan2.2-animate`, edit video), grouped variants |
+| Cinema | Attachment strip, Image/Video output toggle (stills at 1K/2K/4K, persisted) | Drop on start tile |
+| Lip Sync | Drag-drop onto upload buttons, in-slot audio play/pause | Upload progress percentage |
 | Audio | Premium player (volume, mute), page-wide drop | — |
 | Effects | Motion graphics tab: Generate / Edit / Remix | — |
 | Commercial | Ad-video mode: avatars, formats, references | — |
 | Influencer | Builder Reset | "Generated · N characters" gallery column |
 | Apps | Template apps, GitHub/Demo links, interest modal | — |
+
+Held back until the endpoint is confirmed against a real MuAPI key: the cost line next to Generate
+(`calculateDynamicCost`, `estimateV2VCost`) and merging server history (`getHistory`) into the Library.
