@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import { pathToFileURL } from 'url';
 import { publicAuditReportPlugin } from './vite/plugins/publicAuditReportPlugin.js';
 // Cache-bust: 2026-07-28
 
@@ -886,7 +887,7 @@ function modelCatalogDevPlugin() {
           // by returning the requested pool wrapped in { models: [...] }.
           const url = new URL(req.url, 'http://localhost');
           const modelType = url.searchParams.get('modelType');
-          const VALID = ['t2i', 'i2i', 'i2v', 't2v', 'v2v'];
+          const VALID = ['t2i', 'i2i', 'i2v', 't2v', 'v2v', 'audio', 'lipsync'];
           if (modelType && VALID.includes(modelType)) {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ models: data[modelType] || [] }));
@@ -914,10 +915,13 @@ function modelCatalogBuildPlugin() {
   return {
     name: 'model-catalog-build',
     enforce: 'post',
-    generateBundle(_options, _bundle) {
+    async generateBundle(_options, _bundle) {
       try {
-        const modelsMod = require(path.join(PROJECT_ROOT, 'src/lib/models.js'));
-        const descMod   = require(path.join(PROJECT_ROOT, 'src/lib/modelDescriptions.js'));
+        // models.js and modelDescriptions.js are ES modules; require() of them
+        // threw, the plugin was skipped, and the committed (stale) static
+        // catalog was served instead.
+        const modelsMod = await import(pathToFileURL(path.join(PROJECT_ROOT, 'src/lib/models.js')).href);
+        const descMod   = await import(pathToFileURL(path.join(PROJECT_ROOT, 'src/lib/modelDescriptions.js')).href);
         const DESCRIPTIONS = descMod.DESCRIPTIONS || {};
 
         const seen = new Set();
@@ -944,8 +948,10 @@ function modelCatalogBuildPlugin() {
           i2v: unique(modelsMod.i2vModels || [], 'i2v'),
           t2v: unique(modelsMod.t2vModels || [], 't2v'),
           v2v: unique(modelsMod.v2vModels || [], 'v2v'),
+          audio: unique(modelsMod.audioModels || [], 'audio'),
+          lipsync: unique(modelsMod.lipsyncModels || [], 'lipsync'),
         };
-        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length + catalog.v2v.length;
+        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length + catalog.v2v.length + catalog.audio.length + catalog.lipsync.length;
         this.emitFile({
           type: 'asset',
           fileName: 'api/model-catalog.json',

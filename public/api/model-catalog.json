@@ -321,6 +321,234 @@
       "provider": "bytedance",
       "provider_name": "ByteDance",
       "description": "ByteDance Seedream 5.0 high-fidelity image generation."
+    },
+    {
+      "id": "gpt-image-2-text-to-image",
+      "name": "GPT Image 2 (Text to Image)",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "bytedance-seedream-5.0-pro",
+      "name": "Seedream 5.0 Pro (Text to Image)",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "hidream-i1-fast",
+      "name": "HiDream I1 Fast",
+      "provider": "hidream",
+      "provider_name": "Hidream"
+    },
+    {
+      "id": "hidream-i1-dev",
+      "name": "HiDream I1 Dev",
+      "provider": "hidream",
+      "provider_name": "Hidream"
+    },
+    {
+      "id": "hidream-i1-full",
+      "name": "HiDream I1 Full",
+      "provider": "hidream",
+      "provider_name": "Hidream"
+    },
+    {
+      "id": "bytedance-seedream-v3",
+      "name": "Seedream 3.0",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "nano-banana-2-1",
+      "name": "Nano Banana 2.1",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "z-image-p",
+      "name": "Z-Image P",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "qwen-image-2.0",
+      "name": "Qwen Image 2.0",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "qwen-image-2.0-pro",
+      "name": "Qwen Image 2.0 Pro",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "flux-2-klein-4b-turbo",
+      "name": "Flux 2 Klein 4B Turbo",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "flux-2-klein-9b-turbo",
+      "name": "Flux 2 Klein 9B Turbo",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "wan2.7-text-to-image",
+      "name": "Wan 2.7 Image",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan2.7-text-to-image-pro",
+      "name": "Wan 2.7 Image Pro",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "midjourney-v7",
+      "name": "Midjourney V7",
+      "provider": "midjourney",
+      "provider_name": "Midjourney"
+    },
+    {
+      "id": "midjourney-v8",
+      "name": "Midjourney V8",
+      "provider": "midjourney",
+      "provider_name": "Midjourney"
+    },
+    {
+      "id": "midjourney-niji",
+      "name": "Midjourney Niji",
+      "provider": "midjourney",
+      "provider_name": "Midjourney"
+    },
+    {
+      "id": "grok-imagine-text-to-image-quality",
+      "name": "Grok Imagine Image Quality",
+      "provider": "grok",
+      "provider_name": "xAI"
+    },
+    {
+      "id": "flux-2-klein-4b-text-to-image-lora",
+      "name": "Flux 2 Klein 4B LoRA",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "flux-2-klein-9b-text-to-image-lora",
+      "name": "Flux 2 Klein 9B LoRA",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "kling-o3-image",
+      "name": "Kling O3 Image",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "nano-banana-2-lite",
+      "name": "Nano Banana 2 Lite",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "qwen3-text-to-image",
+      "name": "Qwen Image 3.0",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "qwen3-pro-text-to-image",
+      "name": "Qwen Image 3.0 Pro",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "z-image-base-text-to-image-lora",
+      "name": "Z-Image Base LoRA",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "z-image-turbo-text-to-image-lora",
+      "name": "Z-Image Turbo LoRA",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "grok-imagine-image-2",
+      "name": "Grok Imagine Image 2.0",
+      "provider": "xai",
+      "provider_name": "xAI"
+    },
+    {
+      "id": "flux-1-dev-style-lora-inference",
+      "name": "Flux Dev Style LoRA Inference",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "krea-v2-turbo",
+      "name": "Krea 2 Turbo",
+      "provider": "krea",
+      "provider_name": "Krea"
+    },
+    {
+      "id": "krea-v2-turbo-lora",
+      "name": "Krea 2 Turbo LoRA",
+      "provider": "krea",
+      "provider_name": "Krea"
+    },
+    {
+      "id": "muse-image-text-to-image",
+      "name": "Muse Image",
+      "provider": "meta",
+      "provider_name": "Meta"
+    },
+    {
+      "id": "qwen-image-text-to-image-lora",
+      "name": "Qwen Image LoRA",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "qwen-image-text-to-image-2512-lora",
+      "name": "Qwen Image 2512 LoRA",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "gpt-image-2.5-flare-text-to-image",
+      "name": "GPT Image 2.5 Flare Text to Image",
+      "provider": "openai",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "gpt-image-2.5-sunburst-text-to-image",
+      "name": "GPT Image 2.5 Sunburst Text to Image",
+      "provider": "openai",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "qwen2-1-text-to-image",
+      "name": "Qwen2 1 Text to Image",
+      "provider": "alibaba",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "seedream-5.0-flash",
+      "name": "Seedream 5.0 Flash",
+      "provider": "bytedance",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "ideogram-v4",
+      "name": "Ideogram 4.0",
+      "provider": "ideogram",
+      "provider_name": "Ideogram"
     }
   ],
   "i2i": [
@@ -640,6 +868,12 @@
       "description": "OpenAI GPT Image 1.5 image editing with strength control."
     },
     {
+      "id": "gpt-image-2-image-to-image",
+      "name": "GPT Image 2 (Edit)",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
       "id": "grok-imagine-image-to-image",
       "name": "Grok Imagine Image To Image",
       "provider": "grok",
@@ -689,18 +923,215 @@
       "description": "Flux 3 image-to-image editing."
     },
     {
-      "id": "grok-imagine-image-2",
-      "name": "Grok Imagine 2 Image Edit",
-      "provider": null,
-      "provider_name": null,
-      "description": "Grok Imagine Image 2 image generation and editing."
-    },
-    {
       "id": "wan-3.0-i2i",
       "name": "Wan 3.0 Image-to-Image",
       "provider": null,
       "provider_name": null,
       "description": "Wan 3.0 image-to-image editing."
+    },
+    {
+      "id": "image-passthrough",
+      "name": "Image Passthrough",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+    {
+      "id": "Api Node",
+      "name": "Api Node",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+    {
+      "id": "nano-banana-2-1-edit",
+      "name": "Nano Banana 2.1 Edit",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "qwen-image-2.0-edit",
+      "name": "Qwen Image 2.0",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "qwen-image-2.0-pro-edit",
+      "name": "Qwen Image 2.0 Pro",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "flux-2-klein-4b-turbo-edit",
+      "name": "Flux 2 Klein 4B Turbo Edit",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "flux-2-klein-9b-turbo-edit",
+      "name": "Flux 2 Klein 9B Turbo Edit",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "portrait-stylist",
+      "name": "AI Portrait Stylist",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "seedance-2-character",
+      "name": "Seedance 2 Character",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "wan2.7-image-edit",
+      "name": "Wan 2.7 Image Edit",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan2.7-image-edit-pro",
+      "name": "Wan 2.7 Image Edit Pro",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "flux-2-klein-4b-edit-lora",
+      "name": "Flux 2 Klein 4B Edit LoRA",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "flux-2-klein-9b-edit-lora",
+      "name": "Flux 2 Klein 9B Edit LoRA",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "kling-o3-image-edit",
+      "name": "Kling O3 Image Edit",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "nano-banana-2-lite-edit",
+      "name": "Nano Banana 2 Lite",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "bytedance-seedream-5.0-pro-edit",
+      "name": "Seedream 5.0 Pro",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "qwen3-image-to-image",
+      "name": "Qwen 3 Image to Image",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "qwen3-pro-image-to-image",
+      "name": "Qwen 3 Pro Image to Image",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "z-image-turbo-image-to-image-lora",
+      "name": "Z-Image Turbo Image to Image LoRA",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "qwen-image-edit-2511-lora",
+      "name": "Qwen Image Edit 2511 LoRA",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "qwen-image-edit-lora",
+      "name": "Qwen Image Edit LoRA",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "face-expression-change",
+      "name": "Face Expression Change",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "muse-image-edit",
+      "name": "Muse Image Edit",
+      "provider": "meta",
+      "provider_name": "Meta"
+    },
+    {
+      "id": "gemini-omni-character",
+      "name": "Gemini Omni Character",
+      "provider": "google",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "bytedance-seedream-5.0-pro-layer",
+      "name": "Bytedance Seedream 5.0 Pro Layer",
+      "provider": "bytedance",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "grok-imagine-image-2-edit",
+      "name": "Grok Imagine Image 2 Edit",
+      "provider": "grok",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "gpt-image-2.5-flare-image-to-image",
+      "name": "GPT Image 2.5 Flare Image to Image",
+      "provider": "openai",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "gpt-image-2.5-sunburst-image-to-image",
+      "name": "GPT Image 2.5 Sunburst Image to Image",
+      "provider": "openai",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "topaz-upscale-image-creative",
+      "name": "Topaz Upscale Image Creative",
+      "provider": "topaz",
+      "provider_name": "FAL_AI"
+    },
+    {
+      "id": "topaz-upscale-image-generative",
+      "name": "Topaz Upscale Image Generative",
+      "provider": "topaz",
+      "provider_name": "FAL_AI"
+    },
+    {
+      "id": "topaz-upscale-image-precision",
+      "name": "Topaz Upscale Image Precision",
+      "provider": "topaz",
+      "provider_name": "FAL_AI"
+    },
+    {
+      "id": "qwen2-1-image-to-image",
+      "name": "Qwen2 1 Image to Image",
+      "provider": "alibaba",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "seedream-5.0-flash-edit",
+      "name": "Seedream 5.0 Flash Edit",
+      "provider": "bytedance",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "seedream-5.0-flash-layerize",
+      "name": "Seedream 5.0 Flash Layerize",
+      "provider": "bytedance",
+      "provider_name": "KIE_AI"
     }
   ],
   "i2v": [
@@ -1151,6 +1582,750 @@
       "provider": null,
       "provider_name": null,
       "description": "ByteDance Seedance 2.5 image-to-video generation."
+    },
+    {
+      "id": "veo3.1-lite-image-to-video",
+      "name": "Veo 3.1 Lite",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "kling-v3.0-omni-standard-image-to-video",
+      "name": "Kling v3.0 Omni Standard Image To Video",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "kling-v3.0-omni-pro-image-to-video",
+      "name": "Kling v3.0 Omni Pro Image To Video",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "kling-v3.0-omni-4k-image-to-video",
+      "name": "Kling v3.0 Omni 4K Image To Video",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "ltx-2.3-image-to-video",
+      "name": "LTX 2.3",
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+    {
+      "id": "seedance-2-new-first-last",
+      "name": "Seedance 2 New First Last",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-omni-reference",
+      "name": "Seedance 2 Omni Reference",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "pixverse-v6-i2v",
+      "name": "Pixverse v6 I2V",
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+    {
+      "id": "pixverse-v6-transition",
+      "name": "PixVerse V6 Transition",
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+    {
+      "id": "wan2.7-image-to-video",
+      "name": "Wan2.7",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan2.7-reference-to-video",
+      "name": "Wan 2.7 Reference",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "seedance-2-i2v-480p",
+      "name": "Seedance 2 I2V 480P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-omni-reference-480p",
+      "name": "Seedance 2 Omni Reference 480P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-image-to-video",
+      "name": "Seedance 2",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-image-to-video-fast",
+      "name": "Seedance 2 Image to Video Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-first-last-frame",
+      "name": "Seedance 2 First Last Frame",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-first-last-frame-fast",
+      "name": "Seedance 2 First Last Frame Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-omni-reference-no-video",
+      "name": "Seedance 2 Omni Reference No Video",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-omni-reference-no-video-fast",
+      "name": "Seedance 2 Omni Reference No Video Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-image-to-video",
+      "name": "Seedance 2 VIP",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-image-to-video-fast",
+      "name": "Seedance 2 VIP Image to Video Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-first-last-frame",
+      "name": "Seedance 2 VIP First Last Frame",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-first-last-frame-fast",
+      "name": "Seedance 2 VIP First Last Frame Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-omni-reference",
+      "name": "Seedance 2 VIP Omni Reference",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-omni-reference-fast",
+      "name": "Seedance 2 VIP Omni Reference Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "happy-horse-1-image-to-video-1080p",
+      "name": "Happy Horse 1 Image to Video 1080P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1-image-to-video-720p",
+      "name": "Happy Horse 1 Image to Video 720P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "veo-4-image-to-video",
+      "name": "Veo 4",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "seedance-2-vip-image-to-video-1080p",
+      "name": "Seedance 2 VIP Image to Video 1080P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-image-to-video-fast-1080p",
+      "name": "Seedance 2 VIP Image to Video Fast 1080P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-omni-reference-1080p",
+      "name": "Seedance 2 VIP Omni Reference 1080P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-omni-reference-fast-1080p",
+      "name": "Seedance 2 VIP Omni Reference Fast 1080P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-first-last-frame-1080p",
+      "name": "Seedance 2 VIP First Last Frame 1080P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "kling-v3.0-4k-image-to-video",
+      "name": "Kling v3.0 4K",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "vidu-q3-pro-image-to-video",
+      "name": "Vidu Q3 Pro",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q3-pro-first-last-frames",
+      "name": "Vidu Q3 Pro First Last Frames",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q3-turbo-image-to-video",
+      "name": "Vidu Q3 Turbo",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q3-turbo-first-last-frames",
+      "name": "Vidu Q3 Turbo First Last Frames",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q4-image-to-video",
+      "name": "Vidu Q4",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q4-reference-to-video",
+      "name": "Vidu Q4 Reference",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q2-pro-image-to-video",
+      "name": "Vidu Q2 Pro",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q2-turbo-image-to-video",
+      "name": "Vidu Q2 Turbo",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "happy-horse-1-reference-to-video-1080p",
+      "name": "HappyHorse 1.0 Reference 1080P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1-reference-to-video-720p",
+      "name": "HappyHorse 1.0 Reference 720P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "gemini-omni-image-to-video",
+      "name": "Gemini Omni",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "grok-imagine-video-1-5-preview",
+      "name": "Grok Imagine Video 1.5 Preview",
+      "provider": "grok",
+      "provider_name": "xAI"
+    },
+    {
+      "id": "kling-v3-turbo-standard-image-to-video",
+      "name": "Kling v3 Turbo Standard",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "kling-v3-turbo-pro-image-to-video",
+      "name": "Kling v3 Turbo Pro",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "seedance-2.5-image-to-video",
+      "name": "Seedance 2.5",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-mini-image-to-video",
+      "name": "Seedance 2 Mini",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "happy-horse-1.1-image-to-video-1080p",
+      "name": "Happy Horse 1.1 Image to Video 1080P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1.1-image-to-video-720p",
+      "name": "Happy Horse 1.1 Image to Video 720P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1.1-reference-to-video-1080p",
+      "name": "HappyHorse 1.1 Reference 1080P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1.1-reference-to-video-720p",
+      "name": "HappyHorse 1.1 Reference 720P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "seedance-2-vip-image-to-video-4k",
+      "name": "Seedance 2 VIP Image to Video 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-first-last-frame-4k",
+      "name": "Seedance 2 VIP First Last Frame 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-omni-reference-4k",
+      "name": "Seedance 2 VIP Omni Reference 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-image-to-video",
+      "name": "Seedance 2.5 Spicy",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-image-to-video-480p",
+      "name": "Seedance 2.5 Image to Video 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-first-last-frame",
+      "name": "Seedance 2.5 First & Last Frame",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-first-last-frame-480p",
+      "name": "Seedance 2.5 First Last Frame 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-omni-reference",
+      "name": "Seedance 2.5 Omni Reference",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-omni-reference-480p",
+      "name": "Seedance 2.5 Omni Reference 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-spicy-image-to-video",
+      "name": "Seedance 2 Spicy",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-spicy-image-to-video-fast",
+      "name": "Seedance 2 Spicy Image to Video Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-mini-spicy-image-to-video",
+      "name": "Seedance 2 Mini Spicy",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "minimax-h3-image-to-video",
+      "name": "MiniMax H3 Image to Video",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "minimax-h3-reference-to-video",
+      "name": "MiniMax H3 Reference",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "minimax-h3-open-image-to-video",
+      "name": "MiniMax H3 Open Image to Video",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "minimax-h3-open-reference-to-video",
+      "name": "MiniMax H3 Base Ref2VA",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "flux-3-image-to-video",
+      "name": "FLUX 3",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "wan3.0-image-to-video",
+      "name": "Wan 3.0",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan3.0-spicy-image-to-video",
+      "name": "Wan 3.0 Spicy",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "seedance-2.5-image-to-video-1080p",
+      "name": "Seedance 2.5 Image to Video 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-image-to-video-4k",
+      "name": "Seedance 2.5 Image to Video 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-first-last-frame-1080p",
+      "name": "Seedance 2.5 First Last Frame 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-first-last-frame-4k",
+      "name": "Seedance 2.5 First Last Frame 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-omni-reference-1080p",
+      "name": "Seedance 2.5 Omni Reference 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-omni-reference-4k",
+      "name": "Seedance 2.5 Omni Reference 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-image-to-video",
+      "name": "Seedance 2.5 Intl",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-image-to-video-480p",
+      "name": "Seedance 2.5 Intl Image to Video 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-image-to-video-480p",
+      "name": "Seedance 2.5 Spicy Image to Video 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-image-to-video-1080p",
+      "name": "Seedance 2.5 Intl Image to Video 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-image-to-video-1080p",
+      "name": "Seedance 2.5 Spicy Image to Video 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-image-to-video-4k",
+      "name": "Seedance 2.5 Intl Image to Video 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-image-to-video-4k",
+      "name": "Seedance 2.5 Spicy Image to Video 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-first-last-frame",
+      "name": "Seedance 2.5 Intl First Last Frame",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-first-last-frame",
+      "name": "Seedance 2.5 Spicy First Last Frame",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-first-last-frame-480p",
+      "name": "Seedance 2.5 Intl First Last Frame 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-first-last-frame-480p",
+      "name": "Seedance 2.5 Spicy First Last Frame 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-first-last-frame-1080p",
+      "name": "Seedance 2.5 Intl First Last Frame 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-first-last-frame-1080p",
+      "name": "Seedance 2.5 Spicy First Last Frame 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-first-last-frame-4k",
+      "name": "Seedance 2.5 Intl First Last Frame 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-first-last-frame-4k",
+      "name": "Seedance 2.5 Spicy First Last Frame 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-omni-reference",
+      "name": "Seedance 2.5 Intl Omni Reference",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-omni-reference",
+      "name": "Seedance 2.5 Spicy Omni Reference",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-omni-reference-480p",
+      "name": "Seedance 2.5 Intl Omni Reference 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-omni-reference-480p",
+      "name": "Seedance 2.5 Spicy Omni Reference 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-omni-reference-1080p",
+      "name": "Seedance 2.5 Intl Omni Reference 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-omni-reference-1080p",
+      "name": "Seedance 2.5 Spicy Omni Reference 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-omni-reference-4k",
+      "name": "Seedance 2.5 Intl Omni Reference 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-omni-reference-4k",
+      "name": "Seedance 2.5 Spicy Omni Reference 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "wan2.7-image-to-video-spicy",
+      "name": "Wan 2.7 Spicy",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan2.6-image-to-video-spicy",
+      "name": "Wan 2.6 Spicy",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "minimax-h3-image-to-video-lora",
+      "name": "MiniMax H3 Image to Video LoRA",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "minimax-h3-reference-to-video-lora",
+      "name": "MiniMax H3 Reference to Video LoRA",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "ltx-2.5-image-to-video",
+      "name": "LTX 2.5",
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+    {
+      "id": "wan3.0-reference-to-video",
+      "name": "Wan 3.0 Reference to Video",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan3.0-prime-image-to-video",
+      "name": "Wan 3.0 Prime",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan3.0-prime-reference-to-video",
+      "name": "Wan 3.0 Prime Reference to Video",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan3.0-spicy-reference-to-video",
+      "name": "Wan 3.0 Spicy Reference to Video",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "flux-3-start-end-to-video",
+      "name": "FLUX 3 Start End to Video",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "gemini-omni-flash-1-1-image-to-video",
+      "name": "Gemini Omni Flash 1.1",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "gemini-omni-flash-1-1-reference-to-video",
+      "name": "Gemini Omni 1.1 Flash Reference",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "minimax-h3-image-to-video-spicy",
+      "name": "MiniMax H3 Spicy",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "happy-horse-1-image-to-video",
+      "name": "Happy Horse 1 Image to Video",
+      "provider": "alibaba",
+      "provider_name": "KINOVI"
+    },
+    {
+      "id": "happy-horse-1-reference-to-video",
+      "name": "Happy Horse 1 Reference to Video",
+      "provider": "alibaba",
+      "provider_name": "KINOVI"
+    },
+    {
+      "id": "happy-horse-1.1-image-to-video",
+      "name": "Happy Horse 1.1 Image to Video",
+      "provider": "alibaba",
+      "provider_name": "KINOVI"
+    },
+    {
+      "id": "happy-horse-1.1-reference-to-video",
+      "name": "Happy Horse 1.1 Reference to Video",
+      "provider": "alibaba",
+      "provider_name": "KINOVI"
+    },
+    {
+      "id": "minimax-h3-max-image-to-video",
+      "name": "MiniMax H3 Max Image to Video",
+      "provider": "minimax",
+      "provider_name": "MINIMAX"
+    },
+    {
+      "id": "minimax-h3-max-reference-to-video",
+      "name": "MiniMax H3 Max Reference to Video",
+      "provider": "minimax",
+      "provider_name": "MINIMAX"
+    },
+    {
+      "id": "minimax-h3-max-turbo-image-to-video",
+      "name": "MiniMax H3 Max Turbo Image to Video",
+      "provider": "minimax",
+      "provider_name": "MINIMAX"
+    },
+    {
+      "id": "seedance-2-spicy-omni-reference",
+      "name": "Seedance 2 Spicy Omni Reference",
+      "provider": "bytedance",
+      "provider_name": "KINOVI"
+    },
+    {
+      "id": "seedance-2-spicy-omni-reference-fast",
+      "name": "Seedance 2 Spicy Omni Reference Fast",
+      "provider": "bytedance",
+      "provider_name": "KINOVI"
     }
   ],
   "t2v": [
@@ -1272,6 +2447,12 @@
       "provider": "muapi",
       "provider_name": "MuAPI",
       "description": "Google Veo 3.1 fast text-to-video generation."
+    },
+    {
+      "id": "veo-4-text-to-video",
+      "name": "Veo 4",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
     },
     {
       "id": "runway-text-to-video",
@@ -1475,6 +2656,414 @@
       "provider": null,
       "provider_name": null,
       "description": "ByteDance Seedance 2.5 text-to-video generation."
+    },
+    {
+      "id": "veo3.1-lite-text-to-video",
+      "name": "Veo 3.1 Lite",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "veo3.1-extend-video",
+      "name": "Veo 3.1 Extend",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "veo3.1-4k-video",
+      "name": "Veo 3.1 4K",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "seedance-2-t2v",
+      "name": "Seedance 2 T2V",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-extend",
+      "name": "Seedance 2 Extend",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "ltx-2.3-text-to-video",
+      "name": "LTX 2.3",
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+    {
+      "id": "seedance-2-new-t2v",
+      "name": "Seedance 2 New T2V",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "grok-imagine-extend",
+      "name": "Grok Imagine Extend",
+      "provider": "grok",
+      "provider_name": "xAI"
+    },
+    {
+      "id": "pixverse-v6-t2v",
+      "name": "PixVerse V6",
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+    {
+      "id": "wan2.7-text-to-video",
+      "name": "Wan2.7",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "seedance-2-t2v-480p",
+      "name": "Seedance 2 T2V 480P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-text-to-video",
+      "name": "Seedance 2",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-text-to-video-fast",
+      "name": "Seedance 2.0 Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-text-to-video",
+      "name": "Seedance 2 VIP",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-text-to-video-fast",
+      "name": "Seedance 2 VIP Text to Video Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "happy-horse-1-text-to-video-1080p",
+      "name": "HappyHorse 1.0 1080P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1-text-to-video-720p",
+      "name": "HappyHorse 1.0 720P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "seedance-2-vip-text-to-video-1080p",
+      "name": "Seedance 2 VIP Text to Video 1080P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-text-to-video-fast-1080p",
+      "name": "Seedance 2 VIP Text to Video Fast 1080P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "kling-v3.0-4k-text-to-video",
+      "name": "Kling 3.0 4K",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "vidu-q3-pro-text-to-video",
+      "name": "Vidu Q3 Pro",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q3-turbo-text-to-video",
+      "name": "Vidu Q3 Turbo",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q2-pro-text-to-video",
+      "name": "Vidu Q2 Pro",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "vidu-q2-turbo-text-to-video",
+      "name": "Vidu Q2 Turbo",
+      "provider": "vidu",
+      "provider_name": "Vidu"
+    },
+    {
+      "id": "seedance-2-vip-extend",
+      "name": "Seedance 2 VIP Extend",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-extend-1080p",
+      "name": "Seedance 2 VIP Extend 1080P",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "kling-v3.0-omni-standard-text-to-video",
+      "name": "Kling 3.0 Omni Standard",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "kling-v3.0-omni-pro-text-to-video",
+      "name": "Kling 3.0 Omni Pro",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "kling-v3.0-omni-4k-text-to-video",
+      "name": "Kling 3.0 Omni 4K",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "gemini-omni-text-to-video",
+      "name": "Gemini Omni Flash",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "kling-v3-turbo-standard-text-to-video",
+      "name": "Kling 3.0 Turbo Standard",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "kling-v3-turbo-pro-text-to-video",
+      "name": "Kling 3.0 Turbo Pro",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "seedance-2.5-text-to-video",
+      "name": "Seedance 2.5",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-text-to-video-480p",
+      "name": "Seedance 2.5 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-mini-text-to-video",
+      "name": "Seedance 2.0 Mini",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "happy-horse-1.1-text-to-video-1080p",
+      "name": "HappyHorse 1.1 1080P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1.1-text-to-video-720p",
+      "name": "HappyHorse 1.1 720P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "seedance-2-mini-omni-reference",
+      "name": "Seedance 2 Mini Omni Reference",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-vip-text-to-video-4k",
+      "name": "Seedance 2 VIP Text to Video 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-text-to-video",
+      "name": "Seedance 2.5 Spicy",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-spicy-text-to-video",
+      "name": "Seedance 2 Spicy",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-spicy-text-to-video-fast",
+      "name": "Seedance 2 Spicy Text to Video Fast",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-mini-spicy-text-to-video",
+      "name": "Seedance 2 Mini Spicy",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "minimax-h3-text-to-video",
+      "name": "MiniMax H3",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "minimax-h3-open-text-to-video",
+      "name": "MiniMax H3 Base FL2VA",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "flux-3-text-to-video",
+      "name": "FLUX 3",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "wan3.0-text-to-video",
+      "name": "Wan 3.0",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan3.0-spicy-text-to-video",
+      "name": "Wan 3.0 Spicy",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "seedance-2.5-text-to-video-1080p",
+      "name": "Seedance 2.5 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-text-to-video-4k",
+      "name": "Seedance 2.5 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-text-to-video",
+      "name": "Seedance 2.5 Intl",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-text-to-video-480p",
+      "name": "Seedance 2.5 Intl 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-text-to-video-480p",
+      "name": "Seedance 2.5 Spicy 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-text-to-video-1080p",
+      "name": "Seedance 2.5 Intl 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-text-to-video-1080p",
+      "name": "Seedance 2.5 Spicy 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-text-to-video-4k",
+      "name": "Seedance 2.5 Intl 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-text-to-video-4k",
+      "name": "Seedance 2.5 Spicy 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "minimax-h3-text-to-video-lora",
+      "name": "MiniMax H3 Text to Video LoRA",
+      "provider": "minimax",
+      "provider_name": "Minimax"
+    },
+    {
+      "id": "ltx-2.5-text-to-video",
+      "name": "LTX 2.5",
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+    {
+      "id": "wan3.0-prime-text-to-video",
+      "name": "Wan 3.0 Prime",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "flux-3-text-to-video-draft",
+      "name": "FLUX 3 Text to Video Draft",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "gemini-omni-flash-1-1-text-to-video",
+      "name": "Gemini Omni 1.1 Flash",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "openai-sora-2-pro-storyboard",
+      "name": "OpenAI Sora 2 Pro Storyboard",
+      "provider": "openai",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "happy-horse-1-text-to-video",
+      "name": "Happy Horse 1 Text to Video",
+      "provider": "alibaba",
+      "provider_name": "KINOVI"
+    },
+    {
+      "id": "happy-horse-1.1-text-to-video",
+      "name": "Happy Horse 1.1 Text to Video",
+      "provider": "alibaba",
+      "provider_name": "KINOVI"
+    },
+    {
+      "id": "minimax-h3-max-text-to-video",
+      "name": "MiniMax H3 Max Text to Video",
+      "provider": "minimax",
+      "provider_name": "MINIMAX"
+    },
+    {
+      "id": "minimax-h3-max-turbo-text-to-video",
+      "name": "MiniMax H3 Max Turbo Text to Video",
+      "provider": "minimax",
+      "provider_name": "MINIMAX"
+    },
+    {
+      "id": "seedance-2-mini-spicy-omni-reference",
+      "name": "Seedance 2 Mini Spicy Omni Reference",
+      "provider": "bytedance",
+      "provider_name": "KIE_AI"
     }
   ],
   "v2v": [
@@ -1484,6 +3073,676 @@
       "provider": "muapi",
       "provider_name": "MuAPI",
       "description": "Remove watermarks, logos, captions, and unwanted text from videos."
+    },
+    {
+      "id": "ai-video-face-swap",
+      "name": "AI Video Face Swap",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "kling-v3.0-pro-motion-control",
+      "name": "Kling v3.0 Pro Motion Control",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "add-video-watermark",
+      "name": "Add Video Watermark",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "kling-v2.6-std-motion-control",
+      "name": "Kling 2.6 Standard Motion Control",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "kling-v3.0-std-motion-control",
+      "name": "Kling 3.0 Standard Motion Control",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "mmaudio-v2-video-to-video",
+      "name": "MMAudio v2",
+      "provider": "mmaudio",
+      "provider_name": "MMAudio"
+    },
+    {
+      "id": "runway-aleph-v2v",
+      "name": "Runway Aleph",
+      "provider": "runway",
+      "provider_name": "RunwayML"
+    },
+    {
+      "id": "ai-dance-effects",
+      "name": "AI Dance Effects",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+    {
+      "id": "ai-video-upscaler",
+      "name": "AI Video Upscaler",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+    {
+      "id": "wan2.2-edit-video",
+      "name": "Wan2.2 Edit Video",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "heygen-video-translate",
+      "name": "HeyGen Video Translate",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+    {
+      "id": "topaz-video-upscale",
+      "name": "Topaz Video Upscale",
+      "provider": "topaz",
+      "provider_name": "Topaz Labs"
+    },
+    {
+      "id": "ai-video-upscaler-pro",
+      "name": "AI Video Upscaler Pro",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+    {
+      "id": "remix-video",
+      "name": "Remix Video",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+    {
+      "id": "kling-o1-video-edit",
+      "name": "Kling O1 Pro Edit",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "kling-o1-video-edit-fast",
+      "name": "Kling O1 Pro Edit Fast",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "kling-o1-standard-video-edit",
+      "name": "Kling O1 Standard Edit",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "wan2.2-spicy-video-extend",
+      "name": "Wan2.2 Spicy Video Extend",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "seedance-v1.5-pro-video-extend",
+      "name": "Seedance v1.5 Pro Video Extend",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2-watermark-remover",
+      "name": "Seedance 2 Watermark Remover",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "ai-captions",
+      "name": "AI Captions",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+    {
+      "id": "ltx-2.3-video-extend",
+      "name": "LTX 2.3 Extend",
+      "provider": "lightricks",
+      "provider_name": "Lightricks"
+    },
+    {
+      "id": "seedance-2-video-watermark-remover-pro",
+      "name": "Seedance 2 Video Watermark Remover Pro",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "pixverse-v6-extend",
+      "name": "PixVerse V6 Extend",
+      "provider": "pixverse",
+      "provider_name": "Pixverse"
+    },
+    {
+      "id": "wan2.7-video-extend",
+      "name": "Wan 2.7 Extend",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "wan2.7-video-edit",
+      "name": "Wan 2.7 Edit",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "happy-horse-1-video-edit-1080p",
+      "name": "HappyHorse 1.0 Edit 1080P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1-video-edit-720p",
+      "name": "HappyHorse 1.0 Edit 720P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1.1-video-edit-1080p",
+      "name": "Happy Horse 1.1 Video Edit 1080P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "happy-horse-1.1-video-edit-720p",
+      "name": "Happy Horse 1.1 Video Edit 720P",
+      "provider": "happy-horse",
+      "provider_name": "Happy Horse"
+    },
+    {
+      "id": "gemini-omni-video-edit",
+      "name": "Gemini Omni Video Edit",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "video-background-remover",
+      "name": "Video Background Remover",
+      "provider": "muapi",
+      "provider_name": "Muapi"
+    },
+    {
+      "id": "kling-v2.6-pro-motion-control",
+      "name": "Kling 2.6 Pro Motion Control",
+      "provider": "kling",
+      "provider_name": "Kling AI"
+    },
+    {
+      "id": "infinitetalk-video-to-video",
+      "name": "InfiniteTalk",
+      "provider": "infinite-talk",
+      "provider_name": "Infinite Talk"
+    },
+    {
+      "id": "wan2.2-animate",
+      "name": "Wan2.2 Animate",
+      "provider": "alibaba",
+      "provider_name": "Alibaba"
+    },
+    {
+      "id": "volcengine-video-to-video-lip-sync",
+      "name": "Volcengine Lipsync",
+      "provider": "volcengine-lipsync",
+      "provider_name": "Volcengine Lipsync"
+    },
+    {
+      "id": "seedance-2.5-video-edit",
+      "name": "Seedance 2.5 Video Edit",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-video-edit-480p",
+      "name": "Seedance 2.5 Video Edit 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-video-edit-1080p",
+      "name": "Seedance 2.5 Video Edit 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-video-edit-4k",
+      "name": "Seedance 2.5 Video Edit 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-video-extend",
+      "name": "Seedance 2.5 Video Extend",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-video-extend-480p",
+      "name": "Seedance 2.5 Video Extend 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-video-extend-1080p",
+      "name": "Seedance 2.5 Video Extend 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-video-extend-4k",
+      "name": "Seedance 2.5 Video Extend 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-video-edit",
+      "name": "Seedance 2.5 Intl Video Edit",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-video-edit",
+      "name": "Seedance 2.5 Spicy Video Edit",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-video-edit-480p",
+      "name": "Seedance 2.5 Intl Video Edit 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-video-edit-480p",
+      "name": "Seedance 2.5 Spicy Video Edit 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-video-edit-1080p",
+      "name": "Seedance 2.5 Intl Video Edit 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-video-edit-1080p",
+      "name": "Seedance 2.5 Spicy Video Edit 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-video-edit-4k",
+      "name": "Seedance 2.5 Intl Video Edit 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-video-edit-4k",
+      "name": "Seedance 2.5 Spicy Video Edit 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-video-extend",
+      "name": "Seedance 2.5 Intl Video Extend",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-video-extend",
+      "name": "Seedance 2.5 Spicy Video Extend",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-video-extend-480p",
+      "name": "Seedance 2.5 Intl Video Extend 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-video-extend-480p",
+      "name": "Seedance 2.5 Spicy Video Extend 480p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-video-extend-1080p",
+      "name": "Seedance 2.5 Intl Video Extend 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-video-extend-1080p",
+      "name": "Seedance 2.5 Spicy Video Extend 1080p",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-intl-video-extend-4k",
+      "name": "Seedance 2.5 Intl Video Extend 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "seedance-2.5-spicy-video-extend-4k",
+      "name": "Seedance 2.5 Spicy Video Extend 4K",
+      "provider": "bytedance",
+      "provider_name": "ByteDance"
+    },
+    {
+      "id": "flux-3-video-extend",
+      "name": "FLUX 3 Video Extend",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "flux-3-video-upscaler",
+      "name": "FLUX Video Upscale",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "flux-3-video-extend-draft",
+      "name": "FLUX 3 Video Extend Draft",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs"
+    },
+    {
+      "id": "gemini-omni-flash-1-1-edit",
+      "name": "Gemini Omni 1.1 Flash Edit",
+      "provider": "google",
+      "provider_name": "Google"
+    },
+    {
+      "id": "depth-anything",
+      "name": "Depth Anything V2",
+      "provider": "video",
+      "provider_name": "Video"
+    },
+    {
+      "id": "runway-act-two-v2v",
+      "name": "Runway Act Two V2V",
+      "provider": "runway",
+      "provider_name": null
+    },
+    {
+      "id": "luma-flash-reframe",
+      "name": "Luma Flash Reframe",
+      "provider": "luma",
+      "provider_name": "KIE_AI"
+    },
+    {
+      "id": "seedance-2-video-edit",
+      "name": "Seedance 2 Video Edit",
+      "provider": "bytedance",
+      "provider_name": "PI_API"
+    },
+    {
+      "id": "happy-horse-1-video-edit",
+      "name": "Happy Horse 1 Video Edit",
+      "provider": "alibaba",
+      "provider_name": "KINOVI"
+    },
+    {
+      "id": "happy-horse-1.1-video-edit",
+      "name": "Happy Horse 1.1 Video Edit",
+      "provider": "alibaba",
+      "provider_name": "KINOVI"
+    },
+    {
+      "id": "topaz-upscale-video-creative",
+      "name": "Topaz Upscale Video Creative",
+      "provider": "topaz",
+      "provider_name": "FAL_AI"
+    },
+    {
+      "id": "topaz-upscale-video-generative",
+      "name": "Topaz Upscale Video Generative",
+      "provider": "topaz",
+      "provider_name": "FAL_AI"
+    },
+    {
+      "id": "topaz-upscale-video-precision",
+      "name": "Topaz Upscale Video Precision",
+      "provider": "topaz",
+      "provider_name": "FAL_AI"
+    }
+  ],
+  "audio": [
+    {
+      "id": "minimax-speech-2.6-turbo",
+      "name": "Minimax Speech Turbo",
+      "provider": "minimax",
+      "provider_name": "MiniMax"
+    },
+    {
+      "id": "minimax-speech-2.6-hd",
+      "name": "Minimax Speech HD",
+      "provider": "minimax",
+      "provider_name": "MiniMax"
+    },
+    {
+      "id": "minimax-voice-clone",
+      "name": "Minimax Voice Clone",
+      "provider": "minimax",
+      "provider_name": "MiniMax"
+    },
+    {
+      "id": "suno-create-music",
+      "name": "Suno Create Music",
+      "provider": "suno",
+      "provider_name": "Suno"
+    },
+    {
+      "id": "suno-extend-music",
+      "name": "Suno Extend Music",
+      "provider": "suno",
+      "provider_name": "Suno"
+    },
+    {
+      "id": "suno-remix-music",
+      "name": "Suno Remix Music",
+      "provider": "suno",
+      "provider_name": "Suno"
+    },
+    {
+      "id": "flux-3-audio",
+      "name": "FLUX 3 Audio",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "suno-generate-sounds",
+      "name": "Suno Generate Sounds",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "suno-add-vocals",
+      "name": "Suno Add Vocals",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "suno-generate-mashup",
+      "name": "Suno Geneate Mashup",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "suno-add-instrumental",
+      "name": "Suno Add Instrumental",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "suno-voice-clone",
+      "name": "Suno Voice Cloning",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "mmaudio-v2-text-to-audio",
+      "name": "MM Audio V2",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "elevenlabs-text-to-dialogue-v3",
+      "name": "ElevenLabs Text to Dialogue V3",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "suno-convert-to-wav",
+      "name": "Suno Convert to WAV",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "gemini-3-1-flash-tts",
+      "name": "Gemini 3.1 Flash TTS",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "gemini-2-5-pro-tts",
+      "name": "Gemini 2.5 Pro TTS",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "elevenlabs-tts-turbo-2-5",
+      "name": "ElevenLabs TTS Turbo 2.5",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "minimax-music-3.0",
+      "name": "MiniMax Music 3.0",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "elevenlabs-v4",
+      "name": "Eleven v4",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "fish-s2-1-pro",
+      "name": "Fish Audio S2.1 Pro",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "lyria-3-pro",
+      "name": "Lyria 3 Pro",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "lyria-3",
+      "name": "Lyria 3",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "lyria-2",
+      "name": "Lyria 2",
+      "provider": null,
+      "provider_name": null
+    }
+  ],
+  "lipsync": [
+    {
+      "id": "infinitetalk-image-to-video",
+      "name": "Infinite Talk",
+      "provider": "infinitetalk",
+      "provider_name": "InfiniteTalk"
+    },
+    {
+      "id": "wan2.2-speech-to-video",
+      "name": "Wan 2.2 Speech to Video",
+      "provider": "wan",
+      "provider_name": "Wan"
+    },
+    {
+      "id": "ltx-2.3-lipsync",
+      "name": "LTX 2.3 Lipsync",
+      "provider": "ltx",
+      "provider_name": "LTX"
+    },
+    {
+      "id": "ltx-2-19b-lipsync",
+      "name": "LTX 2 19B Lipsync",
+      "provider": "ltx",
+      "provider_name": "LTX"
+    },
+    {
+      "id": "sync-lipsync",
+      "name": "Sync Lipsync",
+      "provider": "muapi",
+      "provider_name": "MuAPI"
+    },
+    {
+      "id": "latent-sync",
+      "name": "LatentSync",
+      "provider": "latentsync",
+      "provider_name": "LatentSync"
+    },
+    {
+      "id": "creatify-lipsync",
+      "name": "Creatify Lipsync",
+      "provider": "creatify",
+      "provider_name": "Creatify"
+    },
+    {
+      "id": "veed-lipsync",
+      "name": "Veed Lipsync",
+      "provider": "veed",
+      "provider_name": "Veed"
+    },
+    {
+      "id": "flux-3-lipsync",
+      "name": "FLUX 3 Lip Sync",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "kling-v1-avatar-standard",
+      "name": "Kling v1 Avatar Standard",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "kling-v1-avatar-pro",
+      "name": "Kling v1 Avatar Pro",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "kling-v2-avatar-standard",
+      "name": "Kling v2 Avatar Standard",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "kling-v2-avatar-pro",
+      "name": "Kling v2 Avatar Pro",
+      "provider": null,
+      "provider_name": null
+    },
+    {
+      "id": "omnihuman-1-5",
+      "name": "Omnihuman 1 5",
+      "provider": null,
+      "provider_name": null
     }
   ]
 }
