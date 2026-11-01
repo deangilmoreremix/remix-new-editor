@@ -3,8 +3,8 @@
 Compares the studios that exist in this repo with their counterparts in
 [Anil-matcha/Open-Generative-AI](https://github.com/Anil-matcha/Open-Generative-AI)
 (`0e15dc3`, 2026-10-29). Scope is features and functions only — not visual
-design, not upstream-only studios (Layers, Recast, Motion Control, Clipping,
-Workflow, McpCli, Design Agent), and not Electron/local Wan2GP inference.
+design, not upstream-only studios (Layers, Clipping, Workflow, McpCli, Design Agent —
+unaudited; Recast and Motion Control were added in round 3), and not Electron/local Wan2GP inference.
 
 This replaces the August audit docs (`UPSTREAM_RECOVERY_*`, `UPSTREAM_CONTROL_INVENTORY.md`).
 
@@ -80,6 +80,7 @@ catalog (`public/api/model-catalog.json`) now includes audio and lip-sync pools.
 | Commercial | Ad-video mode: avatars, formats, references |
 | Influencer | Builder Reset, "Generated · N characters" history column |
 | Apps | Template apps, GitHub/Demo links, interest modal |
+| Motion Studio (new) | Recast (3 models, character orientation, aspect ratio) and Motion Control (4 Seedance models, motion transfer / objects swap, duration, quality, bitrate, audio, seed) on one page, `#motion`, listed in Apps |
 | Library | Server history (`getHistory`) merged with local history |
 
 Best-effort, unverified against a real key: V2V cost line (`estimateV2VCost`) and server history merge —

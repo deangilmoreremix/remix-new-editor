@@ -1,4 +1,5 @@
 import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById, i2vModels } from './models.js';
+import { getRecastModelById, getMotionControlModelById } from './motionModels.js';
 import { apiKeyManager } from './apiKeyManager.js';
 import { uploadFileToStorage } from './supabase.js';
 import { validateMuAPIUpload, uploadImageToMuAPI, uploadVideoToMuAPI, uploadFileToMuapi } from './muapiUpload.js';
@@ -180,6 +181,47 @@ export class MuapiClient {
             aspect_ratio: params.aspect_ratio || '16:9',
             duration_seconds: params.duration_seconds || 6,
         }, params, signal, { studioType: 'effects' });
+    }
+
+    /** Recast: drive a character image with the motion in a video (upstream processRecast). */
+    async processRecast(params, signal) {
+        const model = getRecastModelById(params?.model);
+        const endpoint = model?.endpoint || params?.model;
+        if (!endpoint) throw new Error('Pick a recast model first.');
+        if (!params.video_url) throw new Error('Please upload a motion video first.');
+        if (!params.image_url) throw new Error('Please upload a character image first.');
+        const payload = { [model?.videoField || 'video_url']: params.video_url };
+        if (model?.imageField && params.image_url) payload[model.imageField] = params.image_url;
+        if (model?.hasPrompt && params.prompt) payload.prompt = params.prompt;
+        if (params.aspect_ratio) payload.aspect_ratio = params.aspect_ratio;
+        if (params.character_orientation) payload.character_orientation = params.character_orientation;
+        return this._submitAndPoll(endpoint, payload, params, signal, { studioType: 'video' });
+    }
+
+    /** Motion Control: rebuild a performance video with new characters/assets (upstream processMotionControl). */
+    async processMotionControl(params, signal) {
+        const model = getMotionControlModelById(params?.model);
+        if (!params?.video_url) throw new Error('Please upload a motion video first.');
+        const images = (Array.isArray(params.images_list) ? params.images_list : params.image_url ? [params.image_url] : []).filter(Boolean);
+        if (!images.length) throw new Error('Please add at least one character image.');
+        const mode = params.mode || 'motion_transfer';
+        const base = mode === 'objects_swap'
+            ? 'Keep the rest of the scene as filmed, swap the characters, products, or clothes with the reference images.'
+            : 'Extract motion from the reference video and rebuild the scene with the new characters and assets, preserving the original motion, choreography, and camera movements.';
+        const user = String(params.prompt || '').trim();
+        const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+        const payload = {
+            video_url: params.video_url,
+            images_list: images.slice(0, model.maxImages),
+            aspect_ratio: params.aspect_ratio || model.defaultAspectRatio,
+            duration: clamp(Number(params.duration) || model.defaultDuration, model.minDuration, model.maxDuration),
+            generate_audio: !!params.generate_audio,
+            prompt: user ? `${base} ${user}` : base,
+        };
+        if (model.supportsQuality) payload.quality = params.quality === 'basic' ? 'basic' : 'high';
+        if (model.supportsBitrate) payload.high_bitrate = !!params.high_bitrate;
+        if (model.supportsSeed && params.seed !== undefined && params.seed !== null && Number(params.seed) !== -1) payload.seed = Number(params.seed);
+        return this._submitAndPoll(model.endpoint, payload, params, signal, { studioType: 'video' });
     }
 
     /** Vibe Motion: edit an earlier motion-graphics generation (needs its request id). */

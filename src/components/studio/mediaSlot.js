@@ -40,9 +40,10 @@ export function createMediaSlot({ icon, title, multiple = false, accept = 'image
   iconEl.className = 'text-white/40 group-hover/slot:text-primary transition-colors';
   iconEl.innerHTML = icon;
 
-  const preview = document.createElement('img');
+  const isVideo = accept.startsWith('video');
+  const preview = document.createElement(isVideo ? 'video' : 'img');
   preview.className = 'hidden w-full h-full object-cover rounded-full';
-  preview.alt = title;
+  if (isVideo) { preview.muted = true; preview.playsInline = true; preview.preload = 'metadata'; } else preview.alt = title;
 
   const progressEl = document.createElement('div');
   progressEl.className = 'hidden absolute inset-0 bg-black/60 rounded-full items-center justify-center z-10';
@@ -75,7 +76,7 @@ export function createMediaSlot({ icon, title, multiple = false, accept = 'image
     e.stopPropagation();
     depth = 0;
     setDragging(false);
-    const files = Array.from(e.dataTransfer?.files || []).filter((f) => !accept.startsWith('image') || f.type.startsWith('image/'));
+    const files = Array.from(e.dataTransfer?.files || []).filter((f) => !(accept.startsWith('image') || accept.startsWith('video')) || f.type.startsWith(accept.startsWith('video') ? 'video/' : 'image/'));
     if (files.length) onFiles(multiple ? files : files.slice(0, 1));
   });
 

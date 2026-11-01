@@ -110,3 +110,50 @@ describe('face-swap image models', () => {
     expect(calls[0].params.swap_url).toBe('https://cdn.example.com/face.png');
   });
 });
+
+describe('recast and motion control', () => {
+  let client;
+  beforeEach(async () => {
+    client = new MuapiClient();
+    await client.apiKeyManager.setMuapiKey('test-muapi-key');
+  });
+
+  test('processRecast maps the model fields and requires both media', async () => {
+    const calls = mockProxy({ body: { request_id: 'rc-1' } }, { body: { status: 'completed', outputs: ['https://cdn.muapi.ai/outputs/rc-unique-1.mp4'] } });
+    const res = await client.processRecast({ model: 'kling-v3.0-pro-recast', video_url: 'https://cdn.example.com/v.mp4', image_url: 'https://cdn.example.com/i.png', prompt: 'dance', character_orientation: 'video' });
+    expect(calls[0]).toMatchObject({ endpoint: 'kling-v3.0-pro-motion-control', params: { video_url: 'https://cdn.example.com/v.mp4', image_url: 'https://cdn.example.com/i.png', prompt: 'dance', character_orientation: 'video' } });
+    expect(res.url).toContain('rc-unique-1.mp4');
+    await expect(client.processRecast({ model: 'kling-v3.0-pro-recast', image_url: 'x' })).rejects.toThrow(/motion video/);
+    await expect(client.processRecast({ model: 'kling-v3.0-pro-recast', video_url: 'x' })).rejects.toThrow(/character image/);
+  });
+
+  test('Runway Act Two recast drops the prompt', async () => {
+    const calls = mockProxy({ body: { request_id: 'rc-2' } }, { body: { status: 'completed', outputs: ['https://cdn.muapi.ai/outputs/rc-unique-2.mp4'] } });
+    await client.processRecast({ model: 'runway-act-two-recast', video_url: 'https://cdn.example.com/v.mp4', image_url: 'https://cdn.example.com/i.png', prompt: 'ignored', aspect_ratio: '9:16' });
+    expect(calls[0].endpoint).toBe('runway-act-two-i2v');
+    expect(calls[0].params.prompt).toBeUndefined();
+    expect(calls[0].params.aspect_ratio).toBe('9:16');
+  });
+
+  test('processMotionControl clamps duration/assets and builds the model payload', async () => {
+    const calls = mockProxy({ body: { request_id: 'mc-1' } }, { body: { status: 'completed', outputs: ['https://cdn.muapi.ai/outputs/mc-unique-1.mp4'] } });
+    await client.processMotionControl({ model: 'seedance-2-motion-control', video_url: 'https://cdn.example.com/v.mp4', images_list: Array.from({ length: 12 }, (_, i) => `https://cdn.example.com/${i}.png`), duration: 40, quality: 'basic', seed: 7, prompt: 'more energy' });
+    const p = calls[0].params;
+    expect(calls[0].endpoint).toBe('seedance-2-motion-control');
+    expect(p.duration).toBe(15);
+    expect(p.images_list).toHaveLength(9);
+    expect(p).toMatchObject({ quality: 'basic', seed: 7, generate_audio: false });
+    expect(p.prompt).toMatch(/Extract motion.*more energy$/);
+    expect(p.high_bitrate).toBeUndefined();
+  });
+
+  test('Seedance 2.5 uses high_bitrate and objects_swap prompt; -1 seed is omitted', async () => {
+    const calls = mockProxy({ body: { request_id: 'mc-2' } }, { body: { status: 'completed', outputs: ['https://cdn.muapi.ai/outputs/mc-unique-2.mp4'] } });
+    await client.processMotionControl({ video_url: 'https://cdn.example.com/v.mp4', image_url: 'https://cdn.example.com/a.png', mode: 'objects_swap', high_bitrate: true, seed: -1 });
+    expect(calls[0].endpoint).toBe('seedance-2.5-motion-control');
+    expect(calls[0].params.high_bitrate).toBe(true);
+    expect(calls[0].params.seed).toBeUndefined();
+    expect(calls[0].params.prompt).toMatch(/swap the characters/);
+    await expect(client.processMotionControl({ video_url: 'https://cdn.example.com/v.mp4' })).rejects.toThrow(/character image/);
+  });
+});
