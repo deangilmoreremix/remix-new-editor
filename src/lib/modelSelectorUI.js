@@ -323,39 +323,65 @@ export function mountTemplateModelSelector({
   panel.setAttribute("aria-label", "Select model");
   panel.innerHTML = render();
 
-  // Position dropdown relative to anchor
+  // Position dropdown relative to anchor. The trigger usually lives in the
+  // bottom prompt bar, so prefer opening upward (like upstream
+  // Open-Generative-AI) and cap the height to the space that is actually free
+  // so the panel never runs off-screen.
   function positionPanel() {
+    if (!anchor || !panel.parentNode) return;
     const rect = anchor.getBoundingClientRect();
-    const panelRect = panel.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
+    const margin = 16;
+    const gap = 8;
 
-    // Reset classes
     panel.style.top = "";
     panel.style.bottom = "";
     panel.style.left = "";
     panel.style.right = "";
+    panel.style.maxHeight = "";
+    const innerEl = panel.querySelector(".model-picker-dropdown");
+    if (innerEl) {
+      innerEl.style.maxHeight = "";
+      innerEl.style.minHeight = "";
+    }
 
-    // Default: below anchor
-    let top = rect.bottom + 8;
-    let flipped = false;
+    const naturalHeight = panel.scrollHeight || panel.getBoundingClientRect().height;
+    const spaceAbove = rect.top - gap - margin;
+    const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+    const openAbove = spaceAbove >= naturalHeight || spaceAbove >= spaceBelow;
+    const available = Math.max(160, Math.min(viewportHeight * 0.7, openAbove ? spaceAbove : spaceBelow));
 
-    // If not enough space below, flip above
-    if (top + panelRect.height > viewportHeight - 16 && rect.top > panelRect.height + 16) {
-      top = rect.top - panelRect.height - 8;
-      flipped = true;
+    panel.style.maxHeight = `${available}px`;
+    panel.style.overflow = "hidden";
+    const inner = panel.querySelector(".model-picker-dropdown");
+    if (inner) {
+      // Panel has p-4 (16px each side) padding.
+      const innerMax = Math.max(120, available - 32);
+      inner.style.maxHeight = `${innerMax}px`;
+      inner.style.minHeight = `${Math.min(350, innerMax)}px`;
+    }
+
+    if (openAbove) {
+      panel.style.bottom = `${viewportHeight - rect.top + gap}px`;
+      panel.classList.remove("origin-top-left");
+      panel.classList.add("origin-bottom-left");
+    } else {
+      panel.style.top = `${rect.bottom + gap}px`;
+      panel.classList.remove("origin-bottom-left");
+      panel.classList.add("origin-top-left");
     }
 
     // Horizontal positioning
+    const panelWidth = panel.getBoundingClientRect().width;
     let left = rect.left;
-    if (left + panelRect.width > viewportWidth - 16) {
-      left = viewportWidth - panelRect.width - 16;
+    if (left + panelWidth > viewportWidth - margin) {
+      left = viewportWidth - panelWidth - margin;
     }
-    if (left < 16) left = 16;
+    if (left < margin) left = margin;
 
-    panel.style.top = `${top}px`;
     panel.style.left = `${left}px`;
-    panel.dataset.flipped = flipped ? "1" : "0";
+    panel.dataset.flipped = openAbove ? "1" : "0";
   }
 
   function open() {
@@ -397,6 +423,7 @@ export function mountTemplateModelSelector({
       onSelectCategory?.(selectedCategory);
       selectedProvider = "all";
       panel.innerHTML = render();
+      positionPanel();
       requestAnimationFrame(() => {
         const active = panel.querySelector('[aria-pressed="true"]');
         if (active && typeof active.scrollIntoView === 'function') {
@@ -410,6 +437,7 @@ export function mountTemplateModelSelector({
     if (providerBtn) {
       selectedProvider = providerBtn.dataset.provider;
       panel.innerHTML = render();
+      positionPanel();
       requestAnimationFrame(() => {
         const active = panel.querySelector('[aria-pressed="true"]');
         if (active && typeof active.scrollIntoView === 'function') {
@@ -444,6 +472,7 @@ export function mountTemplateModelSelector({
       search = e.target.value;
       if (search.trim()) selectedProvider = "all";
       panel.innerHTML = render();
+      positionPanel();
       requestAnimationFrame(() => {
         const active = panel.querySelector('[aria-pressed="true"]');
         if (active && typeof active.scrollIntoView === 'function') {
@@ -471,14 +500,16 @@ export function mountTemplateModelSelector({
   }
   document.addEventListener("click", outsideClickHandler);
 
-  // Reposition on resize
+  // Reposition on resize / scroll
   window.addEventListener("resize", positionPanel);
+  window.addEventListener("scroll", positionPanel, { capture: true, passive: true });
 
   // Cleanup
   const cleanup = () => {
     document.removeEventListener("keydown", escapeHandler);
     document.removeEventListener("click", outsideClickHandler);
     window.removeEventListener("resize", positionPanel);
+    window.removeEventListener("scroll", positionPanel, { capture: true });
     if (panel.parentNode) panel.parentNode.removeChild(panel);
   };
 
@@ -492,6 +523,7 @@ export function mountTemplateModelSelector({
       : null;
     if (panel.parentNode) {
       panel.innerHTML = render();
+      positionPanel();
       requestAnimationFrame(() => {
         const active = panel.querySelector('[aria-pressed="true"]');
         if (active && typeof active.scrollIntoView === "function") {

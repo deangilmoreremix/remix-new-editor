@@ -1127,7 +1127,7 @@ generateBtn.type = 'button';
     // 3. DROPDOWNS
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 -translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
@@ -1406,10 +1406,12 @@ generateBtn.type = 'button';
             dropdown.style.left = '50%';
             dropdown.style.transform = 'translateX(-50%)';
         }
-        dropdown.style.bottom = '';
         const btnRect = anchorBtn.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
-        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
+        dropdown.style.top = 'auto';
+        dropdown.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+        dropdown.style.maxHeight = `${Math.max(160, btnRect.top - 16)}px`;
+        dropdown.style.overflowY = 'auto';
     };
 
     const closeDropdown = () => {
