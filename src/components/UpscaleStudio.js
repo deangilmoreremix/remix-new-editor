@@ -37,7 +37,7 @@ export function UpscaleStudio() {
   let customThumbnailUrl = getCustomThumbnailFromCache('upscale-studio');
 
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
+  header.className = 'mb-8 animate-fade-in-up text-center w-full';
   const upscaleBanner = createHeroSection('upscale', 'h-32 md:h-44 mb-4');
   if (upscaleBanner) {
     const bannerText = document.createElement('div');
@@ -133,7 +133,7 @@ const triggerBtn = document.createElement('button');
   container.appendChild(factorRow);
 
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-md bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.2s';
 
   const uploadRow = document.createElement('div');
@@ -312,11 +312,11 @@ genBtn.type = 'button';
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('upscale');
-  inlineInstructions.classList.add('max-w-md', 'mt-6');
+  inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-md mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);

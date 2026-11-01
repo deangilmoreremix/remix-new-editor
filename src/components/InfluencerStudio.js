@@ -340,7 +340,7 @@ export async function InfluencerStudio() {
   const TAGS_VISIBLE = 7;
 
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
+  header.className = 'mb-8 animate-fade-in-up text-center w-full';
   const influBanner = createHeroSection('influencer', 'h-32 md:h-44 mb-4');
   if (influBanner) {
     const bannerText = document.createElement('div');
@@ -352,7 +352,7 @@ export async function InfluencerStudio() {
   container.appendChild(header);
 
   const modelSelectorContainer = document.createElement('div');
-  modelSelectorContainer.className = 'w-full max-w-xl mb-6';
+  modelSelectorContainer.className = 'w-full mb-6';
   container.appendChild(modelSelectorContainer);
 
   mountModelSelector(modelSelectorContainer, {
@@ -364,7 +364,7 @@ export async function InfluencerStudio() {
   });
 
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.15s';
 
   const uploadRow = document.createElement('div');
@@ -855,7 +855,7 @@ export async function InfluencerStudio() {
   container.appendChild(formCard);
 
   const previewCard = document.createElement('div');
-  previewCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 animate-fade-in-up';
+  previewCard.className = 'w-full bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 animate-fade-in-up';
   previewCard.style.animationDelay = '0.2s';
 
   const previewHeader = document.createElement('div');
@@ -1006,7 +1006,7 @@ export async function InfluencerStudio() {
   container.appendChild(previewCard);
 
   const genArea = document.createElement('div');
-  genArea.className = 'w-full max-w-xl mt-4';
+  genArea.className = 'w-full mt-4';
   const genWrapper = document.createElement('div');
   genWrapper.className = 'flex gap-3 items-center';
 
@@ -1018,7 +1018,7 @@ export async function InfluencerStudio() {
   container.appendChild(genArea);
 
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-xl mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);

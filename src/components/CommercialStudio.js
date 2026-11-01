@@ -61,7 +61,7 @@ export async function CommercialStudio() {
   container.appendChild(header);
 
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.15s';
 
   const modelLabel = document.createElement('label');
@@ -384,7 +384,7 @@ const COMMERCIAL_MODELS = [
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('commercial');
-  inlineInstructions.classList.add('max-w-xl', 'mt-6');
+  inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
   // "Create This Style" deep-link: apply the staged MiniMax example (model +
@@ -402,13 +402,13 @@ const COMMERCIAL_MODELS = [
       ref: 'minimax-h3-commercial',
       items: demos,
     });
-    rail.classList.add('max-w-xl', 'mt-8');
+    rail.classList.add('w-full', 'mt-8');
     container.appendChild(rail);
   } catch (e) {
   }
 
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-xl mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);

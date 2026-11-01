@@ -83,7 +83,7 @@ export function CharacterStudio() {
   } catch { /* ignore */ }
 
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-lg';
+  header.className = 'mb-8 animate-fade-in-up text-center w-full';
   const charBanner = createHeroSection('character', 'h-32 md:h-44 mb-4');
   if (charBanner) {
     const bannerText = document.createElement('div');
@@ -95,7 +95,7 @@ export function CharacterStudio() {
   container.appendChild(header);
 
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-lg bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.15s';
 
   const modelLabel = document.createElement('label');
@@ -400,14 +400,14 @@ const pexelsBtn = document.createElement('button');
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('character');
-  inlineInstructions.classList.add('max-w-lg', 'mt-6');
+  inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
   // ==========================================
   // EXPRESSION PRESETS
   // ==========================================
   const expressionSection = document.createElement('div');
-  expressionSection.className = 'w-full max-w-lg mt-6';
+  expressionSection.className = 'w-full mt-6';
   expressionSection.innerHTML = `
     <h3 class="text-sm font-bold text-white mb-3">Expression Presets</h3>
     <div class="flex gap-2 flex-wrap">
@@ -441,7 +441,7 @@ const pexelsBtn = document.createElement('button');
   // CHARACTER LIBRARY (from localStorage)
   // ==========================================
   const librarySection = document.createElement('div');
-  librarySection.className = 'w-full max-w-lg mt-6';
+  librarySection.className = 'w-full mt-6';
   const savedCharacters = JSON.parse(localStorage.getItem('character_library') || '[]');
   
   librarySection.innerHTML = `
@@ -482,7 +482,7 @@ const pexelsBtn = document.createElement('button');
   });
 
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-lg mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);

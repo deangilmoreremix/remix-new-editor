@@ -600,7 +600,7 @@ export function AudioStudio() {
 
   // Model selector
   const modelWrapper = document.createElement('div');
-  modelWrapper.className = 'w-full max-w-xl mb-6 animate-fade-in-up';
+  modelWrapper.className = 'w-full mb-6 animate-fade-in-up';
   modelWrapper.style.animationDelay = '0.1s';
   container.appendChild(modelWrapper);
 
@@ -639,7 +639,7 @@ export function AudioStudio() {
 
   // Form card
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.2s';
 
   // Prompt input
@@ -971,19 +971,19 @@ export function AudioStudio() {
 
   // Instructions
   const inlineInstructions = createInlineInstructions('audio');
-  inlineInstructions.classList.add('max-w-md', 'mt-6');
+  inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
   // Result area
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-xl mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   // Audio editor controls (trim + fade)
   const editorControls = document.createElement('div');
-  editorControls.className = 'w-full max-w-xl mt-4 hidden';
+  editorControls.className = 'w-full mt-4 hidden';
   editorControls.id = 'audio-editor-controls';
   editorControls.innerHTML = `
     <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
