@@ -98,42 +98,27 @@ export class ModelSelectorDropdown {
     const popoverWidth = Math.min(600, window.innerWidth - 16);
     const popoverHeight = this._popover.offsetHeight || 400;
     const gap = 8;
-    const viewportTop = 8;
-    const viewportBottom = window.innerHeight - 8;
+    const margin = 8;
+    const viewportHeight = window.innerHeight;
 
-    // Calculate available space above and below the anchor
-    const spaceAbove = rect.top;
-    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top - gap - margin;
+    const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+    // Prefer opening upward (shrinking to fit); only drop down when there's
+    // less than ~240px above the trigger.
+    const openAbove = spaceAbove >= popoverHeight || spaceAbove >= 240 || spaceAbove >= spaceBelow;
 
-    let top;
-    // Prefer opening above if there's enough space, otherwise below
-    if (spaceAbove >= popoverHeight + gap) {
-      // Position above the anchor
-      top = rect.top + window.scrollY - popoverHeight - gap;
+    this._popover.style.position = 'fixed';
+    if (openAbove) {
+      this._popover.style.top = 'auto';
+      this._popover.style.bottom = `${viewportHeight - rect.top + gap}px`;
     } else {
-      // Position below the anchor
-      top = rect.bottom + window.scrollY + gap;
+      this._popover.style.top = `${rect.bottom + gap}px`;
+      this._popover.style.bottom = 'auto';
     }
+    this._popover.style.maxHeight = `${Math.max(200, Math.min(viewportHeight * 0.7, openAbove ? spaceAbove : spaceBelow))}px`;
 
-    // Clamp top to ensure it doesn't go above viewport (behind top bar)
-    const scrollTop = window.scrollY || window.pageYOffset;
-    if (top < scrollTop + viewportTop) {
-      top = scrollTop + viewportTop;
-    }
-
-    // Ensure the bottom of the popover doesn't extend past viewport
-    if (top + popoverHeight > scrollTop + viewportBottom) {
-      top = scrollTop + viewportBottom - popoverHeight;
-    }
-
-    // Horizontal positioning: align with anchor left edge
-    let left = rect.left + window.scrollX;
-
-    // Clamp left to ensure it doesn't go off the right side
-    left = Math.max(8, Math.min(left, window.innerWidth - popoverWidth - 8));
-
-    this._popover.style.position = 'absolute';
-    this._popover.style.top = `${top}px`;
+    // Horizontal positioning: align with anchor left edge, clamped to viewport
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - popoverWidth - 8));
     this._popover.style.left = `${left}px`;
   }
 

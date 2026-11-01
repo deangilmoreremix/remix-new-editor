@@ -329,6 +329,9 @@ export function mountTemplateModelSelector({
   // so the panel never runs off-screen.
   function positionPanel() {
     if (!anchor || !panel.parentNode) return;
+    // The trigger was removed (e.g. route change) — close instead of jumping
+    // to the top-left corner.
+    if (!anchor.isConnected) { cleanup(); onClose?.(); return; }
     const rect = anchor.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
@@ -347,9 +350,9 @@ export function mountTemplateModelSelector({
     }
 
     const naturalHeight = panel.scrollHeight || panel.getBoundingClientRect().height;
-    const spaceAbove = rect.top - gap - margin;
+    const spaceAbove = rect.top - gap - getPickerTopLimit();
     const spaceBelow = viewportHeight - rect.bottom - gap - margin;
-    const openAbove = spaceAbove >= naturalHeight || spaceAbove >= spaceBelow;
+    const openAbove = spaceAbove >= naturalHeight || spaceAbove >= 240 || spaceAbove >= spaceBelow;
     const available = Math.max(160, Math.min(viewportHeight * 0.7, openAbove ? spaceAbove : spaceBelow));
 
     panel.style.maxHeight = `${available}px`;
@@ -585,43 +588,79 @@ export {
   videoModelPickerEntryByVariantId,
 } from "./modelFamilies.js";
 
+// Top edge pickers may extend to: just below the app header when it is
+// visible, otherwise a 16px viewport margin.
+function getPickerTopLimit() {
+  const header = typeof document !== 'undefined' ? document.querySelector('header') : null;
+  const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+  return Math.max(16, headerBottom > 0 ? headerBottom + 8 : 0);
+}
+
 export function positionModelSelectorDropdown(dropdown, trigger, offset, container) {
   if (!dropdown || !trigger) return;
   const rect = trigger.getBoundingClientRect();
-  const panelRect = dropdown.getBoundingClientRect();
   const viewportHeight = window.innerHeight;
   const viewportWidth = window.innerWidth;
+  const gap = offset || 8;
+  const margin = 16;
 
-  // Reset positioning
   dropdown.style.top = '';
   dropdown.style.bottom = '';
   dropdown.style.left = '';
   dropdown.style.right = '';
+  dropdown.style.maxHeight = '';
 
-  // Default: below trigger
-  let top = rect.bottom + (offset || 8);
-  let flipped = false;
+  // Pickers open upward (like upstream Open-Generative-AI), shrinking to fit.
+  // Only open downward when there's less than ~240px above the trigger.
+  const panelRect = dropdown.getBoundingClientRect();
+  const height = Math.max(panelRect.height, dropdown.scrollHeight || 0);
+  const spaceAbove = rect.top - gap - getPickerTopLimit();
+  const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+  const openAbove = spaceAbove >= height || spaceAbove >= 240 || spaceAbove >= spaceBelow;
 
-  // If not enough space below, flip above
-  if (top + panelRect.height > viewportHeight - 16 && rect.top > panelRect.height + 16) {
-    top = rect.top - panelRect.height - (offset || 8);
-    flipped = true;
+  // The dropdown's containing block is not always the viewport: a `fixed`
+  // element inside a transformed/animated ancestor (or an `absolute` one) is
+  // positioned relative to that ancestor. Probe its real edges so the
+  // viewport coordinates below land where intended.
+  dropdown.style.top = '0px';
+  dropdown.style.bottom = 'auto';
+  dropdown.style.left = '0px';
+  const originRect = dropdown.getBoundingClientRect();
+  const originTop = originRect.top;
+  const originLeft = originRect.left;
+  dropdown.style.top = 'auto';
+  dropdown.style.bottom = '0px';
+  const blockBottom = dropdown.getBoundingClientRect().bottom;
+
+  if (openAbove) {
+    // Anchor by bottom so the panel grows upward even if it is populated or
+    // resized after positioning.
+    dropdown.style.top = 'auto';
+    dropdown.style.bottom = `${blockBottom - rect.top + gap}px`;
+  } else {
+    dropdown.style.top = `${rect.bottom + gap - originTop}px`;
+    dropdown.style.bottom = 'auto';
   }
+  const maxHeight = Math.max(160, openAbove ? spaceAbove : spaceBelow);
+  dropdown.style.maxHeight = `${maxHeight}px`;
+  dropdown.style.overflowY = 'auto';
+  // Some studios set an inline min-height (e.g. 350px) that would override
+  // the cap; shrink it when space is short and restore it next time.
+  if (dropdown.dataset.origMinHeight === undefined) {
+    dropdown.dataset.origMinHeight = dropdown.style.minHeight || '';
+  }
+  const origMin = parseFloat(dropdown.dataset.origMinHeight) || 0;
+  dropdown.style.minHeight = origMin > maxHeight ? `${maxHeight}px` : dropdown.dataset.origMinHeight;
 
   // Horizontal positioning
   let left = rect.left;
-  if (left + panelRect.width > viewportWidth - 16) {
-    left = viewportWidth - panelRect.width - 16;
+  if (left + panelRect.width > viewportWidth - margin) {
+    left = viewportWidth - panelRect.width - margin;
   }
-  if (left < 16) left = 16;
+  if (left < margin) left = margin;
+  dropdown.style.left = `${left - originLeft}px`;
 
-  dropdown.style.top = `${top}px`;
-  dropdown.style.left = `${left}px`;
-  if (flipped) {
-    dropdown.classList.add('flipped');
-  } else {
-    dropdown.classList.remove('flipped');
-  }
+  dropdown.classList.toggle('flipped', openAbove);
 }
 
 export function getAvailableProviders(entries) {
