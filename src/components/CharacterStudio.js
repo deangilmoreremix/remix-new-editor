@@ -5,7 +5,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -84,8 +84,7 @@ export function CharacterStudio() {
 
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">Character Studio</h1>';
+  header.appendChild(createStudioHeader('character', 'Character Studio', 'Consistent characters with face ID preservation'));
   container.appendChild(header);
 
   const formCard = document.createElement('div');

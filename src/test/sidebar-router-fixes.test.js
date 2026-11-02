@@ -22,18 +22,18 @@ describe('Sidebar fixes', () => {
     expect(hasCommits).toBe(false);
   });
 
-  it('should have browseStockMedia import for pexels-media modal', async () => {
+  it('should not list retired studios (Training, Chat, Assist, Stock Media, Community)', async () => {
     const fs = await import('node:fs');
     const content = fs.readFileSync('src/components/Sidebar.js', 'utf-8');
-    expect(content).toContain('browseStockMedia');
-    expect(content).toContain("pexels-media");
+    for (const id of ['training', 'chat', 'assist', 'pexels-media', 'community']) {
+      expect(content).not.toContain(`id: '${id}'`);
+    }
+    expect(content).not.toContain('browseStockMedia');
   });
 
-  it('should call browseStockMedia when pexels-media is clicked', async () => {
-    const fs = await import('node:fs');
-    const content = fs.readFileSync('src/components/Sidebar.js', 'utf-8');
-    expect(content).toContain("if (item.id === 'pexels-media')");
-    expect(content).toContain('browseStockMedia().catch(() => {})');
+  it('should redirect retired routes instead of loading them', async () => {
+    const mod = await import('../lib/router.js');
+    expect(Object.keys(mod.RETIRED_ROUTES).sort()).toEqual(['assist', 'chat', 'community', 'pexels-media', 'training']);
   });
 
   it('should map brand sub-routes to brand for active state', async () => {

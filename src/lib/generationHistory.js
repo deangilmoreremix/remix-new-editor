@@ -279,7 +279,8 @@ export async function loadGenerationHistory() {
     const videoHistory = JSON.parse(localStorage.getItem('video_history') || '[]');
     localResults = [
       ...imageHistory.map((h) => ({ ...h, type: h.type || 'image', source: 'local' })),
-      ...videoHistory.map((h) => ({ ...h, type: 'video', source: 'local' })),
+      // video_history also holds audio entries — keep their real type.
+      ...videoHistory.map((h) => ({ ...h, type: h.type === 'audio' ? 'audio' : 'video', source: 'local' })),
     ];
   } catch (e) {
     // Ignore parse errors

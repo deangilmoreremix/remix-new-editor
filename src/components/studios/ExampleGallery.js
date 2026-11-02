@@ -183,11 +183,9 @@ export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
       img.alt = asset.title || 'Example';
       img.loading = 'lazy';
 
-      const applyAspectRatio = () => {
-        if (img.naturalWidth && img.naturalHeight) {
-          media.style.aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
-        }
-      };
+      // Cards keep one fixed media ratio (see .eg-media) so a tall portrait
+      // example no longer stretches its whole row into empty space.
+      const applyAspectRatio = () => {};
       img.onload = applyAspectRatio;
       img.onerror = () => {
         img.onerror = null;

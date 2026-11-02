@@ -6,7 +6,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { uploadMediaFile } from '../lib/editor/upload.js';
 import { saveGeneration } from '../lib/generationHistory.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -43,8 +43,7 @@ export function AvatarStudio() {
   // Header with hero banner
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">Avatar Studio</h1>';
+  header.appendChild(createStudioHeader('avatar', 'Avatar Studio', 'Create talking avatars and lip sync videos'));
   container.appendChild(header);
 
   // Model selector

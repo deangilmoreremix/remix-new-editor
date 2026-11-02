@@ -5,16 +5,19 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { listBrands, saveBrand } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
-import { apiCall } from '../lib/brandApi.js';
+import { analyzeBrand } from '../lib/brandAnalyzer.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { AuthModal } from './AuthModal.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { createLoadingOverlay } from '../lib/loading.js';
 import { navigate, isIframeMode } from '../lib/brandNavigation.js';
 
 export function BrandStudio() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
+  container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar flex flex-col items-center';
 
   if (!isIframeMode()) {
-    mountStudioChrome(container, { currentRoute: 'brand', title: 'Brand Studio' });
+    mountStudioChrome(container, { currentRoute: 'brand' });
   }
 
   const state = {
@@ -25,13 +28,8 @@ export function BrandStudio() {
   };
 
   const hero = document.createElement('div');
-  hero.className = 'flex flex-col items-center text-center px-4 pt-12 pb-8 animate-fade-in-up';
-  hero.innerHTML = `
-    <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-3">Brand Studio</h1>
-    <p class="text-secondary text-sm md:text-base max-w-xl">
-      Paste any website URL. We extract the brand DNA and generate on-brand campaigns — locally.
-    </p>
-  `;
+  hero.className = 'w-full max-w-4xl px-4 pt-2 pb-6 animate-fade-in-up';
+  hero.appendChild(createStudioHeader('brand', 'Brand Studio', 'Paste any website URL — get your Brand DNA, on-brand campaigns, product photos and videos'));
   container.appendChild(hero);
 
   // Brand tools stay in one Studio; the main application navigation exposes only Brand Studio.
@@ -65,11 +63,10 @@ export function BrandStudio() {
     toolsGrid.appendChild(btn);
   });
   tools.appendChild(toolsGrid);
-  container.appendChild(tools);
 
 
   const form = document.createElement('form');
-  form.className = 'w-full max-w-2xl px-4 mb-8 animate-fade-in-up';
+  form.className = 'w-full max-w-4xl px-4 mb-8 animate-fade-in-up';
   form.style.animationDelay = '0.1s';
 
   const inputRow = document.createElement('div');
@@ -118,6 +115,8 @@ export function BrandStudio() {
       return;
     }
 
+    if (!apiKeyManager.getMuapiKey()) { AuthModal(() => form.requestSubmit()); return; }
+
     state.loading = true;
     state.error = null;
     submitBtn.disabled = true;
@@ -128,7 +127,8 @@ export function BrandStudio() {
     container.appendChild(overlay);
 
     try {
-      const dna = await apiCall('/api/brand/extract', { url: state.url });
+      // Open-Pomelli's brand-analyzer, run client-side through MuAPI.
+      const dna = await analyzeBrand(state.url);
       const saved = saveBrand(dna);
       overlay.hide();
       navigate('brand-dna', { id: saved.id });
@@ -154,9 +154,10 @@ export function BrandStudio() {
   };
 
   container.appendChild(form);
+  container.appendChild(tools);
 
   const recent = document.createElement('div');
-  recent.className = 'w-full max-w-2xl px-4 mb-8';
+  recent.className = 'w-full max-w-4xl px-4 mb-8';
   if (state.brands.length > 0) {
     const header = document.createElement('div');
     header.className = 'text-xs font-bold text-secondary uppercase tracking-wider mb-3';

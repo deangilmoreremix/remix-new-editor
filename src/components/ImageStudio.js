@@ -15,7 +15,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
@@ -143,8 +143,7 @@ export function ImageStudio() {
     // ==========================================
     const hero = document.createElement('div');
     hero.className = 'flex flex-col items-center mb-2 md:mb-4 animate-fade-in-up transition-all duration-700 w-full';
-    // Studios open straight onto the tool; keep the page title for screen readers.
-    hero.innerHTML = '<h1 class="sr-only">Image Studio</h1>';
+    hero.appendChild(createStudioHeader('image', 'Image Studio', 'Generate images with 20+ AI models'));
 
     container.appendChild(hero);
 

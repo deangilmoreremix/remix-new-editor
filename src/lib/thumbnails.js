@@ -313,7 +313,7 @@ const STUDIO_THUMBNAILS = {
   edit: '/thumbnails/studios/edit.webp',
   upscale: '/thumbnails/studios/upscale.webp',
   character: '/thumbnails/studios/character.webp',
-  commercial: '/thumbnails/studios/commercial.webp',
+  commercial: '/thumbnails/tools/product-shot.webp',
   audio: '/thumbnails/studios/audio.webp',
   avatar: '/thumbnails/studios/avatar.webp',
   training: '/thumbnails/studios/training.webp',
@@ -322,6 +322,14 @@ const STUDIO_THUMBNAILS = {
   render: '/thumbnails/studios/render.webp',
   chat: '/thumbnails/studios/chat.webp',
   viral: '/thumbnails/studios/video.webp',
+  'ai-vfx': '/thumbnails/categories/vfx.webp',
+  animate: '/thumbnails/pages/assist.webp',
+  brand: '/thumbnails/templates/luxury_brand.webp.png',
+  influencer: '/thumbnails/heroes/influencer.webp',
+  personalizer: '/thumbnails/heroes/videoagent.webp.png',
+  'video-agent': '/thumbnails/heroes/videoagent.webp.png',
+  library: '/thumbnails/pages/library.webp',
+  'content-library': '/thumbnails/categories/entertainment.webp',
 };
 
 const HERO_THUMBNAILS = {
@@ -334,7 +342,7 @@ const HERO_THUMBNAILS = {
   edit: '/thumbnails/heroes/edit.webp',
   upscale: '/thumbnails/heroes/upscale.webp',
   character: '/thumbnails/heroes/character.webp',
-  commercial: '/thumbnails/heroes/commercial.webp',
+  commercial: '/thumbnails/templates/product-hero.webp',
   influencer: '/thumbnails/heroes/influencer.webp',
   audio: '/thumbnails/heroes/audio.webp.png',
   avatar: '/thumbnails/heroes/avatar.webp.png',
@@ -345,6 +353,15 @@ const HERO_THUMBNAILS = {
   chat: '/thumbnails/heroes/chat.webp.png',
   templates: '/thumbnails/pages/templates.webp.png',
   viral: '/thumbnails/heroes/video.webp',
+  'cinema-template': '/thumbnails/heroes/cinema.webp',
+  'ai-vfx': '/thumbnails/categories/vfx.webp',
+  animate: '/thumbnails/pages/assist.webp',
+  brand: '/thumbnails/templates/luxury_brand.webp.png',
+  library: '/thumbnails/pages/library.webp',
+  'content-library': '/thumbnails/categories/entertainment.webp',
+  explore: '/thumbnails/pages/explore.webp.png',
+  personalizer: '/thumbnails/heroes/videoagent.webp.png',
+  'video-agent': '/thumbnails/heroes/videoagent.webp.png',
 };
 
 const TOOL_THUMBNAILS = {
@@ -624,5 +641,40 @@ export function createHeroSection(studioId, className = '') {
   const overlay = document.createElement('div');
   overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent';
   wrapper.appendChild(overlay);
+  return wrapper;
+}
+
+/**
+ * Compact AI-image header shown at the top of every studio: the studio's AI
+ * artwork as a slim banner with the title and one line of description. It is
+ * deliberately short (96–112px) so the tool itself stays above the fold, and
+ * it carries the page's h1. Returns a `.hero-banner` so shared layouts can
+ * shrink it further once results exist.
+ */
+export function createStudioHeader(studioId, title, subtitle = '', className = '') {
+  const src = getHeroThumbnail(studioId) || getStudioThumbnail(studioId);
+  const wrapper = document.createElement('div');
+  wrapper.className = `hero-banner studio-header relative w-full h-24 md:h-28 overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d10] shrink-0 ${className}`;
+  wrapper.dataset.studioHeader = studioId;
+  if (src) {
+    wrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
+    wrapper.appendChild(createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover'));
+  }
+  const shade = document.createElement('div');
+  shade.className = 'absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10';
+  wrapper.appendChild(shade);
+  const text = document.createElement('div');
+  text.className = 'absolute inset-y-0 left-0 z-10 flex flex-col justify-center px-5 md:px-7 text-left max-w-[80%]';
+  const h1 = document.createElement('h1');
+  h1.className = 'text-xl md:text-2xl font-black text-white tracking-tight leading-tight';
+  h1.textContent = title;
+  text.appendChild(h1);
+  if (subtitle) {
+    const p = document.createElement('p');
+    p.className = 'text-white/65 text-xs md:text-sm mt-1 line-clamp-1';
+    p.textContent = subtitle;
+    text.appendChild(p);
+  }
+  wrapper.appendChild(text);
   return wrapper;
 }

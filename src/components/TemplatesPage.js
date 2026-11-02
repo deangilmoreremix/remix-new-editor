@@ -1,7 +1,7 @@
 import { allTemplates, getAllCategories } from '../lib/templates.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { navigate } from '../lib/router.js';
-import { getTemplateThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { getTemplateThumbnail, createThumbnailImg, createStudioHeader } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 
@@ -10,14 +10,11 @@ export function TemplatesPage() {
   container.className = 'w-full h-full overflow-y-auto bg-app-bg';
 
   const inner = document.createElement('div');
-  inner.className = 'w-full px-4 md:px-8 py-8 md:py-12';
+  inner.className = 'w-full px-4 md:px-8 py-6';
 
   const heroSection = document.createElement('div');
-  heroSection.className = 'mb-10 animate-fade-in-up w-full';
-  heroSection.innerHTML = `
-    <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-3">Templates</h1>
-    <p class="text-secondary text-sm md:text-base max-w-xl">Ready-to-use creative templates. Pick one, upload your media, and generate.</p>
-  `;
+  heroSection.className = 'mb-6 animate-fade-in-up w-full';
+  heroSection.appendChild(createStudioHeader('templates', 'Templates', 'Ready-to-use templates. Pick one, add your media, and generate.'));
   inner.appendChild(heroSection);
 
   const controlsRow = document.createElement('div');

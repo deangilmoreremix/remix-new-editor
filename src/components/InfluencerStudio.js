@@ -4,7 +4,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -341,8 +341,7 @@ export async function InfluencerStudio() {
 
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">AI Influencer Studio</h1>';
+  header.appendChild(createStudioHeader('influencer', 'AI Influencer Studio', 'Design a consistent AI influencer and their content'));
   container.appendChild(header);
 
   const modelSelectorContainer = document.createElement('div');

@@ -4,7 +4,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
@@ -588,8 +588,7 @@ export function AudioStudio() {
   // Header with hero banner
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">Audio Studio</h1>';
+  header.appendChild(createStudioHeader('audio', 'Audio Studio', 'Generate music, speech and sound effects'));
   container.appendChild(header);
 
   // Model selector
