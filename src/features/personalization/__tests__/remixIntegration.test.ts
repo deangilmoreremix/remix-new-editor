@@ -13,7 +13,7 @@ vi.mock('../../../lib/apiKeyManager.js', () => ({
 }))
 
 import { toRemixRoute, navigate } from '../lib/navigation'
-import { buildRemixSource } from '../mount.jsx'
+import { buildRemixSource, buildRemixViralSource } from '../mount.jsx'
 import { installPersonalizationApiAuth } from '../lib/apiAuth'
 import { writeHandoff } from '../shared/crossStudio'
 
@@ -50,6 +50,25 @@ describe('navigation shim', () => {
       pushState.mockRestore()
       content.remove()
     }
+  })
+})
+
+describe('buildRemixViralSource', () => {
+  it('uses the Smart Video Viral imglumeId as the source id', () => {
+    const record = {
+      imglumeId: 'seedance-1402',
+      title: 'Neon street',
+      prompt: 'a neon street at night',
+      mediaType: 'video',
+      media: [{ type: 'video', role: 'preview', previewUrl: 'https://cdn.example/v.mp4', sourceUrl: '', posterUrl: '' }],
+      recommendedModel: 'seedance-2.0',
+    }
+    const a = buildRemixViralSource(record)
+    const b = buildRemixViralSource({ ...record, imglumeId: 7 })
+    expect(a.id).toContain('seedance-1402')
+    expect(b.id).toContain('7')
+    expect(a.id).not.toContain('undefined')
+    expect(a.id).not.toBe(b.id)
   })
 })
 

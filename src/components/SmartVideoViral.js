@@ -897,8 +897,9 @@ export function SmartVideoViral() {
       btn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const id = parseInt(btn.getAttribute('data-id'), 10);
-        const item = prompts.find(p => p.imglumeId === id);
+        // Compare as strings: Seedance ids are strings ("seedance-1402").
+        const id = btn.getAttribute('data-id');
+        const item = prompts.find(p => String(p.imglumeId) === id);
         if (!item) return;
         const { openViralPersonalization } = await import('../features/personalization/mount.jsx');
         openViralPersonalization(item, { trigger: btn });

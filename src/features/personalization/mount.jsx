@@ -263,8 +263,18 @@ export function openDemoPersonalization(demo, { access = 'authenticated', trigge
 }
 
 /** GO AI Viral feed card → personalization (OpenHiggsBolt GoAiViralStudio). */
+/**
+ * remix's Smart Video Viral records keep their id as `imglumeId`. The source
+ * id keys saved previews and project restore, so it must be the record's own
+ * id, never "undefined".
+ */
+export function buildRemixViralSource(record) {
+  const id = record?.id ?? record?.imglumeId
+  return buildViralPersonalizeSource({ ...record, id })
+}
+
 export function openViralPersonalization(record, { access = 'authenticated', trigger = null } = {}) {
-  openPersonalization({ source: buildViralPersonalizeSource(record), access, trigger })
+  openPersonalization({ source: buildRemixViralSource(record), access, trigger })
 }
 
 /** Free, signed-out "Find My Brand" (OpenHiggsBolt /demo, FreeDiscoveryDemo). */
