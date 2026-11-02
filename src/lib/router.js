@@ -99,8 +99,9 @@ const pageLoaders = {
   'commercial-page': () => import('../components/CommercialPage.js').then(m => m.CommercialPage()),
   'upscale-page': () => import('../components/UpscalePage.js').then(m => m.UpscalePage()),
   render: () => import('../components/RenderPage.js').then(m => m.RenderPage()),
-  'video-agent': () => import('../components/VideoAgentPage.js').then(m => m.VideoAgentPage()),
-  'video-agent-studio': () => import('../components/VideoAgentStudioShell.js').then(m => m.VideoAgentStudioShell()),
+  // Video Agent = port of Remotion's prompt-to-motion-graphics (apps/motion-agent).
+  'video-agent': () => import('../components/studios/VideoAgentStudio/VideoAgentStudio.js').then(m => m.VideoAgentStudio()),
+  'video-agent-studio': () => import('../components/studios/VideoAgentStudio/VideoAgentStudio.js').then(m => m.VideoAgentStudio()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   workbench: () => import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio()),
   // CineGen Studio was replaced by the Workbench; keep old links working.

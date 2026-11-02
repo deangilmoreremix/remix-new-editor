@@ -106,7 +106,6 @@ export const STUDIO_ROUTES = {
   viral: { label: 'Smart Video Viral', category: 'Tools' },
   personalizer: { label: 'Personalizer', category: 'Create' },
   'video-agent': { label: 'Video Agent', category: 'Tools' },
-  'video-agent-studio': { label: 'Video Agent Studio', category: 'Tools' },
   brand: { label: 'Brand Studio', category: 'Create' },
   'brand-dna': { label: 'Brand DNA', category: 'Create' },
   campaign: { label: 'Campaign', category: 'Create' },
