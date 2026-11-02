@@ -4,7 +4,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
@@ -587,15 +587,9 @@ export function AudioStudio() {
 
   // Header with hero banner
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full';
-  const audioBanner = createHeroSection('audio', 'h-32 md:h-44 mb-4');
-  if (audioBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Audio Studio</h1><p class="text-white/60 text-sm">Generate music and speech with AI</p>';
-    audioBanner.appendChild(bannerText);
-    header.appendChild(audioBanner);
-  }
+  header.className = 'animate-fade-in-up text-center w-full';
+  // Studios open straight onto the tool; keep the page title for screen readers.
+  header.innerHTML = '<h1 class="sr-only">Audio Studio</h1>';
   container.appendChild(header);
 
   // Model selector

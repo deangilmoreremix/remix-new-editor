@@ -15,7 +15,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
@@ -142,17 +142,8 @@ export function ImageStudio() {
     // ==========================================
     const hero = document.createElement('div');
     hero.className = 'flex flex-col items-center mb-2 md:mb-4 animate-fade-in-up transition-all duration-700 w-full';
-    const heroBanner = createHeroSection('image', 'h-32 md:h-44 mb-3');
-    if (heroBanner) {
-        const heroContent = document.createElement('div');
-        heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-        heroContent.innerHTML = `
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Image Studio</h1>
-            <p class="text-white/60 text-sm font-medium">Transform images with AI — upscale, stylize, animate and more</p>
-        `;
-        heroBanner.appendChild(heroContent);
-        hero.appendChild(heroBanner);
-    }
+    // Studios open straight onto the tool; keep the page title for screen readers.
+    hero.innerHTML = '<h1 class="sr-only">Image Studio</h1>';
 
     container.appendChild(hero);
 

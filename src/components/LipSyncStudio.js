@@ -8,7 +8,7 @@ import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getResolutionsFo
 import { AuthModal } from './AuthModal.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
@@ -51,17 +51,8 @@ export function LipSyncStudio() {
     // ==========================================
     const hero = document.createElement('div');
     hero.className = 'flex flex-col items-center mb-4 md:mb-6 animate-fade-in-up transition-all duration-700 w-full';
-    const heroBanner = createHeroSection('lipsync', 'h-32 md:h-44 mb-6');
-    if (heroBanner) {
-        const heroContent = document.createElement('div');
-        heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-        heroContent.innerHTML = `
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Lip Sync</h1>
-            <p class="text-white/60 text-sm font-medium">Animate portraits or sync lips to audio with AI</p>
-        `;
-        heroBanner.appendChild(heroContent);
-        hero.appendChild(heroBanner);
-    }
+    // Studios open straight onto the tool; keep the page title for screen readers.
+    hero.innerHTML = '<h1 class="sr-only">Lip Sync</h1>';
     container.appendChild(hero);
 
     // ==========================================

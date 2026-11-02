@@ -1,7 +1,6 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { escapeHtml } from '../lib/security.js';
 import { showToast } from '../lib/loading.js';
-import { createHeroSection } from '../lib/thumbnails.js';
 import { navigate } from '../lib/router.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { YOUMIND_VIRAL_OVERFLOW } from '../data/youmindViralOverflow.js';
@@ -412,7 +411,6 @@ export function SmartVideoViral() {
   const heroWrap = document.createElement('div');
   heroWrap.className = 'viral-hero-wrap w-full max-w-6xl mx-auto mb-2';
   heroWrap.id = 'viral-hero';
-  const heroBanner = createHeroSection('viral', 'h-36 md:h-44 mb-4');
   const heroContent = document.createElement('div');
   heroContent.className = 'relative w-full max-w-6xl mx-auto px-4 md:px-0';
   heroContent.innerHTML = `
@@ -437,7 +435,6 @@ export function SmartVideoViral() {
       </div>
     </div>
   `;
-  if (heroBanner) heroWrap.appendChild(heroBanner);
   heroWrap.appendChild(heroContent);
   container.appendChild(heroWrap);
 
