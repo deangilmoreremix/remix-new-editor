@@ -30,8 +30,6 @@ import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
-import { notifyGeneration } from './studio/generationNotifications.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
@@ -44,7 +42,6 @@ export function ImageStudio() {
   mountStudioChrome(container, { currentRoute: 'image' });
 
     // --- State ---
-    let results = null; // upstream-style empty state + results gallery, mounted with the composer
     const defaultModel = t2iModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
@@ -493,7 +490,6 @@ export function ImageStudio() {
     `, selectedModelName, 'model-btn', 'Select AI generation model');
 
     const updateModelBtnIcon = () => {
-        results?.emptyState?.setHighlight?.(selectedModelName);
         const iconEl = document.getElementById('model-btn-icon');
         if (!iconEl) return;
         const currentModels = imageMode ? i2iModels : t2iModels;
@@ -651,51 +647,7 @@ generateBtn.type = 'button';
     bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
     promptWrapper.appendChild(bar);
-
-    // Upstream composer layout: 38px pills, one ⋯ menu for SmartVideo-only
-    // tools, 40px round upload circle, lime Generate.
-    [modelBtn, arBtn, qualityBtn, advancedBtn].forEach(restylePill);
-    picker.trigger.className = picker.trigger.className.replace('rounded-xl', 'rounded-full').replace('mt-1.5', '');
-    topRow.className = 'flex items-start gap-3';
-    topRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
-    const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
-    foldIntoMoreMenu(controlsLeft, [
-        { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
-        { label: 'Prompt tools', description: 'Quick starters & prompt enhancer', el: toolsBtn },
-        { label: 'Personalize', description: 'Personalize with a contact', el: controlsLeft.querySelector('#v-contact-btn') },
-        { label: 'Custom thumbnail', el: thumbBtn },
-        { label: 'Stock photos', description: 'Use a Pexels photo as reference', el: pexelsBtn },
-        { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
-        { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
-        { label: 'Recipes', onSelect: enhanceAction('recipe') },
-        { label: 'Monetize', onSelect: enhanceAction('monetize') },
-    ]);
-    toolbar.hidden = true;
-    restyleAction(generateBtn);
-    styleComposer({ wrapper: promptWrapper, bar, footer: bottomRow, controls: controlsLeft });
     container.appendChild(promptWrapper);
-
-    results = mountStudioResults({
-        container,
-        hero: heroBanner,
-        before: promptWrapper,
-        kind: 'image',
-        historyType: 'image',
-        studio: 'image',
-        label: 'Image Studio',
-        filenamePrefix: 'smartvideo-image',
-        empty: {
-            heading: 'Start creating with',
-            highlight: selectedModelName,
-            subtitle: 'Describe an image, pick a model and aspect ratio, then press Generate — or upload a reference to transform it.',
-            samples: EXAMPLE_ASSETS.filter(a => a.studio === 'image' && a.thumbnail).slice(0, 4).map(a => a.thumbnail),
-        },
-        extraActions: (item) => [{ label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'image' }) }],
-        onDelete: (item) => {
-            const i = generationHistory.indexOf(item);
-            if (i >= 0) generationHistory.splice(i, 1);
-        },
-    });
 
     const inlineInstructions = createInlineInstructions('image');
     inlineInstructions.classList.add('mt-8');
@@ -820,19 +772,10 @@ generateBtn.type = 'button';
     });
     container.appendChild(advancedPanel);
 
-    // Settings panels open inside the floating composer, above its footer,
-    // instead of far down the page under the quick tips.
-    [toolsPanel, advancedPanel].forEach((panel) => {
-        panel.classList.remove('mt-6');
-        panel.classList.add('max-h-[45vh]', 'overflow-y-auto', 'custom-scrollbar');
-        bar.insertBefore(panel, bottomRow);
-    });
-
     // Advanced panel toggle logic
     const toggleAdvanced = () => {
         showAdvanced = !showAdvanced;
         advancedPanel.classList.toggle('hidden', !showAdvanced);
-        if (showAdvanced && showToolsPanel) { showToolsPanel = false; toolsPanel.classList.add('hidden'); }
         document.getElementById('advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
     };
     
@@ -845,13 +788,14 @@ generateBtn.type = 'button';
     const toggleTools = () => {
         showToolsPanel = !showToolsPanel;
         toolsPanel.classList.toggle('hidden', !showToolsPanel);
-        if (showToolsPanel && showAdvanced) {
-            // Only one settings panel open inside the composer at a time.
-            showAdvanced = false;
-            advancedPanel.classList.add('hidden');
-            const advLabel = document.getElementById('advanced-btn-label');
-            if (advLabel) advLabel.textContent = 'Advanced';
+        if (showToolsPanel) {
+            // Close advanced panel when opening tools
+            if (!showAdvanced) {
+                showAdvanced = true;
+                advancedPanel.classList.remove('hidden');
+            }
         }
+        document.getElementById('tools-btn-label').textContent = showToolsPanel ? 'Tools' : 'Tools';
     };
     
     toolsBtn.onclick = toggleTools;
@@ -1176,8 +1120,7 @@ generateBtn.type = 'button';
     historyList.className = 'flex flex-col gap-2 w-full px-2';
     historySidebar.appendChild(historyList);
 
-    // Results now live in the upstream-style gallery; the old side rail and
-    // full-page canvas are kept detached only for code that still reads them.
+    container.appendChild(historySidebar);
 
     // Main canvas
     const canvas = document.createElement('div');
@@ -1221,12 +1164,11 @@ generateBtn.type = 'button';
 
     canvas.appendChild(imageContainer);
     canvas.appendChild(canvasControls);
+    container.appendChild(canvas);
 
     // --- Helper: Show image in canvas ---
     const showImageInCanvas = (imageUrl) => {
-        results.area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-        // eslint-disable-next-line no-unreachable
+        // Fully hide hero and prompt
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
@@ -1259,7 +1201,11 @@ generateBtn.type = 'button';
             request_id: entry.id,
         });
 
-        results.gallery.addItem(entry);
+        // Show sidebar
+        historySidebar.classList.remove('translate-x-full', 'opacity-0');
+        historySidebar.classList.add('translate-x-0', 'opacity-100');
+
+        renderHistory();
     };
 
     const renderHistory = () => {
@@ -1338,7 +1284,9 @@ generateBtn.type = 'button';
         const saved = JSON.parse(localStorage.getItem('muapi_history') || '[]');
         if (saved.length > 0) {
             saved.forEach(e => generationHistory.push(e));
-            results.gallery.setItems(generationHistory);
+            historySidebar.classList.remove('translate-x-full', 'opacity-0');
+            historySidebar.classList.add('translate-x-0', 'opacity-100');
+            renderHistory();
         }
     } catch (e) { /* ignore */ }
 
@@ -1422,13 +1370,15 @@ generateBtn.type = 'button';
             return;
         }
 
-        const pendingCard = results.gallery.addPending('Generating image…');
-        const notifyId = `image:${Date.now()}`;
-        notifyGeneration({ phase: 'start', id: notifyId, studio: 'image', label: 'Image Studio' });
-        setActionBusy(generateBtn, true);
+        hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> Generating...`;
         const controller = new AbortController();
         const pendingJob = createPendingJobTracker('image', { prompt, model: selectedModel, aspect_ratio: selectedAr }, { maxAttempts: 60 });
-        const loadingOverlay = null;
+        const loadingOverlay = createLoadingOverlay('Generating image...');
+        const progressBar = createProgressBar(0);
+        loadingOverlay.appendChild(progressBar);
+        container.appendChild(loadingOverlay);
 
         try {
             let res;
@@ -1484,8 +1434,6 @@ generateBtn.type = 'button';
             }
 
             if (res && res.url) {
-                pendingCard.remove();
-                notifyGeneration({ phase: 'success', id: notifyId, studio: 'image', label: 'Image Studio', url: res.url });
                 // Add to history
                 addToHistory({
                     id: res.id || Date.now().toString(),
@@ -1503,14 +1451,18 @@ generateBtn.type = 'button';
             }
         } catch (e) {
             pendingJob.finish();
-            pendingCard.remove();
-            notifyGeneration({ phase: 'error', id: notifyId, studio: 'image', label: 'Image Studio', message: e.message });
-            showToast(e.message || 'Generation failed', 'error', 5000);
-            setActionRetry(generateBtn);
+            if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
+            generateBtn.innerHTML = `Error: ${e.message.slice(0, 40)}`;
+            setTimeout(() => {
+                generateBtn.innerHTML = `Generate ✨`;
+                generateBtn.disabled = false;
+            }, 3000);
             return;
         }
         pendingJob.finish();
-        setActionBusy(generateBtn, false);
+        if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = `Generate ✨`;
     };
 
     // Pick up generations that were still running when the page was reloaded.
