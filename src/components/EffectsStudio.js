@@ -14,6 +14,7 @@ import { MediaDetailView } from './MediaDetailView.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { i2iModels, i2vModels } from '../lib/models.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { createActionRow, createActionPill, setActionPillLabel, arrangeActionRow, ADVANCED_ICON } from './studio/actionRow.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -146,22 +147,6 @@ export async function EffectsStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-white/60 text-xs">Apply 350+ visual effects to your photos and videos</p>';
     effectsBanner.appendChild(bannerText);
     topBar.appendChild(effectsBanner);
-
-    // Thumbnail studio button
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'btn-action-secondary shrink-0';
-    thumbBtn.onclick = () => {
-      const modal = new TemplateThumbnailModal({
-        studioId: 'effects-studio',
-        layout: 'panel',
-        studioLabel: 'Vibe Motion',
-        accentGradient: 'from-violet-500 to-indigo-500',
-      });
-      mountThumbnailModal(modal);
-    };
   } else {
     topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
   }
@@ -195,7 +180,6 @@ export async function EffectsStudio() {
       }
     }).catch((err) => console.error('[ModelPicker] open failed:', err));
   });
-  tabRow.appendChild(modelPickerBtn);
 
   topBar.appendChild(tabRow);
 
@@ -503,7 +487,6 @@ export async function EffectsStudio() {
     mountThumbnailModal(modal);
     modal.open();
   });
-  promptRow.appendChild(thumbBtn);
 
   const generateBtn = document.createElement('button');
 generateBtn.type = 'button';
@@ -517,7 +500,8 @@ generateBtn.type = 'button';
     effectsPublishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
     effectsPublishBtn.onclick = () => openSocialPublish({ mediaUrl: lastResultUrl, mediaType: lastResultType });
     promptRow.appendChild(effectsPublishBtn);
-    mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });
+    const actionRow = createActionRow();
+    const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => promptInput, appId: 'effects-studio' });
     // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
@@ -583,12 +567,17 @@ generateBtn.type = 'button';
   advancedControls.className = 'flex flex-col gap-3';
 
   // Advanced toggle button
-  const advToggleBtn = document.createElement('button');
-  advToggleBtn.type = 'button';
-  advToggleBtn.className = 'text-[10px] font-bold text-secondary hover:text-white uppercase tracking-wider transition-colors flex items-center gap-1';
-  advToggleBtn.textContent = '⚙ Advanced';
+  const advToggleBtn = createActionPill({ icon: ADVANCED_ICON, label: 'Advanced', id: 'fx-advanced-btn', tooltip: 'Show advanced options' });
   advToggleBtn.setAttribute('aria-expanded', 'false');
-  advancedControls.appendChild(advToggleBtn);
+
+  // Unified action row (matches Image Studio): Thumbnail · Advanced · AI Pick · Personalize
+  arrangeActionRow(actionRow, {
+    thumbnail: thumbBtn,
+    advanced: advToggleBtn,
+    aiPick: modelPickerBtn,
+    personalize: personalizeHandle?.button,
+  });
+  advancedControls.appendChild(actionRow);
 
   const advContent = document.createElement('div');
   advContent.className = 'hidden flex-col gap-3 p-4 border border-white/5 rounded-xl bg-white/[0.01]';
@@ -599,7 +588,7 @@ generateBtn.type = 'button';
   advToggleBtn.onclick = () => {
     showAdvanced = !showAdvanced;
     advToggleBtn.setAttribute('aria-expanded', String(showAdvanced));
-    advToggleBtn.textContent = showAdvanced ? '⚙ Less' : '⚙ Advanced';
+    setActionPillLabel(advToggleBtn, showAdvanced ? 'Less' : 'Advanced');
     advContent.classList.toggle('hidden', !showAdvanced);
     advContent.style.display = showAdvanced ? 'flex' : 'none';
   };

@@ -13,6 +13,7 @@ import { showToast } from '../lib/loading.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton } from './studio/actionRow.js';
 
 export function TrainingStudio() {
   const container = document.createElement('div');
@@ -277,7 +278,10 @@ const triggerBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  const actionRow = createActionRow();
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn });
+  formCard.appendChild(actionRow);
 
   // Train button
   const trainBtn = document.createElement('button');

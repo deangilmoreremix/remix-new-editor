@@ -7,6 +7,7 @@ import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.j
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
+import { createActionRow, createAdvancedButton, setActionPillLabel, styleThumbnailButton, arrangeActionRow } from './studio/actionRow.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { navigate } from '../lib/router.js';
@@ -495,12 +496,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     heroSection.appendChild(thumbnailEl);
 
     // Thumbnail action button — matches TemplateStudio styling
-    const thumbAction = document.createElement('button');
-    thumbAction.className = 'btn-action-secondary shrink-0';
-    thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
-    thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
-    thumbAction.style.color = '#022c22';
-    thumbAction.textContent = '🖼 Thumbnail';
+    const thumbAction = styleThumbnailButton(document.createElement('button'));
     thumbAction.onclick = () => {
       const modal = new TemplateThumbnailModal({
         appTheme: 'cinema-template-studio',
@@ -519,7 +515,6 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       mountThumbnailModal(modal);
       modal.open();
     };
-    heroSection.appendChild(thumbAction);
 
     // Title
     const title = document.createElement('h1');
@@ -618,13 +613,16 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     renderVideoUploadButton(formPanel);
     renderAiEnhancer(formPanel);
     renderGtmBoost(formPanel);
-    renderGenerateButton(formPanel);
 
-    // Personalize trigger — matches TemplateStudio (mounted on leftPanel after Generate, before Creative Intelligence)
-    const personalizeEl = document.createElement('div');
-    personalizeEl.id = 'personalize-trigger';
-    personalizeEl.className = 'mt-6';
-    formPanel.appendChild(personalizeEl);
+    // Unified action row (matches Image Studio): Thumbnail · Advanced · Personalize.
+    // Personalize is mounted into this row once the view is in the DOM.
+    const actionRow = createActionRow('mt-6');
+    actionRow.id = 'personalize-trigger';
+    const advancedToggleBtn = createAdvancedButton({ id: 'advancedToggle', tooltip: 'Show advanced controls' });
+    arrangeActionRow(actionRow, { thumbnail: thumbAction, advanced: advancedToggleBtn });
+    formPanel.appendChild(actionRow);
+
+    renderGenerateButton(formPanel);
 
     renderCreativeIntelligence(formPanel);
 
@@ -773,8 +771,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     // Personalize trigger wiring (element created in renderCreateView and appended to formPanel)
     const personalizeTriggerEl = container.querySelector('#personalize-trigger');
-    if (personalizeTriggerEl) {
-      personalizeTriggerEl.innerHTML = '';
+    if (personalizeTriggerEl && !personalizeTriggerEl.querySelector('#v-contact-btn')) {
       mountPersonalizeTrigger({ 
         controlsContainer: personalizeTriggerEl, 
         appId: 'cinema-template',
@@ -2007,9 +2004,6 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           <span class="absolute top-1 h-5 w-5 rounded-full bg-black transition ${isAiEnhancer ? 'left-6' : 'left-1'}" id="enhancerToggleKnob"></span>
         </button>
       </div>
-      <button id="advancedToggle" class="mt-4 text-sm font-medium text-emerald-200 transition hover:text-emerald-100">
-        ${showAdvanced ? 'Hide Advanced Controls' : 'Show Advanced Controls'}
-      </button>
       <div id="advancedControls" class="mt-5 grid gap-4 md:grid-cols-2 hidden"></div>
     `;
     formPanel.appendChild(enhancerSection);
@@ -2411,7 +2405,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       if (advancedBtn && advControls) {
         advancedBtn.onclick = () => {
           showAdvanced = !showAdvanced;
-          advancedBtn.textContent = showAdvanced ? 'Hide Advanced Controls' : 'Show Advanced Controls';
+          setActionPillLabel(advancedBtn, showAdvanced ? 'Less' : 'Advanced');
+          advancedBtn.setAttribute('aria-expanded', String(showAdvanced));
           advControls.className = showAdvanced ? 'mt-5 grid gap-4 md:grid-cols-2' : 'mt-5 grid gap-4 md:grid-cols-2 hidden';
         };
       }

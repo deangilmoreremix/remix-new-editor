@@ -384,7 +384,7 @@ describe('TemplateStudio feature tests', () => {
     advancedBtn.click();
     await new Promise(r => setTimeout(r, 50));
 
-    expect(advancedBtn.textContent).toBe('Hide Advanced Controls');
+    expect(advancedBtn.textContent.trim()).toBe('Less');
     expect(advControls.classList.contains('hidden')).toBe(false);
   });
 

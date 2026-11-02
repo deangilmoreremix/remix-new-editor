@@ -25,6 +25,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
+import { createActionPill, arrangeActionRow, ADVANCED_ICON } from './studio/actionRow.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
@@ -457,7 +458,7 @@ export function CinemaStudio() {
 
     // Settings Toolbar
     const settingsToolbar = document.createElement('div');
-    settingsToolbar.className = 'flex items-center gap-1.5 md:gap-2.5';
+    settingsToolbar.className = 'flex flex-wrap items-center gap-1.5 md:gap-2.5';
 
     settingsToolbar.appendChild(enhanceMenu);
 
@@ -759,10 +760,8 @@ export function CinemaStudio() {
     settingsToolbar.appendChild(resBtn);
 
     // Opens the Advanced Options panel (negative prompt, seed, duration, …).
-    const advancedBtn = document.createElement('button');
-    advancedBtn.type = 'button';
-    advancedBtn.className = resBtn.className;
-    advancedBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg> <span data-advanced-label>Advanced</span>';
+    const advancedBtn = createActionPill({ icon: ADVANCED_ICON, label: 'Advanced', tooltip: 'Show advanced options' });
+    advancedBtn.querySelector('[data-action-label]')?.setAttribute('data-advanced-label', '');
     advancedBtn.onclick = () => toggleAdvanced();
     settingsToolbar.appendChild(advancedBtn);
     
@@ -796,7 +795,7 @@ export function CinemaStudio() {
     }
 
     // Personalize trigger (opens PersonalizeModal as a pop-up)
-    mountPersonalizeTrigger({
+    const personalizeHandle = mountPersonalizeTrigger({
         controlsContainer: settingsToolbar,
         getTextarea: () => textarea,
         appId: 'cinema-studio',
@@ -923,7 +922,14 @@ export function CinemaStudio() {
 
       rightGroup.appendChild(summaryCard);
       rightGroup.appendChild(generateBtn);
-      rightGroup.appendChild(thumbBtn);
+
+    // Unified action order (matches Image Studio): Thumbnail · Advanced · AI Pick · Personalize
+    arrangeActionRow(settingsToolbar, {
+      thumbnail: thumbBtn,
+      advanced: advancedBtn,
+      aiPick: modelPickerBtn,
+      personalize: personalizeHandle?.button,
+    });
 
     const buttonsRow = document.createElement('div');
     buttonsRow.className = 'flex items-center gap-2 flex-wrap';

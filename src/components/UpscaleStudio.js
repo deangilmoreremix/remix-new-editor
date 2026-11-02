@@ -14,6 +14,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton } from './studio/actionRow.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'], provider: 'muapi', provider_name: 'MuAPI' },
@@ -238,7 +239,10 @@ const triggerBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  const actionRow = createActionRow();
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn });
+  formCard.appendChild(actionRow);
 
   const genBtn = document.createElement('button');
 genBtn.type = 'button';

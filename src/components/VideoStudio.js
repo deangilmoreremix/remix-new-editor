@@ -7,6 +7,7 @@ import { uploadMediaFile } from '../lib/editor/upload.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { createSafeVideo } from '../lib/security.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
+import { arrangeActionRow, ADVANCED_ICON } from './studio/actionRow.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -807,9 +808,7 @@ export function VideoStudio() {
     controlsLeft.appendChild(modelPickerBtn);
 
     // Advanced options toggle button
-    const advancedBtn = createControlBtn(`
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2H5a2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51-1H21a2 2 0 012 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-    `, 'Advanced', 'v-advanced-btn', 'Show advanced options');
+    const advancedBtn = createControlBtn(ADVANCED_ICON, 'Advanced', 'v-advanced-btn', 'Show advanced options');
     controlsLeft.appendChild(advancedBtn);
 
 // Motion & Style toggle button
@@ -891,7 +890,13 @@ export function VideoStudio() {
       mountThumbnailModal(modal);
       modal.open();
     });
-    controlsLeft.appendChild(thumbBtn);
+    // Unified action order (matches Image Studio): Thumbnail · Advanced · AI Pick · Personalize
+    arrangeActionRow(controlsLeft, {
+      thumbnail: thumbBtn,
+      advanced: advancedBtn,
+      aiPick: modelPickerBtn,
+      personalize: personalizeHandle?.button,
+    });
 
     subscribeToGtmThumbnails(({ imageUrl }) => {
       customThumbnailUrl = imageUrl;

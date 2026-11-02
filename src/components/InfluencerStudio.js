@@ -18,6 +18,7 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton } from './studio/actionRow.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -718,7 +719,6 @@ export async function InfluencerStudio() {
       }
     }).catch(() => {});
   });
-  formCard.appendChild(modelPickerBtn);
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 2;
   promptInput.placeholder = 'Additional instructions (optional)';
@@ -810,14 +810,12 @@ export async function InfluencerStudio() {
   toolbar.appendChild(enhanceMenu);
   formCard.appendChild(toolbar);
 
-  const personalizeControls = document.createElement('div');
-  personalizeControls.className = 'flex items-center gap-2';
-  mountPersonalizeTrigger({
-      controlsContainer: personalizeControls,
+  const actionRow = createActionRow();
+  const personalizeHandle = mountPersonalizeTrigger({
+      controlsContainer: actionRow,
       getTextarea: () => promptInput,
       appId: 'influencer-studio',
   });
-  formCard.appendChild(personalizeControls);
 
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
@@ -844,7 +842,9 @@ export async function InfluencerStudio() {
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
+  formCard.appendChild(actionRow);
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';

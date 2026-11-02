@@ -1013,7 +1013,7 @@ describe('E2E User Journey Tests', () => {
       advancedBtn.click();
       await wait(50);
 
-      expect(advancedBtn.textContent).toBe('Hide Advanced Controls');
+      expect(advancedBtn.textContent.trim()).toBe('Less');
       expect(advControls.classList.contains('hidden')).toBe(false);
     });
 
@@ -1036,7 +1036,7 @@ describe('E2E User Journey Tests', () => {
       advancedBtn.click();
       await wait(50);
 
-      expect(advancedBtn.textContent).toBe('Hide Advanced Controls');
+      expect(advancedBtn.textContent.trim()).toBe('Less');
     }, 30000);
 
     it('TemplateStudio back button renders', async () => {

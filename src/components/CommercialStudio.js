@@ -15,6 +15,7 @@ import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { createActionRow, arrangeActionRow } from './studio/actionRow.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -168,7 +169,6 @@ const COMMERCIAL_MODELS = [
       }
     }).catch(() => {});
   });
-  formCard.appendChild(modelPickerBtn);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -315,7 +315,10 @@ const COMMERCIAL_MODELS = [
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  // Action row — unified Image Studio layout (Thumbnail · AI Pick)
+  const actionRow = createActionRow();
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, aiPick: modelPickerBtn });
+  formCard.appendChild(actionRow);
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';

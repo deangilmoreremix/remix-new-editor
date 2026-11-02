@@ -22,6 +22,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton } from './studio/actionRow.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
@@ -197,7 +198,6 @@ export function CharacterStudio() {
       }
     }).catch(() => {});
   });
-  formCard.appendChild(modelPickerBtn);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -354,14 +354,12 @@ const pexelsBtn = document.createElement('button');
     formCard.appendChild(enhanceMenu);
 
   // Personalize trigger (opens PersonalizeModal as a pop-up)
-  const personalizeControls = document.createElement('div');
-  personalizeControls.className = 'flex items-center gap-2';
-  mountPersonalizeTrigger({
-      controlsContainer: personalizeControls,
+  const actionRow = createActionRow();
+  const personalizeHandle = mountPersonalizeTrigger({
+      controlsContainer: actionRow,
       getTextarea: () => promptInput,
       appId: 'character-studio',
   });
-  formCard.appendChild(personalizeControls);
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
@@ -389,7 +387,9 @@ const pexelsBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
+  formCard.appendChild(actionRow);
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';

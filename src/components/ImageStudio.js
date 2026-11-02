@@ -25,6 +25,7 @@ import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { mountImageModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
+import { ADVANCED_ICON, TOOLS_ICON } from './studio/actionRow.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
@@ -552,9 +553,7 @@ export function ImageStudio() {
     });
 
     // Advanced options toggle button
-    const advancedBtn = createControlBtn(`
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-    `, 'Advanced', 'advanced-btn', 'Show advanced options');
+    const advancedBtn = createControlBtn(ADVANCED_ICON, 'Advanced', 'advanced-btn', 'Show advanced options');
     controlsLeft.appendChild(advancedBtn);
   // Model Picker button
   const modelPickerBtn = document.createElement('button');
@@ -586,7 +585,7 @@ export function ImageStudio() {
     // Quick Tools toggle button
     const toolsBtn = document.createElement('button');
     toolsBtn.type = 'button';
-    toolsBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg> <span class="text-xs font-bold text-white group-hover:text-primary transition-colors">Tools</span>`;
+    toolsBtn.innerHTML = `${TOOLS_ICON} <span class="text-xs font-bold text-white group-hover:text-primary transition-colors">Tools</span>`;
     toolsBtn.className = 'btn-action-secondary shrink-0';
     toolsBtn.setAttribute('data-tooltip', 'Quick starters & prompt enhancer');
     controlsLeft.appendChild(toolsBtn);
