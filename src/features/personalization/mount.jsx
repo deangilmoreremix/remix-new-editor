@@ -71,9 +71,19 @@ function ensureMounted() {
   )
 }
 
-function inferMediaType(url, hint) {
+const VIDEO_EXT = /\.(mp4|webm|mov|m4v|m3u8)(\?|#|$)/i
+const IMAGE_EXT = /\.(png|jpe?g|webp|gif|avif|bmp|svg)(\?|#|$)/i
+
+/**
+ * The URL's own extension wins over the studio's hint: a studio can report
+ * `type: 'video'` while previewing a reference image (Cinema Studio shows
+ * its reference/thumbnail before a video exists).
+ */
+export function inferMediaType(url, hint) {
+  const value = String(url || '')
+  if (/^data:image\//i.test(value) || IMAGE_EXT.test(value)) return 'image'
+  if (/^data:video\//i.test(value) || VIDEO_EXT.test(value)) return 'video'
   if (hint === 'video' || hint === 'image') return hint
-  if (/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url || '')) return 'video'
   return 'image'
 }
 

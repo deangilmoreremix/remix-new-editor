@@ -553,12 +553,23 @@ let defaultDurableStore: MuAPIDurableStore | null | undefined
 async function getDefaultDurableStore(): Promise<MuAPIDurableStore | null> {
   if (defaultDurableStore !== undefined) return defaultDurableStore
   try {
-    // Lazy on purpose: `./supabase` constructs a client at module scope from
-    // NEXT_PUBLIC_* env vars, so importing it eagerly would break every
-    // server-side and test consumer of this adapter.
+    // Lazy on purpose: `./supabase` constructs a client at module scope, so
+    // importing it eagerly would break every server-side and test consumer.
     const mod = await import('./supabase')
-    const storage = (mod.supabase as unknown as { storage: SupabaseStorageClient }).storage
-    defaultDurableStore = indexDurableStore(createSupabaseDurableStore(storage))
+    // remix: the storage policies on `personalization-assets` are owner-scoped
+    // to the verified Clerk subject, so every durable read/write first awaits
+    // the Clerk → Supabase token exchange (and its refresh after expiry) and
+    // then uses the client's current storage instance — the same pattern as
+    // src/lib/assetLibrary.js.
+    const withIdentity = async (): Promise<MuAPIDurableStore> => {
+      await mod.primeSupabaseIdentity()
+      const storage = (mod.supabase as unknown as { storage: SupabaseStorageClient }).storage
+      return createSupabaseDurableStore(storage)
+    }
+    defaultDurableStore = indexDurableStore({
+      put: async (input) => (await withIdentity()).put(input),
+      open: async (workspaceId, durableRef) => (await withIdentity()).open(workspaceId, durableRef),
+    })
   } catch {
     defaultDurableStore = null
   }

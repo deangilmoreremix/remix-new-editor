@@ -220,11 +220,21 @@ export function inspectPromptTokens(prompt, profile) {
     if (/^(blob:|data:)/i.test(mediaUrl)) mediaUrl = '';
     const fields = Array.isArray(asset?.fields) ? asset.fields : [];
     const fieldValue = (id) => fields.find((f) => f && f.id === id)?.value;
+    // The asset's type describes the studio's OUTPUT. It only says what the
+    // preview is when the preview is that output; a studio can preview a
+    // reference/first-frame image instead (Cinema Studio before a video
+    // exists), which mount.jsx then classifies from the URL itself.
+    const referenceUrls = [fieldValue('firstFrameUrl'), fieldValue('lastFrameUrl')]
+      .concat(Array.isArray(fieldValue('referenceImages')) ? fieldValue('referenceImages') : []);
+    const previewIsReferenceImage = Boolean(mediaUrl) && referenceUrls.includes(mediaUrl);
+    const typeHint = previewIsReferenceImage
+      ? 'image'
+      : asset?.type === 'video' ? 'video' : asset?.type === 'image' ? 'image' : undefined;
     return {
       studioId,
       studioName,
       mediaUrl,
-      mediaType: asset?.type === 'video' ? 'video' : asset?.type === 'image' ? 'image' : undefined,
+      mediaType: typeHint,
       prompt: textarea?.value || fieldValue('prompt') || '',
       model: fieldValue('model') || undefined,
       aspectRatio: fieldValue('aspectRatio') || undefined,

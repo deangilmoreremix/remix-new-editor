@@ -26,11 +26,11 @@ describe('navigation shim', () => {
     expect(toRemixRoute('/studio/motion-studio?template=a%7Cb')).toBe('#/animate?template=a%7Cb')
   })
 
-  it('forwards the handoff prompt through prefill_prompt', () => {
+  it('forwards the handoff prompt through prefill_prompt for prompt-only studios', () => {
     localStorage.removeItem('prefill_prompt')
-    writeHandoff({ version: 1, target: 'image', from: 'demo-personalization', combinedPrompt: 'Acme Roofing hero shot' } as any)
-    navigate('/studio/image')
-    expect(window.location.hash).toBe('#/image')
+    writeHandoff({ version: 1, target: 'cinema', from: 'demo-personalization', combinedPrompt: 'Acme Roofing hero shot' } as any)
+    navigate('/studio/cinema')
+    expect(window.location.hash).toBe('#/cinema')
     expect(localStorage.getItem('prefill_prompt')).toBe('Acme Roofing hero shot')
   })
 })
@@ -86,5 +86,32 @@ describe('installPersonalizationApiAuth', () => {
     await window.fetch('/api/personalization/find-businesses', { method: 'POST' })
     expect(calls[0].headers.get('x-openai-key')).toBe('sk-test-openai-key-1234567890')
     expect(calls[1].headers.get('x-openai-key')).toBeNull()
+  })
+})
+
+describe('inferMediaType', () => {
+  it('lets the URL extension win over the studio hint', async () => {
+    const { inferMediaType } = await import('../mount.jsx')
+    expect(inferMediaType('https://cdn.example/ref.png', 'video')).toBe('image')
+    expect(inferMediaType('https://cdn.example/out.mp4?x=1', 'image')).toBe('video')
+    expect(inferMediaType('https://cdn.example/asset', 'video')).toBe('video')
+    expect(inferMediaType('https://cdn.example/asset')).toBe('image')
+  })
+})
+
+describe('studio hand-off staging', () => {
+  it('stages the prompt and reference image for Image Studio', async () => {
+    const { consumeStudioPrefill } = await import('../../../lib/studioPrefill.js')
+    writeHandoff({
+      version: 1,
+      target: 'image',
+      from: 'demo-personalization',
+      combinedPrompt: 'Acme hero',
+      referenceImageUrl: 'https://cdn.example/result.png',
+    } as any)
+    navigate('/studio/image')
+    const staged = consumeStudioPrefill('image')
+    expect(staged?.prompt).toBe('Acme hero')
+    expect(staged?.params?.referenceImageUrl).toBe('https://cdn.example/result.png')
   })
 })

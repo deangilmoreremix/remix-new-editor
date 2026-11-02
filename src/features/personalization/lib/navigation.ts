@@ -5,10 +5,10 @@
  * OpenHiggsBolt routes to Next.js pages (`/studio/<slug>`). remix is a
  * hash-routed vanilla shell (`src/lib/router.js`), so `push()` maps each
  * OpenHiggsBolt studio slug to the matching remix route and forwards the
- * cross-studio handoff prompt through `prefill_prompt`, the key every remix
- * studio reads on mount (ImageStudio, VideoStudio, CinemaStudio, …).
+ * cross-studio handoff (see forwardHandoff below).
  */
 import { readHandoff } from '../shared/crossStudio'
+import { stageStudioPrefill } from '../../../lib/studioPrefill.js'
 
 const STUDIO_ROUTE: Record<string, string> = {
   image: 'image',
@@ -34,11 +34,47 @@ export function toRemixRoute(href: string): string {
   return `#/${route}${query ? `?${query}` : ''}`
 }
 
-function forwardHandoffPrompt(): void {
+function safeHttpUrl(value: unknown): string | null {
+  if (typeof value !== 'string' || !value) return null
   try {
-    const handoff = readHandoff() as { combinedPrompt?: string } | null
-    const prompt = handoff?.combinedPrompt
-    if (prompt && typeof prompt === 'string') localStorage.setItem('prefill_prompt', prompt)
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Hand the personalization result to the receiving studio.
+ *
+ * Image and Video Studio read remix's staged prefill (src/lib/studioPrefill.js):
+ * the prompt plus `params.referenceImageUrl`, which they load into their
+ * upload picker (Image Studio → image-to-image, Video Studio → start image).
+ * Other studios only read `prefill_prompt`, so they get the prompt.
+ */
+function forwardHandoff(route: string): void {
+  try {
+    const handoff = readHandoff() as {
+      combinedPrompt?: string
+      referenceImageUrl?: string | null
+      firstFrameUrl?: string | null
+      videoUrl?: string | null
+    } | null
+    const prompt = typeof handoff?.combinedPrompt === 'string' ? handoff.combinedPrompt : ''
+    const referenceImageUrl = safeHttpUrl(handoff?.referenceImageUrl) || safeHttpUrl(handoff?.firstFrameUrl)
+    if (route === 'image' || route === 'video') {
+      stageStudioPrefill({
+        route,
+        prompt,
+        params: {
+          ...(referenceImageUrl ? { referenceImageUrl } : {}),
+          ...(safeHttpUrl(handoff?.videoUrl) ? { sourceVideoUrl: safeHttpUrl(handoff?.videoUrl) } : {}),
+        },
+        ref: 'personalization',
+      })
+      return
+    }
+    if (prompt) localStorage.setItem('prefill_prompt', prompt)
   } catch {
     /* storage unavailable — the studio simply opens empty */
   }
@@ -46,8 +82,9 @@ function forwardHandoffPrompt(): void {
 
 export function navigate(href: string): void {
   if (typeof window === 'undefined') return
-  forwardHandoffPrompt()
-  window.location.hash = toRemixRoute(href).slice(1)
+  const target = toRemixRoute(href)
+  forwardHandoff(target.slice(2).split('?')[0])
+  window.location.hash = target.slice(1)
 }
 
 const router = {

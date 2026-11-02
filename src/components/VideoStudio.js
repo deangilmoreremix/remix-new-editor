@@ -539,6 +539,7 @@ export function VideoStudio() {
     };
 
     let videoPrefill = '';
+    let stagedReferenceImageUrl = null;
     try {
         const raw = localStorage.getItem('prefill_prompt');
         if (raw) {
@@ -552,6 +553,7 @@ export function VideoStudio() {
             if (staged.model) selectedModel = staged.model;
             videoPrefill = staged.prompt || '';
             autoGenerate = Boolean(staged.autoGenerate);
+            stagedReferenceImageUrl = staged.params?.referenceImageUrl || null;
         }
     }
     if (videoPrefill) {
@@ -561,6 +563,11 @@ export function VideoStudio() {
             const maxHeight = window.innerWidth < 768 ? 150 : 250;
             textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px';
         });
+    }
+    // Staged hand-off ("Edit in Video Studio" from the personalization modal):
+    // load the reference image as the start image (image-to-video).
+    if (typeof stagedReferenceImageUrl === 'string' && /^https?:\/\//i.test(stagedReferenceImageUrl)) {
+        picker.setImage(stagedReferenceImageUrl);
     }
 
     topRow.appendChild(textarea);
