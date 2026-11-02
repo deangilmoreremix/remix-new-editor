@@ -1085,7 +1085,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   // Navigation & publish integration
   const router = useRouter()
   const socialPublish = useOptionalSocialPublish()
-  const { apiKey } = useAuthConfig()
+  const { apiKey, openaiKey } = useAuthConfig()
   // Modal
   const [isOpen, setIsOpen] = useState(false)
   const [source, setSource] = useState<PersonalizationSource | null>(null)
@@ -4211,7 +4211,23 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   }, [closePersonalize, loadedProjectIdRef, router, source])
 
   const generate = useCallback(async () => {
-    if (!source || !apiKey) return
+    if (!source) return
+    // Image results come from OpenAI (generationRouter → getOpenAiKey());
+    // MuAPI is only used afterwards for the optional logo overlay. Video
+    // and prompt-only sources run through MuAPI. Gate on the key the
+    // selected operation needs, and say which one is missing.
+    const missingKey =
+      source.mediaType === 'image'
+        ? (openaiKey ? null : 'OpenAI')
+        : (apiKey ? null : 'MuAPI')
+    if (missingKey) {
+      setGeneration({
+        ...EMPTY_GENERATION_STATE,
+        status: 'error',
+        errorMessage: `Add your ${missingKey} API key in Settings to generate.`,
+      })
+      return
+    }
 
     // Guard: block blob URLs from reaching generation
     const allAssets: PersonalizationAsset[] = [
@@ -4387,7 +4403,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         failedStage: 'generation',
       })
     }
-  }, [source, apiKey, assets, mode, genOptions, promptState, clientForm, selectedClientId, completeRun])
+  }, [source, apiKey, openaiKey, assets, mode, genOptions, promptState, clientForm, selectedClientId, completeRun])
 
   const retry = useCallback(async () => {
     await generate()

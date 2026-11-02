@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { act, useEffect, useLayoutEffect, useMemo } from 'react'
 import { createRoot } from 'react-dom/client'
 import { readFileSync } from 'fs'
@@ -35,10 +35,12 @@ vi.mock('@ohb/components/SocialPublishProvider', () => ({
   },
 }))
 
+const authKeys = vi.hoisted(() => ({ apiKey: 'test-key', openaiKey: '' }))
+
 vi.mock('@ohb/lib/authConfig', () => ({
   useAuthConfig: () => ({
-    apiKey: 'test-key',
-    openaiKey: '',
+    apiKey: authKeys.apiKey,
+    openaiKey: authKeys.openaiKey,
     setApiKey: vi.fn(),
     setOpenAiKey: vi.fn(),
     clearApiKey: vi.fn(),
@@ -1126,6 +1128,55 @@ describe('DemoPersonalizeProvider generation flows', () => {
     const ctx = (window as any).__personalizationCtx
     expect(ctx.generation.status).toBe('complete')
     expect(ctx.result.url).toBe('https://example.com/video-final.mp4')
+  })
+
+  describe('API key gate', () => {
+    const imageSource = { id: 'img-1', title: 'Img', mediaType: 'image', originalPrompt: 'test', sourceMedia: null, poster: null, fullPrompt: 'test', shortPrompt: 'test', sourceType: 'landing-demo', sourceMetadata: {} }
+
+    afterEach(() => {
+      authKeys.apiKey = 'test-key'
+      authKeys.openaiKey = ''
+    })
+
+    const generateImage = async () => {
+      await renderProvider()
+      await act(async () => {
+        ;(window as any).__personalizationCtx.openPersonalize({ source: imageSource })
+      })
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 50))
+      })
+      await act(async () => {
+        ;(window as any).__personalizationCtx.updateClientForm({ businessName: 'Test Co' })
+        ;(window as any).__personalizationCtx.setMode('recreate')
+      })
+      await act(async () => {
+        await (window as any).__personalizationCtx.generate()
+      })
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 100))
+      })
+      return (window as any).__personalizationCtx
+    }
+
+    it('generates an image with only an OpenAI key', async () => {
+      authKeys.apiKey = ''
+      authKeys.openaiKey = 'sk-test-openai-key-1234567890'
+      ;(runGeneration as any).mockResolvedValue({ type: 'image', url: 'https://example.com/img.png', metadata: {} })
+      ;(applyPostProcessing as any).mockResolvedValue({ finalUrl: 'https://example.com/img.png', originalUrl: 'https://example.com/img.png', applied: [] })
+
+      const ctx = await generateImage()
+      expect(runGeneration).toHaveBeenCalled()
+      expect(ctx.generation.status).toBe('complete')
+    })
+
+    it('says the OpenAI key is missing instead of doing nothing', async () => {
+      authKeys.openaiKey = ''
+      const ctx = await generateImage()
+      expect(runGeneration).not.toHaveBeenCalled()
+      expect(ctx.generation.status).toBe('error')
+      expect(ctx.generation.errorMessage).toContain('OpenAI API key')
+    })
   })
 })
 
