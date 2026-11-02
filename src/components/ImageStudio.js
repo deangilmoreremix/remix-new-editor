@@ -253,6 +253,7 @@ export function ImageStudio() {
     container.appendChild(picker.panel);
 
     const textarea = document.createElement('textarea');
+    textarea.setAttribute('data-studio-prompt', '');
     textarea.id = 'i-prompt-textarea';
     // Prompt Gallery button
     const promptGalleryBtn = document.createElement('button');

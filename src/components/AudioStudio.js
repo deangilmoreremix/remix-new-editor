@@ -644,6 +644,7 @@ export function AudioStudio() {
   promptLabel.textContent = 'Prompt';
   promptGroup.appendChild(promptLabel);
   const promptInput = document.createElement('textarea');
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none';
   promptInput.rows = 3;
   promptInput.placeholder = 'Describe the music or speech you want to generate...';
