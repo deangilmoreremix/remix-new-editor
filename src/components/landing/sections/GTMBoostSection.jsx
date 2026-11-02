@@ -18,6 +18,7 @@ import {
   categoryBadge,
   metaPill,
   createViewPromptButton,
+  createPersonalizeButton,
   createStyleLink,
   createStudioIcon,
   escapeHtml,
@@ -211,6 +212,7 @@ function createGtmResultCard(demo) {
   const studioIconsHost = card.querySelector('[data-gtm-studio-icons]');
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt: loadDemoPrompt }));
+  primaryActions.appendChild(createPersonalizeButton(demo, { loadPrompt: loadDemoPrompt }));
   primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video', loadPrompt: loadDemoPrompt }));
 
   const target = getCreateTarget(demo);

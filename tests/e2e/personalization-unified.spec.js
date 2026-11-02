@@ -96,3 +96,43 @@ test.describe('Personalization + Lead Finder modal', () => {
     await expect(page.getByText('STEP 1 — WHO IS THIS FOR?')).toHaveCount(0, { timeout: 10000 });
   });
 });
+
+test.describe('Personalization entry points (OpenHiggsBolt parity)', () => {
+  test('landing demo cards have "Personalize This Demo" styled like "View Prompt"', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const personalize = page.locator('[data-mmx-cta="personalize"]').first();
+    for (let i = 0; i < 80 && (await personalize.count()) === 0; i++) {
+      await page.mouse.wheel(0, 900);
+      await page.waitForTimeout(300);
+    }
+    await expect(personalize).toBeAttached({ timeout: 30000 });
+    const row = personalize.locator('xpath=..');
+    const view = row.locator('[data-mmx-cta="view-prompt"]');
+    expect(await personalize.getAttribute('class')).toBe(await view.getAttribute('class'));
+
+    await personalize.scrollIntoViewIfNeeded();
+    await personalize.click();
+    await expect(page.getByText('Find your business').first()).toBeVisible({ timeout: 60000 });
+  });
+
+  test('free Find My Brand opens the modal signed-out', async ({ page }) => {
+    await page.goto('/#/find-my-brand', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#pz-find-my-brand')).toBeVisible({ timeout: 60000 });
+  });
+
+  test('"Edit in Image Studio" hand-off opens Image Studio in image-to-image mode', async ({ page }) => {
+    await page.goto('/#/apps', { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#content-area', { timeout: 30000 });
+    await page.waitForTimeout(2000);
+    await page.evaluate(() => localStorage.setItem('sv_studio_prefill', JSON.stringify({
+      route: 'image', prompt: 'Acme hero shot', params: { referenceImageUrl: 'https://picsum.photos/id/10/600/400' }, ref: 'personalization', at: Date.now(),
+    })));
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.evaluate(() => { window.location.hash = '#/image'; });
+    const prompt = page.locator('#i-prompt-textarea');
+    await expect(prompt).toHaveValue('Acme hero shot', { timeout: 30000 });
+    await expect(prompt).toHaveAttribute('placeholder', /transform this image/i, { timeout: 15000 });
+    expect(errors).toEqual([]);
+  });
+});

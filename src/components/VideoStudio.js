@@ -2192,7 +2192,14 @@ generateBtn.type = 'button';
     // (image-to-video) and a 9:16 / 16:9 aspect ratio. Applied once the studio
     // is in the document — picker.setImage() fires onSelect, which updates the
     // model button.
-    if (stagedAspectRatio === '9:16' || stagedAspectRatio === '16:9') selectedAr = stagedAspectRatio;
+    const applyStagedAspectRatio = () => {
+      if (stagedAspectRatio !== '9:16' && stagedAspectRatio !== '16:9') return;
+      const available = getCurrentAspectRatios(selectedModel) || [];
+      if (available.length && !available.includes(stagedAspectRatio)) return;
+      selectedAr = stagedAspectRatio;
+      const arLabel = document.getElementById('v-ar-btn-label');
+      if (arLabel) arLabel.textContent = selectedAr;
+    };
     if (typeof stagedReferenceImageUrl === 'string' && /^https?:\/\//i.test(stagedReferenceImageUrl)) {
       let tries = 0;
       const applyHandoff = () => {
@@ -2201,14 +2208,17 @@ generateBtn.type = 'button';
           return;
         }
         try {
+          // setImage → onSelect switches to image-to-video (and that model's
+          // default ratio), so the staged ratio is applied afterwards.
           picker.setImage(stagedReferenceImageUrl);
-          const arLabel = document.getElementById('v-ar-btn-label');
-          if (arLabel && stagedAspectRatio) arLabel.textContent = selectedAr;
+          applyStagedAspectRatio();
         } catch (err) {
           console.warn('[VideoStudio] hand-off image not applied:', err);
         }
       };
       requestAnimationFrame(applyHandoff);
+    } else if (stagedAspectRatio) {
+      requestAnimationFrame(() => applyStagedAspectRatio());
     }
 
     if (autoGenerate) {

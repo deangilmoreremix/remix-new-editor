@@ -105,6 +105,14 @@ export function LeadFinderStudio() {
   findBtn.type = 'button';
   findBtn.addEventListener('click', () => openLeadFinder(findBtn));
   heroActions.appendChild(findBtn);
+  const brandBtn = el('button', 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-white hover:border-primary/60 hover:text-primary transition-colors', '✦ Find My Brand');
+  brandBtn.type = 'button';
+  brandBtn.title = 'Paste a business website to pull its logo, photos and branding (free)';
+  brandBtn.addEventListener('click', async () => {
+    const { openFreeDiscovery } = await import('../features/personalization/mount.jsx');
+    openFreeDiscovery({ trigger: brandBtn });
+  });
+  heroActions.appendChild(brandBtn);
   hero.append(heroText, heroActions);
   inner.appendChild(hero);
 

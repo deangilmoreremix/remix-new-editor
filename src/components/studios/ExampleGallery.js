@@ -1,4 +1,4 @@
-import { handleViewPrompt, handleCreateThisStyle } from '../../lib/exampleGalleryBridge.js';
+import { handleViewPrompt, handleCreateThisStyle, handlePersonalizeDemo } from '../../lib/exampleGalleryBridge.js';
 import { MediaDetailView } from '../MediaDetailView.js';
 import { getRelatedAssets } from '../../data/exampleGalleryAssets.js';
 
@@ -227,6 +227,11 @@ export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
               onClick: () => handleViewPrompt(asset),
             },
             {
+              id: 'personalize',
+              label: 'Personalize This Demo',
+              onClick: () => handlePersonalizeDemo(asset),
+            },
+            {
               id: 'create-style',
               label: 'Create This Style',
               onClick: () => handleCreateThisStyle(asset),
@@ -293,7 +298,18 @@ export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
         handleCreateThisStyle(asset);
       });
 
+      // "Personalize This Demo" — same design as "View Prompt".
+      const personalizeBtn = document.createElement('button');
+      personalizeBtn.className = 'eg-btn eg-btn-view eg-btn-personalize';
+      personalizeBtn.textContent = 'Personalize This Demo';
+      personalizeBtn.setAttribute('aria-haspopup', 'dialog');
+      personalizeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handlePersonalizeDemo(asset, { trigger: personalizeBtn });
+      });
+
       actions.appendChild(viewBtn);
+      actions.appendChild(personalizeBtn);
       actions.appendChild(createBtn);
       body.appendChild(actions);
       card.appendChild(body);

@@ -217,6 +217,23 @@ export function AnimatePage() {
   const controls = document.createElement('div');
   controls.className = 'flex flex-col gap-4 mb-6';
 
+  // "Use My Brand" (OpenHiggsBolt Motion Studio): connect a business — name,
+  // colors, logos and reference frames — through the personalization modal.
+  const brandRow = document.createElement('div');
+  brandRow.className = 'flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3';
+  brandRow.innerHTML = '<div class="text-sm font-bold text-white">Use My Brand<div class="text-xs font-normal text-secondary">Connect your brand: business name, colors, logos and reference frames.</div></div>';
+  const brandBtn = document.createElement('button');
+  brandBtn.type = 'button';
+  brandBtn.className = 'btn-secondary-modern text-xs shrink-0';
+  brandBtn.textContent = 'Connect Personalization';
+  brandBtn.setAttribute('aria-haspopup', 'dialog');
+  brandBtn.addEventListener('click', async () => {
+    const { openMotionBrandPersonalization } = await import('../features/personalization/mount.jsx');
+    openMotionBrandPersonalization({ trigger: brandBtn });
+  });
+  brandRow.appendChild(brandBtn);
+  controls.appendChild(brandRow);
+
   const promptRow = document.createElement('div');
   const promptLabel = document.createElement('label');
   promptLabel.className = 'text-[10px] font-bold text-secondary uppercase tracking-wider block mb-1';

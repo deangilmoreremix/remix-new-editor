@@ -12,6 +12,11 @@ import React, { useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { DemoPersonalizeProvider, useDemoPersonalize } from './shared/personalization/DemoPersonalizeProvider'
 import { buildStudioPersonalizeSource } from './shared/personalization/studioEntry'
+import {
+  buildDemoPersonalizeSource,
+  buildFreeDiscoverySource,
+  buildViralPersonalizeSource,
+} from './shared/personalization/demoSources'
 import { installPersonalizationApiAuth } from './lib/apiAuth'
 import { SocialPublishContext } from './components/SocialPublishProvider'
 import { openSocialPublish } from '../../lib/socialPublishHelpers.js'
@@ -246,6 +251,47 @@ if (typeof window !== 'undefined') {
   window.addEventListener('remix:open-personalize', (event) => {
     openPersonalization(event?.detail || {})
   })
+}
+
+/**
+ * "Personalize This Demo" from a demo card (OpenHiggsBolt DemoMediaCard /
+ * DemoTemplateActions). `access` is 'anonymous' on the signed-out landing
+ * page (OpenHiggsBolt's `?demo=1`) and 'authenticated' inside the app.
+ */
+export function openDemoPersonalization(demo, { access = 'authenticated', trigger = null } = {}) {
+  openPersonalization({ source: buildDemoPersonalizeSource(demo), access, trigger })
+}
+
+/** GO AI Viral feed card → personalization (OpenHiggsBolt GoAiViralStudio). */
+export function openViralPersonalization(record, { access = 'authenticated', trigger = null } = {}) {
+  openPersonalization({ source: buildViralPersonalizeSource(record), access, trigger })
+}
+
+/** Free, signed-out "Find My Brand" (OpenHiggsBolt /demo, FreeDiscoveryDemo). */
+export function openFreeDiscovery({ trigger = null } = {}) {
+  openPersonalization({ source: buildFreeDiscoverySource(), access: 'anonymous', trigger })
+}
+
+/**
+ * "Use My Brand" (OpenHiggsBolt Motion Studio / Motion Director): opens the
+ * modal on the prompt-only brand source, where the user connects a business
+ * name, colors, logos and reference frames.
+ */
+const MOTION_STUDIO_BRAND_SOURCE = {
+  id: 'motion-studio-brand',
+  title: 'Motion Studio Brand',
+  mediaType: 'prompt-only',
+  sourceMedia: null,
+  poster: null,
+  shortPrompt: 'Connect your brand — business name, colors, logos and reference frames.',
+  fullPrompt: 'Connect your brand — business name, colors, logos and reference frames.',
+  originalPrompt: 'Connect your brand — business name, colors, logos and reference frames.',
+  sourceType: 'landing-demo',
+  sourceMetadata: { motionStudioEntry: true },
+}
+
+export function openMotionBrandPersonalization({ trigger = null } = {}) {
+  openPersonalization({ source: { ...MOTION_STUDIO_BRAND_SOURCE }, trigger })
 }
 
 export default openPersonalization

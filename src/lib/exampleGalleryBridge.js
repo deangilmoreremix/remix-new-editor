@@ -101,6 +101,61 @@ export async function handleCreateThisStyle(asset) {
   }
 }
 
+/**
+ * "Personalize This Demo" (OpenHiggsBolt DemoTemplateActions): open the
+ * personalization modal for a gallery example. Lazy prompts are loaded first,
+ * the same way View Prompt / Create This Style load them.
+ */
+async function loadGalleryPrompt(asset) {
+  if (asset.prompt) return asset.prompt;
+  const loaders = {
+    minimax: () => import('../data/minimaxH3Demos.js'),
+    seedance: () => import('../data/beatapiSeedance25Demos.js'),
+    zerolu: () => import('../data/zeroLuDemos.js'),
+  };
+  const load = loaders[asset.source];
+  if (!load || !asset.slug) return '';
+  try {
+    const mod = await load();
+    return (await mod.loadDemoPrompt(asset.slug)) || '';
+  } catch {
+    return '';
+  }
+}
+
+export async function handlePersonalizeDemo(asset, { trigger = null } = {}) {
+  if (!asset) return;
+  const prompt = await loadGalleryPrompt(asset);
+  const isVideo = Boolean(asset.videoSrc);
+  const { openDemoPersonalization, openPersonalization } = await import('../features/personalization/mount.jsx');
+  if (isVideo) {
+    openDemoPersonalization(
+      {
+        slug: asset.slug || asset.id,
+        title: asset.title || 'Example',
+        videoSrc: asset.videoSrc,
+        posterSrc: asset.thumbnail || '',
+        prompt,
+        aspectRatio: asset.aspectRatio,
+        category: asset.category,
+        tags: asset.tags,
+        sourceUrl: asset.sourceUrl,
+      },
+      { access: 'authenticated', trigger },
+    );
+    return;
+  }
+  // Image examples open as an image source, like OpenHiggsBolt's image demos.
+  openPersonalization({
+    studioId: asset.studioId || 'image',
+    mediaUrl: asset.thumbnail || '',
+    mediaType: 'image',
+    prompt,
+    title: asset.title,
+    trigger,
+  });
+}
+
 export async function handleViewPrompt(asset) {
   if (asset.source === 'minimax') {
     const m = await import('../data/minimaxH3Demos.js');
