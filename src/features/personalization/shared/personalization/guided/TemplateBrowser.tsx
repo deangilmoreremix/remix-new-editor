@@ -173,6 +173,13 @@ export interface TemplateBrowserProps {
    */
   onSelect?: (template: MotionTemplate) => void
   onLaunch?: (template: MotionTemplate) => void
+  /**
+   * remix-new-editor: show the "Motion Studio" hand-off button. remix has no
+   * Motion Studio editor that opens a recipe (`#/animate` is image-to-video
+   * and ignores `?template=`), so it is hidden unless a caller supplies a
+   * destination. "Use this template" (the in-modal preview) is unaffected.
+   */
+  showStudioLaunch?: boolean
 }
 
 /**
@@ -181,7 +188,7 @@ export interface TemplateBrowserProps {
  * "Use this template" (in-modal preview) and "Edit in Motion Studio"
  * (canonical studio handoff).
  */
-export function TemplateBrowser({ onSelect, onLaunch }: TemplateBrowserProps): React.JSX.Element {
+export function TemplateBrowser({ onSelect, onLaunch, showStudioLaunch = Boolean(onLaunch) }: TemplateBrowserProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const [activeCategory, setActiveCategory] = useState<MotionCategoryKey | 'all'>('all')
   const [query, setQuery] = useState('')
@@ -335,7 +342,7 @@ export function TemplateBrowser({ onSelect, onLaunch }: TemplateBrowserProps): R
                   template={template}
                   active={isCardSelected(ctx.motionTemplate?.id, template.id)}
                   onSelect={handleSelect}
-                  onLaunch={handleLaunch}
+                  onLaunch={showStudioLaunch ? handleLaunch : null}
                 />
               ))}
             </div>
@@ -422,7 +429,7 @@ function TemplateCard({
   template: MotionTemplate
   active: boolean
   onSelect: (template: MotionTemplate) => void
-  onLaunch: (template: MotionTemplate) => void
+  onLaunch: ((template: MotionTemplate) => void) | null
 }): React.JSX.Element {
   const poster = posterUrl(template)
   const clip = previewVideoUrl(template)
@@ -514,16 +521,18 @@ function TemplateCard({
             Use this template <ChevronRight size={12} />
           </span>
         </button>
-        <button
-          type="button"
-          data-testid="motion-template-launch"
-          onClick={() => onLaunch(template)}
-          style={{ ...secondaryButtonStyle, minHeight: 36, fontSize: 11, padding: '0 12px' }}
-        >
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <ExternalLink size={11} /> Motion Studio
-          </span>
-        </button>
+        {onLaunch && (
+          <button
+            type="button"
+            data-testid="motion-template-launch"
+            onClick={() => onLaunch(template)}
+            style={{ ...secondaryButtonStyle, minHeight: 36, fontSize: 11, padding: '0 12px' }}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <ExternalLink size={11} /> Motion Studio
+            </span>
+          </button>
+        )}
       </div>
     </div>
   )

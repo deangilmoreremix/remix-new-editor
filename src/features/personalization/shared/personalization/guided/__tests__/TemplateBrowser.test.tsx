@@ -116,8 +116,8 @@ beforeEach(() => {
 // Simplest value-based render helper: the browser's provider hook is re-read on
 // every render. Defined after the component import so the mock wiring above is
 // fully in place first.
-function renderBrowser() {
-  return render(<TemplateBrowser />)
+function renderBrowser(props: { showStudioLaunch?: boolean } = {}) {
+  return render(<TemplateBrowser {...props} />)
 }
 
 // Import AFTER mocks so the component picks up the stubbed hook.
@@ -347,8 +347,14 @@ describe('TemplateBrowser (recipe-card grid)', () => {
     expect(called.preview).toBe(firstCard.preview)
   })
 
-  it('calls launchMotionTemplate with the representative shot on "Motion Studio"', () => {
+  it('hides the "Motion Studio" hand-off by default (remix has no recipe editor)', () => {
     renderBrowser()
+    expect(screen.queryAllByTestId('motion-template-launch')).toHaveLength(0)
+    expect(screen.getAllByTestId('motion-template-use').length).toBeGreaterThan(0)
+  })
+
+  it('calls launchMotionTemplate with the representative shot on "Motion Studio"', () => {
+    renderBrowser({ showStudioLaunch: true })
     const firstButton = screen.getAllByTestId('motion-template-launch')[0]
     expect(firstButton).toBeTruthy()
     fireEvent.click(firstButton)
