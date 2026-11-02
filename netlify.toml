@@ -40,6 +40,19 @@
   status = 200
   force = true
 
+# Restored thumbnails are WebP-encoded but keep their historical `.webp.png`
+# filenames so every existing reference resolves; declare the real type.
+[[headers]]
+  for = "/thumbnails/*.webp.png"
+  [headers.values]
+    Content-Type = "image/webp"
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/thumbnails/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
 # Security headers
 [[headers]]
   for = "/*"
