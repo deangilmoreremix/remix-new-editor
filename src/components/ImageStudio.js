@@ -23,7 +23,8 @@ import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { mountImageModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountUpstreamModelPicker } from './upstream-picker/mountUpstreamModelPicker.jsx';
+import { imageModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
@@ -481,11 +482,14 @@ export function ImageStudio() {
     `, selectedModelName, 'model-btn', 'Select AI generation model');
 
     const updateModelBtnIcon = () => {
-        const iconEl = document.getElementById('model-btn-icon');
+        // The button may not be in the document yet on first call.
+        const iconEl = modelBtn.querySelector('#model-btn-icon') || document.getElementById('model-btn-icon');
         if (!iconEl) return;
         const currentModels = imageMode ? i2iModels : t2iModels;
         const current = currentModels.find(m => m.id === selectedModel);
-        const provider = current?.provider || 'muapi';
+        // Same source as upstream: the picker family's provider.
+        const provider = imageModelPickerEntryByVariantId.get(selectedModel)?.family.provider
+            || current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
             iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
@@ -885,7 +889,7 @@ generateBtn.type = 'button';
     // 3. DROPDOWNS (Professional implementation)
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'fixed left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 -translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     let modelPickerController = null;
 
@@ -925,26 +929,20 @@ generateBtn.type = 'button';
     const openImageModelPicker = (anchorBtn) => {
         modelPickerController?.close();
         modelPickerController = null;
-        modelPickerController = mountImageModelSelector({
+        // Upstream Open-Generative-AI's own ModelDropdown (React), copied verbatim.
+        modelPickerController = mountUpstreamModelPicker({
+            kind: 'image',
             anchor: anchorBtn,
             selectedModelId: selectedModel,
-            allowedModelTypes: ['t2i', 'i2i'],
-            copy: {
-                categories: { t2i: 'Text to Image', i2i: 'Image to Image' },
-                searchPlaceholder: 'Search models...',
-            },
-            onSelectCategory: (catId) => {
-                const isI2I = catId === 'i2i';
-                const nextModels = isI2I ? i2iModels : t2iModels;
-                if (nextModels.length) applyImageModel(nextModels[0].id, isI2I);
-                modelPickerController?.refresh(nextModels[0]?.id || null);
-            },
-            onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
-                // In the "All" category the mode comes from the variant itself,
-                // so edit-only models still get reference-image validation.
-                const isI2I = catId === 'i2i' || (catId !== 't2i' && variant?.mode === 'i2i');
-                if (variant) applyImageModel(variant.model.id, isI2I);
+            onSelect: (entry, catId) => {
+                // Upstream rule: a mode tab picks that mode's variant. From "All",
+                // keep the current mode (image-to-image when reference images
+                // are uploaded) and only fall back to the family default.
+                const currentMode = (uploadedImageUrls.length || imageMode) && entry.variantsByMode.i2i ? 'i2i' : 't2i';
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId] || entry.defaultVariant
+                    : entry.variantsByMode[currentMode] || entry.defaultVariant;
+                if (variant) applyImageModel(variant.model.id, variant.mode === 'i2i');
                 closeDropdown();
             },
             onClose: () => { modelPickerController = null; },
@@ -1023,11 +1021,6 @@ generateBtn.type = 'button';
             dropdown.style.transform = 'translateX(-50%)';
         }
 
-        // Vertical position (always above button)
-        dropdown.style.bottom = '';
-        const btnRect = anchorBtn.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
     const closeDropdown = () => {

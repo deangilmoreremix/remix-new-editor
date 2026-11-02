@@ -595,14 +595,16 @@ export function LipSyncStudio() {
         const spaceBelow = window.innerHeight - rect.bottom - 8;
         const spaceAbove = rect.top - 8;
 
-        if (spaceBelow >= ddHeight || spaceBelow >= spaceAbove) {
-            dropdown.style.top = `${rect.bottom + 8}px`;
-            dropdown.style.bottom = 'auto';
-            dropdown.style.maxHeight = `${Math.max(150, spaceBelow - 8)}px`;
-        } else {
+        // Prefer opening upward (shrinking to fit); only drop down when
+        // there's less than ~240px above the trigger.
+        if (spaceAbove >= ddHeight || spaceAbove >= 240 || spaceAbove >= spaceBelow) {
             dropdown.style.top = 'auto';
             dropdown.style.bottom = `${window.innerHeight - rect.top + 8}px`;
             dropdown.style.maxHeight = `${Math.max(150, spaceAbove - 8)}px`;
+        } else {
+            dropdown.style.top = `${rect.bottom + 8}px`;
+            dropdown.style.bottom = 'auto';
+            dropdown.style.maxHeight = `${Math.max(150, spaceBelow - 8)}px`;
         }
         dropdown.style.left = `${Math.min(rect.left, window.innerWidth - 220)}px`;
 
