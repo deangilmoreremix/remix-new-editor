@@ -85,7 +85,7 @@ import {
 import { registerSupabaseSharedMedia } from './supabaseSharedMedia'
 import { personalizePrompt } from './promptPersonalizer'
 import { runGeneration } from './generationRouter'
-import { resolveModelCapabilities, resolveAssetsForModel } from './modelCapabilityResolver'
+import { resolveModelCapabilities, resolveAssetsForModel, capabilityOptionsForMode } from './modelCapabilityResolver'
 import { applyPostProcessing, generateEndCardImage } from './postProcessor'
 import type { BusinessDiscoveryRecord } from './types'
 import { uploadPersonalizationAsset } from './assetUploadService'
@@ -4303,8 +4303,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setResult(null)
 
     try {
-      const capabilities = resolveModelCapabilities(source, genOptions)
-      let resolved = resolveAssetsForModel(source, assets, mode, genOptions, capabilities)
+      const capabilityOptions = capabilityOptionsForMode(source, genOptions, mode)
+      const capabilities = resolveModelCapabilities(source, capabilityOptions)
+      let resolved = resolveAssetsForModel(source, assets, mode, capabilityOptions, capabilities)
 
       const finalPrompt = promptState.edited || promptState.personalized || promptState.original
 
@@ -4802,7 +4803,12 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
             : a,
         ),
       }))
-      setPreviewSettings((prev) => ({ ...prev, audio: { url: durableUrl, name } }))
+      // Only swap the preview to the durable URL if this track is still the
+      // selected one: removing it, choosing another track, or opening another
+      // source while the upload ran must not bring it back.
+      setPreviewSettings((prev) =>
+        prev.audio?.url === blobUrl ? { ...prev, audio: { url: durableUrl, name } } : prev,
+      )
       releaseJobBlobUrls(audioAsset.id, audioAsset, { superseded: [blobUrl] })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Upload failed'

@@ -1065,10 +1065,19 @@ grant execute on function public.personalization_demo_discovery_cache_put(text, 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values
   ('personalization-assets', 'personalization-assets', true, 104857600,
-   array['image/png','image/jpeg','image/webp','image/gif','video/mp4','video/webm','video/quicktime','audio/mpeg','audio/wav','audio/mp4']),
+   array['image/png','image/jpeg','image/webp','image/gif','video/mp4','video/webm','video/quicktime',
+         -- every audio type the background-audio picker accepts
+         -- (shared/personalization/guided/audioTrack.ts MIME_BY_FORMAT)
+         'audio/mpeg','audio/mp3',
+         'audio/mp4','audio/x-m4a','audio/m4a',
+         'audio/wav','audio/x-wav','audio/wave','audio/vnd.wave',
+         'audio/ogg','application/ogg',
+         'audio/aac','audio/aacp','audio/x-aac']),
   ('brand-assets', 'brand-assets', true, 10485760,
    array['image/png','image/jpeg','image/webp','image/gif','image/svg+xml'])
-on conflict (id) do nothing;
+on conflict (id) do update
+  set allowed_mime_types = excluded.allowed_mime_types,
+      file_size_limit = excluded.file_size_limit;
 
 drop policy if exists "personalization-assets public read" on storage.objects;
 create policy "personalization-assets public read"

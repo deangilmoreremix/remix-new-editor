@@ -125,6 +125,24 @@ function getFallbackModel(modelId: string, sourceMediaType: string): string {
 
 // ── Capabilities Resolution ──────────────────────────────────────────────────
 
+/**
+ * remix-new-editor: the options to resolve capabilities with for a given
+ * operation. Face Only and Full Presenter on a video source always run on the
+ * dedicated face-swap / recast models (generationRouter `pickVideoModel`), so
+ * capabilities and assets must be resolved against those models, not the
+ * source's own generation model — otherwise the identity image is left out.
+ */
+export function capabilityOptionsForMode(
+  source: PersonalizationSource,
+  options: GenerationOptions,
+  mode: string | null,
+): GenerationOptions {
+  if (source.mediaType === 'image') return options
+  if (mode === 'face_only') return { ...options, advancedModel: undefined, model: FACE_SWAP_MODEL }
+  if (mode === 'full_body') return { ...options, advancedModel: undefined, model: FULL_BODY_MODEL }
+  return options
+}
+
 export function resolveModelCapabilities(
   source: PersonalizationSource,
   options: GenerationOptions,
