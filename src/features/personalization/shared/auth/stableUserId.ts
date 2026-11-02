@@ -13,9 +13,12 @@ function hashString(str: string): string {
 export function getStableUserId(): string {
   if (typeof window === 'undefined') return `${PREFIX}:anonymous`;
 
-  // Preferred: Clerk user ID from session
+  // Preferred: Clerk user ID from session. remix keeps the live Clerk
+  // singleton on window.Clerk (see src/lib/supabase.js getClerkUserId); the
+  // storage policies for the `personalization-assets` bucket only accept
+  // writes under this `smartvideo-go-clerk-<id>` workspace folder.
   try {
-    const clerkId = (window as any).__CLERK_USER_ID__ || localStorage.getItem('clerk_user_id');
+    const clerkId = (window as any).Clerk?.user?.id || (window as any).__CLERK_USER_ID__ || localStorage.getItem('clerk_user_id');
     if (clerkId) return `${PREFIX}:clerk:${clerkId}`;
   } catch {}
 

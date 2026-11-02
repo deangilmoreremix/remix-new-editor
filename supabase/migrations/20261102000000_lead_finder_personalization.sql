@@ -1062,15 +1062,34 @@ create policy "personalization-assets public read"
   on storage.objects for select
   using (bucket_id = 'personalization-assets');
 
+-- Writes are owner-scoped: the first path segment is the uploader's
+-- workspace folder, `smartvideo-go-clerk-<clerk user id>` (getStableUserId +
+-- muapiDurableObjectPath). A signed-in user can create and replace objects
+-- only inside their own folder, so nobody can overwrite another user's asset
+-- even though reads are public.
 drop policy if exists "personalization-assets authenticated write" on storage.objects;
-create policy "personalization-assets authenticated write"
+drop policy if exists "personalization-assets owner insert" on storage.objects;
+create policy "personalization-assets owner insert"
   on storage.objects for insert
-  with check (bucket_id = 'personalization-assets' and coalesce(auth.jwt() ->> 'sub', '') <> '');
+  with check (
+    bucket_id = 'personalization-assets'
+    and coalesce(auth.jwt() ->> 'sub', '') <> ''
+    and (storage.foldername(name))[1] = 'smartvideo-go-clerk-' || (auth.jwt() ->> 'sub')
+  );
 
 drop policy if exists "personalization-assets authenticated update" on storage.objects;
-create policy "personalization-assets authenticated update"
+drop policy if exists "personalization-assets owner update" on storage.objects;
+create policy "personalization-assets owner update"
   on storage.objects for update
-  using (bucket_id = 'personalization-assets' and coalesce(auth.jwt() ->> 'sub', '') <> '');
+  using (
+    bucket_id = 'personalization-assets'
+    and coalesce(auth.jwt() ->> 'sub', '') <> ''
+    and (storage.foldername(name))[1] = 'smartvideo-go-clerk-' || (auth.jwt() ->> 'sub')
+  )
+  with check (
+    bucket_id = 'personalization-assets'
+    and (storage.foldername(name))[1] = 'smartvideo-go-clerk-' || (auth.jwt() ->> 'sub')
+  );
 
 drop policy if exists "brand-assets public read" on storage.objects;
 create policy "brand-assets public read"

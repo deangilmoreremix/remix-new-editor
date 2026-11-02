@@ -8,7 +8,11 @@ const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
 // the wrong value. Mirrors assets.js, brands.js, campaigns.js,
 // photo-studio.js. Anonymous end users can still trigger discovery — the
 // secret authenticates the dispatch, not the end user.
-const INTERNAL_FUNCTION_SECRET = process.env.INTERNAL_FUNCTION_SECRET || ''
+// remix: falls back to PERSONALIZATION_DISCOVERY_SECRET, the same fallback the
+// API applies in netlify/functions/_personalization/shims/env.ts, so the two
+// sides always agree on the secret.
+const INTERNAL_FUNCTION_SECRET =
+  process.env.INTERNAL_FUNCTION_SECRET || process.env.PERSONALIZATION_DISCOVERY_SECRET || ''
 
 function internalSecretOk(event) {
   // Fail closed: with no secret configured nothing can prove a dispatch came

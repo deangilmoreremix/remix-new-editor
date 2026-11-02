@@ -695,7 +695,15 @@ export function createSupabaseDurableStore(
     },
 
     async open(workspaceId, durableRef) {
-      const objectPath = `${sanitizeSegment(workspaceId)}/${String(durableRef)}`
+      // `put()` returns refs that already start with the workspace segment
+      // (muapiDurableObjectPath), so only bare `<asset>/<name>` refs get the
+      // prefix added. A ref naming another workspace or traversing upward is
+      // refused rather than read.
+      const prefix = `${sanitizeSegment(workspaceId)}/`
+      const ref = String(durableRef)
+      if (ref.split('/').some((segment) => segment === '..' || segment === '.')) return null
+      const objectPath = ref.startsWith(prefix) ? ref : `${prefix}${ref}`
+      if (ref.startsWith('/') || objectPath.split('/').length !== 3) return null
       const { data, error } = await client.from(bucket).download(objectPath)
       if (error || !data) return null
       return {
