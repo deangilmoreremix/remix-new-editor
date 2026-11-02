@@ -2,29 +2,36 @@
  * Design tokens + shared style helpers for the guided Simple Mode wizard and the
  * Advanced Editing overlay editor.
  *
- * The token values are duplicated verbatim from `PersonalizationModal.tsx` so
- * the guided surfaces stay pixel-consistent with the existing modal without the
- * modal having to export its private constant.
+ * `PersonalizationModal.tsx` imports `C` from here, so the modal and the
+ * guided surfaces share one palette (remix-new-editor's dark + neon-yellow
+ * scheme).
  */
 
 import type { CSSProperties } from 'react'
 
 export const C = {
-  bg: '#080b0f',
-  modal: '#101419',
-  panel: '#151a20',
-  panelSoft: '#12171c',
-  field: '#0d1116',
+  // remix-new-editor palette (src/styles/variables.css + @theme in
+  // src/styles/global.css). The `cyan*` keys keep OpenHiggsBolt's names so
+  // the ported inline styles stay untouched; they now carry remix's neon
+  // yellow primary (`--color-primary`).
+  bg: '#050505',
+  modal: '#0a0a0a',
+  panel: '#141414',
+  panelSoft: '#101010',
+  field: '#0d0d0d',
   border: 'rgba(255,255,255,.10)',
-  borderStrong: 'rgba(255,255,255,.16)',
-  text: '#f7f9fb',
-  muted: 'rgba(255,255,255,.58)',
-  muted2: 'rgba(255,255,255,.36)',
-  cyan: '#29d3f2',
-  cyanSoft: 'rgba(41,211,242,.12)',
-  cyanBorder: 'rgba(41,211,242,.45)',
-  green: '#28c98b',
-  danger: '#ef5b67',
+  borderStrong: '#27272a',
+  text: '#ffffff',
+  muted: '#a1a1aa',
+  muted2: '#71717a',
+  cyan: '#d9ff00',
+  cyanSoft: 'rgba(217,255,0,.12)',
+  cyanBorder: 'rgba(217,255,0,.45)',
+  accent: '#d9ff00',
+  accentHover: '#c4e600',
+  onAccent: '#000000',
+  green: '#22c55e',
+  danger: '#ef4444',
 } as const
 
 export type GuidedTokens = typeof C
@@ -106,7 +113,7 @@ export const primaryButtonStyle: CSSProperties = {
   border: `1px solid ${C.cyan}`,
   borderRadius: 10,
   background: C.cyan,
-  color: '#041014',
+  color: '#000000',
   fontSize: 12,
   fontWeight: 800,
   textTransform: 'uppercase',
@@ -133,7 +140,7 @@ export const tileStyle = (active: boolean): CSSProperties => ({
   padding: 12,
   border: `1px solid ${active ? C.cyanBorder : C.border}`,
   borderRadius: 12,
-  background: active ? 'rgba(41,211,242,.07)' : C.panelSoft,
+  background: active ? 'rgba(217,255,0,.07)' : C.panelSoft,
   color: C.text,
   textAlign: 'left',
   cursor: 'pointer',
@@ -151,10 +158,10 @@ export const badgeStyle = (tone: 'cyan' | 'green' | 'muted' = 'cyan'): CSSProper
   textTransform: 'uppercase',
   letterSpacing: '.04em',
   border: `1px solid ${
-    tone === 'cyan' ? C.cyanBorder : tone === 'green' ? 'rgba(40,201,139,.45)' : C.border
+    tone === 'cyan' ? C.cyanBorder : tone === 'green' ? 'rgba(34,197,94,.45)' : C.border
   }`,
   background:
-    tone === 'cyan' ? C.cyanSoft : tone === 'green' ? 'rgba(40,201,139,.12)' : 'rgba(255,255,255,.04)',
+    tone === 'cyan' ? C.cyanSoft : tone === 'green' ? 'rgba(34,197,94,.12)' : 'rgba(255,255,255,.04)',
   color: tone === 'cyan' ? C.cyan : tone === 'green' ? C.green : C.muted,
 })
 

@@ -17,17 +17,17 @@ export const OWNERSHIP_LABELS: Record<BusinessOwnership, string> = {
 
 const OWNERSHIP_BADGE_TONES: Record<BusinessOwnership, { color: string; background: string; border: string }> = {
   independent: {
-    color: '#28c98b',
-    background: 'rgba(40,201,139,.12)',
-    border: 'rgba(40,201,139,.45)',
+    color: '#22c55e',
+    background: 'rgba(34,197,94,.12)',
+    border: 'rgba(34,197,94,.45)',
   },
   local_multi_location: {
-    color: '#29d3f2',
-    background: 'rgba(41,211,242,.12)',
-    border: 'rgba(41,211,242,.45)',
+    color: '#d9ff00',
+    background: 'rgba(217,255,0,.12)',
+    border: 'rgba(217,255,0,.45)',
   },
   franchise_chain: {
-    color: '#f5b545',
+    color: '#f59e0b',
     background: 'rgba(245,181,69,.12)',
     border: 'rgba(245,181,69,.45)',
   },

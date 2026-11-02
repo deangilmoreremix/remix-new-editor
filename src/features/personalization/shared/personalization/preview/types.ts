@@ -156,8 +156,8 @@ export interface PreviewInputProps {
 export const DEFAULT_PREVIEW_FPS = 30
 
 export const DEFAULT_PREVIEW_BRAND_COLORS: PreviewBrandColors = {
-  primary: '#29d3f2',
-  accent: '#28c98b',
+  primary: '#d9ff00',
+  accent: '#22c55e',
   text: '#ffffff',
   backgroundDim: 0.18,
 }

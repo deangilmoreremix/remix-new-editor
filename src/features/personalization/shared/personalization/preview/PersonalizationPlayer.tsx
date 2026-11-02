@@ -242,8 +242,8 @@ export function PersonalizationPlayer(
         alignItems: 'center',
         gap: 8,
         padding: '8px 10px',
-        background: 'rgba(5, 7, 10, 0.9)',
-        borderTop: '1px solid rgba(148, 163, 184, 0.25)',
+        background: 'rgba(5,5,5, 0.9)',
+        borderTop: '1px solid rgba(161,161,170, 0.25)',
       }}
     >
       <button
@@ -258,9 +258,9 @@ export function PersonalizationPlayer(
           width: 32,
           height: 32,
           borderRadius: 999,
-          border: '1px solid rgba(148, 163, 184, 0.35)',
-          background: 'rgba(15, 23, 42, 0.8)',
-          color: '#e2e8f0',
+          border: '1px solid rgba(161,161,170, 0.35)',
+          background: 'rgba(10,10,10, 0.8)',
+          color: '#e4e4e7',
           cursor: 'pointer',
         }}
       >
@@ -270,7 +270,7 @@ export function PersonalizationPlayer(
         style={{
           fontSize: 12,
           fontVariantNumeric: 'tabular-nums',
-          color: '#cbd5e1',
+          color: '#d4d4d8',
           minWidth: 78,
           textAlign: 'center',
         }}
@@ -284,7 +284,7 @@ export function PersonalizationPlayer(
         value={Math.min(frame, Math.max(0, durationInFrames - 1))}
         onChange={(event) => handleSeek(Number(event.target.value))}
         aria-label="Seek preview"
-        style={{ flex: '1 1 auto', minWidth: 80, accentColor: '#29d3f2' }}
+        style={{ flex: '1 1 auto', minWidth: 80, accentColor: '#d9ff00' }}
       />
       <button
         type="button"
@@ -298,9 +298,9 @@ export function PersonalizationPlayer(
           width: 32,
           height: 32,
           borderRadius: 999,
-          border: '1px solid rgba(148, 163, 184, 0.35)',
-          background: 'rgba(15, 23, 42, 0.8)',
-          color: '#e2e8f0',
+          border: '1px solid rgba(161,161,170, 0.35)',
+          background: 'rgba(10,10,10, 0.8)',
+          color: '#e4e4e7',
           cursor: 'pointer',
         }}
       >
@@ -318,9 +318,9 @@ export function PersonalizationPlayer(
           width: 32,
           height: 32,
           borderRadius: 999,
-          border: '1px solid rgba(148, 163, 184, 0.35)',
-          background: 'rgba(15, 23, 42, 0.8)',
-          color: '#e2e8f0',
+          border: '1px solid rgba(161,161,170, 0.35)',
+          background: 'rgba(10,10,10, 0.8)',
+          color: '#e4e4e7',
           cursor: 'pointer',
         }}
       >

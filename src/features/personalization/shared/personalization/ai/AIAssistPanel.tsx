@@ -14,20 +14,20 @@ import { EMPTY_AI_ASSIST_STATE } from './types'
 import { validateToolAction, requiresConfirmation, isReadTool } from './toolRegistry'
 
 const C = {
-  panel: '#151a20',
-  field: '#0d1116',
+  panel: '#141414',
+  field: '#0d0d0d',
   border: 'rgba(255,255,255,.10)',
   borderStrong: 'rgba(255,255,255,.16)',
-  text: '#f7f9fb',
+  text: '#ffffff',
   muted: 'rgba(255,255,255,.58)',
   muted2: 'rgba(255,255,255,.36)',
-  cyan: '#29d3f2',
-  cyanSoft: 'rgba(41,211,242,.12)',
-  cyanBorder: 'rgba(41,211,242,.45)',
-  green: '#28c98b',
-  danger: '#ef5b67',
-  purple: '#a855f7',
-  purpleSoft: 'rgba(168,85,247,.12)',
+  cyan: '#d9ff00',
+  cyanSoft: 'rgba(217,255,0,.12)',
+  cyanBorder: 'rgba(217,255,0,.45)',
+  green: '#22c55e',
+  danger: '#ef4444',
+  purple: '#c4e600',
+  purpleSoft: 'rgba(196,230,0,.12)',
 }
 
 function classNames(...classes: (string | boolean | undefined | null | false)[]) {
@@ -129,7 +129,7 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
               padding: '0 14px',
               border: `1px solid ${C.cyan}`,
               background: C.cyan,
-              color: '#041014',
+              color: '#000000',
             }}
           >
             <Send size={12} />
@@ -181,10 +181,10 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
             {response.missingRequirements.length > 0 && (
               <div className="space-y-1.5">
                 {response.missingRequirements.map((req: AIMissingRequirement) => (
-                  <div key={req.field} className="flex items-start gap-2 rounded-[8px] p-2.5" style={{ background: req.severity === 'error' ? 'rgba(239,91,103,.08)' : 'rgba(251,191,36,.08)', border: `1px solid ${req.severity === 'error' ? 'rgba(239,91,103,.2)' : 'rgba(251,191,36,.2)'}` }}>
-                    <AlertTriangle size={12} style={{ color: req.severity === 'error' ? C.danger : '#fbbf24', marginTop: 1 }} />
+                  <div key={req.field} className="flex items-start gap-2 rounded-[8px] p-2.5" style={{ background: req.severity === 'error' ? 'rgba(239,68,68,.08)' : 'rgba(245,158,11,.08)', border: `1px solid ${req.severity === 'error' ? 'rgba(239,68,68,.2)' : 'rgba(245,158,11,.2)'}` }}>
+                    <AlertTriangle size={12} style={{ color: req.severity === 'error' ? C.danger : '#f59e0b', marginTop: 1 }} />
                     <div>
-                      <div className="text-[11px] font-bold" style={{ color: req.severity === 'error' ? C.danger : '#fbbf24' }}>{req.label}</div>
+                      <div className="text-[11px] font-bold" style={{ color: req.severity === 'error' ? C.danger : '#f59e0b' }}>{req.label}</div>
                       <div className="text-[10px] mt-0.5" style={{ color: C.muted }}>{req.message}</div>
                     </div>
                   </div>
@@ -196,8 +196,8 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
             {response.warnings.length > 0 && (
               <div className="space-y-1.5">
                 {response.warnings.map((warning: AIWarning, i: number) => (
-                  <div key={i} className="flex items-start gap-2 rounded-[8px] p-2.5" style={{ background: 'rgba(251,191,36,.06)', border: '1px solid rgba(251,191,36,.15)' }}>
-                    <AlertTriangle size={12} style={{ color: '#fbbf24', marginTop: 1 }} />
+                  <div key={i} className="flex items-start gap-2 rounded-[8px] p-2.5" style={{ background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.15)' }}>
+                    <AlertTriangle size={12} style={{ color: '#f59e0b', marginTop: 1 }} />
                     <div className="text-[10px]" style={{ color: C.muted }}>{warning.message}</div>
                   </div>
                 ))}
@@ -224,10 +224,10 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
 
             {/* Generation plan */}
             {response.generationPlan && (
-              <div className="rounded-[10px] p-3 space-y-2" style={{ background: C.purpleSoft, border: `1px solid rgba(168,85,247,.25)` }}>
+              <div className="rounded-[10px] p-3 space-y-2" style={{ background: C.purpleSoft, border: `1px solid rgba(196,230,0,.25)` }}>
                 <div className="flex items-center gap-2">
                   <Wrench size={12} style={{ color: C.purple }} />
-                  <span className="text-[11px] font-bold" style={{ color: '#c4b5fd' }}>Generation Plan</span>
+                  <span className="text-[11px] font-bold" style={{ color: '#e6ff66' }}>Generation Plan</span>
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                   <div className="text-[10px]" style={{ color: C.muted }}>Mode</div>
@@ -265,13 +265,13 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
             {/* Pending actions requiring confirmation */}
             {state.pendingActions.filter(a => a.authorization === 'user_confirmed').length > 0 && (
               <div className="space-y-2">
-                <div className="text-[10px] font-extrabold uppercase tracking-wide" style={{ color: '#fbbf24' }}>Awaiting Confirmation</div>
+                <div className="text-[10px] font-extrabold uppercase tracking-wide" style={{ color: '#f59e0b' }}>Awaiting Confirmation</div>
                 {state.pendingActions.filter(a => a.authorization === 'user_confirmed').map((action: ToolAction) => (
-                  <div key={action.id + (action.targetAssetId || '')} className="rounded-[10px] p-3 space-y-2" style={{ background: 'rgba(251,191,36,.06)', border: '1px solid rgba(251,191,36,.2)' }}>
+                  <div key={action.id + (action.targetAssetId || '')} className="rounded-[10px] p-3 space-y-2" style={{ background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)' }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Wrench size={12} style={{ color: '#fbbf24' }} />
-                        <span className="text-[11px] font-bold" style={{ color: '#fbbf24' }}>{action.id.replace(/_/g, ' ')}</span>
+                        <Wrench size={12} style={{ color: '#f59e0b' }} />
+                        <span className="text-[11px] font-bold" style={{ color: '#f59e0b' }}>{action.id.replace(/_/g, ' ')}</span>
                       </div>
                     </div>
                     <div className="text-[10px]" style={{ color: C.muted }}>
@@ -291,7 +291,7 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
                           padding: '0 12px',
                           border: `1px solid ${C.cyan}`,
                           background: C.cyan,
-                          color: '#041014',
+                          color: '#000000',
                         }}
                       >
                         {confirmingAction === action.id + (action.targetAssetId || '') ? <Loader2 size={10} className="animate-spin inline mr-1" /> : null}
@@ -320,9 +320,9 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
             {/* Readiness indicator */}
             <div className="flex items-center gap-2">
               {response.readiness === 'ready' && <CheckCircle2 size={12} style={{ color: C.green }} />}
-              {response.readiness === 'needs_input' && <AlertTriangle size={12} style={{ color: '#fbbf24' }} />}
+              {response.readiness === 'needs_input' && <AlertTriangle size={12} style={{ color: '#f59e0b' }} />}
               {response.readiness === 'blocked' && <AlertTriangle size={12} style={{ color: C.danger }} />}
-              <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: response.readiness === 'ready' ? C.green : response.readiness === 'needs_input' ? '#fbbf24' : C.danger }}>
+              <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: response.readiness === 'ready' ? C.green : response.readiness === 'needs_input' ? '#f59e0b' : C.danger }}>
                 {response.readiness}
               </span>
             </div>
@@ -333,11 +333,11 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
                 <div className="text-[10px] font-extrabold uppercase tracking-wide" style={{ color: C.muted }}>Preparation Status</div>
                 {response.readinessChecks.map((check: any) => (
                   <div key={check.key} className="flex items-start gap-2 rounded-[8px] p-2.5" style={{
-                    background: check.status === 'ready' ? 'rgba(40,201,139,.08)' : check.status === 'warning' ? 'rgba(251,191,36,.08)' : 'rgba(239,91,103,.08)',
-                    border: `1px solid ${check.status === 'ready' ? 'rgba(40,201,139,.2)' : check.status === 'warning' ? 'rgba(251,191,36,.2)' : 'rgba(239,91,103,.2)'}`,
+                    background: check.status === 'ready' ? 'rgba(34,197,94,.08)' : check.status === 'warning' ? 'rgba(245,158,11,.08)' : 'rgba(239,68,68,.08)',
+                    border: `1px solid ${check.status === 'ready' ? 'rgba(34,197,94,.2)' : check.status === 'warning' ? 'rgba(245,158,11,.2)' : 'rgba(239,68,68,.2)'}`,
                   }}>
                     {check.status === 'ready' && <CheckCircle2 size={12} style={{ color: C.green, marginTop: 1 }} />}
-                    {check.status === 'warning' && <AlertTriangle size={12} style={{ color: '#fbbf24', marginTop: 1 }} />}
+                    {check.status === 'warning' && <AlertTriangle size={12} style={{ color: '#f59e0b', marginTop: 1 }} />}
                     {check.status === 'error' && <AlertTriangle size={12} style={{ color: C.danger, marginTop: 1 }} />}
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
@@ -393,7 +393,7 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
             padding: '0 14px',
             border: `1px solid ${C.cyan}`,
             background: C.cyan,
-            color: '#041014',
+            color: '#000000',
           }}
         >
           <Send size={12} />

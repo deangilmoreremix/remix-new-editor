@@ -223,7 +223,7 @@ export function StepPreviewApprove(): React.JSX.Element {
       <OverlayEditor inputProps={inputProps} />
 
       {/* ── Approve & create ────────────────────────────────────────────── */}
-      <div style={{ ...panelStyle, border: `1px solid ${previewApproved ? 'rgba(40,201,139,.45)' : C.border}` }}>
+      <div style={{ ...panelStyle, border: `1px solid ${previewApproved ? 'rgba(34,197,94,.45)' : C.border}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
           <ShieldCheck size={15} color={previewApproved ? C.green : C.cyan} />
           <h3 style={{ margin: 0, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
@@ -309,7 +309,7 @@ export function StepPreviewApprove(): React.JSX.Element {
                     marginTop: 4,
                     border: `1px solid ${C.danger}`,
                     color: C.danger,
-                    background: 'rgba(239,91,103,.10)',
+                    background: 'rgba(239,68,68,.10)',
                   }}
                 >
                   <X size={14} />

@@ -5,8 +5,8 @@
  * Implements the approved full-width design hierarchy (HTML source of truth).
  *
  * Design tokens mirror the approved HTML:
- *   --bg: #080b0f, --modal: #101419, --panel: #151a20, --panel-soft: #12171c
- *   --cyan: #29d3f2, --cyan-soft: rgba(41,211,242,.12)
+ *   --bg: #050505, --modal: #0a0a0a, --panel: #141414, --panel-soft: #101010
+ *   --cyan: #d9ff00, --cyan-soft: rgba(217,255,0,.12)
  *   radii: 22px modal, 16px panels, 12px zones, 9px thumbs
  *
  * Keeps all functional features wired through the existing context:
@@ -59,29 +59,12 @@ import { isImageEditSupported } from './image-editor/imageEditSupport'
 import { DiscoveredAssetGrid } from './DiscoveredAssetGrid'
 import { ResumeProjectBanner } from './ResumeProjectBanner'
 import { SimpleModeWizard } from './guided/SimpleModeWizard'
+import { C } from './guided/tokens'
 import { OverlayEditor } from './guided/OverlayEditor'
 import { buildPreviewInput } from './guided/buildPreviewInput'
 import { BeforeAfterPreview } from './preview/BeforeAfterPreview'
 
-// ── Design tokens (mirror the approved HTML CSS variables) ──────────────────
-
-const C = {
-  bg: '#080b0f',
-  modal: '#101419',
-  panel: '#151a20',
-  panelSoft: '#12171c',
-  field: '#0d1116',
-  border: 'rgba(255,255,255,.10)',
-  borderStrong: 'rgba(255,255,255,.16)',
-  text: '#f7f9fb',
-  muted: 'rgba(255,255,255,.58)',
-  muted2: 'rgba(255,255,255,.36)',
-  cyan: '#29d3f2',
-  cyanSoft: 'rgba(41,211,242,.12)',
-  cyanBorder: 'rgba(41,211,242,.45)',
-  green: '#28c98b',
-  danger: '#ef5b67',
-} as const
+// ── Design tokens: shared remix palette (see guided/tokens.ts) ──────────────
 
 // ── Domain constants ────────────────────────────────────────────────────────
 
@@ -343,8 +326,8 @@ function UploadZone({
         className={classNames(
           'grid place-items-center text-center rounded-[12px] border border-dashed transition-colors cursor-pointer min-h-[106px] px-3 py-3',
           isDragOver
-            ? 'border-[var(--cyan-border)] bg-[rgba(41,211,242,.04)]'
-            : 'border-[rgba(255,255,255,.22)] bg-[rgba(0,0,0,.16)] hover:border-[var(--cyan-border)] hover:bg-[rgba(41,211,242,.04)]',
+            ? 'border-[var(--cyan-border)] bg-[rgba(217,255,0,.04)]'
+            : 'border-[rgba(255,255,255,.22)] bg-[rgba(0,0,0,.16)] hover:border-[var(--cyan-border)] hover:bg-[rgba(217,255,0,.04)]',
           disabled && 'opacity-50 cursor-not-allowed',
         )}
         style={{ ['--cyan-border' as any]: C.cyanBorder }}
@@ -379,7 +362,7 @@ function ThumbPlaceholder({ label, add = false, onClick }: { label: string; add?
       )}
       style={{
         borderColor: add ? 'rgba(255,255,255,.22)' : C.border,
-        background: add ? 'rgba(0,0,0,.10)' : 'linear-gradient(145deg, #3b4652, #151a20)',
+        background: add ? 'rgba(0,0,0,.10)' : 'linear-gradient(145deg, #3f3f46, #141414)',
         color: add ? C.muted : 'white',
         alignItems: add ? 'center' : 'flex-end',
         justifyContent: 'center',
@@ -434,8 +417,8 @@ function ThumbUploaded({
       className="relative w-[82px] min-h-[86px] rounded-[9px] border overflow-hidden flex items-end justify-center p-1.5 group"
       style={{
         borderColor: C.border,
-        background: light ? '#f6f7f9' : 'linear-gradient(145deg, #3b4652, #151a20)',
-        color: light ? '#101820' : 'white',
+        background: light ? '#f6f7f9' : 'linear-gradient(145deg, #3f3f46, #141414)',
+        color: light ? '#0f0f0f' : 'white',
         cursor: draggable ? 'grab' : 'default',
         opacity: isUploading ? 0.7 : 1,
       }}
@@ -471,7 +454,7 @@ function ThumbUploaded({
           type="button"
           onClick={(e) => { e.stopPropagation(); onEdit() }}
           className="absolute left-1 top-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-          style={{ background: 'rgba(41,211,242,.92)', color: '#041014' }}
+          style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
           aria-label="Edit image"
         >
           {EDIT_WITH_AI}
@@ -482,14 +465,14 @@ function ThumbUploaded({
           type="button"
           onClick={(e) => { e.stopPropagation(); onRevert() }}
           className="absolute right-1 top-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-          style={{ background: 'rgba(255,255,255,.9)', color: '#041014' }}
+          style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
           aria-label="Revert to original"
         >
           Revert
         </button>
       )}
       {label && (
-        <span className="relative text-[9px] font-extrabold z-[1]" style={{ color: light ? '#101820' : 'white' }}>
+        <span className="relative text-[9px] font-extrabold z-[1]" style={{ color: light ? '#0f0f0f' : 'white' }}>
           {label}
         </span>
       )}
@@ -498,7 +481,7 @@ function ThumbUploaded({
           type="button"
           onClick={(e) => { e.stopPropagation(); onRemove() }}
           className="absolute top-0.5 right-0.5 z-20 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ background: 'rgba(239,91,103,.85)' }}
+          style={{ background: 'rgba(239,68,68,.85)' }}
         >
           <X size={8} className="text-white" />
         </button>
@@ -1292,7 +1275,7 @@ export default function PersonalizationModal() {
       <div
         className="fixed inset-0 z-[250] flex items-center justify-center p-3 sm:p-5"
         style={{
-          background: 'radial-gradient(circle at top, rgba(41,211,242,.07), transparent 30%), #07090d',
+          background: 'radial-gradient(circle at top, rgba(217,255,0,.07), transparent 30%), #07090d',
         }}
         onClick={(e) => {
           if (e.target !== e.currentTarget) return
@@ -1603,8 +1586,8 @@ export default function PersonalizationModal() {
                 padding: '0 19px',
                 border: `1px solid ${C.cyan}`,
                 background: C.cyan,
-                color: '#041014',
-                boxShadow: '0 8px 26px rgba(41,211,242,.18)',
+                color: '#000000',
+                boxShadow: '0 8px 26px rgba(217,255,0,.18)',
               }}
             >
               {generateLabel}
@@ -1633,7 +1616,7 @@ function ProgressView({ status, progress, message }: { status: string; progress:
       <h3 className="text-lg font-bold text-white">{message || (status === 'personalizing-prompt' ? 'Personalizing Prompt...' : 'Generating...')}</h3>
       <div className="max-w-xs mx-auto">
         <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-          <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: `linear-gradient(to right, ${C.cyan}, #a855f7)` }} />
+          <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: `linear-gradient(to right, ${C.cyan}, #c4e600)` }} />
         </div>
         <p className="text-xs text-white/40 mt-1">{progress}%</p>
       </div>
@@ -1653,7 +1636,7 @@ function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: str
         <button
           onClick={retry}
           className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-          style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: C.cyan }}
+          style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}
         >
           <RefreshCw size={14} /> {retryLabel}
         </button>
@@ -1661,7 +1644,7 @@ function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: str
           <button
             onClick={generate}
             className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-            style={{ background: C.cyan, color: '#041014' }}
+            style={{ background: C.cyan, color: '#000000' }}
           >
             Try Again
           </button>
@@ -1690,7 +1673,7 @@ function ResultView(props: any) {
           <button
             key={tab}
             onClick={() => setResultTab(tab)}
-            className={classNames('px-4 py-2 text-sm font-medium transition-colors', resultTab === tab ? 'text-cyan-300' : 'text-white/50 hover:text-white/80')}
+            className={classNames('px-4 py-2 text-sm font-medium transition-colors', resultTab === tab ? 'text-primary' : 'text-white/50 hover:text-white/80')}
             style={{ borderBottom: resultTab === tab ? `2px solid ${C.cyan}` : '2px solid transparent' }}
           >
             {tab === 'prompt' ? 'Prompt' : tab === 'images' ? 'Images' : 'Videos'}
@@ -1712,14 +1695,14 @@ function ResultView(props: any) {
             </div>
             <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-white/70">{promptState.original}</pre>
           </div>
-          <div className="rounded-xl border border-cyan-400/20 bg-black/30 p-4">
+          <div className="rounded-xl border border-primary/20 bg-black/30 p-4">
             <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Personalized Prompt</span>
             <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-white/90 mt-2">
               {promptState.edited || promptState.personalized || promptState.original}
             </pre>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: C.cyan }}>
+            <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
               <RefreshCw size={14} /> Generate Again
             </button>
           </div>
@@ -1745,7 +1728,7 @@ function ResultView(props: any) {
             <button onClick={editInImageStudio} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
               Edit in Image Studio
             </button>
-            <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: C.cyan }}>
+            <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
               <Share2 size={14} /> Publish
             </button>
             <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
@@ -1774,7 +1757,7 @@ function ResultView(props: any) {
             <button onClick={editInVideoStudio} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
               Edit in Video Studio
             </button>
-            <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: C.cyan }}>
+            <button onClick={publish} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}>
               <Share2 size={14} /> Publish
             </button>
             <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
@@ -1803,7 +1786,7 @@ function ResultView(props: any) {
             <button
               onClick={retryBranding}
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold"
-              style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: C.cyan }}
+              style={{ background: 'rgba(217,255,0,0.15)', border: '1px solid rgba(217,255,0,0.3)', color: C.cyan }}
             >
               <RefreshCw size={14} /> Retry Branding
             </button>
@@ -2296,7 +2279,7 @@ function ConfigurationView(props: any) {
     return (
       <div>
         {dropError && (
-          <div style={{ marginBottom: 14, padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.danger}`, background: 'rgba(239,91,103,.08)', color: '#ff9ba3', fontSize: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ marginBottom: 14, padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.danger}`, background: 'rgba(239,68,68,.08)', color: '#fca5a5', fontSize: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
             <AlertTriangle size={14} />
             <span>{dropError}</span>
           </div>
@@ -2322,7 +2305,7 @@ function ConfigurationView(props: any) {
              <div
                key={item.id}
                className="flex items-center gap-1.5 rounded-lg px-2 py-1"
-               style={{ background: 'rgba(41,211,242,.06)', border: `1px solid rgba(41,211,242,.18)` }}
+               style={{ background: 'rgba(217,255,0,.06)', border: `1px solid rgba(217,255,0,.18)` }}
              >
                <img src={item.url} alt="" className="w-5 h-5 rounded object-cover" style={{ background: '#000' }} />
                <span style={{ fontSize: 10, fontWeight: 700, color: C.text }}>{item.name?.split('.')?.[0]?.toUpperCase()?.slice(0, 8) || 'ASSET'}</span>
@@ -2346,7 +2329,7 @@ function ConfigurationView(props: any) {
               aspectRatio: '16 / 10',
               borderRadius: 13,
               overflow: 'hidden',
-              background: 'linear-gradient(rgba(0,0,0,.24), rgba(0,0,0,.38)), linear-gradient(135deg, #303944, #12171c 70%)',
+              background: 'linear-gradient(rgba(0,0,0,.24), rgba(0,0,0,.38)), linear-gradient(135deg, #303944, #101010 70%)',
               border: `1px solid ${C.border}`,
             }}
           >
@@ -2422,7 +2405,7 @@ function ConfigurationView(props: any) {
               padding: 14,
               border: `1px solid ${C.cyan}`,
               borderRadius: 10,
-              background: 'rgba(41,211,242,.05)',
+              background: 'rgba(217,255,0,.05)',
             }}
           >
             <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.cyan, marginBottom: 6, letterSpacing: '.04em' }}>
@@ -2466,7 +2449,7 @@ function ConfigurationView(props: any) {
                   whiteSpace: 'nowrap',
                   border: `1px solid ${C.cyan}`,
                   background: C.cyan,
-                  color: '#041014',
+                  color: '#000000',
                 }}
               >
                 {brandRunInFlight ? 'Finding…' : '✦ Find My Brand'}
@@ -2518,8 +2501,8 @@ function ConfigurationView(props: any) {
                 style={{
                   minHeight: 38,
                   border: `1px solid ${clientForm.audience === key ? C.cyan : C.border}`,
-                  background: clientForm.audience === key ? C.cyan : '#11161b',
-                  color: clientForm.audience === key ? '#051014' : C.text,
+                  background: clientForm.audience === key ? C.cyan : '#121212',
+                  color: clientForm.audience === key ? '#000000' : C.text,
                 }}
               >
                 {label}
@@ -2529,7 +2512,7 @@ function ConfigurationView(props: any) {
 
           {/* Find Local Business */}
           {clientForm.audience === 'customer' && businessSearchMode === 'idle' && !clientEntryDismissed && (
-            <div style={{ marginBottom: 18, padding: 14, border: `1px dashed ${C.border}`, borderRadius: 10, background: 'rgba(41,211,242,.03)' }}>
+            <div style={{ marginBottom: 18, padding: 14, border: `1px dashed ${C.border}`, borderRadius: 10, background: 'rgba(217,255,0,.03)' }}>
               <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.muted, marginBottom: 8 }}>How would you like to add this client?</div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -2554,7 +2537,7 @@ function ConfigurationView(props: any) {
                     minHeight: 38,
                     padding: '0 16px',
                     border: `1px solid ${C.border}`,
-                    background: '#11161b',
+                    background: '#121212',
                     color: C.text,
                   }}
                 >
@@ -2631,7 +2614,7 @@ function ConfigurationView(props: any) {
                         minHeight: 34,
                         padding: '0 12px',
                         border: `1px solid ${searchRadius === miles ? C.cyan : C.border}`,
-                        background: '#11161b',
+                        background: '#121212',
                         color: C.text,
                       }}
                     >
@@ -2650,7 +2633,7 @@ function ConfigurationView(props: any) {
                   padding: '0 19px',
                   border: `1px solid ${C.cyan}`,
                   background: C.cyan,
-                  color: '#041014',
+                  color: '#000000',
                 }}
               >
                 Find Businesses
@@ -2674,7 +2657,7 @@ function ConfigurationView(props: any) {
 
           {/* Business Search Error */}
           {clientForm.audience === 'customer' && businessSearchMode === 'error' && businessSearchError && (
-            <div style={{ marginBottom: 18, padding: 14, border: `1px solid ${C.danger}`, borderRadius: 10, background: 'rgba(239,91,103,.08)' }}>
+            <div style={{ marginBottom: 18, padding: 14, border: `1px solid ${C.danger}`, borderRadius: 10, background: 'rgba(239,68,68,.08)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <span style={{ color: C.danger, fontSize: 14 }}>⚠</span>
                 <span style={{ color: C.danger, fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>Business Search Failed</span>
@@ -2743,7 +2726,7 @@ function ConfigurationView(props: any) {
                       padding: 12,
                       border: `1px solid ${selectedBusiness?.id === business.id ? C.cyanBorder : C.border}`,
                       borderRadius: 10,
-                      background: selectedBusiness?.id === business.id ? 'rgba(41,211,242,.06)' : '#11161b',
+                      background: selectedBusiness?.id === business.id ? 'rgba(217,255,0,.06)' : '#121212',
                       cursor: 'pointer',
                     }}
                     onClick={() => handleSelectBusiness(business)}
@@ -2797,8 +2780,8 @@ function ConfigurationView(props: any) {
                             style={{
                               minHeight: 32,
                               padding: '0 12px',
-                              border: `1px solid ${leadSaveState[business.id] === 'saved' ? 'rgba(40,201,139,.45)' : leadSaveState[business.id] === 'error' ? C.danger : C.border}`,
-                              background: leadSaveState[business.id] === 'saved' ? 'rgba(40,201,139,.12)' : C.panel,
+                              border: `1px solid ${leadSaveState[business.id] === 'saved' ? 'rgba(34,197,94,.45)' : leadSaveState[business.id] === 'error' ? C.danger : C.border}`,
+                              background: leadSaveState[business.id] === 'saved' ? 'rgba(34,197,94,.12)' : C.panel,
                               color: leadSaveState[business.id] === 'saved' ? C.green : leadSaveState[business.id] === 'error' ? C.danger : 'white',
                             }}
                           >
@@ -2814,7 +2797,7 @@ function ConfigurationView(props: any) {
                             padding: '0 12px',
                             border: `1px solid ${C.cyan}`,
                             background: C.cyan,
-                            color: '#041014',
+                            color: '#000000',
                           }}
                         >
                           Use This Business
@@ -2850,7 +2833,7 @@ function ConfigurationView(props: any) {
                         padding: 12,
                         border: `1px solid ${C.border}`,
                         borderRadius: 10,
-                        background: '#11161b',
+                        background: '#121212',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
@@ -2870,7 +2853,7 @@ function ConfigurationView(props: any) {
                                 fontSize: 14,
                                 lineHeight: 1,
                                 padding: 0,
-                                color: lead.starred ? '#f5b545' : C.muted2,
+                                color: lead.starred ? '#f59e0b' : C.muted2,
                               }}
                             >
                               {lead.starred ? '★' : '☆'}
@@ -2947,7 +2930,7 @@ function ConfigurationView(props: any) {
                                 padding: '0 12px',
                                 border: `1px solid ${C.cyan}`,
                                 background: C.cyan,
-                                color: '#041014',
+                                color: '#000000',
                               }}
                             >
                               Open in Personalization
@@ -2979,7 +2962,7 @@ function ConfigurationView(props: any) {
           {/* Selected Business Summary — also shown for the Find My Brand
               workflow, whose result arrives here rather than on a second screen. */}
           {businessSearchMode === 'selected' && selectedBusiness && (
-            <div style={{ marginBottom: 18, padding: 14, border: `1px solid ${C.cyan}`, borderRadius: 10, background: 'rgba(41,211,242,.06)' }}>
+            <div style={{ marginBottom: 18, padding: 14, border: `1px solid ${C.cyan}`, borderRadius: 10, background: 'rgba(217,255,0,.06)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <span style={{ color: C.cyan, fontSize: 14 }}>✓</span>
                 <span style={{ color: C.text, fontSize: 12, fontWeight: 700 }}>Selected: {selectedBusiness.name}</span>
@@ -3018,8 +3001,8 @@ function ConfigurationView(props: any) {
                       minHeight: 38,
                       padding: '0 16px',
                       border: `1px solid ${C.cyan}`,
-                      background: businessResearch.status === 'done' ? '#041014' : C.cyan,
-                      color: businessResearch.status === 'done' ? C.cyan : '#041014',
+                      background: businessResearch.status === 'done' ? '#000000' : C.cyan,
+                      color: businessResearch.status === 'done' ? C.cyan : '#000000',
                     }}
                   >
                     {businessResearch.status === 'researching' ? 'Researching...' : businessResearch.status === 'done' ? 'Research Complete' : 'Research Business'}
@@ -3046,7 +3029,7 @@ function ConfigurationView(props: any) {
                 </div>
               )}
               {businessResearch.status === 'done' && businessResearch.result && (
-                <div style={{ marginTop: 8, padding: 10, border: `1px solid ${C.border}`, borderRadius: 8, background: '#11161b' }}>
+                <div style={{ marginTop: 8, padding: 10, border: `1px solid ${C.border}`, borderRadius: 8, background: '#121212' }}>
                   {businessResearch.result.title && (
                     <div style={{ fontSize: 10, color: C.text, marginBottom: 2 }}>
                       <strong>Title:</strong> {businessResearch.result.title}
@@ -3083,7 +3066,7 @@ function ConfigurationView(props: any) {
                 </div>
               )}
               {businessResearch.status === 'error' && businessResearch.error && (
-                <div style={{ marginTop: 8, padding: 10, border: `1px solid ${C.danger}`, borderRadius: 8, background: 'rgba(239,91,103,.08)' }}>
+                <div style={{ marginTop: 8, padding: 10, border: `1px solid ${C.danger}`, borderRadius: 8, background: 'rgba(239,68,68,.08)' }}>
                   <div style={{ fontSize: 10, color: C.danger }}>Research failed: {businessResearch.error}</div>
                   {!isAnonymous && (
                     <button
@@ -3167,7 +3150,7 @@ function ConfigurationView(props: any) {
                   padding: '0 19px',
                   border: `1px solid ${C.cyan}`,
                   background: C.cyan,
-                  color: '#041014',
+                  color: '#000000',
                 }}
               >
                 {discoveryStatus === 'discovering' ? 'Discovering...' : 'Find Business Assets'}
@@ -3182,7 +3165,7 @@ function ConfigurationView(props: any) {
                 Optional — use your website to find business assets automatically, or add them manually below.
               </p>
               {discoveryError && (
-                <div style={{ marginTop: 10, padding: 12, border: `1px solid ${C.danger}`, borderRadius: 10, background: 'rgba(239,91,103,.08)' }}>
+                <div style={{ marginTop: 10, padding: 12, border: `1px solid ${C.danger}`, borderRadius: 10, background: 'rgba(239,68,68,.08)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                     <span style={{ color: C.danger, fontSize: 14 }}>⚠</span>
                     <span style={{ color: C.danger, fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>We couldn&apos;t find business assets</span>
@@ -3239,7 +3222,7 @@ function ConfigurationView(props: any) {
                 <button
                   onClick={saveClient}
                   className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold"
-                  style={{ background: 'rgba(41,211,242,.12)', border: `1px solid ${C.cyanBorder}`, color: C.cyan }}
+                  style={{ background: 'rgba(217,255,0,.12)', border: `1px solid ${C.cyanBorder}`, color: C.cyan }}
                 >
                   <Save size={14} /> {selectedClientId ? 'Update Client' : 'Save Client'}
                 </button>
@@ -3247,7 +3230,7 @@ function ConfigurationView(props: any) {
                   <button
                     onClick={() => deleteClient(selectedClientId)}
                     className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium border"
-                    style={{ color: C.danger, borderColor: 'rgba(239,91,103,.25)' }}
+                    style={{ color: C.danger, borderColor: 'rgba(239,68,68,.25)' }}
                   >
                     <Trash2 size={14} /> Delete
                   </button>
@@ -3260,7 +3243,7 @@ function ConfigurationView(props: any) {
 
       {/* ── IMPORT CONFIRMATION ───────────────────────────────────── */}
       {importConfirmation && (
-        <div style={{ padding: '14px 18px', border: `1px solid ${C.cyan}`, borderRadius: 12, background: 'rgba(41,211,242,.08)', marginBottom: 18 }}>
+        <div style={{ padding: '14px 18px', border: `1px solid ${C.cyan}`, borderRadius: 12, background: 'rgba(217,255,0,.08)', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ color: C.cyan, fontSize: 18 }}>✓</span>
             <div>
@@ -3347,7 +3330,7 @@ function ConfigurationView(props: any) {
                     onClick={analyzeDiscoveredAssets}
                     disabled={visionStatus === 'analyzing'}
                     className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-                    style={{ minHeight: 36, padding: '0 14px', border: '1px solid rgba(168,85,247,.45)', background: 'rgba(168,85,247,.10)', color: '#c4b5fd' }}
+                    style={{ minHeight: 36, padding: '0 14px', border: '1px solid rgba(196,230,0,.45)', background: 'rgba(196,230,0,.10)', color: '#e6ff66' }}
                   >
                     {visionStatus === 'analyzing' ? 'Analyzing…' : visionStatus === 'complete' ? '✓ Vision Analyzed' : '✦ Analyze with GO Vision'}
                   </button>
@@ -3378,7 +3361,7 @@ function ConfigurationView(props: any) {
                     onClick={importDiscoveredAssets}
                     disabled={batchVideoReady.running || discoveredAssets.filter((a) => a.selected && !a.rejected).length === 0}
                     className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#041014' }}
+                    style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000' }}
                   >
                     Use Selected Assets
                   </button>
@@ -3411,9 +3394,9 @@ function ConfigurationView(props: any) {
                 marginBottom: 14,
                 padding: '10px 12px',
                 borderRadius: 10,
-                border: visionError ? '1px solid rgba(239,91,103,.3)' : '1px solid rgba(168,85,247,.35)',
-                background: visionError ? 'rgba(239,91,103,.08)' : 'rgba(168,85,247,.08)',
-                color: visionError ? '#ff9ba3' : '#c4b5fd',
+                border: visionError ? '1px solid rgba(239,68,68,.3)' : '1px solid rgba(196,230,0,.35)',
+                background: visionError ? 'rgba(239,68,68,.08)' : 'rgba(196,230,0,.08)',
+                color: visionError ? '#fca5a5' : '#e6ff66',
                 fontSize: 10,
               }}
             >
@@ -3432,9 +3415,9 @@ function ConfigurationView(props: any) {
                 marginBottom: 14,
                 padding: '10px 12px',
                 borderRadius: 10,
-                border: `1px solid ${batchVideoReady.error ? 'rgba(239,91,103,.3)' : C.cyanBorder}`,
-                background: batchVideoReady.error ? 'rgba(239,91,103,.08)' : C.cyanSoft,
-                color: batchVideoReady.error ? '#ff9ba3' : C.cyan,
+                border: `1px solid ${batchVideoReady.error ? 'rgba(239,68,68,.3)' : C.cyanBorder}`,
+                background: batchVideoReady.error ? 'rgba(239,68,68,.08)' : C.cyanSoft,
+                color: batchVideoReady.error ? '#fca5a5' : C.cyan,
                 fontSize: 10,
               }}
             >
@@ -3490,7 +3473,7 @@ function ConfigurationView(props: any) {
             style={{
               minHeight: 250,
               padding: 18,
-              background: dragOverSection === 'person' ? 'rgba(41,211,242,.04)' : C.panelSoft,
+              background: dragOverSection === 'person' ? 'rgba(217,255,0,.04)' : C.panelSoft,
               border: dragOverSection === 'person' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`,
               borderRadius: 16,
               transition: 'border-color .15s, background .15s',
@@ -3550,7 +3533,7 @@ function ConfigurationView(props: any) {
               <ThumbPlaceholder label="+" add onClick={handleIdentityAddClick} />
             </div>
             {assets.primaryIdentity && (
-              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#071014', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
+              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
             )}
             <div style={{ marginTop: 9, color: C.muted2, fontSize: 10 }}>Recommended: Face + Full Body + 3/4</div>
           </article>
@@ -3563,7 +3546,7 @@ function ConfigurationView(props: any) {
             onDragOver={(e) => handleSectionDragOver('logo', e)}
             onDragLeave={(e) => handleSectionDragLeave('logo', e)}
             onDrop={(e) => handleSectionDrop('logo', e)}
-            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'logo' ? 'rgba(41,211,242,.04)' : C.panelSoft, border: dragOverSection === 'logo' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
+            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'logo' ? 'rgba(217,255,0,.04)' : C.panelSoft, border: dragOverSection === 'logo' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
           >
             <div className="flex gap-2.5 items-start" style={{ marginBottom: 14 }}>
               <div className="w-[35px] h-[35px] rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: C.cyanSoft, color: C.cyan, fontSize: 16 }}>🏷</div>
@@ -3597,7 +3580,7 @@ function ConfigurationView(props: any) {
                 placeItems: 'center',
                 border: `1px solid ${C.border}`,
                 borderRadius: 10,
-                background: assets.primaryLogo?.url ? '#000' : 'linear-gradient(145deg, #2d3742, #10151a)',
+                background: assets.primaryLogo?.url ? '#000' : 'linear-gradient(145deg, #2d3742, #0f0f0f)',
                 fontSize: 12,
                 fontWeight: 800,
                 textAlign: 'center',
@@ -3617,7 +3600,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => openLibraryImageEditor(assets.primaryLogo)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(41,211,242,.92)', color: '#041014' }}
+                  style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
                 >
                   {EDIT_WITH_AI}
                 </button>
@@ -3627,7 +3610,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => retryAssetUpload(assets.primaryLogo!.id)}
                   className="absolute top-1 right-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(239,91,103,.9)', color: '#fff' }}
+                  style={{ background: 'rgba(239,68,68,.9)', color: '#fff' }}
                 >
                   Retry
                 </button>
@@ -3665,8 +3648,8 @@ function ConfigurationView(props: any) {
             </div>
             {assets.primaryLogo && (
               <>
-                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#071014', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
-                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#071014', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Final Overlay</span>
+                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>★ Primary</span>
+                <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, marginTop: 8, marginRight: 4, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Final Overlay</span>
               </>
             )}
           </article>
@@ -3679,7 +3662,7 @@ function ConfigurationView(props: any) {
             onDragOver={(e) => handleSectionDragOver('products', e)}
             onDragLeave={(e) => handleSectionDragLeave('products', e)}
             onDrop={(e) => handleSectionDrop('products', e)}
-            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'products' ? 'rgba(41,211,242,.04)' : C.panelSoft, border: dragOverSection === 'products' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
+            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'products' ? 'rgba(217,255,0,.04)' : C.panelSoft, border: dragOverSection === 'products' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
           >
             <div className="flex gap-2.5 items-start" style={{ marginBottom: 14 }}>
               <div className="w-[35px] h-[35px] rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: C.cyanSoft, color: C.cyan, fontSize: 16 }}>📦</div>
@@ -3738,7 +3721,7 @@ function ConfigurationView(props: any) {
             onDragOver={(e) => handleSectionDragOver('brand', e)}
             onDragLeave={(e) => handleSectionDragLeave('brand', e)}
             onDrop={(e) => handleSectionDrop('brand', e)}
-            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'brand' ? 'rgba(41,211,242,.04)' : C.panelSoft, border: dragOverSection === 'brand' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
+            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'brand' ? 'rgba(217,255,0,.04)' : C.panelSoft, border: dragOverSection === 'brand' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
           >
             <div className="flex gap-2.5 items-start" style={{ marginBottom: 14 }}>
               <div className="w-[35px] h-[35px] rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: C.cyanSoft, color: C.cyan, fontSize: 16 }}>🏢</div>
@@ -3797,7 +3780,7 @@ function ConfigurationView(props: any) {
             onDragOver={(e) => handleSectionDragOver('firstFrame', e)}
             onDragLeave={(e) => handleSectionDragLeave('firstFrame', e)}
             onDrop={(e) => handleSectionDrop('firstFrame', e)}
-            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'firstFrame' ? 'rgba(41,211,242,.04)' : C.panelSoft, border: dragOverSection === 'firstFrame' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
+            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'firstFrame' ? 'rgba(217,255,0,.04)' : C.panelSoft, border: dragOverSection === 'firstFrame' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
           >
             <div className="flex gap-2.5 items-start" style={{ marginBottom: 14 }}>
               <div className="w-[35px] h-[35px] rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: C.cyanSoft, color: C.cyan, fontSize: 16 }}>🎬</div>
@@ -3831,7 +3814,7 @@ function ConfigurationView(props: any) {
                 placeItems: 'center',
                 border: `1px solid ${C.border}`,
                 borderRadius: 10,
-                background: assets.firstFrame?.url ? '#000' : 'linear-gradient(145deg, #2d3740, #10151a)',
+                background: assets.firstFrame?.url ? '#000' : 'linear-gradient(145deg, #27272a, #0f0f0f)',
                 fontSize: 12,
                 fontWeight: 800,
                 textAlign: 'center',
@@ -3851,7 +3834,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => openLibraryImageEditor(assets.firstFrame)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(41,211,242,.92)', color: '#041014' }}
+                  style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
                 >
                   {EDIT_WITH_AI}
                 </button>
@@ -3861,7 +3844,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => revertLibraryAssetToOriginal(assets.firstFrame!.id)}
                   className="absolute right-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(255,255,255,.9)', color: '#041014' }}
+                  style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
                 >
                   Revert
                 </button>
@@ -3871,14 +3854,14 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => retryAssetUpload(assets.firstFrame!.id)}
                   className="absolute top-1 right-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(239,91,103,.9)', color: '#fff' }}
+                  style={{ background: 'rgba(239,68,68,.9)', color: '#fff' }}
                 >
                   Retry
                 </button>
               )}
             </div>
             <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: C.cyan, color: '#071014', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>First Frame</span>
+              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>First Frame</span>
               {assets.firstFrame && (
                 <button
                   type="button"
@@ -3900,7 +3883,7 @@ function ConfigurationView(props: any) {
             onDragOver={(e) => handleSectionDragOver('lastFrame', e)}
             onDragLeave={(e) => handleSectionDragLeave('lastFrame', e)}
             onDrop={(e) => handleSectionDrop('lastFrame', e)}
-            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'lastFrame' ? 'rgba(41,211,242,.04)' : C.panelSoft, border: dragOverSection === 'lastFrame' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
+            style={{ minHeight: 250, padding: 18, background: dragOverSection === 'lastFrame' ? 'rgba(217,255,0,.04)' : C.panelSoft, border: dragOverSection === 'lastFrame' ? `1px solid ${C.cyanBorder}` : `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color .15s, background .15s' }}
           >
             <div className="flex gap-2.5 items-start" style={{ marginBottom: 14 }}>
               <div className="w-[35px] h-[35px] rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: C.cyanSoft, color: C.cyan, fontSize: 16 }}>🎯</div>
@@ -3934,7 +3917,7 @@ function ConfigurationView(props: any) {
                 placeItems: 'center',
                 border: `1px solid ${C.border}`,
                 borderRadius: 10,
-                background: assets.lastFrame?.url ? '#000' : 'linear-gradient(145deg, #2d3740, #10151a)',
+                background: assets.lastFrame?.url ? '#000' : 'linear-gradient(145deg, #27272a, #0f0f0f)',
                 fontSize: 12,
                 fontWeight: 800,
                 textAlign: 'center',
@@ -3955,7 +3938,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => openLibraryImageEditor(assets.lastFrame)}
                   className="absolute left-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(41,211,242,.92)', color: '#041014' }}
+                  style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
                 >
                   {EDIT_WITH_AI}
                 </button>
@@ -3965,7 +3948,7 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => revertLibraryAssetToOriginal(assets.lastFrame!.id)}
                   className="absolute right-1 bottom-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(255,255,255,.9)', color: '#041014' }}
+                  style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
                 >
                   Revert
                 </button>
@@ -3975,14 +3958,14 @@ function ConfigurationView(props: any) {
                   type="button"
                   onClick={() => retryAssetUpload(assets.lastFrame!.id)}
                   className="absolute top-1 right-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-                  style={{ background: 'rgba(239,91,103,.9)', color: '#fff' }}
+                  style={{ background: 'rgba(239,68,68,.9)', color: '#fff' }}
                 >
                   Retry
                 </button>
               )}
             </div>
             <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: C.cyan, color: '#071014', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Last Frame</span>
+              <span className="badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px', borderRadius: 7, background: C.cyan, color: '#000000', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>Last Frame</span>
               {assets.lastFrame && (
                 <button
                   type="button"
@@ -4026,8 +4009,8 @@ function ConfigurationView(props: any) {
                   minHeight: 34,
                   padding: '0 14px',
                   border: `1px solid ${savedAssetLibraryTab === key ? C.cyan : C.border}`,
-                  background: savedAssetLibraryTab === key ? C.cyan : '#11161b',
-                  color: savedAssetLibraryTab === key ? '#051014' : C.text,
+                  background: savedAssetLibraryTab === key ? C.cyan : '#121212',
+                  color: savedAssetLibraryTab === key ? '#000000' : C.text,
                 }}
               >
                 {label}
@@ -4167,7 +4150,7 @@ function ConfigurationView(props: any) {
             padding: 12,
             borderRadius: 10,
             border: dragOverSection === 'ctaGraphic' ? `1px solid ${C.cyanBorder}` : `1px solid transparent`,
-            background: dragOverSection === 'ctaGraphic' ? 'rgba(41,211,242,.04)' : 'transparent',
+            background: dragOverSection === 'ctaGraphic' ? 'rgba(217,255,0,.04)' : 'transparent',
             transition: 'border-color .15s, background .15s',
           }}
         >
@@ -4234,7 +4217,7 @@ function ConfigurationView(props: any) {
               onClick={handlePersonalize}
               disabled={!canPersonalize || isPersonalizing}
               className="rounded-[9px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
-              style={{ minHeight: 38, padding: '0 15px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#051014' }}
+              style={{ minHeight: 38, padding: '0 15px', border: `1px solid ${C.cyan}`, background: C.cyan, color: '#000000' }}
             >
               {isPersonalizing ? <Loader2 size={12} className="animate-spin inline" /> : '✦'} Personalize Prompt
             </button>
@@ -4283,12 +4266,12 @@ function ConfigurationView(props: any) {
                     minHeight: 95,
                     padding: 16,
                     borderColor: active ? C.cyan : C.border,
-                    background: active ? 'rgba(41,211,242,.045)' : C.panelSoft,
-                    boxShadow: active ? 'inset 0 0 0 1px rgba(41,211,242,.25)' : 'none',
+                    background: active ? 'rgba(217,255,0,.045)' : C.panelSoft,
+                    boxShadow: active ? 'inset 0 0 0 1px rgba(217,255,0,.25)' : 'none',
                   }}
                 >
                   {active && (
-                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: C.cyan, color: '#071014', fontSize: 11, fontWeight: 900 }}>✓</div>
+                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900 }}>✓</div>
                   )}
                   <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase' }}>{label}</h4>
                   <p style={{ margin: 0, color: C.muted, fontSize: 10, lineHeight: 1.45 }}>{description}</p>
@@ -4319,12 +4302,12 @@ function ConfigurationView(props: any) {
                     minHeight: 95,
                     padding: 16,
                     borderColor: active ? C.cyan : isUnavailable ? C.border : C.borderStrong,
-                    background: active ? 'rgba(41,211,242,.045)' : isUnavailable ? C.panel : C.panelSoft,
-                    boxShadow: active ? 'inset 0 0 0 1px rgba(41,211,242,.25)' : 'none',
+                    background: active ? 'rgba(217,255,0,.045)' : isUnavailable ? C.panel : C.panelSoft,
+                    boxShadow: active ? 'inset 0 0 0 1px rgba(217,255,0,.25)' : 'none',
                   }}
                 >
                   {active && (
-                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: C.cyan, color: '#071014', fontSize: 11, fontWeight: 900 }}>✓</div>
+                    <div className="absolute" style={{ right: 10, top: 10, width: 18, height: 18, borderRadius: '50%', display: 'grid', placeItems: 'center', background: C.cyan, color: '#000000', fontSize: 11, fontWeight: 900 }}>✓</div>
                   )}
                   <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase' }}>{m.label}</h4>
                   <p style={{ margin: 0, color: C.muted, fontSize: 10, lineHeight: 1.45 }}>{m.description}</p>
@@ -4353,12 +4336,12 @@ function ConfigurationView(props: any) {
             border: `1px solid ${C.cyan}`,
             borderRadius: 14,
             padding: '18px 20px',
-            background: 'linear-gradient(90deg, rgba(41,211,242,.10), rgba(41,211,242,.03))',
-            boxShadow: '0 0 26px rgba(41,211,242,.08), inset 0 0 0 1px rgba(41,211,242,.08)',
+            background: 'linear-gradient(90deg, rgba(217,255,0,.10), rgba(217,255,0,.03))',
+            boxShadow: '0 0 26px rgba(217,255,0,.08), inset 0 0 0 1px rgba(217,255,0,.08)',
           }}
         >
           <div className="flex gap-3 items-center">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg" style={{ background: 'rgba(41,211,242,.15)', color: C.cyan }}>✦</div>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg" style={{ background: 'rgba(217,255,0,.15)', color: C.cyan }}>✦</div>
             <div>
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 850, letterSpacing: '.02em' }}>
                 SmartVideo <span style={{ color: C.cyan }}>Recommended</span>

@@ -165,7 +165,7 @@ function TemplateLayerPreview({ layoutId }: { layoutId: PreviewLayoutId }): Reac
         width: '100%',
         aspectRatio: '16 / 9',
         borderRadius: 8,
-        background: 'linear-gradient(135deg, #12171c, #151a20)',
+        background: 'linear-gradient(135deg, #101010, #141414)',
         border: `1px solid ${C.border}`,
         display: 'flex',
         alignItems: 'center',

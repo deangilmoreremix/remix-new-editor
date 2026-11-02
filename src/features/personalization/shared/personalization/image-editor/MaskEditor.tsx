@@ -15,9 +15,9 @@ type Props = {
 const C = {
   border: 'rgba(255,255,255,.12)',
   muted: 'rgba(255,255,255,.58)',
-  cyan: '#29d3f2',
-  cyanSoft: 'rgba(41,211,242,.12)',
-  panel: '#12171c',
+  cyan: '#d9ff00',
+  cyanSoft: 'rgba(217,255,0,.12)',
+  panel: '#101010',
 }
 
 export default function MaskEditor({ imageUrl, active, onMaskChange }: Props) {
@@ -110,7 +110,7 @@ export default function MaskEditor({ imageUrl, active, onMaskChange }: Props) {
     if (!canvas || !ctx) return
     ctx.save()
     ctx.globalCompositeOperation = erase ? 'destination-out' : 'source-over'
-    ctx.fillStyle = 'rgba(41,211,242,1)'
+    ctx.fillStyle = 'rgba(217,255,0,1)'
     ctx.beginPath()
     ctx.arc(point.x, point.y, brushSize / 2, 0, Math.PI * 2)
     ctx.fill()
@@ -162,7 +162,7 @@ export default function MaskEditor({ imageUrl, active, onMaskChange }: Props) {
     if (canvas && ctx && shapeStart && tool === 'rectangle') {
       ctx.save()
       ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = 'rgba(41,211,242,1)'
+      ctx.fillStyle = 'rgba(217,255,0,1)'
       ctx.fillRect(shapeStart.x, shapeStart.y, end.x - shapeStart.x, end.y - shapeStart.y)
       ctx.restore()
     }
@@ -175,7 +175,7 @@ export default function MaskEditor({ imageUrl, active, onMaskChange }: Props) {
       if (radiusX > 0 && radiusY > 0) {
         ctx.save()
         ctx.globalCompositeOperation = 'source-over'
-        ctx.fillStyle = 'rgba(41,211,242,1)'
+        ctx.fillStyle = 'rgba(217,255,0,1)'
         ctx.beginPath()
         ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2)
         ctx.fill()
@@ -188,7 +188,7 @@ export default function MaskEditor({ imageUrl, active, onMaskChange }: Props) {
       if (points.length >= 3) {
         ctx.save()
         ctx.globalCompositeOperation = 'source-over'
-        ctx.fillStyle = 'rgba(41,211,242,1)'
+        ctx.fillStyle = 'rgba(217,255,0,1)'
         ctx.beginPath()
         ctx.moveTo(points[0].x, points[0].y)
         for (let i = 1; i < points.length; i += 1) ctx.lineTo(points[i].x, points[i].y)
@@ -254,7 +254,7 @@ export default function MaskEditor({ imageUrl, active, onMaskChange }: Props) {
 
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[9px]" style={{ color: C.muted }}>Brush</span>
-          <input type="range" min={8} max={240} value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))} className="w-24 accent-cyan-400" />
+          <input type="range" min={8} max={240} value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))} className="w-24 accent-primary" />
         </div>
 
         <button type="button" onClick={invertMask} disabled={!hasMask} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-semibold disabled:opacity-40" style={{ color: C.muted, border: '1px solid ' + C.border }}>
@@ -270,7 +270,7 @@ export default function MaskEditor({ imageUrl, active, onMaskChange }: Props) {
         <canvas
           ref={canvasRef}
           className="absolute inset-0 h-full w-full touch-none cursor-crosshair"
-          style={{ opacity: 0.48, filter: 'drop-shadow(0 0 4px rgba(41,211,242,.8))' }}
+          style={{ opacity: 0.48, filter: 'drop-shadow(0 0 4px rgba(217,255,0,.8))' }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}

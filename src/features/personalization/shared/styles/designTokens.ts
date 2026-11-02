@@ -7,10 +7,10 @@
 // ── CSS variable references ───────────────────────────────────────────────────
 // These map to the variables defined in app/globals.css
 export const colors = {
-  primary:      'var(--color-primary)',        // #22d3ee cyan
-  bgApp:        'var(--bg-app)',               // #030303
+  primary:      'var(--color-primary)',        // #d9ff00 remix neon yellow
+  bgApp:        'var(--bg-app)',               // #050505
   bgPanel:      'var(--bg-panel)',             // #0a0a0a
-  bgCard:       'var(--bg-card)',              // #111111
+  bgCard:       'var(--bg-card)',              // #141414
   border:       'var(--border-color)',         // rgba(255,255,255,0.05)
   glassBg:      'var(--glass-bg)',             // rgba(255,255,255,0.03)
   glassBorder:  'var(--glass-border)',         // rgba(255,255,255,0.08)
@@ -23,12 +23,12 @@ export const semantic = {
   textMuted:     'rgba(255,255,255,0.3)',
   textDisabled:  'rgba(255,255,255,0.2)',
   textLabel:     'rgba(255,255,255,0.4)',
-  activeAccent:  'rgba(34,211,238,0.15)',      // primary with opacity for selected bg
+  activeAccent:  'rgba(217,255,0,0.15)',      // primary with opacity for selected bg
   activeBorder:  'var(--color-primary)',
-  error:         '#f87171',
+  error:         '#ef4444',
   errorBg:       'rgba(239,68,68,0.1)',
   errorBorder:   'rgba(239,68,68,0.2)',
-  success:       '#4ade80',
+  success:       '#22c55e',
   successBg:     'rgba(74,222,128,0.1)',
 } as const
 
@@ -54,7 +54,7 @@ export const panels = {
 
 // ── Button styles ─────────────────────────────────────────────────────────────
 export const buttons = {
-  // Primary CTA — cyan background
+  // Primary CTA — remix neon-yellow background
   primary: {
     background: 'var(--color-primary)',
     color: 'black',
@@ -67,7 +67,7 @@ export const buttons = {
   },
   // Active pill — for selected tab/option
   activePill: {
-    background: 'rgba(34,211,238,0.15)',
+    background: 'rgba(217,255,0,0.15)',
     border: '1px solid var(--color-primary)',
     color: 'var(--color-primary)',
   },
@@ -79,7 +79,7 @@ export const buttons = {
   },
   // Danger
   danger: {
-    color: '#f87171',
+    color: '#ef4444',
   },
   // Icon button overlay (on hover over images etc)
   iconOverlay: {

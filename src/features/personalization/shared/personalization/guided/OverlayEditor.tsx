@@ -476,7 +476,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                       <span
                         style={{
                           background: settings.brandColors.accent,
-                          color: '#041014',
+                          color: '#000000',
                           padding: '0.4em 1.1em',
                           borderRadius: 999,
                           display: 'inline-block',
@@ -521,7 +521,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
                         height: 14,
                         borderRadius: 4,
                         background: C.cyan,
-                        border: '2px solid #041014',
+                        border: '2px solid #000000',
                         cursor: 'nwse-resize',
                       }}
                     />

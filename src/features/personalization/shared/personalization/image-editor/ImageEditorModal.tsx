@@ -982,13 +982,13 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     >
       <div
         ref={modalRef}
-        className={'relative mx-4 my-8 w-full rounded-2xl border border-white/10 ' + (editorMode === 'advanced' ? 'max-w-7xl' : 'max-w-4xl') + (dragOver ? ' border-cyan-400/60' : '')}
-        style={{ background: 'var(--bg-panel)', boxShadow: dragOver ? '0 0 40px rgba(34,211,238,.18)' : undefined }}
+        className={'relative mx-4 my-8 w-full rounded-2xl border border-white/10 ' + (editorMode === 'advanced' ? 'max-w-7xl' : 'max-w-4xl') + (dragOver ? ' border-primary/60' : '')}
+        style={{ background: 'var(--bg-panel)', boxShadow: dragOver ? '0 0 40px rgba(217,255,0,.18)' : undefined }}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-white/10 p-4">
           {dragOver && (
-            <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-center rounded-t-2xl border border-cyan-400/40 bg-cyan-400/10 py-3 text-xs font-bold uppercase tracking-wide text-cyan-300">
+            <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-center rounded-t-2xl border border-primary/40 bg-primary/10 py-3 text-xs font-bold uppercase tracking-wide text-primary">
               Drop asset to replace current image
             </div>
           )}
@@ -1062,10 +1062,10 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               {asset.source === 'discovered' && <><span>•</span><span>Discovered Asset</span></>}
             </div>
 
-            <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/[0.04] p-4">
+            <div className="rounded-xl border border-primary/20 bg-primary/[0.04] p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 text-sm font-semibold text-white"><Sparkles size={15} className="text-cyan-300" /> SmartVideo GO recommends</div>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-white"><Sparkles size={15} className="text-primary" /> SmartVideo GO recommends</div>
                   <p className="mt-1 text-xs leading-5 text-white/45">
                     {visionAnalysis?.summary || recipe.description} Output target: {visionAnalysis?.targetRole || recipe.outputRole}.
                   </p>
@@ -1105,7 +1105,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                   onChange={(event) => setCustomPrompt(event.target.value)}
                   rows={3}
                   placeholder="Example: Remove the truck behind the contractor, but keep the contractor exactly the same."
-                  className="min-h-[78px] flex-1 resize-none rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-cyan-400/50"
+                  className="min-h-[78px] flex-1 resize-none rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-primary/50"
                 />
                 <button type="button" onClick={runResponsesSmartEdit} disabled={!customPrompt.trim() || Boolean(busyLabel)} className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold disabled:opacity-50" style={buttons.primary}>
                   <Sparkles size={14} /> Smart Edit
@@ -1122,8 +1122,8 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
             )}
             {currentVersion.visionValidation && (
               <div className="rounded-xl border p-3 text-[10px] leading-4" style={{
-                borderColor: currentVersion.visionValidation.passed ? 'rgba(74,222,128,.25)' : 'rgba(251,191,36,.3)',
-                background: currentVersion.visionValidation.passed ? 'rgba(74,222,128,.06)' : 'rgba(251,191,36,.06)',
+                borderColor: currentVersion.visionValidation.passed ? 'rgba(74,222,128,.25)' : 'rgba(245,158,11,.3)',
+                background: currentVersion.visionValidation.passed ? 'rgba(74,222,128,.06)' : 'rgba(245,158,11,.06)',
                 color: currentVersion.visionValidation.passed ? '#86efac' : '#fcd34d',
               }}>
                 Vision QA: {currentVersion.visionValidation.passed ? 'Passed' : 'Review needed'} · {currentVersion.visionValidation.summary}
@@ -1302,7 +1302,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               </details>
 
               <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.02] p-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-white"><ShieldCheck size={14} className="text-cyan-300" /> SmartVideo GO Asset Protection</div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-white"><ShieldCheck size={14} className="text-primary" /> SmartVideo GO Asset Protection</div>
                 <p className="mt-2 text-[10px] leading-4 text-white/40">Choose what SmartVideo GO AI should explicitly protect. The asset recipe also preserves {recipe.preserve.join(', ')}.</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {(Object.keys(PROTECTION_LABELS) as ProtectionKey[]).map((key) => (
@@ -1369,17 +1369,17 @@ function MediaStage({
       <img src={src} alt="SmartVideo GO edit preview" className="relative z-[1] max-h-[64vh] max-w-full object-contain transition-all" style={previewStyle} />
 
       {safeArea && (
-        <div className="pointer-events-none absolute inset-[7%] z-[2] rounded-lg border border-dashed border-cyan-300/70">
-          <div className="absolute left-1/2 top-0 h-full border-l border-dashed border-cyan-300/20" />
-          <div className="absolute left-0 top-1/2 w-full border-t border-dashed border-cyan-300/20" />
+        <div className="pointer-events-none absolute inset-[7%] z-[2] rounded-lg border border-dashed border-primary/70">
+          <div className="absolute left-1/2 top-0 h-full border-l border-dashed border-primary/20" />
+          <div className="absolute left-0 top-1/2 w-full border-t border-dashed border-primary/20" />
           {aspectRatio === '9:16' && <div className="absolute inset-x-0 bottom-0 h-[16%] bg-black/20" />}
         </div>
       )}
 
       {busyLabel && (
         <div className={'absolute inset-0 z-[5] grid place-items-center backdrop-blur-[1px] ' + (progressive ? 'bg-black/20' : 'bg-black/70')}>
-          <div className="rounded-2xl border border-cyan-400/30 bg-black/70 px-7 py-6 text-center">
-            <Loader2 size={24} className="mx-auto mb-3 animate-spin text-cyan-300" />
+          <div className="rounded-2xl border border-primary/30 bg-black/70 px-7 py-6 text-center">
+            <Loader2 size={24} className="mx-auto mb-3 animate-spin text-primary" />
             <div className="text-xs font-bold uppercase tracking-wide text-white">{busyLabel}</div>
             <div className="mt-1 text-[10px] text-white/40">{progressive ? 'Progressive GPT Image 2.5 preview' : 'SmartVideo GO is processing this asset.'}</div>
           </div>
@@ -1414,7 +1414,7 @@ function VersionStrip({
   return (
     <div className={(compact ? 'mt-3 ' : '') + 'flex gap-2 overflow-x-auto pb-1'}>
       {versions.map((version, index) => (
-        <button key={version.id} type="button" onClick={() => onSelect(index)} className="group flex-none overflow-hidden rounded-xl text-left" style={{ width: compact ? 88 : 108, border: '1px solid ' + (index === versionIndex ? 'var(--color-primary)' : 'rgba(255,255,255,.1)'), background: index === versionIndex ? 'rgba(34,211,238,.08)' : 'rgba(255,255,255,.02)' }}>
+        <button key={version.id} type="button" onClick={() => onSelect(index)} className="group flex-none overflow-hidden rounded-xl text-left" style={{ width: compact ? 88 : 108, border: '1px solid ' + (index === versionIndex ? 'var(--color-primary)' : 'rgba(255,255,255,.1)'), background: index === versionIndex ? 'rgba(217,255,0,.08)' : 'rgba(255,255,255,.02)' }}>
           <div className="h-14 overflow-hidden bg-black">
             <img src={version.dataUrl} alt={version.label} className="h-full w-full object-cover" />
           </div>
@@ -1452,7 +1452,7 @@ function Slider({
   return (
     <label className="block">
       <div className="mb-1 flex justify-between text-[9px] font-semibold text-white/45"><span>{label}</span><span>{value}{suffix}</span></div>
-      <input type="range" min={min} max={max} value={value} onChange={(event) => onChange(Number(event.target.value))} className="w-full accent-cyan-400" />
+      <input type="range" min={min} max={max} value={value} onChange={(event) => onChange(Number(event.target.value))} className="w-full accent-primary" />
     </label>
   )
 }

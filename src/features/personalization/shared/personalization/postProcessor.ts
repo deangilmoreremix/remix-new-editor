@@ -165,18 +165,18 @@ export async function generateEndCardImage(
 
   // Premium dark background
   const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
-  bg.addColorStop(0, '#0a0a0f')
+  bg.addColorStop(0, '#0a0a0a')
   bg.addColorStop(0.5, '#111118')
-  bg.addColorStop(1, '#0a0a0f')
+  bg.addColorStop(1, '#0a0a0a')
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   // Top accent line
-  ctx.fillStyle = '#29d3f2'
+  ctx.fillStyle = '#d9ff00'
   ctx.fillRect(0, 0, canvas.width, 4)
 
   // Bottom accent line
-  ctx.fillStyle = '#29d3f2'
+  ctx.fillStyle = '#d9ff00'
   ctx.fillRect(0, canvas.height - 4, canvas.width, 4)
 
   // Logo (top-right, max 100px height)
@@ -204,7 +204,7 @@ export async function generateEndCardImage(
   // Business Name
   const businessName = (client?.businessName as string) || ''
   if (businessName) {
-    ctx.fillStyle = '#f7f9fb'
+    ctx.fillStyle = '#ffffff'
     ctx.font = 'bold 44px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -214,7 +214,7 @@ export async function generateEndCardImage(
   // CTA Headline
   const ctaHeadline = (client?.ctaHeadline as string) || ''
   if (ctaHeadline) {
-    ctx.fillStyle = '#29d3f2'
+    ctx.fillStyle = '#d9ff00'
     ctx.font = 'bold 52px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -239,7 +239,7 @@ export async function generateEndCardImage(
     const btnX = (canvas.width - btnWidth) / 2
     const btnY = 500
 
-    ctx.fillStyle = '#29d3f2'
+    ctx.fillStyle = '#d9ff00'
     ctx.beginPath()
     const r = 12
     ctx.moveTo(btnX + r, btnY)
@@ -254,7 +254,7 @@ export async function generateEndCardImage(
     ctx.closePath()
     ctx.fill()
 
-    ctx.fillStyle = '#051014'
+    ctx.fillStyle = '#000000'
     ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'

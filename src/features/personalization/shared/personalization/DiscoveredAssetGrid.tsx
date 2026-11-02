@@ -82,8 +82,8 @@ export function DiscoveredAssetThumb({
       onDragEnd={onDragEnd}
       className="relative w-[82px] min-h-[86px] rounded-[9px] border overflow-hidden"
       style={{
-        borderColor: asset.selected ? C.cyanBorder : asset.rejected ? 'rgba(239,91,103,.4)' : C.border,
-        background: asset.rejected ? 'rgba(239,91,103,.08)' : 'linear-gradient(145deg, #3b4652, #151a20)',
+        borderColor: asset.selected ? C.cyanBorder : asset.rejected ? 'rgba(239,68,68,.4)' : C.border,
+        background: asset.rejected ? 'rgba(239,68,68,.08)' : 'linear-gradient(145deg, #3f3f46, #141414)',
         opacity: asset.rejected ? 0.5 : 1,
         cursor: draggable ? 'grab' : 'pointer',
       }}
@@ -99,7 +99,7 @@ export function DiscoveredAssetThumb({
           type="button"
           onClick={(e) => { e.stopPropagation(); onEdit?.() }}
           className="absolute right-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-          style={{ background: 'rgba(41,211,242,.92)', color: '#041014' }}
+          style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
           aria-label="Edit discovered image"
         >
           {EDIT_WITH_AI}
@@ -110,21 +110,21 @@ export function DiscoveredAssetThumb({
           type="button"
           onClick={(e) => { e.stopPropagation(); onRevert() }}
           className="absolute left-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-          style={{ background: 'rgba(255,255,255,.9)', color: '#041014' }}
+          style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
           aria-label="Revert to original"
         >
           Revert
         </button>
       )}
       {(asset.videoReady || (asset.edited && !onRevert)) && (
-        <div className="pointer-events-none absolute left-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase" style={{ background: 'rgba(40,201,139,.9)', color: '#fff' }}>
+        <div className="pointer-events-none absolute left-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase" style={{ background: 'rgba(34,197,94,.9)', color: '#fff' }}>
           {asset.videoReady ? 'Video Ready' : 'Edited'}
         </div>
       )}
       {asset.visionAnalysis && (
         <div
           className="absolute left-1 top-[42px] z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-          style={{ background: 'rgba(168,85,247,.9)', color: '#fff' }}
+          style={{ background: 'rgba(196,230,0,.9)', color: '#fff' }}
           title={asset.visionAnalysis.summary}
         >
           Vision {Math.round(asset.visionAnalysis.confidence)}%
@@ -142,7 +142,7 @@ export function DiscoveredAssetThumb({
         }}
         aria-label={asset.selected ? 'Deselect' : 'Select'}
       >
-        {asset.selected && <span style={{ fontSize: 8, color: '#041014', fontWeight: 900 }}>✓</span>}
+        {asset.selected && <span style={{ fontSize: 8, color: '#000000', fontWeight: 900 }}>✓</span>}
       </button>
       {asset.autoAssigned && (
         <div
@@ -156,7 +156,7 @@ export function DiscoveredAssetThumb({
         type="button"
         onClick={(e) => { e.stopPropagation(); onRemove() }}
         className="absolute top-1 right-1 z-10 rounded-full p-0.5"
-        style={{ background: 'rgba(239,91,103,.85)' }}
+        style={{ background: 'rgba(239,68,68,.85)' }}
         aria-label="Remove"
       >
         <X size={8} className="text-white" />
@@ -184,7 +184,7 @@ export function DiscoveredAssetThumb({
         value={asset.category}
         onChange={(e) => onCategoryChange(e.target.value as DiscoveredAssetCategory)}
         onClick={(e) => e.stopPropagation()}
-        className="absolute bottom-1 left-1 right-1 z-10 text-[7px] font-bold rounded px-0.5 py-0.5 outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-1 focus-visible:ring-offset-black"
+        className="absolute bottom-1 left-1 right-1 z-10 text-[7px] font-bold rounded px-0.5 py-0.5 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-black"
         style={{ background: 'rgba(0,0,0,.6)', color: 'white', border: '1px solid rgba(255,255,255,.2)', fontSize: 7 }}
         aria-label="Change category"
       >
@@ -313,7 +313,7 @@ export function DiscoveredAssetLightbox({
           {asset.selected ? 'Selected ✓' : 'Select'}
         </button>
         {canEdit && (
-          <button type="button" onClick={() => { onClose(); onEdit?.(asset) }} style={{ ...actionStyle, background: C.cyan, color: '#041014', borderColor: C.cyan }}>
+          <button type="button" onClick={() => { onClose(); onEdit?.(asset) }} style={{ ...actionStyle, background: C.cyan, color: '#000000', borderColor: C.cyan }}>
             {EDIT_WITH_AI}
           </button>
         )}
@@ -325,7 +325,7 @@ export function DiscoveredAssetLightbox({
             if (count <= 1) onClose()
             else if (index >= count - 1) onIndexChange(index - 1)
           }}
-          style={{ ...actionStyle, color: C.danger, borderColor: 'rgba(239,91,103,.45)' }}
+          style={{ ...actionStyle, color: C.danger, borderColor: 'rgba(239,68,68,.45)' }}
         >
           Remove
         </button>

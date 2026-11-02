@@ -195,9 +195,9 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
   const modeButtonStyle = (active: boolean): React.CSSProperties => ({
     padding: '6px 12px',
     borderRadius: 999,
-    border: `1px solid ${active ? '#29d3f2' : 'rgba(148, 163, 184, 0.35)'}`,
-    background: active ? 'rgba(41, 211, 242, 0.15)' : 'rgba(15, 23, 42, 0.8)',
-    color: active ? '#e0f7ff' : '#cbd5e1',
+    border: `1px solid ${active ? '#d9ff00' : 'rgba(161,161,170, 0.35)'}`,
+    background: active ? 'rgba(217,255,0, 0.15)' : 'rgba(10,10,10, 0.8)',
+    color: active ? '#e0f7ff' : '#d4d4d8',
     fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
@@ -208,7 +208,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
     fontWeight: 700,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
-    color: '#cbd5e1',
+    color: '#d4d4d8',
   }
 
   // The stage is aspect-ratio driven and never wider than its parent, so the
@@ -225,7 +225,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
     aspectRatio,
     borderRadius: 12,
     overflow: 'hidden',
-    border: '1px solid rgba(148, 163, 184, 0.25)',
+    border: '1px solid rgba(161,161,170, 0.25)',
   }
 
   const modeSwitch = (
@@ -260,9 +260,9 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
               alignItems: 'center',
               padding: '4px 12px',
               borderRadius: 999,
-              background: showingBefore ? 'rgba(148, 163, 184, 0.25)' : 'rgba(40, 201, 139, 0.2)',
-              border: `1px solid ${showingBefore ? 'rgba(148, 163, 184, 0.45)' : 'rgba(40, 201, 139, 0.5)'}`,
-              color: '#e2e8f0',
+              background: showingBefore ? 'rgba(161,161,170, 0.25)' : 'rgba(34,197,94, 0.2)',
+              border: `1px solid ${showingBefore ? 'rgba(161,161,170, 0.45)' : 'rgba(34,197,94, 0.5)'}`,
+              color: '#e4e4e7',
               fontSize: 12,
               fontWeight: 700,
               cursor: 'pointer',

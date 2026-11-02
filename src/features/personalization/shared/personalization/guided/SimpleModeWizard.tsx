@@ -103,7 +103,7 @@ export function SimpleModeWizard({
                     fontSize: 11,
                     fontWeight: 800,
                     background: complete ? C.green : active ? C.cyan : 'rgba(255,255,255,.06)',
-                    color: complete || active ? '#041014' : C.muted,
+                    color: complete || active ? '#000000' : C.muted,
                   }}
                 >
                   {complete ? '✓' : entry.step}
