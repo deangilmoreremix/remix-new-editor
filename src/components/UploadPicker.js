@@ -365,10 +365,15 @@ export function createUploadPicker({
         // Use the actual rendered panel height to decide above/below placement
         const panelH = panel.offsetHeight || 420;
         const margin = 8;
-        const spaceAbove = btnRect.top;
-        const spaceBelow = window.innerHeight - btnRect.bottom;
-        // Prefer below the trigger; only go above if there's clearly more room
-        const placeAbove = spaceAbove > panelH + margin && spaceBelow < panelH / 2;
+        const headerEl = document.querySelector('header');
+        const topLimit = Math.max(16, headerEl ? headerEl.getBoundingClientRect().bottom + 8 : 0);
+        const spaceAbove = btnRect.top - margin - topLimit;
+        const spaceBelow = window.innerHeight - btnRect.bottom - margin - 16;
+        // Open upward like the model pickers; only drop down when there's
+        // less than ~240px above the trigger.
+        const placeAbove = spaceAbove >= panelH || spaceAbove >= 240 || spaceAbove >= spaceBelow;
+        panel.style.maxHeight = `${Math.max(160, placeAbove ? spaceAbove : spaceBelow)}px`;
+        panel.style.overflowY = 'auto';
         // Reset both before applying the active side
         panel.style.top = '';
         panel.style.bottom = '';
@@ -637,9 +642,15 @@ export function createUploadPicker({
                                 const btnRect = trigger.getBoundingClientRect();
                                 const containerRect = anchorContainer.getBoundingClientRect();
                                 const panelH = panel.offsetHeight;
-                                const margin = 16;
-                                const spaceAbove = btnRect.top - margin;
-                                const placeAbove = spaceAbove >= panelH;
+                                // Same placement as the initial open: stay below the app header.
+                                const margin = 8;
+                                const headerEl = document.querySelector('header');
+                                const topLimit = Math.max(16, headerEl ? headerEl.getBoundingClientRect().bottom + 8 : 0);
+                                const spaceAbove = btnRect.top - margin - topLimit;
+                                const spaceBelow = window.innerHeight - btnRect.bottom - margin - 16;
+                                const placeAbove = spaceAbove >= panelH || spaceAbove >= 240 || spaceAbove >= spaceBelow;
+                                panel.style.maxHeight = `${Math.max(160, placeAbove ? spaceAbove : spaceBelow)}px`;
+                                panel.style.overflowY = 'auto';
                                 panel.style.top = '';
                                 panel.style.bottom = '';
                                 if (placeAbove) {

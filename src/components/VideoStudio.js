@@ -23,7 +23,8 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
-import { mountVideoModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
+import { mountUpstreamModelPicker } from './upstream-picker/mountUpstreamModelPicker.jsx';
+import { videoModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerateButton, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -739,11 +740,14 @@ export function VideoStudio() {
     `, selectedModelName, 'v-model-btn', 'Select AI video model');
 
     const updateModelBtnIcon = () => {
-        const iconEl = document.getElementById('v-model-btn-icon');
+        // The button may not be in the document yet on first call.
+        const iconEl = modelBtn.querySelector('#v-model-btn-icon') || document.getElementById('v-model-btn-icon');
         if (!iconEl) return;
         const allCurrentModels = [...t2vModels, ...i2vModels, ...v2vModels];
         const current = allCurrentModels.find(m => m.id === selectedModel);
-        const provider = current?.provider || 'muapi';
+        // Same source as upstream: the picker family's provider.
+        const provider = videoModelPickerEntryByVariantId.get(selectedModel)?.family.provider
+            || current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
             iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
@@ -1127,7 +1131,7 @@ generateBtn.type = 'button';
     // 3. DROPDOWNS
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'fixed left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 -translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
@@ -1239,36 +1243,21 @@ generateBtn.type = 'button';
     const openVideoModelPicker = (anchorBtn) => {
         videoPickerController?.close();
         videoPickerController = null;
-        videoPickerController = mountVideoModelSelector({
+        // Upstream Open-Generative-AI's own ModelDropdown (React), copied verbatim.
+        videoPickerController = mountUpstreamModelPicker({
+            kind: 'video',
             anchor: anchorBtn,
             selectedModelId: selectedModel,
-            allowedModelTypes: ['t2v', 'i2v', 'v2v'],
-            copy: {
-                categories: { t2v: 'Text to Video', i2v: 'Image to Video', v2v: 'Video to Video' },
-                searchPlaceholder: 'Search models...',
-            },
-            onSelectCategory: (catId) => {
-                const nextModels = catId === 'v2v' ? v2vModels : (catId === 'i2v' ? i2vModels : t2vModels);
-                const modelId = nextModels[0]?.id || selectedModel;
-                const { newV2V, newI2V } = videoModelBase(modelId, catId);
-                if (newV2V) {
-                    picker.reset();
-                    uploadedImageUrl = null;
-                    uploadedVideoUrl = null;
-                    textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
-                    textarea.disabled = true;
-                } else {
-                    textarea.disabled = false;
-                    textarea.placeholder = newI2V
-                        ? 'Describe the motion or effect (optional)'
-                        : 'Describe the video you want to create';
-                }
-                videoPickerController?.refresh(modelId);
-            },
-            onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
+            onSelect: (entry, catId) => {
+                // Upstream rule: a mode tab picks that mode's variant. From "All",
+                // keep the current mode and only fall back to the family default.
+                const currentMode = v2vMode ? 'v2v' : (imageMode ? 'i2v' : 't2v');
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId] || entry.defaultVariant
+                    : entry.variantsByMode[currentMode] || entry.defaultVariant;
                 const modelId = variant?.model?.id || selectedModel;
-                const { newV2V, newI2V, wasV2V } = videoModelBase(modelId, catId);
+                const mode = variant?.mode || (catId !== 'all' ? catId : currentMode);
+                const { newV2V, newI2V, wasV2V } = videoModelBase(modelId, mode);
                 if (newV2V) {
                     picker.reset();
                     uploadedImageUrl = null;
@@ -1406,10 +1395,6 @@ generateBtn.type = 'button';
             dropdown.style.left = '50%';
             dropdown.style.transform = 'translateX(-50%)';
         }
-        dropdown.style.bottom = '';
-        const btnRect = anchorBtn.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
     const closeDropdown = () => {

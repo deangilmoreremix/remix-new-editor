@@ -677,8 +677,15 @@ export function CinemaStudio() {
                 cinemaPickerController?.refresh(nextModels[0]?.id || null);
             },
             onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
-                if (variant) currentSettings.model = variant.model.id;
+                // From "All", use the variant that matches how Cinema will
+                // generate (image-to-video when a reference is set). Cinema
+                // only runs T2V/I2V, so ignore any other variant.
+                const currentMode = currentSettings.referenceUrl ? 'i2v' : 't2v';
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId]
+                    : entry.variantsByMode[currentMode] || entry.variantsByMode.t2v || entry.variantsByMode.i2v;
+                if (!variant || !['t2v', 'i2v'].includes(variant.mode)) return;
+                currentSettings.model = variant.model.id;
                 updateModelBtn();
                 updateControlsForModel();
                 closeModelDropdown();

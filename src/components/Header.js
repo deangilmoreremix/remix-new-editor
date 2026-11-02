@@ -71,7 +71,7 @@ export function Header(navigate) {
     { label: 'Lead Finder', route: 'leadfinder' },
     { label: 'Video Agent', route: 'video-agent' },
     { label: 'AI VFX', route: 'ai-vfx' },
-    { label: 'CineGen Studio', route: 'cinegen' },
+    { label: 'Workbench', route: 'workbench' },
     { label: 'Brand Studio', route: 'brand' },
     { label: 'Animate', route: 'animate' },
     { label: 'Website Builder', route: 'website-builder' },

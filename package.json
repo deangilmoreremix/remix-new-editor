@@ -1,6 +1,6 @@
 {
   "name": "smartvideo",
-  "description": "SmartVideo — AI video generation studio with 20+ models",
+  "description": "SmartVideo \u2014 AI video generation studio with 20+ models",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite --port 3100",
     "dev:all": "concurrently -n root,video-agent-studio -c magenta,cyan \"npm run dev\" \"npm run dev:video-agent-studio\"",
-    "build": "npm run build:openthorn && rm -rf dist && vite build",
+    "build": "npm run build:openthorn && npm run build:workbench && npm run build:motion-agent && rm -rf dist && vite build",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
@@ -37,7 +37,10 @@
     "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash",
     "cinegen:install": "cd apps/cinegen && ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install && npm --prefix web install",
     "cinegen:build": "npm --prefix apps/cinegen/web run build",
-    "cinegen:start": "NODE_ENV=production npm --prefix apps/cinegen/web run start"
+    "cinegen:start": "NODE_ENV=production npm --prefix apps/cinegen/web run start",
+    "build:workbench": "npm --prefix apps/shotcraft/workbench ci --no-audit --no-fund && cd apps/shotcraft/workbench && node scripts/gen-index.mjs && npx vite build --base=/workbench-app/ && rm -rf ../../../public/workbench-app && cp -rL dist ../../../public/workbench-app",
+    "build:motion-agent": "npm --prefix apps/motion-agent ci --no-audit --no-fund && cd apps/motion-agent && npx vite build --base=/motion-agent/ && rm -rf ../../public/motion-agent && cp -r dist ../../public/motion-agent",
+    "gen:video-agent-server": "node apps/motion-agent/scripts/gen-server.mjs"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.29.9",
@@ -75,6 +78,7 @@
     "vitest": "^4.1.2"
   },
   "dependencies": {
+    "@ai-sdk/openai": "2.0.74",
     "@chakra-ui/react": "^2.10.10",
     "@clerk/clerk-js": "^6.20.0",
     "@clerk/react": "^6.12.4",
@@ -118,6 +122,7 @@
     "@tanstack/react-virtual": "^3.13.24",
     "@xstate/react": "^6.1.0",
     "@xyflow/react": "^12.3.6",
+    "ai": "5.0.104",
     "axios": "^1.21.0",
     "caniuse-lite": "^1.0.30001813",
     "cheerio": "^1.2.0",

@@ -212,6 +212,14 @@ export function saveGeneration(data) {
   // 2. Supabase — fire-and-forget (cloud persistence for Library Studio)
   saveToSupabase(entry).catch(() => {});
 
+  // 3. Let the app offer "Edit in Workbench" (see src/lib/workbench.js). The raw
+  //    studio name is kept because normalizeStudioType() folds unknown studios.
+  if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
+    try {
+      window.dispatchEvent(new CustomEvent('generation:saved', { detail: { entry, studio: String(studio) } }));
+    } catch { /* never block a save on UI */ }
+  }
+
   return entry;
 }
 

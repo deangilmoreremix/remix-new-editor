@@ -88,17 +88,17 @@ describe('Model picker upgrade', () => {
     expect(returnSection).toContain('refresh');
   });
 
-  it('ImageStudio should import mountImageModelSelector', async () => {
+  it('ImageStudio should use the upstream ModelDropdown picker', async () => {
     const fs = await import('node:fs');
     const content = fs.readFileSync('src/components/ImageStudio.js', 'utf-8');
-    expect(content).toContain('mountImageModelSelector');
+    expect(content).toContain('mountUpstreamModelPicker');
     expect(content).not.toContain('mountModelSelector(');
   });
 
-  it('VideoStudio should import mountVideoModelSelector', async () => {
+  it('VideoStudio should use the upstream ModelDropdown picker', async () => {
     const fs = await import('node:fs');
     const content = fs.readFileSync('src/components/VideoStudio.js', 'utf-8');
-    expect(content).toContain('mountVideoModelSelector');
+    expect(content).toContain('mountUpstreamModelPicker');
     expect(content).not.toContain('mountModelSelector(');
   });
 
