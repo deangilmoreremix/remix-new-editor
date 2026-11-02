@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Img } from "remotion";
+import { AbsoluteFill, Img, useRemotionEnvironment } from "remotion";
 import { Audio, Video } from "@remotion/media";
 import { pub } from "../pub";
 import type { CardDef } from "./types";
@@ -56,11 +56,16 @@ export const videoClipCard: CardDef = {
 };
 
 const ImageClip: React.FC<{ file?: string; fit?: string }> = ({ file = "", fit = "contain" }) => {
+  const { isRendering } = useRemotionEnvironment();
   if (!file) return null;
   return (
     <AbsoluteFill style={{ background: "#000" }}>
+      {/* SmartVid: AI outputs live on other origins (MuAPI CDN, Supabase). While exporting,
+          request them with CORS so @remotion/web-renderer can read the pixels. The live
+          preview loads them plainly, so it still shows files from hosts without CORS. */}
       <Img
         src={pub(file)}
+        crossOrigin={isRendering && /^https?:/i.test(file) ? "anonymous" : undefined}
         style={{ width: "100%", height: "100%", objectFit: fit as React.CSSProperties["objectFit"] }}
       />
     </AbsoluteFill>

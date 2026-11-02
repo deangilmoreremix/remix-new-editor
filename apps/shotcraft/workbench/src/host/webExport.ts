@@ -42,3 +42,14 @@ export const exportProjectOnWeb = async (
   });
   return getBlob();
 };
+
+/** Turn renderer media errors into something a user can act on. Hosts that don't send
+ *  CORS headers can be previewed but not read by the in-browser renderer. */
+export const explainExportError = (e: unknown, project: ProjectData): string => {
+  const msg = e instanceof Error ? e.message : String(e);
+  const src = msg.match(/https?:\/\/[^\s"')]+/)?.[0];
+  if (!src || !/(load|fetch|decode|CORS|cross-origin|Failed)/i.test(msg)) return msg;
+  const clip = project.tracks.flatMap((t) => t.clips).find((c) => c.props.file === src);
+  const name = clip?.label || src.split("/").pop()?.split("?")[0] || "A media file";
+  return `"${name}" couldn't be read for export: its host (${new URL(src).host}) doesn't allow in-browser rendering (CORS). Remove or replace that clip and export again.`;
+};
