@@ -44,4 +44,14 @@ describe('uploadPersonalizationAsset', () => {
     expect(result.muapiUrl).toBe('https://muapi.example/tmp.png')
     expect(adapter.uploadImageToMuAPI).toHaveBeenCalledTimes(1)
   })
+
+  it('stores background audio durably without a MuAPI copy, even with a key', async () => {
+    const audio = new File([new Uint8Array([73, 68, 51])], 'theme.mp3', { type: 'audio/mpeg' })
+    const result = await uploadPersonalizationAsset('sk-key', { file: audio, assetId: 'audio-1' })
+
+    expect(result.url).toBe('https://store.example/ws/logo.png')
+    expect(result.muapiUrl).toBeUndefined()
+    expect(adapter.uploadImageToMuAPI).not.toHaveBeenCalled()
+    expect(adapter.uploadVideoToMuAPI).not.toHaveBeenCalled()
+  })
 })

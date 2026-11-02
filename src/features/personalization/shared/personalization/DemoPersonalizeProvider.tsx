@@ -113,6 +113,29 @@ import {
 } from './templates/registry'
 import type { RemotionDesignTemplate } from './templates/types'
 
+/**
+ * Merge a job's reusable assets into a client's saved library: entries with
+ * the same id are updated in place, new ones are appended, and saved entries
+ * the job doesn't hold are kept. A job primary wins over the saved one.
+ */
+function mergeIntoClientLibrary(saved: ClientAssetLibrary, job: ClientAssetLibrary): ClientAssetLibrary {
+  const mergeList = (base: PersonalizationAsset[] = [], incoming: PersonalizationAsset[] = []) => {
+    const byId = new Map(incoming.map((asset) => [asset.id, asset]))
+    const merged = base.map((asset) => byId.get(asset.id) ?? asset)
+    const known = new Set(base.map((asset) => asset.id))
+    for (const asset of incoming) if (!known.has(asset.id)) merged.push(asset)
+    return merged
+  }
+  return {
+    identities: mergeList(saved.identities, job.identities),
+    primaryIdentity: job.primaryIdentity ?? saved.primaryIdentity ?? null,
+    logos: mergeList(saved.logos, job.logos),
+    primaryLogo: job.primaryLogo ?? saved.primaryLogo ?? null,
+    products: mergeList(saved.products, job.products),
+    brandReferences: mergeList(saved.brandReferences, job.brandReferences),
+  }
+}
+
 const EMPTY_ASSET_LIBRARY: AssetLibrary = {
   identities: [],
   primaryIdentity: null,
@@ -1486,17 +1509,23 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setPreviewApproved(false)
   }, [source?.id, source])
 
-  // Persist current reusable assets to saved client library whenever they change
+  // Persist current reusable assets to saved client library whenever they change.
+  //
+  // remix-new-editor: merge the job's assets INTO the saved library instead of
+  // replacing it. `assets` starts empty on load and is reset whenever a new
+  // source opens, while the selected client is kept, so replacing would wipe
+  // the client's saved identities, logos and products. Saved entries are only
+  // dropped through the explicit actions (removeSavedAsset, deleteSavedClient).
   useEffect(() => {
     if (!selectedClientId) return
-    const library: ClientAssetLibrary = {
+    const library = mergeIntoClientLibrary(loadClientAssets(selectedClientId), {
       identities: assets.identities,
       primaryIdentity: assets.primaryIdentity,
       logos: assets.logos,
       primaryLogo: assets.primaryLogo,
       products: assets.products,
       brandReferences: assets.brandReferences,
-    }
+    })
     saveClientAssets(selectedClientId, library)
     setSavedClientAssets(library)
   }, [

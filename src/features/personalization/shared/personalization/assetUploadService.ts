@@ -38,6 +38,12 @@ import {
   type MuAPIAuthContext,
 } from '@ohb/lib/muapiUpload';
 
+const AUDIO_EXTENSION = /\.(mp3|wav|m4a|aac|ogg|oga|flac|weba)$/i
+
+function isAudioFile(file: File): boolean {
+  return String(file.type || '').startsWith('audio/') || AUDIO_EXTENSION.test(file.name || '')
+}
+
 export interface UploadPersonalizationAssetInput {
   file: File
   /**
@@ -117,7 +123,11 @@ export async function uploadPersonalizationAsset(
   // Saving needs no MuAPI key: without one the asset is stored durably and the
   // MuAPI copy is made later, from storage, when a generation needs it
   // (`resolvePersonalizationAssetMuAPIUrl`).
-  if (!authContext.apiKey) {
+  //
+  // remix-new-editor: background audio never needs a MuAPI copy (the preview
+  // plays the durable URL), and the MuAPI copy path only accepts images and
+  // videos, so audio would fail there after it was already stored.
+  if (!authContext.apiKey || isAudioFile(file)) {
     if (onProgress) onProgress(100);
     return {
       url: durable.durableUrl || durable.durableRef,

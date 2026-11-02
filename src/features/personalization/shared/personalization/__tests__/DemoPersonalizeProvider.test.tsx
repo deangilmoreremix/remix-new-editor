@@ -2455,3 +2455,63 @@ describe('DemoPersonalizeProvider persistence dedup (Phase 3 review finding 1)',
     expect(cancelCalls!.length).toBe(3)
   })
 })
+
+describe('saved client library survives an empty job', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('keeps a client\'s saved assets on load, on a new source, and when the client is picked', async () => {
+    const { saveClientAssets, loadClientAssets } = await import('../clientAssets')
+    const { setCurrentClientId, createClient } = await import('../clientProfile')
+    const clientId = createClient({ businessName: 'Acme Roofing' }).id
+    const logo = {
+      id: 'saved-logo-1', role: 'logo', name: 'logo.png', url: 'https://cdn.example/logo.png',
+      isPrimary: true, mimeType: 'image/png', createdAt: new Date().toISOString(),
+      uploadStatus: 'ready', uploadError: null,
+    } as any
+    saveClientAssets(clientId, {
+      identities: [], primaryIdentity: null, logos: [logo], primaryLogo: logo, products: [], brandReferences: [],
+    })
+    setCurrentClientId(clientId)
+
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+    await act(async () => {
+      root.render(
+        <DemoPersonalizeProvider>
+          <TestOpener />
+        </DemoPersonalizeProvider>,
+      )
+    })
+    await act(async () => {
+      ;(window as any).__personalizationCtx.openPersonalize({
+        source: { id: 'demo-2', title: 'Test', mediaType: 'video', originalPrompt: 'test', sourceMedia: null, poster: null, fullPrompt: 'test', shortPrompt: 'test', sourceType: 'landing-demo', sourceMetadata: {} },
+      })
+    })
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50))
+    })
+
+    // Mounting with the client selected and opening a new (empty) job must not
+    // wipe the saved library…
+    expect(loadClientAssets(clientId).logos.map((l) => l.id)).toEqual(['saved-logo-1'])
+
+    // …and neither must picking that saved client while the job is empty.
+    await act(async () => {
+      ;(window as any).__personalizationCtx.useSavedClient(clientId)
+    })
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20))
+    })
+
+    const ctx = (window as any).__personalizationCtx
+    expect(ctx.selectedClientId).toBe(clientId)
+    expect(ctx.savedClientAssets.logos.map((l: any) => l.id)).toEqual(['saved-logo-1'])
+    expect(loadClientAssets(clientId).logos.map((l) => l.id)).toEqual(['saved-logo-1'])
+    expect(loadClientAssets(clientId).primaryLogo?.id).toBe('saved-logo-1')
+    await act(async () => root.unmount())
+    container.remove()
+  })
+})
