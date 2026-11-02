@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { usePageTitle } from '../lib/usePageTitle'
 import DashboardSidebar from '../components/DashboardSidebar/DashboardSidebar'
 import styles from './ProfilePage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
 
 interface CommunityPost {
   id: string
@@ -49,7 +50,7 @@ function formatRelativeTime(iso: string): string {
 
 export default function ProfilePage() {
   usePageTitle('Profile', {
-    description: 'View your Smart Video profile and community activity.',
+    description: 'View your Smart Website Builder profile and community activity.',
   })
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -149,7 +150,7 @@ export default function ProfilePage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
+          <BrandLogo className={styles.mobileLogoImg} />
         </a>
       </div>
 

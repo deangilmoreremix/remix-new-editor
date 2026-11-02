@@ -9,9 +9,9 @@ import DashboardSidebar, { type ProjectFilter, type SidebarNotification } from '
 import PromptInput from '../components/PromptInput/PromptInput'
 import { shouldShowQuickstart } from '../lib/quickstart'
 import { startDashboardTour } from '../lib/dashboard-tour'
-import FloatingParticles from '../components/FloatingParticles/FloatingParticles'
 import type { SelectedModel } from '../components/ModelSelector/ModelSelector'
 import styles from './DashboardPage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
 
 interface Project {
   id: string
@@ -80,7 +80,7 @@ const INITIAL_VISIBLE = 4
 
 export default function DashboardPage() {
   usePageTitle('Dashboard', {
-    description: 'Create, manage, search, publish, and deploy your Smart Video projects.',
+    description: 'Create, manage, search, publish, and deploy your Smart Website Builder projects.',
   })
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
@@ -608,18 +608,6 @@ export default function DashboardPage() {
   return (
     <>
       <div className={styles.root}>
-      <FloatingParticles
-        particleCount={30}
-        particleSize={2}
-        particleOpacity={0.25}
-        particleColor="#A78BFA"
-        glowIntensity={10}
-        movementSpeed={0.25}
-        mouseInfluence={100}
-        mouseGravity="attract"
-        gravityStrength={20}
-        glowAnimation="ease"
-      />
       <DashboardSidebar
         projects={projects}
         activeFilter={activeFilter}
@@ -656,7 +644,7 @@ export default function DashboardPage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
+          <BrandLogo className={styles.mobileLogoImg} />
         </a>
       </div>
 
@@ -1081,7 +1069,7 @@ export default function DashboardPage() {
             </button>
             <h2 className={styles.publishTitle}>Publish to Community</h2>
             <p className={styles.publishSubtitle}>
-              Share <strong>{publishingProject.title}</strong> with the Smart Video community.
+              Share <strong>{publishingProject.title}</strong> with the Smart Website Builder community.
             </p>
             <label className={styles.publishLabel}>
               Description <span className={styles.publishOptional}>(optional)</span>

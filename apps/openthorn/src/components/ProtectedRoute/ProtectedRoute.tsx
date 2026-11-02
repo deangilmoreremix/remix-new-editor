@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../lib/AuthContext'
 import AuthModal from '../AuthModal/AuthModal'
 import styles from './ProtectedRoute.module.css'
+import BrandLogo from '../BrandLogo/BrandLogo'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -23,7 +24,7 @@ export default function ProtectedRoute({ children, pageName }: ProtectedRoutePro
       <div className={styles.gate}>
         <div className={styles.card}>
           <div className={styles.logo}>
-            <img src="/assets/logo.png" alt="Smart Video" className={styles.logoImg} />
+            <BrandLogo className={styles.logoImg} />
           </div>
           <h1 className={styles.heading}>Sign in to continue</h1>
           <p className={styles.subtext}>

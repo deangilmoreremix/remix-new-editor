@@ -27,6 +27,8 @@ describe('Website Builder regression', () => {
     expect(iframe).not.toBeNull();
     expect(iframe.getAttribute('loading')).toBe('lazy');
     expect(iframe.getAttribute('sandbox')).toBeTruthy();
-    expect(iframe.getAttribute('title')).toBe('Website Builder');
+    expect(iframe.getAttribute('title')).toBe('Smart Website Builder');
+    // The builder must open on its Dashboard, never the upstream marketing landing.
+    expect(iframe.getAttribute('src')).toMatch(/\/dashboard$/);
   });
 });

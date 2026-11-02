@@ -117,7 +117,7 @@ export const STUDIO_ROUTES = {
   'brand-photo-studio': { label: 'Brand Photo Studio', category: 'Brand' },
   'studios/product-photo-studio': { label: 'Product Photo Studio', category: 'Pages' },
   'studios/fashion-studio': { label: 'Fashion Studio', category: 'Pages' },
-  openthorn: { label: 'OpenThorn', category: 'Pages' },
+  openthorn: { label: 'Smart Website Builder', category: 'Pages' },
 };
 
 // Ordered category groups for the drawer. 'Generate', 'Pages' and 'Brand'

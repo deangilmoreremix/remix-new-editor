@@ -1,8 +1,8 @@
 // tests/e2e/website-builder-navigation.spec.js
-// Verifies the Smart Video Website Builder entry is present in the sidebar and navigates correctly.
+// Verifies the Smart Website Builder entry is present in the sidebar and navigates correctly.
 import { test, expect } from '@playwright/test';
 
-test.describe('Smart Video Website Builder navigation', () => {
+test.describe('Smart Website Builder navigation', () => {
   test('sidebar shows Website Builder and navigates to website-builder route', async ({ page }) => {
     await page.goto('/?dev#/explore', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#app', { timeout: 30_000 });
@@ -17,11 +17,12 @@ test.describe('Smart Video Website Builder navigation', () => {
     await expect(page).toHaveURL(/#\/website-builder/);
   });
 
-  test('website-builder route renders Smart Video Studio iframe', async ({ page }) => {
+  test('website-builder route renders the Smart Website Builder iframe on its dashboard', async ({ page }) => {
     await page.goto('/?dev#/website-builder', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#app', { timeout: 30_000 });
 
-    const iframe = page.locator('iframe[title="Website Builder"]');
+    const iframe = page.locator('iframe[title="Smart Website Builder"]');
     await expect(iframe).toBeAttached({ timeout: 15_000 });
+    await expect(iframe).toHaveAttribute('src', /\/dashboard$/);
   });
 });

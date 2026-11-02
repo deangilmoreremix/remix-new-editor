@@ -7,6 +7,7 @@ import type { AgentCodeFile } from '../lib/agent'
 import DashboardSidebar from '../components/DashboardSidebar/DashboardSidebar'
 import ModelSelector, { type SelectedModel } from '../components/ModelSelector/ModelSelector'
 import styles from './CommunityPage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
 
 interface CommunityPost {
   id: string
@@ -52,7 +53,7 @@ function postAccentColor(title: string): string {
 
 export default function CommunityPage() {
   usePageTitle('Community', {
-    description: 'Browse and remix websites shared by the Smart Video community.',
+    description: 'Browse and remix websites shared by the Smart Website Builder community.',
   })
   const { user, loading } = useAuth()
   const navigate = useNavigate()
@@ -232,14 +233,14 @@ export default function CommunityPage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
+          <BrandLogo className={styles.mobileLogoImg} />
         </a>
       </div>
 
       <main className={styles.main}>
         <div className={styles.header}>
           <h1 className={styles.heading}>Community</h1>
-          <p className={styles.subheading}>Projects built and shared by the Smart Video community.</p>
+          <p className={styles.subheading}>Projects built and shared by the Smart Website Builder community.</p>
         </div>
 
         <div className={styles.controls}>

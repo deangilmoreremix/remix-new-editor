@@ -9,6 +9,7 @@ import { fetchPublishedTemplates } from '../lib/templates-db'
 import DashboardSidebar from '../components/DashboardSidebar/DashboardSidebar'
 import ModelSelector, { type SelectedModel } from '../components/ModelSelector/ModelSelector'
 import styles from './TemplatesPage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
 
 type DeviceMode = 'desktop' | 'tablet' | 'phone'
 
@@ -36,7 +37,7 @@ function mergePublishedWithBundled(published: Template[]): Template[] {
 
 export default function TemplatesPage() {
   usePageTitle('Templates', {
-    description: 'Start a new Smart Video project from a ready-made website template.',
+    description: 'Start a new Smart Website Builder project from a ready-made website template.',
   })
   const { user, loading } = useAuth()
   const navigate = useNavigate()
@@ -123,7 +124,7 @@ export default function TemplatesPage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
+          <BrandLogo className={styles.mobileLogoImg} />
         </a>
       </div>
 

@@ -32,6 +32,19 @@
   width: auto;
 }
 
+.logoText {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.logo:hover .logoText {
+  color: var(--color-accent);
+}
+
 .bellBtn {
   position: relative;
   display: flex;
@@ -186,7 +199,7 @@
 /* Active state — subtle background + left accent */
 .navItemActive {
   color: var(--color-text);
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(217, 255, 0, 0.1);
 }
 
 .navItemActive::before {
@@ -202,7 +215,7 @@
 }
 
 .navItemActive:hover {
-  background: rgba(139, 92, 246, 0.15);
+  background: rgba(217, 255, 0, 0.15);
 }
 
 /* Icons */
@@ -292,7 +305,7 @@
   height: 32px;
   border-radius: 8px;
   background: var(--color-accent);
-  color: #08050C;
+  color: #050505;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -377,7 +390,7 @@
   height: 34px;
   border-radius: 9px;
   background: var(--color-accent);
-  color: #08050C;
+  color: #050505;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -471,8 +484,8 @@
   min-width: 16px;
   height: 16px;
   border-radius: 8px;
-  background: #7c3aed;
-  color: #fff;
+  background: #d9ff00;
+  color: var(--color-accent-contrast);
   font-size: 10px;
   font-weight: 700;
   display: flex;
@@ -483,8 +496,8 @@
 }
 
 .notifItemUnread {
-  background: rgba(124, 58, 237, 0.08);
-  border-left: 2px solid #7c3aed;
+  background: rgba(217, 255, 0, 0.08);
+  border-left: 2px solid #d9ff00;
   padding-left: 10px;
 }
 

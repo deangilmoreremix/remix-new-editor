@@ -4,6 +4,7 @@ import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { usePageTitle } from '../lib/usePageTitle'
 import styles from './SettingsPage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
 
 type Tab = 'account' | 'providers' | 'knowledge' | 'danger'
 
@@ -38,7 +39,7 @@ const navItems: { id: Tab; label: string; danger?: boolean; icon: React.ReactNod
 
 export default function SettingsPage() {
   usePageTitle('Settings', {
-    description: 'Manage your Smart Video account, provider settings, custom instructions, and account safety options.',
+    description: 'Manage your Smart Website Builder account, provider settings, custom instructions, and account safety options.',
   })
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
@@ -147,7 +148,7 @@ export default function SettingsPage() {
       <aside className={styles.sidebar}>
         <div className={styles.logoRow}>
           <a href="/dashboard" className={styles.logo}>
-            <img src="/assets/logo.png" alt="Smart Video" className={styles.logoImg} />
+            <BrandLogo className={styles.logoImg} />
           </a>
         </div>
 

@@ -28,6 +28,7 @@ import {
 import PromptInput from '../components/PromptInput/PromptInput'
 import { useCollaboration, type CollaboratorPresence } from '../lib/useCollaboration'
 import styles from './ProjectBuilderPage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
 
 interface ProjectRouteState {
   prompt?: string
@@ -43,7 +44,7 @@ interface ProjectRouteState {
 const EMPTY_CODE_FILE: AgentCodeFile = {
   path: 'No files yet',
   language: 'txt',
-  code: 'Smart Video will show the generated files after the first successful build.',
+  code: 'Smart Website Builder will show the generated files after the first successful build.',
 }
 
 interface FileTreeNode {
@@ -369,7 +370,7 @@ export default function ProjectBuilderPage() {
   const initialThinkingLevel = normalizeThinkingLevel(state.thinkingLevel)
   const [title, setTitle] = useState(state.title ?? '')
   usePageTitle(title || 'Project', {
-    description: 'Build, preview, refine, export, and deploy a Smart Video project.',
+    description: 'Build, preview, refine, export, and deploy a Smart Website Builder project.',
   })
   const [projectFiles, setProjectFiles] = useState<AgentCodeFile[]>([])
   const [activeModel, setActiveModel] = useState<SelectedAgentModel | null>(state.selectedModel ?? null)
@@ -1161,7 +1162,7 @@ export default function ProjectBuilderPage() {
 
     if (!account) {
       setInviteLoading(false)
-      setInviteError('No Smart Video account found for that email.')
+      setInviteError('No Smart Website Builder account found for that email.')
       return
     }
 
@@ -1340,7 +1341,7 @@ export default function ProjectBuilderPage() {
         {
           id: assistantId,
           role: 'assistant' as const,
-          title: 'Smart Video',
+          title: 'Smart Website Builder',
           timeline: [],
         },
       ]
@@ -1693,7 +1694,7 @@ export default function ProjectBuilderPage() {
       {
         id: `assistant-textedit-${Date.now()}`,
         role: 'assistant' as const,
-        title: 'Smart Video',
+        title: 'Smart Website Builder',
         summary: `Updated the text to “${newText}”.`,
         timeline: [],
         files: nextFiles,
@@ -1789,7 +1790,7 @@ export default function ProjectBuilderPage() {
           </button>
 
           <div className={styles.brandCluster}>
-             <img src="/assets/logo.png" alt="Smart Video" className={styles.logo} />
+             <BrandLogo className={styles.logo} />
             <div>
               {titleEditing ? (
                 <input
@@ -2040,7 +2041,7 @@ export default function ProjectBuilderPage() {
                       <div className={styles.personInfo}>
                         <strong>{collaborator.name}</strong>
                         <span>
-                           {collaborator.email} - {collaborator.accountVerified ? 'Smart Video account' : 'Pending'} - Invited {new Date(collaborator.invitedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                           {collaborator.email} - {collaborator.accountVerified ? 'Smart Website Builder account' : 'Pending'} - Invited {new Date(collaborator.invitedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                       {canManageShare ? (
@@ -2181,8 +2182,8 @@ export default function ProjectBuilderPage() {
                   key={message.id}
                 >
                   <div className={styles.assistantTop}>
-                    <img src="/assets/logo.png" alt="" />
-                    <span>{message.title ?? 'Smart Video'}</span>
+                    <BrandLogo decorative />
+                    <span>{message.title ?? 'Smart Website Builder'}</span>
                   </div>
 
                   {/* Chronological timeline: text, thinking, and tool calls in order */}
@@ -2315,10 +2316,10 @@ export default function ProjectBuilderPage() {
                   reconnecting
                     ? `Reconnecting to ${activeModel?.model_name ?? 'the model'} — resuming your work…`
                     : agentRunning
-                      ? agentStatus || 'Smart Video is working...'
+                      ? agentStatus || 'Smart Website Builder is working...'
                       : remoteGenerating
                         ? 'A collaborator is generating…'
-                        : 'Ask Smart Video for a change...'
+                        : 'Ask Smart Website Builder for a change...'
                 }
                 onModelChange={(model) => {
                   setActiveModel(model)
@@ -2428,9 +2429,9 @@ export default function ProjectBuilderPage() {
                   {!firstRunComplete && (
                     <div className={`${styles.previewEmpty} ${styles.previewBlank}`}>
                       <div className={styles.previewMark}>
-                        <img src="/assets/logo.png" alt="" />
+                        <BrandLogo decorative />
                       </div>
-                       <h2>{reconnecting ? `Reconnecting to ${activeModel?.model_name ?? 'the model'}…` : agentRunning ? 'Smart Video is building...' : 'Ready when you are'}</h2>
+                       <h2>{reconnecting ? `Reconnecting to ${activeModel?.model_name ?? 'the model'}…` : agentRunning ? 'Smart Website Builder is building...' : 'Ready when you are'}</h2>
                       <p>{prompt}</p>
                       {(agentRunning || reconnecting) && (
                         <div className={styles.previewChecklist}>
@@ -2444,7 +2445,7 @@ export default function ProjectBuilderPage() {
                   {firstRunComplete && effectivePreviewStatus === 'building' && !lastReadyHtml && (
                     <div className={styles.previewEmpty}>
                       <div className={styles.previewMark}>
-                        <img src="/assets/logo.png" alt="" />
+                        <BrandLogo decorative />
                       </div>
                       <h2>Building preview...</h2>
                       <p>{prompt}</p>
@@ -2458,7 +2459,7 @@ export default function ProjectBuilderPage() {
                   {firstRunComplete && effectivePreviewStatus === 'error' && (
                     <div className={styles.previewEmpty}>
                       <div className={styles.previewMark}>
-                        <img src="/assets/logo.png" alt="" />
+                        <BrandLogo decorative />
                       </div>
                       <h2>Build error</h2>
                       <p>The preview could not be compiled. Check the code for syntax issues.</p>
@@ -2473,7 +2474,7 @@ export default function ProjectBuilderPage() {
                   {firstRunComplete && previewStatus === 'idle' && (
                     <div className={styles.previewEmpty}>
                       <div className={styles.previewMark}>
-                        <img src="/assets/logo.png" alt="" />
+                        <BrandLogo decorative />
                       </div>
                       <h2>Preview will appear here</h2>
                       <p>{prompt}</p>
@@ -2638,7 +2639,7 @@ export default function ProjectBuilderPage() {
             </button>
             <h2 className={styles.publishModalTitle}>Publish to Community</h2>
             <p className={styles.publishModalSubtitle}>
-              Share <strong>{title || 'this project'}</strong> with the Smart Video community.
+              Share <strong>{title || 'this project'}</strong> with the Smart Website Builder community.
             </p>
             <label className={styles.publishModalLabel}>
               Description <span className={styles.publishModalOptional}>(optional)</span>
