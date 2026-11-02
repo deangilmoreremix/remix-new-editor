@@ -3391,7 +3391,7 @@ export class PersonalizeModal extends BaseModal {
         const id = getSelectedContactId();
         const profile = id ? _getProfile(id) : null;
         if (!profile) throw new Error('The selected personalization profile is no longer available.');
-        let next = updatePersonalizationAsset(profile, session.assetId, (asset) => ({
+        const next = updatePersonalizationAsset(profile, session.assetId, (asset) => ({
           ...asset,
           url: current.dataUrl,
           edited: current.dataUrl !== (asset.originalUrl || current.dataUrl),
@@ -3533,7 +3533,7 @@ export class PersonalizeModal extends BaseModal {
     }
 
     const draft = this._readBusinessDraftFromDom();
-    let next = updatePersonalizationBusiness(profile, draft || {});
+    const next = updatePersonalizationBusiness(profile, draft || {});
     next.updatedAt = new Date().toISOString();
     next.variables = buildVariables(next, next.variables || {});
     if (!this._persistSelectedProfile(next)) {
