@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { CheckCircle2, Download, Loader2, PlayCircle, ShieldCheck, Sparkles, Upload, X } from 'lucide-react'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { uploadPersonalizationAsset } from '../assetUploadService'
+import { saveToRemixAssetLibrary } from '@ohb/lib/remixAssetLibrary'
 import { BeforeAfterPreview } from '../preview/BeforeAfterPreview'
 import { buildPreviewInput } from './buildPreviewInput'
 import { OverlayEditor } from './OverlayEditor'
@@ -41,7 +41,6 @@ export function StepPreviewApprove(): React.JSX.Element {
     approvePersonalization,
     createFinalVideo,
     cancelExport,
-    apiKey,
     generation,
     result,
     mode,
@@ -86,7 +85,7 @@ export function StepPreviewApprove(): React.JSX.Element {
   }
 
   const handleUpload = async () => {
-    if (!result?.url || !apiKey) return
+    if (!result?.url) return
     setIsUploading(true)
     setUploadError(null)
     setUploadSuccess(false)
@@ -95,7 +94,8 @@ export function StepPreviewApprove(): React.JSX.Element {
       const blob = await response.blob()
       const fileName = (result.metadata?.fileName as string) || `personalized-video.${blob.type.replace('video/', '')}`
       const file = new File([blob], fileName, { type: blob.type })
-      await uploadPersonalizationAsset(apiKey, { file })
+      // remix: save into the permanent Asset Library the Library page lists.
+      await saveToRemixAssetLibrary(file)
       setUploadSuccess(true)
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : 'Upload failed')

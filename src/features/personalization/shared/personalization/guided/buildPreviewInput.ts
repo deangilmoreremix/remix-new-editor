@@ -41,6 +41,7 @@ export function buildPreviewInput(
   ctx: BuildPreviewInputContext,
 ): PreviewInputProps {
   const { source, previewSettings, previewVideo, clientForm, assets } = ctx
+  const isImageSource = source?.mediaType === 'image'
 
   const businessName = clientForm.businessName || clientForm.name || ''
   const website = clientForm.website || ''
@@ -49,9 +50,12 @@ export function buildPreviewInput(
     (website ? `Visit ${website}` : clientForm.phone ? `Call ${clientForm.phone}` : '')
 
   return {
-    videoUrl: previewVideo?.url || source?.sourceMedia || null,
-    posterUrl: previewVideo?.poster || source?.poster || null,
-    isImageSource: source?.mediaType === 'image',
+    // A still-image source is the background picture, not a video: keep it out
+    // of `videoUrl` (the composition renders <Img> only when videoUrl is empty)
+    // and use it as the poster. An explicitly selected preview video still wins.
+    videoUrl: previewVideo?.url || (isImageSource ? null : source?.sourceMedia) || null,
+    posterUrl: previewVideo?.poster || source?.poster || (isImageSource ? source?.sourceMedia : null) || null,
+    isImageSource,
     audioUrl: previewSettings.audio?.url ?? null,
     settings: previewSettings,
     brand: {
