@@ -235,7 +235,8 @@ function videoFamilyId(model) {
 
 function cleanImageFamilyName(name) {
   return name
-    .replace(/\s+(Text To Image|Image To Image|Text to Image|Image to Image|T2I|I2I)$/i, "")
+    // Also strip hyphenated forms ("Image-to-Image") so names don't repeat the mode.
+    .replace(/[\s-]+(?:(?:Text|Image)[\s-]+to[\s-]+Image|T2I|I2I)$/i, "")
     .replace(/\s+Edit$/i, "")
     .trim();
 }
@@ -265,7 +266,12 @@ function videoFamilyName(familyId, fallbackName) {
     "minimax-h3": "MiniMax H3",
     "sora-2": "Sora 2",
   };
-  return VIDEO_FAMILY_NAMES[familyId] || names[familyId] || fallbackName;
+  // A family spans several modes, so drop the naming model's mode suffix
+  // ("FLUX 3 Text-to-Video" -> "FLUX 3").
+  const cleanFallback = String(fallbackName || "")
+    .replace(/[\s-]+(?:(?:Text|Image|Reference|Video)[\s-]+to[\s-]+Video|T2V|I2V|V2V)$/i, "")
+    .trim() || fallbackName;
+  return VIDEO_FAMILY_NAMES[familyId] || names[familyId] || cleanFallback;
 }
 
 function imageSeriesVersion(family) {
@@ -555,7 +561,7 @@ export const videoModelCatalog = buildCatalog(
 
 // ─── Picker entry deduplication ──────────────────────────────────────────────
 
-const PICKER_INPUT_SUFFIX = /\s+(?:Text|Image)\s+To\s+(?:Image|Video)$/i;
+const PICKER_INPUT_SUFFIX = /[\s-]+(?:Text|Image)[\s-]+To[\s-]+(?:Image|Video)$/i;
 const PICKER_INPUT_ID_SUFFIX = /-(?:text-to-image|image-to-image|text-to-video|image-to-video|reference-to-video|t2i|i2i|t2v|i2v|v2v)$/;
 const PICKER_MEDIA_FIELDS = new Set([
   "image_url",

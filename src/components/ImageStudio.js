@@ -937,11 +937,14 @@ generateBtn.type = 'button';
                 searchPlaceholder: 'Search models...',
             },
             onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
-                // In the "All" category the mode comes from the variant itself,
-                // so edit-only models still get reference-image validation.
-                const isI2I = catId === 'i2i' || (catId !== 't2i' && variant?.mode === 'i2i');
-                if (variant) applyImageModel(variant.model.id, isI2I);
+                // Upstream rule: a mode tab picks that mode's variant. From "All",
+                // keep the current mode (image-to-image when reference images
+                // are uploaded) and only fall back to the family default.
+                const currentMode = (uploadedImageUrls.length || imageMode) && entry.variantsByMode.i2i ? 'i2i' : 't2i';
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId] || entry.defaultVariant
+                    : entry.variantsByMode[currentMode] || entry.defaultVariant;
+                if (variant) applyImageModel(variant.model.id, variant.mode === 'i2i');
                 closeDropdown();
             },
             onClose: () => { modelPickerController = null; },

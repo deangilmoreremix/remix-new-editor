@@ -1251,10 +1251,14 @@ generateBtn.type = 'button';
                 searchPlaceholder: 'Search models...',
             },
             onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
+                // Upstream rule: a mode tab picks that mode's variant. From "All",
+                // keep the current mode and only fall back to the family default.
+                const currentMode = v2vMode ? 'v2v' : (imageMode ? 'i2v' : 't2v');
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId] || entry.defaultVariant
+                    : entry.variantsByMode[currentMode] || entry.defaultVariant;
                 const modelId = variant?.model?.id || selectedModel;
-                // From the "All" tab the workflow mode comes from the variant itself.
-                const mode = catId === 'all' ? (variant?.mode || 't2v') : catId;
+                const mode = variant?.mode || (catId !== 'all' ? catId : currentMode);
                 const { newV2V, newI2V, wasV2V } = videoModelBase(modelId, mode);
                 if (newV2V) {
                     picker.reset();
