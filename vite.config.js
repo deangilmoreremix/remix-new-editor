@@ -1014,6 +1014,9 @@ export default defineConfig({
             '@higgsfield/style-templates': path.resolve(__dirname, 'packages/style-templates/src'),
             '@higgsfield/video-compiler': path.resolve(__dirname, 'packages/video-compiler/src'),
             '@higgsfield/ai-chat': path.resolve(__dirname, 'packages/ai-chat/src'),
+            // Personalization + Lead Finder system ported from OpenHiggsBolt.
+            // The copied files keep OpenHiggsBolt's folder layout under this root.
+            '@ohb': path.resolve(__dirname, 'src/features/personalization'),
         },
     },
     plugins: [
