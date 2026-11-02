@@ -13,8 +13,13 @@
  */
 import { apiKeyManager } from '../../../lib/apiKeyManager.js'
 
-const PREFIXES = ['/api/personalization/', '/api/demo/discover', '/api/video/record']
-const OPENAI_KEY_ROUTES = ['/api/personalization/image-analyze', '/api/personalization/image-edit', '/api/personalization/image-smart-edit']
+const PREFIXES = ['/api/personalization/', '/api/demo/discover', '/api/video/record', '/api/proxy/openai-enhance']
+const OPENAI_KEY_ROUTES = [
+  '/api/personalization/image-analyze',
+  '/api/personalization/image-edit',
+  '/api/personalization/image-smart-edit',
+  '/api/proxy/openai-enhance',
+]
 
 let installed = false
 

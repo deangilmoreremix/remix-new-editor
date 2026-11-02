@@ -16,6 +16,7 @@ import {
   uploadFile,
 } from '@ohb/packages/studio/src/muapi'
 import { createPersonalizationOpenAIClient } from './openaiPersonalizationClient'
+import { getOpenAiKey } from '@ohb/lib/authConfig'
 import {
   getV2VModelById,
   getRecastModelById,
@@ -246,7 +247,13 @@ async function handleImageGeneration({
   apiKey: string
   onProgress?: (percent: number, message: string) => void
 }): Promise<GenerationResult> {
-  const openaiClient = createPersonalizationOpenAIClient(apiKey)
+  // `apiKey` is the MuAPI key (useAuthConfig().apiKey). Image generation
+  // talks to OpenAI directly, so it needs the user's OpenAI key from Settings.
+  const openaiKey = getOpenAiKey()
+  if (!openaiKey) {
+    throw new Error('Add your OpenAI API key in Settings to personalize images.')
+  }
+  const openaiClient = createPersonalizationOpenAIClient(openaiKey)
   const imageModel = pickImageModel(source, options, mode || 'recreate')
   const size = mapAspectRatioToSize(options.aspectRatio || source.aspectRatio)
 

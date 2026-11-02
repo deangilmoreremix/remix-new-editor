@@ -62,3 +62,47 @@ describe('Clerk auth() shim', () => {
     expect((await withRequest({ authorization: 'Bearer bad' }, () => auth())).userId).toBeNull()
   })
 })
+
+describe('/api/proxy/openai-enhance', () => {
+  it('requires a signed-in user', async () => {
+    const res = await call('POST', '/api/proxy/openai-enhance', {
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ prompt: 'a dentist promo' }),
+    })
+    expect(res.status).toBe(401)
+  })
+
+  it('accepts chat messages and returns the completion text', async () => {
+    const realFetch = globalThis.fetch
+    const upstream = vi.fn(async (_url, init) => {
+      const sent = JSON.parse(init.body)
+      expect(sent.messages).toEqual([{ role: 'user', content: 'hi' }])
+      expect(init.headers.Authorization).toBe('Bearer sk-user-key-1234567890')
+      return new Response(JSON.stringify({ choices: [{ message: { content: ' personalized ' } }] }), { status: 200 })
+    })
+    globalThis.fetch = upstream
+    try {
+      const res = await call('POST', '/api/proxy/openai-enhance', {
+        headers: {
+          'content-type': 'application/json',
+          authorization: 'Bearer good-token',
+          'x-openai-key': 'sk-user-key-1234567890',
+        },
+        body: JSON.stringify({ mode: 'chat', messages: [{ role: 'user', content: 'hi' }] }),
+      })
+      expect(res.status).toBe(200)
+      expect((await res.json()).text).toBe('personalized')
+      expect(upstream).toHaveBeenCalledTimes(1)
+    } finally {
+      globalThis.fetch = realFetch
+    }
+  })
+
+  it('rejects malformed chat messages', async () => {
+    const res = await call('POST', '/api/proxy/openai-enhance', {
+      headers: { 'content-type': 'application/json', authorization: 'Bearer good-token', 'x-openai-key': 'sk-user-key-1234567890' },
+      body: JSON.stringify({ mode: 'chat', messages: [{ role: 'tool', content: 1 }] }),
+    })
+    expect(res.status).toBe(400)
+  })
+})

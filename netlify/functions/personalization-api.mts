@@ -18,6 +18,7 @@
  *   POST          /api/personalization/record
  *   POST          /api/personalization/persist-edited-asset
  *   POST          /api/demo/discover           (anonymous "Find My Brand")
+ *   POST          /api/proxy/openai-enhance    (prompt personalizer / enhance text)
  *   POST          /api/video/record            (accepted, not stored)
  */
 import './_personalization/shims/env'
@@ -42,6 +43,7 @@ import * as project from './_personalization/app/api/personalization/project/rou
 import * as record from './_personalization/app/api/personalization/record/route'
 import * as demoDiscover from './_personalization/app/api/demo/discover/route'
 import * as persistEditedAsset from './_personalization/extra/persistEditedAsset'
+import * as openaiEnhance from './_personalization/extra/openaiEnhance'
 
 type Handler = (req: NextRequest, ctx?: { params: Promise<Record<string, string>> }) => Promise<Response> | Response
 type RouteModule = Partial<Record<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE', Handler>>
@@ -60,6 +62,7 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/personalization/record': record as RouteModule,
   '/api/personalization/persist-edited-asset': persistEditedAsset as unknown as RouteModule,
   '/api/demo/discover': demoDiscover as RouteModule,
+  '/api/proxy/openai-enhance': openaiEnhance as unknown as RouteModule,
 }
 
 const videoRecord: RouteModule = {
@@ -106,5 +109,5 @@ export default async (request: Request, context: Context): Promise<Response> => 
 }
 
 export const config: Config = {
-  path: ['/api/personalization/*', '/api/demo/discover', '/api/video/record'],
+  path: ['/api/personalization/*', '/api/demo/discover', '/api/video/record', '/api/proxy/openai-enhance'],
 }

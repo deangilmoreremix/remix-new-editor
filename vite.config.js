@@ -1330,6 +1330,10 @@ export default defineConfig({
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
+            '/api/proxy/openai-enhance': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             '/api/personalizer': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,

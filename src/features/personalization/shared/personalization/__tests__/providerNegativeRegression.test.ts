@@ -42,6 +42,13 @@ import type { PersonalizationSource, AssetLibrary, ResolvedAssets, GenerationOpt
 // Track every OpenAI call
 const openaiCalls: { endpoint: string; body?: unknown }[] = []
 
+// remix: image generation reads the user's OpenAI key from Settings
+// (generationRouter → getOpenAiKey), separate from the MuAPI `apiKey`.
+vi.mock('@ohb/lib/authConfig', () => ({
+  getOpenAiKey: () => 'sk-openai-test',
+  getApiKey: () => 'sk-test',
+}))
+
 vi.mock('@ohb/shared/personalization/openaiPersonalizationClient', () => {
   const actual = vi.importActual('@ohb/shared/personalization/openaiPersonalizationClient')
   return {
