@@ -21,7 +21,7 @@
  *    `resolve*` helpers, which only *read* DNS.
  */
 
-import dns from 'dns'
+import dns from 'node:dns'
 import http from 'http'
 import https from 'https'
 

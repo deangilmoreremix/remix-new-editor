@@ -197,7 +197,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
     borderRadius: 999,
     border: `1px solid ${active ? '#d9ff00' : 'rgba(161,161,170, 0.35)'}`,
     background: active ? 'rgba(217,255,0, 0.15)' : 'rgba(10,10,10, 0.8)',
-    color: active ? '#e0f7ff' : '#d4d4d8',
+    color: active ? '#f7ffd6' : '#d4d4d8',
     fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
@@ -279,7 +279,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
           >
             {showingBefore ? 'Before' : 'After'}
           </span>
-          <span style={{ fontSize: 12, color: '#94a3b8' }}>
+          <span style={{ fontSize: 12, color: '#a1a1aa' }}>
             {showingBefore ? 'Original video' : 'Personalized preview'}
           </span>
         </div>

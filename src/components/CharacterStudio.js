@@ -347,7 +347,7 @@ const pexelsBtn = document.createElement('button');
 
     formCard.appendChild(enhanceMenu);
 
-  // Personalize trigger (opens PersonalizeModal as a pop-up)
+  // Personalize trigger (opens the Personalization + Lead Finder modal)
   const personalizeControls = document.createElement('div');
   personalizeControls.className = 'flex items-center gap-2';
   mountPersonalizeTrigger({

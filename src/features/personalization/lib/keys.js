@@ -86,6 +86,7 @@ export function cleanApiKey(apiKey) {
   if (!apiKey) return '';
   return String(apiKey)
     .replace(/[\u200B-\u200D\uFEFF\u2060\u00AD]/g, '')
+    // eslint-disable-next-line no-control-regex -- stripping control characters is the point
     .replace(/^[\s\u0000-\x1F]+|[\s\u0000-\x1F]+$/g, '')
     .trim();
 }

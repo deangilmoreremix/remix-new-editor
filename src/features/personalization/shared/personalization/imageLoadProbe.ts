@@ -14,6 +14,7 @@ export function imageLoadsInBrowser(url: string, timeoutMs = IMAGE_LOAD_TIMEOUT_
   return new Promise((resolve) => {
     const img = new Image()
     // Declared before `done`, which clears it.
+    // eslint-disable-next-line prefer-const -- read by `done` before it is assigned
     let timer: ReturnType<typeof setTimeout> | undefined
     const done = (ok: boolean) => {
       clearTimeout(timer)

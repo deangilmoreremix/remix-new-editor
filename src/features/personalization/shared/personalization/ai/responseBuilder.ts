@@ -18,7 +18,7 @@ export function buildStructuredAIResponse(
   const missingRequirements: AIMissingRequirement[] = []
   const warnings: AIWarning[] = []
   const actions: ToolAction[] = []
-  let readinessChecks: ReadinessCheck[] = []
+  const readinessChecks: ReadinessCheck[] = []
 
   const isPrepareIntent = /prepare|ready\s*to\s*(generate|go|start)|check\s*(readiness|status)|what\s*(do\s*i\s*need|is\s*missing)/i.test(lowerMessage)
   const isPersonalizeIntent = /personalize|rewrite\s*prompt|customize\s*prompt/i.test(lowerMessage)

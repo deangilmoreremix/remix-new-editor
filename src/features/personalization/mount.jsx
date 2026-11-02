@@ -39,12 +39,21 @@ let openRef = null
 const pending = []
 
 function Bridge() {
-  const { openPersonalize } = useDemoPersonalize()
+  const { openPersonalize, closePersonalize, isOpen } = useDemoPersonalize()
   useEffect(() => {
     openRef = openPersonalize
     while (pending.length) openPersonalize(pending.shift())
     return () => { if (openRef === openPersonalize) openRef = null }
   }, [openPersonalize])
+
+  // The provider outlives page changes (it is mounted once on <body>), so
+  // close the modal when the hash route changes, as a page-level modal would.
+  useEffect(() => {
+    if (!isOpen || typeof closePersonalize !== 'function') return undefined
+    const onRouteChange = () => closePersonalize()
+    window.addEventListener('hashchange', onRouteChange)
+    return () => window.removeEventListener('hashchange', onRouteChange)
+  }, [isOpen, closePersonalize])
   return null
 }
 

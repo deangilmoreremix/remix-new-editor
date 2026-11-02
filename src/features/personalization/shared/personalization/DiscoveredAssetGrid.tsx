@@ -91,7 +91,6 @@ export function DiscoveredAssetThumb({
       {(asset.editedDataUrl || asset.previewUrl) ? (
         // The image itself is not draggable: dragging it would start a native
         // image drag instead of the card's asset drag.
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={asset.editedDataUrl || asset.previewUrl} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" />
       ) : null}
       {canEdit && (
@@ -285,7 +284,6 @@ export function DiscoveredAssetLightbox({
 
       <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 72px' }}>
         {src ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={src}
             alt={`${asset.category} asset ${index + 1}`}

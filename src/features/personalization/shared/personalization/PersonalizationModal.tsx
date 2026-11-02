@@ -1275,7 +1275,7 @@ export default function PersonalizationModal() {
       <div
         className="fixed inset-0 z-[250] flex items-center justify-center p-3 sm:p-5"
         style={{
-          background: 'radial-gradient(circle at top, rgba(217,255,0,.07), transparent 30%), #07090d',
+          background: 'radial-gradient(circle at top, rgba(217,255,0,.07), transparent 30%), #0a0a0a',
         }}
         onClick={(e) => {
           if (e.target !== e.currentTarget) return
@@ -1560,7 +1560,7 @@ export default function PersonalizationModal() {
             style={{
               padding: '18px 26px 22px',
               borderTop: `1px solid ${C.border}`,
-              background: '#0e1216',
+              background: '#121212',
             }}
           >
             <button
@@ -1578,7 +1578,7 @@ export default function PersonalizationModal() {
             </button>
             <button
               onClick={outputType === 'prompt' ? handlePersonalize : generate}
-              disabled={!Boolean((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode)) || personalizationInProgress}
+              disabled={!((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode)) || personalizationInProgress}
               className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
               style={{
                 minWidth: 190,
@@ -2329,7 +2329,7 @@ function ConfigurationView(props: any) {
               aspectRatio: '16 / 10',
               borderRadius: 13,
               overflow: 'hidden',
-              background: 'linear-gradient(rgba(0,0,0,.24), rgba(0,0,0,.38)), linear-gradient(135deg, #303944, #101010 70%)',
+              background: 'linear-gradient(rgba(0,0,0,.24), rgba(0,0,0,.38)), linear-gradient(135deg, #3a3a3a, #101010 70%)',
               border: `1px solid ${C.border}`,
             }}
           >
@@ -3100,7 +3100,7 @@ function ConfigurationView(props: any) {
                       padding: '10px 12px',
                       border: `1px solid ${selectedClientId === c.id ? C.cyan : C.border}`,
                       borderRadius: 10,
-                      background: selectedClientId === c.id ? 'rgba(34,211,242,.08)' : C.panelSoft,
+                      background: selectedClientId === c.id ? 'rgba(217,255,0,.08)' : C.panelSoft,
                       color: C.text,
                     }}
                   >
@@ -3580,7 +3580,7 @@ function ConfigurationView(props: any) {
                 placeItems: 'center',
                 border: `1px solid ${C.border}`,
                 borderRadius: 10,
-                background: assets.primaryLogo?.url ? '#000' : 'linear-gradient(145deg, #2d3742, #0f0f0f)',
+                background: assets.primaryLogo?.url ? '#000' : 'linear-gradient(145deg, #373737, #0f0f0f)',
                 fontSize: 12,
                 fontWeight: 800,
                 textAlign: 'center',
@@ -4371,7 +4371,7 @@ function ConfigurationView(props: any) {
           </button>
         </div>
         {showAdvanced && (
-          <div className="grid grid-cols-2 gap-3 p-4 mt-2 rounded-xl border" style={{ borderColor: C.border, background: '#0c1014' }}>
+          <div className="grid grid-cols-2 gap-3 p-4 mt-2 rounded-xl border" style={{ borderColor: C.border, background: '#101010' }}>
             {capabilities.aspectRatioOptions.length > 0 ? (
               <div>
                 <label style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', color: C.muted, marginBottom: 4 }}>Aspect Ratio</label>

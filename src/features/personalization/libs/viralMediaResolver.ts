@@ -153,7 +153,7 @@ export function resolvePromptRecordVideo(record: PromptRecord): ResolvedVideoMed
   const candidates: string[] = []
   let videoUrl: string | null = null
   let posterUrl: string | null = null
-  let isVideoFallback = false
+  const isVideoFallback = false
   let isPosterFallback = false
 
   if (videoMedia) {

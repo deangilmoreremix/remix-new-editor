@@ -121,7 +121,6 @@ describe('OpenAI image-editing preservation', () => {
       'components/ImageToVideoPage.js',
       'components/ImageToImagePage.js',
       'components/TimelineEditorPage.jsx',
-      'components/modals/PersonalizeModal.jsx',
       'components/PersonalizePage.js',
       'components/elements/element-generate.jsx',
       'lib/uploadService.js',

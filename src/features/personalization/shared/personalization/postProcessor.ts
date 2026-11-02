@@ -166,7 +166,7 @@ export async function generateEndCardImage(
   // Premium dark background
   const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
   bg.addColorStop(0, '#0a0a0a')
-  bg.addColorStop(0.5, '#111118')
+  bg.addColorStop(0.5, '#131313')
   bg.addColorStop(1, '#0a0a0a')
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, canvas.width, canvas.height)

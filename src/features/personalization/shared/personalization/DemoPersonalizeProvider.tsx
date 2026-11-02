@@ -3030,7 +3030,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       }
 
       // Remove from old location first
-      let next: AssetLibrary = {
+      const next: AssetLibrary = {
         ...prev,
         identities: prev.identities.filter((a) => a.id !== assetId),
         logos: prev.logos.filter((a) => a.id !== assetId),

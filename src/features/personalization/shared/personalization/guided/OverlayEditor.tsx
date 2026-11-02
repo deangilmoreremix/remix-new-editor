@@ -388,7 +388,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
             borderRadius: 12,
             overflow: 'hidden',
             border: `1px solid ${C.border}`,
-            background: '#05070a',
+            background: '#070707',
             touchAction: 'none',
           }}
         >

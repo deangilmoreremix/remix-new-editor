@@ -68,6 +68,7 @@ export function Header(navigate) {
     { label: 'Chat', route: 'chat' },
     { label: 'Lip Sync', route: 'lipsync' },
     { label: 'Personalizer', route: 'personalizer' },
+    { label: 'Lead Finder', route: 'leadfinder' },
     { label: 'Video Agent', route: 'video-agent' },
     { label: 'AI VFX', route: 'ai-vfx' },
     { label: 'CineGen Studio', route: 'cinegen' },
