@@ -23,7 +23,8 @@ import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { mountImageModelSelector, imageModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountUpstreamModelPicker } from './upstream-picker/mountUpstreamModelPicker.jsx';
+import { imageModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
@@ -928,15 +929,12 @@ generateBtn.type = 'button';
     const openImageModelPicker = (anchorBtn) => {
         modelPickerController?.close();
         modelPickerController = null;
-        modelPickerController = mountImageModelSelector({
+        // Upstream Open-Generative-AI's own ModelDropdown (React), copied verbatim.
+        modelPickerController = mountUpstreamModelPicker({
+            kind: 'image',
             anchor: anchorBtn,
             selectedModelId: selectedModel,
-            allowedModelTypes: ['t2i', 'i2i'],
-            copy: {
-                categories: { t2i: 'Text to Image', i2i: 'Image to Image' },
-                searchPlaceholder: 'Search models...',
-            },
-            onSelectModel: (entry, catId) => {
+            onSelect: (entry, catId) => {
                 // Upstream rule: a mode tab picks that mode's variant. From "All",
                 // keep the current mode (image-to-image when reference images
                 // are uploaded) and only fall back to the family default.

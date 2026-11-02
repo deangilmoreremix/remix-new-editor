@@ -23,7 +23,8 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
-import { mountVideoModelSelector, videoModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
+import { mountUpstreamModelPicker } from './upstream-picker/mountUpstreamModelPicker.jsx';
+import { videoModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerateButton, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -1242,15 +1243,12 @@ generateBtn.type = 'button';
     const openVideoModelPicker = (anchorBtn) => {
         videoPickerController?.close();
         videoPickerController = null;
-        videoPickerController = mountVideoModelSelector({
+        // Upstream Open-Generative-AI's own ModelDropdown (React), copied verbatim.
+        videoPickerController = mountUpstreamModelPicker({
+            kind: 'video',
             anchor: anchorBtn,
             selectedModelId: selectedModel,
-            allowedModelTypes: ['t2v', 'i2v', 'v2v'],
-            copy: {
-                categories: { t2v: 'Text to Video', i2v: 'Image to Video', v2v: 'Video to Video' },
-                searchPlaceholder: 'Search models...',
-            },
-            onSelectModel: (entry, catId) => {
+            onSelect: (entry, catId) => {
                 // Upstream rule: a mode tab picks that mode's variant. From "All",
                 // keep the current mode and only fall back to the family default.
                 const currentMode = v2vMode ? 'v2v' : (imageMode ? 'i2v' : 't2v');
