@@ -1,22 +1,25 @@
 import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ClerkProvider, useUser, useClerk, UserButton, useAuth } from '@clerk/react';
-import { setEntitlement } from '../../lib/clerkEntitlements.js';
+import { setEntitlement, PAID_FEATURE } from '../../lib/clerkEntitlements.js';
 import { setExternalUserId } from '../../lib/socialPublishing';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 function EntitlementBridge() {
   const { has, isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const hasLegacyAccess = user?.publicMetadata?.legacy_access === true;
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) {
       setEntitlement({ hasFullAccess: false });
       return;
     }
-    const value = { hasFullAccess: has?.({ feature: 'smartvideo_full_access' }) ?? false };
-    setEntitlement(value);
-  }, [isLoaded, isSignedIn, has]);
+    // Same rule as useEntitlement(): Clerk billing feature OR legacy buyers.
+    const hasBillingAccess = has?.({ feature: PAID_FEATURE }) ?? false;
+    setEntitlement({ hasFullAccess: hasBillingAccess || hasLegacyAccess });
+  }, [isLoaded, isSignedIn, has, hasLegacyAccess]);
 
   return null;
 }
