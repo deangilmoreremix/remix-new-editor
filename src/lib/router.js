@@ -102,7 +102,12 @@ const pageLoaders = {
   'video-agent': () => import('../components/VideoAgentPage.js').then(m => m.VideoAgentPage()),
   'video-agent-studio': () => import('../components/VideoAgentStudioShell.js').then(m => m.VideoAgentStudioShell()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
-  cinegen: () => import('../components/studios/CineGenStudio/CineGenStudio.jsx').then(m => m.CineGenStudio()),
+  workbench: () => import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio()),
+  // CineGen Studio was replaced by the Workbench; keep old links working.
+  cinegen: () => {
+    try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }
+    return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
+  },
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
