@@ -334,6 +334,7 @@ export function CinemaStudio() {
 
     // Textarea
     const textarea = document.createElement('textarea');
+    textarea.setAttribute('data-studio-prompt', '');
     textarea.placeholder = 'Describe your scene - use @ to add characters & props';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.style.height = 'auto'; // Auto-grow check

@@ -10,6 +10,8 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import Store from '../stores/base/Store.js';
 import { t2iModels, getAspectRatiosForModel, getModelById, getI2IModelById, getI2VModelById, getV2VModelById } from '../lib/models.js';
 import { showToast } from '../lib/loading.js';
+import { navigate } from '../lib/router.js';
+import { createFullscreenPreview } from './MediaPreview.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
@@ -562,9 +564,12 @@ export async function StoryboardStudio(options = {}) {
     const id = projectIdInput.value.trim();
     if (!id) { showToast('Enter a project ID', 'warning'); return; }
     let loadedFromSupabase = false;
-    if (supabaseAvailable) {
+    let supabaseModule = null;
+    try {
+      supabaseModule = await import('../lib/supabase.js');
+    } catch { /* Supabase unavailable — fall back to local storage below */ }
+    if (supabaseModule?.isSupabaseConfigured?.()) {
       try {
-        const supabaseModule = await import('../lib/supabase.js');
         const { data, error } = await supabaseModule.supabase
           .from('timeline_projects')
           .select('project')
@@ -1049,6 +1054,8 @@ const compareBtn = document.createElement('button');
   advancedControlsContainer.className = 'flex flex-col gap-4';
   advancedCard.appendChild(advancedControlsContainer);
 
+  const currentSettings = { negativePrompt: '' };
+
   const dynamicControls = createAdvancedControls({
     model: getExtendedModel(getModelById(selectedModel)),
     state: {},
@@ -1063,7 +1070,11 @@ const compareBtn = document.createElement('button');
       if (key === 'style')    { selectedStyle    = value; }
       if (key === 'lighting') { selectedLighting = value; }
       if (key === 'color')    { selectedColor    = value; }
-      if (key === 'aspect_ratio') { selectedAr = value; if (updateArBtn) updateArBtn(); }
+      if (key === 'aspect_ratio') {
+        selectedAr = value;
+        const arLabel = document.getElementById('ar-btn-label');
+        if (arLabel) arLabel.textContent = value;
+      }
       if (key === 'negative_prompt') { currentSettings.negativePrompt = value; }
     }
   });
@@ -1072,6 +1083,11 @@ const compareBtn = document.createElement('button');
   advancedPanel.querySelector('#close-storyboard-adv-btn').onclick = () => {
     advancedPanel.classList.add('hidden');
   };
+
+  let comparisonMode = false;
+  const compareIndices = [0, 1];
+  const fullscreen = createFullscreenPreview();
+  container.appendChild(fullscreen.element);
 
   const comparisonOverlay = document.createElement('div');
   comparisonOverlay.className = 'fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4';

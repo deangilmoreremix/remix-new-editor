@@ -245,6 +245,7 @@ const pexelsBtn = document.createElement('button');
   formCard.appendChild(promptLabel);
 
   const promptInput = document.createElement('textarea');
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.id = 'character-prompt-input';
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 3;

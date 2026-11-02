@@ -527,6 +527,7 @@ export function VideoStudio() {
     topRow.appendChild(pexelsVideoVideoAttr);
 
     const textarea = document.createElement('textarea');
+    textarea.setAttribute('data-studio-prompt', '');
     textarea.id = 'v-v-prompt-textarea';
     textarea.placeholder = 'Describe the video you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
