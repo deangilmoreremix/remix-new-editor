@@ -182,6 +182,17 @@ describe('exampleGalleryBridge', () => {
       expect(document.querySelector('[data-studio-prompt]').value).toBe('neon portrait prompt');
     });
 
+    it('does not throw when navigation fails', async () => {
+      const { navigate } = await import('../lib/router.js');
+      navigate.mockImplementationOnce(async () => { throw new Error('router down'); });
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      await expect(
+        handleCreateThisStyle({ source: 'youmind', studio: 'image', title: 'X', prompt: 'p' })
+      ).resolves.toBeUndefined();
+      expect(spy).toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
     it('falls back to the asset studio for unmapped sources', async () => {
       const { navigate } = await import('../lib/router.js');
       await handleCreateThisStyle({ source: 'other', studio: 'cinema', title: 'X' });

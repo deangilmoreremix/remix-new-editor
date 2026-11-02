@@ -118,29 +118,41 @@ export async function handleCreateThisStyle(asset) {
   MediaDetailView.closeActive();
 
   const target = { ...resolveCreateTarget(asset) };
+  if (!target.route) {
+    target.route = STUDIO_ROUTES.has(asset.studio) ? asset.studio : 'video';
+  }
   // `ai-vfx` is an iframe-hosted app that cannot receive a prefill; the
   // in-app Effects studio is the prefill-able equivalent.
   if (target.route === 'ai-vfx') target.route = 'effects';
   const prompt = await resolveAssetPrompt(asset);
 
-  stageStudioPrefill({
-    route: target.route,
-    prompt,
-    params: target.params || {},
-    ref: target.params?.ref || asset.source || 'example-gallery',
-  });
+  let filled = false;
+  try {
+    stageStudioPrefill({
+      route: target.route,
+      prompt,
+      params: target.params || {},
+      ref: target.params?.ref || asset.source || 'example-gallery',
+    });
+    await navigate(target.route, target.params || {});
+    filled = await applyPromptToStudio(prompt);
+  } catch (err) {
+    console.error('[exampleGallery] Create This Style failed', err);
+    notify(`Couldn't open “${asset.title || 'this template'}”. Please try again.`, 'error');
+    return;
+  }
 
-  await navigate(target.route, target.params || {});
-  const filled = await applyPromptToStudio(prompt);
+  notify(
+    filled ? `“${asset.title || 'Template'}” style loaded — edit the prompt and generate`
+           : `“${asset.title || 'Template'}” style applied`,
+    'success',
+  );
+}
 
+async function notify(message, type) {
   try {
     const { showToast } = await import('./loading.js');
-    showToast(
-      filled ? `“${asset.title || 'Template'}” style loaded — edit the prompt and generate`
-             : `“${asset.title || 'Template'}” style applied`,
-      'success',
-      3500,
-    );
+    showToast(message, type, 3500);
   } catch {
     /* toast is cosmetic */
   }
