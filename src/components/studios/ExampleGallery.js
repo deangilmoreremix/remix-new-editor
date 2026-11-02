@@ -1,6 +1,4 @@
-import { handleViewPrompt, handleCreateThisStyle, handlePersonalizeDemo } from '../../lib/exampleGalleryBridge.js';
-import { MediaDetailView } from '../MediaDetailView.js';
-import { getRelatedAssets } from '../../data/exampleGalleryAssets.js';
+import { handleViewPrompt, handleCreateThisStyle, handlePersonalizeDemo, openAssetDetail } from '../../lib/exampleGalleryBridge.js';
 
 /** Fallback thumbnail shown when an example has no image of its own. */
 const PLACEHOLDER_SVG =
@@ -199,47 +197,6 @@ export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
       img.src = thumbnailSrc;
       if (img.complete && img.naturalWidth) applyAspectRatio();
       media.appendChild(img);
-
-      function openAssetDetail(asset) {
-        const url = asset.videoSrc || asset.thumbnail || '';
-        const type = asset.videoSrc ? 'video' : 'image';
-        const related = getRelatedAssets(asset, 8);
-        const detailView = new MediaDetailView({
-          mediaUrl: url,
-          mediaType: type,
-          title: asset.title || '',
-          prompt: asset.prompt || '',
-          model: asset.source || '',
-          source: asset.source || '',
-          author: asset.sourceAuthor || '',
-          category: asset.category || '',
-          date: asset.date || '',
-          tags: asset.tags || [],
-          relatedItems: related,
-          onRelatedClick: (index) => {
-            const relatedItem = related[index];
-            if (relatedItem) openAssetDetail(relatedItem);
-          },
-          actions: [
-            {
-              id: 'view-prompt',
-              label: 'View Prompt',
-              onClick: () => handleViewPrompt(asset),
-            },
-            {
-              id: 'personalize',
-              label: 'Personalize This Demo',
-              onClick: () => handlePersonalizeDemo(asset),
-            },
-            {
-              id: 'create-style',
-              label: 'Create This Style',
-              onClick: () => handleCreateThisStyle(asset),
-            },
-          ],
-        });
-        detailView.show();
-      }
 
       card.addEventListener('click', () => {
         openAssetDetail(asset);

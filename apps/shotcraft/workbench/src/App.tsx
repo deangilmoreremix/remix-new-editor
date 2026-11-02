@@ -6,7 +6,7 @@ import { Timeline } from "./timeline/Timeline";
 import { resetProject, useStore } from "./store";
 import { seekTo, togglePlay } from "./playerRef";
 import type { ProjectData } from "./types";
-import { exportProjectOnWeb } from "./host/webExport";
+import { exportProjectOnWeb, explainExportError } from "./host/webExport";
 import { notifyExported } from "./host/bridge";
 import { ChatPanel } from "./panels/ChatPanel";
 import { applyLocaleToDocument, LOCALES, useLocale, useT, type Locale } from "./i18n";
@@ -73,7 +73,9 @@ const ExportButton: React.FC = () => {
       setJob({ status: "done", progress: 1, url, name });
     } catch (e) {
       if (ac.signal.aborted) { setJob(null); return; }
-      setJob({ status: "error", progress: 0, error: e instanceof Error ? e.message : String(e) });
+      const error = explainExportError(e, project);
+      setJob({ status: "error", progress: 0, error });
+      window.alert(error);
     }
   };
 

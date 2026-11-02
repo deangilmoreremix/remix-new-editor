@@ -21,6 +21,7 @@ export class MediaDetailView {
     this.relatedItems = options.relatedItems || [];
     this.onRelatedClick = options.onRelatedClick || null;
     this.autoCollapsePrompt = options.autoCollapsePrompt !== false;
+    this.promptLoading = Boolean(options.promptLoading);
     this.PROMPT_COLLAPSE_LENGTH = 280;
 
     this.overlay = null;
@@ -62,6 +63,55 @@ export class MediaDetailView {
     this.hide(true);
   }
 
+  /** Immediately close whichever detail view is open (no exit animation). */
+  static closeActive() {
+    const inst = activeInstance;
+    if (!inst) return;
+    if (inst.overlay && inst.overlay.parentNode) {
+      inst.overlay.parentNode.removeChild(inst.overlay);
+    }
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', inst._boundKeyDown);
+    inst.isOpen = false;
+    activeInstance = null;
+  }
+
+  /** Replace the prompt text after the view is open (e.g. lazily loaded). */
+  setPrompt(text) {
+    this.prompt = text || '';
+    this.promptLoading = false;
+    if (!this.container) return;
+    const oldPanel = this.container.querySelector('.mdv-detail-panel');
+    if (!oldPanel) return;
+    const scroll = oldPanel.querySelector('.mdv-detail-scroll');
+    const scrollTop = scroll ? scroll.scrollTop : 0;
+    // Re-render only the detail column so a playing video is not restarted.
+    const tmp = document.createElement('div');
+    tmp.innerHTML = this._renderHTML();
+    const newPanel = tmp.querySelector('.mdv-detail-panel');
+    if (!newPanel) return;
+    oldPanel.replaceWith(newPanel);
+    this._bindEvents(newPanel);
+    const newScroll = newPanel.querySelector('.mdv-detail-scroll');
+    if (newScroll) newScroll.scrollTop = scrollTop;
+  }
+
+  /** Expand the prompt and scroll it into view with a brief highlight. */
+  revealPrompt() {
+    if (!this.container) return;
+    if (!this._promptExpanded && this.prompt.length > this.PROMPT_COLLAPSE_LENGTH) {
+      this._togglePrompt();
+    }
+    const section = this.container.querySelector('.mdv-prompt-section');
+    if (!section) return;
+    if (typeof section.scrollIntoView === 'function') {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    section.classList.add('mdv-prompt-flash');
+    clearTimeout(this._flashTimeout);
+    this._flashTimeout = setTimeout(() => section.classList.remove('mdv-prompt-flash'), 1200);
+  }
+
   _build() {
     this.overlay = document.createElement('div');
     this.overlay.className = 'mdv-overlay';
@@ -90,7 +140,7 @@ export class MediaDetailView {
     const mediaHTML = this.mediaType === 'video'
       ? `<div class="mdv-media-wrap">
            <div class="mdv-media-inner">
-             <video src="${this.mediaUrl}" controls autoplay loop playsinline class="mdv-media-element"></video>
+             <video src="${escapeHtml(this.mediaUrl)}" controls autoplay loop playsinline class="mdv-media-element"></video>
            </div>
            <div class="mdv-media-badge">
              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -99,7 +149,7 @@ export class MediaDetailView {
          </div>`
       : `<div class="mdv-media-wrap">
            <div class="mdv-media-inner">
-             <img src="${this.mediaUrl}" alt="${this.title || 'Preview'}" class="mdv-media-element" loading="eager" />
+             <img src="${escapeHtml(this.mediaUrl)}" alt="${escapeHtml(this.title || 'Preview')}" class="mdv-media-element" loading="eager" />
            </div>
            ${this.model ? `<div class="mdv-model-badge">${escapeHtml(this.model)}</div>` : ''}
          </div>`;
@@ -174,7 +224,7 @@ export class MediaDetailView {
                 </button>
               </div>
               <div class="mdv-prompt-body">
-                <pre class="mdv-prompt-text" id="mdv-prompt-text">${escapeHtml(displayPrompt)}</pre>
+                <pre class="mdv-prompt-text${this.promptLoading ? ' mdv-prompt-loading' : ''}" id="mdv-prompt-text">${this.promptLoading ? 'Loading prompt…' : escapeHtml(displayPrompt)}</pre>
               </div>
               ${promptToggleHTML}
             </div>
@@ -251,8 +301,8 @@ export class MediaDetailView {
     return `<div class="mdv-meta-grid">${items.join('')}</div>`;
   }
 
-  _bindEvents() {
-    this.container.querySelectorAll('[data-action]').forEach(el => {
+  _bindEvents(root = this.container) {
+    root.querySelectorAll('[data-action]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         const action = el.getAttribute('data-action');
