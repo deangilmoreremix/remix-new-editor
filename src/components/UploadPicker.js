@@ -642,10 +642,15 @@ export function createUploadPicker({
                                 const btnRect = trigger.getBoundingClientRect();
                                 const containerRect = anchorContainer.getBoundingClientRect();
                                 const panelH = panel.offsetHeight;
-                                const margin = 16;
-                                const spaceAbove = btnRect.top - margin;
-                                const spaceBelow = window.innerHeight - btnRect.bottom - margin;
+                                // Same placement as the initial open: stay below the app header.
+                                const margin = 8;
+                                const headerEl = document.querySelector('header');
+                                const topLimit = Math.max(16, headerEl ? headerEl.getBoundingClientRect().bottom + 8 : 0);
+                                const spaceAbove = btnRect.top - margin - topLimit;
+                                const spaceBelow = window.innerHeight - btnRect.bottom - margin - 16;
                                 const placeAbove = spaceAbove >= panelH || spaceAbove >= 240 || spaceAbove >= spaceBelow;
+                                panel.style.maxHeight = `${Math.max(160, placeAbove ? spaceAbove : spaceBelow)}px`;
+                                panel.style.overflowY = 'auto';
                                 panel.style.top = '';
                                 panel.style.bottom = '';
                                 if (placeAbove) {

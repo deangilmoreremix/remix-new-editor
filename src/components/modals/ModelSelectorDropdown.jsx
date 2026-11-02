@@ -116,6 +116,9 @@ export class ModelSelectorDropdown {
       this._popover.style.bottom = 'auto';
     }
     this._popover.style.maxHeight = `${Math.max(200, Math.min(viewportHeight * 0.7, openAbove ? spaceAbove : spaceBelow))}px`;
+    // When the cap is smaller than the content, scroll instead of clipping
+    // the inner model list.
+    this._popover.style.overflowY = 'auto';
 
     // Horizontal positioning: align with anchor left edge, clamped to viewport
     const left = Math.max(8, Math.min(rect.left, window.innerWidth - popoverWidth - 8));

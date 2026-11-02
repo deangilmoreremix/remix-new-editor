@@ -158,7 +158,7 @@ function createModelItem(entry, isSelected, { isVideo = false, showProvider = fa
  * @param {string[]} options.allowedModelTypes - Allowed workflow modes (e.g. ['t2i','i2i'])
  * @param {Function} options.onSelectModel - Called with (pickerEntry, categoryId)
  * @param {Function} options.onClose - Called when dropdown closes
- * @param {Function} [options.onSelectCategory] - Deprecated: tabs only filter the list (as upstream); no longer called
+ * @param {Function} [options.onSelectCategory] - Called with the mode id when a mode tab (not "All") is clicked
  * @param {string} [options.placeholder='Select model'] - Placeholder text
  * @param {boolean} [options.loading=false] - Show loading state
  * @param {string} [copy.searchPlaceholder='Search models...']
@@ -204,7 +204,12 @@ export function mountTemplateModelSelector({
     t2i: "Text to Image", i2i: "Image to Image",
     t2v: "Text to Video", i2v: "Image to Video", v2v: "Video to Video",
   };
-  const modelCategories = [{ id: "all", label: categoryAll, entries: allEntries }];
+  // With allowedModelTypes set, "All" only lists entries the caller can run
+  // (e.g. Cinema passes ['t2v','i2v'], so V2V-only tools are left out).
+  const allowedEntries = allowedModelTypes.length
+    ? allEntries.filter((entry) => allowedModelTypes.some((mode) => entry.variantsByMode[mode]))
+    : allEntries;
+  const modelCategories = [{ id: "all", label: categoryAll, entries: allowedEntries }];
   for (const mode of modeOrder) {
     if (allowedModelTypes.length && !allowedModelTypes.includes(mode)) continue;
     modelCategories.push({
@@ -378,8 +383,23 @@ export function mountTemplateModelSelector({
     panel.dataset.flipped = openAbove ? "1" : "0";
   }
 
+  function addListeners() {
+    document.addEventListener("keydown", escapeHandler);
+    document.addEventListener("click", outsideClickHandler);
+    window.addEventListener("resize", positionPanel);
+    window.addEventListener("scroll", positionPanel, { capture: true, passive: true });
+  }
+
+  function removeListeners() {
+    document.removeEventListener("keydown", escapeHandler);
+    document.removeEventListener("click", outsideClickHandler);
+    window.removeEventListener("resize", positionPanel);
+    window.removeEventListener("scroll", positionPanel, { capture: true });
+  }
+
   function open() {
     document.body.appendChild(panel);
+    addListeners();
     // Reset state
     search = "";
     selectedCategory = "all";
@@ -401,6 +421,7 @@ export function mountTemplateModelSelector({
   }
 
   function close() {
+    removeListeners();
     panel.classList.add("scale-95", "opacity-0", "pointer-events-none");
     panel.classList.remove("scale-100", "opacity-100");
     setTimeout(() => {
@@ -413,8 +434,10 @@ export function mountTemplateModelSelector({
   panel.addEventListener("click", (e) => {
     const categoryBtn = e.target.closest('[data-category]');
     if (categoryBtn) {
-      // Upstream: tabs only filter the list; the model changes on row click.
+      // Tabs filter the list (as upstream). Callers that pass onSelectCategory
+      // (e.g. Cinema) also switch their model when a mode tab is chosen.
       selectedCategory = categoryBtn.dataset.category;
+      if (selectedCategory !== "all") onSelectCategory?.(selectedCategory);
       selectedProvider = "all";
       panel.innerHTML = render();
       positionPanel();
@@ -487,10 +510,8 @@ export function mountTemplateModelSelector({
   function escapeHandler(e) {
     if (e.key === "Escape" && panel.parentNode) {
       close();
-      document.removeEventListener("keydown", escapeHandler);
     }
   }
-  document.addEventListener("keydown", escapeHandler);
 
   // Outside click to close
   function outsideClickHandler(e) {
@@ -500,21 +521,13 @@ export function mountTemplateModelSelector({
     if (path.includes(panel)) return;
     if (!panel.contains(e.target) && e.target !== anchor && !anchor.contains(e.target)) {
       close();
-      document.removeEventListener("click", outsideClickHandler);
     }
   }
-  document.addEventListener("click", outsideClickHandler);
-
-  // Reposition on resize / scroll
-  window.addEventListener("resize", positionPanel);
-  window.addEventListener("scroll", positionPanel, { capture: true, passive: true });
+  // Document/window listeners are added in open() and removed in close().
 
   // Cleanup
   const cleanup = () => {
-    document.removeEventListener("keydown", escapeHandler);
-    document.removeEventListener("click", outsideClickHandler);
-    window.removeEventListener("resize", positionPanel);
-    window.removeEventListener("scroll", positionPanel, { capture: true });
+    removeListeners();
     if (panel.parentNode) panel.parentNode.removeChild(panel);
   };
 

@@ -76,4 +76,20 @@ describe('mountUpstreamModelPicker', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('makes image rows keyboard-selectable (Enter) without changing the copied component', async () => {
+    const anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+    const onSelect = vi.fn();
+    const picker = mountUpstreamModelPicker({
+      kind: 'image', anchor, selectedModelId: null, onSelect, onClose: () => {},
+    });
+    picker.open();
+    const host = document.querySelector('.upstream-model-picker');
+    const row = [...host.querySelectorAll('.cursor-pointer')].find((r) => r.querySelector('span.tracking-tight'));
+    expect(row.getAttribute('tabindex')).toBe('0');
+    expect(row.getAttribute('role')).toBe('button');
+    fireEvent.keyDown(row, { key: 'Enter' });
+    expect(onSelect).toHaveBeenCalledTimes(1);
+  });
 });

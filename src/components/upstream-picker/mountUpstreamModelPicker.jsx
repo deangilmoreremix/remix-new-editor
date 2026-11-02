@@ -136,12 +136,37 @@ export function mountUpstreamModelPicker({ kind, anchor, selectedModelId, onSele
     if (e.key === "Escape") close();
   }
 
+  // Upstream's image rows are clickable <div>s. Make every model row
+  // keyboard-reachable without editing the copied component: give rows a
+  // button role and tab stop, and let Enter/Space activate them.
+  const ROW_SELECTOR = ".cursor-pointer";
+  function isModelRow(el) {
+    return el?.matches?.(ROW_SELECTOR) && el.querySelector("span.tracking-tight");
+  }
+  function makeRowsFocusable() {
+    for (const row of host.querySelectorAll(ROW_SELECTOR)) {
+      if (row.tagName === "BUTTON" || !isModelRow(row)) continue;
+      if (!row.hasAttribute("tabindex")) row.setAttribute("tabindex", "0");
+      if (!row.hasAttribute("role")) row.setAttribute("role", "button");
+    }
+  }
+  const rowObserver =
+    typeof MutationObserver === "function" ? new MutationObserver(makeRowsFocusable) : null;
+  host.addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && isModelRow(e.target) && e.target.tagName !== "BUTTON") {
+      e.preventDefault();
+      e.target.click();
+    }
+  });
+
   function open() {
     if (isOpen) return;
     isOpen = true;
     document.body.appendChild(host);
     root = createRoot(host);
     render();
+    makeRowsFocusable();
+    rowObserver?.observe(host, { childList: true, subtree: true });
     place();
     // Upstream scrolls the selected row into view on mount; the height cap
     // above is applied afterwards, so do it once more now.
@@ -172,6 +197,7 @@ export function mountUpstreamModelPicker({ kind, anchor, selectedModelId, onSele
     window.removeEventListener("scroll", place, { capture: true });
     clearInterval(connectionTimer);
     connectionTimer = null;
+    rowObserver?.disconnect();
     const r = root;
     root = null;
     // Unmount outside the click handler that triggered the close.
