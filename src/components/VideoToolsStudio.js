@@ -6,7 +6,7 @@ import { videoToolsModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -23,7 +23,7 @@ import { showToast } from '../lib/loading.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
+  container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-4 md:p-6 relative';
   mountStudioChrome(container, { currentRoute: 'videotools' });
 
   let selectedModel = videoToolsModels[0];
@@ -39,13 +39,12 @@ export function VideoToolsStudio() {
   // Header with hero banner
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">Video Tools Studio</h1>';
+  header.appendChild(createStudioHeader('videotools', 'Video Tools', 'Upscale, extend, translate, clean up and enhance videos'));
   container.appendChild(header);
 
   // Model selector
   const modelWrapper = document.createElement('div');
-  modelWrapper.className = 'mb-6 flex flex-col items-center gap-2 animate-fade-in-up';
+  modelWrapper.className = 'mt-4 mb-4 flex flex-col items-center gap-2 animate-fade-in-up';
   modelWrapper.style.animationDelay = '0.1s';
 
 const triggerBtn = document.createElement('button');
@@ -129,7 +128,7 @@ const triggerBtn = document.createElement('button');
 
   // Form card
   const formCard = document.createElement('div');
-  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
+  formCard.className = 'w-full max-w-3xl bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 flex flex-col gap-4 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.2s';
 
   // Video upload
@@ -151,7 +150,12 @@ const triggerBtn = document.createElement('button');
     },
     onClear: () => { uploadedVideoUrl = null; uploadedVideoAssetId = null; },
   });
-  videoUploadGroup.appendChild(videoPicker.trigger);
+  // Upload + stock buttons sit side by side with a hint, not stacked.
+  const sourceRow = document.createElement('div');
+  sourceRow.className = 'flex items-center gap-2';
+  sourceRow.dataset.videoSourceRow = '';
+  videoUploadGroup.appendChild(sourceRow);
+  sourceRow.appendChild(videoPicker.trigger);
 
   const pexelsVideoBtn = document.createElement('button');
   pexelsVideoBtn.type = 'button';
@@ -176,7 +180,11 @@ const triggerBtn = document.createElement('button');
       }
     });
   };
-  videoUploadGroup.appendChild(pexelsVideoBtn);
+  sourceRow.appendChild(pexelsVideoBtn);
+  const sourceHint = document.createElement('span');
+  sourceHint.className = 'text-xs text-white/40';
+  sourceHint.textContent = 'Upload a video or pick a stock clip';
+  sourceRow.appendChild(sourceHint);
 
   formCard.appendChild(videoUploadGroup);
 

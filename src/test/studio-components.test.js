@@ -101,7 +101,7 @@ describe('results gallery', () => {
     const card = g.root.querySelector('[data-result-card]');
     expect(card.textContent).toContain('a cat');
     expect(card.textContent).toContain('flux dev');
-    expect(card.querySelectorAll('[data-action]').length).toBe(4);
+    expect(card.querySelectorAll('[data-action]').length).toBe(5); // copy prompt, copy image, download, save to Content, delete
   });
 
   it('deletes only after the user confirms', () => {

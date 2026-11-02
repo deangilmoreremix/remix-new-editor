@@ -3,7 +3,7 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
@@ -206,7 +206,7 @@ export async function StoryboardStudio(options = {}) {
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
   if (!embedded) {
-    topBar.innerHTML = `<h1 class="${CINEMATIC_THEME.text.title} text-white mb-1">Storyboard Studio</h1><p class="${CINEMATIC_THEME.text.eyebrow} text-secondary mb-4">Plan your scenes with AI-generated storyboard frames</p>`;
+    topBar.appendChild(createStudioHeader('storyboard', 'Storyboard Studio', 'Plan scenes as AI storyboard frames, then turn them into video', 'mb-4'));
   }
   const inlineInstructions = createInlineInstructions('storyboard');
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');

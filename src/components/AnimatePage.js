@@ -2,38 +2,28 @@
 // Animate — image-to-video, model dynamically selected from the catalog.
 // Follows the exact pattern of existing studios (vanilla DOM + mountStudioChrome).
 
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { listBrands, saveAnimation, listAnimations } from '../lib/brandStore.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
 import { DEFAULT_PROMPTS } from '../lib/animate.js';
-import { apiCall } from '../lib/brandApi.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { i2vModels } from '../lib/models.js';
 
-function getBackendBase() {
-  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) {
-    return import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '');
-  }
-  if (typeof window !== 'undefined' && window.__BACKEND_URL__) {
-    return window.__BACKEND_URL__.replace(/\/$/, '');
-  }
-  return '';
-}
 
 const RESOLUTIONS = ['480p', '720p', '1080p'];
 const DURATIONS = ['3', '5', '10', '12'];
 const SOURCE_TYPES = [
-  { id: 'image', label: 'Image' },
-  { id: 'photoshoot', label: 'Photoshoot' },
-  { id: 'upload', label: 'Upload' },
+  { id: 'image', label: 'Upload image' },
+  { id: 'photoshoot', label: 'From Photo Studio' },
 ];
 
 export function AnimatePage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
-  mountStudioChrome(container, { currentRoute: 'animate', title: 'Animate' });
+  mountStudioChrome(container, { currentRoute: 'animate' });
 
   const brands = listBrands();
   const selectedBrand = brands[0] || null;
@@ -65,15 +55,12 @@ export function AnimatePage() {
   };
 
   const root = document.createElement('div');
-  root.className = 'w-full max-w-3xl mx-auto px-4 py-8 animate-fade-in-up';
+  root.className = 'w-full max-w-4xl mx-auto px-4 pb-8 animate-fade-in-up';
 
   // ---- Header ----
   const header = document.createElement('div');
   header.className = 'mb-6';
-  header.innerHTML = `
-    <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Animate</h1>
-    <p class="text-secondary text-sm">Turn any image into a short video with AI motion.</p>
-  `;
+  header.appendChild(createStudioHeader('animate', 'Animate Studio', 'Turn any image or product shot into a 3–12s video with AI motion'));
   root.appendChild(header);
 
   // ---- Source Type Tabs ----
@@ -141,63 +128,13 @@ export function AnimatePage() {
         empty.textContent = 'No photoshoots found. Create one in Photo Studio first.';
         uploadSection.appendChild(empty);
       }
-    } else if (state.sourceType === 'upload') {
-      const uploadRow = document.createElement('div');
-      uploadRow.className = 'mb-2';
-      const picker = createUploadPicker({
-        anchorContainer: container,
-        acceptVideo: false,
-        onSelect: ({ url }) => {
-          state.sourceImageUrl = url;
-          renderResult();
-        },
-        onClear: () => {
-          state.sourceImageUrl = null;
-          state.sourceId = null;
-          renderResult();
-        },
-      });
-      uploadRow.appendChild(picker.trigger);
-      uploadRow.appendChild(picker.panel);
-      uploadSection.appendChild(uploadRow);
-
-      const fetchUploadRow = document.createElement('div');
-      fetchUploadRow.className = 'mt-2';
-      const fetchBtn = document.createElement('button');
-      fetchBtn.type = 'button';
-      fetchBtn.className = 'btn-secondary-modern text-xs';
-      fetchBtn.textContent = 'Upload via API';
-      fetchBtn.onclick = async () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = async () => {
-          const file = input.files[0];
-          if (!file) return;
-          try {
-            const formData = new FormData();
-            formData.append('file', file);
-            const backendBase = getBackendBase();
-            const uploadUrl = backendBase ? `${backendBase}/api/animate/upload` : '/api/animate/upload';
-            const res = await fetch(uploadUrl, { method: 'POST', body: formData });
-            if (!res.ok) throw new Error('Upload failed');
-            const data = await res.json();
-            state.sourceImageUrl = data.url || data.path;
-            state.sourceId = data.id;
-            renderResult();
-            showToast('Image uploaded', 'success');
-          } catch (err) {
-            showToast(String(err), 'error');
-          }
-        };
-        input.click();
-      };
-      fetchUploadRow.appendChild(fetchBtn);
-      uploadSection.appendChild(fetchUploadRow);
     } else {
       const picker = createUploadPicker({
         anchorContainer: container,
         acceptVideo: false,
+        acceptDocuments: false,
+        muapiStudio: true,
+        studioId: 'animate',
         onSelect: ({ url }) => {
           state.sourceImageUrl = url;
           renderResult();
@@ -229,7 +166,7 @@ export function AnimatePage() {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = `px-2 py-1 rounded-lg text-[10px] font-bold transition-all border ${state.promptIndex === idx ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
-    chip.textContent = `Prompt ${idx + 1}`;
+    chip.textContent = p.length > 28 ? `${p.slice(0, 26)}…` : p;
     chip.title = p;
     chip.onclick = () => {
       state.promptIndex = idx;
@@ -294,18 +231,18 @@ export function AnimatePage() {
   muapiModeRow.className = 'flex items-center gap-3 mb-2';
   const muapiLabel = document.createElement('label');
   muapiLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-  muapiLabel.textContent = 'Generation Mode';
+  muapiLabel.textContent = 'Model';
   muapiModeRow.appendChild(muapiLabel);
 
   const modeToggle = document.createElement('button');
   modeToggle.type = 'button';
   modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
-  modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
+  modeToggle.textContent = state.muapiMode ? 'Choose a model' : 'Seedance Lite (default)';
   modeToggle.onclick = () => {
     state.muapiMode = !state.muapiMode;
     if (!state.muapiMode) state.selectedMuapiModel = null;
     modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
-    modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
+    modeToggle.textContent = state.muapiMode ? 'Choose a model' : 'Seedance Lite (default)';
     renderMuapiModelSelector();
     renderAdvancedMuapiControls();
   };
@@ -439,15 +376,13 @@ export function AnimatePage() {
         });
         data = { videoUrl: result.url, id: result.request_id || result.id };
       } else {
-        data = await apiCall('/api/animate/generate', {
-          sourceImageUrl: state.sourceImageUrl,
-          sourceType: state.sourceType,
-          sourceId: state.sourceId,
-          prompt: state.prompt,
+        // Open-Pomelli's animate flow (seedance-lite-i2v), client-side.
+        const videoUrl = await muapi.videoI2V(state.prompt || DEFAULT_PROMPTS[0], state.sourceImageUrl, {
           duration: state.duration,
           resolution: state.resolution,
-          brandId: selectedBrand?.id || null,
         });
+        if (!videoUrl) throw new Error('Animation returned no video');
+        data = { videoUrl };
       }
       state.result = { videoUrl: data.videoUrl };
       if (selectedBrand) {

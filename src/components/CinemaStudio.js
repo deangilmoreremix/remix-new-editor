@@ -13,7 +13,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
 import { mountVideoModelSelector } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getCinemaStudioAsset } from '../lib/personalizerAdapters.js';
@@ -149,8 +149,7 @@ export function CinemaStudio() {
     // ==========================================
     const heroSection = document.createElement('div');
     heroSection.className = 'flex flex-col items-center text-center px-4 animate-fade-in-up w-full mb-2 md:mb-4';
-    // Studios open straight onto the tool; keep the page title for screen readers.
-    heroSection.innerHTML = '<h1 class="sr-only">Cinema Studio</h1>';
+    heroSection.appendChild(createStudioHeader('cinema', 'Cinema Studio', 'Cinematic shots with real camera, lens and movement controls'));
 
      container.appendChild(heroSection);
 

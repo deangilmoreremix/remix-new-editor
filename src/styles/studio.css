@@ -138,6 +138,11 @@
     background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(8px);
     flex-shrink: 0;
+    /* Many studio roots are `flex-col items-center`; keep the bar full-width
+       and pinned left instead of shrinking into a centred pill. */
+    align-self: stretch;
+    width: auto;
+    margin-bottom: 0.75rem;
 }
 .studio-topbar__title {
     font-size: 1rem;

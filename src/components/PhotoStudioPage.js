@@ -4,11 +4,10 @@
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { listBrands, savePhotoshoot } from '../lib/brandStore.js';
-import { PHOTO_CATEGORIES, PHOTO_STYLES } from '../lib/photoStudio.js';
+import { PHOTO_CATEGORIES, PHOTO_STYLES, generateProductPhoto } from '../lib/photoStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
-import { apiCall } from '../lib/brandApi.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { i2iModels, v2vModels } from '../lib/models.js';
@@ -378,12 +377,13 @@ export function PhotoStudioPage() {
               };
             }
 
-            const result = await apiCall('/api/photo-studio/generate', {
+            // Open-Pomelli's photo studio (nano-banana-2-edit), client-side.
+            const result = await generateProductPhoto({
               productImageUrl: state.productImageUrl,
+              logoUrl: selectedBrand?.logoUrl || null,
               category,
-              styleId: style,
-              prompt: state.direction || null,
-              brandId: selectedBrand?.id || null,
+              style,
+              direction: state.direction || '',
               resolution: state.resolution,
             });
 

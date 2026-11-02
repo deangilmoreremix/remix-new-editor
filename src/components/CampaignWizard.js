@@ -5,11 +5,11 @@
 import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { getBrand } from '../lib/brandStore.js';
-import { CAMPAIGN_GOALS } from '../lib/campaignGenerator.js';
+import { CAMPAIGN_GOALS, generateCampaignConcepts, generateAssetForConcept } from '../lib/campaignGenerator.js';
+import { generateId } from '../lib/brandStore.js';
 import { PLATFORMS } from '../lib/platforms.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
-import { apiCall } from '../lib/brandApi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 
 const CONCURRENCY = 3;
@@ -177,15 +177,10 @@ export function CampaignWizard(params = {}) {
     container.appendChild(overlay);
 
     try {
-      const campaign = await apiCall('/api/campaign/create', {
-        brandId: brand.id,
-        goal: state.goal,
-        prompt: state.direction || null,
-        brand,
-      });
-      const concepts = typeof campaign.concepts === 'string' ? JSON.parse(campaign.concepts) : (campaign.concepts || []);
-      state.concepts = concepts;
-      state.campaignId = campaign.id;
+      // Open-Pomelli's campaign generator, run client-side through MuAPI.
+      const concepts = await generateCampaignConcepts(brand, state.goal, state.direction || '');
+      state.concepts = concepts.map((c, index) => ({ ...c, index }));
+      state.campaignId = generateId();
       renderConcepts();
     } catch (err) {
       state.error = String(err);
@@ -224,13 +219,8 @@ export function CampaignWizard(params = {}) {
             renderAssetStatus();
 
             try {
-              const asset = await apiCall('/api/asset/generate', {
-                campaignId: state.campaignId || brand.id,
-                conceptIndex: state.selectedConcept.index !== undefined ? state.selectedConcept.index : 0,
-                platformId: platform,
-                brand,
-                concept: state.selectedConcept,
-              });
+              const asset = await generateAssetForConcept(brand, state.selectedConcept, platform);
+              asset.campaignId = state.campaignId || brand.id;
               state.assetStatus[platform] = { status: 'done', label: platformMeta.label };
               renderAssetStatus();
 

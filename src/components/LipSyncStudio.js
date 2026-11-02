@@ -8,7 +8,7 @@ import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getResolutionsFo
 import { AuthModal } from './AuthModal.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
@@ -23,7 +23,7 @@ import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
-    container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+    container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
   mountStudioChrome(container, { currentRoute: 'lipsync' });
 
     // --- State ---
@@ -51,8 +51,7 @@ export function LipSyncStudio() {
     // ==========================================
     const hero = document.createElement('div');
     hero.className = 'flex flex-col items-center mb-4 md:mb-6 animate-fade-in-up transition-all duration-700 w-full';
-    // Studios open straight onto the tool; keep the page title for screen readers.
-    hero.innerHTML = '<h1 class="sr-only">Lip Sync</h1>';
+    hero.appendChild(createStudioHeader('lipsync', 'Lip Sync Studio', 'Make a portrait talk or re-sync any video to new audio'));
     container.appendChild(hero);
 
     // ==========================================
