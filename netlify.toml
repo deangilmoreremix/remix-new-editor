@@ -10,7 +10,7 @@
   # them legitimately appears in a log line or build output. Every name below is
   # read ONLY by code under netlify/functions/ (server-side) — none is inlined
   # into the client bundle, and none carries a VITE_ prefix.
-  SECRETS_SCAN_OMIT_KEYS = "CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET,OPENAI_API_KEY,MUAPI_API_KEY,PIXABAY_API_KEY,FAL_KEY,GEMINI_API_KEY,GITHUB_TOKEN"
+  SECRETS_SCAN_OMIT_KEYS = "INTERNAL_FUNCTION_SECRET,FIRECRAWL_API_KEY,CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET,OPENAI_API_KEY,MUAPI_API_KEY,PIXABAY_API_KEY,FAL_KEY,GEMINI_API_KEY,GITHUB_TOKEN"
 
 # MEDIA UPLOADS DO NOT TRANSIT NETLIFY FUNCTIONS.
 # Netlify synchronous functions cap the request payload at 6 MB (≈4.5 MB for
@@ -23,6 +23,18 @@
 #   • saved assets → refetch the durable Supabase original in-browser, then
 #                    re-upload through the same shared adapter
 # Do NOT add a Netlify function that relays media bytes.
+
+# Personalization + Lead Finder (ported from OpenHiggsBolt).
+# personalization-api.mts declares its own paths (/api/personalization/*,
+# /api/demo/discover, /api/video/record). It and the browser-discovery worker
+# import TypeScript from netlify/functions/_personalization, so both are
+# bundled with esbuild. Chromium is shipped as a package, not bundled.
+[functions."personalization-api"]
+  node_bundler = "esbuild"
+
+[functions."personalization-browser-discovery"]
+  node_bundler = "esbuild"
+  external_node_modules = ["@sparticuz/chromium", "playwright-core"]
 
 # Serve the model catalog as a static file in production.
 # The vite build plugin emits dist/api/model-catalog.json containing all

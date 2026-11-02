@@ -1315,6 +1315,21 @@ export default defineConfig({
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api\/intelligence/, '/.netlify/functions/intelligence-api'),
             },
+            // Personalization + Lead Finder API (netlify/functions/personalization-api.mts).
+            // The function declares these paths itself (config.path), so
+            // `netlify dev` serves them as-is on :8888 — no rewrite.
+            '/api/personalization/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/demo/discover': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/video/record': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             '/api/personalizer': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,

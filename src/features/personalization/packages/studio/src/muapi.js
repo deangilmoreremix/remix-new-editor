@@ -1,3 +1,7 @@
+// remix-new-editor: generation requests go through remix's MuAPI transport
+// (Supabase `muapi-proxy` edge function + the key from Settings) instead of
+// OpenHiggsBolt's Next.js `/api/*` proxy, which remix does not have.
+import { muapi as remixMuapi } from '../../../../../lib/muapi.js';
 import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getRecastModelById, getLipSyncModelById, getAudioModelById, getMotionControlModelById } from './models.js';
 import {
     buildVideoToolPayload,
@@ -63,24 +67,26 @@ function normalizePredictionResult(submitData, result, outputUrl) {
 }
 
 async function submitAndPoll(endpoint, payload, key, onRequestId, maxAttempts = 60) {
-    const url = `${BASE_URL}/api/v1/${endpoint}`;
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': key },
-        body: JSON.stringify(payload)
-    });
-    if (!response.ok) {
-        const errText = await response.text();
-        notifyAuthRequired(response.status, errText);
-        throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
-    }
-    const submitData = await response.json();
-    const requestId = submitData.request_id || submitData.id;
+    // Submit through remix's proxy; payload building above is OpenHiggsBolt's.
+    const { requestId, submitData } = await remixMuapi.submitOnly(endpoint, payload, key);
     if (!requestId) return submitData;
     if (onRequestId) onRequestId(requestId);
-    const result = await pollForResult(requestId, key, maxAttempts);
-    const outputUrl = result.outputs?.[0] || result.url || result.output?.url;
-    return normalizePredictionResult(submitData, result, outputUrl);
+    const interval = 2000;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, interval));
+        const status = await remixMuapi.checkStatus(requestId, key);
+        if (status.status === 'completed') {
+            const result = status.data || {};
+            const outputUrl = status.url || result.outputs?.[0] || result.url || result.output?.url;
+            return normalizePredictionResult(submitData, result, outputUrl);
+        }
+        if (status.status === 'failed' && !status.retryable) {
+            const message = status.error || 'Generation failed';
+            if (/\b(401|403)\b/.test(message)) notifyAuthRequired(401, message);
+            throw new Error(message);
+        }
+    }
+    throw new Error('Generation timed out. Please try again.');
 }
 
 export async function generateImage(apiKey, params) {
@@ -376,86 +382,20 @@ export async function generateAudio(apiKey, params) {
 }
 
 export function uploadFile(apiKey, file, onProgress) {
-    return new Promise((resolve, reject) => {
-        if (!file) return reject(new Error('No file provided'));
-
-        // Limits and MIME allowlist come from the shared contract — this package
-        // cannot import the host's TypeScript config, so the canonical contract
-        // lives in ./uploadContract.js and is re-exported to the app as
-        // src/lib/uploadConfig.ts. Do not hardcode sizes here.
-        if (!isAllowedUploadMimeType(file)) {
-            return reject(new Error(`Invalid file type: ${file.type || 'unknown'}`));
-        }
-        const MAX_FILE_SIZE = getUploadLimit(file);
-        if (file.size > MAX_FILE_SIZE) {
-            return reject(new Error(`File too large: ${(file.size/1024/1024).toFixed(1)} MB. Maximum: ${formatUploadLimit(MAX_FILE_SIZE)}`));
-        }
-
-        const url = '/api/v1/upload_file';
-
-        function attemptUpload() {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            return new Promise((resolveAttempt, rejectAttempt) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', url);
-                xhr.setRequestHeader('x-api-key', apiKey);
-                xhr.timeout = FILE_UPLOAD_TIMEOUT_MS;
-
-                if (onProgress) {
-                    xhr.upload.onprogress = (event) => {
-                        if (event.lengthComputable) {
-                            const percentComplete = Math.min(
-                                Math.round((event.loaded / event.total) * 100),
-                                FILE_UPLOAD_PENDING_PROGRESS
-                            );
-                            onProgress(percentComplete);
-                        }
-                    };
-                }
-
-                xhr.onload = () => resolveAttempt(xhr);
-                xhr.onerror = () => rejectAttempt(new Error('Network error during file upload'));
-                xhr.ontimeout = () => rejectAttempt(new Error('File upload timed out. Please try again.'));
-                xhr.send(formData);
-            });
-        }
-
-        // Single attempt: the server route owns retry (see the timeout policy
-        // comment above). A client-side retry would multiply upstream POSTs and
-        // orphan in-flight server uploads.
-        attemptUpload().then(xhr => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                    const data = JSON.parse(xhr.responseText);
-                    const fileUrl = data.url || data.file_url || data.data?.url;
-                    if (!fileUrl) {
-                        reject(new Error('No URL returned from file upload'));
-                    } else {
-                        onProgress?.(100);
-                        resolve(fileUrl);
-                    }
-                } catch (e) {
-                    reject(new Error('Failed to parse upload response'));
-                }
-            } else {
-                let detail = xhr.statusText;
-                let code = null;
-                try {
-                    const errObj = JSON.parse(xhr.responseText);
-                    detail = errObj.error || errObj.detail || detail;
-                    code = errObj.code || null;
-                } catch (e) {
-                    // fallback to statusText
-                }
-                notifyAuthRequired(xhr.status, detail, code);
-                reject(new Error(`File upload failed: ${xhr.status} - ${detail}`));
-            }
-        }).catch(reject);
+    // remix's shared upload adapter owns validation, size limits and the
+    // proxy/direct routing (see src/lib/muapiUpload.js).
+    if (!file) return Promise.reject(new Error('No file provided'));
+    if (!isAllowedUploadMimeType(file)) {
+        return Promise.reject(new Error(`Invalid file type: ${file.type || 'unknown'}`));
+    }
+    const limit = getUploadLimit(file);
+    if (limit && file.size > limit) {
+        return Promise.reject(new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(1)} MB. Maximum: ${formatUploadLimit(limit)}`));
+    }
+    return remixMuapi.uploadFile(file, {
+        onProgress: typeof onProgress === 'function' ? onProgress : undefined,
     });
 }
-
 export async function getUserBalance(apiKey) {
     const response = await fetch(`${BASE_URL}/api/v1/account/balance`, {
         headers: {

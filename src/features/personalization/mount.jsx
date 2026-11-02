@@ -12,6 +12,7 @@ import React, { useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { DemoPersonalizeProvider, useDemoPersonalize } from './shared/personalization/DemoPersonalizeProvider'
 import { buildStudioPersonalizeSource } from './shared/personalization/studioEntry'
+import { installPersonalizationApiAuth } from './lib/apiAuth'
 
 /** remix studio ids → OpenHiggsBolt `originStudio` values. */
 const ORIGIN_STUDIO = {
@@ -49,6 +50,7 @@ function Bridge() {
 
 function ensureMounted() {
   if (root) return
+  installPersonalizationApiAuth()
   host = document.createElement('div')
   host.id = 'remix-personalization-root'
   document.body.appendChild(host)
