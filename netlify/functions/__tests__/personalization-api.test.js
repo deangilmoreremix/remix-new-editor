@@ -106,3 +106,25 @@ describe('/api/proxy/openai-enhance', () => {
     expect(res.status).toBe(400)
   })
 })
+
+describe('client IP normalisation', () => {
+  it("replaces caller-supplied forwarding headers with Netlify's connection IP", async () => {
+    const { withTrustedClientIp } = await import('../personalization-api.mts')
+    const req = withTrustedClientIp(
+      new Request('http://localhost/api/personalization/leads', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': '6.6.6.6, 10.0.0.1', 'x-real-ip': '6.6.6.6', 'x-nf-client-connection-ip': '203.0.113.7' },
+        body: '{"a":1}',
+      }),
+    )
+    expect(req.headers.get('x-forwarded-for')).toBe('203.0.113.7')
+    expect(req.headers.get('x-real-ip')).toBe('203.0.113.7')
+    expect(await req.text()).toBe('{"a":1}')
+  })
+
+  it('leaves the request untouched off Netlify', async () => {
+    const { withTrustedClientIp } = await import('../personalization-api.mts')
+    const original = new Request('http://localhost/x', { headers: { 'x-forwarded-for': '1.2.3.4' } })
+    expect(withTrustedClientIp(original)).toBe(original)
+  })
+})

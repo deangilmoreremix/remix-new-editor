@@ -82,6 +82,29 @@ function resolve(pathname: string): { mod: RouteModule; params: Record<string, s
   return null
 }
 
+/**
+ * The ported routes key anonymous rate limits and anonymous discovery-job
+ * ownership on the client IP, read from `x-real-ip` / `x-forwarded-for`.
+ * Those headers can be supplied by the caller, so when Netlify provides the
+ * connection IP it sets itself (`x-nf-client-connection-ip`), it replaces
+ * both before any route sees the request.
+ */
+export function withTrustedClientIp(request: Request): Request {
+  const trusted = request.headers.get('x-nf-client-connection-ip')?.trim()
+  if (!trusted) return request
+  const headers = new Headers(request.headers)
+  headers.set('x-forwarded-for', trusted)
+  headers.set('x-real-ip', trusted)
+  const method = request.method.toUpperCase()
+  return new Request(request.url, {
+    method,
+    headers,
+    body: method === 'GET' || method === 'HEAD' ? undefined : request.body,
+    // Required by Node's fetch when streaming a request body through.
+    duplex: 'half',
+  } as RequestInit)
+}
+
 export default async (request: Request, context: Context): Promise<Response> => {
   const url = new URL(request.url)
   const match = resolve(url.pathname)
@@ -94,7 +117,7 @@ export default async (request: Request, context: Context): Promise<Response> => 
     return NextResponse.json({ error: 'Method not allowed' }, { status: 405, headers: { Allow: allow } })
   }
 
-  const req = new NextRequest(request)
+  const req = new NextRequest(withTrustedClientIp(request))
   return requestContext.run(
     { request: req, waitUntil: (p) => context?.waitUntil?.(p) },
     async () => {

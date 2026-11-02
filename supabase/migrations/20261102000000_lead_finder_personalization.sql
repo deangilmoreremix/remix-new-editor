@@ -1041,6 +1041,19 @@ create index if not exists personalization_saved_projects_user_source_updated_id
 
 revoke all on function public.personalization_saved_projects_list_by_source(text, text) from public, anon, authenticated;
 
+-- remix: CREATE FUNCTION grants EXECUTE through PUBLIC, and the revokes above
+-- remove that path for service_role too (the same reason the lead_finder
+-- RPCs are re-granted above). The Netlify function calls every one of these
+-- RPCs with the service role, so grant it explicitly.
+grant execute on function public.personalization_saved_projects_list(text) to service_role;
+grant execute on function public.personalization_saved_projects_get(uuid, text) to service_role;
+grant execute on function public.personalization_saved_projects_upsert(uuid, text, jsonb, jsonb, jsonb, jsonb, jsonb, text, text, text, text) to service_role;
+grant execute on function public.personalization_saved_projects_delete(uuid, text) to service_role;
+grant execute on function public.personalization_saved_projects_list_by_source(text, text) to service_role;
+grant execute on function public.personalization_demo_consume_quota(text, integer, bigint) to service_role;
+grant execute on function public.personalization_demo_discovery_cache_get(text) to service_role;
+grant execute on function public.personalization_demo_discovery_cache_put(text, jsonb, bigint) to service_role;
+
 -- ════════════════════════════════════════════════════════════════════
 -- remix: storage buckets the ported modal writes to
 -- ════════════════════════════════════════════════════════════════════

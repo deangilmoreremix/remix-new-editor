@@ -66,6 +66,21 @@ import { BeforeAfterPreview } from './preview/BeforeAfterPreview'
 
 // ── Design tokens: shared remix palette (see guided/tokens.ts) ──────────────
 
+/**
+ * Niche copy marks emphasis with `<strong>…</strong>` only. Render that as
+ * React elements and everything else as plain text, so the copy can never
+ * inject markup (no dangerouslySetInnerHTML).
+ */
+function renderStrongMarkup(text: string): Array<string | JSX.Element> {
+  return String(text || '')
+    .split(/(<strong>[\s\S]*?<\/strong>)/g)
+    .filter(Boolean)
+    .map((part, index) => {
+      const match = /^<strong>([\s\S]*?)<\/strong>$/.exec(part)
+      return match ? <strong key={index}>{match[1]}</strong> : part
+    })
+}
+
 // ── Domain constants ────────────────────────────────────────────────────────
 
 const VIDEO_MODES = [
@@ -1325,8 +1340,9 @@ export default function PersonalizationModal() {
                   <p
                     className="mt-1.5 max-w-[900px] text-[13px] leading-[1.55]"
                     style={{ color: C.muted }}
-                    dangerouslySetInnerHTML={{ __html: niche.ctaBody }}
-                  />
+                  >
+                    {renderStrongMarkup(niche.ctaBody)}
+                  </p>
                 ) : (
                   <p
                     className="mt-1.5 max-w-[900px] text-[13px] leading-[1.55]"

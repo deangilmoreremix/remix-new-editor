@@ -1541,11 +1541,26 @@ async function startAllowlistProxy(guard) {
 // Handler
 // ---------------------------------------------------------------------------
 
+// remix: this worker is only ever called server-to-server by
+// personalization-api (with x-internal-service-token), so it never needs to
+// be readable cross-origin. Advertise only the site's own origin, never `*`.
+const WORKER_ALLOWED_ORIGIN = (() => {
+  const raw = process.env.URL || process.env.NEXT_PUBLIC_SITE_URL || ''
+  try {
+    return raw ? new URL(raw).origin : ''
+  } catch {
+    return ''
+  }
+})()
+
+// eslint-disable-next-line no-unused-vars
 function corsHeaders(statusContentType) {
+  if (!WORKER_ALLOWED_ORIGIN) return {}
   return {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': WORKER_ALLOWED_ORIGIN,
+    Vary: 'Origin',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-internal-service-token',
   }
 }
 
@@ -1595,9 +1610,7 @@ function createBrowserDiscoveryHandler(overrides = {}) {
       return {
         statusCode: 204,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-internal-service-token',
+          ...corsHeaders(),
         },
         body: '',
       }
