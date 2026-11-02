@@ -9,6 +9,7 @@
  */
 import { readHandoff } from '../shared/crossStudio'
 import { stageStudioPrefill } from '../../../lib/studioPrefill.js'
+import { navigate as shellNavigate } from '../../../lib/router.js'
 
 const STUDIO_ROUTE: Record<string, string> = {
   image: 'image',
@@ -89,10 +90,25 @@ function forwardHandoff(route: string): void {
   }
 }
 
+/**
+ * Go to the remix route for an OpenHiggsBolt href.
+ *
+ * Inside the app shell this calls the shell router directly: it takes the
+ * query string as params (the router looks pages up by bare name, so
+ * `animate?template=…` would miss), and it always remounts the page, so a
+ * hand-off to the studio that is already open (Image → "Edit in Image
+ * Studio") is applied. Setting the same hash again fires no `hashchange`.
+ * Outside the shell (the standalone landing page) a page load boots it.
+ */
 export function navigate(href: string): void {
   if (typeof window === 'undefined') return
   const target = toRemixRoute(href)
-  forwardHandoff(target.slice(2).split('?')[0])
+  const [route, query = ''] = target.slice(2).split('?')
+  forwardHandoff(route)
+  if (document.getElementById('content-area')) {
+    void shellNavigate(route, Object.fromEntries(new URLSearchParams(query)))
+    return
+  }
   window.location.hash = target.slice(1)
 }
 

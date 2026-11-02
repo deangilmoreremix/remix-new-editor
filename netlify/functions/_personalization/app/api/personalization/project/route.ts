@@ -73,17 +73,31 @@ function readSourceDemoId(row: unknown): string | null {
   return null
 }
 
-function sanitizeValue(value: unknown, maxLength = MAX_STRING_LENGTH): unknown {
+/** Marks a value the sanitizer drops instead of saving. */
+const DROPPED = Symbol('dropped')
+
+/**
+ * Cap long strings before saving. Text is truncated, but a `data:` URL is
+ * media: cutting it would save a corrupt image that still looks saved, so
+ * an oversized one is dropped (removed from its array or object) instead.
+ */
+export function sanitizeValue(value: unknown, maxLength = MAX_STRING_LENGTH): unknown {
   if (typeof value === 'string') {
-    return value.length > maxLength ? value.slice(0, maxLength) + '...' : value
+    if (value.length <= maxLength) return value
+    if (/^data:/i.test(value)) return DROPPED
+    return value.slice(0, maxLength) + '...'
   }
   if (Array.isArray(value)) {
-    return value.slice(0, 1_000).map((item) => sanitizeValue(item, maxLength))
+    return value
+      .slice(0, 1_000)
+      .map((item) => sanitizeValue(item, maxLength))
+      .filter((item) => item !== DROPPED)
   }
   if (value && typeof value === 'object') {
     const sanitized: Record<string, unknown> = {}
     for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
-      sanitized[key] = sanitizeValue(val, maxLength)
+      const next = sanitizeValue(val, maxLength)
+      if (next !== DROPPED) sanitized[key] = next
     }
     return sanitized
   }

@@ -33,6 +33,24 @@ describe('navigation shim', () => {
     expect(window.location.hash).toBe('#/cinema')
     expect(localStorage.getItem('prefill_prompt')).toBe('Acme Roofing hero shot')
   })
+
+  it('uses the shell router inside the app, with the query as params', async () => {
+    const router = await import('../../../lib/router.js')
+    const content = document.createElement('div')
+    content.id = 'content-area'
+    document.body.appendChild(content)
+    const pushState = vi.spyOn(window.history, 'pushState')
+    try {
+      router.initRouter(content, null)
+      navigate('/studio/motion-studio?template=a%7Cb')
+      // The router looks the page up by bare name and puts params in the query.
+      expect(router.getCurrentPage()).toBe('animate')
+      expect(pushState).toHaveBeenLastCalledWith({}, '', '/?template=a%7Cb#/animate')
+    } finally {
+      pushState.mockRestore()
+      content.remove()
+    }
+  })
 })
 
 describe('buildRemixSource', () => {
