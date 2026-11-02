@@ -23,7 +23,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
-import { mountVideoModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
+import { mountVideoModelSelector, videoModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerateButton, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -739,11 +739,14 @@ export function VideoStudio() {
     `, selectedModelName, 'v-model-btn', 'Select AI video model');
 
     const updateModelBtnIcon = () => {
-        const iconEl = document.getElementById('v-model-btn-icon');
+        // The button may not be in the document yet on first call.
+        const iconEl = modelBtn.querySelector('#v-model-btn-icon') || document.getElementById('v-model-btn-icon');
         if (!iconEl) return;
         const allCurrentModels = [...t2vModels, ...i2vModels, ...v2vModels];
         const current = allCurrentModels.find(m => m.id === selectedModel);
-        const provider = current?.provider || 'muapi';
+        // Same source as upstream: the picker family's provider.
+        const provider = videoModelPickerEntryByVariantId.get(selectedModel)?.family.provider
+            || current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
             iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
@@ -1247,28 +1250,12 @@ generateBtn.type = 'button';
                 categories: { t2v: 'Text to Video', i2v: 'Image to Video', v2v: 'Video to Video' },
                 searchPlaceholder: 'Search models...',
             },
-            onSelectCategory: (catId) => {
-                const nextModels = catId === 'v2v' ? v2vModels : (catId === 'i2v' ? i2vModels : t2vModels);
-                const modelId = nextModels[0]?.id || selectedModel;
-                const { newV2V, newI2V } = videoModelBase(modelId, catId);
-                if (newV2V) {
-                    picker.reset();
-                    uploadedImageUrl = null;
-                    uploadedVideoUrl = null;
-                    textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
-                    textarea.disabled = true;
-                } else {
-                    textarea.disabled = false;
-                    textarea.placeholder = newI2V
-                        ? 'Describe the motion or effect (optional)'
-                        : 'Describe the video you want to create';
-                }
-                videoPickerController?.refresh(modelId);
-            },
             onSelectModel: (entry, catId) => {
                 const variant = entry.variantsByMode[catId] || entry.defaultVariant;
                 const modelId = variant?.model?.id || selectedModel;
-                const { newV2V, newI2V, wasV2V } = videoModelBase(modelId, catId);
+                // From the "All" tab the workflow mode comes from the variant itself.
+                const mode = catId === 'all' ? (variant?.mode || 't2v') : catId;
+                const { newV2V, newI2V, wasV2V } = videoModelBase(modelId, mode);
                 if (newV2V) {
                     picker.reset();
                     uploadedImageUrl = null;

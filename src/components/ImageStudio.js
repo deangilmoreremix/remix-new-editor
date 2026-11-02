@@ -23,7 +23,7 @@ import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { mountImageModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountImageModelSelector, imageModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
@@ -481,11 +481,14 @@ export function ImageStudio() {
     `, selectedModelName, 'model-btn', 'Select AI generation model');
 
     const updateModelBtnIcon = () => {
-        const iconEl = document.getElementById('model-btn-icon');
+        // The button may not be in the document yet on first call.
+        const iconEl = modelBtn.querySelector('#model-btn-icon') || document.getElementById('model-btn-icon');
         if (!iconEl) return;
         const currentModels = imageMode ? i2iModels : t2iModels;
         const current = currentModels.find(m => m.id === selectedModel);
-        const provider = current?.provider || 'muapi';
+        // Same source as upstream: the picker family's provider.
+        const provider = imageModelPickerEntryByVariantId.get(selectedModel)?.family.provider
+            || current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
             iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
@@ -932,12 +935,6 @@ generateBtn.type = 'button';
             copy: {
                 categories: { t2i: 'Text to Image', i2i: 'Image to Image' },
                 searchPlaceholder: 'Search models...',
-            },
-            onSelectCategory: (catId) => {
-                const isI2I = catId === 'i2i';
-                const nextModels = isI2I ? i2iModels : t2iModels;
-                if (nextModels.length) applyImageModel(nextModels[0].id, isI2I);
-                modelPickerController?.refresh(nextModels[0]?.id || null);
             },
             onSelectModel: (entry, catId) => {
                 const variant = entry.variantsByMode[catId] || entry.defaultVariant;
