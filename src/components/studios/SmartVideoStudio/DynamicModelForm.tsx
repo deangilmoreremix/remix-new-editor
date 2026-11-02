@@ -10,6 +10,8 @@ import { normalizeSchema, type SmartField, type NormalizedSchema } from './svStu
 import { estimateCost } from './svStudio/costEstimator';
 import SmartFieldRenderer from './SmartFieldRenderer';
 import type { ModelMeta } from './svStudio/modelRegistry';
+// @ts-ignore — shared plain-JS studio styling
+import { ACTION_PILL_CLASS, ADVANCED_ICON } from '../../studio/actionRow.js';
 
 interface FormState {
   [key: string]: unknown;
@@ -295,14 +297,21 @@ export default function DynamicModelForm({ modelId, onGenerate, onReset }: Dynam
 
       {/* Advanced Toggle */}
       {advancedFieldCount > 0 && (
-        <button
-          type="button"
-          onClick={toggleAdvanced}
-          className="smart-advanced-toggle"
-          aria-expanded={showAdvanced}
-        >
-          {showAdvanced ? 'Hide Advanced' : `Show Advanced (${advancedFieldCount})`}
-        </button>
+        <div className="flex flex-wrap items-center gap-1.5 md:gap-2.5">
+          <button
+            type="button"
+            onClick={toggleAdvanced}
+            className={ACTION_PILL_CLASS}
+            aria-expanded={showAdvanced}
+            data-tooltip="Show advanced options"
+          >
+            <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: ADVANCED_ICON }} />
+            <span className="text-xs font-bold text-white group-hover:text-primary transition-colors">
+              {showAdvanced ? 'Less' : 'Advanced'}
+            </span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" className="opacity-20 group-hover:opacity-100 transition-opacity"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
+        </div>
       )}
 
       {/* Generating Status */}
