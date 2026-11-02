@@ -304,8 +304,11 @@ export default function DashboardPage() {
           logError('DashboardQuickstartFlag', error)
           return
         }
+        // Embedded in SmartVideo: never pop the first-visit spotlight tour
+        // over the studio. Mark it seen so it stays off.
         if (!cancelled && shouldShowQuickstart(data?.has_seen_quickstart)) {
-          setShowQuickstart(true)
+          supabase.from(T.profiles).update({ has_seen_quickstart: true }).eq('id', user.id)
+            .then(({ error: markError }) => { if (markError) logError('DashboardQuickstartFlag', markError) })
         }
       })
     return () => { cancelled = true }

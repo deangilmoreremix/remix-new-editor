@@ -22,7 +22,7 @@ create table if not exists public.wb_profiles (
   avatar_url text,
   clerk_user_id text unique,
   custom_instructions text,
-  has_seen_quickstart boolean not null default false,
+  has_seen_quickstart boolean not null default true, -- the embedded studio never shows the first-visit tour
   is_admin boolean not null default false,
   suspended boolean not null default false,
   publish_banned boolean not null default false,
