@@ -29,6 +29,7 @@ import PromptInput from '../components/PromptInput/PromptInput'
 import { useCollaboration, type CollaboratorPresence } from '../lib/useCollaboration'
 import styles from './ProjectBuilderPage.module.css'
 import BrandLogo from '../components/BrandLogo/BrandLogo'
+import { T, RPC, PREVIEW_BUCKET } from '../lib/tables'
 
 interface ProjectRouteState {
   prompt?: string
@@ -532,7 +533,7 @@ export default function ProjectBuilderPage() {
       try {
       // Verify ownership before upserting to prevent IDOR
       const { data: existing, error: existingError } = await supabase
-        .from('projects')
+        .from(T.projects)
         .select('user_id, title, files, chat_history, agent_history, cf_pages_project_name, generating, generating_by, selected_model')
         .eq('id', projectId)
         .maybeSingle()
@@ -542,7 +543,7 @@ export default function ProjectBuilderPage() {
       if (existing && existing.user_id !== user.id) {
         // Project belongs to another user — redirect away
         const { data: collaboration, error: collaborationError } = await supabase
-          .from('project_collaborators')
+          .from(T.project_collaborators)
           .select('permission')
           .eq('project_id', projectId)
           .eq('user_id', user.id)
@@ -635,7 +636,7 @@ export default function ProjectBuilderPage() {
       // Clear the interruption flag even when there was no chat to resume from,
       // so a stale `generating` never survives into the next session.
       if (wasInterrupted) {
-        void supabase.from('projects').update({ generating: false, generating_by: null }).eq('id', projectId)
+        void supabase.from(T.projects).update({ generating: false, generating_by: null }).eq('id', projectId)
       }
       setChatHistoryLoaded(true)
 
@@ -653,7 +654,7 @@ export default function ProjectBuilderPage() {
 
       // Upsert project metadata (preserve existing title; files are not included so they're never overwritten)
       const { error } = await supabase
-        .from('projects')
+        .from(T.projects)
         .upsert({
           id: projectId,
           user_id: user.id,
@@ -693,7 +694,7 @@ export default function ProjectBuilderPage() {
     const loadCollaborators = async () => {
       try {
       const { data, error } = await supabase
-        .from('project_collaborators')
+        .from(T.project_collaborators)
         .select('*')
         .eq('project_id', projectId)
         .order('invited_at', { ascending: false })
@@ -738,7 +739,7 @@ export default function ProjectBuilderPage() {
   const refreshBackend = useCallback(async () => {
     if (!projectId) return
     const { data } = await supabase
-      .from('project_backends')
+      .from(T.project_backends)
       .select('supabase_url, supabase_anon_key')
       .eq('project_id', projectId)
       .maybeSingle()
@@ -913,7 +914,7 @@ export default function ProjectBuilderPage() {
     filesSaveChainRef.current = filesSaveChainRef.current
       .then(async () => {
         const { error } = await supabase
-          .from('projects')
+          .from(T.projects)
           .update({ files: projectFiles as unknown as Record<string, unknown>[] })
           .eq('id', projectId)
 
@@ -940,7 +941,7 @@ export default function ProjectBuilderPage() {
       chatSaveChainRef.current = chatSaveChainRef.current
         .then(async () => {
           const { error } = await supabase
-            .from('projects')
+            .from(T.projects)
             .update({ chat_history: messages as unknown as Record<string, unknown>[] })
             .eq('id', projectId)
           if (error) throw error
@@ -977,7 +978,7 @@ export default function ProjectBuilderPage() {
         const thumbnailPath = `previews/${projectId}/${Date.now()}/thumbnail.png`
 
         const { error: uploadError } = await supabase.storage
-          .from('deployments')
+          .from(PREVIEW_BUCKET)
           .upload(thumbnailPath, jpegBlob, {
             contentType: 'image/png',
             upsert: false,
@@ -987,12 +988,12 @@ export default function ProjectBuilderPage() {
         if (uploadError) throw uploadError
 
         const { data: urlData } = supabase.storage
-          .from('deployments')
+          .from(PREVIEW_BUCKET)
           .getPublicUrl(thumbnailPath)
 
         if (urlData?.publicUrl) {
           const { error: updateError } = await supabase
-            .from('projects')
+            .from(T.projects)
             .update({ preview_url: urlData.publicUrl })
             .eq('id', projectId)
             .eq('user_id', user.id)
@@ -1014,7 +1015,7 @@ export default function ProjectBuilderPage() {
 
     try {
       const { data: projectData, error: fetchError } = await supabase
-        .from('projects')
+        .from(T.projects)
         .select('preview_url')
         .eq('id', projectId)
         .maybeSingle()
@@ -1026,7 +1027,7 @@ export default function ProjectBuilderPage() {
         user.email?.split('@')[0] ??
         'Anonymous'
 
-      const { error } = await supabase.from('community_posts').insert({
+      const { error } = await supabase.from(T.community_posts).insert({
         project_id: projectId,
         user_id: user.id,
         title: title || 'Untitled project',
@@ -1071,7 +1072,7 @@ export default function ProjectBuilderPage() {
 
       if (deploy.siteId !== cfPagesProjectName && user && projectId) {
         const { error } = await supabase
-          .from('projects')
+          .from(T.projects)
           .update({ cf_pages_project_name: deploy.siteId })
           .eq('id', projectId)
           .eq('user_id', user.id)
@@ -1115,7 +1116,7 @@ export default function ProjectBuilderPage() {
     const normalizedEmail = email.trim().toLowerCase()
     // profiles is locked to self-only via RLS; use the SECURITY DEFINER lookup
     // so we can resolve an invitee's account without exposing the table.
-    const { data, error } = await supabase.rpc('find_account_by_email', { lookup_email: normalizedEmail })
+    const { data, error } = await supabase.rpc(RPC.find_account_by_email, { lookup_email: normalizedEmail })
     if (error) throw error
 
     const row = Array.isArray(data) ? data[0] : data
@@ -1187,7 +1188,7 @@ export default function ProjectBuilderPage() {
 
     if (projectId) {
       const { error } = await supabase
-        .from('project_collaborators')
+        .from(T.project_collaborators)
         .upsert({
           project_id: projectId,
           user_id: account.id,
@@ -1215,7 +1216,7 @@ export default function ProjectBuilderPage() {
     const collaborator = collaborators.find((item) => item.id === collaboratorId)
     if (projectId && collaborator) {
       supabase
-        .from('project_collaborators')
+        .from(T.project_collaborators)
         .update({ permission })
         .eq('project_id', projectId)
         .eq('user_id', collaboratorId)
@@ -1239,7 +1240,7 @@ export default function ProjectBuilderPage() {
 
     if (projectId) {
       supabase
-        .from('project_collaborators')
+        .from(T.project_collaborators)
         .delete()
         .eq('project_id', projectId)
         .eq('user_id', collaboratorId)
@@ -1278,7 +1279,7 @@ export default function ProjectBuilderPage() {
     if (trimmed && trimmed !== title) {
       setTitle(trimmed)
       if (user && projectId) {
-        supabase.from('projects').update({ title: trimmed }).eq('id', projectId).then(({ error }) => {
+        supabase.from(T.projects).update({ title: trimmed }).eq('id', projectId).then(({ error }) => {
           if (error) logError('ProjectSaveTitle', error)
         }, (error: unknown) => logError('ProjectSaveTitle', error))
       }
@@ -1417,7 +1418,7 @@ export default function ProjectBuilderPage() {
 
     if (projectId) {
       void supabase
-        .from('projects')
+        .from(T.projects)
         .update({ generating: true, generating_by: user.id })
         .eq('id', projectId)
     }
@@ -1458,7 +1459,7 @@ export default function ProjectBuilderPage() {
             setTitle(event.text)
             pushStatus(`Project title set to "${event.text}".`, 'success')
             if (user && projectId) {
-              supabase.from('projects').update({ title: event.text }).eq('id', projectId).then(({ error }) => {
+              supabase.from(T.projects).update({ title: event.text }).eq('id', projectId).then(({ error }) => {
                 if (error) logError('ProjectSaveTitle', error)
               }, (error: unknown) => logError('ProjectSaveTitle', error))
             }
@@ -1527,7 +1528,7 @@ export default function ProjectBuilderPage() {
                 if (!hadTitle && doneData.title && typeof doneData.title === 'string' && doneData.title.trim()) {
                   setTitle(doneData.title.trim())
                   if (user && projectId) {
-                    supabase.from('projects').update({ title: doneData.title.trim() }).eq('id', projectId).then(({ error }) => {
+                    supabase.from(T.projects).update({ title: doneData.title.trim() }).eq('id', projectId).then(({ error }) => {
                       if (error) logError('ProjectSaveTitle', error)
                     }, (error: unknown) => logError('ProjectSaveTitle', error))
                   }
@@ -1554,7 +1555,7 @@ export default function ProjectBuilderPage() {
       if (result.filesMutated) setFirstRunComplete(true)
       agentHistoryRef.current = result.conversationHistory
       if (projectId && !isViewOnly) {
-        supabase.from('projects')
+        supabase.from(T.projects)
           .update({ agent_history: result.conversationHistory as unknown as Record<string, unknown>[] })
           .eq('id', projectId)
           .then(({ error }) => { if (error) logError('ProjectSaveAgentHistory', error) },
@@ -1591,7 +1592,7 @@ export default function ProjectBuilderPage() {
             filesSaveChainRef.current = filesSaveChainRef.current
               .then(async () => {
                 const { error } = await supabase
-                  .from('projects')
+                  .from(T.projects)
                   .update({ files: restoredFiles as unknown as Record<string, unknown>[] })
                   .eq('id', projectId)
 
@@ -1642,7 +1643,7 @@ export default function ProjectBuilderPage() {
       }
       if (projectId) {
         void supabase
-          .from('projects')
+          .from(T.projects)
           .update({ generating: false, generating_by: null })
           .eq('id', projectId)
       }
@@ -2324,7 +2325,7 @@ export default function ProjectBuilderPage() {
                 onModelChange={(model) => {
                   setActiveModel(model)
                   if (projectId && model) {
-                    void supabase.from('projects').update({ selected_model: model }).eq('id', projectId)
+                    void supabase.from(T.projects).update({ selected_model: model }).eq('id', projectId)
                   }
                 }}
                 isRunning={agentRunning}

@@ -15,8 +15,8 @@ const PROVIDER_KEY_ROW = {
 }
 
 function tableResult(table: string): { data: unknown; error: null } {
-  if (table === 'profiles') return { data: { custom_instructions: null }, error: null }
-  if (table === 'provider_keys') return { data: [PROVIDER_KEY_ROW], error: null }
+  if (table === 'wb_profiles') return { data: { custom_instructions: null }, error: null }
+  if (table === 'wb_provider_keys') return { data: [PROVIDER_KEY_ROW], error: null }
   return { data: null, error: null }
 }
 

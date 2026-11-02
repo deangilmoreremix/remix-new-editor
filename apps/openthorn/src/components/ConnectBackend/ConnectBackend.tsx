@@ -5,6 +5,7 @@ import {
   authorizeUrl, listProjects, pickProject, disconnectProject, createProject, type RemoteProject,
 } from '../../lib/backend-connection'
 import styles from './ConnectBackend.module.css'
+import { T } from '../../lib/tables'
 
 interface Props {
   /** Current Smart Website Builder project id. */
@@ -45,7 +46,7 @@ export function ConnectBackend({ projectId, onStatusChange }: Props) {
 
   const refreshStatus = useCallback(async () => {
     const { data } = await supabase
-      .from('project_backends')
+      .from(T.project_backends)
       .select('project_ref')
       .eq('project_id', projectId)
       .maybeSingle()

@@ -124,7 +124,7 @@ const filterMap: Record<string, ProjectFilter> = {
 }
 
 export default function DashboardSidebar({ projects = [], activeFilter = 'all', onProjectFilterChange, notifications: externalNotifications, onNotificationsRead, isOpen = false, onClose }: DashboardSidebarProps) {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [activeNav, setActiveNav] = useState(() => {
@@ -340,20 +340,6 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
               </button>
             )}
 
-            <div className={styles.profileMenuDivider} />
-
-            <button
-              className={`${styles.profileMenuItem} ${styles.profileMenuSignOut}`}
-              onClick={async () => { await signOut(); navigate('/dashboard') }}
-              type="button"
-            >
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
-              Sign out
-            </button>
           </div>
         )}
 

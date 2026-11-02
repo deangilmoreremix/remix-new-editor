@@ -65,6 +65,10 @@
 }
 
 .btnPrimary {
+  display: block;
+  box-sizing: border-box;
+  text-align: center;
+  text-decoration: none;
   width: 100%;
   padding: 11px var(--space-lg);
   border-radius: var(--radius-md);

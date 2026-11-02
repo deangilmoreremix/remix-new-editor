@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { usePageTitle } from '../lib/usePageTitle'
 import styles from './SettingsPage.module.css'
 import BrandLogo from '../components/BrandLogo/BrandLogo'
+import { T, RPC } from '../lib/tables'
 
 type Tab = 'account' | 'providers' | 'knowledge' | 'danger'
 
@@ -41,22 +42,12 @@ export default function SettingsPage() {
   usePageTitle('Settings', {
     description: 'Manage your Smart Website Builder account, provider settings, custom instructions, and account safety options.',
   })
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('account')
 
   // Email
-  const [newEmail, setNewEmail] = useState('')
-  const [emailLoading, setEmailLoading] = useState(false)
-  const [emailError, setEmailError] = useState('')
-  const [emailSuccess, setEmailSuccess] = useState(false)
 
-  // Password
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordLoading, setPasswordLoading] = useState(false)
-  const [passwordError, setPasswordError] = useState('')
-  const [passwordSuccess, setPasswordSuccess] = useState(false)
 
   // Knowledge
   const [instructions, setInstructions] = useState('')
@@ -74,7 +65,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (!user) return
     supabase
-      .from('profiles')
+      .from(T.profiles)
       .select('custom_instructions')
       .eq('id', user.id)
       .single()
@@ -86,37 +77,11 @@ export default function SettingsPage() {
       })
   }, [user])
 
-  const handleEmailChange = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newEmail.trim()) { setEmailError('Email is required.'); return }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { setEmailError('Enter a valid email.'); return }
-    setEmailLoading(true); setEmailError('')
-    const { error } = await supabase.auth.updateUser(
-      { email: newEmail.trim() },
-      { emailRedirectTo: `${window.location.origin}/settings` }
-    )
-    setEmailLoading(false)
-    if (error) { setEmailError(error.message); return }
-    setEmailSuccess(true)
-  }
-
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newPassword.length < 8) { setPasswordError('Password must be at least 8 characters.'); return }
-    if (newPassword !== confirmPassword) { setPasswordError('Passwords do not match.'); return }
-    setPasswordLoading(true); setPasswordError('')
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
-    setPasswordLoading(false)
-    if (error) { setPasswordError(error.message); return }
-    setPasswordSuccess(true)
-    setNewPassword(''); setConfirmPassword('')
-  }
-
   const handleKnowledgeSave = async () => {
     if (!user) return
     setKnowledgeSaving(true); setKnowledgeError(''); setKnowledgeSuccess(false)
     const { error } = await supabase
-      .from('profiles')
+      .from(T.profiles)
       .update({ custom_instructions: instructions.trim() || null })
       .eq('id', user.id)
     setKnowledgeSaving(false)
@@ -128,12 +93,13 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (deleteConfirm !== 'delete my account') { setDeleteError('Type the confirmation phrase exactly.'); return }
+    if (deleteConfirm !== 'delete my builder data') { setDeleteError('Type the confirmation phrase exactly.'); return }
     setDeleteLoading(true); setDeleteError('')
-    const { error } = await supabase.rpc('delete_user')
+    const { error } = await supabase.rpc(RPC.delete_user)
     if (error) { setDeleteError(error.message); setDeleteLoading(false); return }
-    await signOut()
-    navigate('/')
+    // Builder data is gone; the SmartVideo account itself is untouched, so
+    // reload to start again with an empty builder.
+    window.location.assign(`${import.meta.env.BASE_URL}dashboard`)
   }
 
   if (!user) return null
@@ -147,9 +113,9 @@ export default function SettingsPage() {
       {/* ── Settings sidebar ── */}
       <aside className={styles.sidebar}>
         <div className={styles.logoRow}>
-          <a href="/dashboard" className={styles.logo}>
+          <Link to="/dashboard" className={styles.logo}>
             <BrandLogo className={styles.logoImg} />
-          </a>
+          </Link>
         </div>
 
         <nav className={styles.nav}>
@@ -211,59 +177,14 @@ export default function SettingsPage() {
           <div className={styles.panel}>
             <header className={styles.panelHeader}>
               <h1 className={styles.panelTitle}>Account</h1>
-              <p className={styles.panelSubtitle}>Update your email address and password</p>
+              <p className={styles.panelSubtitle}>Your Website Builder account is your SmartVideo account</p>
             </header>
-
             <div className={styles.block}>
-              <h2 className={styles.blockTitle}>Email address</h2>
-              <p className={styles.blockDesc}>Current: <span className={styles.highlight}>{user.email}</span></p>
-              <form className={styles.form} onSubmit={handleEmailChange}>
-                {emailSuccess ? (
-                  <div className={styles.successBanner}><CheckIcon />Confirmation sent to <strong>{newEmail}</strong>. Check your inbox.</div>
-                ) : (
-                  <>
-                    <div className={styles.field}>
-                      <label className={styles.label}>New email address</label>
-                      <input className={`${styles.input} ${emailError ? styles.inputError : ''}`} type="email" value={newEmail} onChange={(e) => { setNewEmail(e.target.value); setEmailError('') }} placeholder="you@example.com" />
-                      {emailError && <p className={styles.fieldError}>{emailError}</p>}
-                    </div>
-                    <button className={styles.submitBtn} type="submit" disabled={emailLoading}>
-                      {emailLoading && <span className={styles.spinner} />}
-                      {emailLoading ? 'Sending…' : 'Send confirmation'}
-                    </button>
-                  </>
-                )}
-              </form>
-            </div>
-
-            <div className={styles.divider} />
-
-            <div className={styles.block}>
-              <h2 className={styles.blockTitle}>Password</h2>
-              <p className={styles.blockDesc}>Choose a strong password of at least 8 characters</p>
-              <form className={styles.form} onSubmit={handlePasswordChange}>
-                {passwordSuccess ? (
-                  <div className={styles.successBanner}><CheckIcon />Password updated successfully.</div>
-                ) : (
-                  <>
-                    <div className={styles.fieldRow}>
-                      <div className={styles.field}>
-                        <label className={styles.label}>New password</label>
-                        <input className={`${styles.input} ${passwordError ? styles.inputError : ''}`} type="password" value={newPassword} onChange={(e) => { setNewPassword(e.target.value); setPasswordError('') }} placeholder="Min. 8 characters" />
-                      </div>
-                      <div className={styles.field}>
-                        <label className={styles.label}>Confirm password</label>
-                        <input className={`${styles.input} ${passwordError ? styles.inputError : ''}`} type="password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError('') }} placeholder="Repeat password" />
-                      </div>
-                    </div>
-                    {passwordError && <p className={styles.fieldError}>{passwordError}</p>}
-                    <button className={styles.submitBtn} type="submit" disabled={passwordLoading}>
-                      {passwordLoading && <span className={styles.spinner} />}
-                      {passwordLoading ? 'Saving…' : 'Update password'}
-                    </button>
-                  </>
-                )}
-              </form>
+              <h2 className={styles.blockTitle}>Signed in as</h2>
+              <p className={styles.blockDesc}>{user.email}</p>
+              <p className={styles.blockDesc}>
+                Change your email address or password from your SmartVideo account settings.
+              </p>
             </div>
           </div>
         )}
@@ -369,8 +290,8 @@ export default function SettingsPage() {
             </header>
 
             <div className={`${styles.block} ${styles.blockDanger}`}>
-              <h2 className={styles.blockTitle}>Delete account</h2>
-              <p className={styles.blockDesc}>Permanently deletes your account, all projects, and published apps. This cannot be undone.</p>
+              <h2 className={styles.blockTitle}>Delete Website Builder data</h2>
+              <p className={styles.blockDesc}>Permanently deletes your Website Builder projects, saved API keys and community posts. Your SmartVideo account is not affected. This cannot be undone.</p>
               <form className={styles.form} onSubmit={handleDeleteAccount}>
                 <div className={styles.deleteWarning}>
                   <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
@@ -380,13 +301,13 @@ export default function SettingsPage() {
                   <span>This action is <strong>permanent and irreversible</strong>. All your data will be deleted immediately.</span>
                 </div>
                 <div className={styles.field}>
-                  <label className={styles.label}>Type <span className={styles.deletePhrase}>delete my account</span> to confirm</label>
-                  <input className={`${styles.input} ${deleteError ? styles.inputError : ''}`} type="text" value={deleteConfirm} onChange={(e) => { setDeleteConfirm(e.target.value); setDeleteError('') }} placeholder="delete my account" autoComplete="off" />
+                  <label className={styles.label}>Type <span className={styles.deletePhrase}>delete my builder data</span> to confirm</label>
+                  <input className={`${styles.input} ${deleteError ? styles.inputError : ''}`} type="text" value={deleteConfirm} onChange={(e) => { setDeleteConfirm(e.target.value); setDeleteError('') }} placeholder="delete my builder data" autoComplete="off" />
                   {deleteError && <p className={styles.fieldError}>{deleteError}</p>}
                 </div>
-                <button className={styles.deleteBtn} type="submit" disabled={deleteLoading || deleteConfirm !== 'delete my account'}>
+                <button className={styles.deleteBtn} type="submit" disabled={deleteLoading || deleteConfirm !== 'delete my builder data'}>
                   {deleteLoading && <span className={styles.spinner} />}
-                  {deleteLoading ? 'Deleting…' : 'Permanently delete account'}
+                  {deleteLoading ? 'Deleting…' : 'Permanently delete builder data'}
                 </button>
               </form>
             </div>

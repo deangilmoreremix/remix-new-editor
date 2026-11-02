@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { T } from './tables'
 
 export interface AdminBlogRow {
   id: string
@@ -25,7 +26,7 @@ export type BlogDraft = Pick<
 
 export async function adminListPosts(): Promise<AdminBlogRow[]> {
   const { data, error } = await supabase
-    .from('blog_posts')
+    .from(T.blog_posts)
     .select('id,slug,title,excerpt,content,date,date_modified,cover_youtube,cover_image,og_image,tldr,status,published_at,updated_at')
     .order('date', { ascending: false })
   if (error) throw new Error(error.message)
@@ -47,14 +48,14 @@ export async function adminSavePost(draft: BlogDraft, id?: string): Promise<void
     row.published_at = new Date().toISOString()
   }
   const query = id
-    ? supabase.from('blog_posts').update(row).eq('id', id)
-    : supabase.from('blog_posts').insert(row)
+    ? supabase.from(T.blog_posts).update(row).eq('id', id)
+    : supabase.from(T.blog_posts).insert(row)
   const { error } = await query
   if (error) throw new Error(error.message)
 }
 
 export async function adminDeletePost(id: string): Promise<void> {
-  const { error } = await supabase.from('blog_posts').delete().eq('id', id)
+  const { error } = await supabase.from(T.blog_posts).delete().eq('id', id)
   if (error) throw new Error(error.message)
 }
 

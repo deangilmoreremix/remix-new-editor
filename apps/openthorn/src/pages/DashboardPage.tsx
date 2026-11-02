@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { getErrorMessage, logError, parseStoredJson } from '../lib/errors'
@@ -12,6 +12,7 @@ import { startDashboardTour } from '../lib/dashboard-tour'
 import type { SelectedModel } from '../components/ModelSelector/ModelSelector'
 import styles from './DashboardPage.module.css'
 import BrandLogo from '../components/BrandLogo/BrandLogo'
+import { T } from '../lib/tables'
 
 interface Project {
   id: string
@@ -149,7 +150,7 @@ export default function DashboardPage() {
       try {
       // Owned projects
       const { data: owned, error: ownedError } = await supabase
-        .from('projects')
+        .from(T.projects)
         .select('id, user_id, title, preview_url, cf_pages_project_name, created_at, updated_at, starred')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
@@ -158,7 +159,7 @@ export default function DashboardPage() {
 
       // Shared projects — look up via collaborator records
       const { data: collabRows, error: collabError } = await supabase
-        .from('project_collaborators')
+        .from(T.project_collaborators)
         .select('project_id')
         .eq('user_id', user.id)
 
@@ -168,7 +169,7 @@ export default function DashboardPage() {
       if (collabRows && collabRows.length > 0) {
         const ids = collabRows.map((r) => r.project_id as string)
         const { data: sharedData, error: sharedError } = await supabase
-          .from('projects')
+          .from(T.projects)
           .select('id, user_id, title, preview_url, cf_pages_project_name, created_at, updated_at, starred')
           .in('id', ids)
           .order('created_at', { ascending: false })
@@ -224,7 +225,7 @@ export default function DashboardPage() {
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'projects',
+        table: T.projects,
         filter: `user_id=eq.${user.id}`,
       }, () => { fetchProjects() })
       .subscribe()
@@ -235,7 +236,7 @@ export default function DashboardPage() {
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
-        table: 'project_collaborators',
+        table: T.project_collaborators,
         filter: `user_id=eq.${user.id}`,
       }, () => {
         fetchProjects()
@@ -256,7 +257,7 @@ export default function DashboardPage() {
     const fetchProviderStatus = async () => {
       try {
         const { data, error } = await supabase
-          .from('provider_keys')
+          .from(T.provider_keys)
           .select('id')
           .eq('user_id', user.id)
           .eq('enabled', true)
@@ -276,7 +277,7 @@ export default function DashboardPage() {
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'provider_keys',
+        table: T.provider_keys,
         filter: `user_id=eq.${user.id}`,
       }, () => {
         fetchProviderStatus()
@@ -294,7 +295,7 @@ export default function DashboardPage() {
     if (!user) return
     let cancelled = false
     supabase
-      .from('profiles')
+      .from(T.profiles)
       .select('has_seen_quickstart')
       .eq('id', user.id)
       .single()
@@ -325,7 +326,7 @@ export default function DashboardPage() {
     const fetchNotifications = async () => {
       const seenIds = new Set(parseStoredJson<string[]>(localStorage.getItem(seenKey), []))
       const { data, error } = await supabase
-        .from('notifications')
+        .from(T.notifications)
         .select('id, text, time_label, created_at')
         .order('created_at', { ascending: false })
 
@@ -350,7 +351,7 @@ export default function DashboardPage() {
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
-        table: 'notifications',
+        table: T.notifications,
       }, (payload) => {
         const row = payload.new as NotificationRow
         if (!row?.id) return
@@ -391,7 +392,7 @@ export default function DashboardPage() {
     // Save project to Supabase
     if (user) {
       const { error } = await supabase
-        .from('projects')
+        .from(T.projects)
         .upsert({
           id: projectId,
           user_id: user.id,
@@ -419,7 +420,7 @@ export default function DashboardPage() {
     if (!user) return
     const previousProjects = projects
     setProjects((prev) => prev.filter((p) => p.id !== projectId))
-    const { error } = await supabase.from('projects').delete().eq('id', projectId).eq('user_id', user.id)
+    const { error } = await supabase.from(T.projects).delete().eq('id', projectId).eq('user_id', user.id)
     if (error) {
       logError('DashboardDeleteProject', error)
       setAppError(getErrorMessage(error, 'Could not delete the project.'))
@@ -437,7 +438,7 @@ export default function DashboardPage() {
     if (!renamingProject || !user) return
     const newTitle = renamingProject.title.trim() || 'Untitled project'
     const { error } = await supabase
-      .from('projects')
+      .from(T.projects)
       .update({ title: newTitle })
       .eq('id', renamingProject.id)
       .eq('user_id', user.id)
@@ -469,7 +470,7 @@ export default function DashboardPage() {
     setPublishing(true)
 
     const { data: projectData, error: fetchError } = await supabase
-      .from('projects')
+      .from(T.projects)
       .select('files')
       .eq('id', publishingProject.id)
       .single()
@@ -486,7 +487,7 @@ export default function DashboardPage() {
       user.email?.split('@')[0] ??
       'Anonymous'
 
-    const { error } = await supabase.from('community_posts').insert({
+    const { error } = await supabase.from(T.community_posts).insert({
       project_id: publishingProject.id,
       user_id: user.id,
       title: publishingProject.title,
@@ -516,7 +517,7 @@ export default function DashboardPage() {
     const newStarred = !project.starred
     setProjects((prev) => prev.map((p) => p.id === projectId ? { ...p, starred: newStarred } : p))
     const { error } = await supabase
-      .from('projects')
+      .from(T.projects)
       .update({ starred: newStarred })
       .eq('id', projectId)
       .eq('user_id', user.id)
@@ -535,7 +536,7 @@ export default function DashboardPage() {
     setShowQuickstart(false)
     if (!user) return
     const { error } = await supabase
-      .from('profiles')
+      .from(T.profiles)
       .update({ has_seen_quickstart: true })
       .eq('id', user.id)
     if (error) logError('DashboardQuickstartDismiss', error)
@@ -643,9 +644,9 @@ export default function DashboardPage() {
             <line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
         </button>
-        <a href="/dashboard" className={styles.mobileLogo}>
+        <Link to="/dashboard" className={styles.mobileLogo}>
           <BrandLogo className={styles.mobileLogoImg} />
-        </a>
+        </Link>
       </div>
 
       <main className={`${styles.main} ${hasProjects ? styles.mainWithProjects : ''}`}>

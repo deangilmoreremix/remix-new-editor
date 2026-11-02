@@ -64,6 +64,7 @@ import {
   parseProviderModels,
   providerDefaultContextWindow,
 } from './providers'
+import { T } from './tables'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -1094,7 +1095,7 @@ export async function runOpenThornAgent(input: AgentRunInput): Promise<AgentRunR
 
   // ── Custom instructions (user knowledge) ─────────────────────
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from(T.profiles)
     .select('custom_instructions')
     .eq('id', input.userId)
     .single()
@@ -3612,7 +3613,7 @@ async function resolveProviderWithFallback(
 ): Promise<ResolvedProvider> {
   // Load all enabled provider keys
   const { data: allKeys, error } = await supabase
-    .from('provider_keys')
+    .from(T.provider_keys)
     .select('id, provider_id, provider_name, api_key, base_url, models, enabled, is_custom')
     .eq('user_id', userId)
     .eq('enabled', true)
@@ -3638,7 +3639,7 @@ async function resolveProviderWithFallback(
         encryptApiKey(plaintext, userId)
           .then(async (sencKey) => {
             if (sencKey.startsWith('senc:')) {
-              await supabase.from('provider_keys').update({ api_key: sencKey }).eq('id', k.id).eq('user_id', userId)
+              await supabase.from(T.provider_keys).update({ api_key: sencKey }).eq('id', k.id).eq('user_id', userId)
             }
           })
           .catch(() => {})
@@ -3677,7 +3678,7 @@ async function resolveProviderWithFallback(
 
     try {
       const { data: defaultRow } = await supabase
-        .from('default_models')
+        .from(T.default_models)
         .select('provider_id, models')
         .eq('provider_id', key.provider_id)
         .maybeSingle()

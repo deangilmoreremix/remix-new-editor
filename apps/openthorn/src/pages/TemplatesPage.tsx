@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { buildPreview } from '../lib/preview-bundle'
@@ -10,6 +10,7 @@ import DashboardSidebar from '../components/DashboardSidebar/DashboardSidebar'
 import ModelSelector, { type SelectedModel } from '../components/ModelSelector/ModelSelector'
 import styles from './TemplatesPage.module.css'
 import BrandLogo from '../components/BrandLogo/BrandLogo'
+import { T } from '../lib/tables'
 
 type DeviceMode = 'desktop' | 'tablet' | 'phone'
 
@@ -76,7 +77,7 @@ export default function TemplatesPage() {
     if (!user || !selected) return
     setLaunching(true)
     const projectId = crypto.randomUUID()
-    const { error } = await supabase.from('projects').upsert({
+    const { error } = await supabase.from(T.projects).upsert({
       id: projectId,
       user_id: user.id,
       title: selected.name,
@@ -123,9 +124,9 @@ export default function TemplatesPage() {
             <line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
         </button>
-        <a href="/dashboard" className={styles.mobileLogo}>
+        <Link to="/dashboard" className={styles.mobileLogo}>
           <BrandLogo className={styles.mobileLogoImg} />
-        </a>
+        </Link>
       </div>
 
       <main className={styles.main}>
