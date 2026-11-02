@@ -4,7 +4,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { createMediaRemoveButton } from '../lib/studioHelpers.js';
@@ -308,16 +308,7 @@ export function EditStudio() {
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  const editBanner = createHeroSection('edit', 'h-32 md:h-44 mb-4');
-  if (editBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Edit Studio</h1><p class="text-white/60 text-xs">13 AI-powered editing tools for images</p>';
-    editBanner.appendChild(bannerText);
-    topBar.appendChild(editBanner);
-  } else {
-    topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Edit Studio</h1><p class="text-secondary text-xs mb-5">13 AI-powered editing tools for images</p>';
-  }
+  topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Edit Studio</h1><p class="text-secondary text-xs mb-5">13 AI-powered editing tools for images</p>';
 
   const toolGrid = document.createElement('div');
   toolGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2';

@@ -13,7 +13,7 @@ import { createMediaPreview } from './MediaPreview.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { i2iModels, i2vModels } from '../lib/models.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -139,32 +139,7 @@ export async function EffectsStudio() {
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  const effectsBanner = createHeroSection('effects', 'h-32 md:h-44 mb-4');
-  if (effectsBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-white/60 text-xs">Apply 350+ visual effects to your photos and videos</p>';
-    effectsBanner.appendChild(bannerText);
-    topBar.appendChild(effectsBanner);
-
-    // Thumbnail studio button
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'btn-action-secondary shrink-0';
-    thumbBtn.onclick = () => {
-      const modal = new TemplateThumbnailModal({
-        studioId: 'effects-studio',
-        layout: 'panel',
-        studioLabel: 'Vibe Motion',
-        accentGradient: 'from-violet-500 to-indigo-500',
-      });
-      mountThumbnailModal(modal);
-    };
-  } else {
-    topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
-  }
+  topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
 
   const tabRow = document.createElement('div');
   tabRow.className = 'flex gap-2 overflow-x-auto no-scrollbar pb-2';

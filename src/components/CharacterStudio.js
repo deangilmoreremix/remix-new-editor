@@ -5,7 +5,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -83,15 +83,9 @@ export function CharacterStudio() {
   } catch { /* ignore */ }
 
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full';
-  const charBanner = createHeroSection('character', 'h-32 md:h-44 mb-4');
-  if (charBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Character Studio</h1><p class="text-white/60 text-sm max-w-md">Generate consistent character images using face ID preservation</p>';
-    charBanner.appendChild(bannerText);
-    header.appendChild(charBanner);
-  }
+  header.className = 'animate-fade-in-up text-center w-full';
+  // Studios open straight onto the tool; keep the page title for screen readers.
+  header.innerHTML = '<h1 class="sr-only">Character Studio</h1>';
   container.appendChild(header);
 
   const formCard = document.createElement('div');

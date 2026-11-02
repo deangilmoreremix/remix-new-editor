@@ -1,7 +1,7 @@
 import { allTemplates, getAllCategories } from '../lib/templates.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { navigate } from '../lib/router.js';
-import { getTemplateThumbnail, createThumbnailImg, createHeroSection } from '../lib/thumbnails.js';
+import { getTemplateThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 
@@ -14,22 +14,10 @@ export function TemplatesPage() {
 
   const heroSection = document.createElement('div');
   heroSection.className = 'mb-10 animate-fade-in-up w-full';
-  const heroBanner = createHeroSection('templates', 'h-32 md:h-44 mb-6');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Templates</h1>
-      <p class="text-white/60 text-sm font-medium">Ready-to-use creative templates. Pick one, upload your media, and generate.</p>
-    `;
-    heroBanner.appendChild(heroContent);
-    heroSection.appendChild(heroBanner);
-  } else {
-    heroSection.innerHTML = `
-      <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-3">Templates</h1>
-      <p class="text-secondary text-sm md:text-base max-w-xl">Ready-to-use creative templates. Pick one, upload your media, and generate.</p>
-    `;
-  }
+  heroSection.innerHTML = `
+    <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-3">Templates</h1>
+    <p class="text-secondary text-sm md:text-base max-w-xl">Ready-to-use creative templates. Pick one, upload your media, and generate.</p>
+  `;
   inner.appendChild(heroSection);
 
   const controlsRow = document.createElement('div');
