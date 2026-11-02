@@ -80,9 +80,17 @@ catalog (`public/api/model-catalog.json`) now includes audio and lip-sync pools.
 | Commercial | Ad-video mode: avatars, formats, references |
 | Influencer | Builder Reset, "Generated · N characters" history column |
 | Apps | Template apps, GitHub/Demo links, interest modal |
-| Motion Studio (new) | Recast (3 models, character orientation, aspect ratio) and Motion Control (4 Seedance models, motion transfer / objects swap, duration, quality, bitrate, audio, seed) on one page, `#motion`, listed in Apps |
+| Video Tools | Upstream Recast (3 models, character orientation, aspect ratio) and Motion Control (4 Seedance models, motion transfer / objects swap, duration, quality, bitrate, audio, seed) as extra tabs next to the existing tools (`?mode=recast` / `?mode=control`) |
+| Edit Studio | From upstream Layers Studio: Split into Layers (`bytedance-seedream-5.0-pro-layer`, downloadable layer strip) and a local Color Grade tool. Upscale, Remove Background and Extend Image already existed |
 | Library | Server history (`getHistory`) merged with local history |
 
 Best-effort, unverified against a real key: V2V cost line (`estimateV2VCost`) and server history merge —
 both hide themselves on any error. Upstream itself only calls `estimateV2VCost`; `calculateDynamicCost` is
 defined there but unused by any studio, so it stays an API-layer function.
+
+## Upstream studios with no counterpart here (SKIPPED by decision)
+
+Only studios that already exist in this repo are matched. Not added: AI Clipping, Workflows,
+Design Agent, MCP CLI, and Agents (our Video Agent / Assist / Chat are different products).
+Layers' remaining items (color grading presets beyond the sliders, angles, marker/shapes) were
+not ported; its upscale, remove-BG and expand/crop already exist in Edit Studio / Upscale Suite.

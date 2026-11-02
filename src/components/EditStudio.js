@@ -94,6 +94,35 @@ const EDIT_TOOLS = [
     requiresWatermarkImage: true,
   },
   {
+    // From upstream Layers Studio: split an image into separate layer images.
+    id: 'bytedance-seedream-5.0-pro-layer',
+    name: 'Split into Layers',
+    description: 'Decompose an image into separate layers',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
+    hasPrompt: true,
+    promptPlaceholder: 'Optional: e.g. "Split into 4 layers: text, subject, props, background"',
+    controls: [
+      { type: 'select', key: 'resolution', label: 'Resolution', options: ['auto', '1K', '1.5K', '2K'], default: 'auto' },
+      { type: 'select', key: 'output_format', label: 'Format', options: ['png', 'webp'], default: 'png' },
+    ],
+  },
+  {
+    // From upstream Layers Studio: live colour grading, applied in the browser.
+    id: 'color-grade',
+    name: 'Color Grade',
+    description: 'Adjust temperature, hue, saturation, contrast',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18"/><path d="M12 3a9 9 0 010 18" fill="currentColor" opacity=".3"/></svg>',
+    hasPrompt: false,
+    clientOnly: true,
+    controls: [
+      { type: 'range', key: 'temp', label: 'Temperature', min: -100, max: 100, step: 1, default: 0 },
+      { type: 'range', key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, default: 0, unit: 'deg' },
+      { type: 'range', key: 'saturation', label: 'Saturation', min: -100, max: 100, step: 1, default: 0 },
+      { type: 'range', key: 'contrast', label: 'Contrast', min: -100, max: 100, step: 1, default: 0 },
+      { type: 'range', key: 'brightness', label: 'Exposure', min: -100, max: 100, step: 1, default: 0 },
+    ],
+  },
+  {
     id: 'ai-image-upscaler',
     name: 'Upscale',
     description: 'AI image upscaling to higher resolution',
@@ -901,7 +930,58 @@ export function EditStudio() {
     resultLabel.textContent = 'Error';
   }
 
+  // CSS filter string for the local Color Grade tool (also used when exporting).
+  function buildGradeFilter(v = {}) {
+    const temp = v.temp || 0;
+    const parts = [
+      `brightness(${1 + (v.brightness || 0) / 100})`,
+      `contrast(${1 + (v.contrast || 0) / 100})`,
+      `saturate(${1 + (v.saturation || 0) / 100})`,
+      `hue-rotate(${(v.hue || 0) + temp * -0.12}deg)`,
+    ];
+    if (temp > 0) parts.push(`sepia(${Math.min(temp, 100) / 250})`);
+    return parts.join(' ');
+  }
+
+  async function renderGradedDataUrl(url, filter) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = url; });
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.filter = filter;
+    ctx.drawImage(img, 0, 0);
+    return canvas.toDataURL('image/png');
+  }
+
+  // Layer decomposition returns several images; show them under the result.
+  function renderLayerStrip(urls) {
+    resultArea.querySelector('[data-layers]')?.remove();
+    const list = (Array.isArray(urls) ? urls : []).filter((u) => typeof u === 'string');
+    if (list.length < 2) return;
+    const strip = document.createElement('div');
+    strip.dataset.layers = '';
+    strip.className = 'flex gap-2 flex-wrap mt-3';
+    list.forEach((u, i) => {
+      const a = document.createElement('a');
+      a.href = u;
+      a.download = `layer-${i + 1}.png`;
+      a.title = `Download layer ${i + 1}`;
+      a.className = 'w-20 h-20 rounded-lg border border-white/10 overflow-hidden bg-[length:12px_12px] bg-[#222]';
+      const img = document.createElement('img');
+      img.src = u;
+      img.alt = `Layer ${i + 1}`;
+      img.className = 'w-full h-full object-contain';
+      a.appendChild(img);
+      strip.appendChild(a);
+    });
+    resultArea.appendChild(strip);
+  }
+
   function renderResult(resultUrl) {
+    resultImg.style.filter = '';
     resultArea.classList.remove('hidden');
     resultLabel.textContent = 'Result';
     resultImg.src = resultUrl;
@@ -1189,6 +1269,19 @@ export function EditStudio() {
       const resolvedMultiUrls = multiImageUrls.length
         ? await resolveMuapiMediaRefs(multiImageUrls.map((url, i) => ({ url, assetId: multiImageAssetIds[i] || null })))
         : [];
+      if (activeTool.clientOnly) {
+        // Colour grading runs locally: no API call, nothing to refund.
+        if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
+        updateProgress(null);
+        const v = {};
+        controlsContainer.querySelectorAll('input').forEach((el) => { if (el.dataset.controlKey) v[el.dataset.controlKey] = parseFloat(el.value) || 0; });
+        const filter = buildGradeFilter(v);
+        renderResult(resolvedMainUrl || uploadedUrl);
+        resultImg.style.filter = filter;
+        downloadBtn.href = await renderGradedDataUrl(resolvedMainUrl || uploadedUrl, filter).catch(() => resolvedMainUrl || uploadedUrl);
+        return;
+      }
+
       const resolvedMaskUrl = maskUrl ? await resolveMuapiMediaRef({ url: maskUrl, assetId: maskAssetId }) : null;
       const resolvedGarmentUrl = garmentUrl ? await resolveMuapiMediaRef({ url: garmentUrl, assetId: garmentAssetId }) : null;
       const resolvedSwapUrl = swapUrl ? await resolveMuapiMediaRef({ url: swapUrl, assetId: swapAssetId }) : null;
@@ -1260,6 +1353,7 @@ export function EditStudio() {
 
       if (result?.url) {
         renderResult(result.url);
+        renderLayerStrip(activeTool.id === 'bytedance-seedream-5.0-pro-layer' ? (result.images || result.outputs) : null);
       } else {
         showError('Edit completed, but no result image was returned. Please try again.');
       }

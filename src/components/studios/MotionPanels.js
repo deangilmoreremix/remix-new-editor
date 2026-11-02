@@ -76,7 +76,7 @@ export function createMotionPanel(kind) {
 
   const emptyState = createEmptyState({
     heading: 'Start creating with',
-    highlight: `${label} Studio`,
+    highlight: `Video Tools · ${label}`,
     subtitle: isRecast
       ? 'Drive a character image with the motion from any video.'
       : 'Rebuild a performance video with new characters and assets while keeping its motion.',
@@ -215,7 +215,7 @@ export function createMotionPanel(kind) {
     emptyState.classList.add('hidden');
     const pending = gallery.addPending(`${label}…`);
     const notifyId = `${kind}:${Date.now()}`;
-    notifyGeneration({ phase: 'start', id: notifyId, studio: 'motion', label: `${label} Studio` });
+    notifyGeneration({ phase: 'start', id: notifyId, studio: 'videotools', label: `Video Tools · ${label}` });
     let failed = null;
     try {
       const prompt = composer.getPrompt();
@@ -235,8 +235,8 @@ export function createMotionPanel(kind) {
       generating = false;
       pending.remove();
       notifyGeneration(failed
-        ? { phase: 'error', id: notifyId, studio: 'motion', label: `${label} Studio`, message: failed }
-        : { phase: 'success', id: notifyId, studio: 'motion', label: `${label} Studio` });
+        ? { phase: 'error', id: notifyId, studio: 'videotools', label: `Video Tools · ${label}`, message: failed }
+        : { phase: 'success', id: notifyId, studio: 'videotools', label: `Video Tools · ${label}` });
       composer.setGenerating(false);
       composer.action.innerHTML = `Generate ${ICONS.sparkle}`;
       if (failed) composer.setRetry();
