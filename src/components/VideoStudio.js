@@ -540,6 +540,7 @@ export function VideoStudio() {
 
     let videoPrefill = '';
     let stagedReferenceImageUrl = null;
+    let stagedAspectRatio = null;
     try {
         const raw = localStorage.getItem('prefill_prompt');
         if (raw) {
@@ -554,6 +555,7 @@ export function VideoStudio() {
             videoPrefill = staged.prompt || '';
             autoGenerate = Boolean(staged.autoGenerate);
             stagedReferenceImageUrl = staged.params?.referenceImageUrl || null;
+            stagedAspectRatio = staged.params?.aspectRatio || null;
         }
     }
     if (videoPrefill) {
@@ -563,11 +565,6 @@ export function VideoStudio() {
             const maxHeight = window.innerWidth < 768 ? 150 : 250;
             textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px';
         });
-    }
-    // Staged hand-off ("Edit in Video Studio" from the personalization modal):
-    // load the reference image as the start image (image-to-video).
-    if (typeof stagedReferenceImageUrl === 'string' && /^https?:\/\//i.test(stagedReferenceImageUrl)) {
-        picker.setImage(stagedReferenceImageUrl);
     }
 
     topRow.appendChild(textarea);
@@ -2188,6 +2185,30 @@ generateBtn.type = 'button';
     if (galleryAssets.length > 0) {
       const gallery = ExampleGallery({ studioId: 'video', assets: galleryAssets, maxCards: 28 });
       container.appendChild(gallery);
+    }
+
+    // Staged hand-off ("Edit in Video Studio" from the personalization modal),
+    // as OpenHiggsBolt's Video Studio applies it: the start image
+    // (image-to-video) and a 9:16 / 16:9 aspect ratio. Applied once the studio
+    // is in the document — picker.setImage() fires onSelect, which updates the
+    // model button.
+    if (stagedAspectRatio === '9:16' || stagedAspectRatio === '16:9') selectedAr = stagedAspectRatio;
+    if (typeof stagedReferenceImageUrl === 'string' && /^https?:\/\//i.test(stagedReferenceImageUrl)) {
+      let tries = 0;
+      const applyHandoff = () => {
+        if (!document.getElementById('v-model-btn-label') && tries++ < 120) {
+          requestAnimationFrame(applyHandoff);
+          return;
+        }
+        try {
+          picker.setImage(stagedReferenceImageUrl);
+          const arLabel = document.getElementById('v-ar-btn-label');
+          if (arLabel && stagedAspectRatio) arLabel.textContent = selectedAr;
+        } catch (err) {
+          console.warn('[VideoStudio] hand-off image not applied:', err);
+        }
+      };
+      requestAnimationFrame(applyHandoff);
     }
 
     if (autoGenerate) {

@@ -13,6 +13,63 @@ import { createRoot } from 'react-dom/client'
 import { DemoPersonalizeProvider, useDemoPersonalize } from './shared/personalization/DemoPersonalizeProvider'
 import { buildStudioPersonalizeSource } from './shared/personalization/studioEntry'
 import { installPersonalizationApiAuth } from './lib/apiAuth'
+import { SocialPublishContext } from './components/SocialPublishProvider'
+import { openSocialPublish } from '../../lib/socialPublishHelpers.js'
+
+/**
+ * OpenHiggsBolt wraps the modal in SocialPublishProvider, so "Publish" opens
+ * its social publisher. remix's equivalent is the `social-publish` modal
+ * (src/lib/socialPublishHelpers.js), which takes the caption as
+ * `description`.
+ */
+const SOCIAL_PUBLISH_VALUE = {
+  openPublish: ({ mediaUrl, mediaType, title, caption } = {}) => {
+    if (!mediaUrl) return
+    openSocialPublish({ mediaUrl, mediaType, title, description: caption || '' })
+  },
+  closePublish: () => {},
+  openSocialPublisher: ({ asset } = {}) => {
+    const url = asset?.url || asset?.mediaUrl
+    if (url) openSocialPublish({ mediaUrl: url, mediaType: asset?.type === 'video' ? 'video' : 'image' })
+  },
+}
+
+/**
+ * OpenHiggsBolt's shell listens for `muapi:auth-required` (dispatched by the
+ * ported muapi client on a 401/403) and opens Settings with the error. The
+ * remix equivalent is the API-keys Settings modal (AuthModal).
+ */
+let authListenerInstalled = false
+function installAuthRequiredListener() {
+  if (authListenerInstalled || typeof window === 'undefined') return
+  authListenerInstalled = true
+  let lastOpenAt = 0
+  window.addEventListener('muapi:auth-required', async (event) => {
+    const now = Date.now()
+    if (now - lastOpenAt < 1000) return
+    lastOpenAt = now
+    let message = 'Your API key is missing or invalid. Please enter a valid key.'
+    const raw = event?.detail?.message
+    if (raw) {
+      try {
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+        message = parsed?.detail || parsed?.message || message
+      } catch {
+        if (typeof raw === 'string') message = raw
+      }
+    }
+    try {
+      const { showToast } = await import('../../lib/loading.js')
+      showToast(message, 'error')
+    } catch { /* toast is best-effort */ }
+    try {
+      const { AuthModal } = await import('../../components/AuthModal.js')
+      AuthModal()
+    } catch (err) {
+      console.error('[personalization] could not open Settings:', err)
+    }
+  })
+}
 
 /** remix studio ids → OpenHiggsBolt `originStudio` values. */
 const ORIGIN_STUDIO = {
@@ -20,6 +77,7 @@ const ORIGIN_STUDIO = {
   video: 'video',
   cinema: 'cinema',
   'cinema-template': 'cinema',
+  template: 'apps',
   character: 'recast',
   influencer: 'ai-influencer',
   avatar: 'ai-influencer',
@@ -29,8 +87,42 @@ const ORIGIN_STUDIO = {
   audio: 'apps',
   videotools: 'clipping',
   templates: 'apps',
+  animate: 'vibe-motion',
+  'brand-studio': 'brand-studio',
+  'photo-studio': 'photo-studio',
   personalizer: 'demo-personalization',
   leadfinder: 'demo-personalization',
+}
+
+/**
+ * Triggers that only pass the legacy `appId` (Audio, Avatar, Character,
+ * Effects, Influencer, LipSync, Storyboard, Video Tools) are mapped to their
+ * studio id and display name, so the modal gets the same origin and title an
+ * OpenHiggsBolt studio entry would.
+ */
+const APP_ID_STUDIO = {
+  'audio-studio': ['audio', 'Audio Studio'],
+  'avatar-studio': ['avatar', 'Avatar Studio'],
+  'character-studio': ['character', 'Character Studio'],
+  'cinema-studio': ['cinema', 'Cinema Studio'],
+  'cinema-template': ['cinema-template', 'Cinema Template Studio'],
+  'effects-studio': ['effects', 'Effects Studio'],
+  'influencer-studio': ['influencer', 'AI Influencer Studio'],
+  'lip-sync': ['lipsync', 'Lip Sync Studio'],
+  storyboard: ['storyboard', 'Storyboard Studio'],
+  'video-tools': ['videotools', 'Video Tools'],
+  'ai-image-studio': ['image', 'Image Studio'],
+  'ai-video-agency': ['video', 'Video Studio'],
+  'template-studio': ['template', 'Template Studio'],
+  personalizer: ['personalizer', 'Personalizer'],
+}
+
+export function resolveStudioIdentity({ studioId, studioName, appId } = {}) {
+  const mapped = appId ? APP_ID_STUDIO[appId] : null
+  return {
+    studioId: studioId || mapped?.[0] || undefined,
+    studioName: studioName || mapped?.[1] || undefined,
+  }
 }
 
 let root = null
@@ -60,14 +152,17 @@ function Bridge() {
 function ensureMounted() {
   if (root) return
   installPersonalizationApiAuth()
+  installAuthRequiredListener()
   host = document.createElement('div')
   host.id = 'remix-personalization-root'
   document.body.appendChild(host)
   root = createRoot(host)
   root.render(
-    <DemoPersonalizeProvider>
-      <Bridge />
-    </DemoPersonalizeProvider>,
+    <SocialPublishContext.Provider value={SOCIAL_PUBLISH_VALUE}>
+      <DemoPersonalizeProvider>
+        <Bridge />
+      </DemoPersonalizeProvider>
+    </SocialPublishContext.Provider>,
   )
 }
 
@@ -129,15 +224,18 @@ export function buildRemixSource({ studioId, studioName, mediaUrl, mediaType, pr
  */
 export function openPersonalization(options = {}) {
   if (typeof document === 'undefined') return
-  const opts = options.source
-    ? options
-    : {
-        source: buildRemixSource(options),
-        trigger: options.trigger || null,
-        access: 'authenticated',
-        originStudio: ORIGIN_STUDIO[options.studioId] || undefined,
-        onComplete: options.onComplete,
-      }
+  let opts = options
+  if (!options.source) {
+    const identity = resolveStudioIdentity(options)
+    const context = { ...options, ...identity }
+    opts = {
+      source: buildRemixSource(context),
+      trigger: options.trigger || null,
+      access: options.access === 'anonymous' ? 'anonymous' : 'authenticated',
+      originStudio: ORIGIN_STUDIO[identity.studioId] || undefined,
+      onComplete: options.onComplete,
+    }
+  }
   ensureMounted()
   if (openRef) openRef(opts)
   else pending.push(opts)

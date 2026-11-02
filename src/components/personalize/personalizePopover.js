@@ -233,6 +233,7 @@ export function inspectPromptTokens(prompt, profile) {
     return {
       studioId,
       studioName,
+      appId,
       mediaUrl,
       mediaType: typeHint,
       prompt: textarea?.value || fieldValue('prompt') || '',

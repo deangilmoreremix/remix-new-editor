@@ -37,7 +37,6 @@ import {
   normalizeImageMimeType,
   type UploadCategory,
 } from './uploadConfig'
-import { VIRTUAL_UPLOAD_ROUTE, indexDurableStore, virtualUploadFetch } from './muapiUploadRoute'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -542,8 +541,7 @@ function resolveEndpoint(auth: MuAPIAuthContext): string {
     return auth.uploadEndpoint.trim()
   }
   if (typeof window !== 'undefined' && window.location && /^https?:$/.test(window.location.protocol)) {
-    // remix: served in-browser by ./muapiUploadRoute (no Next.js route here).
-    return VIRTUAL_UPLOAD_ROUTE
+    return MUAPI_UPLOAD_ROUTE
   }
   return MUAPI_DIRECT_UPLOAD_URL
 }
@@ -566,10 +564,10 @@ async function getDefaultDurableStore(): Promise<MuAPIDurableStore | null> {
       const storage = (mod.supabase as unknown as { storage: SupabaseStorageClient }).storage
       return createSupabaseDurableStore(storage)
     }
-    defaultDurableStore = indexDurableStore({
+    defaultDurableStore = {
       put: async (input) => (await withIdentity()).put(input),
       open: async (workspaceId, durableRef) => (await withIdentity()).open(workspaceId, durableRef),
-    })
+    }
   } catch {
     defaultDurableStore = null
   }
@@ -588,12 +586,7 @@ function resolveAuth(auth: MuAPIAuthContext): ResolvedAuthContext {
       typeof auth.assetId === 'string' && auth.assetId.trim() !== '' ? auth.assetId.trim() : null,
     apiKey,
     endpoint: resolveEndpoint(auth),
-    fetchImpl:
-      auth.fetchImpl ??
-      (((input: RequestInfo | URL, init?: RequestInit) =>
-        String(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url).startsWith(VIRTUAL_UPLOAD_ROUTE)
-          ? virtualUploadFetch(input, init)
-          : fetch(input, init))) as typeof fetch,
+    fetchImpl: auth.fetchImpl ?? ((...args: Parameters<typeof fetch>) => fetch(...args)),
     durableStore: auth.durableStore === undefined ? null : auth.durableStore,
     now: auth.now ?? (() => Date.now()),
     urlCache: auth.urlCache ?? sharedUrlCache,

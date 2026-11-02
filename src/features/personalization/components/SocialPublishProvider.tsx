@@ -1,9 +1,9 @@
 /**
- * remix-new-editor shim for OpenHiggsBolt's SocialPublishProvider.
+ * remix-new-editor shim for OpenHiggsBolt's SocialPublishProvider context.
  *
- * remix publishes through its own Publisher flow, so no provider is mounted
- * and the context is null. `DemoPersonalizeProvider` reads it through a safe
- * accessor and hides the in-modal "Publish" shortcut when it is absent.
+ * mount.jsx provides the value: `openPublish()` opens remix's social-publish
+ * modal (src/lib/socialPublishHelpers.js), the equivalent of OpenHiggsBolt's
+ * SocialPublishModal.
  */
 import { createContext } from 'react'
 

@@ -14,10 +14,12 @@ const listeners = new Set<Listener>()
 function notify() { listeners.forEach((l) => { try { l() } catch { /* ignore */ } }) }
 
 if (typeof window !== 'undefined') {
-  // apiKeyManager writes to storage; storage events cover other tabs and the
-  // Settings modal fires a custom event for this tab.
+  // Same-tab changes (Settings modal → apiKeyManager.setMuapiKey / clear…)
+  // arrive through apiKeyManager's own listener API, matching OpenHiggsBolt's
+  // authConfig, which notified its listeners on every set/clear. Storage
+  // events cover other tabs.
+  apiKeyManager.addListener?.(notify)
   window.addEventListener('storage', notify)
-  window.addEventListener('remix:api-keys-changed', notify as EventListener)
 }
 
 export function __resetAuthConfigForTests(): void { notify() }

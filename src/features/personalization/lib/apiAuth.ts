@@ -13,7 +13,15 @@
  */
 import { apiKeyManager } from '../../../lib/apiKeyManager.js'
 
-const PREFIXES = ['/api/personalization/', '/api/demo/discover', '/api/video/record', '/api/proxy/openai-enhance']
+const PREFIXES = [
+  '/api/personalization/',
+  '/api/demo/discover',
+  '/api/video/record',
+  '/api/proxy/openai-enhance',
+  // OpenHiggsBolt's MuAPI proxy and upload route (generation + uploads).
+  '/api/api/v1/',
+  '/api/v1/upload_file',
+]
 const OPENAI_KEY_ROUTES = [
   '/api/personalization/image-analyze',
   '/api/personalization/image-edit',

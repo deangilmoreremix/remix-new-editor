@@ -128,3 +128,69 @@ describe('client IP normalisation', () => {
     expect(withTrustedClientIp(original)).toBe(original)
   })
 })
+
+describe('OpenHiggsBolt MuAPI, upload and preview routes', () => {
+  it('requires a signed-in user for the MuAPI proxy', async () => {
+    const res = await call('POST', '/api/api/v1/flux-dev-image', {
+      headers: { 'content-type': 'application/json', 'x-api-key': 'mu-key-1234567890' },
+      body: JSON.stringify({ prompt: 'x' }),
+    })
+    expect(res.status).toBe(401)
+  })
+
+  it('forwards a signed-in submit to MuAPI with only the caller key', async () => {
+    const realFetch = globalThis.fetch
+    const upstream = vi.fn(async (url, init) => {
+      expect(String(url)).toBe('https://api.muapi.ai/api/v1/flux-dev-image')
+      const headers = new Headers(init.headers)
+      expect(headers.get('x-api-key')).toBe('mu-key-1234567890')
+      expect(headers.get('authorization')).toBeNull()
+      return new Response(JSON.stringify({ request_id: 'req_1' }), { status: 200, headers: { 'content-type': 'application/json' } })
+    })
+    globalThis.fetch = upstream
+    try {
+      const res = await call('POST', '/api/api/v1/flux-dev-image', {
+        headers: { 'content-type': 'application/json', 'x-api-key': 'mu-key-1234567890', authorization: 'Bearer good-token' },
+        body: JSON.stringify({ prompt: 'x' }),
+      })
+      expect(res.status).toBe(200)
+      expect((await res.json()).request_id).toBe('req_1')
+      expect(upstream).toHaveBeenCalledTimes(1)
+    } finally {
+      globalThis.fetch = realFetch
+    }
+  })
+
+  it('rejects an upload without a MuAPI key', async () => {
+    const form = new FormData()
+    form.append('file', new Blob(['png'], { type: 'image/png' }), 'a.png')
+    const res = await call('POST', '/api/v1/upload_file', { body: form })
+    expect([400, 401]).toContain(res.status)
+  })
+
+  it('rejects a malformed motion-template preview key', async () => {
+    const res = await call('GET', '/api/media/shotcraft/..%2Fsecret')
+    expect(res.status).toBe(400)
+  })
+
+  it('proxies motion-template preview clips with Range support', async () => {
+    const realFetch = globalThis.fetch
+    const upstream = vi.fn(async (url, init) => {
+      expect(String(url)).toBe('https://vincentwei1021.github.io/video-shotcraft/media/basic-3d-scene.mp4')
+      expect(init.headers.Range).toBe('bytes=0-3')
+      return new Response(new Uint8Array([0, 0, 0, 24]), {
+        status: 206,
+        headers: { 'content-type': 'video/mp4', 'content-range': 'bytes 0-3/100', 'content-length': '4' },
+      })
+    })
+    globalThis.fetch = upstream
+    try {
+      const res = await call('GET', '/api/media/shotcraft/basic-3d-scene.mp4', { headers: { range: 'bytes=0-3' } })
+      expect(res.status).toBe(206)
+      expect(res.headers.get('content-type')).toBe('video/mp4')
+      expect(res.headers.get('content-range')).toBe('bytes 0-3/100')
+    } finally {
+      globalThis.fetch = realFetch
+    }
+  })
+})

@@ -56,19 +56,28 @@ function forwardHandoff(route: string): void {
   try {
     const handoff = readHandoff() as {
       combinedPrompt?: string
+      projectName?: string
       referenceImageUrl?: string | null
       firstFrameUrl?: string | null
-      videoUrl?: string | null
+      aspectRatio?: string | null
     } | null
-    const prompt = typeof handoff?.combinedPrompt === 'string' ? handoff.combinedPrompt : ''
-    const referenceImageUrl = safeHttpUrl(handoff?.referenceImageUrl) || safeHttpUrl(handoff?.firstFrameUrl)
+    // Same fields, same order as OpenHiggsBolt's studios read them
+    // (VideoStudio.jsx: `combinedPrompt || projectName`, then
+    // `firstFrameUrl || referenceImageUrl` as the start image). The video
+    // result itself is not loaded by OpenHiggsBolt's studios either.
+    const prompt =
+      (typeof handoff?.combinedPrompt === 'string' && handoff.combinedPrompt) ||
+      (typeof handoff?.projectName === 'string' && handoff.projectName) ||
+      ''
+    const referenceImageUrl = safeHttpUrl(handoff?.firstFrameUrl) || safeHttpUrl(handoff?.referenceImageUrl)
+    const aspectRatio = handoff?.aspectRatio === '9:16' || handoff?.aspectRatio === '16:9' ? handoff.aspectRatio : null
     if (route === 'image' || route === 'video') {
       stageStudioPrefill({
         route,
         prompt,
         params: {
           ...(referenceImageUrl ? { referenceImageUrl } : {}),
-          ...(safeHttpUrl(handoff?.videoUrl) ? { sourceVideoUrl: safeHttpUrl(handoff?.videoUrl) } : {}),
+          ...(aspectRatio ? { aspectRatio } : {}),
         },
         ref: 'personalization',
       })

@@ -13,8 +13,7 @@
  *     edge function never handled this shape)
  *
  * Auth: a signed-in Clerk user. Key: the user's own OpenAI key from Settings
- * (`x-openai-key`), else the deployment's OPENAI_API_KEY, via
- * getOpenAiKeyForUser().
+ * (`x-openai-key`) via getOpenAiKeyForUser(); no site-wide fallback.
  */
 import { NextResponse } from '../shims/next-server'
 import { auth } from '../shims/clerk-server'
@@ -71,8 +70,9 @@ export async function POST(req: Request) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'UNAUTHENTICATED' }, { status: 401 })
 
+  // OpenHiggsBolt answers a missing key with 401 UNAUTHENTICATED.
   const key = await getOpenAiKeyForUser()
-  if (!key) return NextResponse.json({ error: 'Add your OpenAI API key in Settings to personalize prompts.' }, { status: 400 })
+  if (!key) return NextResponse.json({ error: 'UNAUTHENTICATED' }, { status: 401 })
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>
   let messages: ChatMessage[] | null

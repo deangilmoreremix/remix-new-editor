@@ -19,6 +19,9 @@
  *   POST          /api/personalization/persist-edited-asset
  *   POST          /api/demo/discover           (anonymous "Find My Brand")
  *   POST          /api/proxy/openai-enhance    (prompt personalizer / enhance text)
+ *   GET|POST      /api/api/v1/*                (OpenHiggsBolt MuAPI proxy: generation submit + poll)
+ *   GET|POST      /api/v1/upload_file          (OpenHiggsBolt MuAPI upload + durable originals)
+ *   GET           /api/media/shotcraft/:key    (motion-template preview clips)
  *   POST          /api/video/record            (accepted, not stored)
  */
 import './_personalization/shims/env'
@@ -44,8 +47,12 @@ import * as record from './_personalization/app/api/personalization/record/route
 import * as demoDiscover from './_personalization/app/api/demo/discover/route'
 import * as persistEditedAsset from './_personalization/extra/persistEditedAsset'
 import * as openaiEnhance from './_personalization/extra/openaiEnhance'
+import * as muapiProxy from './_personalization/app/api/api/v1/[[...path]]/route.js'
+import * as muapiUploadFile from './_personalization/app/api/v1/upload_file/route'
+import * as shotcraftMedia from './_personalization/app/api/media/shotcraft/[styleKey]/route'
 
-type Handler = (req: NextRequest, ctx?: { params: Promise<Record<string, string>> }) => Promise<Response> | Response
+type RouteParams = Record<string, string | string[]>
+type Handler = (req: NextRequest, ctx?: { params: Promise<RouteParams> }) => Promise<Response> | Response
 type RouteModule = Partial<Record<'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE', Handler>>
 
 const STATIC_ROUTES: Record<string, RouteModule> = {
@@ -63,6 +70,7 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/personalization/persist-edited-asset': persistEditedAsset as unknown as RouteModule,
   '/api/demo/discover': demoDiscover as RouteModule,
   '/api/proxy/openai-enhance': openaiEnhance as unknown as RouteModule,
+  '/api/v1/upload_file': muapiUploadFile as unknown as RouteModule,
 }
 
 const videoRecord: RouteModule = {
@@ -73,10 +81,18 @@ const videoRecord: RouteModule = {
   POST: async () => NextResponse.json({ ok: true, recorded: false }),
 }
 
-function resolve(pathname: string): { mod: RouteModule; params: Record<string, string> } | null {
+function resolve(pathname: string): { mod: RouteModule; params: RouteParams } | null {
   const path = pathname.replace(/\/+$/, '') || '/'
   if (STATIC_ROUTES[path]) return { mod: STATIC_ROUTES[path], params: {} }
   if (path === '/api/video/record') return { mod: videoRecord, params: {} }
+  // OpenHiggsBolt's MuAPI proxy: /api/api/v1/<path…> → api.muapi.ai/api/v1/<path…>
+  const muapi = /^\/api\/api\/v1(?:\/(.*))?$/.exec(path)
+  if (muapi) {
+    const segments = (muapi[1] || '').split('/').filter(Boolean).map((s) => decodeURIComponent(s))
+    return { mod: muapiProxy as unknown as RouteModule, params: { path: segments } }
+  }
+  const shotcraft = /^\/api\/media\/shotcraft\/([^/]+)$/.exec(path)
+  if (shotcraft) return { mod: shotcraftMedia as unknown as RouteModule, params: { styleKey: decodeURIComponent(shotcraft[1]) } }
   const lead = /^\/api\/personalization\/leads\/([^/]+)$/.exec(path)
   if (lead) return { mod: leadById as RouteModule, params: { id: decodeURIComponent(lead[1]) } }
   return null
@@ -132,5 +148,13 @@ export default async (request: Request, context: Context): Promise<Response> => 
 }
 
 export const config: Config = {
-  path: ['/api/personalization/*', '/api/demo/discover', '/api/video/record', '/api/proxy/openai-enhance'],
+  path: [
+    '/api/personalization/*',
+    '/api/demo/discover',
+    '/api/video/record',
+    '/api/proxy/openai-enhance',
+    '/api/api/v1/*',
+    '/api/v1/upload_file',
+    '/api/media/shotcraft/*',
+  ],
 }

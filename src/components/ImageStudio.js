@@ -319,7 +319,17 @@ export function ImageStudio() {
         if (!prefill && stagedPrefill.prompt) prefill = stagedPrefill.prompt;
         const referenceImageUrl = stagedPrefill.params?.referenceImageUrl;
         if (typeof referenceImageUrl === 'string' && /^https?:\/\//i.test(referenceImageUrl)) {
-            picker.setImage(referenceImageUrl);
+            // picker.setImage() fires onSelect, which updates the model button
+            // (#model-btn-label) — wait until the studio is in the document.
+            let tries = 0;
+            const applyReference = () => {
+                if (!document.getElementById('model-btn-label') && tries++ < 120) {
+                    requestAnimationFrame(applyReference);
+                    return;
+                }
+                try { picker.setImage(referenceImageUrl); } catch (err) { console.warn('[ImageStudio] hand-off image not applied:', err); }
+            };
+            requestAnimationFrame(applyReference);
         }
     }
     if (prefill) {
