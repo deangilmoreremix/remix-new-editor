@@ -154,6 +154,51 @@ describe('exampleGalleryBridge', () => {
       });
     });
 
+    it('closes the open preview modal and stages the prompt for the studio', async () => {
+      const { openAssetDetail } = await import('../lib/exampleGalleryBridge.js');
+      const { peekStudioPrefill } = await import('../lib/studioPrefill.js');
+      const asset = { source: 'minimax', slug: 'luxury-perfume-commercial', title: 'Luxury perfume commercial' };
+      const view = openAssetDetail(asset);
+      await view.ready;
+      expect(document.body.querySelector('.mdv-overlay')).toBeTruthy();
+      await handleCreateThisStyle(asset);
+      expect(document.body.querySelector('.mdv-overlay')).toBeNull();
+      expect(document.body.style.overflow).toBe('');
+      const staged = peekStudioPrefill();
+      expect(staged.route).toBe('commercial');
+      expect(staged.prompt).toBe('Mocked prompt for luxury-perfume-commercial');
+    });
+
+    it('fills the destination studio prompt field', async () => {
+      const { navigate } = await import('../lib/router.js');
+      navigate.mockImplementationOnce(async () => {
+        const ta = document.createElement('textarea');
+        ta.setAttribute('data-studio-prompt', '');
+        document.body.appendChild(ta);
+      });
+      const asset = { source: 'youmind', studio: 'image', title: 'Neon portrait', prompt: 'neon portrait prompt' };
+      await handleCreateThisStyle(asset);
+      expect(navigate).toHaveBeenCalledWith('image', {});
+      expect(document.querySelector('[data-studio-prompt]').value).toBe('neon portrait prompt');
+    });
+
+    it('does not throw when navigation fails', async () => {
+      const { navigate } = await import('../lib/router.js');
+      navigate.mockImplementationOnce(async () => { throw new Error('router down'); });
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      await expect(
+        handleCreateThisStyle({ source: 'youmind', studio: 'image', title: 'X', prompt: 'p' })
+      ).resolves.toBeUndefined();
+      expect(spy).toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it('falls back to the asset studio for unmapped sources', async () => {
+      const { navigate } = await import('../lib/router.js');
+      await handleCreateThisStyle({ source: 'other', studio: 'cinema', title: 'X' });
+      expect(navigate).toHaveBeenCalledWith('cinema', {});
+    });
+
     it('falls back to video with empty prompt for unknown academy asset', async () => {
       const { navigate } = await import('../lib/router.js');
       const asset = { source: 'academy', id: 'unknown-asset-id' };
@@ -172,6 +217,30 @@ describe('exampleGalleryBridge', () => {
       expect(titleEl?.textContent).toBe('Luxury perfume commercial');
       const promptEl = modal?.querySelector('pre');
       expect(promptEl?.textContent).toBe('Mocked prompt for luxury-perfume-commercial');
+    });
+
+    it('shows the media and loaded prompt in a single modal', async () => {
+      const asset = {
+        source: 'minimax',
+        slug: 'luxury-perfume-commercial',
+        title: 'Luxury perfume commercial',
+        thumbnail: '/poster.jpg',
+        videoSrc: '/clip.mp4',
+      };
+      await handleViewPrompt(asset);
+      const overlays = document.body.querySelectorAll('.mdv-overlay');
+      expect(overlays.length).toBe(1);
+      const video = overlays[0].querySelector('video');
+      expect(video?.getAttribute('src')).toBe('/clip.mp4');
+      expect(overlays[0].querySelector('pre')?.textContent).toBe('Mocked prompt for luxury-perfume-commercial');
+    });
+
+    it('shows the inline prompt for academy assets that have one', async () => {
+      const { navigate } = await import('../lib/router.js');
+      const asset = { source: 'academy', id: 'academy:gripmount-ad2-problem-first', title: 'Grip', prompt: 'UGC commercial ad opening' };
+      await handleViewPrompt(asset);
+      expect(navigate).not.toHaveBeenCalled();
+      expect(document.body.querySelector('.mdv-overlay pre')?.textContent).toBe('UGC commercial ad opening');
     });
 
     it('navigates to academy page for academy source', async () => {

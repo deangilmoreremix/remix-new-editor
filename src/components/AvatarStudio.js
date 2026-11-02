@@ -238,6 +238,7 @@ const triggerBtn = document.createElement('button');
   promptLabel.textContent = 'Prompt (optional)';
   promptGroup.appendChild(promptLabel);
   const promptInput = document.createElement('textarea');
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none';
   promptInput.rows = 2;
   promptInput.placeholder = 'Describe the animation you want...';

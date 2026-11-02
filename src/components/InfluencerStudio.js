@@ -697,6 +697,7 @@ export async function InfluencerStudio() {
   }
 
   const promptInput = document.createElement('textarea');
+  promptInput.setAttribute('data-studio-prompt', '');
   const modelPickerBtn = document.createElement('button');
   modelPickerBtn.type = 'button';
   modelPickerBtn.textContent = 'AI Pick';

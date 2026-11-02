@@ -422,6 +422,7 @@ export async function EffectsStudio() {
   promptRow.className = 'flex items-center gap-3';
   const promptInput = document.createElement('input');
   promptInput.id = 'fx-prompt-input';
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.type = 'text';
   promptInput.placeholder = 'Optional prompt...';
   promptInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
