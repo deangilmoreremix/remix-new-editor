@@ -1,8 +1,8 @@
 /**
  * website-builder-session.test.js
  *
- * The Smart Website Builder SSO endpoint: paid SmartVideo (Clerk) users get a
- * one-time Supabase magic-link token; everyone else is refused. Clerk's
+ * The Smart Website Builder SSO endpoint: any signed-in SmartVideo (Clerk)
+ * user with a verified email gets a one-time Supabase magic-link token. Clerk's
  * Backend API and the Supabase admin client are faked, so no network is used.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -102,13 +102,12 @@ describe('website-builder-session handler', () => {
     expect(admin.generateLink).toHaveBeenCalledTimes(2);
   });
 
-  it('refuses unpaid users with 402 and never touches Supabase', async () => {
+  it('issues a token for a free (unpaid) SmartVideo user too', async () => {
     const admin = fakeAdmin();
     const handler = createHandler({ fetchImpl: fakeFetch(clerkUser()), createAdminClient: () => admin.client });
     const res = await call(handler);
-    expect(res.statusCode).toBe(402);
-    expect(res.body.error).toBe('upgrade_required');
-    expect(admin.generateLink).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(200);
+    expect(res.body.token_hash).toBe('hash-abc');
   });
 
   it('refuses unverified email addresses', async () => {

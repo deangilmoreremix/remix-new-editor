@@ -188,11 +188,9 @@ export default function PromptInput({
       return
     }
 
-    if (!user) {
-      window.dispatchEvent(new CustomEvent('openthorn:require-auth'))
-    } else {
-      navigate('/dashboard')
-    }
+    // The builder is only reachable signed in (SmartVideo SSO), so there is
+    // never a sign-in popup here.
+    if (user) navigate('/dashboard')
   }
 
   const handleCancelClick = (e: React.MouseEvent<HTMLButtonElement>) => {

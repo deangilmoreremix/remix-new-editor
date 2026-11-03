@@ -6,10 +6,9 @@
 // with Clerk. This endpoint bridges the two:
 //
 //   1. withClerkAuth verifies the caller's Clerk session JWT.
-//   2. Paid check, server-side: the `smartvideo_full_access` Clerk Billing
-//      feature in the verified token (`fea` claim), or the user's
-//      `public_metadata.legacy_access === true` (same rule as
-//      src/lib/clerkEntitlements.js). Otherwise 402 upgrade_required.
+//   2. Any signed-in SmartVideo user may use the builder; no paid plan is
+//      required. (`claimsHaveFeature` is kept for callers that want to
+//      tell paid from free accounts.)
 //   3. The Clerk user's primary email must be verified. Supabase accounts in
 //      this project are shared with other apps, so an unverified address
 //      must never be linked to an existing auth user.
@@ -87,7 +86,7 @@ export function createHandler({ fetchImpl = fetch, createAdminClient } = {}) {
   return async function websiteBuilderSession(event) {
     if (event.httpMethod && event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
 
-    const { userId, claims } = event.auth || {};
+    const { userId } = event.auth || {};
     if (!userId) return json(401, { error: 'not_signed_in' });
 
     const url = process.env.SUPABASE_URL;
@@ -104,9 +103,6 @@ export function createHandler({ fetchImpl = fetch, createAdminClient } = {}) {
       console.error('[website-builder-session]', err.message);
       return json(502, { error: 'clerk_unavailable' });
     }
-
-    const paid = claimsHaveFeature(claims) || clerkUser?.public_metadata?.legacy_access === true;
-    if (!paid) return json(402, { error: 'upgrade_required' });
 
     const email = primaryVerifiedEmail(clerkUser);
     if (!email) return json(403, { error: 'email_not_verified' });

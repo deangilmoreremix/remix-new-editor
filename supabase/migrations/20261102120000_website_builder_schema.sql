@@ -8,8 +8,8 @@
 -- apps/openthorn/src/lib/tables.ts.
 --
 -- Builder users are ordinary auth.users rows, created on demand by
--- netlify/functions/website-builder-session.js for paying SmartVideo (Clerk)
--- customers. No trigger is added to auth.users: that function upserts the
+-- netlify/functions/website-builder-session.js for signed-in SmartVideo
+-- (Clerk) users. No trigger is added to auth.users: that function upserts the
 -- wb_profiles row itself, and the main app's handle_new_user is untouched.
 --
 -- Additive and idempotent: creates only wb_* objects and one storage bucket.

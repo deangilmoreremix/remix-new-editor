@@ -8,10 +8,9 @@ import { getErrorMessage, logError } from './errors'
  * - connecting: waiting for the SmartVideo (Clerk) session / token exchange
  * - ready: signed in to the builder as the SmartVideo user
  * - signed_out: no SmartVideo session (or the builder was opened outside SmartVideo)
- * - upgrade_required: signed in, but the account has no paid SmartVideo access
  * - error: the exchange failed; `retry` tries again
  */
-export type SsoStatus = 'connecting' | 'ready' | 'signed_out' | 'upgrade_required' | 'error'
+export type SsoStatus = 'connecting' | 'ready' | 'signed_out' | 'error'
 
 interface AuthContextValue {
   user: User | null
@@ -112,7 +111,6 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         const body = (await res.json().catch(() => ({}))) as { token_hash?: string; email?: string; error?: string }
         if (cancelled) return
         if (res.status === 401) { await clearBuilderSession(); setSsoStatus('signed_out'); return }
-        if (res.status === 402) { await clearBuilderSession(); setSsoStatus('upgrade_required'); return }
         if (!res.ok || !body.token_hash) throw new Error(body.error || `Sign-in failed (${res.status})`)
 
         // Reuse a live session for the same account; otherwise exchange the token.

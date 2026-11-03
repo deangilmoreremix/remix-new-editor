@@ -8,8 +8,6 @@ interface ProtectedRouteProps {
   pageName?: string
 }
 
-export const PRICING_URL = 'https://videoremix.io/smartvideo-pricing-page/'
-
 /** Navigate the SmartVideo page that embeds the builder (falls back to this window). */
 function openInApp(path: string) {
   try {
@@ -20,8 +18,8 @@ function openInApp(path: string) {
 }
 
 /**
- * Access is tied to the SmartVideo account: anyone signed in to SmartVideo
- * with a paid plan is signed in here automatically (see AuthContext SSO).
+ * Access is tied to the SmartVideo account: anyone signed in to SmartVideo,
+ * paid or not, is signed in here automatically (see AuthContext SSO).
  */
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, ssoStatus, ssoError, retrySso } = useAuth()
@@ -39,14 +37,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       <button className={styles.btnPrimary} onClick={() => openInApp('/signin')} type="button">
         Sign in
       </button>
-    )
-  } else if (ssoStatus === 'upgrade_required') {
-    heading = 'Included with SmartVideo Pro'
-    subtext = `${BRAND_NAME} is available to SmartVideo customers on a paid plan.`
-    actions = (
-      <a className={styles.btnPrimary} href={PRICING_URL} target="_blank" rel="noopener noreferrer">
-        View plans
-      </a>
     )
   } else if (ssoStatus === 'error') {
     heading = 'Could not connect your account'

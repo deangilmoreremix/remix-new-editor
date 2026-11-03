@@ -3,18 +3,15 @@
 // In dev, this points at a separate Vite dev server on :5173.
 // In production, it loads the static build from /openthorn/.
 //
-// Access: anyone signed in to SmartVideo on a paid plan (Clerk feature
-// `smartvideo_full_access`, or legacy_access) gets in automatically. The
-// builder signs itself in with the same account through
-// netlify/functions/website-builder-session.js, which re-checks payment on
-// the server, so this client-side gate is only for a fast, friendly message.
+// Access: anyone signed in to SmartVideo gets in automatically, paid or not,
+// and lands straight on the builder dashboard. The builder signs itself in
+// with the same account through netlify/functions/website-builder-session.js.
 
 import { PAID_FEATURE } from '../lib/clerkEntitlements.js';
 
 const isDev = import.meta.env.DEV;
 const OPENTHORN_DEV_URL = 'http://localhost:5173/dashboard';
 const OPENTHORN_PROD_PATH = '/openthorn/dashboard';
-const PRICING_URL = 'https://videoremix.io/smartvideo-pricing-page/';
 const FONT = 'font-family:Inter,system-ui,sans-serif;';
 
 /** @returns {'signed_out' | 'unpaid' | 'paid'} */
@@ -111,24 +108,15 @@ export function OpenThornStudio() {
   container.appendChild(loading);
 
   resolveAccess().then((access) => {
-    let next;
-    if (access === 'paid') {
-      next = createIframe();
-    } else if (access === 'signed_out') {
-      next = createNotice({
-        title: 'Sign in to use Smart Website Builder',
-        text: 'Smart Website Builder uses your SmartVideo account.',
-        actionLabel: 'Sign in',
-        onAction: () => { window.location.href = '/signin'; },
-      });
-    } else {
-      next = createNotice({
-        title: 'Included with SmartVideo Pro',
-        text: 'Smart Website Builder is available to SmartVideo customers on a paid plan.',
-        actionLabel: 'View plans',
-        onAction: () => { window.open(PRICING_URL, '_blank', 'noopener'); },
-      });
-    }
+    // Free and paid SmartVideo accounts both get the builder.
+    const next = access === 'signed_out'
+      ? createNotice({
+          title: 'Sign in to use Smart Website Builder',
+          text: 'Smart Website Builder uses your SmartVideo account.',
+          actionLabel: 'Sign in',
+          onAction: () => { window.location.href = '/signin'; },
+        })
+      : createIframe();
     loading.replaceWith(next);
   });
 
