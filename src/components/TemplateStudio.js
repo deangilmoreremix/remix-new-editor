@@ -13,7 +13,7 @@ import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { createUploadPicker } from './UploadPicker.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams } from '../lib/templateMedia.js';
 import { navigate } from '../lib/router.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
@@ -67,6 +67,18 @@ export function TemplateStudio(templateId) {
   let uploadedUrl = null;
   let isGenerating = false;
   let lastGeneratedUrl = '';
+  let mediaRouteBadge = null;
+  const ROUTE_LABELS = { t2v: 'Text → Video', i2v: 'Image → Video', v2v: 'Video → Video', t2i: 'Text → Image', i2i: 'Image → Image' };
+  // Which MuAPI path Generate will take with the media currently attached.
+  function currentMediaRoute() {
+    const media = extractTemplateMedia(formState, allInputs);
+    return { media, ...routeTemplateGeneration({ outputType: template.outputType, modelType: template.modelType, model: selectedModel, ...media }) };
+  }
+  function refreshMediaRoute() {
+    if (!mediaRouteBadge) return;
+    const { route } = currentMediaRoute();
+    mediaRouteBadge.textContent = ROUTE_LABELS[route] || route;
+  }
   // Validate the template's default model against its modelType so video
   // generation always starts with a real, type-compatible model ID.
   // Effect models (ai-video-effects, motion-controls, video-effects, vfx, …)
@@ -291,140 +303,19 @@ export function TemplateStudio(templateId) {
     `;
     fieldWrapper.appendChild(label);
 
-            if (input.type === 'image' || input.type === 'frame') {
-                const isFrame = input.type === 'frame';
-                const uploadArea = document.createElement('div');
-                uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-                uploadArea.innerHTML = `
-                    <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-                    <span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>
-                `;
-                const setDone = (label) => {
-                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
-                };
-                const setPexelsDone = (label) => {
-                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">📷</div><span class="text-sm text-[#d9ff00]">${label}</span>`;
-                };
-                uploadArea.onclick = () => {
-                    const picker = createUploadPicker({
-                        anchorContainer: container,
-                        frameMode: isFrame,
-                        acceptVideo: false,
-                        onSelect: (sel) => {
-                            if (isFrame) {
-                                formState[input.name] = { startUrl: sel.startUrl, endUrl: sel.endUrl, urls: sel.urls };
-                                setDone(sel.endUrl ? 'Start & end frames set' : 'Start frame set');
-                            } else {
-                                uploadedUrl = sel.url;
-                                formState[input.name] = sel.url;
-                                setDone('Image uploaded');
-                            }
-                        },
-                        onClear: () => {
-                            if (isFrame) {
-                                formState[input.name] = null;
-                            } else {
-                                uploadedUrl = null;
-                                formState[input.name] = null;
-                            }
-                            uploadArea.innerHTML = `
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-                                <span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>
-                            `;
-                        }
-                    });
-                    container.appendChild(picker.panel);
-                };
-
-                const pexelsBtn = document.createElement('button');
-                pexelsBtn.type = 'button';
-                pexelsBtn.title = 'Browse stock photos from Pexels';
-                pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
-                pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
-                pexelsBtn.onclick = async (e) => {
-                    e.stopPropagation();
-                    const { browsePexelsImages } = await import('../lib/studioPexels.js');
-                    browsePexelsImages({
-                        title: isFrame ? 'Select Reference Frames' : 'Select Image',
-                        studioName: 'Template Studio',
-                        onSelect: (asset) => {
-                            const url = asset.src?.large || asset.src?.original || asset.url;
-                            if (isFrame) {
-                                formState[input.name] = { startUrl: url, endUrl: null, urls: [url] };
-                                setPexelsDone('Start frame from Pexels');
-                            } else {
-                                uploadedUrl = url;
-                                formState[input.name] = url;
-                                setPexelsDone('Image from Pexels');
-                            }
-                        },
-                    });
-                };
-
-                const row = document.createElement('div');
-                row.className = 'flex items-center gap-2';
-                row.appendChild(uploadArea);
-                row.appendChild(pexelsBtn);
-                fieldWrapper.appendChild(row);
-            } else if (input.type === 'video') {
-                const uploadArea = document.createElement('div');
-                uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-                uploadArea.innerHTML = `
-                    <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-                    <span class="text-sm">Click to upload a video</span>
-                `;
-                const setDone = (label) => {
-                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
-                };
-                const setPexelsDone = (label) => {
-                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">🎬</div><span class="text-sm text-[#d9ff00]">${label}</span>`;
-                };
-                uploadArea.onclick = () => {
-                    const picker = createUploadPicker({
-                        anchorContainer: container,
-                        acceptVideo: true,
-                        onSelect: (sel) => {
-                            uploadedUrl = sel.url;
-                            formState[input.name] = sel.url;
-                            setDone('Video uploaded');
-                        },
-                        onClear: () => {
-                            uploadedUrl = null;
-                            formState[input.name] = null;
-                            uploadArea.innerHTML = `
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-                                <span class="text-sm">Click to upload a video</span>
-                            `;
-                        }
-                    });
-                    container.appendChild(picker.panel);
-                };
-
-                const pexelsBtn = document.createElement('button');
-                pexelsBtn.type = 'button';
-                pexelsBtn.title = 'Browse stock videos from Pexels';
-                pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
-                pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
-                pexelsBtn.onclick = async (e) => {
-                    e.stopPropagation();
-                    const { browsePexelsVideos } = await import('../lib/studioPexels.js');
-                    browsePexelsVideos({
-                        title: 'Select Video',
-                        studioName: 'Template Studio',
-                        onSelect: (asset) => {
-                            const url = (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url;
-                            uploadedUrl = url;
-                            formState[input.name] = url;
-                            setPexelsDone('Video from Pexels');
-                        },
-                    });
-                };
-
-                const row = document.createElement('div');
-                row.className = 'flex items-center gap-2';
-                row.appendChild(uploadArea);
-                row.appendChild(pexelsBtn);
-                fieldWrapper.appendChild(row);
+            if (input.type === 'image' || input.type === 'frame' || input.type === 'video') {
+                // Same upload picker + stock browser as the Video Studio.
+                const mediaField = createTemplateMediaField({
+                    kind: input.type,
+                    anchorContainer: container,
+                    studioName: 'Template Studio',
+                    onChange: (value) => {
+                        formState[input.name] = value;
+                        uploadedUrl = typeof value === 'string' ? value : (value?.startUrl || null);
+                        refreshMediaRoute();
+                    },
+                });
+                fieldWrapper.appendChild(mediaField.element);
             } else if (input.type === 'text' || input.type === 'textarea') {
       const el = document.createElement(input.type === 'textarea' ? 'textarea' : 'input');
       el.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50';
@@ -716,40 +607,48 @@ export function TemplateStudio(templateId) {
     modelWrapper.appendChild(dropdown);
     leftPanel.appendChild(modelWrapper);
 
-    // Video upload button — appears for video templates so v2v models
-    // (video-to-video) can accept a video source alongside image uploads.
+    // Media sources for video templates — the same pickers the Video Studio
+    // uses. A reference image (when the template has no image input of its
+    // own) turns the run into image-to-video; a source video turns it into
+    // video-to-video. The route badge shows which path Generate will take.
     if (outputType === 'video') {
-      const videoUploadWrapper = document.createElement('div');
-      videoUploadWrapper.className = 'mt-4';
-      videoUploadWrapper.innerHTML = `
-        <div class="flex items-center justify-between gap-3">
-          <label class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Video Source (V2V)</label>
-          <button id="videoUploadBtn" type="button" class="text-[10px] font-semibold uppercase tracking-[0.18em] rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white transition px-3 py-1">Upload video</button>
+      const mediaSection = document.createElement('div');
+      mediaSection.className = 'mt-6';
+      mediaSection.innerHTML = `
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Media Sources</div>
+          <span data-media-route class="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400"></span>
         </div>
+        <div data-media-fields class="flex flex-col gap-2"></div>
       `;
-      leftPanel.appendChild(videoUploadWrapper);
-
-      const videoBtn = videoUploadWrapper.querySelector('#videoUploadBtn');
-      const setVideoDone = (label) => {
-        videoBtn.innerHTML = `<span class="text-emerald-200">✓ ${label}</span>`;
-      };
-      videoBtn.onclick = () => {
-        const picker = createUploadPicker({
+      const fieldsHost = mediaSection.querySelector('[data-media-fields]');
+      mediaRouteBadge = mediaSection.querySelector('[data-media-route]');
+      const hasOwnImageInput = allInputs.some(i => i && (i.type === 'image' || i.type === 'frame'));
+      const hasOwnVideoInput = allInputs.some(i => i && i.type === 'video');
+      if (!hasOwnImageInput) {
+        const imageField = createTemplateMediaField({
+          kind: 'frame',
           anchorContainer: container,
-          acceptVideo: true,
-          onSelect: (sel) => {
-            uploadedUrl = sel.url;
-            formState['video_url'] = sel.url;
-            setVideoDone('Video uploaded');
-          },
-          onClear: () => {
-            uploadedUrl = null;
-            formState['video_url'] = null;
-            videoBtn.textContent = 'Upload video';
-          }
+          studioName: 'Template Studio',
+          onChange: (value) => { formState['image_url'] = value; refreshMediaRoute(); },
         });
-        container.appendChild(picker.panel);
-      };
+        fieldsHost.appendChild(imageField.element);
+      }
+      if (!hasOwnVideoInput) {
+        const videoField = createTemplateMediaField({
+          kind: 'video',
+          anchorContainer: container,
+          studioName: 'Template Studio',
+          onChange: (value) => {
+            formState['video_url'] = value;
+            uploadedUrl = value || uploadedUrl;
+            refreshMediaRoute();
+          },
+        });
+        fieldsHost.appendChild(videoField.element);
+      }
+      leftPanel.appendChild(mediaSection);
+      refreshMediaRoute();
     }
 
     // Close on outside click is handled by openDropdown via
@@ -1207,8 +1106,28 @@ export function TemplateStudio(templateId) {
 
     attachThumbnail(params, customThumbnailUrl);
 
+    // Route by attached media exactly like the Video Studio: a source video
+    // goes to v2v, an image to i2v / i2i, otherwise text-to-video / image.
+    const { media, route, model: routedModel } = currentMediaRoute();
+    params.model = routedModel;
+    applyTemplateMediaToParams(params, media, route);
+
     // Client-side validation before muapi call
-    const validationError = validateBeforeGenerate(template, params, allInputs, selectedModel);
+    let validationError = null;
+    if ((template.modelType === 'i2v' || template.modelType === 'i2i') && !media.imageUrl) {
+      validationError = 'Please upload an image before generating.';
+    } else if (route === 'v2v' && !media.videoUrl) {
+      validationError = 'Please upload a video before generating.';
+    } else {
+      // Media checks are done above; this keeps the shared effect-model
+      // ("name" required) check.
+      validationError = validateBeforeGenerate(
+        { ...template, modelType: route === 'v2v' ? 'v2v' : 't2v' },
+        { ...params, video_url: media.videoUrl },
+        allInputs,
+        routedModel,
+      );
+    }
     if (validationError) {
       showInlineError(container, validationError);
       return;
@@ -1244,28 +1163,33 @@ export function TemplateStudio(templateId) {
       if (normalizeDuration(template)) params.duration = normalizeDuration(template);
       applyFormStateToParams(params, formState, allInputs);
 
+      // Re-route with the media attached now (retries pick up new uploads).
+      const { media, route, model: routedModel } = currentMediaRoute();
+      params.model = routedModel;
+      applyTemplateMediaToParams(params, media, route);
+      const rawPrompt = params._rawPrompt;
+      delete params._rawPrompt;
+
       // Build prompt from all available template metadata and advanced options
-      params.prompt = buildEnrichedPrompt(template, specs, formState, params._rawPrompt || params.prompt);
+      params.prompt = buildEnrichedPrompt(template, specs, formState, rawPrompt || params.prompt);
       lastBuiltPrompt = params.prompt;
 
       const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
       if (negativePrompt) params.negative_prompt = negativePrompt;
 
-       let result;
-       if (template.modelType === 'i2v') {
-         result = await muapi.generateI2V(params);
-       } else if (template.modelType === 'i2i') {
-         result = await muapi.generateI2I(params);
-       } else if (template.modelType === 't2v') {
-          const isV2V = !!getV2VModelById(selectedModel);
-         if (isV2V) {
-           result = await muapi.processV2V(params);
-         } else {
-           result = await muapi.generateVideo(params);
-         }
-       } else {
-         result = await muapi.generateImage(params);
-       }
+      // Same MuAPI calls the Video Studio makes for each route.
+      let result;
+      if (route === 'v2v') {
+        result = await muapi.processV2V(params);
+      } else if (route === 'i2v') {
+        result = await muapi.generateI2V(params);
+      } else if (route === 't2v') {
+        result = await muapi.generateVideo(params);
+      } else if (route === 'i2i') {
+        result = await muapi.generateI2I(params);
+      } else {
+        result = await muapi.generateImage(params);
+      }
 
       if (result && result.url) {
         showResult(result.url);

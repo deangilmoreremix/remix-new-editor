@@ -220,7 +220,9 @@ vi.mock('../../src/lib/supabase.js', () => ({
 
 vi.mock('../../src/components/UploadPicker.js', () => ({
   createUploadPicker: vi.fn(() => ({
+    trigger: document.createElement('button'),
     panel: document.createElement('div'),
+    reset: vi.fn(),
     open: vi.fn(),
     close: vi.fn(),
   })),
@@ -723,7 +725,8 @@ describe('E2E User Journey Tests', () => {
       container.appendChild(element);
       await wait(50);
 
-      const videoUploadBtn = container.querySelector('#videoUploadBtn');
+      // Video templates expose the Video Studio source-video picker.
+      const videoUploadBtn = container.querySelector('.template-media-field[data-media-kind="video"]');
       expect(videoUploadBtn).not.toBeNull();
     });
 

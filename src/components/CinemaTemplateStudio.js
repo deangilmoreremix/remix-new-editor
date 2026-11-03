@@ -11,7 +11,7 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
-import { createUploadPicker } from './UploadPicker.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams } from '../lib/templateMedia.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -96,6 +96,8 @@ export function CinemaTemplateStudio() {
   let _modelSelectorOutsideClickHandler = null;
 
   let selectedModel = undefined;
+  let mediaRouteBadge = null;
+  const MEDIA_ROUTE_LABELS = { t2v: 'Text → Video', i2v: 'Image → Video', v2v: 'Video → Video', t2i: 'Text → Image', i2i: 'Image → Image' };
   let lastModelType = null;
   let isAiEnhancer = true;
   let customThumbnailUrl = null;
@@ -1523,139 +1525,20 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       }
 
       case 'image':
-      case 'frame': {
-        const isFrame = input.type === 'frame';
-        const uploadTrigger = document.createElement('button');
-        uploadTrigger.type = 'button';
-         uploadTrigger.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-           uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>`;
-
-        const setDone = (label) => {
-          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
-        };
-        const setReset = () => {
-          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>`;
-        };
-
-        uploadTrigger.onclick = (e) => {
-          e.stopPropagation();
-          const picker = createUploadPicker({
-            anchorContainer: container,
-            frameMode: isFrame,
-            acceptVideo: false,
-            onSelect: (sel) => {
-              if (isFrame) {
-                currentInputs[input.name] = { startUrl: sel.startUrl, endUrl: sel.endUrl, urls: sel.urls };
-                setDone(sel.endUrl ? 'Start & end frames set' : 'Start frame set');
-              } else {
-                currentInputs[input.name] = sel.url;
-                setDone('Image uploaded');
-              }
-            },
-            onClear: () => {
-              currentInputs[input.name] = null;
-              setReset();
-            }
-          });
-          container.appendChild(picker.panel);
-        };
-
-        const pexelsBtn = document.createElement('button');
-        pexelsBtn.type = 'button';
-        pexelsBtn.title = 'Browse stock photos from Pexels';
-        pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
-        pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
-        pexelsBtn.onclick = async (e) => {
-          e.stopPropagation();
-          try {
-            const { browsePexelsImages } = await import('../lib/studioPexels.js');
-            await browsePexelsImages({
-              title: isFrame ? 'Select Reference Frames' : 'Select Image',
-              studioName: 'Cinema Template Studio',
-              onSelect: (asset) => {
-                const url = asset.src?.large || asset.src?.original || asset.url;
-                if (isFrame) {
-                  currentInputs[input.name] = { startUrl: url, endUrl: null, urls: [url] };
-                  uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Start frame from Pexels</span>`;
-                } else {
-                  currentInputs[input.name] = url;
-                  uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Image from Pexels</span>`;
-                }
-              },
-            });
-          } catch (err) {
-            console.error('[CinemaTemplateStudio] Pexels image browse failed:', err);
-            showToast('Failed to load stock images', 'error');
-          }
-        };
-
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2';
-        row.appendChild(uploadTrigger);
-        row.appendChild(pexelsBtn);
-        field.appendChild(row);
-        break;
-      }
-
+      case 'frame':
       case 'video': {
-        const uploadTrigger = document.createElement('button');
-        uploadTrigger.type = 'button';
-        uploadTrigger.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-        uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">Click to upload a video</span>`;
-
-        const setDone = (label) => {
-          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
-        };
-        const setReset = () => {
-          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">Click to upload a video</span>`;
-        };
-
-        uploadTrigger.onclick = (e) => {
-          e.stopPropagation();
-          const picker = createUploadPicker({
-            anchorContainer: container,
-            acceptVideo: true,
-            onSelect: (sel) => {
-              currentInputs[input.name] = sel.url;
-              setDone('Video uploaded');
-            },
-            onClear: () => {
-              currentInputs[input.name] = null;
-              setReset();
-            }
-          });
-          container.appendChild(picker.panel);
-        };
-
-        const pexelsBtn = document.createElement('button');
-        pexelsBtn.type = 'button';
-        pexelsBtn.title = 'Browse stock videos from Pexels';
-        pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
-        pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
-        pexelsBtn.onclick = async (e) => {
-          e.stopPropagation();
-          try {
-            const { browsePexelsVideos } = await import('../lib/studioPexels.js');
-            await browsePexelsVideos({
-              title: 'Select Video',
-              studioName: 'Cinema Template Studio',
-              onSelect: (asset) => {
-                const url = (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url;
-                currentInputs[input.name] = url;
-                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">🎬</div><span class="text-sm text-primary">Video from Pexels</span>`;
-              },
-            });
-          } catch (err) {
-            console.error('[CinemaTemplateStudio] Pexels video browse failed:', err);
-            showToast('Failed to load stock videos', 'error');
-          }
-        };
-
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2';
-        row.appendChild(uploadTrigger);
-        row.appendChild(pexelsBtn);
-        field.appendChild(row);
+        // Same upload picker + stock browser as the Video Studio.
+        const mediaField = createTemplateMediaField({
+          kind: input.type,
+          anchorContainer: container,
+          studioName: 'Cinema Template Studio',
+          initialValue: currentInputs[input.name] || null,
+          onChange: (value) => {
+            currentInputs[input.name] = value;
+            refreshMediaRoute();
+          },
+        });
+        field.appendChild(mediaField.element);
         break;
       }
 
@@ -1938,41 +1821,76 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   // VIDEO UPLOAD BUTTON
   // ================================
   function renderVideoUploadButton(formPanel) {
-    // Video upload for v2v models — appears for video templates so users
-    // can upload a source video for video-to-video generation.
+    // Media sources for video templates — the same pickers the Video Studio
+    // uses. A reference image (when the template has no image input of its
+    // own) turns the run into image-to-video; a source video turns it into
+    // video-to-video. The route badge shows which path Generate will take.
     if (currentTemplate.outputType !== 'video') return;
+    const inputs = getTemplateMediaInputs();
 
     const wrapper = document.createElement('div');
     wrapper.className = 'mt-4';
     wrapper.innerHTML = `
-      <div class="flex items-center justify-between gap-3">
-        <label class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Video Source (V2V)</label>
-        <button id="videoUploadBtn" type="button" class="text-[10px] font-semibold uppercase tracking-[0.18em] rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white transition px-3 py-1">Upload video</button>
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <label class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Media Sources</label>
+        <span data-media-route class="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400"></span>
       </div>
+      <div data-media-fields class="flex flex-col gap-2"></div>
     `;
-    formPanel.appendChild(wrapper);
+    const fieldsHost = wrapper.querySelector('[data-media-fields]');
+    mediaRouteBadge = wrapper.querySelector('[data-media-route]');
 
-    const videoBtn = wrapper.querySelector('#videoUploadBtn');
-    const setVideoDone = (label) => {
-      videoBtn.innerHTML = `<span class="text-emerald-200">✓ ${label}</span>`;
-    };
-
-    videoBtn.onclick = (e) => {
-      e.stopPropagation();
-      const picker = createUploadPicker({
+    if (!inputs.some(i => i && (i.type === 'image' || i.type === 'frame'))) {
+      const imageField = createTemplateMediaField({
+        kind: 'frame',
         anchorContainer: container,
-        acceptVideo: true,
-        onSelect: (sel) => {
-          currentInputs['video_url'] = sel.url;
-          setVideoDone('Video uploaded');
-        },
-        onClear: () => {
-          currentInputs['video_url'] = null;
-          videoBtn.textContent = 'Upload video';
-        }
+        studioName: 'Cinema Template Studio',
+        initialValue: currentInputs['image_url'] || null,
+        onChange: (value) => { currentInputs['image_url'] = value; refreshMediaRoute(); },
       });
-      container.appendChild(picker.panel);
+      fieldsHost.appendChild(imageField.element);
+    }
+    if (!inputs.some(i => i && i.type === 'video')) {
+      const videoField = createTemplateMediaField({
+        kind: 'video',
+        anchorContainer: container,
+        studioName: 'Cinema Template Studio',
+        initialValue: currentInputs['video_url'] || null,
+        onChange: (value) => { currentInputs['video_url'] = value; refreshMediaRoute(); },
+      });
+      fieldsHost.appendChild(videoField.element);
+    }
+    formPanel.appendChild(wrapper);
+    refreshMediaRoute();
+  }
+
+  function getTemplateMediaInputs() {
+    if (!currentTemplate) return [];
+    return [
+      ...(currentTemplate.inputs || []),
+      ...(currentTemplate.quickInputs || []),
+      ...(currentTemplate.advancedInputs || []),
+    ];
+  }
+
+  // Which MuAPI path Generate will take with the media currently attached.
+  function currentMediaRoute(modelOverride) {
+    const media = extractTemplateMedia(currentInputs, getTemplateMediaInputs());
+    return {
+      media,
+      ...routeTemplateGeneration({
+        outputType: currentTemplate?.outputType,
+        modelType: currentTemplate?.modelType,
+        model: modelOverride || selectedModel,
+        ...media,
+      }),
     };
+  }
+
+  function refreshMediaRoute() {
+    if (!mediaRouteBadge) return;
+    const { route } = currentMediaRoute();
+    mediaRouteBadge.textContent = MEDIA_ROUTE_LABELS[route] || route;
   }
 
 
@@ -2455,20 +2373,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     }
 
     const isVideo = currentTemplate.outputType === 'video';
-    const imageUrl = currentInputs.image_url || currentInputs.referenceImage || null;
-
-    // V2V models need a video_url instead of image_url
-    const isV2V = getV2VModelById(selectedModel);
-
-    if (isV2V && !currentInputs.video_url) {
-      showToast('Please upload a video before generating.', 'error');
-      return;
-    }
 
     // Validate selected model matches template modelType
     const candidates = currentTemplate.modelType === 'i2i' ? i2iModels
       : currentTemplate.modelType === 't2i' ? t2iModels
       : currentTemplate.modelType === 't2v' ? t2vModels
+      : currentTemplate.modelType === 'v2v' ? v2vModels
       : i2vModels;
 
     const validModel = candidates.find(m => m.id === selectedModel);
@@ -2476,7 +2386,21 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       selectedModel = resolveModel(currentTemplate, selectedModel, { i2i: i2iModels, t2i: t2iModels, i2v: i2vModels, t2v: t2vModels, v2v: v2vModels });
     }
 
-    let model = selectedModel;
+    // Route by attached media exactly like the Video Studio: a source video
+    // goes to v2v, an image to i2v / i2i, otherwise text-to-video / image.
+    const { media, route, model: routedModel } = currentMediaRoute(selectedModel);
+    const imageUrl = media.imageUrl;
+
+    if ((currentTemplate.modelType === 'i2v' || currentTemplate.modelType === 'i2i') && !imageUrl) {
+      showToast('Please upload an image before generating.', 'error');
+      return;
+    }
+    if (route === 'v2v' && !media.videoUrl) {
+      showToast('Please upload a video before generating.', 'error');
+      return;
+    }
+
+    let model = routedModel;
     if (!model) {
       if (imageUrl && isVideo) {
         model = 'kling-v2.6-pro-i2v';
@@ -2585,13 +2509,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       }
     }
 
-     if (imageUrl) {
-       params.image_url = imageUrl;
-     }
-
-     if (isVideo && currentInputs.video_url) {
-       params.video_url = currentInputs.video_url;
-     }
+    applyTemplateMediaToParams(params, media, route);
 
      if (negativePrompt) {
       params.negative_prompt = negativePrompt;
@@ -2647,12 +2565,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       const hasImageUrl = !!params.image_url;
       const isV2V = getV2VModelById(params.model);
 
-      if (isV2V) {
+      // Same MuAPI calls the Video Studio makes for each route.
+      if (isV2V && params.video_url) {
         result = await muapi.processV2V(params);
       } else if (isVideo && hasImageUrl) {
         result = await muapi.generateI2V(params);
       } else if (isVideo) {
         result = await muapi.generateVideo(params);
+      } else if (hasImageUrl) {
+        result = await muapi.generateI2I(params);
       } else {
         result = await muapi.generateImage(params);
       }

@@ -186,7 +186,9 @@ vi.mock('../../src/lib/supabase.js', () => ({
 
 vi.mock('../../src/components/UploadPicker.js', () => ({
   createUploadPicker: vi.fn(() => ({
+    trigger: document.createElement('button'),
     panel: document.createElement('div'),
+    reset: vi.fn(),
     open: vi.fn(),
     close: vi.fn(),
   })),

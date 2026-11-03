@@ -215,17 +215,20 @@ vi.mock('../../src/lib/supabase.js', () => ({
 
 // Captures the options passed to createUploadPicker so tests can invoke the
 // selection callback directly (the real picker needs a browser file dialog).
-const uploadPickerState = vi.hoisted(() => ({ lastOptions: null }));
+const uploadPickerState = vi.hoisted(() => ({ lastOptions: null, pickers: [] }));
 
 vi.mock('../../src/components/UploadPicker.js', () => ({
   createUploadPicker: vi.fn((opts) => {
     uploadPickerState.lastOptions = opts;
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
     const panel = document.createElement('div');
     panel.className = 'upload-picker-panel';
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     panel.appendChild(fileInput);
-    return { panel, open: vi.fn(), close: vi.fn() };
+    uploadPickerState.pickers.push({ trigger, opts });
+    return { trigger, panel, reset: vi.fn(), open: vi.fn(), close: vi.fn() };
   }),
 }));
 
@@ -244,6 +247,8 @@ describe('TemplateStudio feature tests', () => {
   let localStorageMock;
 
   beforeEach(async () => {
+    uploadPickerState.pickers.length = 0;
+    uploadPickerState.lastOptions = null;
     // Reset cross-test mock state. Without this, `mockReturnValueOnce`
     // values and muapi call history leak between tests, so a later mount
     // can consume a stale template and generation never reaches the
@@ -509,15 +514,6 @@ describe('TemplateStudio feature tests', () => {
     promptInput.value = 'cinematic restaurant scene';
     promptInput.dispatchEvent(new Event('input', { bubbles: true }));
 
-    // Mock the image upload state
-    const imageInput = container.querySelector('input[type="file"]');
-    if (imageInput) {
-      const dt = new DataTransfer();
-      dt.items.add(new File([''], 'test.jpg', { type: 'image/jpeg' }));
-      imageInput.files = dt.files;
-      imageInput.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
     
@@ -530,8 +526,9 @@ describe('TemplateStudio feature tests', () => {
     mount();
     await new Promise(r => setTimeout(r, 50));
 
-    const videoUploadBtn = container.querySelector('#videoUploadBtn');
-    expect(videoUploadBtn).not.toBeNull();
+    // Video templates expose the Video Studio source-video picker.
+    const videoField = container.querySelector('.template-media-field[data-media-kind="video"]');
+    expect(videoField).not.toBeNull();
   });
 
   it('renders AI captions button for video templates', async () => {
@@ -761,18 +758,15 @@ describe('TemplateStudio feature tests', () => {
    * invokes the picker's onSelect callback with a fake URL, populating
    * formState so generation validation passes.
    */
-  async function supplyUpload(labelText, url) {
-    // The upload area is the clickable div (has an onclick handler) whose text
-    // includes the label; the bare span match would not be clickable.
-    const uploadArea = Array.from(container.querySelectorAll('div')).find(
-      (el) => typeof el.onclick === 'function' && (el.textContent || '').includes(labelText)
-    );
-    expect(uploadArea).toBeDefined();
-    uploadArea.click();
+  async function supplyUpload(kind, url) {
+    // Each media input renders one persistent Video Studio upload picker
+    // inside a `.template-media-field` row; select through that picker.
+    const row = container.querySelector(`.template-media-field[data-media-kind="${kind}"]`);
+    expect(row).not.toBeNull();
+    const entry = uploadPickerState.pickers.find(p => row.contains(p.trigger));
+    expect(entry).toBeDefined();
+    entry.opts.onSelect({ url });
     await new Promise(r => setTimeout(r, 20));
-    expect(uploadPickerState.lastOptions).toBeDefined();
-    uploadPickerState.lastOptions.onSelect({ url });
-    uploadPickerState.lastOptions = null;
   }
 
   it('routes i2v modelType to muapi.generateI2V', async () => {
@@ -801,7 +795,7 @@ describe('TemplateStudio feature tests', () => {
 
     // Supply the reference image the picker would normally provide, so the
     // i2v image validation passes and generation reaches muapi.
-    await supplyUpload('Click to upload an image', 'https://cdn.muapi.ai/input/i2v-ref.png');
+    await supplyUpload('image', 'https://cdn.muapi.ai/input/i2v-ref.png');
 
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
@@ -824,7 +818,7 @@ describe('TemplateStudio feature tests', () => {
       ],
     }));
 
-    await supplyUpload('Click to upload an image', 'https://cdn.muapi.ai/input/i2i-ref.png');
+    await supplyUpload('image', 'https://cdn.muapi.ai/input/i2i-ref.png');
 
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
@@ -857,7 +851,7 @@ describe('TemplateStudio feature tests', () => {
       ],
     }));
 
-    await supplyUpload('Click to upload a video', 'https://cdn.muapi.ai/input/v2v-src.mp4');
+    await supplyUpload('video', 'https://cdn.muapi.ai/input/v2v-src.mp4');
 
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
