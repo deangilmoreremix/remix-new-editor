@@ -97,7 +97,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'warm hospitality atmosphere, cinematic food close-ups, steam and plating detail, ambient tungsten glow, slow pan, premium dining textures',
     aspectRatios: ['16:9', '9:16', '1:1'],
     duration: { min: 15, max: 60, default: 30 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Cinematic midnight restaurant brand film, {prompt}, moody atmospheric lighting, intimate dining scene, professional cinematography, premium food close-ups, 4K',
   },
@@ -114,7 +114,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'documentary realism, close-up pouring details, bar textures, moody practical lighting, observational movement',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 90, default: 45 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Restaurant documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, bar textures',
   },
@@ -131,7 +131,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'glossy food detail, macro plating shots, refined composition, shallow depth of field, crisp garnish textures',
     aspectRatios: ['16:9', '1:1', '9:16'],
     duration: { min: 10, max: 30, default: 15 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Restaurant promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, glossy food detail',
   },
@@ -148,7 +148,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'chef hands, fire and sizzle, slow-motion cooking beats, rich warmth, intimate close-ups',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 20, max: 45, default: 30 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Restaurant cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, chef hands, fire and sizzle',
   },
@@ -165,7 +165,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'elegant offer framing, night ambience, cocktail details, polished motion, direct-response close',
     aspectRatios: ['9:16', '1:1', '16:9'],
     duration: { min: 10, max: 30, default: 15 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Restaurant promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, night ambience',
   },
@@ -182,7 +182,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'dramatic lighting, fast cuts, neon or candlelit mood, cinematic reveal of space and signature dish',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 15, max: 30, default: 20 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Restaurant dramatic trailer, {prompt}, high-impact pacing, moody contrast, reveal shots, bigger transitions, dramatic camera motion, neon or candlelit mood',
   },
@@ -199,7 +199,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'polished dining experience, server interaction, soft practical light, premium hospitality framing',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 15, max: 45, default: 30 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Restaurant cinematic commercial film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, polished dining experience',
   },
@@ -216,7 +216,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'nightlife visuals, exterior ambience, handheld realism, atmospheric b-roll, urban sophistication',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 60, default: 45 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Restaurant documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, nightlife visuals',
   },
@@ -233,7 +233,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'hook-first pacing, fast food detail shots, vertical framing, texture-driven edits, premium social rhythm',
     aspectRatios: ['9:16'],
     duration: { min: 10, max: 30, default: 15 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Restaurant promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, fast food detail shots',
   },
@@ -250,7 +250,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'elevated hero lighting, slow reveal, texture and steam, premium soundtrack feel, controlled close-ups',
     aspectRatios: ['16:9', '1:1'],
     duration: { min: 20, max: 45, default: 30 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Restaurant cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, elevated hero lighting',
   },
@@ -269,7 +269,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'luxury treatment rooms, clean premium interiors, soft-focus beauty lighting, refined composition, high-end commercial aesthetic',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 20, max: 60, default: 30 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Med spa cinematic brand film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, luxury treatment rooms',
   },
@@ -286,7 +286,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'elegant interiors, warm interior glow, skincare detail, measured camera movement, polished beauty-commercial tone',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 15, max: 45, default: 30 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Med spa cinematic commercial film, {prompt}, premium commercial look, polished composition, slow dolly or tracking movement, controlled lighting, clear subject focus, elegant interiors',
   },
@@ -303,7 +303,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'aspirational beauty storytelling, close-up skincare details, luminous skin tones, emotional pacing',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 60, default: 45 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Med spa cinematic short film, {prompt}, more filmic narrative, emotional progression, premium textures, cinematic reveal moments, aspirational beauty storytelling',
   },
@@ -320,7 +320,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'reveal-driven edits, smooth transitions, glowing skin detail, polished after moment',
     aspectRatios: ['9:16', '1:1'],
     duration: { min: 10, max: 30, default: 15 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Med spa promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, reveal-driven edits',
   },
@@ -337,7 +337,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'luxury service framing, treatment details, premium offer language, clean CTA finish',
     aspectRatios: ['9:16', '16:9', '1:1'],
     duration: { min: 10, max: 30, default: 15 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Med spa promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, luxury service framing',
   },
@@ -354,7 +354,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'soft portrait lighting, documentary realism, premium practitioner close-ups, warm elegant interiors',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 90, default: 45 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Med spa founder story film, {prompt}, portrait-led storytelling, premium close-ups, emotional pacing, authority framing, warm practical light, soft portrait lighting',
   },
@@ -371,7 +371,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'authentic beauty proof, client glow-up moments, supportive b-roll, real emotional confidence',
     aspectRatios: ['16:9', '9:16'],
     duration: { min: 30, max: 60, default: 45 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Med spa testimonial film, {prompt}, real customer energy, grounded realism, supportive b-roll, emotional proof moments, authentic beauty proof',
   },
@@ -388,7 +388,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'soft-focus portraits, close-up skincare textures, quick elegant cuts, premium social polish',
     aspectRatios: ['9:16'],
     duration: { min: 10, max: 30, default: 15 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Med spa promo film, {prompt}, conversion-aware visuals, persuasive product/service framing, elegant momentum, clean CTA ending, soft-focus portraits',
   },
@@ -405,7 +405,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'refined space storytelling, slow movement through rooms, quiet luxury mood, subtle observational realism',
     aspectRatios: ['16:9'],
     duration: { min: 30, max: 90, default: 60 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
     basePrompt: 'Med spa documentary style film, {prompt}, documentary realism, natural light feel, observational framing, subtle handheld or measured movement, refined space storytelling',
   },
@@ -422,7 +422,7 @@ export const MATRIX_TEMPLATES = [
     promptDirection: 'luxury commercial visuals, elegant productized service framing, soft directional light, polished pacing',
     aspectRatios: ['16:9', '9:16', '1:1'],
     duration: { min: 15, max: 45, default: 30 },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v'
   },
 
@@ -444,7 +444,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -465,7 +465,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -486,7 +486,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -507,7 +507,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -528,7 +528,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -549,7 +549,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -570,7 +570,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -591,7 +591,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -612,7 +612,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -633,7 +633,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -655,7 +655,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -676,7 +676,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -697,7 +697,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -718,7 +718,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -739,7 +739,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -760,7 +760,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -781,7 +781,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -802,7 +802,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -823,7 +823,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -844,7 +844,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -866,7 +866,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -887,7 +887,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -908,7 +908,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -929,7 +929,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -950,7 +950,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -971,7 +971,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -992,7 +992,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1013,7 +1013,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1034,7 +1034,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1055,7 +1055,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1077,7 +1077,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1098,7 +1098,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1119,7 +1119,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1140,7 +1140,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1161,7 +1161,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1182,7 +1182,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1203,7 +1203,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1224,7 +1224,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1245,7 +1245,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1266,7 +1266,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1288,7 +1288,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1309,7 +1309,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1330,7 +1330,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1351,7 +1351,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1372,7 +1372,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1393,7 +1393,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1414,7 +1414,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1435,7 +1435,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1456,7 +1456,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1477,7 +1477,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1499,7 +1499,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1520,7 +1520,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1541,7 +1541,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1562,7 +1562,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1583,7 +1583,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1604,7 +1604,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1625,7 +1625,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1646,7 +1646,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1667,7 +1667,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1688,7 +1688,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1710,7 +1710,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1731,7 +1731,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1752,7 +1752,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1773,7 +1773,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1794,7 +1794,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1815,7 +1815,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1836,7 +1836,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1857,7 +1857,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1878,7 +1878,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1899,7 +1899,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1921,7 +1921,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1942,7 +1942,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1963,7 +1963,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -1984,7 +1984,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2005,7 +2005,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2026,7 +2026,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2047,7 +2047,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2068,7 +2068,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2089,7 +2089,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2110,7 +2110,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2132,7 +2132,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2153,7 +2153,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2174,7 +2174,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2195,7 +2195,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2216,7 +2216,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2237,7 +2237,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2258,7 +2258,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2279,7 +2279,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2300,7 +2300,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2321,7 +2321,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2343,7 +2343,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2364,7 +2364,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2385,7 +2385,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2406,7 +2406,7 @@ export const MATRIX_TEMPLATES = [
       max: '60',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2427,7 +2427,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '45',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2448,7 +2448,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2469,7 +2469,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '20',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2490,7 +2490,7 @@ export const MATRIX_TEMPLATES = [
       max: '30',
       default: '15',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2511,7 +2511,7 @@ export const MATRIX_TEMPLATES = [
       max: '90',
       default: '60',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 
@@ -2532,7 +2532,7 @@ export const MATRIX_TEMPLATES = [
       max: '45',
       default: '30',
     },
-    model: 'motion-controls',
+    model: 'kling-v2.6-pro-i2v',
     modelType: 'i2v',
   },
 ];

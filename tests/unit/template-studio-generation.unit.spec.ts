@@ -562,6 +562,7 @@ describe('TemplateStudio feature tests', () => {
   });
 
   it('closes model picker dropdown on second click', async () => {
+    document.querySelectorAll('.upstream-model-picker').forEach(h => h.remove());
     mount();
     await new Promise(r => setTimeout(r, 50));
 
@@ -569,17 +570,25 @@ describe('TemplateStudio feature tests', () => {
     modelBtn.click();
     await new Promise(r => setTimeout(r, 100));
 
-    let dropdown = container.querySelector('[role="listbox"]');
-    expect(dropdown).not.toBeNull();
-    expect(dropdown.classList.contains('opacity-100')).toBe(true);
+    // The Video Studio model picker mounts in a fixed host on <body>.
+    for (let i = 0; i < 20 && !document.querySelector('.upstream-model-picker'); i++) await new Promise(r => setTimeout(r, 50));
+    expect(document.querySelector('.upstream-model-picker')).not.toBeNull();
 
     modelBtn.click();
     await new Promise(r => setTimeout(r, 100));
 
-    dropdown = container.querySelector('[role="listbox"]');
-    // Dropdown should still exist but be hidden
-    expect(dropdown).not.toBeNull();
-    expect(dropdown.classList.contains('opacity-0')).toBe(true);
+    expect(document.querySelector('.upstream-model-picker')).toBeNull();
+  });
+
+  it('uses the Video Studio model picker for video templates', async () => {
+    document.querySelectorAll('.upstream-model-picker').forEach(h => h.remove());
+    mount();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('#templateModelTrigger').click();
+    for (let i = 0; i < 20 && !document.querySelector('.upstream-model-picker'); i++) await new Promise(r => setTimeout(r, 50));
+    const host = document.querySelector('.upstream-model-picker');
+    expect(host).not.toBeNull();
+    host.remove();
   });
 
   it('handles template not found with error message', async () => {

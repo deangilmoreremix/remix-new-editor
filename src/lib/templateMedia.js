@@ -18,6 +18,14 @@
 import { createUploadPicker } from '../components/UploadPicker.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels } from './models.js';
 
+// Model families (Kling t2v / i2v / … as one entry), loaded lazily so this
+// module stays importable where the full catalog is not available.
+let modelFamilies = null;
+const modelFamiliesReady = import('./modelFamilies.js')
+  .then((m) => { modelFamilies = m; return m; })
+  .catch(() => null);
+export function whenModelFamiliesReady() { return modelFamiliesReady; }
+
 const PEXELS_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
 const LAST_FRAME_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><line x1="12" y1="9" x2="12" y2="15"/></svg>';
 const CLEAR_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
@@ -285,8 +293,10 @@ function inList(type, modelId) {
  *
  * @returns {{ route: 't2i'|'i2i'|'t2v'|'i2v'|'v2v', model: string }}
  */
-export function routeTemplateGeneration({ outputType, modelType, model, imageUrl, videoUrl }) {
-  const route = templateMediaRoute({ outputType, modelType, imageUrl, videoUrl, preferV2V: inList('v2v', model) });
+export function routeTemplateGeneration({ outputType, modelType, model, imageUrl, videoUrl, pickedMode }) {
+  // A mode picked in the model picker (e.g. an image-to-video variant) takes
+  // the place of the template's own type; attached media still wins.
+  const route = templateMediaRoute({ outputType, modelType: pickedMode || modelType, imageUrl, videoUrl, preferV2V: inList('v2v', model) });
   // Keep the user's model when it fits the route, else fall back to the
   // first model of that route.
   return { route, model: modelForRoute(route, model) };
@@ -307,6 +317,15 @@ export function templateMediaRoute({ outputType, modelType, imageUrl, videoUrl, 
   // source video instead of silently running text-to-video.
   if (modelType === 'v2v') return 'v2v';
   return 't2v';
+}
+
+/** Look a model up in every route list. */
+export function findTemplateModel(modelId) {
+  for (const list of Object.values(LISTS)) {
+    const m = (list || []).find(x => x && x.id === modelId);
+    if (m) return m;
+  }
+  return null;
 }
 
 /** Models offered for a route (the same lists the Video / Image Studio use). */
@@ -333,7 +352,45 @@ export function defaultModelForRoute(route) {
 /** `model` when it belongs to `route`, else the route's default model. */
 export function modelForRoute(route, model) {
   if (inList(route, model)) return model;
+  // Same family, other mode (Kling t2v → Kling i2v), like the Video Studio.
+  const family = modelFamilies?.videoModelPickerEntryByVariantId?.get?.(model) || modelFamilies?.imageModelPickerEntryByVariantId?.get?.(model);
+  const sibling = family?.variantsByMode?.[route]?.model?.id;
+  if (sibling && inList(route, sibling)) return sibling;
   return defaultModelForRoute(route) || model;
+}
+
+/**
+ * Open the Video Studio / Image Studio model picker (upstream
+ * Open-Generative-AI ModelDropdown) for a template studio.
+ *
+ * @param {Object} opts
+ * @param {'video'|'image'} opts.kind
+ * @param {HTMLElement} opts.anchor          The model button.
+ * @param {string} opts.selectedModelId
+ * @param {string} opts.currentMode          Mode used when picking from "All".
+ * @param {(modelId: string, mode: string) => void} opts.onPick
+ * @param {() => void} [opts.onClose]
+ * @returns {Promise<{open: Function, close: Function}|null>}
+ */
+export async function openStudioModelPicker({ kind, anchor, selectedModelId, currentMode, onPick, onClose }) {
+  const { mountUpstreamModelPicker } = await import('../components/upstream-picker/mountUpstreamModelPicker.jsx');
+  const controller = mountUpstreamModelPicker({
+    kind,
+    anchor,
+    selectedModelId,
+    onSelect: (entry, catId) => {
+      // Upstream rule (Video / Image Studio): a mode tab picks that mode's
+      // variant; from "All", keep the current mode, else the family default.
+      const variant = catId !== 'all'
+        ? entry.variantsByMode[catId] || entry.defaultVariant
+        : entry.variantsByMode[currentMode] || entry.defaultVariant;
+      if (variant?.model?.id) onPick(variant.model.id, variant.mode || (catId !== 'all' ? catId : currentMode));
+      controller.close();
+    },
+    onClose,
+  });
+  controller.open();
+  return controller;
 }
 
 export const TEMPLATE_ROUTE_LABELS = {

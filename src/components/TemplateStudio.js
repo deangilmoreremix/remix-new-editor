@@ -13,7 +13,7 @@ import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel } from '../lib/templateMedia.js';
 import { navigate } from '../lib/router.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
@@ -70,6 +70,9 @@ export function TemplateStudio(templateId) {
   let mediaRouteBadge = null;
   // Set by the model picker: switches its model list when the route changes.
   let syncModelPickerToRoute = null;
+  // Mode of the variant picked in the Video / Image Studio model picker
+  // (t2v / i2v / v2v / t2i / i2i); null until the user picks one.
+  let pickedMode = null;
   // Duration / resolution / native-audio controls (video templates).
   let videoSettings = null;
   // Template duration / resolution selects are folded into videoSettings so
@@ -78,7 +81,7 @@ export function TemplateStudio(templateId) {
   // Which MuAPI path Generate will take with the media currently attached.
   function currentMediaRoute() {
     const media = extractTemplateMedia(formState, allInputs);
-    return { media, ...routeTemplateGeneration({ outputType: template.outputType, modelType: template.modelType, model: selectedModel, ...media }) };
+    return { media, ...routeTemplateGeneration({ outputType: template.outputType, modelType: template.modelType, model: selectedModel, pickedMode, ...media }) };
   }
   function refreshMediaRoute() {
     const { route } = currentMediaRoute();
@@ -472,10 +475,10 @@ export function TemplateStudio(templateId) {
     // picker trigger never renders an unknown model name.
     selectedModel = getValidModel(template, selectedModel);
     const getModelName = (id) => {
-      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id) || findTemplateModel(id);
       return m ? m.name : id;
     };
-    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id) || findTemplateModel(id);
 
     const triggerBtn = document.createElement('button');
     triggerBtn.type = 'button';
@@ -600,13 +603,46 @@ export function TemplateStudio(templateId) {
       }
     };
 
+    // The same model picker as the Video Studio (video templates) / Image
+    // Studio (image templates): provider sidebar, families, T2V / I2V / V2V.
+    let studioPickerController = null;
+    const pickerKind = outputType === 'video' ? 'video' : 'image';
     triggerBtn.onclick = (e) => {
       e.stopPropagation();
+      // Fallback list picker open (Video Studio picker failed to load): toggle it.
       if (dropdown.classList.contains('opacity-100')) {
         closeDropdown();
-      } else {
-        openDropdown();
+        return;
       }
+      if (studioPickerController) {
+        studioPickerController.close();
+        studioPickerController = null;
+        triggerBtn.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      triggerBtn.setAttribute('aria-expanded', 'true');
+      openStudioModelPicker({
+        kind: pickerKind,
+        anchor: triggerBtn,
+        selectedModelId: selectedModel,
+        currentMode: pickerRoute,
+        onPick: (modelId, mode) => {
+          selectedModel = modelId;
+          pickedMode = mode || null;
+          if (pickedMode) routeModelPicks[pickedMode] = modelId;
+          refreshMediaRoute();
+          updateTrigger();
+          if (videoSettings) videoSettings.refresh();
+        },
+        onClose: () => {
+          studioPickerController = null;
+          triggerBtn.setAttribute('aria-expanded', 'false');
+        },
+      }).then((c) => { studioPickerController = c; })
+        .catch((err) => {
+          console.warn('[TemplateStudio] Video Studio model picker unavailable, using list picker:', err);
+          openDropdown();
+        });
     };
 
     const onKeyDown = (e) => {
@@ -619,7 +655,8 @@ export function TemplateStudio(templateId) {
 
     syncModelPickerToRoute = (route) => {
       if (!route || route === pickerRoute) return;
-      routeModelPicks[pickerRoute] = selectedModel;
+      // Remember the old route's model (only if it belongs to that route).
+      if (modelsForRoute(pickerRoute).some(m => m && m.id === selectedModel)) routeModelPicks[pickerRoute] = selectedModel;
       pickerRoute = route;
       fallbackList = modelsForRoute(route);
       loadedModels = fallbackList;
@@ -628,6 +665,7 @@ export function TemplateStudio(templateId) {
       closeDropdown();
       updateTrigger();
       label.textContent = `Model · ${TEMPLATE_ROUTE_LABELS[route] || route}`;
+      if (videoSettings) videoSettings.refresh();
       modelLoadingStatus.textContent = `${fallbackList.length} models`;
       modelLoadingStatus.className = 'text-[10px] text-zinc-500';
     };

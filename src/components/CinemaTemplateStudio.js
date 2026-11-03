@@ -11,7 +11,7 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel } from '../lib/templateMedia.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -100,6 +100,8 @@ export function CinemaTemplateStudio() {
   const MEDIA_ROUTE_LABELS = TEMPLATE_ROUTE_LABELS;
   // Set by the model picker: switches its model list when the route changes.
   let syncModelPickerToRoute = null;
+  // Mode of the variant picked in the Video Studio model picker; reset per template.
+  let pickedMode = null;
   // Duration / resolution / native-audio controls (video templates).
   let videoSettings = null;
   let lastModelType = null;
@@ -374,6 +376,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
   function selectTemplate(template) {
     currentTemplate = template;
+    pickedMode = null;
     currentMode = 'quick';
     currentInputs = new TemplateInputBuilder(template, currentMode).getDefaults();
     // Select appropriate default model based on modelType
@@ -1694,10 +1697,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     let loadedModels = fallbackList;
     const getModelName = (id) => {
-      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id) || findTemplateModel(id);
       return m ? m.name : id;
     };
-    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id) || findTemplateModel(id);
 
     const triggerBtn = document.createElement('button');
     triggerBtn.type = 'button';
@@ -1806,13 +1809,40 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       }
     };
 
+    // The same model picker as the Video Studio (video templates) / Image
+    // Studio (image templates): provider sidebar, families, T2V / I2V / V2V.
+    let studioPickerController = null;
     triggerBtn.onclick = (e) => {
       e.stopPropagation();
+      // Fallback list picker open (Video Studio picker failed to load): toggle it.
       if (dropdown.classList.contains('opacity-100')) {
         closeDropdown();
-      } else {
-        openDropdown();
+        return;
       }
+      if (studioPickerController) {
+        studioPickerController.close();
+        studioPickerController = null;
+        return;
+      }
+      openStudioModelPicker({
+        kind: outputType === 'video' ? 'video' : 'image',
+        anchor: triggerBtn,
+        selectedModelId: selectedModel,
+        currentMode: pickerRoute,
+        onPick: (modelId, mode) => {
+          selectedModel = modelId;
+          pickedMode = mode || null;
+          if (pickedMode) routeModelPicks[pickedMode] = modelId;
+          refreshMediaRoute();
+          updateTrigger();
+          if (videoSettings) videoSettings.refresh();
+        },
+        onClose: () => { studioPickerController = null; },
+      }).then((c) => { studioPickerController = c; })
+        .catch((err) => {
+          console.warn('[CinemaTemplateStudio] Video Studio model picker unavailable, using list picker:', err);
+          openDropdown();
+        });
     };
 
     const headerRow = document.createElement('div');
@@ -1823,7 +1853,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     syncModelPickerToRoute = (route) => {
       if (!route || route === pickerRoute) return;
-      routeModelPicks[pickerRoute] = selectedModel;
+      // Remember the old route's model (only if it belongs to that route).
+      if (modelsForRoute(pickerRoute).some(m => m && m.id === selectedModel)) routeModelPicks[pickerRoute] = selectedModel;
       pickerRoute = route;
       fallbackList = modelsForRoute(route);
       loadedModels = fallbackList;
@@ -1923,6 +1954,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         outputType: currentTemplate?.outputType,
         modelType: currentTemplate?.modelType,
         model: modelOverride || selectedModel,
+        pickedMode,
         ...media,
       }),
     };
