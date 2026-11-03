@@ -11,7 +11,7 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls } from '../lib/templateMedia.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -97,7 +97,11 @@ export function CinemaTemplateStudio() {
 
   let selectedModel = undefined;
   let mediaRouteBadge = null;
-  const MEDIA_ROUTE_LABELS = { t2v: 'Text → Video', i2v: 'Image → Video', v2v: 'Video → Video', t2i: 'Text → Image', i2i: 'Image → Image' };
+  const MEDIA_ROUTE_LABELS = TEMPLATE_ROUTE_LABELS;
+  // Set by the model picker: switches its model list when the route changes.
+  let syncModelPickerToRoute = null;
+  // Duration / resolution / native-audio controls (video templates).
+  let videoSettings = null;
   let lastModelType = null;
   let isAiEnhancer = true;
   let customThumbnailUrl = null;
@@ -1530,6 +1534,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         // Same upload picker + stock browser as the Video Studio.
         const mediaField = createTemplateMediaField({
           kind: input.type,
+          required: input.type !== 'video' && (!!input.required || currentTemplate.modelType === 'i2v' || currentTemplate.modelType === 'i2i'),
           anchorContainer: container,
           studioName: 'Cinema Template Studio',
           initialValue: currentInputs[input.name] || null,
@@ -1682,6 +1687,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
      else if (currentTemplate.modelType === 't2v') fallbackList = t2vModels;
      else if (currentTemplate.modelType === 'v2v') fallbackList = v2vModels;
      else fallbackList = i2vModels;
+    // The picker lists models for the current route (Text / Image / Video →
+    // Video), starting from the template's own type.
+    let pickerRoute = ['i2i', 't2i', 't2v', 'v2v'].includes(currentTemplate.modelType) ? currentTemplate.modelType : 'i2v';
+    const routeModelPicks = {};
 
     let loadedModels = fallbackList;
     const getModelName = (id) => {
@@ -1756,7 +1765,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             loadingMessage: 'Loading models...',
             onSelectModel: (model) => {
               selectedModel = model.id;
+              routeModelPicks[pickerRoute] = model.id;
               updateTrigger();
+              if (videoSettings) videoSettings.refresh();
               closeDropdown();
             },
           });
@@ -1774,7 +1785,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           ]);
         };
 
-        withTimeout(getEnrichedModels(currentTemplate.modelType))
+        withTimeout(getEnrichedModels(pickerRoute))
           .then(enriched => {
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
@@ -1809,10 +1820,39 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     const label = document.createElement('div');
     label.className = 'text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 mb-2';
     label.textContent = 'Model';
+
+    syncModelPickerToRoute = (route) => {
+      if (!route || route === pickerRoute) return;
+      routeModelPicks[pickerRoute] = selectedModel;
+      pickerRoute = route;
+      fallbackList = modelsForRoute(route);
+      loadedModels = fallbackList;
+      selectedModel = routeModelPicks[route] || modelForRoute(route, selectedModel);
+      delete dropdown.dataset.populated;
+      closeDropdown();
+      updateTrigger();
+      label.textContent = `Model · ${MEDIA_ROUTE_LABELS[route] || route}`;
+      modelLoadingStatus.textContent = `${fallbackList.length} models`;
+      modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+    };
     headerRow.appendChild(label);
     headerRow.appendChild(triggerBtn);
     headerRow.appendChild(modelLoadingStatus);
     modelWrapper.appendChild(headerRow);
+    videoSettings = null;
+    if (outputType === 'video') {
+      // Same per-model controls as the Video Studio prompt bar.
+      videoSettings = createVideoSettingsControls({
+        getTarget: () => {
+          const { route, model } = currentMediaRoute();
+          return { route, model };
+        },
+        preferred: { duration: currentInputs.duration || normalizeDuration(currentTemplate) },
+        offerEffects: !getTemplateMediaInputs().some(i => i && i.name === 'name'),
+      });
+      modelWrapper.appendChild(videoSettings.element);
+      videoSettings.refresh();
+    }
     modelWrapper.appendChild(dropdown);
     formPanel.appendChild(modelWrapper);
    }
@@ -1843,6 +1883,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     if (!inputs.some(i => i && (i.type === 'image' || i.type === 'frame'))) {
       const imageField = createTemplateMediaField({
         kind: 'frame',
+        required: currentTemplate.modelType === 'i2v',
         anchorContainer: container,
         studioName: 'Cinema Template Studio',
         initialValue: currentInputs['image_url'] || null,
@@ -1888,9 +1929,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   }
 
   function refreshMediaRoute() {
-    if (!mediaRouteBadge) return;
     const { route } = currentMediaRoute();
-    mediaRouteBadge.textContent = MEDIA_ROUTE_LABELS[route] || route;
+    if (mediaRouteBadge) mediaRouteBadge.textContent = MEDIA_ROUTE_LABELS[route] || route;
+    // Like the Video Studio: attaching an image / video swaps the model
+    // picker to models that accept it.
+    if (syncModelPickerToRoute) syncModelPickerToRoute(route);
+    if (videoSettings) videoSettings.refresh();
   }
 
 
@@ -2381,7 +2425,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       : currentTemplate.modelType === 'v2v' ? v2vModels
       : i2vModels;
 
-    const validModel = candidates.find(m => m.id === selectedModel);
+    const validModel = candidates.find(m => m.id === selectedModel)
+      || modelsForRoute(currentMediaRoute(selectedModel).route).find(m => m.id === selectedModel);
     if (!validModel) {
       selectedModel = resolveModel(currentTemplate, selectedModel, { i2i: i2iModels, t2i: t2iModels, i2v: i2vModels, t2v: t2vModels, v2v: v2vModels });
     }
@@ -2510,6 +2555,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     }
 
     applyTemplateMediaToParams(params, media, route);
+    // Per-model duration / resolution / native audio (only values the
+    // selected model accepts) override the generic 5/10s clamp above.
+    if (isVideo && videoSettings) Object.assign(params, videoSettings.getSettings());
 
      if (negativePrompt) {
       params.negative_prompt = negativePrompt;

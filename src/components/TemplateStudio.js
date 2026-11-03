@@ -13,7 +13,7 @@ import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls } from '../lib/templateMedia.js';
 import { navigate } from '../lib/router.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
@@ -68,16 +68,25 @@ export function TemplateStudio(templateId) {
   let isGenerating = false;
   let lastGeneratedUrl = '';
   let mediaRouteBadge = null;
-  const ROUTE_LABELS = { t2v: 'Text → Video', i2v: 'Image → Video', v2v: 'Video → Video', t2i: 'Text → Image', i2i: 'Image → Image' };
+  // Set by the model picker: switches its model list when the route changes.
+  let syncModelPickerToRoute = null;
+  // Duration / resolution / native-audio controls (video templates).
+  let videoSettings = null;
+  // Template duration / resolution selects are folded into videoSettings so
+  // only values the selected model accepts are offered.
+  const templateVideoPrefs = {};
   // Which MuAPI path Generate will take with the media currently attached.
   function currentMediaRoute() {
     const media = extractTemplateMedia(formState, allInputs);
     return { media, ...routeTemplateGeneration({ outputType: template.outputType, modelType: template.modelType, model: selectedModel, ...media }) };
   }
   function refreshMediaRoute() {
-    if (!mediaRouteBadge) return;
     const { route } = currentMediaRoute();
-    mediaRouteBadge.textContent = ROUTE_LABELS[route] || route;
+    if (mediaRouteBadge) mediaRouteBadge.textContent = TEMPLATE_ROUTE_LABELS[route] || route;
+    // Like the Video Studio: attaching an image / video swaps the model
+    // picker to models that accept it.
+    if (syncModelPickerToRoute) syncModelPickerToRoute(route);
+    if (videoSettings) videoSettings.refresh();
   }
   // Validate the template's default model against its modelType so video
   // generation always starts with a real, type-compatible model ID.
@@ -284,7 +293,12 @@ export function TemplateStudio(templateId) {
   let promptEl = null; // assigned during the input loop below
 
   // Build form fields
+  const isVideoTemplate = (template.outputType || (template.modelType === 't2i' || template.modelType === 'i2i' ? 'image' : 'video')) === 'video';
   allInputs.forEach(input => {
+    if (isVideoTemplate && input && input.type === 'select' && (input.name === 'duration' || input.name === 'resolution')) {
+      templateVideoPrefs[input.name] = (input.options || [])[0];
+      return;
+    }
     const fieldWrapper = document.createElement('div');
     fieldWrapper.className = 'mt-6 first:mt-0';
 
@@ -307,6 +321,7 @@ export function TemplateStudio(templateId) {
                 // Same upload picker + stock browser as the Video Studio.
                 const mediaField = createTemplateMediaField({
                     kind: input.type,
+                    required: input.type !== 'video' && (!!input.required || template.modelType === 'i2v' || template.modelType === 'i2i'),
                     anchorContainer: container,
                     studioName: 'Template Studio',
                     onChange: (value) => {
@@ -445,7 +460,12 @@ export function TemplateStudio(templateId) {
   if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v', 'v2v'].includes(template.modelType)) {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
-    const fallbackList = getFallbackList(template.modelType);
+    // The picker lists models for the current route (Text / Image / Video →
+    // Video), starting from the template's own type.
+    let pickerRoute = templateMediaRoute({ outputType, modelType: template.modelType });
+    if (template.modelType && getFallbackList(template.modelType).length) pickerRoute = template.modelType;
+    const routeModelPicks = {};
+    let fallbackList = getFallbackList(pickerRoute);
 
     loadedModels = fallbackList;
     // Re-validate the initial selection against the resolved list so the
@@ -532,7 +552,9 @@ export function TemplateStudio(templateId) {
             loadingMessage: 'Loading models...',
             onSelectModel: (model) => {
               selectedModel = model.id;
+              routeModelPicks[pickerRoute] = model.id;
               updateTrigger();
+              if (videoSettings) videoSettings.refresh();
               closeDropdown();
             },
           });
@@ -551,14 +573,14 @@ export function TemplateStudio(templateId) {
           ]);
         };
 
-        withTimeout(getEnrichedModels(template.modelType))
+        withTimeout(getEnrichedModels(pickerRoute))
           .then(enriched => {
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
             // Keep the selection valid even if the enriched catalog differs
             // from the fallback list (e.g. renamed or missing IDs).
             if (!models.find(m => m && m.id === selectedModel)) {
-              selectedModel = getValidModel(template, selectedModel);
+              selectedModel = pickerRoute === template.modelType ? getValidModel(template, selectedModel) : modelForRoute(pickerRoute, selectedModel);
               if (!models.find(m => m && m.id === selectedModel)) {
                 selectedModel = models[0]?.id || selectedModel;
               }
@@ -595,6 +617,21 @@ export function TemplateStudio(templateId) {
     };
     document.addEventListener('keydown', onKeyDown);
 
+    syncModelPickerToRoute = (route) => {
+      if (!route || route === pickerRoute) return;
+      routeModelPicks[pickerRoute] = selectedModel;
+      pickerRoute = route;
+      fallbackList = modelsForRoute(route);
+      loadedModels = fallbackList;
+      selectedModel = routeModelPicks[route] || modelForRoute(route, selectedModel);
+      delete dropdown.dataset.populated;
+      closeDropdown();
+      updateTrigger();
+      label.textContent = `Model · ${TEMPLATE_ROUTE_LABELS[route] || route}`;
+      modelLoadingStatus.textContent = `${fallbackList.length} models`;
+      modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+    };
+
     const headerRow = document.createElement('div');
     headerRow.className = 'mb-3 flex items-center justify-between gap-3';
     const label = document.createElement('div');
@@ -604,6 +641,23 @@ export function TemplateStudio(templateId) {
     headerRow.appendChild(triggerBtn);
     headerRow.appendChild(modelLoadingStatus);
     modelWrapper.appendChild(headerRow);
+    if (outputType === 'video') {
+      // Same per-model controls as the Video Studio prompt bar.
+      videoSettings = createVideoSettingsControls({
+        getTarget: () => {
+          const { route, model } = currentMediaRoute();
+          return { route, model };
+        },
+        preferred: {
+          duration: templateVideoPrefs.duration ?? normalizeDuration(template),
+          resolution: templateVideoPrefs.resolution,
+        },
+        // Templates with their own effect select keep using it.
+        offerEffects: !allInputs.some(i => i && i.name === 'name'),
+      });
+      modelWrapper.appendChild(videoSettings.element);
+      videoSettings.refresh();
+    }
     modelWrapper.appendChild(dropdown);
     leftPanel.appendChild(modelWrapper);
 
@@ -628,6 +682,7 @@ export function TemplateStudio(templateId) {
       if (!hasOwnImageInput) {
         const imageField = createTemplateMediaField({
           kind: 'frame',
+          required: template.modelType === 'i2v',
           anchorContainer: container,
           studioName: 'Template Studio',
           onChange: (value) => { formState['image_url'] = value; refreshMediaRoute(); },
@@ -1079,18 +1134,22 @@ export function TemplateStudio(templateId) {
     // Validate that the selected model matches the template's model type.
     // V2V models are an accepted exception: they are routed through the t2v
     // branch below, so a t2v template may use a v2v model.
-    const allowedModels = getFallbackList(template.modelType);
+    // The model must accept the attached media (route); fall back to the
+    // route's first model otherwise.
+    const { route: genRoute } = currentMediaRoute();
     const isV2VSelection = !!getV2VModelById(selectedModel || template.model);
-    if (allowedModels.length > 0
-      && !isValidModelForType(selectedModel || template.model, template.modelType)
-      && !isV2VSelection) {
-      const fallback = getValidModel(template, selectedModel);
-      showInlineError(container, `Model "${selectedModel || template.model}" is not compatible with this template type. Falling back to ${fallback}.`);
+    const routeModels = modelsForRoute(genRoute);
+    if (routeModels.length > 0
+      && !routeModels.find(m => m && m.id === (selectedModel || template.model))
+      && !(isV2VSelection && genRoute === 't2v')
+      && !(genRoute === template.modelType && isValidModelForType(selectedModel || template.model, template.modelType))) {
+      const fallback = modelForRoute(genRoute, selectedModel);
+      showInlineError(container, `Model "${selectedModel || template.model}" is not compatible with ${TEMPLATE_ROUTE_LABELS[genRoute] || genRoute}. Falling back to ${fallback}.`);
       selectedModel = fallback;
     }
 
     // Build params for potential retry
-    const params = { ...(template.defaultParams || {}), model: getValidModel(template, selectedModel) };
+    const params = { ...(template.defaultParams || {}), model: selectedModel || getValidModel(template, selectedModel) };
 
     if (normalizeAspectRatio(template)) params.aspect_ratio = normalizeAspectRatio(template);
     if (normalizeDuration(template)) params.duration = normalizeDuration(template);
@@ -1111,6 +1170,7 @@ export function TemplateStudio(templateId) {
     const { media, route, model: routedModel } = currentMediaRoute();
     params.model = routedModel;
     applyTemplateMediaToParams(params, media, route);
+    if (videoSettings) Object.assign(params, videoSettings.getSettings());
 
     // Client-side validation before muapi call
     let validationError = null;
@@ -1154,7 +1214,12 @@ export function TemplateStudio(templateId) {
       // Merge template defaults with the params built by genBtn.onclick.
       // Always resolve to a validated model so a stale/invalid selection
       // can never reach the muapi call.
-      const validatedModel = getValidModel(template, selectedModel || params.model);
+      // Resolve against the current route so a stale / invalid selection can
+      // never reach the muapi call.
+      const { route: runRoute } = currentMediaRoute();
+      const validatedModel = runRoute === template.modelType
+        ? getValidModel(template, selectedModel || params.model)
+        : modelForRoute(runRoute, selectedModel || params.model);
       selectedModel = validatedModel;
       const mergedParams = { model: validatedModel, ...(template.defaultParams || {}), ...params };
       params = mergedParams;
@@ -1167,6 +1232,7 @@ export function TemplateStudio(templateId) {
       const { media, route, model: routedModel } = currentMediaRoute();
       params.model = routedModel;
       applyTemplateMediaToParams(params, media, route);
+      if (videoSettings) Object.assign(params, videoSettings.getSettings());
       const rawPrompt = params._rawPrompt;
       delete params._rawPrompt;
 

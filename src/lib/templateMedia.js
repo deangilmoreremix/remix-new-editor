@@ -19,6 +19,7 @@ import { createUploadPicker } from '../components/UploadPicker.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels } from './models.js';
 
 const PEXELS_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+const LAST_FRAME_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><line x1="12" y1="9" x2="12" y2="15"/></svg>';
 const CLEAR_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
 
 const EMPTY_TEXT = {
@@ -58,9 +59,10 @@ function pexelsVideoUrl(asset) {
  * @param {(value: string|{startUrl:string,endUrl:string|null,urls:string[]}|null, meta?: object) => void} opts.onChange
  * @param {string} [opts.title]               Pexels modal title.
  * @param {*} [opts.initialValue]             Media already attached (re-render).
+ * @param {boolean} [opts.required]           Generation needs this media.
  * @returns {{ element: HTMLElement, clear: () => void, getValue: () => any }}
  */
-export function createTemplateMediaField({ kind = 'image', anchorContainer, studioName = 'Template Studio', onChange, title, initialValue = null } = {}) {
+export function createTemplateMediaField({ kind = 'image', anchorContainer, studioName = 'Template Studio', onChange, title, initialValue = null, required = false } = {}) {
   const isVideo = kind === 'video';
   const isFrame = kind === 'frame';
   let value = initialValue || null;
@@ -82,7 +84,10 @@ export function createTemplateMediaField({ kind = 'image', anchorContainer, stud
   clearBtn.className = 'hidden w-8 h-8 shrink-0 rounded-lg items-center justify-center text-zinc-500 hover:text-white hover:bg-white/10 transition';
   clearBtn.innerHTML = CLEAR_ICON;
 
+  const emptyText = required ? `Required — ${EMPTY_TEXT[kind].charAt(0).toLowerCase()}${EMPTY_TEXT[kind].slice(1)}` : EMPTY_TEXT[kind];
+  if (required) row.dataset.required = 'true';
   const setStatus = (text, tone = 'idle') => {
+    if (text === EMPTY_TEXT[kind]) text = emptyText;
     status.textContent = text;
     status.classList.remove('text-zinc-400', 'text-emerald-200', 'text-primary');
     status.classList.add(tone === 'done' ? 'text-emerald-200' : tone === 'stock' ? 'text-primary' : 'text-zinc-400');
@@ -170,6 +175,49 @@ export function createTemplateMediaField({ kind = 'image', anchorContainer, stud
 
   row.appendChild(picker.trigger);
   row.appendChild(pexelsBtn);
+
+  // Video Studio shortcut: use the last frame of a video as the start image.
+  // The frame is uploaded through the same picker pipeline as any image.
+  if (!isVideo && typeof picker.uploadFile === 'function') {
+    const lastFrameInput = document.createElement('input');
+    lastFrameInput.type = 'file';
+    lastFrameInput.accept = 'video/*';
+    lastFrameInput.className = 'hidden';
+    const lastFrameBtn = document.createElement('button');
+    lastFrameBtn.type = 'button';
+    lastFrameBtn.title = 'Use the last frame of a video';
+    lastFrameBtn.setAttribute('aria-label', lastFrameBtn.title);
+    lastFrameBtn.dataset.action = 'last-frame';
+    lastFrameBtn.className = pexelsBtn.className;
+    lastFrameBtn.innerHTML = LAST_FRAME_ICON;
+    lastFrameBtn.onclick = (e) => {
+      e.stopPropagation();
+      lastFrameInput.click();
+    };
+    lastFrameInput.onchange = async () => {
+      const file = lastFrameInput.files && lastFrameInput.files[0];
+      lastFrameInput.value = '';
+      if (!file) return;
+      lastFrameBtn.disabled = true;
+      lastFrameBtn.innerHTML = '<span class="animate-spin text-primary text-sm">◌</span>';
+      try {
+        const { extractLastFrameFile } = await import('./videoFrames.js');
+        const frame = await extractLastFrameFile(file);
+        setStatus('Uploading last frame…');
+        await picker.uploadFile(frame);
+      } catch (err) {
+        console.error(`[${studioName}] last-frame extraction failed:`, err);
+        import('./loading.js').then(m => m.showToast?.(`Failed to extract last frame: ${err.message}`, 'error')).catch(() => {});
+        if (!value) setStatus(EMPTY_TEXT[kind]);
+      } finally {
+        lastFrameBtn.disabled = false;
+        lastFrameBtn.innerHTML = LAST_FRAME_ICON;
+      }
+    };
+    lastFrameBtn.appendChild(lastFrameInput);
+    row.appendChild(lastFrameBtn);
+  }
+
   row.appendChild(status);
   row.appendChild(clearBtn);
   if (value) {
@@ -238,27 +286,63 @@ function inList(type, modelId) {
  * @returns {{ route: 't2i'|'i2i'|'t2v'|'i2v'|'v2v', model: string }}
  */
 export function routeTemplateGeneration({ outputType, modelType, model, imageUrl, videoUrl }) {
-  const isVideo = outputType === 'video' || ['t2v', 'i2v', 'v2v'].includes(modelType);
-  let route;
-  if (isVideo) {
-    const wantsV2V = modelType === 'v2v' || inList('v2v', model);
-    if (videoUrl && (wantsV2V || !imageUrl)) route = 'v2v';
-    else if (imageUrl || modelType === 'i2v') route = 'i2v';
-    // A v2v template / model with no video yet stays on v2v so Generate
-    // asks for the source video instead of silently running text-to-video.
-    else if (wantsV2V) route = 'v2v';
-    else route = 't2v';
-  } else {
-    route = imageUrl || modelType === 'i2i' ? 'i2i' : 't2i';
-  }
-
-  // Effect-style i2v models can be used without an image only when the
-  // template explicitly asks for them; otherwise keep the user's model when
-  // it fits the route, else fall back to the first model of that route.
-  const fits = inList(route, model);
-  const fallback = (LISTS[route] || [])[0]?.id || model;
-  return { route, model: fits ? model : fallback };
+  const route = templateMediaRoute({ outputType, modelType, imageUrl, videoUrl, preferV2V: inList('v2v', model) });
+  // Keep the user's model when it fits the route, else fall back to the
+  // first model of that route.
+  return { route, model: modelForRoute(route, model) };
 }
+
+/**
+ * The route alone (no model resolution). Depends only on the template type
+ * and the attached media, so clearing a video always leaves video-to-video.
+ * @param {boolean} [preferV2V] when both an image and a video are attached,
+ *   prefer video-to-video (the user picked a v2v model).
+ */
+export function templateMediaRoute({ outputType, modelType, imageUrl, videoUrl, preferV2V = false }) {
+  const isVideo = outputType === 'video' || ['t2v', 'i2v', 'v2v'].includes(modelType);
+  if (!isVideo) return imageUrl || modelType === 'i2i' ? 'i2i' : 't2i';
+  if (videoUrl && (modelType === 'v2v' || preferV2V || !imageUrl)) return 'v2v';
+  if (imageUrl || modelType === 'i2v') return 'i2v';
+  // A v2v template with no video yet stays on v2v so Generate asks for the
+  // source video instead of silently running text-to-video.
+  if (modelType === 'v2v') return 'v2v';
+  return 't2v';
+}
+
+/** Models offered for a route (the same lists the Video / Image Studio use). */
+export function modelsForRoute(route) {
+  return LISTS[route] || [];
+}
+
+// Preferred general-purpose defaults. The raw lists start with effect / tool
+// models (AI Video Effects, Image Upscaler, …) that need extra inputs and
+// would surprise someone who just attached an image.
+const ROUTE_DEFAULTS = { i2v: 'kling-v2.6-pro-i2v', t2v: 'kling-v2.6-pro-t2v' };
+const SPECIALIST_FAMILIES = new Set(['effects', 'tools']);
+
+/** A sensible default model for a route (skips effect / tool models). */
+export function defaultModelForRoute(route) {
+  const list = LISTS[route] || [];
+  if (ROUTE_DEFAULTS[route] && inList(route, ROUTE_DEFAULTS[route])) return ROUTE_DEFAULTS[route];
+  // v2v keeps the Video Studio default (its first entry).
+  if (route === 'v2v') return list[0]?.id || null;
+  const general = list.find(m => m && !SPECIALIST_FAMILIES.has(m.family));
+  return (general || list[0])?.id || null;
+}
+
+/** `model` when it belongs to `route`, else the route's default model. */
+export function modelForRoute(route, model) {
+  if (inList(route, model)) return model;
+  return defaultModelForRoute(route) || model;
+}
+
+export const TEMPLATE_ROUTE_LABELS = {
+  t2v: 'Text → Video',
+  i2v: 'Image → Video',
+  v2v: 'Video → Video',
+  t2i: 'Text → Image',
+  i2i: 'Image → Image',
+};
 
 /**
  * Apply extracted media to a params object using the MuAPI field names the
@@ -284,4 +368,163 @@ export function applyTemplateMediaToParams(params, { imageUrl, endImageUrl, vide
     }
   }
   return params;
+}
+
+// ── Video settings (duration / resolution / native audio) ──────────────────
+
+function findRouteModel(route, modelId) {
+  return (LISTS[route] || []).find(m => m && m.id === modelId) || null;
+}
+
+/** Durations a model accepts (enum, or a min/max/step range), as numbers. */
+export function durationsForModel(model) {
+  const dur = model?.inputs?.duration;
+  if (!dur) return [];
+  if (Array.isArray(dur.enum)) return dur.enum.map(Number).filter(n => !Number.isNaN(n));
+  const min = dur.minValue ?? dur.minimum;
+  const max = dur.maxValue ?? dur.maximum;
+  const step = dur.step || 1;
+  if (min !== undefined && max !== undefined && max >= min && (max - min) / step <= 60) {
+    const vals = [];
+    for (let v = min; v <= max; v += step) vals.push(v);
+    return vals;
+  }
+  return dur.default !== undefined ? [Number(dur.default)] : [];
+}
+
+/** Resolutions a model accepts. */
+export function resolutionsForModel(model) {
+  const res = model?.inputs?.resolution;
+  return Array.isArray(res?.enum) ? res.enum.map(String) : [];
+}
+
+function nearest(options, wanted) {
+  if (!options.length) return null;
+  const w = Number(wanted);
+  if (Number.isNaN(w)) return options[0];
+  return options.reduce((best, o) => (Math.abs(o - w) < Math.abs(best - w) ? o : best), options[0]);
+}
+
+/**
+ * Duration / resolution / native-audio controls that follow the selected
+ * model, like the Video Studio prompt bar. Only options the model accepts
+ * are offered; a template's own preference is snapped to the closest one.
+ *
+ * @param {Object} opts
+ * @param {() => {route: string, model: string}} opts.getTarget  Current route + model.
+ * @param {{duration?: any, resolution?: string}} [opts.preferred] Template defaults.
+ * @param {boolean} [opts.offerEffects=true] Show an effect preset select for
+ *   effect models (set false when the template has its own `name` input).
+ * @returns {{ element: HTMLElement, refresh: () => void, getSettings: () => object }}
+ */
+export function createVideoSettingsControls({ getTarget, preferred = {}, offerEffects = true } = {}) {
+  const state = { duration: preferred.duration ?? null, resolution: preferred.resolution ?? null, nativeAudio: false, effect: null };
+  let current = { durations: [], resolutions: [], audio: false, video: false, effects: [] };
+
+  const el = document.createElement('div');
+  el.className = 'template-video-settings mt-4 flex flex-wrap items-center gap-2';
+  el.dataset.videoSettings = '';
+
+  const selectClass = 'h-9 rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs font-semibold text-white outline-none focus:border-emerald-400/50';
+  const makeSelect = (name, label) => {
+    const wrap = document.createElement('label');
+    wrap.className = 'flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500';
+    wrap.textContent = label;
+    const sel = document.createElement('select');
+    sel.name = name;
+    sel.className = selectClass;
+    wrap.appendChild(sel);
+    return { wrap, sel };
+  };
+  const dur = makeSelect('template-duration', 'Duration');
+  const res = makeSelect('template-resolution', 'Resolution');
+  const fx = makeSelect('template-effect', 'Effect');
+
+  const audioBtn = document.createElement('button');
+  audioBtn.type = 'button';
+  audioBtn.name = 'template-native-audio';
+  audioBtn.setAttribute('role', 'switch');
+  audioBtn.className = 'h-9 rounded-full border px-3 text-[10px] font-semibold uppercase tracking-[0.18em] transition';
+  const paintAudio = () => {
+    audioBtn.setAttribute('aria-checked', String(state.nativeAudio));
+    audioBtn.textContent = state.nativeAudio ? '♪ Native audio on' : '♪ Native audio off';
+    audioBtn.classList.toggle('border-emerald-400/40', state.nativeAudio);
+    audioBtn.classList.toggle('bg-emerald-500/15', state.nativeAudio);
+    audioBtn.classList.toggle('text-emerald-200', state.nativeAudio);
+    audioBtn.classList.toggle('border-white/10', !state.nativeAudio);
+    audioBtn.classList.toggle('text-zinc-400', !state.nativeAudio);
+  };
+  audioBtn.onclick = (e) => {
+    e.stopPropagation();
+    state.nativeAudio = !state.nativeAudio;
+    paintAudio();
+  };
+
+  dur.sel.onchange = () => { state.duration = Number(dur.sel.value); };
+  res.sel.onchange = () => { state.resolution = res.sel.value; };
+  fx.sel.onchange = () => { state.effect = fx.sel.value; };
+
+  el.appendChild(fx.wrap);
+  el.appendChild(dur.wrap);
+  el.appendChild(res.wrap);
+  el.appendChild(audioBtn);
+
+  const fill = (sel, options, value, fmt) => {
+    sel.innerHTML = '';
+    options.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = String(o);
+      opt.textContent = fmt(o);
+      if (String(o) === String(value)) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  };
+
+  const refresh = () => {
+    const { route, model } = (getTarget && getTarget()) || {};
+    const video = route === 't2v' || route === 'i2v' || route === 'v2v';
+    const m = video ? findRouteModel(route, model) : null;
+    const durations = m && route !== 'v2v' ? durationsForModel(m) : [];
+    const resolutions = m ? resolutionsForModel(m) : [];
+    const audio = !!(m?.inputs?.native_audio) && route !== 'v2v';
+    // Effect endpoints (AI Video Effects, Motion Controls) need a preset name.
+    const effects = offerEffects && Array.isArray(m?.inputs?.name?.enum) ? m.inputs.name.enum.map(String) : [];
+    if (effects.length && !effects.includes(String(state.effect))) state.effect = effects[0];
+
+    if (durations.length) {
+      if (!durations.some(d => String(d) === String(state.duration))) state.duration = nearest(durations, state.duration ?? m?.inputs?.duration?.default);
+    }
+    if (resolutions.length) {
+      if (!resolutions.includes(String(state.resolution))) {
+        const def = m?.inputs?.resolution?.default;
+        state.resolution = resolutions.includes(String(def)) ? String(def) : resolutions[0];
+      }
+    }
+    if (!audio) state.nativeAudio = false;
+
+    fill(dur.sel, durations, state.duration, d => `${d}s`);
+    fill(res.sel, resolutions, state.resolution, r => r);
+    fill(fx.sel, effects, state.effect, e => e);
+    fx.wrap.classList.toggle('hidden', !effects.length);
+    dur.wrap.classList.toggle('hidden', !durations.length);
+    res.wrap.classList.toggle('hidden', !resolutions.length);
+    audioBtn.classList.toggle('hidden', !audio);
+    paintAudio();
+    el.classList.toggle('hidden', !durations.length && !resolutions.length && !audio && !effects.length);
+    current = { durations, resolutions, audio, video, effects };
+  };
+
+  return {
+    element: el,
+    refresh,
+    /** Only the settings the current model accepts. */
+    getSettings: () => {
+      const out = {};
+      if (current.durations.length && state.duration != null) out.duration = Number(state.duration);
+      if (current.resolutions.length && state.resolution) out.resolution = state.resolution;
+      if (current.audio && state.nativeAudio) out.native_audio = true;
+      if (current.effects.length && state.effect) out.name = state.effect;
+      return out;
+    },
+  };
 }

@@ -8,10 +8,10 @@ vi.mock('../../src/components/UploadPicker.js', () => ({
     trigger.className = 'mt-1.5';
     const panel = document.createElement('div');
     panel.className = 'upload-panel';
-    const entry = { opts, trigger, panel, reset: vi.fn(), clicks: 0 };
+    const entry = { opts, trigger, panel, reset: vi.fn(), uploadFile: vi.fn(async () => {}), clicks: 0 };
     trigger.onclick = () => { entry.clicks += 1; };
     pickerState.pickers.push(entry);
-    return { trigger, panel, reset: entry.reset };
+    return { trigger, panel, reset: entry.reset, uploadFile: entry.uploadFile };
   }),
 }));
 
@@ -24,9 +24,17 @@ vi.mock('../../src/lib/studioPexels.js', () => ({
 vi.mock('../../src/lib/models.js', () => ({
   t2iModels: [{ id: 'flux' }],
   i2iModels: [{ id: 'flux-i2i' }],
-  i2vModels: [{ id: 'kling-i2v' }, { id: 'veo-i2v' }],
-  t2vModels: [{ id: 'kling-t2v' }],
-  v2vModels: [{ id: 'kling-v2v' }],
+  i2vModels: [
+    { id: 'kling-i2v', inputs: { duration: { enum: [5, 10], default: 5 }, resolution: { enum: ['720p', '1080p'], default: '1080p' } } },
+    { id: 'veo-i2v', inputs: { duration: { minValue: 4, maxValue: 8, step: 2 }, native_audio: { type: 'boolean' } } },
+    { id: 'ai-video-effects', inputs: { name: { enum: ['Cakeify', 'Lego'] } } },
+  ],
+  t2vModels: [{ id: 'kling-t2v', inputs: { duration: { enum: ['5', '10'] }, native_audio: { type: 'boolean' } } }],
+  v2vModels: [{ id: 'kling-v2v', inputs: { resolution: { enum: ['720p'] } } }],
+}));
+
+vi.mock('../../src/lib/videoFrames.js', () => ({
+  extractLastFrameFile: vi.fn(async () => new File(['x'], 'clip-last-frame.png', { type: 'image/png' })),
 }));
 
 import {
@@ -34,6 +42,10 @@ import {
   extractTemplateMedia,
   routeTemplateGeneration,
   applyTemplateMediaToParams,
+  templateMediaRoute,
+  modelsForRoute,
+  createVideoSettingsControls,
+  durationsForModel,
 } from '../../src/lib/templateMedia.js';
 
 describe('templateMedia: createTemplateMediaField', () => {
@@ -116,6 +128,7 @@ describe('templateMedia: extract / route / apply', () => {
   it('routes like the Video Studio and swaps to a compatible model', () => {
     expect(routeTemplateGeneration({ outputType: 'video', modelType: 't2v', model: 'kling-t2v' })).toEqual({ route: 't2v', model: 'kling-t2v' });
     expect(routeTemplateGeneration({ outputType: 'video', modelType: 't2v', model: 'kling-t2v', imageUrl: 'a.png' })).toEqual({ route: 'i2v', model: 'kling-i2v' });
+    expect(routeTemplateGeneration({ outputType: 'video', modelType: 'i2v', model: 'kling-i2v' })).toEqual({ route: 'i2v', model: 'kling-i2v' });
     expect(routeTemplateGeneration({ outputType: 'video', modelType: 'i2v', model: 'veo-i2v', imageUrl: 'a.png' })).toEqual({ route: 'i2v', model: 'veo-i2v' });
     expect(routeTemplateGeneration({ outputType: 'video', modelType: 't2v', model: 'kling-t2v', videoUrl: 'v.mp4' })).toEqual({ route: 'v2v', model: 'kling-v2v' });
     expect(routeTemplateGeneration({ outputType: 'video', modelType: 'v2v', model: 'kling-v2v' }).route).toBe('v2v');
@@ -131,5 +144,86 @@ describe('templateMedia: extract / route / apply', () => {
     const v2v: any = { image_url: 'x.png' };
     applyTemplateMediaToParams(v2v, { imageUrl: 'x.png', endImageUrl: null, videoUrl: 'v.mp4' }, 'v2v');
     expect(v2v).toEqual({ video_url: 'v.mp4' });
+  });
+});
+
+describe('templateMedia: route follows media only', () => {
+  it('clearing the video leaves video-to-video even with a v2v model selected', () => {
+    expect(templateMediaRoute({ outputType: 'video', modelType: 't2v', videoUrl: 'v.mp4' })).toBe('v2v');
+    expect(templateMediaRoute({ outputType: 'video', modelType: 't2v' })).toBe('t2v');
+    expect(routeTemplateGeneration({ outputType: 'video', modelType: 't2v', model: 'kling-v2v' })).toEqual({ route: 't2v', model: 'kling-t2v' });
+    expect(templateMediaRoute({ outputType: 'video', modelType: 't2v', imageUrl: 'a', videoUrl: 'v', preferV2V: true })).toBe('v2v');
+    expect(templateMediaRoute({ outputType: 'video', modelType: 't2v', imageUrl: 'a', videoUrl: 'v' })).toBe('i2v');
+    expect(modelsForRoute('v2v').map(m => m.id)).toEqual(['kling-v2v']);
+  });
+});
+
+describe('templateMedia: last-frame shortcut', () => {
+  it('extracts the last frame and uploads it through the same picker', async () => {
+    const anchor = document.createElement('div');
+    document.body.appendChild(anchor);
+    pickerState.pickers.length = 0;
+    const field = createTemplateMediaField({ kind: 'frame', anchorContainer: anchor });
+    const btn = field.element.querySelector('[data-action="last-frame"]') as HTMLButtonElement;
+    expect(btn).not.toBeNull();
+    const input = btn.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(input.accept).toBe('video/*');
+    Object.defineProperty(input, 'files', { value: [new File(['v'], 'clip.mp4', { type: 'video/mp4' })], configurable: true });
+    input.dispatchEvent(new Event('change'));
+    await new Promise(r => setTimeout(r, 10));
+    const uploaded = pickerState.pickers[0].uploadFile.mock.calls[0]?.[0];
+    expect(uploaded?.name).toBe('clip-last-frame.png');
+  });
+
+  it('video fields have no last-frame button', () => {
+    const field = createTemplateMediaField({ kind: 'video', anchorContainer: document.createElement('div') });
+    expect(field.element.querySelector('[data-action="last-frame"]')).toBeNull();
+  });
+});
+
+describe('templateMedia: video settings follow the model', () => {
+  it('offers only the durations / resolutions the model accepts and snaps template defaults', () => {
+    let target = { route: 'i2v', model: 'kling-i2v' };
+    const settings = createVideoSettingsControls({ getTarget: () => target, preferred: { duration: 8 } });
+    settings.refresh();
+    const durSel = settings.element.querySelector('select[name="template-duration"]') as HTMLSelectElement;
+    expect(Array.from(durSel.options).map(o => o.value)).toEqual(['5', '10']);
+    expect(settings.getSettings()).toEqual({ duration: 10, resolution: '1080p' });
+
+    target = { route: 'i2v', model: 'veo-i2v' };
+    settings.refresh();
+    expect(Array.from(durSel.options).map(o => o.value)).toEqual(['4', '6', '8']);
+    const audio = settings.element.querySelector('button[name="template-native-audio"]') as HTMLButtonElement;
+    expect(audio.classList.contains('hidden')).toBe(false);
+    audio.click();
+    expect(settings.getSettings()).toEqual({ duration: 8, native_audio: true });
+
+    target = { route: 'v2v', model: 'kling-v2v' };
+    settings.refresh();
+    expect(settings.getSettings()).toEqual({ resolution: '720p' });
+  });
+
+  it('offers an effect preset for effect models unless the template has its own', () => {
+    const target = { route: 'i2v', model: 'ai-video-effects' };
+    const withFx = createVideoSettingsControls({ getTarget: () => target });
+    withFx.refresh();
+    expect(withFx.getSettings()).toEqual({ name: 'Cakeify' });
+    const withoutFx = createVideoSettingsControls({ getTarget: () => target, offerEffects: false });
+    withoutFx.refresh();
+    expect(withoutFx.getSettings()).toEqual({});
+    expect(withoutFx.element.classList.contains('hidden')).toBe(true);
+  });
+
+  it('hides everything for image routes', () => {
+    const s = createVideoSettingsControls({ getTarget: () => ({ route: 't2i', model: 'flux' }) });
+    s.refresh();
+    expect(s.element.classList.contains('hidden')).toBe(true);
+    expect(s.getSettings()).toEqual({});
+  });
+
+  it('parses string enums and ranges', () => {
+    expect(durationsForModel({ inputs: { duration: { enum: ['5', '10'] } } })).toEqual([5, 10]);
+    expect(durationsForModel({ inputs: { duration: { minValue: 2, maxValue: 6, step: 2 } } })).toEqual([2, 4, 6]);
+    expect(durationsForModel({})).toEqual([]);
   });
 });

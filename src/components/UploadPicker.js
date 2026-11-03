@@ -1581,5 +1581,9 @@ export function createUploadPicker({
         }
     }
 
-    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage, selectAsset };
+    // Upload a File produced outside the picker (e.g. a frame grabbed from a
+    // video) through the same pipeline as a picked file.
+    const uploadFile = (file) => (file ? uploadFiles([file]) : undefined);
+
+    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage, selectAsset, uploadFile };
 }

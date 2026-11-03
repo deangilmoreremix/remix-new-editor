@@ -275,6 +275,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Scene description', placeholder: 'e.g. home video nostalgia' },
+      { name: 'name', type: 'select', label: 'Effect', options: ['VHS Footage', 'Looping Pixel Art', 'Steamboat Willie'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -294,6 +295,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Scene mood', placeholder: 'e.g. rainy night detective' },
+      { name: 'name', type: 'select', label: 'Effect', options: ['Film Noir', 'VHS Footage', 'Abandoned Places'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -343,6 +345,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Action description', placeholder: 'e.g. dodging in slow motion' },
+      { name: 'name', type: 'select', label: 'Camera move', options: ['Matrix Shot', '360 Orbit', 'Arc Shot'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -418,6 +421,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Scene', placeholder: 'e.g. lego city builder' },
+      { name: 'name', type: 'select', label: 'Effect', options: ['Lego', 'Pixar', 'Looping Pixel Art'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -651,6 +655,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Description', placeholder: 'e.g. fierce dragon warrior' },
+      { name: 'name', type: 'select', label: 'Effect', options: ['Fire', 'Kamehameha', 'Super Saiyan Transformation'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -720,6 +725,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Memory style', placeholder: 'e.g. nostalgic summer day' },
+      { name: 'name', type: 'select', label: 'Effect', options: ['Younger Self Selfie', 'Baby It', 'Glamor'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -758,6 +764,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Style', placeholder: 'e.g. red carpet glamour' },
+      { name: 'name', type: 'select', label: 'Effect', options: ['Glamor', 'VIP It', 'Princess It'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -841,6 +848,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload landscape or scene' },
       { name: 'prompt', type: 'text', label: 'Flight path', placeholder: 'e.g. through a forest canopy' },
+      { name: 'name', type: 'select', label: 'Camera move', options: ['FPV Drone Cam', 'Crane Overhead', 'Landscape Timelapse'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -860,6 +868,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Scene description', placeholder: 'e.g. dramatic hallway reveal' },
+      { name: 'name', type: 'select', label: 'Camera move', options: ['Dolly Zoom In', 'Dolly Zoom Out', 'Fast Dolly Zoom In'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -879,6 +888,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload car or street photo' },
       { name: 'prompt', type: 'text', label: 'Chase description', placeholder: 'e.g. high speed through city streets' },
+      { name: 'name', type: 'select', label: 'Camera move', options: ['Car Chase', 'Car Mount Cam', 'Whip Pan'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -898,6 +908,7 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Action', placeholder: 'e.g. mid-air jump kick' },
+      { name: 'name', type: 'select', label: 'Camera move', options: ['Matrix Shot', '360 Orbit', 'Hero Run'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1', '4:3', '3:4'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
