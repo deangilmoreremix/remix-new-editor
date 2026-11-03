@@ -38,6 +38,20 @@ const EFFECT_TABS = [
   { id: 'video-effects', label: 'Video FX v2', type: 'i2v', field: 'name' },
 ];
 
+// MuAPI request schemas (api.muapi.ai/openapi.json) mark `prompt` as required
+// for these effect endpoints (flux-kontext-effects, generate_wan_ai_effects).
+const PROMPT_REQUIRED_TABS = new Set(['flux-kontext-effects', 'ai-video-effects', 'motion-controls']);
+
+// Effect names whose MuAPI enum value is spelled differently from the label
+// we show. The API only accepts its own spelling.
+const API_EFFECT_NAMES = {
+  'Acrylic Ornaments': 'Acryclic Ornaments',
+};
+
+function toApiEffectName(name) {
+  return API_EFFECT_NAMES[name] || name;
+}
+
 function getEffectsForModel(modelId) {
   const allModels = [...i2iModels, ...i2vModels];
   const model = allModels.find(m => m.id === modelId);
@@ -1214,7 +1228,7 @@ generateBtn.type = 'button';
     const params = {
       model: activeTab.id,
       image_url: mainUrl,
-      [activeTab.field]: selectedEffect,
+      [activeTab.field]: toApiEffectName(selectedEffect),
       customThumbnailUrl: customThumbnailUrl || undefined,
       guidance_scale: advancedSettings.guidanceScale,
       steps: advancedSettings.steps,
@@ -1237,6 +1251,9 @@ generateBtn.type = 'button';
     const activeProfile = profiles?.find((p) => p.id === selectedContactId) || null;
     const prompt = replaceTokensInPrompt(promptInput.value.trim() || mobilePrompt.value.trim(), activeProfile);
     if (prompt) params.prompt = prompt;
+    // Kontext and Wan effect endpoints require `prompt`; the studio's prompt
+    // box is optional, so fall back to the effect name.
+    else if (PROMPT_REQUIRED_TABS.has(activeTab.id)) params.prompt = selectedEffect;
 
     // Merge attachment URLs from the unified toolbar.
     if (attachmentImages.length) {
