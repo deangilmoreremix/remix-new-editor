@@ -42,7 +42,7 @@ export const videoClipCard: CardDef = {
   accent: "#30d158",
   component: VideoClip as React.ComponentType<Record<string, unknown>>,
   schema: [
-    { type: "text", key: "file", label: "文件（public/ 下）", default: "" },
+    { type: "text", key: "file", label: "文件 / 链接", default: "" },
     {
       type: "select", key: "fit", label: "适配", default: "contain",
       options: [
@@ -81,7 +81,7 @@ export const imageClipCard: CardDef = {
   accent: "#64d2ff",
   component: ImageClip as React.ComponentType<Record<string, unknown>>,
   schema: [
-    { type: "text", key: "file", label: "文件（public/ 下）", default: "" },
+    { type: "text", key: "file", label: "文件 / 链接", default: "" },
     {
       type: "select", key: "fit", label: "适配", default: "contain",
       options: [
@@ -116,7 +116,7 @@ export const audioClipCard: CardDef = {
   accent: "#ff9f0a",
   component: AudioClip as React.ComponentType<Record<string, unknown>>,
   schema: [
-    { type: "text", key: "file", label: "文件（public/ 下）", default: "" },
+    { type: "text", key: "file", label: "文件 / 链接", default: "" },
     { type: "slider", key: "volume", label: "音量", default: 1, min: 0, max: 1, step: 0.01 },
   ],
 };

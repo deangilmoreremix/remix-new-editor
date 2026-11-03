@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -372,6 +373,9 @@ genBtn.type = 'button';
       const result = await muapi.generateI2I(params);
       if (result?.url) {
         lastOutputUrl = result.url;
+        registerGeneration('upscale', 'image', result.url, {
+          prompt: '', model: selectedMethod?.id || '', parameters: { upscale_factor: selectedFactor },
+        });
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">

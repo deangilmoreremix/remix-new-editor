@@ -2,7 +2,7 @@
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
-import { confirmDeleteGeneration } from '../lib/generationHistory.js';
+import { confirmDeleteGeneration, registerGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
@@ -1301,6 +1301,12 @@ export function CinemaStudio() {
 
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
+        // Shared library + "Edit in Workbench" (covers fresh results and recovered jobs).
+        const s = entry.settings || {};
+        registerGeneration('cinema', 'video', entry.url, {
+            prompt: s.prompt || '', model: s.model || '',
+            parameters: { aspect_ratio: s.aspect_ratio, duration: s.duration, resolution: s.resolution },
+        });
         try {
             localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50)));
         } catch (e) {

@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
@@ -425,6 +426,9 @@ export async function StoryboardStudio(options = {}) {
     try {
       const result = await generateStoryboardFromIntent(intent, { generateImages: true });
       generatedStoryboard = result;
+      for (const f of result.frames || []) {
+        if (f.imageUrl) registerGeneration('storyboard', 'image', f.imageUrl, { prompt: f.prompt || '', model: intent.model || '', parameters: { shot: f.shot } });
+      }
       frames.length = 0;
       frames.push(...result.frames.map(f => ({ ...f, imageUrl: f.imageUrl || null })));
       frameDurations = frames.map(() => Math.max(2, Math.round(intent.duration / frames.length)));
@@ -1588,6 +1592,7 @@ const compareBtn = document.createElement('button');
       const url = await engineGenerateFrameImage(prompt, selectedAr, selectedModel, selectedStyle, selectedLighting, selectedColor, customThumbnailUrl);
       if (url) {
         frame.imageUrl = url;
+        registerGeneration('storyboard', 'image', url, { prompt, model: selectedModel || '', parameters: { shot: frame.shot, aspect_ratio: selectedAr } });
         imageArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
       }
     } catch (err) {

@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -1269,6 +1270,9 @@ export function EditStudio() {
       updateProgress(null);
 
       if (result?.url) {
+        registerGeneration('edit', 'image', result.url, {
+          prompt: params[activeTool.promptKey || 'prompt'] || '', model: activeTool.id || '', parameters: { mode: activeTool.mode },
+        });
         renderResult(result.url);
       } else {
         showError('Edit completed, but no result image was returned. Please try again.');

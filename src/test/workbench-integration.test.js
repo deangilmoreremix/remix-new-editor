@@ -5,7 +5,7 @@ import {
   isWorkbenchEligible, toWorkbenchAsset, openInWorkbench, consumeWorkbenchHandoff,
 } from '../lib/workbench.js';
 import { mountGenerationNotifications, notifyGeneration, __resetGenerationNotifications } from '../components/studio/generationNotifications.js';
-import { saveGeneration } from '../lib/generationHistory.js';
+import { saveGeneration, registerGeneration } from '../lib/generationHistory.js';
 import { parseModelAnswer, extractText } from '../../netlify/functions/workbench-chat.js';
 
 // src/test/setup.js replaces sessionStorage with no-op mocks; the handoff needs a real store.
@@ -147,5 +147,53 @@ describe('workbench-chat function helpers', () => {
     expect(r).toEqual({ reply: 'ok', ops: [{ op: 'remove_clip', clipId: 'c1' }] });
     expect(() => parseModelAnswer('not json')).toThrow();
     expect(extractText({ output: [{ type: 'message', content: [{ type: 'output_text', text: '{"reply":"a"}' }] }] })).toBe('{"reply":"a"}');
+  });
+});
+
+describe('registerGeneration: studios that now feed the Workbench', () => {
+  beforeEach(() => { __resetGenerationNotifications(); localStorage.clear(); document.body.innerHTML = ''; });
+
+  it('skips blob: and empty URLs', async () => {
+    expect(await registerGeneration('videotools', 'video', 'blob:https://x/abc')).toBeNull();
+    expect(await registerGeneration('edit', 'image', '')).toBeNull();
+  });
+
+  it.each([
+    ['cinema', 'video', 'https://cdn.muapi.ai/out/cinema.mp4'],
+    ['upscale', 'image', 'https://cdn.muapi.ai/out/up.png'],
+    ['audio', 'audio', 'https://cdn.muapi.ai/out/song.mp3'],
+    ['storyboard', 'image', 'https://cdn.muapi.ai/out/frame.png'],
+    ['edit', 'image', 'https://cdn.muapi.ai/out/edit.png'],
+    ['videotools', 'video', 'https://cdn.muapi.ai/out/tool.mp4'],
+  ])('%s output gets "Edit in Workbench" and opens as %s', async (studio, type, url) => {
+    const navigate = vi.fn();
+    mountGenerationNotifications(navigate);
+    const entry = await registerGeneration(studio, type, url, { prompt: `${studio} result` });
+    expect(entry).toMatchObject({ url, type });
+    const btn = document.querySelector('[data-action="edit-in-workbench"]');
+    expect(btn).toBeTruthy();
+    btn.click();
+    expect(navigate).toHaveBeenCalledWith('workbench');
+    expect(consumeWorkbenchHandoff().assets[0]).toMatchObject({ url, kind: type });
+  });
+
+  it('audio results keep their type in the saved history', async () => {
+    await registerGeneration('audio', 'audio', 'https://cdn.muapi.ai/out/a.mp3', { prompt: 'song' });
+    const stored = JSON.parse(localStorage.getItem('video_history') || '[]');
+    expect(stored[0]).toMatchObject({ url: 'https://cdn.muapi.ai/out/a.mp3', type: 'audio' });
+  });
+});
+
+describe('studio completion points stay wired to the Workbench', () => {
+  it.each([
+    ['CinemaStudio.js', "registerGeneration('cinema', 'video'"],
+    ['UpscaleStudio.js', "registerGeneration('upscale', 'image'"],
+    ['AudioStudio.js', "registerGeneration('audio', 'audio'"],
+    ['StoryboardStudio.js', "registerGeneration('storyboard', 'image'"],
+    ['EditStudio.js', "registerGeneration('edit', 'image'"],
+    ['VideoToolsStudio.js', "registerGeneration('videotools', 'video'"],
+  ])('%s registers its output', async (file, call) => {
+    const fs = await import('node:fs');
+    expect(fs.readFileSync(`src/components/${file}`, 'utf8')).toContain(call);
   });
 });

@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -1294,6 +1295,10 @@ export function AudioStudio() {
 
   function addToHistory(entry) {
     internalHistory = [entry, ...internalHistory].slice(0, 30);
+    // Shared library + "Edit in Workbench" (fresh results and recovered jobs).
+    registerGeneration('audio', 'audio', entry.url, {
+      prompt: entry.prompt || entry.title || '', model: entry.model || '', name: entry.title || undefined,
+    });
     renderHistoryGrid();
     schedulePersist();
   }

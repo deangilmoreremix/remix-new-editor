@@ -144,22 +144,30 @@ export function WorkbenchStudio() {
     const selected = new Map();
     let items = [];
     try {
-      items = (await loadGenerationHistory()).filter((h) => h?.url && isWorkbenchEligible(h.studio) && h.type !== 'audio');
+      items = (await loadGenerationHistory()).filter((h) => h?.url && isWorkbenchEligible(h.studio));
     } catch { items = []; }
     grid.innerHTML = '';
     if (!items.length) {
-      grid.append(el('div', 'col-span-full text-secondary text-sm', 'No generations yet. Create something in Image, Video or another studio first.'));
+      grid.append(el('div', 'col-span-full text-secondary text-sm', 'No generations yet. Create something in any AI studio (Image, Video, Cinema, Audio…) first.'));
       return;
     }
     items.slice(0, 120).forEach((h) => {
       const cell = el('button', 'relative aspect-video rounded-xl overflow-hidden border-2 border-transparent bg-black');
       cell.type = 'button';
       cell.title = h.prompt || h.studio || '';
-      const thumb = h.type === 'video' ? el('video', 'w-full h-full object-cover') : el('img', 'w-full h-full object-cover');
-      thumb.src = h.type === 'video' ? h.url : (h.thumbnail_url || h.url);
-      if (h.type === 'video') { thumb.muted = true; thumb.preload = 'metadata'; }
-      else thumb.alt = h.prompt || 'Generation';
-      const badge = el('span', 'absolute top-1 left-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/70 text-white', h.type === 'video' ? 'VIDEO' : 'IMAGE');
+      let thumb;
+      if (h.type === 'audio') {
+        // Audio has no picture: show a music tile with its title.
+        thumb = el('div', 'w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-[#1b1530] to-[#0d1b2a] text-white/80 p-2');
+        thumb.append(el('span', 'text-2xl', '♪'), el('span', 'text-[10px] leading-tight line-clamp-2 text-center', h.prompt || h.name || 'Audio'));
+      } else if (h.type === 'video') {
+        thumb = el('video', 'w-full h-full object-cover');
+        thumb.src = h.url; thumb.muted = true; thumb.preload = 'metadata';
+      } else {
+        thumb = el('img', 'w-full h-full object-cover');
+        thumb.src = h.thumbnail_url || h.url; thumb.alt = h.prompt || 'Generation';
+      }
+      const badge = el('span', 'absolute top-1 left-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/70 text-white', (h.type || 'image').toUpperCase());
       cell.append(thumb, badge);
       cell.onclick = () => {
         if (selected.has(h.url)) { selected.delete(h.url); cell.classList.remove('border-primary'); }

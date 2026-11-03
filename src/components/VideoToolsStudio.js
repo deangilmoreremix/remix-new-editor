@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -477,6 +478,7 @@ genBtn.type = 'button';
        const result = await muapi.processVideoTool(params);
        if (result?.url) {
          lastOutputUrl = result.url;
+         registerGeneration('videotools', 'video', result.url, { prompt: params.prompt || '', model: selectedModel?.id || '' });
          resultArea.classList.remove('hidden');
          resultArea.innerHTML = `
            <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
@@ -497,6 +499,7 @@ genBtn.type = 'button';
                  videoUrl: result.url,
                  appTheme: 'video-tools-studio',
                  onComplete: (captionedUrl) => {
+                   registerGeneration('videotools', 'video', captionedUrl, { prompt: 'Captioned video', model: selectedModel?.id || '', parameters: { captions: true } });
                    const vid = resultArea.querySelector('video');
                    if (vid) vid.src = captionedUrl;
                    const dl = resultArea.querySelector('a[download]');
