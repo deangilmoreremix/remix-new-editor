@@ -2,57 +2,9 @@ import { BaseModal } from './BaseModal.jsx';
 import { searchRecipes, getRecipeById, runRecipe } from '../../lib/recipeEngine.js';
 import { muapi } from '../../lib/muapi.js';
 import { MODAL_SHORTCUTS, renderShortcutsOverlay } from './modalShortcuts.js';
+import { injectCatalogModalStyles } from './catalogModalStyles.js';
 
 const STORAGE_KEY = 'recipeHistory';
-const STYLE_ID = 'recipe-modal-styles';
-
-const RECIPE_STYLES = `
-  .recipe-split { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(300px, 1.4fr); gap: 20px; min-height: 100%; }
-  @media (max-width: 760px) { .recipe-split { grid-template-columns: 1fr; } }
-  .recipe-catalog, .recipe-detail { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-  .recipe-controls { display: flex; gap: 8px; }
-  .recipe-controls input, .recipe-controls select {
-    flex: 1; min-width: 0; padding: 9px 12px; border-radius: 10px;
-    border: 1px solid var(--border, rgba(255,255,255,0.12)); background: rgba(255,255,255,0.05);
-    color: var(--text, #fff); font-size: 13px; outline: none;
-  }
-  .recipe-controls select { flex: 0 0 auto; }
-  .recipe-controls input:focus, .recipe-controls select:focus { border-color: var(--primary, #d9ff00); }
-  .recipe-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
-  .recipe-card {
-    padding: 12px 14px; border-radius: 12px; cursor: pointer;
-    border: 1px solid var(--border, rgba(255,255,255,0.1)); background: rgba(255,255,255,0.03);
-    transition: border-color 150ms ease, background 150ms ease;
-  }
-  .recipe-card:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); }
-  .recipe-card:focus-visible { outline: 2px solid var(--primary, #d9ff00); outline-offset: 2px; }
-  .recipe-card.selected { border-color: var(--primary, #d9ff00); background: rgba(217,255,0,0.08); }
-  .recipe-name, .detail-title { font-weight: 700; font-size: 14px; color: var(--text, #fff); }
-  .detail-title { font-size: 18px; }
-  .recipe-desc, .detail-desc { font-size: 12px; color: var(--muted, #9ca3af); margin-top: 4px; line-height: 1.45; }
-  .recipe-meta { font-size: 11px; color: var(--dim, #6b7280); margin-top: 6px; text-transform: capitalize; }
-  .recipe-detail { padding: 16px; border-radius: 14px; border: 1px solid var(--border, rgba(255,255,255,0.1)); background: rgba(255,255,255,0.02); }
-  .detail-steps { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
-  .detail-steps .step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text, #fff); }
-  .step-num {
-    display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0;
-    border-radius: 999px; background: var(--primary, #d9ff00); color: var(--on-primary, #000); font-size: 11px; font-weight: 700;
-  }
-  .step-meta { margin-left: auto; font-size: 11px; color: var(--dim, #6b7280); font-family: ui-monospace, monospace; }
-  .detail-actions { display: flex; gap: 8px; }
-  .recipe-log { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-family: ui-monospace, monospace; color: var(--muted, #9ca3af); }
-  .recipe-log .log-time { color: var(--dim, #6b7280); margin-right: 8px; }
-  .recipe-result a { color: var(--primary, #d9ff00); word-break: break-all; font-size: 12px; }
-  .recipe-detail .empty-state, .recipe-list .empty-state { color: var(--muted, #9ca3af); font-size: 13px; text-align: center; padding: 24px 8px; }
-`;
-
-function injectRecipeStyles() {
-  if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return;
-  const style = document.createElement('style');
-  style.id = STYLE_ID;
-  style.textContent = RECIPE_STYLES;
-  document.head.appendChild(style);
-}
 
 function esc(value) {
   return String(value ?? '')
@@ -84,16 +36,12 @@ export class RecipeModal extends BaseModal {
     this.showShortcuts = false;
   }
 
-  // BaseModal stores the rendered DOM on `this.overlay`; the rest of this
-  // class reads `this.container`, so alias it. Without this alias _bind()
-  // bailed out early and none of the modal's controls did anything.
-  get container() {
-    return this.overlay;
+  open() {
+    injectCatalogModalStyles();
+    super.open();
   }
 
-  open() {
-    injectRecipeStyles();
-    super.open();
+  onRender() {
     this._bind();
   }
 
@@ -192,35 +140,8 @@ export class RecipeModal extends BaseModal {
     if (previousResult) this.onRunRecipe(previousResult);
   }
 
-  // Re-render only the modal body. Calling render() here would rebuild the
-  // whole overlay without its `.active` class (making it invisible) and stack
-  // duplicate document listeners.
   _refresh() {
-    const root = this.container;
-    if (!root) return;
-    const active = document.activeElement;
-    const focusKey = active && root.contains(active)
-      ? (active.hasAttribute('data-search') ? '[data-search]'
-        : active.hasAttribute('data-base-prompt') ? '[data-base-prompt]' : null)
-      : null;
-    const selStart = focusKey ? active.selectionStart : null;
-    const selEnd = focusKey ? active.selectionEnd : null;
-
-    this.setBodyContent(this.renderBody());
-    this._bind();
-    if (this.content) {
-      this.focusableElements = Array.from(
-        this.content.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
-      ).filter(el => !el.disabled);
-    }
-
-    if (focusKey) {
-      const el = root.querySelector(focusKey);
-      if (el) {
-        el.focus();
-        try { el.setSelectionRange(selStart, selEnd); } catch {}
-      }
-    }
+    this.refresh();
   }
 
   handleKeyDown(e) {
