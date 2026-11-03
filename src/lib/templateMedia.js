@@ -412,13 +412,14 @@ function nearest(options, wanted) {
  *
  * @param {Object} opts
  * @param {() => {route: string, model: string}} opts.getTarget  Current route + model.
- * @param {{duration?: any, resolution?: string}} [opts.preferred] Template defaults.
+ * @param {{duration?: any, resolution?: string, effect?: string}} [opts.preferred] Template
+ *   defaults (`effect` = the template's preset, e.g. defaultParams.name).
  * @param {boolean} [opts.offerEffects=true] Show an effect preset select for
  *   effect models (set false when the template has its own `name` input).
  * @returns {{ element: HTMLElement, refresh: () => void, getSettings: () => object }}
  */
 export function createVideoSettingsControls({ getTarget, preferred = {}, offerEffects = true } = {}) {
-  const state = { duration: preferred.duration ?? null, resolution: preferred.resolution ?? null, nativeAudio: false, effect: null };
+  const state = { duration: preferred.duration ?? null, resolution: preferred.resolution ?? null, nativeAudio: false, effect: preferred.effect ?? null };
   let current = { durations: [], resolutions: [], audio: false, video: false, effects: [] };
 
   const el = document.createElement('div');
@@ -527,4 +528,32 @@ export function createVideoSettingsControls({ getTarget, preferred = {}, offerEf
       return out;
     },
   };
+}
+
+// ── Aspect ratio ────────────────────────────────────────────────────────────
+
+function ratioValue(ar) {
+  const [w, h] = String(ar).split(':').map(Number);
+  return w > 0 && h > 0 ? w / h : null;
+}
+
+/**
+ * `aspectRatio` when the model accepts it, else the closest ratio it does
+ * accept, keeping the orientation (e.g. 4:3 → 16:9 for effect models). Unchanged when the
+ * model publishes no aspect-ratio list.
+ */
+export function snapAspectRatioForModel(route, modelId, aspectRatio) {
+  if (!aspectRatio) return aspectRatio;
+  const allowed = findRouteModel(route, modelId)?.inputs?.aspect_ratio?.enum;
+  if (!Array.isArray(allowed) || !allowed.length || allowed.includes(aspectRatio)) return aspectRatio;
+  const want = ratioValue(aspectRatio);
+  if (want == null) return allowed[0];
+  // Keep the orientation (landscape / portrait / square) when possible, then
+  // pick the closest ratio.
+  const orient = (v) => (v > 1.01 ? 1 : v < 0.99 ? -1 : 0);
+  const valued = allowed.map(ar => ({ ar, v: ratioValue(ar) })).filter(x => x.v != null);
+  const sameOrient = valued.filter(x => orient(x.v) === orient(want));
+  const pool = sameOrient.length ? sameOrient : valued;
+  if (!pool.length) return allowed[0];
+  return pool.reduce((best, x) => (Math.abs(Math.log(x.v / want)) < Math.abs(Math.log(best.v / want)) ? x : best), pool[0]).ar;
 }

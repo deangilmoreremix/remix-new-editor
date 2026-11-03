@@ -27,7 +27,7 @@ vi.mock('../../src/lib/models.js', () => ({
   i2vModels: [
     { id: 'kling-i2v', inputs: { duration: { enum: [5, 10], default: 5 }, resolution: { enum: ['720p', '1080p'], default: '1080p' } } },
     { id: 'veo-i2v', inputs: { duration: { minValue: 4, maxValue: 8, step: 2 }, native_audio: { type: 'boolean' } } },
-    { id: 'ai-video-effects', inputs: { name: { enum: ['Cakeify', 'Lego'] } } },
+    { id: 'ai-video-effects', inputs: { name: { enum: ['Cakeify', 'Lego'] }, aspect_ratio: { enum: ['16:9', '9:16', '1:1'] } } },
   ],
   t2vModels: [{ id: 'kling-t2v', inputs: { duration: { enum: ['5', '10'] }, native_audio: { type: 'boolean' } } }],
   v2vModels: [{ id: 'kling-v2v', inputs: { resolution: { enum: ['720p'] } } }],
@@ -46,6 +46,7 @@ import {
   modelsForRoute,
   createVideoSettingsControls,
   durationsForModel,
+  snapAspectRatioForModel,
 } from '../../src/lib/templateMedia.js';
 
 describe('templateMedia: createTemplateMediaField', () => {
@@ -208,6 +209,10 @@ describe('templateMedia: video settings follow the model', () => {
     const withFx = createVideoSettingsControls({ getTarget: () => target });
     withFx.refresh();
     expect(withFx.getSettings()).toEqual({ name: 'Cakeify' });
+    // A template's own preset (defaultParams.name) is kept, not replaced.
+    const preset = createVideoSettingsControls({ getTarget: () => target, preferred: { effect: 'Lego' } });
+    preset.refresh();
+    expect(preset.getSettings()).toEqual({ name: 'Lego' });
     const withoutFx = createVideoSettingsControls({ getTarget: () => target, offerEffects: false });
     withoutFx.refresh();
     expect(withoutFx.getSettings()).toEqual({});
@@ -225,5 +230,16 @@ describe('templateMedia: video settings follow the model', () => {
     expect(durationsForModel({ inputs: { duration: { enum: ['5', '10'] } } })).toEqual([5, 10]);
     expect(durationsForModel({ inputs: { duration: { minValue: 2, maxValue: 6, step: 2 } } })).toEqual([2, 4, 6]);
     expect(durationsForModel({})).toEqual([]);
+  });
+});
+
+describe('templateMedia: aspect ratio snapping', () => {
+  it('keeps supported ratios and snaps others to the closest one with the same orientation', () => {
+    expect(snapAspectRatioForModel('i2v', 'ai-video-effects', '9:16')).toBe('9:16');
+    expect(snapAspectRatioForModel('i2v', 'ai-video-effects', '4:3')).toBe('16:9');
+    expect(snapAspectRatioForModel('i2v', 'ai-video-effects', '3:4')).toBe('9:16');
+    expect(snapAspectRatioForModel('i2v', 'ai-video-effects', '21:9')).toBe('16:9');
+    expect(snapAspectRatioForModel('i2v', 'kling-i2v', '4:3')).toBe('4:3');
+    expect(snapAspectRatioForModel('i2v', 'ai-video-effects', undefined)).toBeUndefined();
   });
 });

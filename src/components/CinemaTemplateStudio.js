@@ -11,7 +11,7 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel } from '../lib/templateMedia.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -1847,7 +1847,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           const { route, model } = currentMediaRoute();
           return { route, model };
         },
-        preferred: { duration: currentInputs.duration || normalizeDuration(currentTemplate) },
+        preferred: { duration: currentInputs.duration || normalizeDuration(currentTemplate), effect: currentTemplate.defaultParams?.name },
         offerEffects: !getTemplateMediaInputs().some(i => i && i.name === 'name'),
       });
       modelWrapper.appendChild(videoSettings.element);
@@ -2558,6 +2558,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     // Per-model duration / resolution / native audio (only values the
     // selected model accepts) override the generic 5/10s clamp above.
     if (isVideo && videoSettings) Object.assign(params, videoSettings.getSettings());
+    if (params.aspect_ratio) params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
 
      if (negativePrompt) {
       params.negative_prompt = negativePrompt;

@@ -13,7 +13,7 @@ import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel } from '../lib/templateMedia.js';
 import { navigate } from '../lib/router.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
@@ -651,6 +651,8 @@ export function TemplateStudio(templateId) {
         preferred: {
           duration: templateVideoPrefs.duration ?? normalizeDuration(template),
           resolution: templateVideoPrefs.resolution,
+          // Templates that ship an effect preset start on it.
+          effect: template.defaultParams?.name,
         },
         // Templates with their own effect select keep using it.
         offerEffects: !allInputs.some(i => i && i.name === 'name'),
@@ -1171,6 +1173,8 @@ export function TemplateStudio(templateId) {
     params.model = routedModel;
     applyTemplateMediaToParams(params, media, route);
     if (videoSettings) Object.assign(params, videoSettings.getSettings());
+    params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
+    if (!params.aspect_ratio) delete params.aspect_ratio;
 
     // Client-side validation before muapi call
     let validationError = null;
@@ -1233,6 +1237,8 @@ export function TemplateStudio(templateId) {
       params.model = routedModel;
       applyTemplateMediaToParams(params, media, route);
       if (videoSettings) Object.assign(params, videoSettings.getSettings());
+      params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
+      if (!params.aspect_ratio) delete params.aspect_ratio;
       const rawPrompt = params._rawPrompt;
       delete params._rawPrompt;
 
