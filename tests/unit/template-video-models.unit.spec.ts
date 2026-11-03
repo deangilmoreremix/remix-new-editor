@@ -59,3 +59,26 @@ describe('template default models skip effect / tool models', () => {
     expect(resolveModel({ modelType: 'i2v' }, undefined, lists)).toBe('kling-v2.6-pro-i2v');
   });
 });
+
+describe('video templates only use models from the video model dropdown', () => {
+  it('defaults, media-switch fallbacks, every video-route model and Extend are dropdown models', async () => {
+    const fam = await import('../../src/lib/modelFamilies.js');
+    const media = await import('../../src/lib/templateMedia.js');
+    const models = await import('../../src/lib/models.js');
+    const { resolveModel } = await import('../../src/lib/templateGenerationOrchestrator.js');
+    await media.whenModelFamiliesReady();
+    const inDropdown = (id) => fam.videoModelPickerEntryByVariantId.has(id);
+    const lists = { i2i: models.i2iModels, t2i: models.t2iModels, i2v: models.i2vModels, t2v: models.t2vModels, v2v: models.v2vModels };
+
+    ['t2v', 'i2v', 'v2v'].forEach(r => expect(inDropdown(media.defaultModelForRoute(r)), r).toBe(true));
+    expect(inDropdown('seedance-v2.0-extend')).toBe(true);
+    const outside = [...models.t2vModels, ...models.i2vModels, ...models.v2vModels].filter(m => !inDropdown(m.id)).map(m => m.id);
+    expect(outside).toEqual([]);
+
+    const videoTemplates = [...allTemplates, ...CINEMATIC_TEMPLATES].filter(t => t.outputType === 'video');
+    const notDropdown = videoTemplates
+      .map(t => [t.id, resolveModel(normalizeTemplate(t), undefined, lists)])
+      .filter(([, m]) => !inDropdown(m));
+    expect(notDropdown).toEqual([]);
+  });
+});

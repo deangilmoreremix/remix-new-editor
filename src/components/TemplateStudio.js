@@ -25,6 +25,7 @@ import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { composeTemplatePrompt, defaultCreativeTiles, detectTemplateNiche } from '../lib/templatePromptComposer.js';
 import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
+import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend } from '../lib/templateResultTools.js';
 import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
@@ -80,7 +81,7 @@ export function TemplateStudio(templateId) {
   let pickedMode = null;
   // Duration / resolution / native-audio controls (video templates).
   let videoSettings = null;
-  // Video Studio prompt-bar tools (AI Pick, ratio, Advanced, Motion & Style,
+  // Video Studio prompt-bar tools (ratio, Advanced, Motion & Style,
   // attachment toolbar).
   let videoTools = null;
   // Media fields by kind, so attachments from the prompt toolbar land in them.
@@ -735,15 +736,6 @@ export function TemplateStudio(templateId) {
         const { route, model, media } = currentMediaRoute();
         return { route, model, imageUrl: media.imageUrl };
       },
-      onModelPicked: (id) => {
-        selectedModel = id;
-        const mode = ['t2v', 'i2v', 'v2v', 't2i', 'i2i'].find(r => modelsForRoute(r).some(m => m && m.id === id));
-        pickedMode = mode || pickedMode;
-        if (pickedMode) routeModelPicks[pickedMode] = id;
-        refreshMediaRoute();
-        updateTrigger();
-        if (videoSettings) videoSettings.refresh();
-      },
       onAttach: (key, url) => attachFromToolbar(key, url),
     });
     modelWrapper.appendChild(videoTools.element);
@@ -1028,6 +1020,20 @@ export function TemplateStudio(templateId) {
     </div>
   `;
   rightPanel.appendChild(previewSection);
+
+  // History strip (Video Studio): past generations, click to view again.
+  const resultHistory = createResultHistory({
+    storageKey: 'template_studio_history',
+    onSelect: (entry) => showResult(entry.url, entry),
+  });
+  rightPanel.appendChild(resultHistory.element);
+  // Regenerate / Extend for the result shown (Video Studio).
+  const resultActions = createResultActions({
+    onRegenerate: () => genBtn.click(),
+    onExtend: (entry, opts) => extendResult(entry, opts),
+  });
+  let currentResultEntry = null;
+  let lastRequestId = null;
 
   // Output tabs section
   const outputTabs = ['Enhanced Prompt', 'Scene Beats', 'Voiceover', 'Negative Prompt'];
@@ -1363,7 +1369,8 @@ export function TemplateStudio(templateId) {
       cancelHandle.showCancel();
       params.signal = cancelHandle.controller.signal;
       pendingJob = createPendingJobTracker('template-studio', { prompt: params.prompt || '', model: params.model, templateId: template.id, outputType: isVideoRun ? 'video' : 'image' });
-      params.onRequestId = pendingJob.onRequestId;
+      lastRequestId = null;
+      params.onRequestId = (rid) => { lastRequestId = rid; pendingJob.onRequestId(rid); };
       progressHandle = startGenerationProgress({ parent: errorContainer, type: isVideoRun ? 'video' : 'image' });
 
       // Same MuAPI calls the Video Studio makes for each route.
@@ -1381,7 +1388,16 @@ export function TemplateStudio(templateId) {
       }
 
       if (result && result.url) {
-        showResult(result.url);
+        const entry = {
+          id: result.id || result.request_id || lastRequestId || null,
+          url: result.url,
+          prompt: params.prompt || template.name,
+          model: params.model || selectedModel,
+          type: isVideoRun ? 'video' : 'image',
+          templateId: template.id,
+        };
+        resultHistory.add(entry);
+        showResult(result.url, entry);
         saveToHistory(result.url, params.prompt || template.name, params.model || selectedModel, template.outputType || 'video');
         retryCount = 0; // Reset on success
         updateApiKeyIndicator();
@@ -1476,12 +1492,15 @@ export function TemplateStudio(templateId) {
     return finalPrompt;
   }
 
-  function showResult(url) {
+  function showResult(url, entry) {
     lastGeneratedUrl = url;
+    currentResultEntry = entry || resultHistory.find(url) || { url, type: template.outputType === 'video' ? 'video' : 'image', templateId: template.id };
+    resultHistory.setActive(url);
+    const isVideoResult = currentResultEntry.type !== 'image';
     const previewArea = document.getElementById('previewArea');
     if (previewArea) {
       const safeUrl = sanitizeUrl(url);
-      if (template.outputType === 'video') {
+      if (isVideoResult) {
         previewArea.innerHTML = `<video src="${safeUrl}" controls autoplay loop class="w-full h-full object-contain rounded-xl"></video>`;
       } else {
         previewArea.innerHTML = `<img src="${safeUrl}" alt="Generated result" class="w-full h-full object-contain rounded-xl" />`;
@@ -1494,7 +1513,7 @@ export function TemplateStudio(templateId) {
       <div class="rounded-[28px] border border-white/10 bg-white/[0.03] p-5">
         <h3 class="text-lg font-bold text-white mb-4">Generated Result</h3>
         <div class="rounded-[20px] border border-white/10 bg-black/40 p-4">
-          ${template.outputType === 'video'
+          ${isVideoResult
             ? `<video src="${safeUrl}" controls autoplay loop class="w-full rounded-xl"></video>`
             : `<img src="${safeUrl}" alt="Generated result" class="w-full rounded-xl" />`
           }
@@ -1502,10 +1521,18 @@ export function TemplateStudio(templateId) {
         <div class="flex gap-3 mt-4">
           <a href="${sanitizeUrl(url)}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
           <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
-          <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">Generate Again</button>
+          <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">↻ Regenerate</button>
         </div>
       </div>
     `;
+
+    // Frame scrubber + Extend (Video Studio) under the result.
+    const resultVideo = resultArea.querySelector('video');
+    if (resultVideo) resultVideo.closest('div').appendChild(createFrameScrubber(resultVideo));
+    resultActions.setEntry(currentResultEntry);
+    // "Regenerate" already sits next to Download; this row adds Extend.
+    resultActions.element.querySelector('[data-action="regenerate"]').classList.add('hidden');
+    resultArea.firstElementChild.appendChild(resultActions.element);
 
     setTimeout(() => {
       const againBtn = document.getElementById('generateAgainBtn');
@@ -1518,6 +1545,31 @@ export function TemplateStudio(templateId) {
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
       }
     }, 0);
+  }
+
+  /**
+   * Extend a Seedance 2.0 result (Video Studio "Extend"): runs the
+   * seedance-v2.0-extend model from the video model catalog with the
+   * original request id.
+   */
+  async function extendResult(entry, { prompt, duration }) {
+    if (!canExtend(entry)) throw new Error('Only Seedance 2.0 videos can be extended.');
+    const params = buildExtendParams(entry, { prompt, duration });
+    let rid = null;
+    params.onRequestId = (id) => { rid = id; };
+    const result = await muapi.generateVideo(params);
+    if (!result || !result.url) throw new Error('No output URL returned');
+    const next = {
+      id: result.id || result.request_id || rid || null,
+      url: result.url,
+      prompt: params.prompt || entry.prompt || template.name,
+      model: params.model,
+      type: 'video',
+      templateId: template.id,
+    };
+    resultHistory.add(next);
+    showResult(result.url, next);
+    saveToHistory(result.url, next.prompt, params.model, 'video');
   }
 
   function saveToHistory(url, prompt, model, type) {
@@ -1542,7 +1594,9 @@ export function TemplateStudio(templateId) {
       onResult: (url, job) => {
         const meta = job?.historyMeta || {};
         saveToHistory(url, meta.prompt || template.name, meta.model || selectedModel, meta.outputType || template.outputType || 'video');
-        if (meta.templateId === template.id) showResult(url);
+        const entry = { id: job?.requestId || null, url, prompt: meta.prompt || '', model: meta.model || '', type: meta.outputType === 'image' ? 'image' : 'video', templateId: meta.templateId || '' };
+        resultHistory.add(entry);
+        if (meta.templateId === template.id) showResult(url, entry);
       },
     });
   } catch { /* storage unavailable */ }

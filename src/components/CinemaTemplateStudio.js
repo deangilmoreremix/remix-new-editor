@@ -46,6 +46,7 @@ import { resolveModel, normalizeAspectRatio, normalizeDuration, attachThumbnail,
 import { saveGeneration } from '../lib/generationHistory.js';
 import { appendMissingInputs, templateInputEntries, detectTemplateNiche } from '../lib/templatePromptComposer.js';
 import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
+import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend } from '../lib/templateResultTools.js';
 import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 
@@ -114,9 +115,21 @@ export function CinemaTemplateStudio() {
   let tileEdited = {};
   // Duration / resolution / native-audio controls (video templates).
   let videoSettings = null;
-  // Video Studio prompt-bar tools (AI Pick, ratio, Advanced, Motion & Style,
+  // Video Studio prompt-bar tools (ratio, Advanced, Motion & Style,
   // attachment toolbar) — rebuilt with the create view.
   let videoTools = null;
+  // After-generation tools (Video Studio): history strip, Regenerate, Extend.
+  let currentResultEntry = null;
+  let lastRequestId = null;
+  const resultHistory = createResultHistory({
+    storageKey: 'cinema_template_history',
+    onSelect: (entry) => {
+      generationResult = entry.url;
+      currentResultEntry = entry;
+      view = 'preview';
+      render();
+    },
+  });
   // Media fields by kind (create view), for prompt-toolbar attachments.
   const mediaFields = { image: [], frame: [], video: [] };
   let lastModelType = null;
@@ -160,6 +173,7 @@ export function CinemaTemplateStudio() {
       onResult: (url, job) => {
         const meta = job?.historyMeta || {};
         saveToHistory(url, meta.prompt || '', meta.model || '', meta.templateId || '');
+        resultHistory.add({ id: job?.requestId || null, url, prompt: meta.prompt || '', model: meta.model || '', type: 'video', templateId: meta.templateId || '' });
         showToast('Recovered a generation that finished while you were away', 'success');
       },
     });
@@ -718,6 +732,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     grid.appendChild(outputPanel);
 
     renderOutputTabs(outputPanel);
+    outputPanel.appendChild(resultHistory.element);
     updateOutputContent();
 
     container.appendChild(content);
@@ -1949,15 +1964,6 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         const { route, model, media } = currentMediaRoute();
         return { route, model, imageUrl: media.imageUrl };
       },
-      onModelPicked: (id) => {
-        selectedModel = id;
-        const mode = ['t2v', 'i2v', 'v2v', 't2i', 'i2i'].find(r => modelsForRoute(r).some(m => m && m.id === id));
-        pickedMode = mode || pickedMode;
-        if (pickedMode) routeModelPicks[pickedMode] = id;
-        refreshMediaRoute();
-        updateTrigger();
-        if (videoSettings) videoSettings.refresh();
-      },
       onAttach: (key, url) => attachFromToolbar(key, url),
     });
     modelWrapper.appendChild(videoTools.element);
@@ -2813,7 +2819,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         progressHandle = startGenerationProgress({ parent: genBtn.parentElement, type: isVideo ? 'video' : 'image' });
       }
       pendingJob = createPendingJobTracker('cinema-template', { prompt: params.prompt || '', model: params.model, templateId: currentTemplate.id });
-      params.onRequestId = pendingJob.onRequestId;
+      lastRequestId = null;
+      params.onRequestId = (rid) => { lastRequestId = rid; pendingJob.onRequestId(rid); };
 
       // Same MuAPI calls the Video Studio makes for each route.
       if (isV2V && params.video_url) {
@@ -2840,6 +2847,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           console.warn('[CinemaTemplateStudio] Failed to store generation result in sessionStorage:', error);
         }
         saveToHistory(result.url, params.prompt, params.model, currentTemplate.id);
+        currentResultEntry = {
+          id: result.id || result.request_id || lastRequestId || null,
+          url: result.url,
+          prompt: params.prompt || '',
+          model: params.model,
+          type: isVideo ? 'video' : 'image',
+          templateId: currentTemplate.id,
+        };
+        resultHistory.add(currentResultEntry);
         retryCount = 0;
         view = 'preview';
         render();
@@ -2995,8 +3011,71 @@ const firstChild = storyboardRoot.firstElementChild;
     actions.appendChild(publishBtn);
 
     preview.appendChild(resultMedia);
+    // Frame scrubber (Video Studio).
+    if (isVideoOutput) {
+      const scrubberWrap = document.createElement('div');
+      scrubberWrap.className = 'w-full max-w-3xl';
+      scrubberWrap.appendChild(createFrameScrubber(resultMedia));
+      preview.appendChild(scrubberWrap);
+    }
     preview.appendChild(actions);
+
+    // Regenerate / Extend (Video Studio) — same model as the last run.
+    const entry = (currentResultEntry && currentResultEntry.url === generationResult)
+      ? currentResultEntry
+      : (resultHistory.find(generationResult) || { url: generationResult, type: isVideoOutput ? 'video' : 'image' });
+    const resultActions = createResultActions({
+      onRegenerate: () => {
+        if (lastGenerationParams) {
+          runGeneration(lastGenerationParams);
+        } else {
+          view = 'create';
+          render();
+          container.querySelector('#generate-btn')?.click();
+        }
+      },
+      onExtend: (e, opts) => extendResult(e, opts),
+    });
+    resultActions.setEntry(entry);
+    const actionsWrap = document.createElement('div');
+    actionsWrap.className = 'w-full max-w-3xl';
+    actionsWrap.appendChild(resultActions.element);
+    preview.appendChild(actionsWrap);
+
+    // History strip.
+    const historyWrap = document.createElement('div');
+    historyWrap.className = 'w-full max-w-3xl';
+    resultHistory.setActive(generationResult);
+    historyWrap.appendChild(resultHistory.element);
+    preview.appendChild(historyWrap);
     container.appendChild(preview);
+  }
+
+  /**
+   * Extend a Seedance 2.0 result (Video Studio "Extend"): runs the
+   * seedance-v2.0-extend model from the video model catalog with the
+   * original request id.
+   */
+  async function extendResult(entry, { prompt, duration }) {
+    if (!canExtend(entry)) throw new Error('Only Seedance 2.0 videos can be extended.');
+    const params = buildExtendParams(entry, { prompt, duration });
+    let rid = null;
+    params.onRequestId = (id) => { rid = id; };
+    const result = await muapi.generateVideo(params);
+    if (!result || !result.url) throw new Error('No output URL returned');
+    generationResult = result.url;
+    currentResultEntry = {
+      id: result.id || result.request_id || rid || null,
+      url: result.url,
+      prompt: params.prompt || entry.prompt || '',
+      model: params.model,
+      type: 'video',
+      templateId: entry.templateId || currentTemplate?.id || '',
+    };
+    resultHistory.add(currentResultEntry);
+    saveToHistory(result.url, currentResultEntry.prompt, params.model, currentResultEntry.templateId);
+    view = 'preview';
+    render();
   }
 
   return container;

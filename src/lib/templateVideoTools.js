@@ -6,7 +6,6 @@
  *
  *   - Attachment toolbar on the prompt (start / end frame, image, video)
  *     → createAttachmentToolbar + uploadMediaFile
- *   - AI Pick (intelligent model picker) → openModelPicker
  *   - Aspect ratio limited to the selected model (when the template has no
  *     aspect-ratio field of its own)
  *   - Advanced panel: Character Lock + per-model controls (negative prompt,
@@ -50,7 +49,6 @@ export function motionStyleModifiers({ style = 'None', cameraSpeed = DEFAULT_CAM
  * @param {string} opts.studioName
  * @param {'video'|'image'} [opts.kind='video']
  * @param {() => {route: string, model: string, imageUrl?: string}} opts.getTarget
- * @param {(modelId: string) => void} opts.onModelPicked   AI Pick result.
  * @param {(key: 'startFrame'|'endFrame'|'image'|'video', url: string) => void} opts.onAttach
  * @param {boolean} [opts.hasOwnAspectRatio=false]  Template already has an aspect-ratio field.
  * @param {string} [opts.defaultAspectRatio]
@@ -59,7 +57,6 @@ export function createTemplateVideoTools({
   studioName = 'Template Studio',
   kind = 'video',
   getTarget,
-  onModelPicked,
   onAttach,
   hasOwnAspectRatio = false,
   defaultAspectRatio = '',
@@ -83,28 +80,6 @@ export function createTemplateVideoTools({
   const row = document.createElement('div');
   row.className = 'flex flex-wrap items-center gap-2';
   root.appendChild(row);
-
-  // AI Pick
-  const aiPick = document.createElement('button');
-  aiPick.type = 'button';
-  aiPick.textContent = 'AI Pick';
-  aiPick.title = 'Open intelligent model picker';
-  aiPick.setAttribute('aria-label', 'Open model picker');
-  aiPick.dataset.tool = 'ai-pick';
-  aiPick.className = chipClass;
-  aiPick.onclick = async (e) => {
-    e.stopPropagation();
-    try {
-      const { openModelPicker } = await import('./modelPickerIntegration.js');
-      await openModelPicker({
-        currentModelId: getTarget?.().model,
-        onSelectModel: (id) => { onModelPicked?.(id); refresh(); },
-      });
-    } catch (err) {
-      console.warn(`[${studioName}] AI Pick unavailable:`, err);
-    }
-  };
-  row.appendChild(aiPick);
 
   // Aspect ratio (model-aware) — only when the template has none of its own.
   const arWrap = document.createElement('label');

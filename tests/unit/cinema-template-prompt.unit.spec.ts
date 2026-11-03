@@ -261,7 +261,7 @@ describe('Cinema Template Studio: every input reaches the generation prompt', ()
     await wait(150);
 
     // Same tools as the Video Studio prompt bar.
-    expect(container.querySelector('[data-tool="ai-pick"]')).not.toBeNull();
+    expect(container.querySelector('[data-tool="ai-pick"]')).toBeNull();
     expect(container.querySelector('[data-tool="advanced"]')).not.toBeNull();
     expect(container.querySelector('[data-tool="motion-style"]')).not.toBeNull();
     expect(container.querySelector('.template-video-settings')).not.toBeNull();
@@ -280,6 +280,17 @@ describe('Cinema Template Studio: every input reaches the generation prompt', ()
     expect(params.last_image_url).toBe('https://cdn.test/e.png');
     expect(params.signal).toBeDefined();
     expect(typeof params.onRequestId).toBe('function');
+
+    // After-generation tools (Video Studio): scrubber, Regenerate, history.
+    await wait(100);
+    expect(container.querySelector('.template-frame-scrubber')).not.toBeNull();
+    expect(container.querySelector('[data-result-history] [data-history-url]')).not.toBeNull();
+    const calls = muapi.generateI2V.mock.calls.length;
+    container.querySelector('[data-action="regenerate"]').click();
+    await wait(150);
+    expect(muapi.generateI2V.mock.calls.length).toBe(calls + 1);
+    // Regenerate keeps the model chosen in the video model dropdown.
+    expect(muapi.generateI2V.mock.calls.at(-1)[0].model).toBe(params.model);
     el.remove();
   });
 });

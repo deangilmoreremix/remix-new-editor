@@ -26,11 +26,6 @@ vi.mock('../../src/lib/studioControls.js', () => ({
   }),
 }));
 
-const picker = vi.hoisted(() => ({ onSelect: null as any }));
-vi.mock('../../src/lib/modelPickerIntegration.js', () => ({
-  openModelPicker: vi.fn(async ({ onSelectModel }) => { picker.onSelect = onSelectModel; }),
-}));
-
 import { createTemplateVideoTools, motionStyleModifiers } from '../../src/lib/templateVideoTools.js';
 
 const flush = () => new Promise(r => setTimeout(r, 0));
@@ -51,11 +46,11 @@ describe('createTemplateVideoTools', () => {
     charRef.saved = null;
   });
 
-  it('renders the Video Studio tools: AI Pick, Ratio, Advanced, Motion & Style', () => {
+  it('renders the Video Studio tools: Ratio, Advanced, Motion & Style (no AI Pick)', () => {
     const t = createTemplateVideoTools({ getTarget: () => target });
     t.refresh();
     const el = t.element;
-    expect(el.querySelector('[data-tool="ai-pick"]')).not.toBeNull();
+    expect(el.querySelector('[data-tool="ai-pick"]')).toBeNull();
     expect(el.querySelector('[data-tool="advanced"]')).not.toBeNull();
     expect(el.querySelector('[data-tool="motion-style"]')).not.toBeNull();
     const ratios = Array.from(el.querySelectorAll('select[name="template-aspect-ratio"] option')).map(o => (o as HTMLOptionElement).value);
@@ -137,12 +132,4 @@ describe('createTemplateVideoTools', () => {
     expect(p2.guidance_scale).toBeUndefined();
   });
 
-  it('AI Pick hands the chosen model back to the studio', async () => {
-    const picked = vi.fn();
-    const t = createTemplateVideoTools({ getTarget: () => target, onModelPicked: picked });
-    (t.element.querySelector('[data-tool="ai-pick"]') as HTMLButtonElement).click();
-    await flush(); await flush();
-    picker.onSelect('char-i2v');
-    expect(picked).toHaveBeenCalledWith('char-i2v');
-  });
 });
