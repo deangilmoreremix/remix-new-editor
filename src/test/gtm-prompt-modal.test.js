@@ -16,7 +16,7 @@ vi.mock('../lib/gtmResponses.js', async (importOriginal) => {
     generateGTMPrompt: vi.fn(),
     refineGTMPrompt: vi.fn(),
     generateGTMVariants: vi.fn(),
-    gtmStructuredToText: (p) => (p ? `HOOK: ${p.hook || ''}` : ''),
+    gtmStructuredToText: (p) => (p ? (p.finalPrompt || `HOOK: ${p.hook || ''}`) : ''),
   };
   return {
     ...actual,
@@ -97,8 +97,34 @@ describe('GTMPromptModal', () => {
 
   it('stores and renders footer content (Generate button fix)', () => {
     const modal = new GTMPromptModal();
-    expect(modal.footerContent).toContain('Generate Cinematic Prompt');
-    expect(modal.renderFooter()).toContain('Generate Cinematic Prompt');
+    expect(modal.footerContent).toContain('data-action="generate"');
+    expect(modal.renderFooter()).toContain('Boost Video prompt');
+  });
+
+  it('labels the modal and the generate button for the studio that opened it', () => {
+    const image = new GTMPromptModal({ appTheme: 'image-studio' });
+    expect(image.title).toBe('🎯 GTM Boost · Image Studio');
+    expect(image.renderFooter()).toContain('Boost Image prompt');
+    expect(image.renderBody()).toContain('Image idea');
+
+    const avatar = new GTMPromptModal({ appTheme: 'avatar-studio' });
+    expect(avatar.renderFooter()).toContain('Boost Avatar script');
+    expect(avatar.renderBody()).toContain('What should the presenter say?');
+
+    const audio = new GTMPromptModal({ appTheme: 'audio-studio' });
+    expect(audio.renderFooter()).toContain('Boost Audio brief');
+  });
+
+  it('pre-fills the idea box from the studio prompt', () => {
+    const modal = new GTMPromptModal({ appTheme: 'image-studio', basePrompt: '  neon sneaker ad  ' });
+    expect(modal.basePrompt).toBe('neon sneaker ad');
+    expect(modal.renderBody()).toContain('neon sneaker ad');
+  });
+
+  it('uses the template output type to pick the profile in template studios', () => {
+    const modal = new GTMPromptModal({ appTheme: 'template-studio', templateContext: { outputType: 'image' } });
+    expect(modal.profile.kind).toBe('image');
+    expect(modal._gtmParams().outputType).toBe('image');
   });
 
   it('shows inline error when base prompt is empty (no freeze)', async () => {
@@ -106,23 +132,26 @@ describe('GTMPromptModal', () => {
     modal.overlay = fakeOverlay;
     const refreshSpy = vi.spyOn(modal, 'refreshBody').mockImplementation(() => {});
     await modal.handleGenerate();
-    expect(modal.errorMessage).toBe('Please describe your video idea first.');
+    expect(modal.errorMessage).toBe('Add your video prompt idea first.');
     expect(modal.isGenerating).toBe(false);
     refreshSpy.mockRestore();
   });
 
-  it('falls back to local library when supabase is unconfigured (no freeze)', async () => {
+  it('falls back to a studio-shaped local prompt when the AI call fails (no freeze)', async () => {
     vi.mocked(isSupabaseConfigured).mockReturnValue(false);
-    const spy = vi.spyOn(gtmContentLibrary, 'generateOptimizedPrompt').mockReturnValue('local fallback prompt');
-    const modal = new GTMPromptModal();
+    vi.mocked(gtmResponses.streamGTMPrompt).mockRejectedValueOnce(new Error('network down'));
+    const modal = new GTMPromptModal({ appTheme: 'image-studio' });
     modal.overlay = fakeOverlay;
     modal.basePrompt = 'a chef';
     const refreshSpy = vi.spyOn(modal, 'refreshBody').mockImplementation(() => {});
     await modal.handleGenerate();
-    expect(modal.generatedPrompt).toBe('local fallback prompt');
+    expect(modal.generatedPrompt.startsWith('a chef.')).toBe(true);
+    // Image fallback must read like a still-image prompt, never a video outline.
+    expect(modal.generatedPrompt).not.toMatch(/storybeat|camera move|dolly|audio/i);
+    expect(modal.isLocalResult).toBe(true);
+    expect(modal.errorMessage).toContain('network down');
     expect(modal.isGenerating).toBe(false);
     refreshSpy.mockRestore();
-    spy.mockRestore();
   });
 
   it('includes error banner in body when errorMessage is set', () => {
@@ -167,7 +196,7 @@ describe('GTMPromptModal', () => {
     const modalYes = new GTMPromptModal({ onGenerateThumbnail: vi.fn() });
     modalYes.generatedPrompt = 'a cinematic shot of a chef plating';
     expect(modalYes.renderBody()).toContain('generate-thumbnail');
-    expect(modalYes.renderBody()).toContain('🎨 Generate Thumbnail');
+    expect(modalYes.renderBody()).toContain('🎨 Make Thumbnail');
   });
 
   it('handleGenerateThumbnail is a no-op without a callback', async () => {
@@ -183,7 +212,7 @@ describe('GTMPromptModal', () => {
     });
     modal.generatedPrompt = 'test prompt';
     vi.spyOn(GTMPromptModal.prototype, 'refreshBody').mockImplementation(() => {
-      fakeOverlay._body.innerHTML = '<button data-action="generate-thumbnail">🎨 Generate Thumbnail</button>';
+      fakeOverlay._body.innerHTML = '<button data-action="generate-thumbnail">🎨 Make Thumbnail</button>';
     });
     modal.overlay = fakeOverlay;
     await modal.handleGenerateThumbnail();
@@ -226,7 +255,10 @@ describe('GTM Responses API features', () => {
     await modal.handleGenerate();
 
     expect(gtmResponses.streamGTMPrompt).toHaveBeenCalledTimes(1);
-    expect(modal.generatedStructured).toEqual(structured);
+    // Legacy (video-outline) results are normalized into the studio shape.
+    expect(modal.generatedStructured.cta).toBe('Sign up now');
+    expect(modal.generatedStructured.sections.map((x) => x.label)).toContain('Hook');
+    expect(modal.generatedPrompt).toContain('A bold opening');
     expect(modal.usage).toEqual({ inputTokens: 10, outputTokens: 20 });
     expect(modal.responseId).toBe('resp_1');
     expect(modal.isGenerating).toBe(false);
@@ -254,25 +286,44 @@ describe('GTM Responses API features', () => {
     // Because the stream delivered a complete structured object, step should be 4 (done).
     expect(modal.generationStep).toBe(4);
     expect(modal.renderGenerationProgress()).toContain('progress-step done');
-    expect(modal.renderGenerationProgress()).toContain('Finalizing cinematic prompt');
+    expect(modal.renderGenerationProgress()).toContain('Finalizing');
   });
 
-  it('handleGenerate falls back to local library when streaming throws', async () => {
-    gtmResponses.streamGTMPrompt.mockRejectedValue(new Error('no key'));
-    vi.mocked(isSupabaseConfigured).mockReturnValue(false);
-    const spy = vi.spyOn(gtmContentLibrary, 'generateOptimizedPrompt').mockReturnValue('local fallback prompt');
-
-    const modal = new GTMPromptModal();
+  it('applies the ready-to-use finalPrompt, not the breakdown', async () => {
+    const structured = {
+      finalPrompt: 'Hero shot of a ceramic mug on travertine, morning side light',
+      angle: 'Quiet luxury for remote workers',
+      sections: [{ label: 'Concept', content: 'Calm morning ritual' }],
+      cta: 'Shop the mug',
+      estimatedDurationSec: 0,
+    };
+    gtmResponses.streamGTMPrompt.mockResolvedValue({ prompt: structured, responseId: 'resp_9', usage: null });
+    const modal = new GTMPromptModal({ appTheme: 'image-studio' });
     modal.overlay = fakeOverlay;
-    modal.basePrompt = 'a chef';
-    const refreshSpy = vi.spyOn(modal, 'refreshBody').mockImplementation(() => {});
-
+    modal.basePrompt = 'mug';
+    vi.spyOn(modal, 'refreshBody').mockImplementation(() => {});
     await modal.handleGenerate();
+    expect(modal.generatedPrompt).toBe(structured.finalPrompt);
+    expect(gtmResponses.streamGTMPrompt.mock.calls[0][0].appTheme).toBe('image-studio');
+    const html = modal.renderGeneratedPrompt();
+    expect(html).toContain('Ready to use in Image Studio');
+    expect(html).toContain('Calm morning ritual');
+  });
 
-    expect(modal.generatedPrompt).toBe('local fallback prompt');
-    expect(modal.isGenerating).toBe(false);
-    spy.mockRestore();
-    refreshSpy.mockRestore();
+  it('handleGenerate falls back to a local prompt per studio when streaming throws', async () => {
+    gtmResponses.streamGTMPrompt.mockRejectedValue(new Error('boom'));
+    vi.mocked(isSupabaseConfigured).mockReturnValue(false);
+
+    for (const theme of ['video-studio', 'image-studio', 'avatar-studio', 'audio-studio', 'storyboard-studio']) {
+      const modal = new GTMPromptModal({ appTheme: theme });
+      modal.overlay = fakeOverlay;
+      modal.basePrompt = 'a chef';
+      vi.spyOn(modal, 'refreshBody').mockImplementation(() => {});
+      await modal.handleGenerate();
+      expect(modal.generatedPrompt.length).toBeGreaterThan(10);
+      expect(modal.generatedPrompt).toContain('a chef');
+      expect(modal.isGenerating).toBe(false);
+    }
   });
 
   it('handleGenerateVariants populates variant list and selects first', async () => {
@@ -293,7 +344,7 @@ describe('GTM Responses API features', () => {
     expect(gtmResponses.generateGTMVariants).toHaveBeenCalledTimes(1);
     expect(modal.variants).toHaveLength(2);
     expect(modal.selectedVariantIndex).toBe(0);
-    expect(modal.generatedStructured).toEqual(v1);
+    expect(modal.generatedStructured.angle).toBe('v1');
     refreshSpy.mockRestore();
   });
 
@@ -312,7 +363,7 @@ describe('GTM Responses API features', () => {
 
     modal.selectVariant(1);
     expect(modal.selectedVariantIndex).toBe(1);
-    expect(modal.generatedStructured).toEqual(v2);
+    expect(modal.generatedStructured.angle).toBe('v2');
   });
 
   it('handleRefine uses previous_response_id for multi-turn', async () => {
@@ -328,8 +379,8 @@ describe('GTM Responses API features', () => {
 
     await modal.handleRefine();
 
-    expect(gtmResponses.refineGTMPrompt).toHaveBeenCalledWith('resp_1', 'make the hook bolder', expect.objectContaining({ model: expect.any(String) }));
-    expect(modal.generatedStructured).toEqual(refined);
+    expect(gtmResponses.refineGTMPrompt).toHaveBeenCalledWith('resp_1', 'make the hook bolder', expect.objectContaining({ model: expect.any(String), appTheme: 'timeline-editor' }));
+    expect(modal.generatedStructured.angle).toBe('refined');
     expect(modal.responseId).toBe('resp_2');
     refreshSpy.mockRestore();
   });
@@ -409,7 +460,6 @@ describe('GTM Responses API features', () => {
   it('handleGenerate sets missingOpenAIKey when the key is unconfigured', async () => {
     gtmResponses.streamGTMPrompt.mockRejectedValue(new Error('OpenAI API key not configured'));
     vi.mocked(isSupabaseConfigured).mockReturnValue(false);
-    const spy = vi.spyOn(gtmContentLibrary, 'generateOptimizedPrompt').mockReturnValue('fallback');
     const modal = new GTMPromptModal();
     modal.overlay = fakeOverlay;
     modal.basePrompt = 'a chef';
@@ -417,9 +467,10 @@ describe('GTM Responses API features', () => {
 
     await modal.handleGenerate();
     expect(modal.missingOpenAIKey).toBe(true);
-    expect(modal.generatedPrompt).toBe('fallback');
+    // A missing key is not an "error" — just the CTA plus the local result.
+    expect(modal.errorMessage).toBe('');
+    expect(modal.generatedPrompt).toContain('a chef');
     refreshSpy.mockRestore();
-    spy.mockRestore();
   });
 
   // --- Stop / copy / paste ---

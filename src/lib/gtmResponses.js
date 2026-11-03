@@ -10,13 +10,16 @@
  *  - Streaming (SSE token deltas) for real-time generation feedback
  *  - Multi-turn refine via previous_response_id (store: true)
  *  - Parallel variant generation (pick best)
- *  - Token usage via include: ['input_tokens','output_tokens']
+ *  - Token usage from the response `usage` object (always returned)
+ *  - Studio-aware output: every studio gets a prompt shaped for its model
+ *    (see gtmStudioProfiles.js)
  *
  * Uses the user's own OpenAI key (from apiKeyManager), consistent with the
  * rest of the app. Fails loudly when the key is missing or the request errors.
  */
 
 import { apiKeyManager } from './apiKeyManager.js';
+import { getGtmStudioProfile, GTM_STUDIO_SCHEMA, normalizeGtmResult } from './gtmStudioProfiles.js';
 
 const RESPONSES_URL = 'https://api.openai.com/v1/responses';
 
@@ -124,6 +127,8 @@ export const GTM_PROMPT_SCHEMA = {
  */
 export function gtmStructuredToText(p) {
   if (!p || typeof p !== 'object') return '';
+  // Studio-aware results carry a ready-to-paste prompt.
+  if (typeof p.finalPrompt === 'string' && p.finalPrompt.trim()) return p.finalPrompt.trim();
   const lines = [
     `🎯 HOOK: ${p.hook || ''}`,
     ``,
@@ -142,28 +147,35 @@ export function gtmStructuredToText(p) {
 import { gtmSkillsPromptForContext } from './gtmSkillsData.js';
 
 /**
- * Build the GTM system persona used for both generation and refine.
+ * Build the GTM system persona for a studio. The output contract (what the
+ * ready-to-paste `finalPrompt` must look like and which sections to return)
+ * comes from the studio profile, so Image Studio gets an image prompt, Avatar
+ * Studio a spoken script, Audio Studio a music/voice brief, and so on.
  */
-function buildInstructions() {
+export function buildInstructions(appTheme, outputType) {
+  const profile = getGtmStudioProfile(appTheme, { outputType });
   const exampleNote = [
     'You have access to a real GTM skills library (gtm-skills.com, MIT) with roles,',
     'industries, methodologies (MEDDPICC, SPIN, Challenger, Sandler, Value/Gap Selling)',
-    'and 250+ concrete sales prompt examples. The user\'s selected context (role/',
-    'industry/methodology) retrieves the most relevant real examples, injected into',
-    'the input under "REAL GTM SKILL EXAMPLES". Mirror their structure, depth, and',
-    'bracketed-variable style when shaping the cinematic prompt — they are the gold',
-    'standard for this domain.',
+    'and 250+ concrete sales prompt examples. When the input contains',
+    '"REAL GTM SKILL EXAMPLES", borrow their buyer insight and messaging angle —',
+    'never copy their format into the final prompt.',
   ].join(' ');
 
   return [
-    'You are a world-class cinematic prompt engineer for AI video generation and a senior GTM (Go-To-Market) sales enablement expert.',
-    'Given a base concept plus GTM context (role, industry, sales methodology, writing style, conversion focus, cinematic elements),',
-    'produce a single, premium, conversion-optimized cinematic video prompt.',
-    'Return it as structured sections (hook, three story beats, visual direction, audio direction, CTA, estimated duration).',
-    'Weave the GTM context into the actual wording — do not just append a label list.',
+    `You are a senior GTM (Go-To-Market) strategist and an expert prompt engineer for ${profile.studioName}, which generates ${profile.kindLabel.toLowerCase()}s.`,
+    'Turn the base idea plus GTM context (target role, industry, sales methodology, writing style, conversion goal) into a conversion-optimized result for this studio.',
+    'Weave the buyer insight into the actual wording — do not just append a list of labels.',
+    ...profile.finalPromptRules,
+    `sections: return these labelled parts in this order, each 1–2 sentences: ${profile.sections.join(', ')}.`,
+    'angle: one sentence naming the GTM angle you chose and why it converts for this audience.',
+    'cta: the single call to action.',
+    profile.hasDuration
+      ? 'estimatedDurationSec: realistic runtime in seconds.'
+      : 'estimatedDurationSec: 0 (this output is a still).',
     exampleNote,
-    'Output ONLY the structured schema. No markdown, no preamble.',
-  ].join(' ');
+    'Output ONLY the JSON schema. No markdown, no preamble.',
+  ].join('\n');
 }
 
 /**
@@ -195,23 +207,27 @@ export function buildGTMInput(params) {
     industry,
     methodology,
     tonality,
+    angle,
     focus = [],
     cinematicOptions = {},
+    appTheme,
+    outputType,
   } = params;
 
+  const profile = getGtmStudioProfile(appTheme, { outputType });
+  const enhancementLines = (profile.enhancements || [])
+    .filter((e) => cinematicOptions?.[e.key])
+    .map((e) => `- ${e.instruction}`);
+
   const ctx = [
-    `Target role: ${role}`,
-    `Industry: ${industry}`,
-    `Sales methodology: ${methodology}`,
-    `Writing style/tonality: ${tonality}`,
-    focus.length ? `Conversion focus: ${focus.join(', ')}` : null,
-    cinematicOptions?.openingHook ? 'Emphasize a strong opening hook' : null,
-    cinematicOptions?.storytellingStructure ? 'Use a clear 3-act storytelling structure' : null,
-    cinematicOptions?.visualElements ? 'Include specific cinematography, lighting and composition details' : null,
-    cinematicOptions?.audioElements ? 'Include audio direction (music, SFX, tone)' : null,
-    cinematicOptions?.pacingEditing ? 'Specify pacing, rhythm and edit style' : null,
-    cinematicOptions?.emotionalEngagement ? 'Emphasize emotional beats and audience empathy' : null,
-    cinematicOptions?.ctaIntegration ? 'End with a clear, conversion-focused CTA' : null,
+    `Studio: ${profile.studioName} (${profile.kindLabel})`,
+    role ? `Target role: ${role}` : null,
+    industry ? `Industry: ${industry}` : null,
+    methodology ? `Sales methodology: ${methodology}` : null,
+    tonality ? `Writing style/tonality: ${tonality}` : null,
+    angle ? `Content angle: ${angle}` : null,
+    focus.length ? `Conversion goal: ${focus.join(', ')}` : null,
+    enhancementLines.length ? `Must include:\n${enhancementLines.join('\n')}` : null,
   ].filter(Boolean);
 
   const skillContext = buildSkillContext({ role, industry, methodology, limit: 3 });
@@ -219,159 +235,179 @@ export function buildGTMInput(params) {
   return `GTM CONTEXT:\n${ctx.join('\n')}\n\nBASE PROMPT:\n${basePrompt}${skillContext}`;
 }
 
-/**
- * Generate a structured GTM prompt (non-streaming).
- * @returns {Promise<{prompt: object, responseId: string, usage: object}>}
- */
-export async function generateGTMPrompt(params, { signal } = {}) {
-  const key = getOpenAIKey();
+/** GPT-5-family / o-series reasoning models reject `temperature`. */
+function isReasoningModel(model) {
+  return /^(gpt-5|o\d)/i.test(String(model || ''));
+}
 
+/**
+ * Build a Responses API request body. Notes on what was wrong before:
+ *  - `include: ['input_tokens','output_tokens']` is not a valid include value
+ *    (the API 400s); usage is always returned on the response.
+ *  - `temperature` is rejected by reasoning models (every gpt-5.x option).
+ * Both made every AI call fail and silently fall back to the offline template.
+ */
+function buildRequestBody({ model, appTheme, outputType, input, previousResponseId, stream = false }) {
+  const resolved = resolveGtmModel(model);
+  const body = {
+    model: resolved,
+    instructions: buildInstructions(appTheme, outputType),
+    input,
+    store: true,
+    text: {
+      format: {
+        type: 'json_schema',
+        name: 'gtm_studio_prompt',
+        schema: GTM_STUDIO_SCHEMA,
+        strict: true,
+      },
+    },
+  };
+  if (!isReasoningModel(resolved)) body.temperature = 0.7;
+  if (previousResponseId) body.previous_response_id = previousResponseId;
+  if (stream) body.stream = true;
+  return body;
+}
+
+/**
+ * Pull the assistant text out of a Responses API payload. Reasoning models put
+ * a `reasoning` item first, so `output[0].content[0].text` is not reliable.
+ */
+function extractOutputText(json) {
+  if (typeof json?.output_text === 'string' && json.output_text) return json.output_text;
+  for (const item of json?.output || []) {
+    if (item?.type !== 'message') continue;
+    for (const part of item.content || []) {
+      if (part?.type === 'output_text' && part.text) return part.text;
+      if (part?.type === 'refusal' && part.refusal) throw new Error(`Model refused: ${part.refusal}`);
+    }
+  }
+  return '';
+}
+
+function parseStudioResult(text) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (e) {
+    throw new Error(`Failed to parse GTM prompt JSON: ${e.message}`);
+  }
+  const normalized = normalizeGtmResult(parsed);
+  if (!normalized || !normalized.finalPrompt) throw new Error('GTM response did not include a prompt');
+  return normalized;
+}
+
+async function postResponses(body, signal) {
+  const key = getOpenAIKey();
   const res = await fetch(RESPONSES_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${key}`,
+      ...(body.stream ? { Accept: 'text/event-stream' } : {}),
     },
-    body: JSON.stringify({
-      model: resolveGtmModel(params.model),
-      instructions: buildInstructions(),
-      input: buildGTMInput(params),
-      store: true,
-      temperature: 0.7,
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'gtm_cinematic_prompt',
-          schema: GTM_PROMPT_SCHEMA,
-          strict: true,
-        },
-      },
-      include: ['input_tokens', 'output_tokens'],
-    }),
+    body: JSON.stringify(body),
     signal,
   });
-
   if (!res.ok) {
     const txt = await res.text().catch(() => '');
     throw new Error(`OpenAI Responses API returned ${res.status}: ${txt.slice(0, 200)}`);
   }
-
-  const json = await res.json();
-  const text = json?.output?.[0]?.content?.[0]?.text;
-  if (!text) throw new Error('OpenAI Responses API returned no structured content');
-
-  let prompt;
-  try {
-    prompt = JSON.parse(text);
-  } catch (e) {
-    throw new Error(`Failed to parse GTM prompt JSON: ${e.message}`);
-  }
-
-  const usage = extractUsage(json);
-  return { prompt, responseId: json?.id || '', usage };
+  return res;
 }
 
 /**
- * Stream a structured GTM prompt token-by-token.
- * @param {object} params GTM selections
- * @param {function} onDelta Called with incremental text chunks (raw streamed text)
+ * Generate a studio-shaped GTM prompt (non-streaming).
+ * @param {object} params GTM selections + `appTheme`
+ * @returns {Promise<{prompt: object, responseId: string, usage: object}>}
+ */
+export async function generateGTMPrompt(params, { signal } = {}) {
+  const body = buildRequestBody({ model: params.model, appTheme: params.appTheme, outputType: params.outputType, input: buildGTMInput(params) });
+  const res = await postResponses(body, signal);
+  const json = await res.json();
+  const text = extractOutputText(json);
+  if (!text) throw new Error('OpenAI Responses API returned no structured content');
+  return { prompt: parseStudioResult(text), responseId: json?.id || '', usage: extractUsage(json) };
+}
+
+/**
+ * Stream a studio-shaped GTM prompt token-by-token.
+ * @param {object} params GTM selections + `appTheme`
+ * @param {function} onDelta Called with (chunk, fullTextSoFar)
  * @param {function} onDone  Called with { prompt, responseId, usage } when complete
  */
 export async function streamGTMPrompt(params, { onDelta, onDone, onError, signal } = {}) {
-  const key = getOpenAIKey();
-
-  const res = await fetch(`${RESPONSES_URL}?stream=true`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${key}`,
-      Accept: 'text/event-stream',
-    },
-    body: JSON.stringify({
-      model: resolveGtmModel(params.model),
-      instructions: buildInstructions(),
-      input: buildGTMInput(params),
-      store: true,
-      temperature: 0.7,
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'gtm_cinematic_prompt',
-          schema: GTM_PROMPT_SCHEMA,
-          strict: true,
-        },
-      },
-      include: ['input_tokens', 'output_tokens'],
-      stream: true,
-    }),
-    signal,
-  });
-
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`OpenAI Responses API returned ${res.status}: ${txt.slice(0, 200)}`);
-  }
+  const body = buildRequestBody({ model: params.model, appTheme: params.appTheme, outputType: params.outputType, input: buildGTMInput(params), stream: true });
+  const res = await postResponses(body, signal);
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
   let usage = null;
   let responseId = '';
+  let rawText = '';
+  let streamError = null;
 
-  const parseEvents = () => {
-    const events = [];
-    let idx;
-    while ((idx = buffer.indexOf('\n\n')) !== -1) {
-      const raw = buffer.slice(0, idx);
-      buffer = buffer.slice(idx + 2);
-      const line = raw.split('\n').find((l) => l.startsWith('data:'));
-      if (!line) continue;
-      const payload = line.slice(5).trim();
-      if (payload === '[DONE]') {
-        events.push({ done: true });
-        continue;
-      }
-      try {
-        events.push(JSON.parse(payload));
-      } catch {
-        /* ignore malformed */
-      }
+  const handleEvent = (ev) => {
+    switch (ev?.type) {
+      case 'response.created':
+      case 'response.in_progress':
+        if (ev.response?.id) responseId = ev.response.id;
+        break;
+      case 'response.output_text.delta':
+        if (typeof ev.delta === 'string' && ev.delta) {
+          rawText += ev.delta;
+          onDelta?.(ev.delta, rawText);
+        }
+        break;
+      case 'response.refusal.delta':
+        streamError = new Error('The model refused this request. Try rephrasing the idea.');
+        break;
+      case 'response.completed':
+        if (ev.response?.id) responseId = ev.response.id;
+        if (ev.response?.usage) usage = extractUsage(ev.response);
+        if (!rawText) rawText = extractOutputText(ev.response) || rawText;
+        break;
+      case 'response.failed':
+      case 'response.incomplete':
+        streamError = new Error(ev.response?.error?.message || ev.response?.incomplete_details?.reason || 'Generation did not complete');
+        break;
+      case 'error':
+        streamError = new Error(ev.message || ev.error?.message || 'Streaming error');
+        break;
+      default:
+        break;
     }
-    return events;
   };
 
-  let rawText = '';
   try {
-    while (true) {
+    for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-
-      for (const ev of parseEvents()) {
-        if (ev.done) continue;
-        if (ev.id) responseId = ev.id;
-        if (ev.response?.usage) usage = extractUsage(ev.response);
-        const delta = ev?.delta?.text || ev?.delta || '';
-        if (typeof delta === 'string' && delta) {
-          rawText += delta;
-          onDelta?.(delta, rawText);
-        }
+      let idx;
+      while ((idx = buffer.indexOf('\n\n')) !== -1) {
+        const raw = buffer.slice(0, idx);
+        buffer = buffer.slice(idx + 2);
+        const line = raw.split('\n').find((l) => l.startsWith('data:'));
+        if (!line) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === '[DONE]') continue;
+        try { handleEvent(JSON.parse(payload)); } catch { /* ignore malformed */ }
       }
     }
+    if (streamError) throw streamError;
+    if (!rawText) throw new Error('OpenAI Responses API returned no content');
   } catch (err) {
     onError?.(err);
     throw err;
   }
 
-  // The streamed text is the JSON-schema string; parse into a structured object.
-  let prompt;
-  try {
-    prompt = JSON.parse(rawText);
-  } catch {
-    prompt = { hook: rawText };
-  }
-
-  const result = { prompt, responseId, usage: usage || { inputTokens: 0, outputTokens: 0 } };
+  const result = {
+    prompt: parseStudioResult(rawText),
+    responseId,
+    usage: usage || { inputTokens: 0, outputTokens: 0 },
+  };
   onDone?.(result);
   return result;
 }
@@ -380,52 +416,19 @@ export async function streamGTMPrompt(params, { onDelta, onDone, onError, signal
  * Multi-turn refine: continue from a previous response using previous_response_id.
  * @returns {Promise<{prompt: object, responseId: string, usage: object}>}
  */
-export async function refineGTMPrompt(previousResponseId, refineInstruction, { signal, model } = {}) {
-  const key = getOpenAIKey();
-
-  const res = await fetch(RESPONSES_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: resolveGtmModel(model),
-      instructions: buildInstructions(),
-      input: [{ role: 'user', content: refineInstruction }],
-      previous_response_id: previousResponseId,
-      store: true,
-      temperature: 0.7,
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'gtm_cinematic_prompt',
-          schema: GTM_PROMPT_SCHEMA,
-          strict: true,
-        },
-      },
-      include: ['input_tokens', 'output_tokens'],
-    }),
-    signal,
+export async function refineGTMPrompt(previousResponseId, refineInstruction, { signal, model, appTheme, outputType } = {}) {
+  const body = buildRequestBody({
+    model,
+    appTheme,
+    outputType,
+    input: [{ role: 'user', content: refineInstruction }],
+    previousResponseId,
   });
-
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`OpenAI Responses API returned ${res.status}: ${txt.slice(0, 200)}`);
-  }
-
+  const res = await postResponses(body, signal);
   const json = await res.json();
-  const text = json?.output?.[0]?.content?.[0]?.text;
+  const text = extractOutputText(json);
   if (!text) throw new Error('OpenAI Responses API returned no structured content');
-
-  let prompt;
-  try {
-    prompt = JSON.parse(text);
-  } catch (e) {
-    throw new Error(`Failed to parse GTM prompt JSON: ${e.message}`);
-  }
-
-  return { prompt, responseId: json?.id || '', usage: extractUsage(json) };
+  return { prompt: parseStudioResult(text), responseId: json?.id || '', usage: extractUsage(json) };
 }
 
 /**
@@ -438,7 +441,12 @@ export async function generateGTMVariants(params, { count = 3, signal } = {}) {
       generateGTMPrompt(params, { signal }).catch((err) => ({ error: err.message }))
     )
   );
-  return results.filter((r) => r && r.prompt);
+  const ok = results.filter((r) => r && r.prompt);
+  if (ok.length === 0) {
+    const firstError = results.find((r) => r?.error)?.error;
+    throw new Error(firstError || 'No variants returned');
+  }
+  return ok;
 }
 
 function extractUsage(json) {
@@ -457,6 +465,7 @@ export const gtmResponses = {
   gtmStructuredToText,
   buildGTMInput,
   GTM_PROMPT_SCHEMA,
+  GTM_STUDIO_SCHEMA,
   GTM_MODEL_OPTIONS,
   resolveGtmModel,
 };

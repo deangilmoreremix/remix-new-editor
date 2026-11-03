@@ -1059,3 +1059,195 @@
 .gtm-prompt-modal .copy-only-btn:hover {
   background: var(--app-soft);
 }
+
+/* ============================================
+   Studio-aware layout (GTM Boost redesign)
+   1) Idea  2) Audience & goal  3) Result
+   ============================================ */
+
+.gtm-prompt-modal .gtm-studio-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--app-soft);
+  border: 1px solid var(--app-glow);
+  border-radius: var(--border-radius-lg);
+}
+
+.gtm-prompt-modal .gtm-studio-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.gtm-prompt-modal .gtm-studio-banner .gtm-subtitle {
+  margin: 0;
+}
+
+.gtm-prompt-modal .gtm-studio-banner .gtm-subtitle strong {
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .gtm-studio-banner .gtm-info-trigger {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.gtm-prompt-modal .gtm-studio-badge {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: var(--border-radius-full);
+  background: var(--app-primary);
+  color: var(--app-on-primary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.gtm-prompt-modal .gtm-step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gtm-prompt-modal .gtm-step-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .gtm-step-num {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--app-soft);
+  border: 1px solid var(--app-primary);
+  color: var(--app-primary);
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.gtm-prompt-modal .gtm-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.gtm-prompt-modal .gtm-chip-label {
+  margin-right: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.gtm-prompt-modal .gtm-chip {
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: var(--border-radius-full);
+  border: 1px solid var(--border-color);
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.gtm-prompt-modal .gtm-chip:hover {
+  border-color: var(--app-primary);
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .gtm-chip:focus-visible {
+  outline: 2px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
+.gtm-prompt-modal .gtm-chip.active {
+  background: var(--app-primary);
+  border-color: transparent;
+  color: var(--app-on-primary);
+}
+
+.gtm-prompt-modal .gtm-angle {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.gtm-prompt-modal .gtm-angle strong {
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .gtm-final-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--bg-app);
+  border: 1px solid var(--app-primary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 0 0 3px var(--app-soft);
+}
+
+.gtm-prompt-modal .gtm-final-card > label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .gtm-final-hint {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.gtm-prompt-modal .gtm-final-card .generated-prompt {
+  min-height: 140px;
+  font-family: var(--font-family);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.gtm-prompt-modal .gtm-breakdown > summary,
+.gtm-prompt-modal .gtm-examples > summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  list-style-position: inside;
+}
+
+.gtm-prompt-modal .gtm-breakdown[open] > summary,
+.gtm-prompt-modal .gtm-examples[open] > summary {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 640px) {
+  .gtm-prompt-modal .gtm-studio-banner {
+    flex-direction: column;
+  }
+}
+
+/* modal-styles.css caps `.gtm-prompt-modal` at 480px, which squeezed the
+   form into half of the 800px dialog. Let it fill the dialog body. */
+.modal-body .gtm-prompt-modal {
+  max-width: none;
+  width: 100%;
+}

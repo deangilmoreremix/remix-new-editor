@@ -696,6 +696,9 @@ genAllBtn.type = 'button';
           openGTMPromptModal('storyboard-studio', (prompt) => {
             enhancedConcept = prompt;
             renderFrames();
+          }, {
+            // Seed with the current concept, or the frames written so far.
+            basePrompt: enhancedConcept || frames.map((f) => f.prompt).filter(Boolean).join(' → '),
           });
         }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
@@ -805,7 +808,7 @@ genAllBtn.type = 'button';
     customThumbnailUrl = imageUrl;
     saveCustomThumbnailToCache('storyboard-studio', imageUrl);
     renderFrames();
-  });
+  }, { studioId: 'storyboard-studio' });
 
   const exportBtn = document.createElement('button');
   exportBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all ml-auto';
@@ -1336,11 +1339,12 @@ const compareBtn = document.createElement('button');
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard-studio', (prompt) => {
+          // A single frame renders as a still image, so boost it as an image prompt.
+          openGTMPromptModal('storyboard-frame', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');
-          });
+          }, { basePrompt: frame.enhancedPrompt || frame.prompt });
         }).catch((err) => console.error('[StoryboardStudio] Frame GTM Boost failed:', err));
       });
       const enhanceRow = document.createElement('div');

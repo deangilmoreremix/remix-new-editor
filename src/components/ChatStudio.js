@@ -4,6 +4,7 @@ import { textModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -20,6 +21,9 @@ export function ChatStudio() {
   const messages = []; // Chat history [{role, content}]
   let isGenerating = false;
   let customThumbnailUrl = getCustomThumbnailFromCache('chat-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'chat-studio' });
   let abortController = null;
   let _modelSelectorOutsideClickHandler = null;
 

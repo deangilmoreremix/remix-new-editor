@@ -6,6 +6,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -17,7 +18,6 @@ import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -35,6 +35,9 @@ export function CharacterStudio() {
 
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('character-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'character-studio' });
   let selectedModel = CHARACTER_MODELS[0];
   let dynamicControls = null;
   let dynamicControlsContainer = null;
@@ -175,22 +178,6 @@ export function CharacterStudio() {
   modelWrapper.appendChild(dropdown);
   formCard.appendChild(modelWrapper);
 
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (id) => {
-        selectedModel = CHARACTER_MODELS.find(x => x.id === id) || selectedModel;
-      }
-    }).catch(() => {});
-  });
-  formCard.appendChild(modelPickerBtn);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -311,7 +298,7 @@ const pexelsBtn = document.createElement('button');
               promptInput.value = prompt;
               promptInput.dispatchEvent(new Event('input', { bubbles: true }));
               promptInput.focus();
-            });
+            }, { basePrompt: promptInput.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
