@@ -44,6 +44,7 @@ import { renderProviderLogoImg, mountModelSelector, PROVIDER_LOGOS, invertLogos,
 import { enrichPromptString } from '../lib/templateEngine.js';
 import { resolveModel, normalizeAspectRatio, normalizeDuration, attachThumbnail, buildNegativePrompt, formatGenerationError } from '../lib/templateGenerationOrchestrator.js';
 import { saveGeneration } from '../lib/generationHistory.js';
+import { appendMissingInputs, templateInputEntries, detectTemplateNiche } from '../lib/templatePromptComposer.js';
 
 /**
  * Resolve the `W:H` aspect ratio for a generation request.
@@ -100,8 +101,14 @@ export function CinemaTemplateStudio() {
   const MEDIA_ROUTE_LABELS = TEMPLATE_ROUTE_LABELS;
   // Set by the model picker: switches its model list when the route changes.
   let syncModelPickerToRoute = null;
+  // Pending (debounced) Video Intent save; Generate runs it first.
+  let flushVideoIntentSync = null;
   // Mode of the variant picked in the Video Studio model picker; reset per template.
   let pickedMode = null;
+  // Creative Intelligence cards as shown / edited (kept apart from the
+  // Advanced Controls so the Niche card never overwrites the Niche select).
+  let currentTiles = {};
+  let tileEdited = {};
   // Duration / resolution / native-audio controls (video templates).
   let videoSettings = null;
   let lastModelType = null;
@@ -377,6 +384,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   function selectTemplate(template) {
     currentTemplate = template;
     pickedMode = null;
+    currentTiles = {};
+    tileEdited = {};
     currentMode = 'quick';
     currentInputs = new TemplateInputBuilder(template, currentMode).getDefaults();
     // Select appropriate default model based on modelType
@@ -481,6 +490,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     // Left: Form inputs
     const formPanel = document.createElement('div');
+    // Any change to the inputs makes Generate rebuild the prompt from them.
+    ['input', 'change'].forEach((evt) => formPanel.addEventListener(evt, () => { promptManuallyEdited = false; }));
     formPanel.className = 'min-w-0 rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
 
     // Hero thumbnail section (matches TemplateStudio editor view)
@@ -1024,7 +1035,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       };
     };
 
-    const syncIntent = debounce(() => {
+    const syncIntentNow = () => {
+      flushVideoIntentSync = null;
       setVideoIntent({
         videoType: section.querySelector('#vi-videoType')?.value || intent.videoType,
         duration: parseInt(section.querySelector('#vi-duration')?.value || intent.duration, 10),
@@ -1038,7 +1050,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         subject: section.querySelector('#vi-subject')?.value || intent.subject,
         premise: section.querySelector('#vi-premise')?.value || intent.premise,
       });
-    }, 300);
+    };
+    const syncIntentDebounced = debounce(syncIntentNow, 300);
+    // Generate flushes a pending sync so the last keystrokes are not lost.
+    const syncIntent = () => { flushVideoIntentSync = syncIntentNow; syncIntentDebounced(); };
 
     section.querySelectorAll('input, select, textarea').forEach(el => {
       el.addEventListener('input', syncIntent);
@@ -1070,12 +1085,18 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       colorGrade: 'colorPalette',
       cta: 'cta',
     };
+    // Never overwrite a value the user typed into the template's own field
+    // (both reach the prompt: the intent values are added at Generate).
+    const ownFields = new Set(new TemplateInputBuilder(currentTemplate, currentMode).inputs?.map(f => f && f.name) || []);
+    // Advanced Controls text fields typed by the user also win.
+    ['subject', 'cta', 'audience', 'setting', 'businessType', 'extraInstructions'].forEach(k => ownFields.add(k));
+    const typedOwn = (key) => ownFields.has(key) && currentInputs[key] != null && currentInputs[key] !== '';
     Object.entries(mapping).forEach(([intentKey, inputKey]) => {
-      if (intent[intentKey] !== undefined && intent[intentKey] !== null && intent[intentKey] !== '') {
+      if (intent[intentKey] !== undefined && intent[intentKey] !== null && intent[intentKey] !== '' && !typedOwn(inputKey)) {
         currentInputs[inputKey] = intent[intentKey];
       }
     });
-    if (intent.premise) {
+    if (intent.premise && !typedOwn('premise')) {
       currentInputs.premise = intent.premise;
     }
   }
@@ -2049,6 +2070,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         advControls.querySelectorAll('select[data-advanced-field], input[data-advanced-field], textarea[data-advanced-field]').forEach(el => {
           const fieldName = el.dataset.advancedField;
           if (!fieldName) return;
+          // Keep the shown value and the value Generate uses in sync.
+          if (currentInputs[fieldName] != null && currentInputs[fieldName] !== '') el.value = currentInputs[fieldName];
+          else if (el.tagName === 'SELECT') currentInputs[fieldName] = el.value;
           if (el.tagName === 'SELECT') {
             el.onchange = () => {
               currentInputs[fieldName] = el.value;
@@ -2076,7 +2100,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-blue-400/20 transition cursor-pointer">
           <div class="mb-3 text-3xl">🏷️</div>
           <h3 class="text-lg font-bold text-white mb-2">Auto-Detected Niche</h3>
-          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${currentInputs.niche || 'general-business'}</textarea>
+          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${currentTiles.niche || (currentInputs.niche && currentInputs.niche !== 'auto-detect' ? currentInputs.niche : detectTemplateNiche({ template: currentTemplate, advanced: currentInputs }))}</textarea>
         </div>
         <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-violet-400/20 transition cursor-pointer">
           <div class="mb-3 text-3xl">🎬</div>
@@ -2104,11 +2128,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     setTimeout(() => {
       intelligenceSection.querySelectorAll('textarea[data-tile]').forEach(ta => {
+        const tileName = ta.dataset.tile;
+        if (!tileName) return;
+        // Generate uses the cards exactly as shown (and as edited).
+        if (tileEdited[tileName] && currentTiles[tileName] != null) ta.value = currentTiles[tileName];
+        else currentTiles[tileName] = ta.value;
         ta.oninput = () => {
-          const tileName = ta.dataset.tile;
-          if (tileName) {
-            currentInputs[tileName] = ta.value;
-          }
+          currentTiles[tileName] = ta.value;
+          tileEdited[tileName] = true;
+          promptManuallyEdited = false;
         };
       });
     }, 0);
@@ -2187,8 +2215,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         wandBtn.onclick = () => {
           const textarea = document.getElementById('outputTextarea');
           if (!textarea) return;
-          const current = lastBuiltPrompt || textarea.value || '';
-          const enhanced = `${current}, cinematic quality, professional lighting, high detail, 4K resolution`.trim();
+          const current = (lastBuiltPrompt || textarea.value || '').replace(/[\s.,]+$/, '');
+          const extra = 'cinematic quality, professional lighting, high detail, 4K resolution';
+          const enhanced = current.toLowerCase().includes('cinematic quality, professional lighting') ? `${current}.` : `${current}, ${extra}.`;
           lastBuiltPrompt = enhanced;
           outputTabValues['Enhanced Prompt'] = enhanced;
           textarea.value = enhanced;
@@ -2198,17 +2227,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
           updatePromptLengthCounter(enhanced);
           updateResetButtonVisibility();
-          // Sync to primary prompt field in the form panel
+          // Sent as-is until an input changes (the form fields keep the
+          // user's own text, so nothing is enriched twice).
           promptManuallyEdited = true;
-          const formPanel = container.querySelector('.rounded-[34px]');
-          if (formPanel) {
-            const primaryPromptField = formPanel.querySelector('textarea[name], input[name]') || formPanel.querySelector('#inputs-form textarea, #inputs-form input');
-            if (primaryPromptField) {
-              primaryPromptField.value = enhanced;
-              primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
-              primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-          }
         };
       }
       const resetBtn = document.getElementById('resetPromptBtn');
@@ -2403,6 +2424,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   // GENERATE VIDEO
   // ================================
   function generateVideo() {
+    if (flushVideoIntentSync) flushVideoIntentSync();
     if (isGenerating) return;
 
     const apiKey = apiKeyManager.getMuapiKey();
@@ -2529,12 +2551,16 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       } catch {
         prompt = currentInputs.prompt || '';
       }
+      // Make sure every input the user set is in the prompt — the assembly
+      // engine only knows some field names.
+      prompt = appendMissingInputs(prompt, collectCinemaPromptEntries());
       lastBuiltPrompt = prompt;
     }
 
     const negNiche = (currentInputs.niche && currentInputs.niche !== 'auto-detect') ? currentInputs.niche : (currentTemplate.niche || '');
 
-    if (isAiEnhancer) {
+    // A prompt the user edited by hand is sent as-is (no extra enrichment).
+    if (isAiEnhancer && !promptManuallyEdited) {
       try {
         prompt = enrichPromptString(prompt, {
           niche: negNiche,
@@ -2628,6 +2654,42 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     }
 
     runGeneration(params);
+  }
+
+  /**
+   * Every value the user can see in the form, as prompt entries: the
+   * template's own fields (current Quick / Advanced mode), Advanced Controls,
+   * the edited Scene Beats tab and the Creative Intelligence cards.
+   */
+  function collectCinemaPromptEntries() {
+    const i = currentInputs || {};
+    const shown = new TemplateInputBuilder(currentTemplate, currentMode).inputs || [];
+    const humanize = (v) => String(v || '').replace(/[-_]+/g, ' ');
+    let intent = {};
+    try { intent = getVideoIntent() || {}; } catch { /* no intent yet */ }
+    const entries = [
+      ...templateInputEntries(shown, i),
+      // Video Intent panel.
+      { label: 'Subject', value: intent.subject },
+      { label: 'Core narrative', value: intent.premise },
+      { label: 'Target audience', value: i.targetAudience || intent.targetAudience },
+      { label: 'Call to action', value: intent.cta },
+      { label: 'Tone', value: intent.tone },
+      { label: 'Format', value: currentTemplate?.outputType === 'image' ? '' : humanize(i.templateType) },
+      { label: 'Niche', value: i.niche && i.niche !== 'auto-detect' ? humanize(i.niche) : (tileEdited.niche ? currentTiles.niche : '') },
+      { label: 'Business', value: i.businessType },
+      { label: 'Target audience', value: i.audience },
+      { label: 'Subject', value: i.subject },
+      { label: 'Setting', value: i.setting },
+      { label: 'Visual style', value: i.visualStyle },
+      { label: 'Call to action', value: i.cta },
+      { label: 'Creative direction', value: i.extraInstructions },
+      { label: 'Scene structure', value: i._customSceneBlueprint || currentTiles.scene },
+      { label: '', value: currentTiles.cinematic },
+      { label: 'Style direction', value: currentTiles.style },
+    ];
+    if (isAiEnhancer) entries.push({ label: '', value: currentTiles.keywords });
+    return entries;
   }
 
   async function runGeneration(params) {

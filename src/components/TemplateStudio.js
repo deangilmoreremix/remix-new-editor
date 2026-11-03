@@ -5,9 +5,7 @@ import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustom
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
-import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { resolveModel, normalizeAspectRatio, normalizeDuration, applyFormStateToParams, attachThumbnail, buildNegativePrompt, validateBeforeGenerate, formatGenerationError } from '../lib/templateGenerationOrchestrator.js';
-import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
@@ -25,6 +23,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
+import { composeTemplatePrompt, defaultCreativeTiles, detectTemplateNiche } from '../lib/templatePromptComposer.js';
 import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
 
 export function TemplateStudio(templateId) {
@@ -63,6 +62,9 @@ export function TemplateStudio(templateId) {
   const outputTabValues = {};
   let aiEnhancer = true;
   let lastBuiltPrompt = '';
+  // True while the Enhanced Prompt shown is the user's own edit (wand or
+  // typing); any change to the inputs rebuilds it from all of them.
+  let promptManuallyEdited = false;
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
@@ -122,6 +124,20 @@ export function TemplateStudio(templateId) {
   let lastGenerationParams = null; // Store params for retry
   let retryCount = 0;
   const MAX_RETRIES = 2;
+
+  // Creative Intelligence cards: what the prompt composer uses (editable).
+  const tileState = defaultCreativeTiles(template.outputType === 'image' ? 'image' : 'video', specs);
+  if (!tileState.niche) tileState.niche = detectTemplateNiche({ template });
+  const tileEdited = {};
+  const escapeAttr = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  // Listeners on document / window, removed by container.cleanup() (called by
+  // the router when leaving the page) so a closed studio is not kept alive.
+  const globalCleanups = [];
+  const addGlobalListener = (target, type, handler, options) => {
+    target.addEventListener(type, handler, options);
+    globalCleanups.push(() => target.removeEventListener(type, handler, options));
+  };
 
   // Create full-page wrapper
   const container = document.createElement('div');
@@ -455,7 +471,7 @@ export function TemplateStudio(templateId) {
         enhanceMenu.classList.remove('is-open');
       }
     };
-    window.addEventListener('click', closeEnhanceMenu);
+    addGlobalListener(window, 'click', closeEnhanceMenu);
   }
 
   // Model selector (async - fetches enriched catalog with descriptions)
@@ -651,7 +667,8 @@ export function TemplateStudio(templateId) {
         triggerBtn.focus();
       }
     };
-    document.addEventListener('keydown', onKeyDown);
+    addGlobalListener(document, 'keydown', onKeyDown);
+    globalCleanups.push(() => closeDropdown());
 
     syncModelPickerToRoute = (route) => {
       if (!route || route === pickerRoute) return;
@@ -792,7 +809,10 @@ export function TemplateStudio(templateId) {
     { name: 'cta', label: 'CTA', type: 'text', placeholder: 'optional' }
   ];
 
+  const isImageTemplate = template.outputType === 'image';
   advancedFields.forEach(field => {
+    // Film formats only apply to video templates.
+    if (isImageTemplate && field.name === 'templateType') return;
     const wrapper = document.createElement('div');
     if (field.type === 'select') {
       wrapper.innerHTML = `
@@ -823,9 +843,19 @@ export function TemplateStudio(templateId) {
       <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Extra Instructions</div>
       <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="extraInstructions">Enhance</button>
     </div>
-    <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 resize-none" rows="4" placeholder="optional cinematic instructions" data-advanced-field="extraInstructions"></textarea>
+    <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 resize-none" rows="4" placeholder="${isImageTemplate ? 'optional instructions (text overlay, colors, layout…)' : 'optional cinematic instructions'}" data-advanced-field="extraInstructions"></textarea>
   `;
   advancedControls.appendChild(extraWrapper);
+
+  // Every Advanced Control feeds the prompt: keep formState in sync (selects
+  // start with their shown value).
+  advancedControls.querySelectorAll('[data-advanced-field]').forEach((el) => {
+    const name = el.dataset.advancedField;
+    if (el.tagName === 'SELECT') formState[name] = el.value;
+    const sync = () => { formState[name] = el.value; };
+    el.addEventListener('input', sync);
+    el.addEventListener('change', sync);
+  });
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -894,36 +924,44 @@ export function TemplateStudio(templateId) {
   intelligenceSection.className = 'mt-6 rounded-[28px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_20px_80px_rgba(0,0,0,0.35)]';
   intelligenceSection.innerHTML = `
     <h2 class="text-xl font-bold text-white">Creative Intelligence</h2>
-    <p class="mt-2 mb-5 text-sm text-zinc-400">These tiles show the cinematic structure, creative direction, and visual strategy this template will use to build your final video.</p>
+    <p class="mt-2 mb-5 text-sm text-zinc-400">These tiles show the structure, creative direction, and visual strategy this template will use to build your final ${template.outputType === 'image' ? 'image' : 'video'}. Edit any of them — Generate uses what you see here.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-blue-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">🏷️</div>
         <h3 class="text-lg font-bold text-white mb-2">Auto-Detected Niche</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${hasSpecs && specs.niche ? specs.niche : 'general-business'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${escapeAttr(tileState.niche)}</textarea>
       </div>
       <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-violet-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">🎬</div>
         <h3 class="text-lg font-bold text-white mb-2">Scene Structure</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="scene">${hasSpecs && specs.sceneBlueprint ? specs.sceneBlueprint.join(' → ') : 'Hook → Subject → Movement → Payoff → CTA'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="scene">${escapeAttr(tileState.scene)}</textarea>
       </div>
       <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-emerald-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">🎥</div>
         <h3 class="text-lg font-bold text-white mb-2">Cinematic Enrichment</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="cinematic">${hasSpecs && specs.cinematography ? specs.cinematography : 'Dynamic camera movement, shallow depth of field, professional lighting'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="cinematic">${escapeAttr(tileState.cinematic)}</textarea>
       </div>
       <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-amber-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">⚙️</div>
         <h3 class="text-lg font-bold text-white mb-2">Visual Style</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="style">${hasSpecs && specs.visualStyle ? specs.visualStyle : 'Polished, cinematic, high-contrast, premium aesthetic'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="style">${escapeAttr(tileState.style)}</textarea>
       </div>
       <div class="md:col-span-2 rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-rose-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">✨</div>
         <h3 class="text-lg font-bold text-white mb-2">Enhancer Keywords</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="4" data-tile="keywords">${hasSpecs && specs.enhancerKeywords ? specs.enhancerKeywords : 'cinematic, professional, 4K, high quality, premium'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="4" data-tile="keywords">${escapeAttr(tileState.keywords)}</textarea>
       </div>
     </div>
   `;
   leftPanel.appendChild(intelligenceSection);
+  intelligenceSection.querySelectorAll('[data-tile]').forEach((ta) => {
+    ta.addEventListener('input', () => {
+      tileState[ta.dataset.tile] = ta.value;
+      tileEdited[ta.dataset.tile] = true;
+    });
+  });
+  // Any change to the inputs makes Generate rebuild the prompt from them.
+  ['input', 'change'].forEach((evt) => leftPanel.addEventListener(evt, () => { promptManuallyEdited = false; }));
 
   grid.appendChild(leftPanel);
 
@@ -996,11 +1034,9 @@ export function TemplateStudio(templateId) {
     outputTextarea.addEventListener('input', () => {
       outputTabValues[activeTab] = outputTextarea.value;
       if (activeTab === 'Enhanced Prompt') {
+        // Sent as-is until an input changes (then rebuilt from all inputs).
         lastBuiltPrompt = outputTextarea.value;
-        if (primaryPromptField) {
-          primaryPromptField.value = outputTextarea.value;
-        }
-        formState[promptFieldName] = outputTextarea.value;
+        promptManuallyEdited = true;
       } else if (activeTab === 'Negative Prompt') {
         formState['_customNegativePrompt'] = outputTextarea.value;
       } else if (activeTab === 'Scene Beats') {
@@ -1038,14 +1074,14 @@ export function TemplateStudio(templateId) {
         break;
       case 'Scene Beats': {
         const beats = (template.storyBlueprint && template.storyBlueprint.length) ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']);
-        textarea.value = beats.join(' → ');
+        textarea.value = saved || beats.join(' → ');
         break;
       }
       case 'Voiceover':
         textarea.value = saved || `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
         break;
       case 'Negative Prompt':
-        textarea.value = specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
+        textarea.value = saved || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
         break;
     }
   }
@@ -1080,17 +1116,15 @@ export function TemplateStudio(templateId) {
       wandBtn.onclick = () => {
         const textarea = document.getElementById('outputTextarea');
         if (!textarea) return;
-        const current = lastBuiltPrompt || textarea.value || '';
-        const enhanced = `${current}, cinematic quality, professional lighting, high detail, 4K resolution`.trim();
+        const current = (promptManuallyEdited && lastBuiltPrompt) ? lastBuiltPrompt : composeFinalPrompt();
+        const extra = template.outputType === 'image'
+          ? 'professional lighting, high detail, sharp focus, 4K resolution'
+          : 'cinematic quality, professional lighting, high detail, 4K resolution';
+        const enhanced = current.toLowerCase().includes(extra.split(',')[0]) ? current : `${current.replace(/\.$/, '')}, ${extra}.`;
         lastBuiltPrompt = enhanced;
+        promptManuallyEdited = true;
         outputTabValues['Enhanced Prompt'] = enhanced;
-        textarea.value = enhanced;
-        if (primaryPromptField) {
-          primaryPromptField.value = enhanced;
-        }
-        if (promptFieldName) {
-          formState[promptFieldName] = enhanced;
-        }
+        if (activeTab === 'Enhanced Prompt') textarea.value = enhanced;
         textarea.classList.add('border-emerald-400/50');
         setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
       };
@@ -1165,7 +1199,7 @@ export function TemplateStudio(templateId) {
     }
 
     // Validate that there's some prompt content to work with
-    const userPrompt = lastBuiltPrompt || (primaryPromptField?.value || '').trim();
+    const userPrompt = (primaryPromptField?.value || '').trim() || lastBuiltPrompt;
     if (!userPrompt && !template.basePrompt) {
       showInlineError(container, 'Please enter a prompt or description before generating.');
       return;
@@ -1195,10 +1229,8 @@ export function TemplateStudio(templateId) {
     if (normalizeDuration(template)) params.duration = normalizeDuration(template);
     applyFormStateToParams(params, formState, allInputs);
 
-    // Build prompt from all available template metadata and advanced options
-    const promptForBuild = lastBuiltPrompt || params.prompt || '';
-    params.prompt = buildEnrichedPrompt(template, specs, formState, promptForBuild);
-    lastBuiltPrompt = params.prompt;
+    // Prompt = every input combined (or the user's own edited prompt).
+    params.prompt = composeFinalPrompt();
 
     const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
     if (negativePrompt) params.negative_prompt = negativePrompt;
@@ -1236,7 +1268,7 @@ export function TemplateStudio(templateId) {
     }
 
     // Store params for retry and run generation
-    lastGenerationParams = { ...params, _rawPrompt: promptForBuild };
+    lastGenerationParams = { ...params };
     retryCount = 0;
     await runGeneration(params);
     } catch (err) {
@@ -1277,12 +1309,8 @@ export function TemplateStudio(templateId) {
       if (videoSettings) Object.assign(params, videoSettings.getSettings());
       params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
       if (!params.aspect_ratio) delete params.aspect_ratio;
-      const rawPrompt = params._rawPrompt;
-      delete params._rawPrompt;
-
-      // Build prompt from all available template metadata and advanced options
-      params.prompt = buildEnrichedPrompt(template, specs, formState, rawPrompt || params.prompt);
-      lastBuiltPrompt = params.prompt;
+      // Prompt = every input combined (or the user's own edited prompt).
+      params.prompt = composeFinalPrompt();
 
       const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
       if (negativePrompt) params.negative_prompt = negativePrompt;
@@ -1328,116 +1356,38 @@ export function TemplateStudio(templateId) {
     }
   };
 
-  function buildEnrichedPrompt(template, specs, formState, userPrompt) {
-    const parts = [];
-
-    // User prompt first as the core idea
-    if (typeof userPrompt === 'string' && userPrompt) parts.push(userPrompt);
-
-    // Subject
-    const subject = formState['subject'];
-    if (subject) parts.push(subject);
-
-    // Base prompt substitution
-    if (template.basePrompt) {
-      const base = template.basePrompt.replace('{prompt}', userPrompt || '');
-      if (base) parts.push(base);
+  /**
+   * The prompt Generate sends: all inputs combined (main prompt, template
+   * fields, Advanced Controls, Creative Intelligence cards, AI Enhancer),
+   * unless the user edited the Enhanced Prompt since the last input change.
+   * Shown in the Enhanced Prompt tab so the user sees exactly what is sent.
+   */
+  function composeFinalPrompt() {
+    if (promptManuallyEdited && lastBuiltPrompt) return lastBuiltPrompt;
+    const mainPrompt = (formState[promptFieldName] ?? primaryPromptField?.value ?? '').toString();
+    const tiles = { ...tileState };
+    if (!tileEdited.niche) tiles.niche = '';
+    const { prompt, niche } = composeTemplatePrompt({
+      template,
+      specs,
+      userPrompt: mainPrompt,
+      templateInputs: allInputs,
+      fields: formState,
+      advanced: formState,
+      tiles,
+      aiEnhancer,
+      sceneOverride: formState['_customSceneBlueprint'] || '',
+    });
+    // Show the niche actually used on the card (unless the user edited it).
+    if (!tileEdited.niche) {
+      tileState.niche = niche;
+      const nicheTile = container.querySelector('[data-tile="niche"]');
+      if (nicheTile) nicheTile.value = niche;
     }
-
-    // Scene blueprint: matrix template.storyBlueprint else specs.sceneBlueprint
-    const sceneBlueprint = (template.storyBlueprint && template.storyBlueprint.length)
-      ? template.storyBlueprint
-      : (specs.sceneBlueprint || []);
-    if (sceneBlueprint.length) {
-      parts.push(`Scene structure: ${sceneBlueprint.join(' → ')}`);
-    }
-
-    // Cinematography
-    if (specs.cinematography) {
-      parts.push(specs.cinematography);
-    }
-
-    // Visual style: specs.visualStyle else formState.visualStyle
-    const visualStyle = specs.visualStyle || formState['visualStyle'];
-    if (visualStyle) {
-      parts.push(`Visual style: ${visualStyle}`);
-    }
-
-    // Niche enrichment
-    const niche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-    if (niche && NICHE_ENRICHMENT[niche]) {
-      parts.push(NICHE_ENRICHMENT[niche].slice(0, 5).join(', '));
-    } else if (niche) {
-      const nicheTerms = getNicheTerms(niche);
-      if (nicheTerms && nicheTerms.length) {
-        parts.push(nicheTerms.slice(0, 5).join(', '));
-      }
-    }
-
-    // filmFamily direction + promptDirection
-    if (template.filmFamily && FILM_FAMILIES[template.filmFamily]) {
-      parts.push(FILM_FAMILIES[template.filmFamily].direction);
-    }
-    if (template.promptDirection) {
-      parts.push(template.promptDirection);
-    }
-
-    // CTA
-    const cta = formState['cta'];
-    if (cta) {
-      parts.push(`Call to action: ${cta}`);
-    }
-
-    // Setting
-    const setting = formState['setting'];
-    if (setting) {
-      parts.push(`Setting: ${setting}`);
-    }
-
-    // Audience
-    const audience = formState['audience'];
-    if (audience) {
-      parts.push(`Target audience: ${audience}`);
-    }
-
-    // Extra instructions
-    const extraInstructions = formState['extraInstructions'];
-    if (extraInstructions) {
-      parts.push(extraInstructions);
-    }
-
-    // Core use case
-    if (specs.coreUseCase) {
-      parts.push(specs.coreUseCase);
-    }
-
-    // AI ENHANCER: final polishing layer
-    if (aiEnhancer && userPrompt) {
-      if (typeof enrichPromptString === 'function') {
-        const enriched = enrichPromptString(userPrompt, {
-          niche,
-          visualStyle: formState.visualStyle || 'commercial',
-          platform: (template.aspectRatio && template.aspectRatio.includes('9:16')) ? 'TikTok Reel' : 'general',
-          filmType: template.filmFamily || ''
-        });
-        if (enriched) {
-          parts.push(enriched);
-        }
-      } else if (specs.enhancerKeywords) {
-        parts.push(specs.enhancerKeywords);
-      }
-    }
-
-    // AI ENHANCER: final polishing layer
-    let prompt = parts.filter(Boolean).join('. ');
-    prompt = prompt
-      .replace(/\s*\.\s*/g, '. ')
-      .replace(/\.{2,}/g, '.')
-      .split('. ')
-      .filter((sentence, index, arr) => index === 0 || sentence.trim().toLowerCase() !== arr[index - 1].trim().toLowerCase())
-      .join('. ')
-      .trim();
-    if (!prompt.endsWith('.')) prompt += '.';
+    lastBuiltPrompt = prompt;
+    outputTabValues['Enhanced Prompt'] = prompt;
+    const out = document.getElementById('outputTextarea');
+    if (out && activeTab === 'Enhanced Prompt') out.value = prompt;
     return prompt;
   }
 
@@ -1496,6 +1446,10 @@ export function TemplateStudio(templateId) {
       timestamp: new Date().toISOString(),
     });
   }
+
+  container.cleanup = () => {
+    globalCleanups.splice(0).forEach((fn) => { try { fn(); } catch { /* ignore */ } });
+  };
 
   return container;
 }

@@ -42,7 +42,13 @@ describe('338-template deterministic production acceptance', () => {
     vi.spyOn(apiKeyManager, 'getMuapiKey').mockReturnValue('test-key');
   });
 
+  let mounted = null;
+
   afterEach(() => {
+    // Release the studio's document / window listeners (the router does the
+    // same when leaving the page); otherwise 338 mounts exhaust the heap.
+    mounted?.cleanup?.();
+    mounted = null;
     vi.restoreAllMocks();
     if (container.parentNode) container.parentNode.removeChild(container);
     document.body.innerHTML = '';
@@ -50,7 +56,9 @@ describe('338-template deterministic production acceptance', () => {
 
   function mountTemplateStudio(templateId) {
     container.innerHTML = '';
+    mounted?.cleanup?.();
     const element = TemplateStudio(templateId);
+    mounted = element;
     container.appendChild(element);
     return element;
   }

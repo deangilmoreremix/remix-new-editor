@@ -129,6 +129,7 @@ vi.mock('../../src/lib/modelSelectorUI.js', () => ({
 }));
 
 vi.mock('../../src/lib/templateEngine.js', () => ({
+  detectNiche: vi.fn(() => 'general-business'),
   getNicheTerms: vi.fn(() => []),
   enrichPromptString: vi.fn((p) => p),
   deriveEngineInputFromTemplate: vi.fn(() => ({})),
