@@ -251,4 +251,35 @@ describe('Cinema Template Studio: every input reaches the generation prompt', ()
     expect(params.model).toBe('kling-v2.6-pro-i2v');
     el.remove();
   });
+
+  it('has the Video Studio input tools and they reach the request', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const el = CinemaTemplateStudio();
+    container.appendChild(el);
+    await wait(50);
+    container.querySelector('.group.rounded-xl.p-4.cursor-pointer').click();
+    await wait(150);
+
+    // Same tools as the Video Studio prompt bar.
+    expect(container.querySelector('[data-tool="ai-pick"]')).not.toBeNull();
+    expect(container.querySelector('[data-tool="advanced"]')).not.toBeNull();
+    expect(container.querySelector('[data-tool="motion-style"]')).not.toBeNull();
+    expect(container.querySelector('.template-video-settings')).not.toBeNull();
+    expect(container.querySelector('.template-media-field[data-media-kind="video"]')).not.toBeNull();
+    expect(container.querySelector('.studio-attachment-toolbar')).not.toBeNull();
+
+    // Motion & Style → prompt.
+    container.querySelector('[data-style="Anime"]').click();
+    const frame = pickers.list.filter(p => p.opts.frameMode).at(-1);
+    frame.opts.onSelect({ startUrl: 'https://cdn.test/s.png', endUrl: 'https://cdn.test/e.png', urls: [] });
+    container.querySelector('#generate-btn').click();
+    await wait(150);
+    const params = muapi.generateI2V.mock.calls.at(-1)[0];
+    expect(params.prompt).toContain('anime style');
+    expect(params.image_url).toBe('https://cdn.test/s.png');
+    expect(params.last_image_url).toBe('https://cdn.test/e.png');
+    expect(params.signal).toBeDefined();
+    expect(typeof params.onRequestId).toBe('function');
+    el.remove();
+  });
 });

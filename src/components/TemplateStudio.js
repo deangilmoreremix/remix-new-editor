@@ -24,6 +24,9 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { composeTemplatePrompt, defaultCreativeTiles, detectTemplateNiche } from '../lib/templatePromptComposer.js';
+import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
+import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
 
 export function TemplateStudio(templateId) {
@@ -77,6 +80,11 @@ export function TemplateStudio(templateId) {
   let pickedMode = null;
   // Duration / resolution / native-audio controls (video templates).
   let videoSettings = null;
+  // Video Studio prompt-bar tools (AI Pick, ratio, Advanced, Motion & Style,
+  // attachment toolbar).
+  let videoTools = null;
+  // Media fields by kind, so attachments from the prompt toolbar land in them.
+  const mediaFields = { image: [], frame: [], video: [] };
   // Template duration / resolution selects are folded into videoSettings so
   // only values the selected model accepts are offered.
   const templateVideoPrefs = {};
@@ -92,6 +100,7 @@ export function TemplateStudio(templateId) {
     // picker to models that accept it.
     if (syncModelPickerToRoute) syncModelPickerToRoute(route);
     if (videoSettings) videoSettings.refresh();
+    if (videoTools) videoTools.refresh();
   }
   // Validate the template's default model against its modelType so video
   // generation always starts with a real, type-compatible model ID.
@@ -350,6 +359,7 @@ export function TemplateStudio(templateId) {
                     },
                 });
                 fieldWrapper.appendChild(mediaField.element);
+                mediaFields[input.type]?.push(mediaField);
             } else if (input.type === 'text' || input.type === 'textarea') {
       const el = document.createElement(input.type === 'textarea' ? 'textarea' : 'input');
       el.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50';
@@ -715,6 +725,29 @@ export function TemplateStudio(templateId) {
       modelWrapper.appendChild(videoSettings.element);
       videoSettings.refresh();
     }
+    // Same prompt-bar tools as the Video Studio.
+    videoTools = createTemplateVideoTools({
+      studioName: 'Template Studio',
+      kind: outputType === 'video' ? 'video' : 'image',
+      hasOwnAspectRatio: allInputs.some(i => i && i.name === 'aspect_ratio'),
+      defaultAspectRatio: normalizeAspectRatio(template) || '',
+      getTarget: () => {
+        const { route, model, media } = currentMediaRoute();
+        return { route, model, imageUrl: media.imageUrl };
+      },
+      onModelPicked: (id) => {
+        selectedModel = id;
+        const mode = ['t2v', 'i2v', 'v2v', 't2i', 'i2i'].find(r => modelsForRoute(r).some(m => m && m.id === id));
+        pickedMode = mode || pickedMode;
+        if (pickedMode) routeModelPicks[pickedMode] = id;
+        refreshMediaRoute();
+        updateTrigger();
+        if (videoSettings) videoSettings.refresh();
+      },
+      onAttach: (key, url) => attachFromToolbar(key, url),
+    });
+    modelWrapper.appendChild(videoTools.element);
+    videoTools.refresh();
     modelWrapper.appendChild(dropdown);
     leftPanel.appendChild(modelWrapper);
 
@@ -745,6 +778,7 @@ export function TemplateStudio(templateId) {
           onChange: (value) => { formState['image_url'] = value; refreshMediaRoute(); },
         });
         fieldsHost.appendChild(imageField.element);
+        mediaFields.frame.push(imageField);
       }
       if (!hasOwnVideoInput) {
         const videoField = createTemplateMediaField({
@@ -758,6 +792,7 @@ export function TemplateStudio(templateId) {
           },
         });
         fieldsHost.appendChild(videoField.element);
+        mediaFields.video.push(videoField);
       }
       leftPanel.appendChild(mediaSection);
       refreshMediaRoute();
@@ -1283,6 +1318,11 @@ export function TemplateStudio(templateId) {
     isGenerating = true;
     genBtn.disabled = true;
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
+    // Same as the Video Studio: Cancel button, progress timer, and a pending
+    // job record so a generation that finishes after a reload is recovered.
+    let cancelHandle = null;
+    let progressHandle = null;
+    let pendingJob = null;
 
     try {
       // Merge template defaults with the params built by genBtn.onclick.
@@ -1314,19 +1354,30 @@ export function TemplateStudio(templateId) {
 
       const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
       if (negativePrompt) params.negative_prompt = negativePrompt;
+      // Advanced (negative prompt / seed), Character Lock, guidance, ratio.
+      if (videoTools) await videoTools.applyToParams(params);
+      if (params.aspect_ratio) params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
+
+      const isVideoRun = route === 't2v' || route === 'i2v' || route === 'v2v';
+      cancelHandle = createAbortAwareGenerateButton(genBtn);
+      cancelHandle.showCancel();
+      params.signal = cancelHandle.controller.signal;
+      pendingJob = createPendingJobTracker('template-studio', { prompt: params.prompt || '', model: params.model, templateId: template.id, outputType: isVideoRun ? 'video' : 'image' });
+      params.onRequestId = pendingJob.onRequestId;
+      progressHandle = startGenerationProgress({ parent: errorContainer, type: isVideoRun ? 'video' : 'image' });
 
       // Same MuAPI calls the Video Studio makes for each route.
       let result;
       if (route === 'v2v') {
-        result = await muapi.processV2V(params);
+        result = await muapi.processV2V(params, params.signal);
       } else if (route === 'i2v') {
-        result = await muapi.generateI2V(params);
+        result = await muapi.generateI2V(params, params.signal);
       } else if (route === 't2v') {
-        result = await muapi.generateVideo(params);
+        result = await muapi.generateVideo(params, params.signal);
       } else if (route === 'i2i') {
-        result = await muapi.generateI2I(params);
+        result = await muapi.generateI2I(params, params.signal);
       } else {
-        result = await muapi.generateImage(params);
+        result = await muapi.generateImage(params, params.signal);
       }
 
       if (result && result.url) {
@@ -1338,6 +1389,10 @@ export function TemplateStudio(templateId) {
         throw new Error('No output URL returned');
       }
     } catch (err) {
+      if (cancelHandle?.isCancelled?.() || err?.name === 'AbortError') {
+        showInlineError(container, 'Generation cancelled.');
+        return;
+      }
       const { userMessage, retryHtml } = formatGenerationError(err, retryCount, MAX_RETRIES);
       showInlineError(container, `${userMessage}${retryHtml}`);
       const retryBtn = container.querySelector('#retry-btn');
@@ -1350,11 +1405,39 @@ export function TemplateStudio(templateId) {
         };
       }
     } finally {
+      if (progressHandle) progressHandle.stop();
+      if (pendingJob) pendingJob.finish();
+      if (cancelHandle) cancelHandle.reset();
       isGenerating = false;
       genBtn.disabled = false;
       genBtn.textContent = 'Generate';
     }
   };
+
+  /**
+   * Media dropped / picked in the prompt attachment toolbar goes into the
+   * matching media field (same as attaching it there directly).
+   */
+  function attachFromToolbar(key, url) {
+    const frame = mediaFields.frame[0];
+    const image = mediaFields.image[0];
+    const video = mediaFields.video[0];
+    if (key === 'video') {
+      if (video) video.setValue(url);
+      else { formState.video_url = url; refreshMediaRoute(); }
+    } else if (key === 'endFrame') {
+      if (frame) frame.setValue({ endUrl: url });
+      else { formState.last_image_url = url; refreshMediaRoute(); }
+    } else if (frame) {
+      frame.setValue({ startUrl: url });
+    } else if (image) {
+      image.setValue(url);
+    } else {
+      formState.image_url = url;
+      refreshMediaRoute();
+    }
+    promptManuallyEdited = false;
+  }
 
   /**
    * The prompt Generate sends: all inputs combined (main prompt, template
@@ -1384,11 +1467,13 @@ export function TemplateStudio(templateId) {
       const nicheTile = container.querySelector('[data-tile="niche"]');
       if (nicheTile) nicheTile.value = niche;
     }
-    lastBuiltPrompt = prompt;
-    outputTabValues['Enhanced Prompt'] = prompt;
+    // Motion & Style (Video Studio) modifiers.
+    const finalPrompt = videoTools ? videoTools.applyToPrompt(prompt, currentMediaRoute().route) : prompt;
+    lastBuiltPrompt = finalPrompt;
+    outputTabValues['Enhanced Prompt'] = finalPrompt;
     const out = document.getElementById('outputTextarea');
-    if (out && activeTab === 'Enhanced Prompt') out.value = prompt;
-    return prompt;
+    if (out && activeTab === 'Enhanced Prompt') out.value = finalPrompt;
+    return finalPrompt;
   }
 
   function showResult(url) {
@@ -1446,6 +1531,21 @@ export function TemplateStudio(templateId) {
       timestamp: new Date().toISOString(),
     });
   }
+
+  // Prompt attachment toolbar (Video Studio): start / end frame, image, video.
+  if (videoTools && primaryPromptField) videoTools.attachToPrompt(primaryPromptField);
+
+  // Recover generations that finished while the user was away.
+  try {
+    resumePendingJobs('template-studio', {
+      poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+      onResult: (url, job) => {
+        const meta = job?.historyMeta || {};
+        saveToHistory(url, meta.prompt || template.name, meta.model || selectedModel, meta.outputType || template.outputType || 'video');
+        if (meta.templateId === template.id) showResult(url);
+      },
+    });
+  } catch { /* storage unavailable */ }
 
   container.cleanup = () => {
     globalCleanups.splice(0).forEach((fn) => { try { fn(); } catch { /* ignore */ } });

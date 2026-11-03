@@ -245,6 +245,25 @@ export function createTemplateMediaField({ kind = 'image', anchorContainer, stud
       emit(null, { source: 'clear' });
       setStatus(EMPTY_TEXT[kind]);
     },
+    /**
+     * Set media that was uploaded elsewhere (the prompt attachment toolbar).
+     * For frame fields pass { startUrl?, endUrl? }; missing parts keep the
+     * current value.
+     */
+    setValue: (next, label) => {
+      if (next == null) return;
+      let v = next;
+      if (isFrame) {
+        const prev = value && typeof value === 'object' ? value : {};
+        const start = typeof next === 'string' ? next : (next.startUrl ?? prev.startUrl ?? null);
+        const end = typeof next === 'string' ? (prev.endUrl ?? null) : (next.endUrl ?? prev.endUrl ?? null);
+        v = { startUrl: start, endUrl: end, urls: [start, end].filter(Boolean) };
+      }
+      picker.reset();
+      emit(v, { source: 'attachment' });
+      const hasEnd = isFrame && v.endUrl;
+      setStatus(label || (isVideo ? 'Video ready' : isFrame ? (hasEnd ? (v.startUrl ? 'Start & end frames set' : 'End frame set — add a start frame') : 'Start frame set') : 'Image ready'), 'done');
+    },
   };
 }
 
