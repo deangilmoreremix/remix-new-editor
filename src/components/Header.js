@@ -29,7 +29,7 @@ export function Header(navigate) {
   menu.className = 'hidden xl:flex items-center gap-4 text-[13px] font-bold text-secondary';
   // Primary studios stay top-level; everything else lives under Tools so the
   // bar fits on one line instead of overflowing.
-  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Templates'];
+  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Effects Studio', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Smart Video Viral', 'Templates'];
 
   const links = {};
 
@@ -48,7 +48,7 @@ export function Header(navigate) {
     { label: 'Video Studio', route: 'video' },
     { label: 'Cinema Studio', route: 'cinema' },
     { label: 'Storyboard Studio', route: 'storyboard' },
-    { label: 'Vibe Motion', route: 'effects' },
+    { label: 'Effects Studio', route: 'effects' },
     { label: 'AI VFX Studio', route: 'ai-vfx' },
     { label: 'Animate Studio', route: 'animate' },
     { label: 'Lip Sync Studio', route: 'lipsync' },
@@ -138,7 +138,7 @@ export function Header(navigate) {
       link.onclick = () => navigate('commercial');
     } else if (item === 'Upscale') {
       link.onclick = () => navigate('upscale');
-    } else if (item === 'Vibe Motion') {
+    } else if (item === 'Effects Studio') {
       link.onclick = () => navigate('effects');
     } else if (item === 'Cinema Studio') {
       link.onclick = () => navigate('cinema');
@@ -247,7 +247,7 @@ export function Header(navigate) {
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
       mobileMenu.appendChild(link);
-    } else if (item === 'Vibe Motion') {
+    } else if (item === 'Effects Studio') {
       link.onclick = () => {
         navigate('effects');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
@@ -432,7 +432,7 @@ export function Header(navigate) {
       } else if (page === 'character' && route === 'Character') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
-      } else if (page === 'effects' && route === 'Vibe Motion') {
+      } else if (page === 'effects' && route === 'Effects Studio') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (page === 'cinema' && route === 'Cinema Studio') {

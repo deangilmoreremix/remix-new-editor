@@ -129,7 +129,7 @@ export function TemplateStudio(templateId) {
         <button class="hover:text-white transition" data-nav="tools">Storyboard</button>
         <button class="hover:text-white transition" data-nav="edit">Edit</button>
         <button class="hover:text-white transition" data-nav="character">Character</button>
-        <button class="hover:text-white transition" data-nav="effects">Vibe Motion</button>
+        <button class="hover:text-white transition" data-nav="effects">Effects Studio</button>
         <button class="hover:text-white transition" data-nav="cinema">Cinema Studio</button>
         <button class="hover:text-white transition" data-nav="influencer">AI Influencer</button>
         <button class="hover:text-white transition" data-nav="apps">Apps</button>

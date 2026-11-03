@@ -28,7 +28,7 @@ export function Sidebar(navigate) {
       { id: 'cinema', label: 'Cinema' },
       { id: 'cinema-template', label: 'Cinema Templates' },
       { id: 'storyboard', label: 'Storyboard' },
-      { id: 'effects', label: 'Vibe Motion' },
+      { id: 'effects', label: 'Effects' },
       { id: 'ai-vfx', label: 'AI VFX' },
       { id: 'animate', label: 'Animate' },
       { id: 'lipsync', label: 'Lip Sync' },

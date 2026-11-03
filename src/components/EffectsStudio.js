@@ -139,7 +139,7 @@ export async function EffectsStudio() {
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  topBar.appendChild(createStudioHeader('effects', 'Vibe Motion', 'Apply 350+ motion and visual effects to your photos and videos', 'mb-4'));
+  topBar.appendChild(createStudioHeader('effects', 'Effects Studio', 'Apply 350+ motion and visual effects to your photos and videos', 'mb-4'));
 
   const tabRow = document.createElement('div');
   tabRow.className = 'flex gap-2 overflow-x-auto no-scrollbar pb-2';
@@ -280,7 +280,7 @@ export async function EffectsStudio() {
     const { browsePexelsImages } = await import('../lib/studioPexels.js');
     browsePexelsImages({
       title: 'Select Reference Photo',
-      studioName: 'Vibe Motion',
+      studioName: 'Effects Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
         // Pexels photos are not Asset Library rows — drop any previously
@@ -464,7 +464,7 @@ export async function EffectsStudio() {
       appTheme: 'effects-studio',
       layout: 'panel',
       studioId: 'effects-studio',
-      studioName: 'Vibe Motion',
+      studioName: 'Effects Studio',
       aspectRatio: '16:9',
       outputType: 'image',
       onApply: ({ imageUrl }) => {
@@ -1154,7 +1154,7 @@ generateBtn.type = 'button';
     setActionBusy(mobileGenBtn, true);
     const notifyId = `effects:${Date.now()}`;
     let failed = null;
-    notifyGeneration({ phase: 'start', id: notifyId, studio: 'effects', label: 'Vibe Motion' });
+    notifyGeneration({ phase: 'start', id: notifyId, studio: 'effects', label: 'Effects Studio' });
 
     outputPreview.showLoading(`Applying "${selectedEffect}"...`);
     mobileOutputPreview.showLoading('Processing...');
@@ -1189,8 +1189,8 @@ generateBtn.type = 'button';
       generateBtn.disabled = false;
       mobileGenBtn.disabled = false;
       notifyGeneration(failed
-        ? { phase: 'error', id: notifyId, studio: 'effects', label: 'Vibe Motion', message: failed }
-        : { phase: 'success', id: notifyId, studio: 'effects', label: 'Vibe Motion' });
+        ? { phase: 'error', id: notifyId, studio: 'effects', label: 'Effects Studio', message: failed }
+        : { phase: 'success', id: notifyId, studio: 'effects', label: 'Effects Studio' });
       if (failed) { setActionRetry(generateBtn); setActionRetry(mobileGenBtn); }
       else { setActionBusy(generateBtn, false); setActionBusy(mobileGenBtn, false); }
     }
@@ -1598,7 +1598,7 @@ generateBtn.type = 'button';
     const detailView = new MediaDetailView({
       mediaUrl: url,
       mediaType: outputPreview.getType() || 'image',
-      title: 'Vibe Motion Output',
+      title: 'Effects Studio Output',
       model: activeTab.label || '',
       autoCollapsePrompt: true,
     });
