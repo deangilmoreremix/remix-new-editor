@@ -22,8 +22,6 @@ import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { showToast } from '../lib/loading.js';
 import { validateEffectParams, EFFECT_PARAM_SCHEMA, createSliderControl, createAdvancedSection } from '../lib/effectParamValidator.js';
 import { EffectCompositor } from '../lib/editor/effectCompositor.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
@@ -1606,11 +1604,8 @@ generateBtn.type = 'button';
   };
 
   switchTab(EFFECT_TABS[0]);
-    const galleryAssets = getAssetsForStudio('effects');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
-    }
 
-    return container;
+  // No template/example gallery here: the effects grid is the catalogue, and
+  // an appended gallery squeezed the studio workspace to zero height.
+  return container;
 }
