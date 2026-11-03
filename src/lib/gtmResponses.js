@@ -167,7 +167,8 @@ export function buildInstructions(appTheme, outputType) {
     'Turn the base idea plus GTM context (target role, industry, sales methodology, writing style, conversion goal) into a conversion-optimized result for this studio.',
     'Weave the buyer insight into the actual wording — do not just append a list of labels.',
     ...profile.finalPromptRules,
-    `sections: return these labelled parts in this order, each 1–2 sentences: ${profile.sections.join(', ')}.`,
+    `sections: the full GTM brief — these labelled parts in this order, each 1–2 vivid, specific sentences written for ${profile.studioName}: ${profile.sections.join(', ')}.`,
+    'finalPrompt: the same idea as ONE clean prompt (rules above), consistent with the brief.',
     'angle: one sentence naming the GTM angle you chose and why it converts for this audience.',
     'cta: the single call to action.',
     profile.hasDuration

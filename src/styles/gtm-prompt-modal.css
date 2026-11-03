@@ -1251,3 +1251,14 @@
   max-width: none;
   width: 100%;
 }
+
+/* The GTM brief is the primary result card. */
+.gtm-prompt-modal .gtm-brief {
+  padding: 4px 0;
+}
+
+.gtm-prompt-modal .gtm-final-card:has(+ .gtm-refine-wrap),
+.gtm-prompt-modal .gtm-brief + .gtm-final-card {
+  box-shadow: none;
+  border-color: var(--border-color);
+}

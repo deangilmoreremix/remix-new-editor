@@ -31,7 +31,8 @@ const KINDS = {
       'Describe subject, action, setting, camera movement, lens, lighting, mood and pacing in plain sentences.',
       'No labels, no bullet points, no markdown, no scene numbers, no quotation marks around the whole prompt.',
     ],
-    sections: ['Hook', 'Scene 1', 'Scene 2', 'Scene 3', 'Camera & lighting', 'Sound', 'Call to action'],
+    // Same labels as the GTM Boost landing-page demo.
+    sections: ['Hook', 'Story beat 1', 'Story beat 2', 'Story beat 3', 'Visual direction', 'Audio direction', 'Call to action'],
     enhancements: [
       { key: 'openingHook', label: 'Scroll-stopping hook', instruction: 'Open on a strong visual hook in the first 2 seconds.' },
       { key: 'storytellingStructure', label: '3-act story', instruction: 'Use a clear problem → turn → payoff arc.' },
@@ -266,11 +267,11 @@ export function normalizeGtmResult(raw) {
   }
   const legacy = [
     ['Hook', raw.hook],
-    ['Scene 1', raw.storybeat_1],
-    ['Scene 2', raw.storybeat_2],
-    ['Scene 3', raw.storybeat_3],
-    ['Camera & lighting', raw.visualDirection],
-    ['Sound', raw.audioDirection],
+    ['Story beat 1', raw.storybeat_1],
+    ['Story beat 2', raw.storybeat_2],
+    ['Story beat 3', raw.storybeat_3],
+    ['Visual direction', raw.visualDirection],
+    ['Audio direction', raw.audioDirection],
   ].filter(([, v]) => v);
   if (legacy.length === 0 && !raw.cta) return null;
   const finalPrompt = [raw.hook, raw.storybeat_1, raw.storybeat_2, raw.storybeat_3, raw.visualDirection]

@@ -335,27 +335,32 @@ export class GTMPromptModal extends BaseModal {
       </div>
     ` : '';
 
+    const hasBrief = this._hasBrief();
+    const studio = this.escapeHtml(profile.studioName);
+    const ctaHtml = p?.cta && !(p.sections || []).some((s) => /call to action|cta/i.test(s.label))
+      ? `<div class="gtm-section"><div class="gtm-section-label">Call to action</div><div class="gtm-section-body">${this.escapeHtml(p.cta)}</div></div>`
+      : '';
+
+    // The GTM brief (Hook / Story beats / Visual / Audio / CTA, worded for the
+    // studio's medium) is the main result. The clean prompt below it is the
+    // same idea rewritten as a single prompt the studio's model reads best.
     return `
       <section class="generated-prompt-section gtm-step" aria-labelledby="gtm-step-result">
-        <h3 class="gtm-step-title" id="gtm-step-result"><span class="gtm-step-num">3</span>Your ${this.escapeHtml(profile.kindLabel.toLowerCase())}</h3>
+        <h3 class="gtm-step-title" id="gtm-step-result"><span class="gtm-step-num">3</span>${hasBrief ? 'Your GTM brief' : `Your ${this.escapeHtml(profile.kindLabel.toLowerCase())}`}</h3>
         <div class="gtm-meta-row">${pills}</div>
         ${p?.angle ? `<p class="gtm-angle"><strong>Angle:</strong> ${this.escapeHtml(p.angle)}</p>` : ''}
         ${variantSelector}
+        ${hasBrief ? `<div class="gtm-structured gtm-brief">${sectionsHtml}${ctaHtml}</div>` : ''}
         <div class="gtm-final-card">
-          <label for="gtm-generated-prompt">Ready to use in ${this.escapeHtml(profile.studioName)} <span class="gtm-final-hint">— edit freely before applying</span></label>
-          <textarea id="gtm-generated-prompt" class="generated-prompt" aria-label="Ready-to-use prompt">${this.escapeHtml(this.generatedPrompt)}</textarea>
+          <label for="gtm-generated-prompt">${hasBrief ? `Clean prompt for ${studio}` : `Ready to use in ${studio}`} <span class="gtm-final-hint">— ${hasBrief ? `the brief as one ${this.escapeHtml(profile.kindLabel.toLowerCase())}; edit freely` : 'edit freely before applying'}</span></label>
+          <textarea id="gtm-generated-prompt" class="generated-prompt" aria-label="Clean prompt">${this.escapeHtml(this.generatedPrompt)}</textarea>
         </div>
-        ${sectionsHtml ? `
-          <details class="gtm-breakdown" ${this.variants.length ? '' : 'open'}>
-            <summary>Breakdown</summary>
-            <div class="gtm-structured">${sectionsHtml}${p?.cta ? `<div class="gtm-section"><div class="gtm-section-label">Call to action</div><div class="gtm-section-body">${this.escapeHtml(p.cta)}</div></div>` : ''}</div>
-          </details>
-        ` : ''}
         ${refineBox ? `<div class="gtm-refine-wrap">${refineBox}</div>` : ''}
         <div class="generated-prompt-actions">
           ${thumbnailBtn}
-          <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 Copy</button>
-          <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">✅ Apply to ${this.escapeHtml(profile.studioName)}</button>
+          <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 ${hasBrief ? 'Copy brief' : 'Copy'}</button>
+          ${hasBrief ? `<button type="button" class="gtm-action apply-brief-btn" data-action="apply-brief" title="Send the whole Hook / Story beats / Visual / Audio / CTA brief to ${studio}">📄 Apply full brief</button>` : ''}
+          <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt" title="Send the clean prompt to ${studio}">✅ ${hasBrief ? 'Apply as clean prompt' : `Apply to ${studio}`}</button>
         </div>
       </section>
     `;
@@ -505,6 +510,7 @@ export class GTMPromptModal extends BaseModal {
     if (generatedEl) generatedEl.addEventListener('input', (e) => { this.generatedPrompt = e.target.value; });
 
     scope.querySelector('[data-action="copy-prompt"]')?.addEventListener('click', () => this.handleCopyPrompt());
+    scope.querySelector('[data-action="apply-brief"]')?.addEventListener('click', () => this.handleApplyBrief());
     scope.querySelector('[data-action="copy-only"]')?.addEventListener('click', () => this.handleCopyOnly());
     scope.querySelector('[data-action="generate-thumbnail"]')?.addEventListener('click', () => this.handleGenerateThumbnail());
     scope.querySelector('[data-action="stop"]')?.addEventListener('click', () => this.handleStop());
@@ -798,6 +804,21 @@ export class GTMPromptModal extends BaseModal {
     return this.generatedPrompt || gtmStructuredToText(this.generatedStructured) || '';
   }
 
+  /** True when the result carries a structured GTM brief (AI results do; the offline template does not). */
+  _hasBrief() {
+    return Array.isArray(this.generatedStructured?.sections) && this.generatedStructured.sections.length > 0;
+  }
+
+  /** The full GTM brief as plain text, one labelled line per section. */
+  _briefText() {
+    const p = this.generatedStructured;
+    if (!this._hasBrief()) return '';
+    const lines = p.sections.map((s) => `${String(s.label).toUpperCase()}: ${s.content}`);
+    if (p.cta && !p.sections.some((s) => /call to action|cta/i.test(s.label))) lines.push(`CALL TO ACTION: ${p.cta}`);
+    if (this.profile.hasDuration && p.estimatedDurationSec) lines.push(`ESTIMATED DURATION: ${p.estimatedDurationSec}s`);
+    return lines.join('\n');
+  }
+
   async _writeClipboard(text) {
     try {
       await navigator.clipboard?.writeText(text);
@@ -808,9 +829,9 @@ export class GTMPromptModal extends BaseModal {
     }
   }
 
-  /** Copy without handing off to the studio. */
+  /** Copy without handing off to the studio (the brief when there is one). */
   async handleCopyOnly() {
-    const text = this._currentPromptText();
+    const text = this._briefText() || this._currentPromptText();
     if (!text) return;
     if (await this._writeClipboard(text)) this._flashCopied('copy-only');
   }
@@ -825,6 +846,16 @@ export class GTMPromptModal extends BaseModal {
     await this._writeClipboard(text);
     if (this.onPromptGenerated) this.onPromptGenerated(text);
     this.close();
+  }
+
+  /** Apply the whole GTM brief to the studio and close. */
+  async handleApplyBrief() {
+    const text = this._briefText();
+    if (!text) return this.handleCopyPrompt();
+    await this._writeClipboard(text);
+    if (this.onPromptGenerated) this.onPromptGenerated(text);
+    this.close();
+    return undefined;
   }
 
   _flashCopied(action) {

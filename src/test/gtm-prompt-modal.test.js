@@ -306,8 +306,49 @@ describe('GTM Responses API features', () => {
     expect(modal.generatedPrompt).toBe(structured.finalPrompt);
     expect(gtmResponses.streamGTMPrompt.mock.calls[0][0].appTheme).toBe('image-studio');
     const html = modal.renderGeneratedPrompt();
-    expect(html).toContain('Ready to use in Image Studio');
+    // The GTM brief is the main result; the clean prompt sits under it.
+    expect(html).toContain('Your GTM brief');
     expect(html).toContain('Calm morning ritual');
+    expect(html).toContain('Clean prompt for Image Studio');
+    expect(html).toContain('Apply full brief');
+    expect(html).toContain('Apply as clean prompt');
+  });
+
+  it('Apply full brief sends every brief section and the CTA', async () => {
+    const onGen = vi.fn();
+    const modal = new GTMPromptModal({ appTheme: 'video-studio', onPromptGenerated: onGen });
+    modal.overlay = fakeOverlay;
+    modal.close = vi.fn();
+    modal._setResult({
+      prompt: {
+        finalPrompt: 'One flowing shot',
+        angle: 'x',
+        sections: [{ label: 'Hook', content: 'Splash' }, { label: 'Story beat 1', content: 'Rooftop' }],
+        cta: 'Get 2 free',
+        estimatedDurationSec: 20,
+      },
+    });
+    await modal.handleApplyBrief();
+    const sent = onGen.mock.calls[0][0];
+    expect(sent).toContain('HOOK: Splash');
+    expect(sent).toContain('STORY BEAT 1: Rooftop');
+    expect(sent).toContain('CALL TO ACTION: Get 2 free');
+    expect(sent).toContain('ESTIMATED DURATION: 20s');
+    expect(modal.close).toHaveBeenCalled();
+  });
+
+  it('video studios use the landing-page brief labels', () => {
+    const modal = new GTMPromptModal({ appTheme: 'video-studio' });
+    expect(modal.profile.sections).toEqual(['Hook', 'Story beat 1', 'Story beat 2', 'Story beat 3', 'Visual direction', 'Audio direction', 'Call to action']);
+  });
+
+  it('the offline template has no brief, so only the clean prompt can be applied', () => {
+    const modal = new GTMPromptModal({ appTheme: 'image-studio' });
+    modal.basePrompt = 'mug';
+    modal._setLocalResult();
+    const html = modal.renderGeneratedPrompt();
+    expect(html).not.toContain('apply-brief');
+    expect(html).toContain('Apply to Image Studio');
   });
 
   it('handleGenerate falls back to a local prompt per studio when streaming throws', async () => {
