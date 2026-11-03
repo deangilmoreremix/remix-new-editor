@@ -20,7 +20,8 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
-import { createActionRow, arrangeActionRow, styleThumbnailButton } from './studio/actionRow.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar, createAiPickButton } from './studio/actionRow.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
@@ -358,8 +359,21 @@ const triggerBtn = document.createElement('button');
     modal.open();
   });
   // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, personalize: personalizeHandle?.button });
-  formCard.appendChild(actionRow);
+  const advanced = createAdvancedPanel({ id: 'vt-advanced-btn', elements: [dynamicControlsContainer] });
+  const modelPickerBtn = createAiPickButton(() => {
+    openModelPicker({
+      currentModelId: selectedModel.id,
+      onSelectModel: (id) => {
+        const m = videoToolsModels.find((x) => x.id === id);
+        if (!m) return;
+        selectedModel = m;
+        updateTrigger();
+        updateFormVisibility();
+        buildDynamicControls();
+      },
+    }).catch(() => {});
+  });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -367,7 +381,8 @@ genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   genBtn.textContent = 'Process Video';
   genBtn.setAttribute('aria-label', 'Process video');
-   formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
 
    // Native audio toggle
    const nativeAudioRow = document.createElement('div');

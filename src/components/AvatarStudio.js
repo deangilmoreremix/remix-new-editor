@@ -23,7 +23,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
-import { createActionRow, arrangeActionRow, styleThumbnailButton } from './studio/actionRow.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -399,9 +399,10 @@ const triggerBtn = document.createElement('button');
     modal.open();
   });
   // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
-  formCard.appendChild(actionRow);
-  formCard.appendChild(genBtn);
+  const advanced = createAdvancedPanel({ id: 'avatar-advanced-btn', elements: [dynamicControlsContainer] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
 
   // Native audio toggle
   const nativeAudioRow = document.createElement('div');

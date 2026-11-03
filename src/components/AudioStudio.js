@@ -19,7 +19,8 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
-import { createActionRow, arrangeActionRow, styleThumbnailButton } from './studio/actionRow.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar, createAiPickButton } from './studio/actionRow.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -962,8 +963,23 @@ export function AudioStudio() {
   });
   styleThumbnailButton(thumbBtn);
   // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, personalize: personalizeHandle?.button });
-  formCard.appendChild(actionRow);
+  const advanced = createAdvancedPanel({ id: 'audio-advanced-btn', elements: [speedGroup, pitchGroup] });
+  const modelPickerBtn = createAiPickButton(() => {
+    openModelPicker({
+      currentModelId: selectedModel.id,
+      onSelectModel: (id) => {
+        const m = audioModels.find((x) => x.id === id);
+        if (!m) return;
+        selectedModel = m;
+        selectedModelId = m.id;
+        schemaParams = {};
+        refreshModelSelector();
+        updateFormVisibility();
+        schedulePersist();
+      },
+    }).catch(() => {});
+  });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -971,7 +987,8 @@ export function AudioStudio() {
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Generate Audio';
   genBtn.setAttribute('aria-label', 'Generate audio');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
   container.appendChild(formCard);
 
   // Instructions

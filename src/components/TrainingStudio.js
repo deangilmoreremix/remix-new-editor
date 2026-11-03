@@ -13,7 +13,9 @@ import { showToast } from '../lib/loading.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { createActionRow, arrangeActionRow, styleThumbnailButton } from './studio/actionRow.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar, createAiPickButton } from './studio/actionRow.js';
+import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 
 export function TrainingStudio() {
   const container = document.createElement('div');
@@ -280,8 +282,20 @@ const triggerBtn = document.createElement('button');
   });
   const actionRow = createActionRow();
   // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn });
-  formCard.appendChild(actionRow);
+  const advanced = createAdvancedPanel({ id: 'training-advanced-btn', elements: [epochsGroup] });
+  const modelPickerBtn = createAiPickButton(() => {
+    openModelPicker({
+      currentModelId: selectedModel.id,
+      onSelectModel: (id) => {
+        const m = trainingModels.find((x) => x.id === id);
+        if (!m) return;
+        selectedModel = m;
+        updateTrigger();
+      },
+    }).catch(() => {});
+  });
+  const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => null, appId: 'training-studio' });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
 
   // Train button
   const trainBtn = document.createElement('button');
@@ -289,7 +303,8 @@ const triggerBtn = document.createElement('button');
   trainBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   trainBtn.textContent = 'Train LoRA';
   trainBtn.setAttribute('aria-label', 'Train LoRA');
-  formCard.appendChild(trainBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: trainBtn }));
+  formCard.appendChild(advanced.panel);
 
   // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
   const enhanceMenu = document.createElement('div');

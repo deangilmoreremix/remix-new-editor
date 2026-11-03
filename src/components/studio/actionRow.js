@@ -95,3 +95,69 @@ export function arrangeActionRow(row, { thumbnail, advanced, aiPick, tools, pers
   });
   return row;
 }
+
+export const GENERATE_BTN_CLASS =
+  'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
+
+/**
+ * Advanced pill + collapsible panel (hidden until the pill is clicked),
+ * matching Image Studio's Advanced behaviour. `elements` are moved into the
+ * panel. Returns { button, panel }.
+ */
+export function createAdvancedPanel({ id = 'advanced-btn', elements = [], tooltip = 'Show advanced options' } = {}) {
+  const panel = document.createElement('div');
+  panel.className = 'hidden flex-col gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02]';
+  panel.setAttribute('data-studio-advanced-panel', '');
+  elements.filter(Boolean).forEach((el) => panel.appendChild(el));
+  const emptyNote = document.createElement('p');
+  emptyNote.className = 'text-xs text-muted';
+  emptyNote.textContent = 'No advanced options for this model.';
+  panel.appendChild(emptyNote);
+  const button = createAdvancedButton({
+    id,
+    tooltip,
+    onToggle: (open) => {
+      if (open) {
+        const hasContent = [...panel.children].some(
+          (c) => c !== emptyNote && !c.classList.contains('hidden') && c.querySelector('input, select, textarea, button'),
+        );
+        emptyNote.classList.toggle('hidden', hasContent);
+      }
+      panel.classList.toggle('hidden', !open);
+      panel.classList.toggle('flex', open);
+    },
+  });
+  return { button, panel };
+}
+
+/**
+ * Image Studio bottom bar: action buttons on the left, Generate on the right,
+ * separated from the form by a hairline. Restyles `generate` to the Image
+ * Studio generate button.
+ */
+export function createStudioActionBar({ row, generate } = {}) {
+  const bar = document.createElement('div');
+  bar.className = 'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-white/5';
+  bar.setAttribute('data-studio-action-bar', '');
+  if (row) {
+    row.classList.add('min-w-0');
+    bar.appendChild(row);
+  }
+  if (generate) {
+    generate.className = GENERATE_BTN_CLASS;
+    bar.appendChild(generate);
+  }
+  return bar;
+}
+
+/** Standard AI Pick button (opens the intelligent model picker). */
+export function createAiPickButton(onClick) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = 'AI Pick';
+  btn.title = 'Open intelligent model picker';
+  btn.setAttribute('aria-label', 'Open model picker');
+  btn.className = SECONDARY_BTN_CLASS;
+  if (typeof onClick === 'function') btn.addEventListener('click', onClick);
+  return btn;
+}

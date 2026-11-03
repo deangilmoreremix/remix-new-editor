@@ -22,7 +22,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
-import { createActionRow, arrangeActionRow, styleThumbnailButton } from './studio/actionRow.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
@@ -388,15 +388,16 @@ const pexelsBtn = document.createElement('button');
     modal.open();
   });
   // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
-  formCard.appendChild(actionRow);
+  const advanced = createAdvancedPanel({ id: 'char-advanced-btn', elements: [dynamicControlsContainer] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Character';
   genBtn.setAttribute('aria-label', 'Generate character');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('character');
