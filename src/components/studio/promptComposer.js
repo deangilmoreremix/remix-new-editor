@@ -200,7 +200,7 @@ export function createSegmented(options, value, onChange) {
 }
 
 /**
- * The ⋯ menu that holds SmartVideo-only tools (AI Pick, Personalize, …) so the
+ * The ⋯ menu that holds SmartVideo-only tools (Personalize, Thumbnail, …) so the
  * composer row matches upstream. items: [{ label, description?, onSelect }].
  */
 export function createMoreMenu(items, { title = 'More tools' } = {}) {

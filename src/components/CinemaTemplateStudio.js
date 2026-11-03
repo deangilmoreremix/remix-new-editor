@@ -311,7 +311,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         template,
         layout: 'panel',
         onApply: ({ imageUrl }) => {
-          img.src = imageUrl + '?v=' + Date.now();
+          img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
           customThumbnailUrl = imageUrl;
           saveCustomThumbnailToCache(template.id, imageUrl);
         },
@@ -514,7 +514,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         template: currentTemplate,
         layout: 'panel',
         onApply: ({ imageUrl }) => {
-          img.src = imageUrl + '?v=' + Date.now();
+          img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
           customThumbnailUrl = imageUrl;
           saveCustomThumbnailToCache(currentTemplate.id, imageUrl);
         },

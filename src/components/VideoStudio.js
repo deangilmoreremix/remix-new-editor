@@ -32,7 +32,6 @@ import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -73,6 +72,9 @@ export function VideoStudio() {
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
+    // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+    // in-memory copy in sync so the next generation uses it.
+    subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'video-studio' });
 
     // Restore the last GTM context the user picked in the prompt modal,
     // if any. The modal persists selections to localStorage on apply; we
@@ -666,7 +668,7 @@ export function VideoStudio() {
               textarea.focus();
               textarea.style.height = 'auto';
               textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
-            });
+            }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal().catch(() => {});
@@ -781,25 +783,6 @@ export function VideoStudio() {
     controlsLeft.appendChild(resolutionBtn);
     controlsLeft.appendChild(qualityBtn);
 
-    // Model Picker button
-    const modelPickerBtn = document.createElement('button');
-    modelPickerBtn.type = 'button';
-    modelPickerBtn.textContent = 'AI Pick';
-    modelPickerBtn.title = 'Open intelligent model picker';
-    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'btn-action-secondary shrink-0';
-    modelPickerBtn.addEventListener('click', () => {
-      openModelPicker({
-        currentModelId: selectedModel,
-        onSelectModel: (id) => {
-          selectedModel = id;
-          selectedModelName = getCurrentModels().find(x => x.id === id)?.name || id;
-          document.getElementById('v-model-btn-label').textContent = selectedModelName;
-          updateControlsForModel(selectedModel);
-        }
-      }).catch(() => {});
-    });
-    controlsLeft.appendChild(modelPickerBtn);
 
     // Advanced options toggle button
     const advancedBtn = createControlBtn(`
@@ -888,10 +871,6 @@ export function VideoStudio() {
     });
     controlsLeft.appendChild(thumbBtn);
 
-    subscribeToGtmThumbnails(({ imageUrl }) => {
-      customThumbnailUrl = imageUrl;
-      saveCustomThumbnailToCache('video-studio', imageUrl);
-    });
 
     const generateBtn = document.createElement('button');
 generateBtn.type = 'button';

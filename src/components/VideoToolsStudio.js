@@ -8,6 +8,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -34,6 +35,9 @@ export function VideoToolsStudio() {
   let lastOutputUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('videotools-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'videotools-studio' });
   let dynamicControls = null;
   let dynamicControlsContainer = null;
 
@@ -272,7 +276,7 @@ const triggerBtn = document.createElement('button');
               promptInput.value = prompt;
               promptInput.dispatchEvent(new Event('input', { bubbles: true }));
               promptInput.focus();
-            });
+            }, { basePrompt: promptInput.value });
           }).catch((err) => console.error('[VideoToolsStudio] GTM Boost failed:', err));
         } else if (action === 'recipe') {
           openRecipeModal({

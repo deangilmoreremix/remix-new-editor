@@ -9,6 +9,7 @@ import { AuthModal } from './AuthModal.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
@@ -19,7 +20,6 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -36,6 +36,9 @@ export function LipSyncStudio() {
     const selectedProvider = 'all';
     let uploadedImageUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('lipsync-studio');
+    // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+    // in-memory copy in sync so the next generation uses it.
+    subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'lipsync-studio' });
     let uploadedVideoUrl = null;
     let uploadedAudioUrl = null;
     let dropdownOpen = null;
@@ -257,7 +260,7 @@ export function LipSyncStudio() {
               textarea.value = prompt;
               textarea.dispatchEvent(new Event('input', { bubbles: true }));
               textarea.focus();
-            });
+            }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
@@ -355,38 +358,6 @@ export function LipSyncStudio() {
     const modelBtn = document.createElement('button');
     modelBtn.id = 'ls-model-btn';
     modelBtn.type = 'button';
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-        document.getElementById('ls-model-btn-label').textContent = getCurrentModels().find(x => x.id === id)?.name || id;
-        const resolutions = getResolutionsForLipSyncModel(selectedModel);
-        if (resolutions.length > 0) {
-          selectedResolution = resolutions[0];
-          document.getElementById('ls-resolution-btn-label').textContent = selectedResolution;
-          document.getElementById('ls-resolution-btn').classList.remove('hidden');
-        } else {
-          document.getElementById('ls-resolution-btn').classList.add('hidden');
-        }
-        const model = getCurrentModels().find(x => x.id === id);
-        if (model?.inputs?.native_audio) {
-          nativeAudioRow.classList.remove('hidden');
-        } else {
-          nativeAudioRow.classList.add('hidden');
-          nativeAudio = false;
-        }
-      }
-    }).catch(() => {});
-  });
-  bottomRow.appendChild(modelPickerBtn);
 
     modelBtn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/40 transition-all text-xs font-bold text-white group';
     modelBtn.innerHTML = `<div id="ls-model-btn-icon" class="w-5 h-5 rounded flex items-center justify-center overflow-hidden bg-white/5"></div><span id="ls-model-btn-label">${getCurrentModels()[0].name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;

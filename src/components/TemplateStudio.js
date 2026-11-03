@@ -209,7 +209,7 @@ export function TemplateStudio(templateId) {
       template,
       layout: 'panel',
       onApply: ({ imageUrl, revisedPrompt }) => {
-        img.src = imageUrl + '?v=' + Date.now();
+        img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache(template.id, imageUrl);
         if (revisedPrompt && primaryPromptField) {
