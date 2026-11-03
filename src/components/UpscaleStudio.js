@@ -16,7 +16,6 @@ import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar, createAiPickButton } from './studio/actionRow.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'], provider: 'muapi', provider_name: 'MuAPI' },
@@ -263,8 +262,7 @@ const triggerBtn = document.createElement('button');
       },
     }).catch(() => {});
   });
-  const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => upscalePromptInput, appId: 'upscale-studio' });
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn });
 
   const genBtn = document.createElement('button');
 genBtn.type = 'button';

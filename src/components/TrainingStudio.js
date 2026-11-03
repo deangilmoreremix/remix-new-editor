@@ -15,7 +15,6 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar, createAiPickButton } from './studio/actionRow.js';
 import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 
 export function TrainingStudio() {
   const container = document.createElement('div');
@@ -294,8 +293,7 @@ const triggerBtn = document.createElement('button');
       },
     }).catch(() => {});
   });
-  const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => null, appId: 'training-studio' });
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn });
 
   // Train button
   const trainBtn = document.createElement('button');
