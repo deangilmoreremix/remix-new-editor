@@ -1,4 +1,5 @@
 import { BaseModal } from './BaseModal.jsx';
+import { injectPanelStyles } from './thumbPanelStyles.js';
 import { supabase } from '../../lib/supabase.js';
 import { ThumbnailService } from '../../lib/thumbnailService.js';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
@@ -1954,6 +1955,7 @@ export class TemplateThumbnailModal extends BaseModal {
 
   open() {
     if (this.layout === 'panel') {
+      injectPanelStyles();
       return this._openPanel();
     }
         this.step = 'brief';
@@ -2166,6 +2168,12 @@ export class TemplateThumbnailModal extends BaseModal {
 
     document.body.appendChild(this._overlay);
     document.body.appendChild(this._panel);
+    // Overlay and panel are siblings here, so mark both active to fade the
+    // overlay in and slide the drawer on screen.
+    requestAnimationFrame(() => {
+      this._overlay?.classList.add('active');
+      this._panel?.classList.add('active');
+    });
 
     // Wire up the "set yours in Settings" link to open the API modal
     // (falls back to the Settings modal — both have the OpenAI form).
