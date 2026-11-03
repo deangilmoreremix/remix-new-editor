@@ -22,7 +22,6 @@ import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { mountImageModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { ADVANCED_ICON, TOOLS_ICON } from './studio/actionRow.js';
@@ -555,31 +554,6 @@ export function ImageStudio() {
     // Advanced options toggle button
     const advancedBtn = createControlBtn(ADVANCED_ICON, 'Advanced', 'advanced-btn', 'Show advanced options');
     controlsLeft.appendChild(advancedBtn);
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-        const m = getCurrentModels().find(x => x.id === id);
-        selectedModelName = m ? m.name : id;
-        document.getElementById('model-btn-label').textContent = selectedModelName;
-        const availableArs = getCurrentAspectRatios(selectedModel);
-        selectedAr = availableArs[0];
-        document.getElementById('ar-btn-label').textContent = selectedAr;
-        const validResolutions = getCurrentResolutions(selectedModel);
-        qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
-        if (validResolutions.length > 0) document.getElementById('quality-btn-label').textContent = validResolutions[0];
-      }
-    }).catch(() => {});
-  });
-  controlsLeft.appendChild(modelPickerBtn);
 
     
     // Quick Tools toggle button

@@ -20,8 +20,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
-import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar, createAiPickButton } from './studio/actionRow.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
@@ -358,22 +357,9 @@ const triggerBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-  // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
   const advanced = createAdvancedPanel({ id: 'vt-advanced-btn', elements: [dynamicControlsContainer] });
-  const modelPickerBtn = createAiPickButton(() => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (id) => {
-        const m = videoToolsModels.find((x) => x.id === id);
-        if (!m) return;
-        selectedModel = m;
-        updateTrigger();
-        updateFormVisibility();
-        buildDynamicControls();
-      },
-    }).catch(() => {});
-  });
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, personalize: personalizeHandle?.button });
 
   // Generate button
   const genBtn = document.createElement('button');

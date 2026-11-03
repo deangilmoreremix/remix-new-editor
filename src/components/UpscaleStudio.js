@@ -14,8 +14,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
-import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar, createAiPickButton } from './studio/actionRow.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'], provider: 'muapi', provider_name: 'MuAPI' },
@@ -247,22 +246,9 @@ const triggerBtn = document.createElement('button');
     modal.open();
   });
   const actionRow = createActionRow();
-  // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
   const advanced = createAdvancedPanel({ id: 'upscale-advanced-btn', elements: [factorGroup] });
-  const modelPickerBtn = createAiPickButton(() => {
-    openModelPicker({
-      currentModelId: selectedMethod.id,
-      onSelectModel: (id) => {
-        const m = UPSCALE_METHODS.find((x) => x.id === id);
-        if (!m) return;
-        selectedMethod = m;
-        selectedFactor = m.factors[0] || '';
-        updateTrigger();
-        updateFactorBtns();
-      },
-    }).catch(() => {});
-  });
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button });
 
   const genBtn = document.createElement('button');
 genBtn.type = 'button';

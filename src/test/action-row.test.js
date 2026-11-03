@@ -14,17 +14,17 @@ const btn = (label) => {
 };
 
 describe('studio action row', () => {
-  it('orders buttons Thumbnail · Advanced · AI Pick · Tools · Personalize and skips missing ones', () => {
+  it('orders buttons Thumbnail · Advanced · Tools · Personalize and skips missing ones', () => {
     const row = createActionRow();
     const personalize = btn('Personalize');
-    const aiPick = btn('AI Pick');
+    const tools = btn('Tools');
     row.appendChild(personalize);
-    row.appendChild(aiPick);
+    row.appendChild(tools);
     const thumbnail = styleThumbnailButton(btn('x'));
     const advanced = createAdvancedButton({ id: 'adv' });
-    arrangeActionRow(row, { personalize, aiPick, thumbnail, advanced });
+    arrangeActionRow(row, { personalize, tools, thumbnail, advanced });
     const labels = [...row.children].map((c) => c.textContent.trim());
-    expect(labels).toEqual(['🖼 Thumbnail', 'Advanced', 'AI Pick', 'Personalize']);
+    expect(labels).toEqual(['🖼 Thumbnail', 'Advanced', 'Tools', 'Personalize']);
     expect(thumbnail.className).toBe('btn-action-secondary shrink-0');
     expect(advanced.className).toBe(ACTION_PILL_CLASS);
   });

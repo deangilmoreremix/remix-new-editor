@@ -19,8 +19,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
-import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar, createAiPickButton } from './studio/actionRow.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -962,24 +961,9 @@ export function AudioStudio() {
     modal.open();
   });
   styleThumbnailButton(thumbBtn);
-  // Action row — unified Image Studio layout (Thumbnail · Advanced · AI Pick · Tools · Personalize)
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
   const advanced = createAdvancedPanel({ id: 'audio-advanced-btn', elements: [speedGroup, pitchGroup] });
-  const modelPickerBtn = createAiPickButton(() => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (id) => {
-        const m = audioModels.find((x) => x.id === id);
-        if (!m) return;
-        selectedModel = m;
-        selectedModelId = m.id;
-        schemaParams = {};
-        refreshModelSelector();
-        updateFormVisibility();
-        schedulePersist();
-      },
-    }).catch(() => {});
-  });
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, personalize: personalizeHandle?.button });
 
   // Generate button
   const genBtn = document.createElement('button');

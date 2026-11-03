@@ -35,7 +35,6 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 
@@ -620,24 +619,6 @@ export function CinemaStudio() {
     settingsToolbar.appendChild(gtmBtn);
     settingsToolbar.appendChild(modelBtn);
 
-    // Model Picker button
-    const modelPickerBtn = document.createElement('button');
-    modelPickerBtn.type = 'button';
-    modelPickerBtn.textContent = 'AI Pick';
-    modelPickerBtn.title = 'Open intelligent model picker';
-    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'btn-action-secondary shrink-0';
-    modelPickerBtn.addEventListener('click', () => {
-      openModelPicker({
-        currentModelId: currentSettings.model,
-        onSelectModel: (id) => {
-          currentSettings.model = id;
-          updateModelBtn();
-          updateControlsForModel();
-        }
-      }).catch((err) => console.error('[ModelPicker] open failed:', err));
-    });
-    settingsToolbar.appendChild(modelPickerBtn);
 
     // Shared model dropdown (glass panel) — lists T2V models, or I2V models
     // when a reference image is loaded, with live search + per-model metadata.
@@ -923,11 +904,10 @@ export function CinemaStudio() {
       rightGroup.appendChild(summaryCard);
       rightGroup.appendChild(generateBtn);
 
-    // Unified action order (matches Image Studio): Thumbnail · Advanced · AI Pick · Personalize
+    // Unified action order (matches Image Studio): Thumbnail · Advanced · Personalize
     arrangeActionRow(settingsToolbar, {
       thumbnail: thumbBtn,
       advanced: advancedBtn,
-      aiPick: modelPickerBtn,
       personalize: personalizeHandle?.button,
     });
 

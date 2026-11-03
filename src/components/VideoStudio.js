@@ -32,7 +32,6 @@ import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -787,25 +786,6 @@ export function VideoStudio() {
     controlsLeft.appendChild(resolutionBtn);
     controlsLeft.appendChild(qualityBtn);
 
-    // Model Picker button
-    const modelPickerBtn = document.createElement('button');
-    modelPickerBtn.type = 'button';
-    modelPickerBtn.textContent = 'AI Pick';
-    modelPickerBtn.title = 'Open intelligent model picker';
-    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'btn-action-secondary shrink-0';
-    modelPickerBtn.addEventListener('click', () => {
-      openModelPicker({
-        currentModelId: selectedModel,
-        onSelectModel: (id) => {
-          selectedModel = id;
-          selectedModelName = getCurrentModels().find(x => x.id === id)?.name || id;
-          document.getElementById('v-model-btn-label').textContent = selectedModelName;
-          updateControlsForModel(selectedModel);
-        }
-      }).catch(() => {});
-    });
-    controlsLeft.appendChild(modelPickerBtn);
 
     // Advanced options toggle button
     const advancedBtn = createControlBtn(ADVANCED_ICON, 'Advanced', 'v-advanced-btn', 'Show advanced options');
@@ -890,11 +870,10 @@ export function VideoStudio() {
       mountThumbnailModal(modal);
       modal.open();
     });
-    // Unified action order (matches Image Studio): Thumbnail · Advanced · AI Pick · Personalize
+    // Unified action order (matches Image Studio): Thumbnail · Advanced · Personalize
     arrangeActionRow(controlsLeft, {
       thumbnail: thumbBtn,
       advanced: advancedBtn,
-      aiPick: modelPickerBtn,
       personalize: personalizeHandle?.button,
     });
 

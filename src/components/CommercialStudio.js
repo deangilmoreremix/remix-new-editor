@@ -14,9 +14,7 @@ import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
-import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -155,21 +153,6 @@ const COMMERCIAL_MODELS = [
   modelWrapper.appendChild(dropdown);
   formCard.appendChild(modelWrapper);
 
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-      }
-    }).catch(() => {});
-  });
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -316,11 +299,10 @@ const COMMERCIAL_MODELS = [
     mountThumbnailModal(modal);
     modal.open();
   });
-  // Action row — unified Image Studio layout (Thumbnail · AI Pick)
+  // Action row — unified Image Studio layout (Thumbnail)
   const actionRow = createActionRow();
   const advanced = createAdvancedPanel({ id: 'commercial-advanced-btn', elements: [dynamicControlsContainer] });
-  const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => null, appId: 'commercial-studio' });
-  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, aiPick: modelPickerBtn, personalize: personalizeHandle?.button });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button });
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';

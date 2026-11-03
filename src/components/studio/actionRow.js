@@ -1,6 +1,6 @@
 /**
  * Shared studio action row — the Image Studio button layout
- * (🖼 Thumbnail · Advanced · AI Pick · Tools · Personalize) used by every
+ * (🖼 Thumbnail · Advanced · Tools · Personalize) used by every
  * generation studio so the prompt bar looks the same everywhere.
  */
 
@@ -86,11 +86,11 @@ export function styleThumbnailButton(btn) {
 
 /**
  * Appends the given buttons to `row` in the canonical order
- * Thumbnail · Advanced · AI Pick · Tools · Personalize. Missing entries are
+ * Thumbnail · Advanced · Tools · Personalize. Missing entries are
  * skipped. Already-mounted nodes are moved.
  */
-export function arrangeActionRow(row, { thumbnail, advanced, aiPick, tools, personalize } = {}) {
-  [thumbnail, advanced, aiPick, tools, personalize].forEach((el) => {
+export function arrangeActionRow(row, { thumbnail, advanced, tools, personalize } = {}) {
+  [thumbnail, advanced, tools, personalize].forEach((el) => {
     if (el) row.appendChild(el);
   });
   return row;
@@ -148,16 +148,4 @@ export function createStudioActionBar({ row, generate } = {}) {
     bar.appendChild(generate);
   }
   return bar;
-}
-
-/** Standard AI Pick button (opens the intelligent model picker). */
-export function createAiPickButton(onClick) {
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.textContent = 'AI Pick';
-  btn.title = 'Open intelligent model picker';
-  btn.setAttribute('aria-label', 'Open model picker');
-  btn.className = SECONDARY_BTN_CLASS;
-  if (typeof onClick === 'function') btn.addEventListener('click', onClick);
-  return btn;
 }
