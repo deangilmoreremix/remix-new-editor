@@ -28,6 +28,7 @@ import { cube } from '@remotion/transitions/cube';
 import { pushCut } from '@remotion/transitions/push-cut';
 import { loadFont } from '@remotion/fonts';
 import { animationStyle } from './overlayAnimations.js';
+import { buildEffectDescriptors } from './effects.js';
 import { stretchLowerThird } from '../addons/lowerThirds.js';
 
 // ------------------------------------------------------------------ fonts
@@ -176,14 +177,14 @@ function SmartText({ o, durationInFrames }) {
   );
 }
 
-function ImageOverlay({ o, durationInFrames, personalized }) {
+function ImageOverlay({ o, durationInFrames, personalized, effects }) {
   const src = o.resolvedSrc;
   if (!src) return null;
   const radius = personalized ? `${Number(o.cornerRadius) || 0}%` : (o.cornerRadius ? '50%' : 0);
   return (
     <Animated o={{ ...o, geometry: o.fill ? { left: 0, top: 0, width: 100, height: 100 } : o.geometry }} durationInFrames={durationInFrames}>
       <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: radius }}>
-        <Img src={src} style={{ width: '100%', height: '100%', objectFit: o.fill || personalized ? 'cover' : 'contain' }} />
+        <Img src={src} effects={effects} style={{ width: '100%', height: '100%', objectFit: o.fill || personalized ? 'cover' : 'contain' }} />
       </div>
     </Animated>
   );
@@ -205,14 +206,14 @@ function useJson(url) {
   return data;
 }
 
-function StickerOverlay({ o, durationInFrames }) {
+function StickerOverlay({ o, durationInFrames, effects }) {
   const lottieData = useJson(o.kind === 'lottie' ? o.resolvedSrc : null);
   if (!o.resolvedSrc) return null;
   return (
     <Animated o={o} durationInFrames={durationInFrames}>
       {o.kind === 'lottie'
         ? (lottieData ? <Lottie animationData={lottieData} loop style={{ width: '100%', height: '100%' }} /> : null)
-        : <Img src={o.resolvedSrc} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
+        : <Img src={o.resolvedSrc} effects={effects} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
     </Animated>
   );
 }
@@ -357,10 +358,12 @@ function InTransition({ tr, direction, layerFrom, children }) {
 
 function MediaLayer({ layer }) {
   const fit = layer.fit === 'contain' ? 'contain' : 'cover';
+  const effects = buildEffectDescriptors(layer.effects);
+  const fx = effects.length ? effects : undefined;
   if (layer.kind === 'video') {
-    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} volume={layer.volume} objectFit={fit} style={{ width: '100%', height: '100%' }} />;
+    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} volume={layer.volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%' }} />;
   }
-  return <Img src={layer.src} style={{ width: '100%', height: '100%', objectFit: fit }} />;
+  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit }} />;
 }
 
 // ------------------------------------------------------------------ root
@@ -407,7 +410,7 @@ export function TimelineComposition({ model }) {
             if (!Comp) return null;
             return (
               <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
-                <Comp o={layer.options} durationInFrames={layer.durationInFrames} />
+                <Comp o={layer.options} durationInFrames={layer.durationInFrames} effects={layer.effects?.length ? buildEffectDescriptors(layer.effects) : undefined} />
               </Sequence>
             );
           }

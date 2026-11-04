@@ -3950,6 +3950,7 @@ export function TimelineEditorPage() {
             state.playing = false;
             updatePlaybackUI();
           },
+          onReady: () => remotionEngine?.seekToFrame(percentToFrame(state.playheadPercent)),
           onError: (err) => console.warn('[Remotion preview]', err),
         });
         root.classList.add('remotion-engine-on');
@@ -4621,7 +4622,36 @@ export function TimelineEditorPage() {
       });
     }
 
+    // Effects & Color (Remotion @remotion/effects) under the clip's settings,
+    // for clips the effects apply to: video/image clips and image-based
+    // overlays.
+    const EFFECT_CLIP_TYPES = new Set(['video', 'image', 'overlay-image', 'overlay-personalized-image', 'overlay-sticker']);
+    let activeEffectsPanel = null;
     function renderClipEditor(clipId) {
+      renderClipEditorBase(clipId);
+      activeEffectsPanel?.destroy();
+      activeEffectsPanel = null;
+      const clip = allClips().find((c) => c.id === clipId);
+      if (!clip || !EFFECT_CLIP_TYPES.has(clip.type) || (clip.type === 'overlay-sticker' && clip.addon?.kind === 'lottie')) return;
+      const host = document.createElement('section');
+      host.className = 'clip-editor__section clip-effects';
+      host.setAttribute('aria-label', 'Effects and color');
+      els.clipEditorContainer.appendChild(host);
+      import('../lib/editor/remotion/effectsPanel.js').then(({ renderEffectsPanel }) => {
+        if (!host.isConnected) return;
+        activeEffectsPanel = renderEffectsPanel(host, {
+          effects: clip.effects || [],
+          onError: (err) => showToast(err?.message || 'Effect error', 'error'),
+          onChange: (next) => {
+            clip.effects = next;
+            scheduleEngineUpdate();
+            debouncedSave();
+          },
+        });
+      });
+    }
+
+    function renderClipEditorBase(clipId) {
       const clip = state.tracks.flatMap(t => t.items || t.clips || []).find(c => c.id === clipId);
       if (!clip) {
         els.clipEditorContainer.innerHTML = '<p>Clip not found</p>';

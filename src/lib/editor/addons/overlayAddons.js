@@ -15,6 +15,25 @@
 import { registerAddon } from './registry.js';
 import { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, VIDEO_TRANSITIONS } from './overlayData.js';
 import { TRANSITION_CATEGORIES } from './stockMedia.js';
+import { mapVideoTransition, presentationLabel } from '../remotion/transitionMap.js';
+
+/**
+ * Video Transitions picker: Remotion's own transitions first (they look the
+ * same in preview and export), then the full gl-transitions list, each
+ * labelled with the Remotion transition it exports as.
+ */
+const REMOTION_NATIVE = [
+  ['fade', 'Fade'], ['wipeLeft', 'Wipe ←'], ['wipeRight', 'Wipe →'], ['wipeUp', 'Wipe ↑'], ['wipeDown', 'Wipe ↓'],
+  ['Directional', 'Slide'], ['SimpleFlip', 'Flip'], ['angular', 'Clock wipe'], ['circleopen', 'Iris'], ['cube', 'Cube'],
+];
+export const VIDEO_TRANSITION_OPTIONS = [
+  ...REMOTION_NATIVE.map(([v, l]) => [v, `${l} (Remotion)`]),
+  ...VIDEO_TRANSITIONS.filter(([v]) => !REMOTION_NATIVE.some(([n]) => n === v)).map(([v, l]) => {
+    const m = mapVideoTransition(v);
+    const used = m.gpu ? m.fallback : m.presentation;
+    return [v, `${l} — exports as ${presentationLabel(used)}`];
+  }),
+];
 import { LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';
 
 const ICON = (name) => `/static/images/toolbar/${name}.svg`;
@@ -364,7 +383,7 @@ export const VIDEO_TRANSITION = registerAddon({
   defaultDuration: 1,
   defaults: () => ({ transition: 'fade', opacity: 100, blendMode: 'normal' }),
   fields: [
-    { key: 'transition', label: 'Transition', type: 'select', options: VIDEO_TRANSITIONS },
+    { key: 'transition', label: 'Transition', type: 'select', options: VIDEO_TRANSITION_OPTIONS },
     ...LOOK_FIELDS(),
   ],
   summary: (o) => `Transition: ${(VIDEO_TRANSITIONS.find(([v]) => v === o.transition) || [null, o.transition])[1]}`,

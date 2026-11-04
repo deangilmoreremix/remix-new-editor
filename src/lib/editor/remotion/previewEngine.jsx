@@ -13,6 +13,7 @@ import React, { forwardRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Player } from '@remotion/player';
 import { TimelineComposition } from './TimelineComposition.jsx';
+import { loadEffects, effectIdsInModel } from './effects.js';
 
 const PlayerHost = forwardRef(function PlayerHost({ model }, ref) {
   return (
@@ -41,7 +42,7 @@ const PlayerHost = forwardRef(function PlayerHost({ model }, ref) {
  * @param {HTMLElement} host
  * @param {object} opts { model, onFrame(frame), onPlay(), onPause(), onEnded(), onError(err) }
  */
-export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onEnded, onError } = {}) {
+export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onEnded, onError, onReady } = {}) {
   const root = createRoot(host);
   let player = null;
   let current = model;
@@ -61,9 +62,18 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
     };
     Object.entries(handlers).forEach(([ev, fn]) => player.addEventListener(ev, fn));
     detach = () => Object.entries(handlers).forEach(([ev, fn]) => player?.removeEventListener(ev, fn));
+    onReady?.();
   };
 
-  const render = () => root.render(<PlayerHost ref={bind} model={current} />);
+  // Effect modules load lazily; render once they're ready so the preview
+  // never shows a frame without the clip's effects.
+  let version = 0;
+  const render = () => {
+    const v = ++version;
+    loadEffects(effectIdsInModel(current)).then(() => {
+      if (v === version) root.render(<PlayerHost ref={bind} model={current} />);
+    });
+  };
   render();
 
   return {

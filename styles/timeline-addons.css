@@ -850,3 +850,26 @@
 .addon-overlay-layer.engine-on > .addon-overlay-clip { background: transparent !important; }
 .addon-overlay-layer.engine-on > .addon-overlay-clip > :not(.overlay-handle):not(.overlay-delete-handle) { visibility: hidden; }
 .addon-overlay-layer.engine-on > .addon-overlay-clip.is-empty { outline: 1px dashed rgba(255,255,255,.5); }
+
+/* ---- Effects & Color panel (Remotion effects) ---- */
+.clip-effects { margin-top: var(--sp-3, 12px); }
+.fx-panel { display: flex; flex-direction: column; gap: 8px; }
+.fx-color { display: flex; flex-direction: column; gap: 4px; }
+.fx-color__row { display: grid; grid-template-columns: 84px 1fr 38px; align-items: center; gap: 6px; font-size: 12px; }
+.fx-color__row output { font-variant-numeric: tabular-nums; text-align: right; color: var(--text-dim, rgba(255,255,255,.6)); }
+.fx-color__row input[type="range"] { width: 100%; accent-color: #eb5054; }
+.fx-color__key { grid-template-columns: 84px auto 32px 1fr; }
+.fx-color__key input[type="color"] { width: 32px; height: 22px; padding: 0; border: 0; background: none; }
+.fx-color__actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.fx-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.fx-item { border: 1px solid rgba(255,255,255,.1); border-radius: 6px; background: rgba(255,255,255,.03); }
+.fx-item.is-off .fx-item__name { opacity: .45; text-decoration: line-through; }
+.fx-item__row { display: flex; align-items: center; gap: 4px; padding: 4px 6px; }
+.fx-item__name { flex: 1; text-align: left; background: none; border: 0; color: inherit; font-size: 12px; cursor: pointer; padding: 2px 0; }
+.fx-item__params { padding: 6px 8px 8px; border-top: 1px solid rgba(255,255,255,.08); }
+.fx-library { display: flex; flex-direction: column; gap: 6px; }
+.fx-search { width: 100%; }
+.fx-cats { display: flex; flex-wrap: wrap; gap: 4px; }
+.fx-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; max-height: 240px; overflow: auto; }
+.fx-chip { font-size: 11px; padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: inherit; cursor: pointer; text-align: left; }
+.fx-chip:hover, .fx-chip:focus-visible { border-color: #eb5054; outline: none; }

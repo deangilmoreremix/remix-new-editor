@@ -106,6 +106,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@remotion/effects": "4.0.540",
     "@remotion/fonts": "4.0.540",
     "@remotion/google-fonts": "4.0.540",
     "@remotion/layout-utils": "4.0.540",

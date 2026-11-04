@@ -16,6 +16,7 @@
 import './sandboxShims.js';
 import { renderMediaOnWeb } from '@remotion/web-renderer';
 import { TimelineComposition, registerGoogleFonts } from '../lib/editor/remotion/TimelineComposition.jsx';
+import { loadEffects, effectIdsInModel } from '../lib/editor/remotion/effects.js';
 
 const jobs = new Map();
 const parentWin = window.parent;
@@ -38,6 +39,7 @@ async function render(id, model, options = {}) {
     const container = ['mp4', 'webm', 'mov'].includes(options.container) ? options.container : 'mp4';
     // Fonts first, so frame 0 already uses them (HTML and Lottie SVG text).
     await Promise.race([registerGoogleFonts(model.fonts || []), new Promise((r) => setTimeout(r, 15000))]);
+    await loadEffects(effectIdsInModel(model));
     const result = await renderMediaOnWeb({
       composition: {
         id: 'timeline',

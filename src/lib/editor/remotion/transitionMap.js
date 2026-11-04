@@ -18,7 +18,7 @@ const EXACT = {
   wipeUp: ['wipe', { direction: 'from-bottom' }],
   wipeDown: ['wipe', { direction: 'from-top' }],
   directionalwipe: ['wipe', { direction: 'from-left' }],
-  directional: ['slide', { direction: 'from-right' }],
+  Directional: ['slide', { direction: 'from-right' }],
   'directional-easing': ['slide', { direction: 'from-right' }],
   slides: ['slide', { direction: 'from-right' }],
   splitSlideInHorizontal: ['slide', { direction: 'from-left' }],

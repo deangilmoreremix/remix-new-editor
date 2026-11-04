@@ -77,6 +77,23 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
       return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="number" data-key="${field.key}" data-kind="number" value="${esc(value ?? 0)}"${field.min != null ? ` min="${field.min}"` : ''}${field.max != null ? ` max="${field.max}"` : ''}${field.step != null ? ` step="${field.step}"` : ''}/></div>`;
     case 'textarea':
       return `<div class="clip-editor__field addon-field">${label}<textarea id="${id}" rows="${field.rows || 2}" data-key="${field.key}" data-kind="text"${field.placeholder ? ` placeholder="${esc(field.placeholder)}"` : ''}>${esc(value)}</textarea></div>`;
+    case 'uv': {
+      // A point in 0–1 frame coordinates (effect centres/origins).
+      const [x = 0.5, y = 0.5] = Array.isArray(value) ? value : [];
+      return `<div class="clip-editor__field addon-field addon-field--uv"><label>${esc(field.label)}</label>
+        <div class="addon-uv"><label>X <input type="number" min="0" max="1" step="0.01" data-key="${field.key}.0" data-kind="number" value="${esc(x)}"/></label>
+        <label>Y <input type="number" min="0" max="1" step="0.01" data-key="${field.key}.1" data-kind="number" value="${esc(y)}"/></label></div></div>`;
+    }
+    case 'points': {
+      const text = (Array.isArray(value) ? value : []).map(([x, y]) => `${x}, ${y}`).join('; ');
+      return `<div class="clip-editor__field addon-field">${label}<input id="${id}" type="text" data-key="${field.key}" data-kind="points" value="${esc(text)}" placeholder="0, 0; 0.5, 0.6; 1, 1" title="Input, output pairs from 0 to 1"/></div>`;
+    }
+    case 'cube': {
+      const loadedName = options[`${field.key}Name`];
+      return `<div class="clip-editor__field addon-field addon-field--cube"><label>${esc(field.label)}</label>
+        <div class="addon-image-actions"><label class="mini-btn addon-upload-btn">Load .cube file<input type="file" accept=".cube,text/plain" data-cube-upload="${field.key}" hidden /></label>
+        <span class="addon-field__hint">${loadedName ? esc(loadedName) : 'Identity (no change)'}</span></div></div>`;
+    }
     case 'font':
       return `<div class="clip-editor__field addon-field">${label}<select id="${id}" data-key="${field.key}" data-kind="select" class="addon-font-select">${(field.options || [])
         .map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
@@ -415,6 +432,28 @@ export function renderAddonEditor(container, {
         .catch((err) => services.onError?.(err));
       return;
     }
+    if (e.type === 'change' && el.dataset?.kind === 'points') {
+      const pts = String(el.value || '').split(/[;\n]/).map((pair) => pair.split(',').map((n) => Number(n.trim())))
+        .filter((pp) => pp.length === 2 && pp.every((n) => Number.isFinite(n)))
+        .map(([x, y]) => [Math.max(0, Math.min(1, x)), Math.max(0, Math.min(1, y))])
+        .sort((a, b) => a[0] - b[0]);
+      setAndEmit(el.dataset.key, pts.length >= 2 ? pts : [[0, 0], [1, 1]]);
+      return;
+    }
+    if (e.type === 'change' && el.dataset?.cubeUpload) {
+      const file = el.files?.[0];
+      if (!file) return;
+      const key = el.dataset.cubeUpload;
+      file.text().then((text) => {
+        if (!/LUT_3D_SIZE\s+\d+/.test(text)) {
+          services.onError?.(new Error('That file is not a 3D .cube LUT'));
+          return;
+        }
+        setPath(current, `${key}Name`, file.name);
+        setAndEmit(key, text);
+      });
+      return;
+    }
     if (e.type === 'change' && el.dataset?.kind === 'select-null') {
       setAndEmit(el.dataset.key, el.value || null);
       return;
@@ -459,6 +498,7 @@ export function renderAddonEditor(container, {
     const key = el.dataset?.key;
     if (!key || e.type === 'click') return;
     const kind = el.dataset.kind;
+    if (kind === 'points') return; // committed on change (above)
     if (kind === 'toggle') setPath(current, key, el.checked);
     else if (kind === 'number') {
       const n = Number(el.value);
