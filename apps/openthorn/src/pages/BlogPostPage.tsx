@@ -54,10 +54,10 @@ export default function BlogPostPage() {
           datePublished: post.date,
           dateModified: post.dateModified ?? post.date,
           url: `https://www.openthorn.app/blog/${post.slug}`,
-          author: { '@type': 'Organization', name: 'Smart Video' },
+          author: { '@type': 'Organization', name: 'Smart Website Builder' },
           publisher: {
             '@type': 'Organization',
-            name: 'Smart Video',
+            name: 'Smart Website Builder',
             logo: {
               '@type': 'ImageObject',
               url: 'https://www.openthorn.app/logo.png',

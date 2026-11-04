@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import type { Template } from './templates'
 import type { AgentCodeFile } from './agent'
+import { T } from './tables'
 
 interface TemplateRow {
   id: string
@@ -28,7 +29,7 @@ function rowToTemplate(r: TemplateRow): Template {
 /** Published templates ordered for display. Null on error → caller keeps bundled. */
 export async function fetchPublishedTemplates(): Promise<Template[] | null> {
   const { data, error } = await supabase
-    .from('templates')
+    .from(T.templates)
     .select('id,template_key,name,description,category,accent_color,highlights,files')
     .eq('status', 'published')
     .order('featured', { ascending: false })
