@@ -454,12 +454,11 @@ describe('TemplateStudio feature tests', () => {
     expect(backBtn).not.toBeNull();
   });
 
-  it('renders nav header with studio links', async () => {
+  it('does not render its own studio links (side menu is the only menu)', async () => {
     mount();
     await new Promise(r => setTimeout(r, 50));
 
-    const navBtns = container.querySelectorAll('[data-nav]');
-    expect(navBtns.length).toBeGreaterThan(5);
+    expect(container.querySelectorAll('[data-nav]').length).toBe(0);
   });
 
   it('renders input fields for image upload templates', async () => {
