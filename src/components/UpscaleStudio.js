@@ -16,6 +16,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'], provider: 'muapi', provider_name: 'MuAPI' },
@@ -127,8 +128,14 @@ const triggerBtn = document.createElement('button');
   let _modelSelectorOutsideClickHandler = null;
 
   const factorRow = document.createElement('div');
-  factorRow.className = 'flex gap-2 mb-6 justify-center';
-  container.appendChild(factorRow);
+  factorRow.className = 'flex flex-wrap gap-2';
+  const factorGroup = document.createElement('div');
+  factorGroup.className = 'flex flex-col gap-2';
+  const factorLabel = document.createElement('label');
+  factorLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+  factorLabel.textContent = 'Scale Factor';
+  factorGroup.appendChild(factorLabel);
+  factorGroup.appendChild(factorRow);
 
   const formCard = document.createElement('div');
   formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
@@ -236,14 +243,18 @@ const triggerBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  const actionRow = createActionRow();
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
+  const advanced = createAdvancedPanel({ id: 'upscale-advanced-btn', elements: [factorGroup] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button });
 
   const genBtn = document.createElement('button');
 genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   genBtn.textContent = 'Upscale Image';
   genBtn.setAttribute('aria-label', 'Upscale image');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
 
   // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
   const enhanceMenu = document.createElement('div');

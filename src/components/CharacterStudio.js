@@ -22,6 +22,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
@@ -335,14 +336,12 @@ const pexelsBtn = document.createElement('button');
     formCard.appendChild(enhanceMenu);
 
   // Personalize trigger (opens PersonalizeModal as a pop-up)
-  const personalizeControls = document.createElement('div');
-  personalizeControls.className = 'flex items-center gap-2';
-  mountPersonalizeTrigger({
-      controlsContainer: personalizeControls,
+  const actionRow = createActionRow();
+  const personalizeHandle = mountPersonalizeTrigger({
+      controlsContainer: actionRow,
       getTextarea: () => promptInput,
       appId: 'character-studio',
   });
-  formCard.appendChild(personalizeControls);
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
@@ -370,14 +369,17 @@ const pexelsBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
+  const advanced = createAdvancedPanel({ id: 'char-advanced-btn', elements: [dynamicControlsContainer] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, personalize: personalizeHandle?.button });
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Character';
   genBtn.setAttribute('aria-label', 'Generate character');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('character');

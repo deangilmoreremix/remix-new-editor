@@ -23,6 +23,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -320,7 +321,8 @@ const triggerBtn = document.createElement('button');
     window.addEventListener('click', closeEnhanceMenu);
     promptGroup.appendChild(enhanceMenu);
   formCard.appendChild(promptGroup);
-  mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
+  const actionRow = createActionRow();
+  const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
 
   // Dynamic model-specific advanced controls
@@ -378,8 +380,11 @@ const triggerBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
-  formCard.appendChild(genBtn);
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
+  const advanced = createAdvancedPanel({ id: 'avatar-advanced-btn', elements: [dynamicControlsContainer] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, personalize: personalizeHandle?.button });
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
 
   // Native audio toggle
   const nativeAudioRow = document.createElement('div');

@@ -24,6 +24,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
+import { createActionRow, arrangeActionRow } from './studio/actionRow.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
@@ -733,7 +734,10 @@ genAllBtn.type = 'button';
   window.addEventListener('click', closeEnhanceMenu);
   controlBar.appendChild(enhanceMenu);
 
-  const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard', getTextarea: () => null });
+  // Unified action row (matches Image Studio): Thumbnail · Personalize
+  const actionRow = createActionRow();
+  controlBar.appendChild(actionRow);
+  const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: actionRow, appId: 'storyboard', getTextarea: () => null });
   // Live reference to the active personalization profile so generateFrame can
   // resolve {{tokens}} at generation time without mutating the textarea.
   const activeProfileRef = { value: null };
@@ -802,7 +806,7 @@ genAllBtn.type = 'button';
       mountThumbnailModal(modal);
       modal.open();
     });
-  controlBar.appendChild(thumbBtn);
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, personalize: personalizeTrigger?.button });
 
   subscribeToGtmThumbnails(({ imageUrl }) => {
     customThumbnailUrl = imageUrl;

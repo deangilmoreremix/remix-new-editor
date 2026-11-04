@@ -17,6 +17,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { createActionRow, createAdvancedButton, setActionPillLabel, styleThumbnailButton, arrangeActionRow } from './studio/actionRow.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
@@ -161,12 +162,7 @@ export function TemplateStudio(templateId) {
 
   // Thumbnail action button — matches .gtm-boost-btn styling so it is
   // discoverable alongside the GTM Boost control in the hero section.
-  const thumbAction = document.createElement('button');
-  thumbAction.className = 'mb-5 btn-action-secondary shrink-0';
-  thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
-  thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
-  thumbAction.style.color = '#022c22';
-  thumbAction.textContent = '🖼 Thumbnail';
+  const thumbAction = styleThumbnailButton(document.createElement('button'));
   thumbAction.onclick = () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'template-studio',
@@ -193,7 +189,6 @@ export function TemplateStudio(templateId) {
     mountThumbnailModal(modal);
     modal.open();
   };
-  heroSection.appendChild(thumbAction);
 
   // Title
   const title = document.createElement('h1');
@@ -735,9 +730,6 @@ export function TemplateStudio(templateId) {
         <span class="absolute top-1 h-5 w-5 rounded-full bg-black transition left-6" id="enhancerToggleKnob"></span>
       </button>
     </div>
-    <button id="advancedToggle" class="mt-4 text-sm font-medium text-emerald-200 transition hover:text-emerald-100">
-      Show Advanced Controls
-    </button>
     <div id="advancedControls" class="mt-5 grid gap-4 md:grid-cols-2 hidden"></div>
   `;
   leftPanel.appendChild(enhancerSection);
@@ -805,10 +797,15 @@ export function TemplateStudio(templateId) {
   genBtn.setAttribute('aria-label', 'Generate template');
   const errorContainer = document.createElement('div');
   errorContainer.className = 'ts-error-container';
+  // Unified action row (matches Image Studio): Thumbnail · Advanced · Personalize
+  const actionRow = createActionRow('mt-6');
+  const advancedToggleBtn = createAdvancedButton({ id: 'advancedToggle', tooltip: 'Show advanced controls' });
+  arrangeActionRow(actionRow, { thumbnail: thumbAction, advanced: advancedToggleBtn });
+  leftPanel.appendChild(actionRow);
   leftPanel.appendChild(errorContainer);
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({
-    controlsContainer: leftPanel,
+    controlsContainer: actionRow,
     appId: 'template-studio',
     studioId: 'template',
     studioName: 'Template Studio',
@@ -1039,7 +1036,8 @@ export function TemplateStudio(templateId) {
     if (advancedBtn && advControls) {
       advancedBtn.onclick = () => {
         showAdvanced = !showAdvanced;
-        advancedBtn.textContent = showAdvanced ? 'Hide Advanced Controls' : 'Show Advanced Controls';
+        setActionPillLabel(advancedBtn, showAdvanced ? 'Less' : 'Advanced');
+        advancedBtn.setAttribute('aria-expanded', String(showAdvanced));
         advControls.className = showAdvanced ? 'mt-5 grid gap-4 md:grid-cols-2' : 'mt-5 grid gap-4 md:grid-cols-2 hidden';
       };
     }

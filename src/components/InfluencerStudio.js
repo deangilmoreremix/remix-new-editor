@@ -18,6 +18,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -792,14 +793,12 @@ export async function InfluencerStudio() {
   toolbar.appendChild(enhanceMenu);
   formCard.appendChild(toolbar);
 
-  const personalizeControls = document.createElement('div');
-  personalizeControls.className = 'flex items-center gap-2';
-  mountPersonalizeTrigger({
-      controlsContainer: personalizeControls,
+  const actionRow = createActionRow();
+  const personalizeHandle = mountPersonalizeTrigger({
+      controlsContainer: actionRow,
       getTextarea: () => promptInput,
       appId: 'influencer-studio',
   });
-  formCard.appendChild(personalizeControls);
 
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
@@ -826,14 +825,17 @@ export async function InfluencerStudio() {
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
+  const advanced = createAdvancedPanel({ id: 'influencer-advanced-btn', elements: [intensityRow, seedRow] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, personalize: personalizeHandle?.button });
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Content';
   genBtn.setAttribute('aria-label', 'Generate content');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
   container.appendChild(formCard);
 
   const previewCard = document.createElement('div');

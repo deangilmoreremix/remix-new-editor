@@ -645,36 +645,24 @@ export function createHeroSection(studioId, className = '') {
 }
 
 /**
- * Compact AI-image header shown at the top of every studio: the studio's AI
- * artwork as a slim banner with the title and one line of description. It is
- * deliberately short (96–112px) so the tool itself stays above the fold, and
- * it carries the page's h1. Returns a `.hero-banner` so shared layouts can
- * shrink it further once results exist.
+ * Page title shown at the top of every studio: one slim line with the title
+ * and a short description. Deliberately no picture banner, so each studio
+ * opens straight onto its tool (studio navigation lives in the side menu).
+ * It carries the page's h1. `studioId` is kept for callers and tests.
  */
 export function createStudioHeader(studioId, title, subtitle = '', className = '') {
-  const src = getHeroThumbnail(studioId) || getStudioThumbnail(studioId);
   const wrapper = document.createElement('div');
-  wrapper.className = `hero-banner studio-header relative w-full h-24 md:h-28 overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d10] shrink-0 ${className}`;
+  wrapper.className = `studio-header flex items-baseline gap-x-3 gap-y-0.5 flex-wrap min-w-0 w-full text-left shrink-0 ${className}`.trim();
   wrapper.dataset.studioHeader = studioId;
-  if (src) {
-    wrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-    wrapper.appendChild(createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover'));
-  }
-  const shade = document.createElement('div');
-  shade.className = 'absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10';
-  wrapper.appendChild(shade);
-  const text = document.createElement('div');
-  text.className = 'absolute inset-y-0 left-0 z-10 flex flex-col justify-center px-5 md:px-7 text-left max-w-[80%]';
   const h1 = document.createElement('h1');
-  h1.className = 'text-xl md:text-2xl font-black text-white tracking-tight leading-tight';
+  h1.className = 'text-base md:text-lg font-bold text-white tracking-tight leading-tight';
   h1.textContent = title;
-  text.appendChild(h1);
+  wrapper.appendChild(h1);
   if (subtitle) {
     const p = document.createElement('p');
-    p.className = 'text-white/65 text-xs md:text-sm mt-1 line-clamp-1';
+    p.className = 'text-xs md:text-sm text-secondary truncate min-w-0';
     p.textContent = subtitle;
-    text.appendChild(p);
+    wrapper.appendChild(p);
   }
-  wrapper.appendChild(text);
   return wrapper;
 }
