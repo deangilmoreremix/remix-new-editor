@@ -97,7 +97,6 @@ module.exports = {
   },
   pixoEditor: {
     script: 'https://pixoeditor.com/editor/scripts/bridge.m.js',
-    apiKey: process.env.PIXO_API_KEY || '',
   },
   image: {
     maxSize: process.env.MAX_IMAGE_SIZE || 5 * 1024 * 1024, // in bytes
@@ -132,25 +131,10 @@ module.exports = {
       apiKey: process.env.UNSPLASH_API_KEY || '',
       imagesApiPath: 'photos',
     },
-    DROPMOCK: {
-      apiUrl: process.env.DROPMOCK_API_URL || 'https://app.dropmock.com',
-      apiKey: process.env.DROPMOCK_API_KEY || '',
-      imagesApiPath: 'api/v1/images',
-      videosApiPath: 'api/v1/videos',
-    },
     GIPHY: {
       apiKey: process.env.GIPHY_API_KEY || '',
-    },
-    TXTVIDEO: {
-      apiUrl: process.env.TXTVIDEO_API_URL || 'https://app.txtvideo.com',
-      apiToken: process.env.TXTVIDEO_API_TOKEN || '',
-      apiKey: process.env.TXTVIDEO_API_KEY || '',
-      videosApiPath: 'api/videos',
     },
   },
   scriptStatistic: process.env.SCRIPT_STATISTIC || '',
   pathForGoogleCloudAccount: process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
-  cutoutPro: {
-    apiKey: process.env.CUTOUT_PRO_API_KEY || '',
-  },
 };

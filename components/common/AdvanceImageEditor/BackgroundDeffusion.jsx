@@ -172,7 +172,7 @@ const BackgroundDeffusion = observer(({
         'Content-type': 'application/json',
         // 'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Accept: 'application/json',
-        APIKEY: config.cutoutPro.apiKey,
+        APIKEY: config.cutoutPro?.apiKey || '',
       },
     })
       .then((data) =>
@@ -206,7 +206,7 @@ const BackgroundDeffusion = observer(({
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Accept: 'application/json',
-        APIKEY: config.cutoutPro.apiKey,
+        APIKEY: config.cutoutPro?.apiKey || '',
       },
     })
       .then((data) =>
@@ -241,7 +241,7 @@ const BackgroundDeffusion = observer(({
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Accept: 'application/json',
-        APIKEY: config.cutoutPro.apiKey,
+        APIKEY: config.cutoutPro?.apiKey || '',
       },
     })
       .then((data) =>
@@ -290,7 +290,7 @@ const BackgroundDeffusion = observer(({
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Accept: 'application/json',
-        APIKEY: config.cutoutPro.apiKey,
+        APIKEY: config.cutoutPro?.apiKey || '',
       },
     })
       .then((data) =>
