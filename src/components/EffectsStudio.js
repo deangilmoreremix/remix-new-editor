@@ -23,8 +23,6 @@ import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { showToast } from '../lib/loading.js';
 import { validateEffectParams, EFFECT_PARAM_SCHEMA, createSliderControl, createAdvancedSection } from '../lib/effectParamValidator.js';
 import { EffectCompositor } from '../lib/editor/effectCompositor.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
@@ -39,6 +37,20 @@ const EFFECT_TABS = [
   { id: 'motion-controls', label: 'Motion Controls', type: 'i2v', field: 'name' },
   { id: 'video-effects', label: 'Video FX v2', type: 'i2v', field: 'name' },
 ];
+
+// MuAPI request schemas (api.muapi.ai/openapi.json) mark `prompt` as required
+// for these effect endpoints (flux-kontext-effects, generate_wan_ai_effects).
+const PROMPT_REQUIRED_TABS = new Set(['flux-kontext-effects', 'ai-video-effects', 'motion-controls']);
+
+// Effect names whose MuAPI enum value is spelled differently from the label
+// we show. The API only accepts its own spelling.
+const API_EFFECT_NAMES = {
+  'Acrylic Ornaments': 'Acryclic Ornaments',
+};
+
+function toApiEffectName(name) {
+  return API_EFFECT_NAMES[name] || name;
+}
 
 function getEffectsForModel(modelId) {
   const allModels = [...i2iModels, ...i2vModels];
@@ -142,7 +154,7 @@ export async function EffectsStudio() {
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  topBar.appendChild(createStudioHeader('effects', 'Vibe Motion', 'Apply 350+ motion and visual effects to your photos and videos', 'mb-4'));
+  topBar.appendChild(createStudioHeader('effects', 'Effects Studio', 'Apply 350+ motion and visual effects to your photos and videos', 'mb-4'));
 
   const tabRow = document.createElement('div');
   tabRow.className = 'flex gap-2 overflow-x-auto no-scrollbar pb-2';
@@ -266,7 +278,7 @@ export async function EffectsStudio() {
     const { browsePexelsImages } = await import('../lib/studioPexels.js');
     browsePexelsImages({
       title: 'Select Reference Photo',
-      studioName: 'Vibe Motion',
+      studioName: 'Effects Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
         // Pexels photos are not Asset Library rows — drop any previously
@@ -450,7 +462,7 @@ export async function EffectsStudio() {
       appTheme: 'effects-studio',
       layout: 'panel',
       studioId: 'effects-studio',
-      studioName: 'Vibe Motion',
+      studioName: 'Effects Studio',
       aspectRatio: '16:9',
       outputType: 'image',
       onApply: ({ imageUrl }) => {
@@ -1140,7 +1152,7 @@ generateBtn.type = 'button';
     setActionBusy(mobileGenBtn, true);
     const notifyId = `effects:${Date.now()}`;
     let failed = null;
-    notifyGeneration({ phase: 'start', id: notifyId, studio: 'effects', label: 'Vibe Motion' });
+    notifyGeneration({ phase: 'start', id: notifyId, studio: 'effects', label: 'Effects Studio' });
 
     outputPreview.showLoading(`Applying "${selectedEffect}"...`);
     mobileOutputPreview.showLoading('Processing...');
@@ -1175,8 +1187,8 @@ generateBtn.type = 'button';
       generateBtn.disabled = false;
       mobileGenBtn.disabled = false;
       notifyGeneration(failed
-        ? { phase: 'error', id: notifyId, studio: 'effects', label: 'Vibe Motion', message: failed }
-        : { phase: 'success', id: notifyId, studio: 'effects', label: 'Vibe Motion' });
+        ? { phase: 'error', id: notifyId, studio: 'effects', label: 'Effects Studio', message: failed }
+        : { phase: 'success', id: notifyId, studio: 'effects', label: 'Effects Studio' });
       if (failed) { setActionRetry(generateBtn); setActionRetry(mobileGenBtn); }
       else { setActionBusy(generateBtn, false); setActionBusy(mobileGenBtn, false); }
     }
@@ -1202,7 +1214,7 @@ generateBtn.type = 'button';
     const params = {
       model: activeTab.id,
       image_url: mainUrl,
-      [activeTab.field]: selectedEffect,
+      [activeTab.field]: toApiEffectName(selectedEffect),
       customThumbnailUrl: customThumbnailUrl || undefined,
       guidance_scale: advancedSettings.guidanceScale,
       steps: advancedSettings.steps,
@@ -1225,6 +1237,9 @@ generateBtn.type = 'button';
     const activeProfile = profiles?.find((p) => p.id === selectedContactId) || null;
     const prompt = replaceTokensInPrompt(promptInput.value.trim() || mobilePrompt.value.trim(), activeProfile);
     if (prompt) params.prompt = prompt;
+    // Kontext and Wan effect endpoints require `prompt`; the studio's prompt
+    // box is optional, so fall back to the effect name.
+    else if (PROMPT_REQUIRED_TABS.has(activeTab.id)) params.prompt = selectedEffect;
 
     // Merge attachment URLs from the unified toolbar.
     if (attachmentImages.length) {
@@ -1584,7 +1599,7 @@ generateBtn.type = 'button';
     const detailView = new MediaDetailView({
       mediaUrl: url,
       mediaType: outputPreview.getType() || 'image',
-      title: 'Vibe Motion Output',
+      title: 'Effects Studio Output',
       model: activeTab.label || '',
       autoCollapsePrompt: true,
     });
@@ -1592,11 +1607,8 @@ generateBtn.type = 'button';
   };
 
   switchTab(EFFECT_TABS[0]);
-    const galleryAssets = getAssetsForStudio('effects');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
-    }
 
-    return container;
+  // No template/example gallery here: the effects grid is the catalogue, and
+  // an appended gallery squeezed the studio workspace to zero height.
+  return container;
 }

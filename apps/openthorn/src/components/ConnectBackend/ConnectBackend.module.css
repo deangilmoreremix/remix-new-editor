@@ -23,7 +23,7 @@
 .primary {
   align-self: flex-start;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-accent-contrast);
   padding: 0.6rem 1rem;
   border-radius: 8px;
   text-decoration: none;

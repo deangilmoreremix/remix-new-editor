@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { usePageTitle } from '../lib/usePageTitle'
 import DashboardSidebar from '../components/DashboardSidebar/DashboardSidebar'
 import styles from './ProfilePage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
+import { T } from '../lib/tables'
 
 interface CommunityPost {
   id: string
@@ -49,7 +51,7 @@ function formatRelativeTime(iso: string): string {
 
 export default function ProfilePage() {
   usePageTitle('Profile', {
-    description: 'View your Smart Video profile and community activity.',
+    description: 'View your Smart Website Builder profile and community activity.',
   })
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -75,7 +77,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return
     supabase
-      .from('community_posts')
+      .from(T.community_posts)
       .select('id, project_id, user_id, title, description, preview_url, author_name, likes_count, published_at')
       .eq('user_id', user.id)
       .order('published_at', { ascending: false })
@@ -110,7 +112,7 @@ export default function ProfilePage() {
     setSaveError('')
     const { error: metaError } = await supabase.auth.updateUser({ data: { full_name: trimmed } })
     if (!metaError) {
-      await supabase.from('profiles').update({ full_name: trimmed }).eq('id', user!.id)
+      await supabase.from(T.profiles).update({ full_name: trimmed }).eq('id', user!.id)
     }
     setSaving(false)
     if (metaError) {
@@ -148,9 +150,9 @@ export default function ProfilePage() {
             <line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
         </button>
-        <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
-        </a>
+        <Link to="/dashboard" className={styles.mobileLogo}>
+          <BrandLogo className={styles.mobileLogoImg} />
+        </Link>
       </div>
 
       <main className={styles.main}>

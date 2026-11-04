@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
 import { supabase } from './supabase'
+import { T } from './tables'
 
 /**
  * Resolves whether the signed-in user is an admin (profiles.is_admin).
@@ -22,7 +23,7 @@ export function useIsAdmin(): { isAdmin: boolean; loading: boolean } {
     setIsAdmin(false)
     setLoading(true)
     supabase
-      .from('profiles')
+      .from(T.profiles)
       .select('is_admin')
       .eq('id', user.id)
       .single()

@@ -78,7 +78,7 @@ export const STUDIO_ROUTES = {
   cinema: { label: 'Cinema Studio', category: 'Video' },
   'cinema-template': { label: 'Cinema Template Studio', category: 'Video' },
   storyboard: { label: 'Storyboard Studio', category: 'Video' },
-  effects: { label: 'Vibe Motion', category: 'Video' },
+  effects: { label: 'Effects Studio', category: 'Video' },
   'ai-vfx': { label: 'AI VFX Studio', category: 'Video' },
   animate: { label: 'Animate Studio', category: 'Video' },
   lipsync: { label: 'Lip Sync Studio', category: 'Video' },
@@ -103,7 +103,7 @@ export const STUDIO_ROUTES = {
   'video-to-video': { label: 'Video to Video', category: 'Generate' },
   'video-watermark': { label: 'Watermark Remover', category: 'Generate' },
   'character-page': { label: 'Character', category: 'Pages' },
-  'effects-page': { label: 'Vibe Motion', category: 'Pages' },
+  'effects-page': { label: 'Effects Studio', category: 'Pages' },
   'storyboard-page': { label: 'Storyboard', category: 'Pages' },
   'influencer-page': { label: 'AI Influencer', category: 'Pages' },
   'commercial-page': { label: 'Product Shot', category: 'Pages' },
@@ -117,7 +117,7 @@ export const STUDIO_ROUTES = {
   'brand-photo-studio': { label: 'Brand Photo Studio', category: 'Brand' },
   'studios/product-photo-studio': { label: 'Product Photo Studio', category: 'Pages' },
   'studios/fashion-studio': { label: 'Fashion Studio', category: 'Pages' },
-  openthorn: { label: 'OpenThorn', category: 'Pages' },
+  openthorn: { label: 'Smart Website Builder', category: 'Pages' },
 };
 
 // Ordered category groups for the drawer. 'Generate', 'Pages' and 'Brand'
@@ -168,7 +168,7 @@ export const NAV_GROUPS = [
     { id: 'cinema', label: 'Cinema' },
     { id: 'cinema-template', label: 'Cinema Templates' },
     { id: 'storyboard', label: 'Storyboard' },
-    { id: 'effects', label: 'Vibe Motion' },
+    { id: 'effects', label: 'Effects' },
     { id: 'ai-vfx', label: 'AI VFX' },
     { id: 'animate', label: 'Animate' },
     { id: 'lipsync', label: 'Lip Sync' },

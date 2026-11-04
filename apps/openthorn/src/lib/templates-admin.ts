@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { AgentCodeFile } from './agent'
+import { T } from './tables'
 
 export interface AdminTemplateRow {
   id: string
@@ -24,7 +25,7 @@ export type TemplateDraft = Pick<
 
 export async function adminListTemplates(): Promise<AdminTemplateRow[]> {
   const { data, error } = await supabase
-    .from('templates')
+    .from(T.templates)
     .select('id,template_key,name,description,category,accent_color,highlights,files,featured,sort_order,status,updated_at')
     .order('sort_order', { ascending: true })
   if (error) throw new Error(error.message)
@@ -34,13 +35,13 @@ export async function adminListTemplates(): Promise<AdminTemplateRow[]> {
 export async function adminSaveTemplate(draft: TemplateDraft, id?: string): Promise<void> {
   const row = { ...draft, updated_at: new Date().toISOString() }
   const query = id
-    ? supabase.from('templates').update(row).eq('id', id)
-    : supabase.from('templates').insert(row)
+    ? supabase.from(T.templates).update(row).eq('id', id)
+    : supabase.from(T.templates).insert(row)
   const { error } = await query
   if (error) throw new Error(error.message)
 }
 
 export async function adminDeleteTemplate(id: string): Promise<void> {
-  const { error } = await supabase.from('templates').delete().eq('id', id)
+  const { error } = await supabase.from(T.templates).delete().eq('id', id)
   if (error) throw new Error(error.message)
 }

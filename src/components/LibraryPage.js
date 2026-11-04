@@ -12,7 +12,7 @@ const MUAPI_STUDIOS = [
   { id: 'image-studio', route: 'image', name: 'Image Studio' },
   { id: 'edit-studio', route: 'edit', name: 'Edit Studio' },
   { id: 'upscale-studio', route: 'upscale', name: 'Upscale Suite' },
-  { id: 'effects-studio', route: 'effects', name: 'Vibe Motion' },
+  { id: 'effects-studio', route: 'effects', name: 'Effects Studio' },
   { id: 'cinema-studio', route: 'cinema', name: 'Cinema Studio' },
   { id: 'storyboard-studio', route: 'storyboard', name: 'Storyboard Studio' },
   { id: 'video-tools-studio', route: 'videotools', name: 'Video Tools' },

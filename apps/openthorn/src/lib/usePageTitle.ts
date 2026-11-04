@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
+import { BRAND_NAME } from './brand'
 
-const SITE_NAME = 'Smart Video'
-const DEFAULT_TITLE = 'Smart Video — The BYOK AI Website Builder'
+const SITE_NAME = BRAND_NAME
+const DEFAULT_TITLE = BRAND_NAME
 const DEFAULT_DESCRIPTION =
-  'Smart Video is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.'
+  `${BRAND_NAME} — describe what you want and get a complete, deployable website. Bring your own AI provider key.`
 const SITE_URL = 'https://www.openthorn.app'
 const DEFAULT_OG_IMAGE = 'https://www.openthorn.app/og-card.png'
 

@@ -42,7 +42,7 @@
   transform: translateX(-50%);
   width: 640px;
   height: 380px;
-  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.09), rgba(94, 234, 212, 0.04) 45%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(217, 255, 0, 0.04), transparent 65%);
   pointer-events: none;
   z-index: -1;
 }
@@ -59,8 +59,7 @@
 }
 
 .name {
-  color: var(--color-secondary);
-  font-style: italic;
+  color: var(--color-accent);
 }
 
 /* Prompt */
@@ -651,7 +650,7 @@
 /* Color accent bar at top of card */
 .projectAccentBar {
   height: 3px;
-  background: var(--accent, #7c6af7);
+  background: var(--accent, #d9ff00);
   flex-shrink: 0;
 }
 
@@ -671,8 +670,8 @@
   font-size: 11px;
   font-weight: 500;
   color: var(--color-secondary);
-  background: rgba(167, 139, 250, 0.1);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  background: rgba(217, 255, 0, 0.1);
+  border: 1px solid rgba(217, 255, 0, 0.2);
   border-radius: 20px;
   padding: 2px 7px;
   line-height: 1.4;
@@ -710,7 +709,7 @@
 .listRowAccent {
   width: 3px;
   align-self: stretch;
-  background: var(--accent, #7c6af7);
+  background: var(--accent, #d9ff00);
   flex-shrink: 0;
 }
 
@@ -831,7 +830,7 @@
     height: 56px;
     padding: 0 16px;
     z-index: 48;
-    background: rgba(18, 14, 19, 0.88);
+    background: rgba(10, 10, 10, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border);
@@ -878,7 +877,7 @@
 }
 
 .publishModal {
-  background: #1a1a2e;
+  background: #111111;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 28px 32px;
@@ -953,13 +952,13 @@
 }
 .publishTextarea:focus {
   outline: none;
-  border-color: rgba(167, 139, 250, 0.5);
+  border-color: rgba(217, 255, 0, 0.5);
 }
 .publishTextarea::placeholder { color: rgba(255, 255, 255, 0.3); }
 
 .publishBtn {
-  background: #7c6af7;
-  color: #fff;
+  background: #d9ff00;
+  color: var(--color-accent-contrast);
   border: none;
   border-radius: 10px;
   padding: 12px 20px;
