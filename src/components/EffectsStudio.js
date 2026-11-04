@@ -29,7 +29,6 @@ import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -154,23 +153,6 @@ export async function EffectsStudio() {
     tabButtons[tab.id] = btn;
     tabRow.appendChild(btn);
   });
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: activeTab.id,
-      onSelectModel: (id) => {
-      const tab = EFFECT_TABS.find(t => t.id === id);
-      if (tab) switchTab(tab);
-      }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
-  });
-  tabRow.appendChild(modelPickerBtn);
 
   topBar.appendChild(tabRow);
 

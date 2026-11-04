@@ -19,7 +19,6 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -355,38 +354,6 @@ export function LipSyncStudio() {
     const modelBtn = document.createElement('button');
     modelBtn.id = 'ls-model-btn';
     modelBtn.type = 'button';
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-        document.getElementById('ls-model-btn-label').textContent = getCurrentModels().find(x => x.id === id)?.name || id;
-        const resolutions = getResolutionsForLipSyncModel(selectedModel);
-        if (resolutions.length > 0) {
-          selectedResolution = resolutions[0];
-          document.getElementById('ls-resolution-btn-label').textContent = selectedResolution;
-          document.getElementById('ls-resolution-btn').classList.remove('hidden');
-        } else {
-          document.getElementById('ls-resolution-btn').classList.add('hidden');
-        }
-        const model = getCurrentModels().find(x => x.id === id);
-        if (model?.inputs?.native_audio) {
-          nativeAudioRow.classList.remove('hidden');
-        } else {
-          nativeAudioRow.classList.add('hidden');
-          nativeAudio = false;
-        }
-      }
-    }).catch(() => {});
-  });
-  bottomRow.appendChild(modelPickerBtn);
 
     modelBtn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/40 transition-all text-xs font-bold text-white group';
     modelBtn.innerHTML = `<div id="ls-model-btn-icon" class="w-5 h-5 rounded flex items-center justify-center overflow-hidden bg-white/5"></div><span id="ls-model-btn-label">${getCurrentModels()[0].name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
