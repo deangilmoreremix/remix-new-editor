@@ -42,7 +42,11 @@ function setCache(key, data) {
 
 async function pixabayFetch(path, options = {}) {
   const base = (import.meta?.env?.VITE_BACKEND_URL || '').replace(/\/$/, '');
-  const url = `${base}/api/pixabay${path}${options.query ? '?' + new URLSearchParams(options.query).toString() : ''}`;
+  // Drop unset params: URLSearchParams would send them as the string "undefined".
+  const query = options.query
+    ? Object.fromEntries(Object.entries(options.query).filter(([, v]) => v !== undefined && v !== null && v !== ''))
+    : null;
+  const url = `${base}/api/pixabay${path}${query && Object.keys(query).length ? '?' + new URLSearchParams(query).toString() : ''}`;
   const headers = {
     ...(options.headers || {}),
   };
