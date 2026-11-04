@@ -16,4 +16,4 @@ export {
   activeOverlays, syncOverlayTime, resolveOverlayText, sanitizeWrapperStyles, safeHref, safeImageUrl, OVERLAY_TAG,
 } from './overlayRender.js';
 export { attachDragResize, dragGeometry, clampGeometry } from './dragResize.js';
-export { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, STICKER_LIBRARY, ANIMATED_EMOJI, ANIMATED_EMOJI_CREDIT } from './overlayData.js';
+export { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, STICKER_LIBRARY, ANIMATED_EMOJI } from './overlayData.js';

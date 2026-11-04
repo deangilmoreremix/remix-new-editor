@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   buildLowerThirdLottie, lowerThirdFrame, LOWER_THIRD_TEMPLATES, getAddon, createAddonClip, buildOverlayElement,
-  ANIMATED_EMOJI, ANIMATED_EMOJI_CREDIT, renderAddonEditor, STICKER_LIBRARY,
+  ANIMATED_EMOJI, renderAddonEditor, STICKER_LIBRARY,
 } from '../index.js';
 
 const PUBLIC = resolve(__dirname, '../../../../../public');
@@ -55,7 +55,7 @@ describe('original lower-third templates', () => {
 });
 
 describe('animated emoji stickers (Noto, CC BY 4.0)', () => {
-  it('bundles the files with a licence and credit', () => {
+  it('bundles the files, with attribution kept in CREDITS.md only', () => {
     expect(ANIMATED_EMOJI.length).toBeGreaterThanOrEqual(60);
     ANIMATED_EMOJI.forEach((e) => {
       const file = resolve(PUBLIC, `.${e.src}`);
@@ -63,20 +63,19 @@ describe('animated emoji stickers (Noto, CC BY 4.0)', () => {
     });
     const sample = JSON.parse(readFileSync(resolve(PUBLIC, `.${ANIMATED_EMOJI[0].src}`), 'utf8'));
     expect(Array.isArray(sample.layers)).toBe(true);
-    expect(readFileSync(resolve(PUBLIC, 'assets/sticker/animated-emoji/LICENSE.md'), 'utf8')).toContain('CC BY 4.0');
-    expect(ANIMATED_EMOJI_CREDIT).toContain('CC BY 4.0');
+    expect(readFileSync(resolve(PUBLIC, 'assets/sticker/animated-emoji/CREDITS.md'), 'utf8')).toContain('CC BY 4.0');
   });
 
-  it('picker tab sets a Lottie sticker and shows the credit', () => {
+  it('picker tab sets a Lottie sticker and shows no licence text', () => {
     const box = document.createElement('div');
     const onChange = vi.fn();
     const d = getAddon('overlay-sticker');
     renderAddonEditor(box, {
       fields: d.fields, options: d.defaults(), onChange,
-      services: { stickers: STICKER_LIBRARY, animatedEmoji: ANIMATED_EMOJI, animatedEmojiCredit: ANIMATED_EMOJI_CREDIT },
+      services: { stickers: STICKER_LIBRARY, animatedEmoji: ANIMATED_EMOJI },
     });
     box.querySelector('[data-sticker-tab="animatedEmoji"]').click();
-    expect(box.querySelector('.addon-sticker-credit').textContent).toBe(ANIMATED_EMOJI_CREDIT);
+    expect(box.textContent).not.toMatch(/CC BY|licen[cs]e|Noto/i);
     box.querySelector('.addon-sticker--emoji').click();
     expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ kind: 'lottie', src: ANIMATED_EMOJI[0].src });
   });

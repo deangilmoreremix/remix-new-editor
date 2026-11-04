@@ -25,7 +25,7 @@ import {
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
-  OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, ANIMATED_EMOJI_CREDIT, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
+  OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation, playOutAndRemove, activeOverlays, attachDragResize,
 } from '../lib/editor/addons/index.js';
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
@@ -4027,7 +4027,6 @@ export function TimelineEditorPage() {
       tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
       stickers: STICKER_LIBRARY,
       animatedEmoji: ANIMATED_EMOJI,
-      animatedEmojiCredit: ANIMATED_EMOJI_CREDIT,
       mediaImages: () => {
         const seen = new Set();
         return [...(state.mediaLibrary || []), ...(state.assets || []), ...(state.media || [])]

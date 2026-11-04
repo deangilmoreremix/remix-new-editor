@@ -870,10 +870,9 @@ export const STICKER_LIBRARY = {
 
 /**
  * Animated emoji stickers (Lottie): Noto Emoji Animation by Google,
- * CC BY 4.0 — bundled in public/assets/sticker/animated-emoji/ (see the
- * LICENSE.md there). The picker shows ANIMATED_EMOJI_CREDIT.
+ * CC BY 4.0 — bundled in public/assets/sticker/animated-emoji/; the required
+ * attribution lives in CREDITS.md there (not shown in the editor UI).
  */
-export const ANIMATED_EMOJI_CREDIT = 'Animated emoji: Noto Emoji Animation by Google, CC BY 4.0';
 export const ANIMATED_EMOJI = [
   {
     "name": "grinning",

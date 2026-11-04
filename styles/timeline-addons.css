@@ -790,9 +790,8 @@
 .addon-overlay-layer > .addon-overlay--optin,
 .addon-overlay-layer > .addon-overlay--form { z-index: 10; }
 
-/* Animated emoji tab: glyph buttons + credit line */
+/* Animated emoji tab: glyph buttons */
 .addon-sticker--emoji { font-size: 26px; line-height: 1; display: grid; place-items: center; }
-.addon-sticker-credit { margin-top: 6px; }
 
 /* Lower thirds (Lottie, synced to the playhead) */
 .addon-overlay-layer .popcorn-json-animation > svg { width: 100% !important; height: 100% !important; display: block; }
