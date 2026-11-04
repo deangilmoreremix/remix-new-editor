@@ -45,6 +45,22 @@
   status = 200
   force = true
 
+# Stock media proxies (Pixabay / Pexels) as Netlify functions, so the
+# editor's Stock Media, image search and overlay transitions work without a
+# separate backend server. Keys: PIXABAY_API_KEY and PEXELS_API_KEY in the
+# Netlify environment. Same routes as backend/services/*ProxyService.js.
+[[redirects]]
+  from = "/api/pixabay/*"
+  to = "/.netlify/functions/pixabay/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/pexels/*"
+  to = "/.netlify/functions/pexels/:splat"
+  status = 200
+  force = true
+
 # Restored thumbnails are WebP-encoded but keep their historical `.webp.png`
 # filenames so every existing reference resolves; declare the real type.
 [[headers]]
