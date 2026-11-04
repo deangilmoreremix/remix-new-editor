@@ -1065,3 +1065,23 @@
 .speech-modal__row-text span { font-size: 11px; color: var(--text-muted, rgba(255,255,255,.6)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .speech-modal__empty { margin: 8px 0; font-size: 13px; color: var(--text-muted, rgba(255,255,255,.6)); }
 @media (max-width: 720px) { .speech-modal__create { grid-template-columns: 1fr; } .speech-modal__voice { order: -1; } }
+/* Smart Speech: voice a personalized line for each contact */
+.speech-modal__contacts { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.speech-modal__lead { margin: 0; font-size: 13px; color: var(--text, rgba(255,255,255,.86)); }
+.speech-modal__contacts-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; color: var(--text-muted, rgba(255,255,255,.6)); }
+.speech-modal__contacts-bar label { display: flex; align-items: center; gap: 6px; color: var(--text, #fff); }
+.speech-modal__contact-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 46vh; overflow: auto; }
+.speech-modal__contact { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: var(--r-sm, 8px); border: 1px solid var(--border-soft, rgba(255,255,255,.06)); background: var(--surface-1, rgba(255,255,255,.03)); }
+.speech-modal__contact input, .speech-modal__contacts-bar input { accent-color: var(--cyan, #22d3ee); margin-top: 2px; }
+.speech-modal__contact div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.speech-modal__contact strong { font-size: 13px; color: var(--text-strong, #fff); }
+.speech-modal__contact span { font-size: 12px; color: var(--text-muted, rgba(255,255,255,.6)); overflow: hidden; text-overflow: ellipsis; }
+.speech-modal__contact.is-missing span { color: var(--amber-bright, #fbbf24); }
+/* Share panel: personal links per contact */
+.share-personal { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: var(--r-sm, 8px); border: 1px solid var(--border-soft, rgba(255,255,255,.06)); background: var(--surface-1, rgba(255,255,255,.03)); }
+.share-personal__head { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.share-personal__head strong { color: var(--text-strong, #fff); }
+.share-personal__head span { color: var(--text-muted, rgba(255,255,255,.6)); flex: 1; }
+.share-personal__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow: auto; }
+.share-personal__list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text, rgba(255,255,255,.86)); }
+.share-personal__list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

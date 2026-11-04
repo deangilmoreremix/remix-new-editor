@@ -229,7 +229,8 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   const requested = new Set();
   function loadVoices() {
     if (!voiceFor) return;
-    clips.filter((c) => c.tts?.personalized).forEach((clip) => {
+    // Clips already voiced for this contact (personal links) need no request.
+    clips.filter((c) => c.tts?.personalized && !c.tts?.variants?.[String(currentProfile?.id)]).forEach((clip) => {
       const key = `${clip.id}|${JSON.stringify(currentProfile?.variables || {})}`;
       if (requested.has(key)) return;
       requested.add(key);

@@ -14,6 +14,7 @@
  */
 import { getAddon, addonOptions } from '../addons/registry.js';
 import { resolveOverlayText, safeImageUrl, sanitizeWrapperStyles } from '../addons/overlayRender.js';
+import { voiceSrcFor } from '../personalize/perContact.js';
 import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
@@ -160,7 +161,8 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
         return;
       }
 
-      const src = clip.src ? String(clip.src) : '';
+      // Personalized Smart Speech: the rendered contact's own voice line.
+      const src = clip.tts?.variants ? voiceSrcFor(clip, profile) : clip.src ? String(clip.src) : '';
       const volume = Math.max(0, Math.min(1, clip.volume ?? 1));
       const trimBefore = toFrame(Number(clip.trimIn ?? clip.sourceStart ?? 0));
       if ((clip.type === 'audio' || isAudioTrack(track)) && clip.type !== 'video') {
