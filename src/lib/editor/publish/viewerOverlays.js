@@ -8,6 +8,7 @@ import { leadFieldTokens } from '../addons/leadClient.js';
 import { formBackground, ensureFormFont } from '../addons/addonOverlay.js';
 import { resolveOverlayText } from '../addons/overlayRender.js';
 import { getAddon, addonOptions } from '../addons/registry.js';
+import { ctaTarget } from '../addons/ctaLink.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -116,7 +117,7 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip } = {}) {
 }
 
 /** CTA button (click-to-call clip): a real tel: or https link at its position. */
-export function ctaElement(clip) {
+export function ctaElement(clip, { onCall } = {}) {
   const style = clip.style || {};
   const phone = isValidPhoneNumber(clip.phoneNumber);
   const link = !phone && isSafeLink(clip.linkUrl);
@@ -124,7 +125,9 @@ export function ctaElement(clip) {
   const a = document.createElement('a');
   a.className = 'wf-cta';
   a.href = phone ? `tel:${String(clip.phoneNumber).replace(/[^0-9+]/g, '')}` : String(clip.linkUrl).trim();
-  if (link) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+  if (link) { a.target = '_blank'; a.rel = 'noopener noreferrer'; } else {
+    a.addEventListener('click', () => onCall?.({ clip, phone: String(clip.phoneNumber).replace(/[^0-9+]/g, ''), notify: clip.callNotifyAddress || '' }));
+  }
   a.textContent = `${link ? '🔗' : '📞'} ${clip.buttonText || 'Call Now'}`;
   if (style.buttonColor) a.style.background = style.buttonColor;
   Object.assign(a.style, {
@@ -135,18 +138,25 @@ export function ctaElement(clip) {
   return a;
 }
 
-/** Invisible clickable box over an overlay that has a link (Smart Text / Image). */
-export function linkBoxElement(clip) {
+/** Invisible clickable box over an overlay that has a link or click-to-call number. */
+export function linkBoxElement(clip, { onCall } = {}) {
   if (!getAddon(clip.type) || getAddon(clip.type).category !== 'overlay') return null;
   const o = addonOptions(clip);
-  if (!isSafeLink(o.linkUrl)) return null;
+  const target = ctaTarget(o);
+  if (!target) return null;
   const g = o.fill ? { left: 0, top: 0, width: 100, height: 100 } : { left: 0, top: 0, width: 100, height: 100, ...(o.geometry || {}) };
   const a = document.createElement('a');
   a.className = 'wf-linkbox';
-  a.href = String(o.linkUrl).trim();
-  a.target = o.linkTarget === '_self' ? '_top' : '_blank';
-  a.rel = 'noopener noreferrer';
-  a.setAttribute('aria-label', o.text ? `Open link: ${String(o.text).slice(0, 60)}` : 'Open link');
+  a.href = target.href;
+  if (target.kind === 'url') {
+    a.target = o.linkTarget === '_parent' ? '_top' : '_blank';
+    a.rel = 'noopener noreferrer';
+  } else {
+    // Click-to-call: let the phone app open, and tell the owner about the attempt.
+    a.addEventListener('click', () => onCall?.({ clip, phone: target.phone, notify: o.callNotifyAddress || '' }));
+  }
+  const label = o.text ? String(o.text).slice(0, 60) : '';
+  a.setAttribute('aria-label', target.kind === 'phone' ? `Call ${target.phone}${label ? ` — ${label}` : ''}` : (label ? `Open link: ${label}` : 'Open link'));
   Object.assign(a.style, { left: `${g.left}%`, top: `${g.top}%`, width: `${g.width}%`, height: `${g.height}%` });
   a.dataset.clipId = String(clip.id);
   return a;

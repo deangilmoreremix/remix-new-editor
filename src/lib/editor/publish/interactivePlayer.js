@@ -14,6 +14,7 @@ import { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOver
 import { addonOptions } from '../addons/registry.js';
 import { timelineToComposition } from '../remotion/timelineToComposition.js';
 import { showLeadForm, ctaElement, linkBoxElement } from './viewerOverlays.js';
+import { ctaTarget } from '../addons/ctaLink.js';
 
 const TEXT_KEYS = new Set(['text', 'name', 'title', 'heading', 'body']);
 
@@ -72,7 +73,11 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
 
   const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps });
 
-  const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || addonOptions(c).linkUrl);
+  const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || ctaTarget(addonOptions(c)));
+  const onCall = ({ clip, phone }) => {
+    // Upstream "Email to notify about call attempt": recorded as a lead for the owner.
+    onLead?.({ clipId: clip.id, kind: 'call-attempt', data: { PHONE: phone, CALLED_AT: new Date().toISOString() } });
+  };
   const live = new Map(); // clip id → element
   function updateInteractive(sec) {
     interactiveClips.forEach((clip) => {
@@ -80,7 +85,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       const on = sec >= start && sec < end;
       const id = String(clip.id);
       if (on && !live.has(id)) {
-        const el = clip.type === 'click-to-call' ? ctaElement(clip) : linkBoxElement(clip);
+        const el = clip.type === 'click-to-call' ? ctaElement(clip, { onCall }) : linkBoxElement(clip, { onCall });
         if (el) { layer.appendChild(el); live.set(id, el); }
       } else if (!on && live.has(id)) {
         live.get(id).remove();

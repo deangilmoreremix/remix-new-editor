@@ -18,6 +18,7 @@ import { getAddon, addonOptions } from './registry.js';
 import { ensureFormFont } from './addonOverlay.js';
 import { buildLowerThirdLottie, lowerThirdFrame } from './lowerThirds.js';
 import { loadGlTransitions, createTransitionRenderer } from './glTransitionRenderer.js';
+import { ctaTarget } from './ctaLink.js';
 
 export const OVERLAY_TAG = 'overlay-clip';
 export const PERSONALIZED_PLACEHOLDER = '/static/images/personalized-image-placeholder.svg';
@@ -121,7 +122,7 @@ export function applyGeometry(el, opts, { fullFrame = false } = {}) {
 }
 
 function wrapLink(child, opts, editor) {
-  const href = safeHref(opts.linkUrl);
+  const href = ctaTarget(opts)?.href;
   if (!href) return child;
   const a = document.createElement('a');
   a.href = href;

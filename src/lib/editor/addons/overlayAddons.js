@@ -16,6 +16,7 @@ import { registerAddon } from './registry.js';
 import { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, VIDEO_TRANSITIONS } from './overlayData.js';
 import { TRANSITION_CATEGORIES } from './stockMedia.js';
 import { mapVideoTransition, presentationLabel } from '../remotion/transitionMap.js';
+import { CTA_LINK_FIELDS, CTA_LINK_DEFAULTS } from './ctaLink.js';
 
 /**
  * Video Transitions picker: Remotion's own transitions first (they look the
@@ -75,10 +76,8 @@ const LOOK_FIELDS = (tab) => [
 
 const ANIMATION_FIELD = (tab) => ({ key: 'animation', label: 'Animations', type: 'animation', animations: OVERLAY_ANIMATIONS, tab });
 
-const LINK_FIELDS = (tab) => [
-  { key: 'linkUrl', label: 'URL (Call-to-action)', type: 'text', placeholder: 'https://… or tel:+1…', tab },
-  { key: 'linkTarget', label: 'Open Link In', type: 'select', options: [['_blank', 'New Tab'], ['_parent', 'Current tab']], tab, showIf: (o) => !!o.linkUrl },
-];
+// URL / PHONE (click-to-call) call-to-action, as upstream's image/text settings.
+const LINK_FIELDS = CTA_LINK_FIELDS;
 
 const BASE = {
   category: 'overlay',
@@ -101,8 +100,7 @@ export const SMART_TEXT = registerAddon({
     text: 'Enter Text Here',
     position: 'custom',
     alignment: 'center',
-    linkUrl: '',
-    linkTarget: '_blank',
+    ...CTA_LINK_DEFAULTS,
     rotation: 0,
     fontFamily: 'Anton',
     fontSize: 8,
@@ -191,8 +189,7 @@ export const PERSONALIZED_IMAGE = registerAddon({
     fallbackSrc: '',
     imageshape: 'portrait',
     cornerRadius: 0,
-    linkUrl: '',
-    linkTarget: '_blank',
+    ...CTA_LINK_DEFAULTS,
     title: '',
     rotation: 0,
     transition: 'popcorn-fade',
@@ -238,8 +235,7 @@ export const IMAGE = registerAddon({
   defaults: () => ({
     src: '',
     title: '',
-    linkUrl: '',
-    linkTarget: '_blank',
+    ...CTA_LINK_DEFAULTS,
     cornerRadius: false,
     fill: false,
     rotation: 0,

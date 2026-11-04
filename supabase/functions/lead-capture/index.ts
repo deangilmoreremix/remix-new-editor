@@ -29,7 +29,7 @@ const PUBLISHED_ID = /^[A-Za-z0-9_-]{8,32}$/;
 const ALLOWED_ORIGINS = (Deno.env.get("LEAD_CAPTURE_ALLOWED_ORIGINS") ?? "*")
   .split(",").map((s) => s.trim()).filter(Boolean);
 
-const KINDS = new Set(["lead-form", "list-builder", "personalizer"]);
+const KINDS = new Set(["lead-form", "list-builder", "personalizer", "call-attempt"]);
 const MAX_WEBHOOKS = 3;
 const WEBHOOK_TIMEOUT_MS = 8000;
 const RATE_LIMIT_MAX = 20;
@@ -116,6 +116,13 @@ export function savedWebhooks(config: Json | null | undefined, listBuilder = fal
   return urls.filter(isForwardableWebhook).slice(0, MAX_WEBHOOKS);
 }
 
+/** A clip with a click-to-call phone number (CTA button, or an overlay link set to PHONE). */
+export function isCallClip(c: Json): boolean {
+  if (c.type === "click-to-call") return !!c.phoneNumber;
+  const o = (c.addon && typeof c.addon === "object" ? c.addon : {}) as Json;
+  return o.linkMode === "phone" ? !!o.phoneNumber : /^tel:/i.test(String(o.linkUrl || ""));
+}
+
 /** Find the lead config (clip or List Builder) in a published project. */
 export function leadConfigFor(project: Json, kind: string, clipId: string | null): { config: Json | null; listBuilder: boolean } {
   if (kind === "list-builder" || kind === "personalizer") {
@@ -125,7 +132,7 @@ export function leadConfigFor(project: Json, kind: string, clipId: string | null
   const tracks = Array.isArray(project.tracks) ? project.tracks as Json[] : [];
   for (const t of tracks) {
     const items = (Array.isArray(t.items) ? t.items : Array.isArray(t.clips) ? t.clips : []) as Json[];
-    const clip = items.find((c) => String(c.id) === clipId && c.type === "lead-form");
+    const clip = items.find((c) => String(c.id) === clipId && (kind === "call-attempt" ? isCallClip(c) : c.type === "lead-form"));
     if (clip) return { config: clip, listBuilder: false };
   }
   return { config: null, listBuilder: false };
@@ -190,7 +197,7 @@ Deno.serve(async (req: Request) => {
     const { error: insertError } = await admin.from("video_leads").insert({
       clerk_user_id: video.clerk_user_id,
       project_id: publishedId,
-      clip_id: leadKind === "lead-form" ? clipId : "list-builder",
+      clip_id: leadKind === "list-builder" || leadKind === "personalizer" ? "list-builder" : clipId,
       kind: leadKind,
       data: leadData,
       source: {
@@ -201,11 +208,14 @@ Deno.serve(async (req: Request) => {
       preview: false,
     });
     if (insertError) console.warn("[lead-capture] published insert failed:", insertError.code);
-    const hooks = savedWebhooks(config, listBuilder);
+    const callNotify = leadKind === "call-attempt"
+      ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "")
+      : "";
+    const hooks = leadKind === "call-attempt" ? [] : savedWebhooks(config, listBuilder);
     const sent = hooks.length
       ? await forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString() })
       : { forwarded: 0, failed: 0 };
-    return json(req, { ok: true, stored: !insertError, ...sent, email: config.emailNotificationEnabled || config.emailEnabled ? "not_configured" : null });
+    return json(req, { ok: true, stored: !insertError, ...sent, email: config.emailNotificationEnabled || config.emailEnabled || callNotify ? "not_configured" : null });
   }
 
   if (body.action === "list") {
