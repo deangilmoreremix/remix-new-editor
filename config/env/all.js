@@ -4,10 +4,6 @@ module.exports = {
   app: {
     prefix: process.env.APP_PREFIX || 'local-smart-video',
   },
-  aws: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
   backend: {
     socketPort: process.env.NEXT_PUBLIC_SOCKET_PORT || '',
     url: process.env.BACKEND || 'localhost:1340',
@@ -77,18 +73,11 @@ module.exports = {
     play: process.env.PLAY_PREFIX || 'play',
     go: process.env.GO_PREFIX || 'local-go',
   },
-  s3: {
-    cdn: process.env.CDN_HOSTNAME || 'https://cdn.vidcloud.io',
-    cdnSocialWeb: process.env.CDN_SOCIAL_HOSTNAME || 'https://cdn.vidcloud.io',
-    mediaCdn: process.env.MEDIA_CDN_HOSTNAME || '',
-    streamingCdn: process.env.STREAMING_CDN_HOSTNAME || '',
-    key: process.env.S3_KEY || '',
-    bucket: process.env.S3_BUCKET || 'vremix',
-    mediaBucket: process.env.S3_MEDIA_BUCKET || 'stream-video-preparations-source-1tdj0kjvmp354',
-    secret: process.env.S3_SECRET || '',
-    domain: process.env.S3_DOMAIN || 'https://vremix.s3-website-us-east-1.amazonaws.com/',
-    emulation: process.env.S3_EMULATION || false,
-    publishLifetime: process.env.S3_PUBLISH_LIFETIME || 3600,
+  // Old VideoRemix CDN hostnames, read by the legacy app's stores. Storage is
+  // Supabase Storage and rendering is Remotion's web renderer: no AWS/S3.
+  cdn: {
+    hostname: process.env.CDN_HOSTNAME || 'https://cdn.vidcloud.io',
+    socialWeb: process.env.CDN_SOCIAL_HOSTNAME || 'https://cdn.vidcloud.io',
   },
   video: {
     maxThreads: process.env.MAX_VIDEO_THREADS || 2,
