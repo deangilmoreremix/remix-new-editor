@@ -113,21 +113,36 @@ export function createAdvancedPanel({ id = 'advanced-btn', elements = [], toolti
   emptyNote.className = 'text-xs text-muted';
   emptyNote.textContent = 'No advanced options for this model.';
   panel.appendChild(emptyNote);
+
+  // Show the note only when no visible control is in the panel.
+  const syncEmptyNote = () => {
+    const hasContent = [...panel.children].some(
+      (c) => c !== emptyNote && !c.classList.contains('hidden') && c.querySelector('input, select, textarea, button'),
+    );
+    emptyNote.classList.toggle('hidden', hasContent);
+  };
+  syncEmptyNote();
+
+  // Studios rebuild their controls when the model changes (often while the
+  // panel is open), so keep the note in sync with the panel's contents.
+  if (typeof MutationObserver === 'function') {
+    const observer = new MutationObserver((mutations) => {
+      if (mutations.every((m) => m.target === emptyNote)) return;
+      syncEmptyNote();
+    });
+    observer.observe(panel, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+  }
+
   const button = createAdvancedButton({
     id,
     tooltip,
     onToggle: (open) => {
-      if (open) {
-        const hasContent = [...panel.children].some(
-          (c) => c !== emptyNote && !c.classList.contains('hidden') && c.querySelector('input, select, textarea, button'),
-        );
-        emptyNote.classList.toggle('hidden', hasContent);
-      }
+      if (open) syncEmptyNote();
       panel.classList.toggle('hidden', !open);
       panel.classList.toggle('flex', open);
     },
   });
-  return { button, panel };
+  return { button, panel, refresh: syncEmptyNote };
 }
 
 /**

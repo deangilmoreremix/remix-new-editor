@@ -627,6 +627,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     // Unified action row (matches Image Studio): Thumbnail · Advanced · Personalize.
     // Personalize is mounted into this row once the view is in the DOM.
+    // The rebuilt Advanced pill and #advancedControls start collapsed, so
+    // reset the flag to match (mode switches re-render this view).
+    showAdvanced = false;
     const actionRow = createActionRow('mt-6');
     actionRow.id = 'personalize-trigger';
     const advancedToggleBtn = createAdvancedButton({ id: 'advancedToggle', tooltip: 'Show advanced controls' });

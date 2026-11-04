@@ -40,3 +40,24 @@ describe('studio action row', () => {
     expect(advanced.querySelector('#adv2-label').textContent).toBe('Advanced');
   });
 });
+
+describe('advanced panel empty note', () => {
+  it('updates when controls are added or removed while the panel is open', async () => {
+    const { createAdvancedPanel } = await import('../components/studio/actionRow.js');
+    const container = document.createElement('div');
+    const { button, panel } = createAdvancedPanel({ id: 'adv3', elements: [container] });
+    document.body.appendChild(panel);
+    const note = [...panel.children].find((c) => c.textContent.includes('No advanced options'));
+    button.click();
+    expect(note.classList.contains('hidden')).toBe(false);
+
+    const input = document.createElement('input');
+    container.appendChild(input);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(note.classList.contains('hidden')).toBe(true);
+
+    container.removeChild(input);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(note.classList.contains('hidden')).toBe(false);
+  });
+});
