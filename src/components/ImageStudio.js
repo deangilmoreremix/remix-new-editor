@@ -136,7 +136,6 @@ export function ImageStudio() {
       } catch { /* ignore */ }
     })();
 
-    const getCurrentModels = () => imageMode ? i2iModels : t2iModels;
     const getCurrentAspectRatios = (id) => imageMode ? getAspectRatiosForI2IModel(id) : getAspectRatiosForModel(id);
     const getCurrentResolutions = (id) => imageMode ? getResolutionsForI2IModel(id) : getResolutionsForModel(id);
     const getCurrentQualityField = (id) => imageMode ? getQualityFieldForI2IModel(id) : getQualityFieldForModel(id);

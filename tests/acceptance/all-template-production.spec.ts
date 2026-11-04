@@ -18,6 +18,7 @@ if (templates.length !== 338) {
 
 const { TemplateStudio } = await import('../../src/components/TemplateStudio.js');
 const { normalizeTemplate } = await import('../../src/lib/templateAdapter.js');
+const { apiKeyManager } = await import('../../src/lib/apiKeyManager.js');
 
 describe('338-template deterministic production acceptance', () => {
   let container;
@@ -36,16 +37,28 @@ describe('338-template deterministic production acceptance', () => {
       clear: vi.fn(() => { Object.keys(store).forEach(k => delete store[k]); }),
     };
     global.localStorage = localStorageMock;
+    // The raw 'test-key' above is not in the key manager's stored format, so
+    // stub the getter: Generate must reach media validation, not the sign-in modal.
+    vi.spyOn(apiKeyManager, 'getMuapiKey').mockReturnValue('test-key');
   });
 
+  let mounted = null;
+
   afterEach(() => {
+    // Release the studio's document / window listeners (the router does the
+    // same when leaving the page); otherwise 338 mounts exhaust the heap.
+    mounted?.cleanup?.();
+    mounted = null;
+    vi.restoreAllMocks();
     if (container.parentNode) container.parentNode.removeChild(container);
     document.body.innerHTML = '';
   });
 
   function mountTemplateStudio(templateId) {
     container.innerHTML = '';
+    mounted?.cleanup?.();
     const element = TemplateStudio(templateId);
+    mounted = element;
     container.appendChild(element);
     return element;
   }
@@ -98,11 +111,12 @@ describe('338-template deterministic production acceptance', () => {
           btn.textContent?.includes('Generate') || btn.textContent?.includes('Create')
         );
         if (genBtn && t.requiresImage) {
-          const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
+          // The studio reports missing media inline (no blocking alert()).
           genBtn.click();
           await new Promise(resolve => setTimeout(resolve, 100));
-          expect(alertMock).toHaveBeenCalled();
-          alertMock.mockRestore();
+          const inlineError = container.querySelector('.ts-inline-error');
+          expect(inlineError).not.toBeNull();
+          expect(inlineError.textContent).toContain('upload an image');
         }
       });
     });
