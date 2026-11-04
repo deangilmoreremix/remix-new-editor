@@ -900,14 +900,17 @@ async function handleGenerateMuapi(
   const timeLeft = () => deadline - Date.now();
   const signalFor = (ms: number) => AbortSignal.timeout(Math.max(1000, Math.min(ms, timeLeft())));
 
-  async function callProxy(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  // Time kept back so a finished job can still download its image.
+  const DOWNLOAD_RESERVE_MS = MUAPI_DOWNLOAD_TIMEOUT_MS / 2;
+
+  async function callProxy(payload: Record<string, unknown>, maxMs = MUAPI_CALL_TIMEOUT_MS): Promise<Record<string, unknown>> {
     let res: Response;
     try {
       res = await fetch(proxyUrl, {
         method: "POST",
         headers: proxyHeaders,
         body: JSON.stringify({ ...payload, muapi_api_key: muapiKey }),
-        signal: signalFor(MUAPI_CALL_TIMEOUT_MS),
+        signal: signalFor(maxMs),
       });
     } catch (err) {
       const timedOut = err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError");
@@ -925,17 +928,20 @@ async function handleGenerateMuapi(
   // Submit, then poll predictions/<id>/result until the job finishes.
   // (muapi-proxy forwards one request; MuAPI answers image jobs with
   // { request_id, status: "processing" } and the images come later.)
-  async function runJob(): Promise<string[]> {
+  async function waitForUrls(): Promise<string[]> {
     const submitted = await callProxy({ endpoint, params, generationType: "image" });
     let urls = muapiOutputUrls(submitted);
     if (urls.length) return urls;
     const requestId = (submitted.request_id || submitted.id) as string | undefined;
     if (!requestId) throw new Error("MuAPI did not return a request id");
 
-    // Leave time to download the result after the last poll.
-    while (timeLeft() > MUAPI_DOWNLOAD_TIMEOUT_MS / 2) {
+    // Stop polling early enough to leave time for the download, and cap
+    // each poll so it cannot eat into that reserve either.
+    while (timeLeft() > DOWNLOAD_RESERVE_MS + MUAPI_POLL_INTERVAL_MS) {
       await new Promise((r) => setTimeout(r, MUAPI_POLL_INTERVAL_MS));
-      const polled = await callProxy({ endpoint: `predictions/${requestId}/result`, params: {}, generationType: "poll" });
+      const pollMs = Math.min(MUAPI_CALL_TIMEOUT_MS, timeLeft() - DOWNLOAD_RESERVE_MS);
+      if (pollMs < 1000) break;
+      const polled = await callProxy({ endpoint: `predictions/${requestId}/result`, params: {}, generationType: "poll" }, pollMs);
       const status = String(polled.status || "").toLowerCase();
       if (status === "failed" || status === "error") {
         throw new Error(String(polled.error || "MuAPI generation failed"));
@@ -960,20 +966,21 @@ async function handleGenerateMuapi(
     return { b64_json: bytesToBase64(bytes), mime, revised_prompt: "", url };
   }
 
-  const settled = await Promise.allSettled(Array.from({ length: count }, runJob));
-  const urls = settled.flatMap((s) => (s.status === "fulfilled" ? s.value : [])).slice(0, count);
-  const firstError = settled.find((s): s is PromiseRejectedResult => s.status === "rejected");
-  const errorText = (r?: PromiseRejectedResult) =>
-    r ? (r.reason instanceof Error ? r.reason.message : String(r.reason)) : "";
-  if (!urls.length) {
-    return jsonResponse({ error: errorText(firstError) || "MuAPI returned no images" }, 502);
+  // Each job downloads its own image as soon as it finishes, so a slow
+  // sibling job cannot use up the time a finished image needs to download.
+  async function runJob() {
+    const urls = await waitForUrls();
+    return toCandidate(urls[0]);
   }
 
-  const downloaded = await Promise.allSettled(urls.map(toCandidate));
-  const candidates = downloaded.flatMap((d) => (d.status === "fulfilled" ? [d.value] : []));
+  const settled = await Promise.allSettled(Array.from({ length: count }, runJob));
+  const candidates = settled.flatMap((s) => (s.status === "fulfilled" ? [s.value] : []));
   if (!candidates.length) {
-    const dlError = downloaded.find((d): d is PromiseRejectedResult => d.status === "rejected");
-    return jsonResponse({ error: errorText(dlError) || "Generated images could not be downloaded" }, 502);
+    const firstError = settled.find((s): s is PromiseRejectedResult => s.status === "rejected");
+    const message = firstError
+      ? (firstError.reason instanceof Error ? firstError.reason.message : String(firstError.reason))
+      : "";
+    return jsonResponse({ error: message || "MuAPI returned no images" }, 502);
   }
 
   // No key_source: it describes the OpenAI key, which MuAPI models don't use.
