@@ -5,6 +5,9 @@
  */
 
 import { GenerationModes, GenerationProviders, createDefaultProject } from './types.js';
+import { submitOnly, checkStatus, downloadResult } from '../muapi.js';
+import { getModelById, getVideoModelById, getI2IModelById, getAudioModelById } from '../models.js';
+import { circuitBreaker } from '../services/CircuitBreaker.js';
 
 // ============================================================================
 // CONFIGURATION
@@ -26,6 +29,10 @@ const DEFAULT_CONFIG = {
   veo: {
     baseUrl: 'https://generativelanguage.googleapis.com',
     timeout: 300000,
+  },
+  muapi: {
+    timeout: 300000, // 5 minutes
+    defaultModel: 'ltx-2-fast',
   },
 };
 
@@ -305,6 +312,220 @@ class FalProvider {
 }
 
 // ============================================================================
+// MUAPI PROVIDER (Compatibility layer via muapi.js)
+// ============================================================================
+
+class MuAPIProvider {
+  constructor(config = {}) {
+    this.config = { ...DEFAULT_CONFIG.muapi, ...config };
+    // Map of generationId -> requestId (for real polling)
+    this.requestIds = new Map();
+    // Map of generationId -> completed result (cached from submit or poll)
+    this.results = new Map();
+  }
+
+  /**
+   * Submit a generation request. Returns immediately with a generationId
+   * and status 'queued'. The actual MuAPI requestId is stored internally
+   * for real polling via poll().
+   */
+  async submit(request) {
+    const generationId = `gen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const serviceName = this.getServiceNameForMode(request.mode);
+
+    if (serviceName === 'api_request') {
+      return {
+        generationId,
+        status: 'failed',
+        error: `Unsupported generation mode: ${request.mode}`,
+      };
+    }
+
+    try {
+      const { endpoint, payload, generationType, studioType } = this.buildRequest(request);
+      const { requestId, submitData } = await submitOnly(endpoint, payload, null, generationType, studioType);
+      this.requestIds.set(generationId, requestId);
+      circuitBreaker.recordSuccess(serviceName);
+
+      return {
+        generationId,
+        status: 'queued',
+        requestId,
+        previewUrl: null,
+        assetIds: [],
+        metadata: submitData,
+      };
+    } catch (error) {
+      if (error.code !== 'CIRCUIT_BREAKER_OPEN') {
+        circuitBreaker.recordFailure(serviceName);
+      }
+      return {
+        generationId,
+        status: 'failed',
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Poll for generation status. Returns cached result on subsequent calls.
+   */
+  async poll(generationId) {
+    const requestId = this.requestIds.get(generationId);
+    if (!requestId) {
+      return { generationId, status: 'failed', error: 'No requestId for this generationId' };
+    }
+
+    if (this.results.has(generationId)) {
+      return this.results.get(generationId);
+    }
+
+    const result = await checkStatus(requestId, null);
+    const normalized = {
+      generationId,
+      status: result.status,
+      url: result.url || null,
+      progress: result.progress,
+      error: result.error,
+    };
+
+    if (normalized.status === 'completed' || normalized.status === 'failed') {
+      this.results.set(generationId, normalized);
+    }
+
+    return normalized;
+  }
+
+  /**
+   * Cancel local polling for a generation job.
+   * NOTE: This does NOT cancel the remote generation. It only stops local
+   * tracking so subsequent polls return failed. The upstream job may still
+   * complete or fail on its own.
+   */
+  async cancel(generationId) {
+    const requestId = this.requestIds.get(generationId);
+    if (requestId) {
+      this.requestIds.delete(generationId);
+      this.results.delete(generationId);
+    }
+    return { generationId, status: 'locally_cancelled' };
+  }
+
+  /**
+   * Download result for a completed generation
+   */
+  async download(generationId) {
+    const cached = this.results.get(generationId);
+    if (!cached || cached.status !== 'completed' || !cached.url) {
+      return null;
+    }
+    return await downloadResult(cached.url);
+  }
+
+  /**
+   * Map generation mode to MuAPI service name
+   */
+  getServiceNameForMode(mode) {
+    const map = {
+      'text-to-video': 'video_generation',
+      'image-to-video': 'video_generation',
+      'generate-image': 'image_generation',
+      'broll': 'video_generation',
+      'text-to-speech': 'audio_generation',
+    };
+    return map[mode] || 'api_request';
+  }
+
+  /**
+   * Build endpoint + payload from generation request
+   */
+  buildRequest(request) {
+    const mode = request.mode || request.type;
+    const model = request.model || '';
+    const modelInfo = getModelById(model) || getVideoModelById(model) || getI2IModelById(model) || getAudioModelById(model);
+
+    // Image generation
+    if (mode === 'generate-image') {
+      const endpoint = modelInfo?.endpoint || 'generate';
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt || '',
+        aspect_ratio: request.aspectRatio || '16:9',
+      };
+      if (model) payload.model = model;
+      if (request.references?.[0]) payload.image_url = request.references[0];
+      return {
+        endpoint,
+        payload,
+        generationType: 'image',
+        studioType: 'image',
+      };
+    }
+
+    // Video generation
+    if (mode === 'text-to-video' || mode === 'broll') {
+      const endpoint = modelInfo?.endpoint || 'generate';
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt || '',
+        aspect_ratio: request.aspectRatio || '16:9',
+        duration: request.duration || 5,
+      };
+      if (model) payload.model = model;
+      if (request.references?.[0]) payload.image_url = request.references[0];
+      return {
+        endpoint,
+        payload,
+        generationType: 'video',
+        studioType: 'video',
+      };
+    }
+
+    // Image-to-video
+    if (mode === 'image-to-video') {
+      const endpoint = modelInfo?.endpoint || 'i2v';
+      const payload = {
+        prompt: request.prompt,
+        negative_prompt: request.negativePrompt || '',
+        image_url: request.references?.[0] || '',
+        aspect_ratio: request.aspectRatio || '16:9',
+        duration: request.duration || 5,
+      };
+      if (model) payload.model = model;
+      return {
+        endpoint,
+        payload,
+        generationType: 'video',
+        studioType: 'video',
+      };
+    }
+
+    // Audio/TTS
+    if (mode === 'text-to-speech') {
+      const endpoint = modelInfo?.endpoint || mode;
+      const payload = {
+        prompt: request.prompt,
+      };
+      if (model) payload.model = model;
+      return {
+        endpoint,
+        payload,
+        generationType: 'audio',
+        studioType: 'audio',
+      };
+    }
+
+    // Fallback for unknown modes
+    return {
+      endpoint: mode || 'api_request',
+      payload: request,
+      generationType: 'video',
+      studioType: 'video',
+    };
+  }
+}
+
+// ============================================================================
 // GENERATION SERVICE
 // ============================================================================
 
@@ -315,16 +536,25 @@ class FalProvider {
 class GenerationService {
   constructor() {
     this.providers = {
+      muapi: new MuAPIProvider(),
       ltx: new LtxProvider(),
       fal: new FalProvider(),
     };
     this.activeJobs = new Map();
     this.listeners = new Map();
+    this._lastProvider = 'muapi';
+  }
+
+  /**
+   * Backward-compatible accessor for the last-used/default provider.
+   */
+  get provider() {
+    return this.providers[this._lastProvider] || this.providers.muapi || Object.values(this.providers)[0];
   }
 
   /**
    * Set provider configuration
-   * @param {'ltx' | 'fal'} name
+   * @param {'ltx' | 'fal' | 'muapi'} name
    * @param {Object} config
    */
   configureProvider(name, config) {
@@ -332,7 +562,10 @@ class GenerationService {
       this.providers.ltx = new LtxProvider(config);
     } else if (name === 'fal') {
       this.providers.fal = new FalProvider(config);
+    } else if (name === 'muapi') {
+      this.providers.muapi = new MuAPIProvider(config);
     }
+    this._lastProvider = name;
   }
 
   /**
@@ -346,15 +579,16 @@ class GenerationService {
   /**
    * Submit a generation job
    * @param {GenerationRequest} request
-   * @param {'ltx' | 'fal'} [provider]
+   * @param {'ltx' | 'fal' | 'muapi'} [provider]
    * @returns {Promise<GenerationResult>}
    */
-  async submit(request, provider = 'ltx') {
+  async submit(request, provider = 'muapi') {
     const providerInstance = this.providers[provider];
     if (!providerInstance) {
       throw new Error(`Unknown provider: ${provider}`);
     }
 
+    this._lastProvider = provider;
     const result = await providerInstance.submit(request);
 
     if (result.status !== 'failed') {
@@ -412,22 +646,29 @@ class GenerationService {
   }
 
   /**
-   * Start polling for a job
+   * Start polling for a job. Returns a cancel function.
    * @param {string} generationId
    * @param {Function} onUpdate
    * @param {number} interval
+   * @returns {Function} cancel function
    */
   startPolling(generationId, onUpdate, interval = 2000) {
+    let timeoutId;
     const poll = async () => {
-      const result = await this.poll(generationId);
-      onUpdate(result);
+      try {
+        const result = await this.poll(generationId);
+        onUpdate(result);
 
-      if (result.status === 'processing' || result.status === 'queued') {
-        setTimeout(poll, interval);
+        if (result.status === 'processing' || result.status === 'queued') {
+          timeoutId = setTimeout(poll, interval);
+        }
+      } catch (error) {
+        onUpdate({ error: error.message });
       }
     };
 
-    setTimeout(poll, interval);
+    timeoutId = setTimeout(poll, interval);
+    return () => clearTimeout(timeoutId);
   }
 
   /**
@@ -447,6 +688,75 @@ class GenerationService {
 
     this.activeJobs.delete(generationId);
     this.emit('job-cancelled', { generationId });
+  }
+
+  /**
+   * Retry a failed or unknown job by re-submitting the original request.
+   * @param {string} generationId
+   * @returns {Promise<GenerationResult>}
+   */
+  async retry(generationId) {
+    const job = this.activeJobs.get(generationId);
+    if (!job) {
+      throw new Error(`Unknown job: ${generationId}`);
+    }
+
+    return this.submit(job.request, job.provider);
+  }
+
+  /**
+   * Get progress information for a job.
+   * @param {string} generationId
+   * @returns {Promise<{progress: number, status: string}>}
+   */
+  async progress(generationId) {
+    const job = this.activeJobs.get(generationId);
+    if (!job) {
+      throw new Error(`Unknown job: ${generationId}`);
+    }
+
+    const provider = this.providers[job.provider];
+    const result = await provider.poll(generationId);
+    return {
+      progress: result.progress || 0,
+      status: result.status,
+    };
+  }
+
+  /**
+   * Download result blob for a completed job.
+   * @param {string} generationId
+   * @returns {Promise<Blob|null>}
+   */
+  async download(generationId) {
+    const job = this.activeJobs.get(generationId);
+    if (!job) {
+      throw new Error(`Unknown job: ${generationId}`);
+    }
+
+    const provider = this.providers[job.provider];
+    if (provider.download) {
+      return provider.download(generationId);
+    }
+    return null;
+  }
+
+  /**
+   * Get cached results for a specific generation mode from localStorage.
+   * @param {string} mode
+   * @returns {Array}
+   */
+  getCachedResultsForMode(mode) {
+    try {
+      const key = `muapi-cache-${mode}`;
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+      if (!raw) return [];
+      const entries = JSON.parse(raw);
+      const oneHour = 60 * 60 * 1000;
+      return entries.filter((e) => Date.now() - (e.savedAt || 0) < oneHour);
+    } catch {
+      return [];
+    }
   }
 
   /**
@@ -616,5 +926,5 @@ export function createBrollRequest(prompt, options = {}) {
 // ============================================================================
 
 export const generationService = new GenerationService();
-export { GenerationService, LtxProvider, FalProvider };
+export { GenerationService, LtxProvider, FalProvider, MuAPIProvider };
 export default generationService;
