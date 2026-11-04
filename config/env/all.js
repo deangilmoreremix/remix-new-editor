@@ -5,14 +5,14 @@ module.exports = {
     prefix: process.env.APP_PREFIX || 'local-smart-video',
   },
   aws: {
-    accessKeyId: 'AKIAZIC4SYEXP4EFAPP6' || process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: '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' || process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
   },
   backend: {
     socketPort: process.env.NEXT_PUBLIC_SOCKET_PORT || '',
     url: process.env.BACKEND || 'localhost:1340',
     clientId: process.env.BACKEND_CLIENT_ID || 'service',
-    clientSecret: process.env.BACKEND_CLIENT_SECRET || 'q39Jy70X6ao9dTca',
+    clientSecret: process.env.BACKEND_CLIENT_SECRET || '',
   },
   whiteLabel: {
     devDefault: 'videoremix.io',
@@ -25,7 +25,7 @@ module.exports = {
   nakedRun: process.env.NAKED_RUN || false,
   client: {
     id: process.env.CLIENT_ID || 'service',
-    secret: process.env.CLIENT_SECRET || 'q39Jy70X6ao9dTca',
+    secret: process.env.CLIENT_SECRET || '',
   },
   access: {
     minAuthLevel: process.env.MIN_AUTH_LEVEL || 5,
@@ -40,11 +40,11 @@ module.exports = {
   loginServer: {
     url: process.env.LOGIN_SERVER_URL || 'http://local-api.videoremix.io',
     authUrl: process.env.AUTH_SERVER_URL || 'http://local-app.videoremix.io',
-    urlWithAuth: process.env.LOGIN_SERVER_URL_WITH_AUTH || 'http://testuser:password@local-api.videoremix.io',
+    urlWithAuth: process.env.LOGIN_SERVER_URL_WITH_AUTH || 'http://local-api.videoremix.io',
     username: process.env.LOGIN_USERNAME || 'default',
-    password: process.env.LOGIN_PASSWORD || 'default',
+    password: process.env.LOGIN_PASSWORD || '',
   },
-  secret: process.env.SECRET || 'p1dvtxzlaVf4mB9mv3o1TfAoNFt8rR',
+  secret: process.env.SECRET || '',
   appHostname: process.env.APP_HOSTNAME || 'http://local-app.videoremix.io/',
   cookieDomain: process.env.COOKIE_DOMAIN || 'videoremix.io',
   forceSsl: process.env.FORCE_SSL || false,
@@ -60,7 +60,7 @@ module.exports = {
   },
   helpCrunch: {
     applicationId: process.env.HELP_CRUNCH_APP_ID || '1',
-    applicationSecret: process.env.HELP_CRUNCH_SECRET || '1',
+    applicationSecret: process.env.HELP_CRUNCH_SECRET || '',
   },
   newRelic: {
     enabled: process.env.NEW_RELIC_ENABLED || false,
@@ -82,10 +82,10 @@ module.exports = {
     cdnSocialWeb: process.env.CDN_SOCIAL_HOSTNAME || 'https://cdn.vidcloud.io',
     mediaCdn: process.env.MEDIA_CDN_HOSTNAME || '',
     streamingCdn: process.env.STREAMING_CDN_HOSTNAME || '',
-    key: process.env.S3_KEY || 'AKIAZIC4SYEXP4EFAPP6',
+    key: process.env.S3_KEY || '',
     bucket: process.env.S3_BUCKET || 'vremix',
     mediaBucket: process.env.S3_MEDIA_BUCKET || 'stream-video-preparations-source-1tdj0kjvmp354',
-    secret: process.env.S3_SECRET || 'uHKt6CYKFzJc+1trnY6UbO/P7ctDb9Q9U0oBV5zc',
+    secret: process.env.S3_SECRET || '',
     domain: process.env.S3_DOMAIN || 'https://vremix.s3-website-us-east-1.amazonaws.com/',
     emulation: process.env.S3_EMULATION || false,
     publishLifetime: process.env.S3_PUBLISH_LIFETIME || 3600,
@@ -97,7 +97,7 @@ module.exports = {
   },
   pixoEditor: {
     script: 'https://pixoeditor.com/editor/scripts/bridge.m.js',
-    apiKey: process.env.PIXO_API_KEY || '1rdt2n6ctajk',
+    apiKey: process.env.PIXO_API_KEY || '',
   },
   image: {
     maxSize: process.env.MAX_IMAGE_SIZE || 5 * 1024 * 1024, // in bytes
@@ -112,45 +112,45 @@ module.exports = {
   mediaProviders: {
     FREESOUND: {
       apiUrl: process.env.FREESOUND_API_URL || 'https://freesound.org',
-      apiKey: process.env.FREESOUND_API_KEY || '0dc4lRxsqTJivBSAKDf7o9FL4U2bPHRPbhCd5ZQW',
+      apiKey: process.env.FREESOUND_API_KEY || '',
       audiosApiPath: '/apiv2/search/text/',
     },
     PEXELS: {
       apiUrl: process.env.PEXELS_API_URL || 'https://api.pexels.com',
-      apiKey: process.env.PEXELS_API_KEY || '563492ad6f917000010000016536fdd8a2cd46b7be0af6abf04caf86',
+      apiKey: process.env.PEXELS_API_KEY || '',
       imagesApiPath: 'v1',
       videosApiPath: 'videos',
     },
     PIXABAY: {
       apiUrl: process.env.PIXABAY_API_URL || 'https://pixabay.com/api',
-      apiKey: process.env.PIXABAY_API_KEY || '15571833-24256f0863e4fcba626119f24',
+      apiKey: process.env.PIXABAY_API_KEY || '',
       imagesApiPath: '',
       videosApiPath: '/videos',
     },
     UNSPLASH: {
       apiUrl: process.env.UNSPLASH_API_URL || 'https://api.unsplash.com',
-      apiKey: process.env.UNSPLASH_API_KEY || '089197d4e5af98ac2ae777e512eb6f22bf89d18c48e86ae1093f781dd876dfd9',
+      apiKey: process.env.UNSPLASH_API_KEY || '',
       imagesApiPath: 'photos',
     },
     DROPMOCK: {
       apiUrl: process.env.DROPMOCK_API_URL || 'https://app.dropmock.com',
-      apiKey: process.env.DROPMOCK_API_KEY || 'bTzbENea9u3p35y726pn5xALu7KerQulOWxIPt0F',
+      apiKey: process.env.DROPMOCK_API_KEY || '',
       imagesApiPath: 'api/v1/images',
       videosApiPath: 'api/v1/videos',
     },
     GIPHY: {
-      apiKey: process.env.GIPHY_API_KEY || 'M6YwVeM7Jftx8RtIKQrIu1WnCUqxaiCW',
+      apiKey: process.env.GIPHY_API_KEY || '',
     },
     TXTVIDEO: {
       apiUrl: process.env.TXTVIDEO_API_URL || 'https://app.txtvideo.com',
-      apiToken: process.env.TXTVIDEO_API_TOKEN || 'soA6FfAiDGcMCx016HjRt0cs4qqzzh3C',
-      apiKey: process.env.TXTVIDEO_API_KEY || '40aJDpabv6XMC8XDJYLNY03Xl6XB3rayWJlxBYJW',
+      apiToken: process.env.TXTVIDEO_API_TOKEN || '',
+      apiKey: process.env.TXTVIDEO_API_KEY || '',
       videosApiPath: 'api/videos',
     },
   },
   scriptStatistic: process.env.SCRIPT_STATISTIC || '',
   pathForGoogleCloudAccount: process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
   cutoutPro: {
-    apiKey: process.env.CUTOUT_PRO_API_KEY || 'f8215a0e6b3b40b78a2ce62ce89c5d9e',
+    apiKey: process.env.CUTOUT_PRO_API_KEY || '',
   },
 };
