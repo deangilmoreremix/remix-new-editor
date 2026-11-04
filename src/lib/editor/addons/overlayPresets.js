@@ -49,6 +49,22 @@ export function presetToClips(preset, startSec, timelineSeconds, idBase = Date.n
       const start = Math.min(Math.max(0, startSec + item.offset), Math.max(0, timelineSeconds - 0.1));
       const end = Math.min(timelineSeconds, start + Math.max(0.1, item.duration));
       const addon = getAddon(item.type);
+      // Flat-option types (lead-form, click-to-call) keep their options on the clip.
+      if (addon.flatOptions) {
+        const defaults = addon.defaults();
+        const flat = JSON.parse(JSON.stringify(item.flat || {}));
+        return {
+          ...defaults,
+          ...flat,
+          ...(defaults.style || flat.style ? { style: { ...(defaults.style || {}), ...(flat.style || {}) } } : {}),
+          id: idBase + i,
+          type: item.type,
+          name: flat.buttonText || flat.heading || addon.label,
+          start,
+          end,
+          trackName: item.trackName,
+        };
+      }
       return {
         id: idBase + i,
         type: item.type,

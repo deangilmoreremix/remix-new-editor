@@ -27,3 +27,5 @@ export { loadGlTransitions, createTransitionRenderer, fragmentFor } from './glTr
 export { CTA_ANIMATIONS, buildCtaLottie, ctaBox, CTA_ASPECT } from './ctaLottie.js';
 export { ctaTarget, COUNTRY_CODES } from './ctaLink.js';
 export { BLEND_CATEGORIES, BLEND_ITEMS, blendItemToAddon, getBlendItem, blendThumbStyle, validateBlendLibrary } from './blendLibrary.js';
+export { END_SCREENS, CONNECT_FORMS, TEMPLATE_LIBRARIES, getTemplate, templateToPreset, templateStart, templatePreviewProject, unknownTemplateTypes } from './templateLibrary.js';
+export { openTemplateWindow } from './templateWindow.js';

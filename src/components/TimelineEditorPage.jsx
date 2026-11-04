@@ -30,6 +30,7 @@ import {
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
   OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT,
   BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
+  openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES,
 } from '../lib/editor/addons/index.js';
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
@@ -737,6 +738,8 @@ export function TimelineEditorPage() {
         ['⚡', 'Interactive'],
         ['🧩', 'Overlays'],
         ['🌈', 'Blend Modes'],
+        ['🏁', 'End Screens'],
+        ['📇', 'Connect Form'],
         ['🎞️', 'Stock Media'],
         ['🤖', 'AI Agent'],
         ['🔗', 'Share'],
@@ -2311,23 +2314,55 @@ export function TimelineEditorPage() {
     }
 
     function addEndScreenToTimeline(endScreenData, state) {
-      // Add end screen elements to the end of the timeline
-      const videoTrack = state.tracks.find(t => t.type === 'video');
-      if (videoTrack && endScreenData.buttons) {
-        endScreenData.buttons.forEach(button => {
-          const clip = {
-            ...button,
-            id: Date.now() + Math.random(),
-            name: button.text || 'End Screen Element',
-            left: state.timelineSeconds * 10, // Position at end
-            width: button.duration || 5,
-            type: button.type || 'text',
-          };
-          videoTrack.items.push(clip);
-        });
-        renderTracks();
-      }
+      // Classic End Screen modal result: its elements go on the Titles
+      // track, timed to finish at the end of the video.
+      const T = state.timelineSeconds || 60;
+      (endScreenData?.buttons || []).forEach((button, i) => {
+        const dur = Math.min(T, Math.max(1, Number(button.duration) || 5));
+        insertClipIntoTrack({
+          ...button,
+          id: Date.now() + i,
+          name: button.text || 'End Screen Element',
+          type: button.type || 'text',
+          start: T - dur,
+          end: T,
+        }, 'text');
+      });
+      debouncedSave();
     }
+
+    // End Screens / Connect Form libraries (upstream toolbar windows):
+    // pick a template, preview it live, insert it as editable clips.
+    function openTemplateLibrary(library) {
+      openTemplateWindow({
+        library,
+        buildModel: (project) => timelineToComposition(project, { fps: ENGINE_FPS, quality: '720p', profile: getActivePersonalizationProfile() }),
+        onUse: (tpl, lib) => insertTemplate(tpl, lib),
+      });
+    }
+
+    function insertTemplate(tpl, lib) {
+      const T = state.timelineSeconds || 60;
+      const startSec = templateStart(tpl, lib.anchor, { playheadSec: (state.playheadPercent / 100) * T, timelineSeconds: T });
+      const trackName = lib.anchor === 'end' ? 'End Screen' : 'Connect';
+      if (!state.tracks.some((t) => t.name === trackName)) {
+        state.tracks.push({ id: `track-${lib.id}-${Date.now().toString(36)}`, type: 'text', name: trackName, muted: false, solo: false, locked: false, items: [] });
+      }
+      saveStateSnapshot(state);
+      const clips = presetToClips(templateToPreset(tpl), startSec, T);
+      clips.forEach(({ trackName: _ignored, ...clip }) => insertClipIntoTrack(clip, trackName));
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added "${tpl.name}" — click any part to edit it`, 'success');
+      return clips;
+    }
+    TLEditor.openTemplateLibrary = openTemplateLibrary;
+    TLEditor.insertTemplate = (id, library = 'endScreens') => {
+      const lib = TEMPLATE_LIBRARIES[library];
+      const tpl = lib?.templates.find((t) => t.id === id);
+      return tpl ? insertTemplate(tpl, lib) : null;
+    };
+    TLEditor.openClassicEndScreen = () => openEndScreenModal(state, showToast);
 
     // Header top actions: the template IS the single source of truth
     // (prototype markup: ↶ ↷ ▦[active] ⚙ 🔗 🤖 💾 + Render Ready pill).
@@ -6405,7 +6440,7 @@ export function TimelineEditorPage() {
       email: () => openEmailCampaignModal(state, showToast),
       leads: () => openLeadGeneratorModal(state, showToast),
       contacts: () => openContactImporterModal(state, showToast),
-      endScreen: () => openEndScreenModal(state, showToast),
+      endScreen: () => openTemplateLibrary('endScreens'),
       import: () => showToast('Import timeline functionality coming soon', 'info'),
       storyboard: () => { if (window.showCutAIFromTimeline) window.showCutAIFromTimeline(); else showToast('Storyboard coming soon', 'info'); },
       subtitleEditor: () => generateSubtitles(),
@@ -6583,6 +6618,12 @@ export function TimelineEditorPage() {
               break;
             case 'AI Personalizer':
               window.dispatchEvent(new CustomEvent('open-personalizer'));
+              break;
+            case 'End Screens':
+              openTemplateLibrary('endScreens');
+              break;
+            case 'Connect Form':
+              openTemplateLibrary('connect');
               break;
              case 'Export':
                openExportModal(state, showToast);

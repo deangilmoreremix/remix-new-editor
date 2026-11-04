@@ -60,6 +60,7 @@ export function safeHref(url) {
   if (!value) return null;
   if (/^tel:\+?[0-9()\-.\s]{5,}$/i.test(value)) return value.replace(/\s+/g, '');
   if (/^\+?[0-9()\-.\s]{10,}$/.test(value)) return `tel:${value.replace(/[^0-9+]/g, '')}`;
+  if (/^mailto:/i.test(value)) return /^mailto:[^\s@<>"'()]+@[^\s@<>"'()]+\.[a-z]{2,}(\?[^\s<>"']*)?$/i.test(value) ? value : null;
   try {
     const u = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
     return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : null;

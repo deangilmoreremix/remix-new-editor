@@ -963,3 +963,31 @@
 .blend-lib__mode { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--cyan, #22d3ee); }
 .blend-lib__stock { width: 100%; padding: 8px 10px; border-radius: var(--r-sm, 8px); border: 1px dashed var(--brand-border-soft, rgba(34,211,238,.3)); background: var(--cyan-faint, rgba(34,211,238,.1)); color: var(--text-strong, #fff); font: inherit; font-size: 12px; cursor: pointer; text-align: left; }
 .blend-lib__stock:hover, .blend-lib__stock:focus-visible { border-color: var(--cyan, #22d3ee); outline: none; }
+
+/* End Screens / Connect Form template window */
+.tpl-win { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); }
+.tpl-win__dialog { width: min(1040px, 100%); max-height: calc(100vh - 32px); display: flex; flex-direction: column; border-radius: var(--r-lg, 14px); border: 1px solid var(--border, rgba(255,255,255,.1)); background: var(--bg, #07090d); color: var(--text, rgba(255,255,255,.86)); box-shadow: 0 30px 80px rgba(0,0,0,.6); overflow: hidden; }
+.tpl-win__head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border-soft, rgba(255,255,255,.06)); background: var(--surface-1, rgba(255,255,255,.03)); }
+.tpl-win__head h3 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text-strong, #fff); }
+.tpl-win__where { font-size: 12px; color: var(--text-dim, rgba(255,255,255,.45)); }
+.tpl-win__close { margin-left: auto; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border, rgba(255,255,255,.1)); background: var(--surface-2, rgba(255,255,255,.05)); color: var(--text, #fff); cursor: pointer; }
+.tpl-win__close:hover, .tpl-win__close:focus-visible { border-color: var(--cyan, #22d3ee); outline: none; }
+.tpl-win__body { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 0; flex: 1; }
+.tpl-win__list { list-style: none; margin: 0; padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow: auto; border-right: 1px solid var(--border-soft, rgba(255,255,255,.06)); }
+.tpl-win__item { width: 100%; display: flex; flex-direction: column; gap: 2px; padding: 9px 10px; border-radius: var(--r-sm, 8px); border: 1px solid var(--border-soft, rgba(255,255,255,.06)); background: var(--surface-1, rgba(255,255,255,.03)); color: var(--text, rgba(255,255,255,.86)); text-align: left; font: inherit; cursor: pointer; }
+.tpl-win__item strong { font-size: 13px; color: var(--text-strong, #fff); }
+.tpl-win__item span { font-size: 11px; color: var(--text-muted, rgba(255,255,255,.6)); }
+.tpl-win__item:hover, .tpl-win__item:focus-visible { border-color: var(--brand-border-soft, rgba(34,211,238,.3)); outline: none; }
+.tpl-win__item.is-on { border-color: var(--cyan, #22d3ee); background: var(--cyan-faint, rgba(34,211,238,.1)); }
+.tpl-win__main { display: flex; flex-direction: column; gap: 12px; padding: 14px; min-width: 0; overflow: auto; }
+.tpl-win__frame { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #000; border: 1px solid var(--border, rgba(255,255,255,.1)); }
+.tpl-win__stage { position: absolute; inset: 0; }
+.tpl-win__layer { position: absolute; inset: 0; display: flex; justify-content: center; pointer-events: none; z-index: 2; }
+.tpl-win__layer .wf-card { transform: scale(.82); }
+.tpl-win__meta { display: flex; align-items: center; gap: 12px; }
+.tpl-win__meta > div { flex: 1; min-width: 0; }
+.tpl-win__name { font-size: 14px; color: var(--text-strong, #fff); }
+.tpl-win__desc { margin: 2px 0 0; font-size: 12px; color: var(--text-muted, rgba(255,255,255,.6)); }
+.tpl-win__use { padding: 10px 18px; border: 0; border-radius: var(--r-sm, 8px); background: var(--cyan, #22d3ee); color: #07090d; font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.tpl-win__use:hover, .tpl-win__use:focus-visible { box-shadow: 0 0 0 3px var(--cyan-soft, rgba(34,211,238,.22)); outline: none; }
+@media (max-width: 720px) { .tpl-win__body { grid-template-columns: 1fr; } .tpl-win__list { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border-soft, rgba(255,255,255,.06)); } .tpl-win__item { min-width: 180px; } }
