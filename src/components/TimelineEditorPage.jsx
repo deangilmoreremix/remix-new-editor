@@ -33,7 +33,8 @@ import {
   openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES, resolveOverlayText,
 } from '../lib/editor/addons/index.js';
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
-import { renderSmartSpeech } from '../lib/editor/agent/smartSpeech.js';
+import { openSmartSpeechModal } from '../lib/editor/agent/smartSpeechModal.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../lib/pexelsApi.js';
@@ -569,10 +570,6 @@ export function TimelineEditorPage() {
       <aside class="side-card" id="blendPanel" hidden data-tooltip="Blend Modes - light leaks, bokeh, textures and colour washes blended over the video">
         <div class="card-title">🌈 Blend Modes</div>
         <div id="blendLibrary"></div>
-      </aside>
-      <aside class="side-card" id="speechPanel" hidden data-tooltip="Smart Speech - AI voice lines, personalized with each viewer's name">
-        <div class="card-title">🗣️ Smart Speech</div>
-        <div id="speechBody"></div>
       </aside>
       <aside class="side-card" id="stockPanel" hidden data-tooltip="Stock media - Pixabay and Pexels videos and images">
         <div class="card-title">🎬 Stock Media</div>
@@ -1217,8 +1214,7 @@ export function TimelineEditorPage() {
       overlaysPanel: root.querySelector('#overlaysPanel'),
       blendPanel: root.querySelector('#blendPanel'),
       blendLibrary: root.querySelector('#blendLibrary'),
-      speechPanel: root.querySelector('#speechPanel'),
-      speechBody: root.querySelector('#speechBody'),
+
       overlayAddonList: root.querySelector('#overlayAddonList'),
       overlayPresets: root.querySelector('#overlayPresets'),
       stockPanel: root.querySelector('#stockPanel'),
@@ -2365,6 +2361,7 @@ export function TimelineEditorPage() {
       return clips;
     }
     TLEditor.openTemplateLibrary = openTemplateLibrary;
+    TLEditor.openSmartSpeech = () => openSmartSpeech();
     TLEditor.insertTemplate = (id, library = 'endScreens') => {
       const lib = TEMPLATE_LIBRARIES[library];
       const tpl = lib?.templates.find((t) => t.id === id);
@@ -4540,10 +4537,15 @@ export function TimelineEditorPage() {
       });
     }
 
-    // Smart Speech (upstream toolbar): AI voice lines on the Voiceover track.
-    function renderSpeechPanel() {
-      if (!els.speechBody) return;
-      renderSmartSpeech(els.speechBody, {
+    // Smart Speech (upstream toolbar): a window for AI voice lines on the
+    // Voiceover track, on the user's own MuAPI / OpenAI keys.
+    function openSmartSpeech() {
+      return openSmartSpeechModal({
+        hasKey: (provider) => {
+          const key = provider === 'openai' ? apiKeyManager.getOpenAIKey?.() : apiKeyManager.getMuapiKey?.();
+          return !!key && key !== 'dev';
+        },
+        listClips: () => state.tracks.flatMap((t) => t.items || t.clips || []).filter((c) => c.tts),
         tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
         resolveTokens: (text) => resolveOverlayText(text, getActivePersonalizationProfile()),
         toast: showToast,
@@ -4574,7 +4576,7 @@ export function TimelineEditorPage() {
           insertClipIntoTrack(clip, 'Voiceover');
           scheduleEngineUpdate();
           debouncedSave();
-          showToast(tts.personalized ? 'Speech added — viewers with personal links hear their own line' : 'Speech added to the Voiceover track', 'success');
+          showToast(tts.personalized ? 'Speech added (the fallback line plays on shared links)' : 'Speech added to the Voiceover track', 'success');
           return clip;
         },
       });
@@ -6510,7 +6512,6 @@ export function TimelineEditorPage() {
       'Interactive': 'interactivePanel',
       'Overlays': 'overlaysPanel',
       'Blend Modes': 'blendPanel',
-      'Smart Speech': 'speechPanel',
       'Stock Media': 'stockPanel',
       'AI Agent': 'aiAgentPanel',
       'Share': 'sharePanel',
@@ -6543,7 +6544,7 @@ export function TimelineEditorPage() {
       subtitleEditor: () => generateSubtitles(),
       imageCrop: () => showToast('Image cropper coming soon', 'info'),
       imageEdit: () => showToast('Image editor coming soon', 'info'),
-      voice: () => openPanel('speechPanel')
+      voice: () => openSmartSpeech()
     };
 
     // Populate the preview filmstrip (prototype-style clip thumbnails).
@@ -6721,6 +6722,9 @@ export function TimelineEditorPage() {
               break;
             case 'Connect Form':
               openTemplateLibrary('connect');
+              break;
+            case 'Smart Speech':
+              openSmartSpeech();
               break;
              case 'Export':
                openExportModal(state, showToast);
@@ -8473,7 +8477,6 @@ export function TimelineEditorPage() {
       bindInteractivePanel();
       renderOverlaysPanel();
       renderBlendPanel();
-      renderSpeechPanel();
       bindOverlayPresets();
       initRemotionEngine();
       window.addEventListener('resize', () => renderOverlayLayer());
