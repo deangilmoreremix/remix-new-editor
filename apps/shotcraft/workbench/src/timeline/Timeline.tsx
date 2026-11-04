@@ -3,6 +3,7 @@ import { projectDuration, useStore } from "../store";
 import { Ruler } from "./Ruler";
 import { ClipView } from "./ClipView";
 import { DRAG_MIME, readDragPayload } from "../dnd";
+import { addFiles } from "../host/uploads";
 import { useT, useTx } from "../i18n";
 
 const HEADER_W = 140;
@@ -226,12 +227,20 @@ export const Timeline: React.FC = () => {
                 style={{ width: contentW }}
                 onPointerDown={() => select(null)}
                 onDragOver={(e) => {
-                  if (e.dataTransfer.types.includes(DRAG_MIME)) {
+                  if (e.dataTransfer.types.includes(DRAG_MIME) || e.dataTransfer.types.includes("Files")) {
                     e.preventDefault();
                     e.dataTransfer.dropEffect = "copy";
                   }
                 }}
                 onDrop={(e) => {
+                  // SmartVid: files dragged from the desktop land where they're dropped.
+                  if (e.dataTransfer.files?.length) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    void addFiles(e.dataTransfer.files, { trackId: track.id, frame: Math.max(0, Math.round((e.clientX - rect.left) / ppf)) });
+                    return;
+                  }
                   const payload = readDragPayload(e);
                   if (!payload) return;
                   e.preventDefault();

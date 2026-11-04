@@ -451,3 +451,9 @@ body {
 .chat-note { font-size: 11px; margin-top: 3px; }
 .chat-input { display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--line, #2a2a2e); align-items: flex-end; }
 .chat-input textarea { flex: 1; resize: none; background: rgba(255,255,255,.04); color: inherit; border: 1px solid var(--line, #2a2a2e); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 12px; }
+
+/* —— SmartVid: uploads —— */
+.upload-status { font-size: 11px; opacity: .8; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.upload-status.warn { color: #ff9f0a; opacity: 1; }
+.upload-drop { margin: 8px 0 12px; padding: 14px 10px; border: 1px dashed var(--line, #3a3a40); border-radius: 8px; text-align: center; font-size: 12px; line-height: 1.5; cursor: pointer; }
+.upload-drop:hover { border-color: var(--accent, #0a84ff); background: rgba(10,132,255,.06); }
