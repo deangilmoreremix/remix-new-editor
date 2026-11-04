@@ -137,18 +137,19 @@ const cartIcon = (c) => [path([[-20, -14], [-12, -14], [-4, 10], [18, 10], [22, 
   { ty: 'el', d: 1, nm: 'w1', s: st([9, 9]), p: st([-1, 20]) }, { ty: 'el', d: 1, nm: 'w2', s: st([9, 9]), p: st([15, 20]) }, fill(c)];
 
 /**
- * Each style: ({ bg, fg, accent, label, size, icon }) → layers (top first).
+ * Each style: ({ bg, fg, icon, accent, shine, label, size }) → layers (top first).
+ *   bg button · fg label · icon icon glyph · accent rings/glow/ripples · shine sheen
  * `textX` shifts the label when an icon sits beside it.
  */
 const STYLES = {
   pulse: {
     label: 'Pulse',
     icon: null,
-    build: ({ bg, fg, label, size }) => [
+    build: ({ bg, fg, accent, label, size }) => [
       text(1, { text: label, size, color: fg, x: CX, ks: tf({ a: [0, 0, 0], p: anim([[0, [CX, CY + size * 0.35, 0]], [15, [CX, CY + size * 0.35, 0]]]), s: anim([[0, [100, 100, 100]], [15, [105, 105, 100]], [30, [100, 100, 100]], [60, [100, 100, 100]]]) }) }),
       pill(2, 'button', { color: bg, ks: breathe(5) }),
       pill(3, 'ring', {
-        stroke: bg, strokeWidth: 8,
+        stroke: accent, strokeWidth: 8,
         ks: tf({ a: [CX, CY, 0], p: [CX, CY, 0], s: anim([[0, [100, 100, 100]], [36, [112, 135, 100]], [60, [112, 135, 100]]]), o: anim([[0, 80], [36, 0], [60, 0]]) }),
       }),
     ],
@@ -156,11 +157,11 @@ const STYLES = {
   shine: {
     label: 'Shine',
     icon: null,
-    build: ({ bg, fg, label, size }) => [
+    build: ({ bg, fg, shine, label, size }) => [
       text(1, { text: label, size, color: fg, x: CX }),
       // Sheen, clipped to the button by the matte layer above it.
       pill(2, 'matte', { color: [1, 1, 1], extra: { td: 1 } }),
-      shapeLayer(3, 'sheen', [{ ty: 'rc', d: 1, nm: 'bar', s: st([70, 260]), p: st([0, 0]), r: st(0) }, fill([1, 1, 1], 45)],
+      shapeLayer(3, 'sheen', [{ ty: 'rc', d: 1, nm: 'bar', s: st([70, 260]), p: st([0, 0]), r: st(0) }, fill(shine, 45)],
         tf({ r: 20, p: anim([[0, [-80, CY, 0]], [10, [-80, CY, 0]], [38, [CTA_W + 80, CY, 0]], [60, [CTA_W + 80, CY, 0]]]) }), { tt: 1 }),
       pill(4, 'button', { color: bg }),
     ],
@@ -181,18 +182,18 @@ const STYLES = {
   arrow: {
     label: 'Arrow nudge',
     icon: 'arrow',
-    build: ({ bg, fg, label, size }) => [
+    build: ({ bg, fg, icon, label, size }) => [
       text(1, { text: label, size, color: fg, x: CX - 30 }),
-      shapeLayer(2, 'arrow', arrowIcon(fg), tf({ p: anim([[0, [ICON_X_RIGHT - 10, CY, 0]], [12, [ICON_X_RIGHT + 6, CY, 0]], [24, [ICON_X_RIGHT - 10, CY, 0]], [36, [ICON_X_RIGHT + 6, CY, 0]], [48, [ICON_X_RIGHT - 10, CY, 0]], [60, [ICON_X_RIGHT - 10, CY, 0]]]) })),
+      shapeLayer(2, 'arrow', arrowIcon(icon), tf({ p: anim([[0, [ICON_X_RIGHT - 10, CY, 0]], [12, [ICON_X_RIGHT + 6, CY, 0]], [24, [ICON_X_RIGHT - 10, CY, 0]], [36, [ICON_X_RIGHT + 6, CY, 0]], [48, [ICON_X_RIGHT - 10, CY, 0]], [60, [ICON_X_RIGHT - 10, CY, 0]]]) })),
       pill(3, 'button', { color: bg }),
     ],
   },
   phone: {
     label: 'Ringing phone',
     icon: 'phone',
-    build: ({ bg, fg, label, size }) => [
+    build: ({ bg, fg, icon, label, size }) => [
       text(1, { text: label, size, color: fg, x: CX + 30 }),
-      shapeLayer(2, 'phone', phoneIcon(fg), tf({
+      shapeLayer(2, 'phone', phoneIcon(icon), tf({
         p: [ICON_X_LEFT, CY, 0],
         r: anim([[0, 0], [3, -16], [6, 16], [9, -16], [12, 16], [15, -10], [18, 0], [60, 0]]),
       })),
@@ -202,43 +203,62 @@ const STYLES = {
   play: {
     label: 'Play / Watch',
     icon: 'play',
-    build: ({ bg, fg, label, size }) => [
+    build: ({ bg, fg, icon, label, size }) => [
       text(1, { text: label, size, color: fg, x: CX + 30 }),
-      shapeLayer(2, 'play', playIcon(fg), tf({ a: [0, 0, 0], p: [ICON_X_LEFT, CY, 0], s: anim([[0, [100, 100, 100]], [15, [125, 125, 100]], [30, [100, 100, 100]], [60, [100, 100, 100]]]) })),
+      shapeLayer(2, 'play', playIcon(icon), tf({ a: [0, 0, 0], p: [ICON_X_LEFT, CY, 0], s: anim([[0, [100, 100, 100]], [15, [125, 125, 100]], [30, [100, 100, 100]], [60, [100, 100, 100]]]) })),
       pill(3, 'button', { color: bg }),
     ],
   },
   cart: {
     label: 'Shop now',
     icon: 'cart',
-    build: ({ bg, fg, label, size }) => [
+    build: ({ bg, fg, icon, label, size }) => [
       text(1, { text: label, size, color: fg, x: CX + 30 }),
-      shapeLayer(2, 'cart', cartIcon(fg), tf({ p: anim([[0, [ICON_X_LEFT, CY, 0]], [10, [ICON_X_LEFT + 8, CY, 0]], [14, [ICON_X_LEFT + 4, CY, 0]], [20, [ICON_X_LEFT, CY, 0]], [60, [ICON_X_LEFT, CY, 0]]]), r: anim([[0, 0], [10, -6], [20, 0], [60, 0]]) })),
+      shapeLayer(2, 'cart', cartIcon(icon), tf({ p: anim([[0, [ICON_X_LEFT, CY, 0]], [10, [ICON_X_LEFT + 8, CY, 0]], [14, [ICON_X_LEFT + 4, CY, 0]], [20, [ICON_X_LEFT, CY, 0]], [60, [ICON_X_LEFT, CY, 0]]]), r: anim([[0, 0], [10, -6], [20, 0], [60, 0]]) })),
       pill(3, 'button', { color: bg }),
     ],
   },
   outline: {
     label: 'Glow outline',
     icon: null,
-    build: ({ bg, fg, label, size }) => [
+    build: ({ bg, fg, accent, label, size }) => [
       text(1, { text: label, size, color: fg, x: CX }),
       pill(2, 'outline', { stroke: bg, strokeWidth: 7 }),
       pill(3, 'fill', { color: bg, opacity: anim([[0, 25], [30, 85], [60, 25]]) }),
-      pill(4, 'glow', { stroke: bg, strokeWidth: 16, ks: tf({ a: [CX, CY, 0], p: [CX, CY, 0], s: anim([[0, [100, 100, 100]], [30, [104, 112, 100]], [60, [100, 100, 100]]]), o: anim([[0, 10], [30, 45], [60, 10]]) }) }),
+      pill(4, 'glow', { stroke: accent, strokeWidth: 16, ks: tf({ a: [CX, CY, 0], p: [CX, CY, 0], s: anim([[0, [100, 100, 100]], [30, [104, 112, 100]], [60, [100, 100, 100]]]), o: anim([[0, 10], [30, 45], [60, 10]]) }) }),
     ],
   },
   ripple: {
     label: 'Ripple',
     icon: null,
-    build: ({ bg, fg, label, size }) => {
+    build: ({ bg, fg, accent, label, size }) => {
       const ring = (ind, delay) => pill(ind, `ripple${ind}`, {
-        stroke: bg, strokeWidth: 5,
+        stroke: accent, strokeWidth: 5,
         ks: tf({ a: [CX, CY, 0], p: [CX, CY, 0], s: anim([[delay, [100, 100, 100]], [delay + 40, [108, 145, 100]], [60, [108, 145, 100]]]), o: anim([[delay, 70], [delay + 40, 0], [60, 0]]) }),
       });
       return [text(1, { text: label, size, color: fg, x: CX }), pill(2, 'button', { color: bg }), ring(3, 0), ring(4, 14)];
     },
   },
 };
+
+/** Which extra colours a style uses: an icon, and an effect (ring/glow/ripple/sheen). */
+const EFFECT_STYLES = new Set(['pulse', 'shine', 'outline', 'ripple']);
+export function ctaColorParts(animation) {
+  const style = STYLES[animation];
+  return { icon: !!style?.icon, effect: EFFECT_STYLES.has(animation) };
+}
+
+/** One-click colour themes: button, text, icon and effect together. */
+export const CTA_COLOR_THEMES = [
+  { id: 'red', label: 'Red', buttonColor: '#eb5054', textColor: '#ffffff', iconColor: '#ffffff', accentColor: '#eb5054' },
+  { id: 'cyan', label: 'Cyan', buttonColor: '#22d3ee', textColor: '#07090d', iconColor: '#07090d', accentColor: '#22d3ee' },
+  { id: 'emerald', label: 'Emerald', buttonColor: '#34d399', textColor: '#07090d', iconColor: '#07090d', accentColor: '#34d399' },
+  { id: 'amber', label: 'Amber', buttonColor: '#f59e0b', textColor: '#07090d', iconColor: '#07090d', accentColor: '#fbbf24' },
+  { id: 'violet', label: 'Violet', buttonColor: '#7c3aed', textColor: '#ffffff', iconColor: '#fde68a', accentColor: '#a78bfa' },
+  { id: 'blue', label: 'Blue', buttonColor: '#2563eb', textColor: '#ffffff', iconColor: '#ffffff', accentColor: '#60a5fa' },
+  { id: 'dark', label: 'Dark', buttonColor: '#111827', textColor: '#ffffff', iconColor: '#22d3ee', accentColor: '#22d3ee' },
+  { id: 'light', label: 'Light', buttonColor: '#ffffff', textColor: '#111827', iconColor: '#eb5054', accentColor: '#ffffff' },
+];
 
 export const CTA_ANIMATIONS = [['none', 'Plain button (no animation)'], ...Object.entries(STYLES).map(([id, s]) => [id, s.label])];
 
@@ -257,7 +277,9 @@ function fitSize(label, family, hasIcon) {
 }
 
 /**
- * Lottie JSON for a CTA clip. `opts`: { animation, buttonText, fontFamily, textColor, buttonColor }.
+ * Lottie JSON for a CTA clip. `opts`: { animation, buttonText, fontFamily,
+ * buttonColor, textColor, iconColor (default: text), accentColor (default:
+ * button; the shine sheen defaults to white) }.
  * Returns null for the plain (non-animated) button.
  */
 export function buildCtaLottie(opts = {}) {
@@ -265,10 +287,15 @@ export function buildCtaLottie(opts = {}) {
   if (!style) return null;
   const label = String(opts.buttonText || 'Call Now').slice(0, 40);
   const family = opts.fontFamily || CTA_LOTTIE_DEFAULTS.fontFamily;
+  const bg = hexToRgb01(opts.buttonColor, [0.92, 0.31, 0.33]);
+  const fg = hexToRgb01(opts.textColor || CTA_LOTTIE_DEFAULTS.textColor, [1, 1, 1]);
   const ctx = {
     label,
-    bg: hexToRgb01(opts.buttonColor, [0.92, 0.31, 0.33]),
-    fg: hexToRgb01(opts.textColor || CTA_LOTTIE_DEFAULTS.textColor, [1, 1, 1]),
+    bg,
+    fg,
+    icon: hexToRgb01(opts.iconColor, fg),
+    accent: hexToRgb01(opts.accentColor, bg),
+    shine: hexToRgb01(opts.accentColor, [1, 1, 1]),
     size: fitSize(label, family, !!style.icon),
   };
   return {

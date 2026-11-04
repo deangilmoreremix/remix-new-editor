@@ -29,6 +29,8 @@ function ctaOptions(clip, profile) {
     fontFamily: clip.fontFamily || 'Montserrat',
     textColor: clip.textColor || '#ffffff',
     buttonColor: style.buttonColor || '#eb5054',
+    iconColor: clip.iconColor || '',
+    accentColor: clip.accentColor || '',
     posLeft: style.posLeft ?? 50,
     posTop: style.posTop ?? 50,
     posWidth: style.posWidth ?? 40,

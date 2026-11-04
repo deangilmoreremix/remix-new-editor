@@ -24,7 +24,7 @@ export {
 export { renderStockBrowser, STOCK_SUGGESTIONS } from './stockBrowser.js';
 export { capturePreset, presetToClips, loadPresets, savePresets, PRESETS_STORAGE_KEY } from './overlayPresets.js';
 export { loadGlTransitions, createTransitionRenderer, fragmentFor } from './glTransitionRenderer.js';
-export { CTA_ANIMATIONS, buildCtaLottie, ctaBox, CTA_ASPECT } from './ctaLottie.js';
+export { CTA_ANIMATIONS, buildCtaLottie, ctaBox, CTA_ASPECT, CTA_COLOR_THEMES, ctaColorParts } from './ctaLottie.js';
 export { ctaTarget, COUNTRY_CODES } from './ctaLink.js';
 export { BLEND_CATEGORIES, BLEND_ITEMS, blendItemToAddon, getBlendItem, blendThumbStyle, validateBlendLibrary } from './blendLibrary.js';
 export { END_SCREENS, CONNECT_FORMS, TEMPLATE_LIBRARIES, getTemplate, templateToPreset, templateStart, templatePreviewProject, unknownTemplateTypes } from './templateLibrary.js';

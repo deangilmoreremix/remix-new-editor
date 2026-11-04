@@ -28,7 +28,7 @@ import {
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
-  OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT,
+  OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT, CTA_COLOR_THEMES, ctaColorParts,
   BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
   openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES, resolveOverlayText,
 } from '../lib/editor/addons/index.js';
@@ -3948,13 +3948,24 @@ export function TimelineEditorPage() {
           <div class="clip-editor__section">
             <h3>Style</h3>
             <div class="clip-editor__field">
-              <label for="ctc-btn-color">Button Color</label>
-              <input id="ctc-btn-color" type="color" value="${clip.style.buttonColor || '#eb5054'}" />
+              <label>Color theme</label>
+              <div class="cta-themes" role="group" aria-label="Color themes">
+                ${CTA_COLOR_THEMES.map((t) => `<button type="button" class="cta-theme" data-cta-theme="${t.id}" title="${escapeHtml(t.label)}" aria-label="${escapeHtml(t.label)} theme" style="background:${t.buttonColor};color:${t.textColor}">Aa</button>`).join('')}
+              </div>
             </div>
-            <div class="clip-editor__field">
-              <label for="ctc-text-color">Text Color</label>
-              <input id="ctc-text-color" type="color" value="${clip.textColor || '#ffffff'}" />
-            </div>
+            ${[
+              ['button', 'Button color', clip.style.buttonColor || '#eb5054', ''],
+              ['text', 'Text color', clip.textColor || '#ffffff', ''],
+              ['icon', 'Icon color', clip.iconColor || clip.textColor || '#ffffff', 'icon'],
+              ['effect', 'Effect color (ring, glow, ripple, shine)', clip.accentColor || (clip.animation === 'shine' ? '#ffffff' : clip.style.buttonColor || '#eb5054'), 'effect'],
+            ].map(([key, label, value, part]) => `
+            <div class="clip-editor__field cta-color" data-cta-color-row="${key}"${part ? ` data-cta-part="${part}"` : ''}>
+              <label for="ctc-${key}-color">${label}</label>
+              <div class="cta-color__inputs">
+                <input id="ctc-${key}-color" type="color" data-cta-color="${key}" value="${escapeHtml(value)}" />
+                <input type="text" class="cta-color__hex" data-cta-hex="${key}" value="${escapeHtml(value)}" maxlength="7" spellcheck="false" aria-label="${label} hex" />
+              </div>
+            </div>`).join('')}
             <div class="clip-editor__field">
               <label for="ctc-font">Font</label>
               <select id="ctc-font">${OVERLAY_FONTS.map((f) => `<option ${f === (clip.fontFamily || 'Montserrat') ? 'selected' : ''}>${escapeHtml(f)}</option>`).join('')}</select>
@@ -4016,10 +4027,6 @@ export function TimelineEditorPage() {
         clip.callNotifyAddress = e.target.value.trim();
         debouncedSave();
       });
-      els.clipEditorContainer.querySelector('#ctc-text-color').addEventListener('input', (e) => {
-        clip.textColor = e.target.value;
-        ctaChanged();
-      });
       els.clipEditorContainer.querySelector('#ctc-font').addEventListener('change', (e) => {
         clip.fontFamily = e.target.value;
         ensureGoogleFontLoaded(clip.fontFamily);
@@ -4032,6 +4039,7 @@ export function TimelineEditorPage() {
           b.setAttribute('aria-checked', String(b === btn));
         });
         els.clipEditorContainer.querySelector('[data-cta-custom]').hidden = clip.animation !== 'custom';
+        syncCtaColorParts();
         updatePreview(clip);
         scheduleEngineUpdate();
         debouncedSave();
@@ -4077,10 +4085,48 @@ export function TimelineEditorPage() {
         });
       }
       drawCtaPreviews();
-      els.clipEditorContainer.querySelector('#ctc-btn-color').addEventListener('input', (e) => {
-        clip.style.buttonColor = e.target.value;
+      // Colors: button, text, icon (icon styles) and effect (ring/glow/ripple/shine styles).
+      const CTA_COLOR_KEYS = { button: null, text: 'textColor', icon: 'iconColor', effect: 'accentColor' };
+      const setCtaColor = (key, value) => {
+        if (!/^#[0-9a-f]{6}$/i.test(value)) return false;
+        if (key === 'button') clip.style.buttonColor = value;
+        else clip[CTA_COLOR_KEYS[key]] = value;
+        const row = els.clipEditorContainer.querySelector(`[data-cta-color-row="${key}"]`);
+        if (row) {
+          row.querySelector('[data-cta-color]').value = value;
+          const hex = row.querySelector('[data-cta-hex]');
+          if (document.activeElement !== hex) hex.value = value;
+        }
+        return true;
+      };
+      const syncCtaColorParts = () => {
+        const parts = ctaColorParts(clip.animation || 'none');
+        els.clipEditorContainer.querySelectorAll('[data-cta-part]').forEach((row) => { row.hidden = !parts[row.dataset.ctaPart]; });
+        // Unset colors show what the animation will actually use.
+        const shown = { icon: clip.iconColor || clip.textColor || '#ffffff', effect: clip.accentColor || (clip.animation === 'shine' ? '#ffffff' : clip.style.buttonColor || '#eb5054') };
+        Object.entries(shown).forEach(([key, value]) => {
+          const row = els.clipEditorContainer.querySelector(`[data-cta-color-row="${key}"]`);
+          if (row) { row.querySelector('[data-cta-color]').value = value; row.querySelector('[data-cta-hex]').value = value; }
+        });
+      };
+      syncCtaColorParts();
+      els.clipEditorContainer.querySelectorAll('[data-cta-color]').forEach((input) => input.addEventListener('input', () => {
+        if (setCtaColor(input.dataset.ctaColor, input.value)) ctaChanged();
+      }));
+      els.clipEditorContainer.querySelectorAll('[data-cta-hex]').forEach((input) => input.addEventListener('input', () => {
+        const v = input.value.trim().replace(/^([0-9a-f]{6})$/i, '#$1');
+        input.classList.toggle('is-invalid', !/^#[0-9a-f]{6}$/i.test(v));
+        if (setCtaColor(input.dataset.ctaHex, v.toLowerCase())) ctaChanged();
+      }));
+      els.clipEditorContainer.querySelectorAll('[data-cta-theme]').forEach((btn) => btn.addEventListener('click', () => {
+        const t = CTA_COLOR_THEMES.find((x) => x.id === btn.dataset.ctaTheme);
+        if (!t) return;
+        setCtaColor('button', t.buttonColor);
+        setCtaColor('text', t.textColor);
+        setCtaColor('icon', t.iconColor);
+        setCtaColor('effect', t.accentColor);
         ctaChanged();
-      });
+      }));
       els.clipEditorContainer.querySelector('#ctc-pos-left').addEventListener('input', (e) => {
         clip.style.posLeft = parseInt(e.target.value, 10);
         e.target.previousElementSibling.textContent = `Horizontal Position (${clip.style.posLeft}%)`;

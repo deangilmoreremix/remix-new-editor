@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildCtaLottie, CTA_ANIMATIONS, ctaBox, CTA_ASPECT } from '../ctaLottie.js';
+import { buildCtaLottie, CTA_ANIMATIONS, ctaBox, CTA_ASPECT, CTA_COLOR_THEMES, ctaColorParts } from '../ctaLottie.js';
 import { timelineToComposition } from '../../remotion/timelineToComposition.js';
 import { exportWarnings } from '../../remotion/exportWarnings.js';
 import { getAddon } from '../registry.js';
@@ -48,5 +48,34 @@ describe('animated CTA buttons', () => {
     expect(m.skipped).toEqual([]);
     expect(m.fonts).toContain('Montserrat');
     expect(exportWarnings(m).join(' ')).toMatch(/CTA buttons appear in the exported video/);
+  });
+});
+
+describe('CTA colors', () => {
+  it('icon and effect colours are used when set, with sensible defaults', () => {
+    const phone = buildCtaLottie({ animation: 'phone', buttonColor: '#112233', textColor: '#ffffff', iconColor: '#00ff00' });
+    const phoneLayer = phone.layers.find((l) => l.nm === 'phone');
+    expect(JSON.stringify(phoneLayer)).toContain('[0,1,0');
+    const ripple = buildCtaLottie({ animation: 'ripple', buttonColor: '#112233', accentColor: '#ff0000' });
+    expect(JSON.stringify(ripple.layers.find((l) => /ripple/.test(l.nm)))).toContain('[1,0,0');
+    const pulseDefault = buildCtaLottie({ animation: 'pulse', buttonColor: '#ff0000' });
+    expect(JSON.stringify(pulseDefault.layers.find((l) => l.nm === 'ring'))).toContain('[1,0,0');
+    const sheen = (o) => JSON.stringify(buildCtaLottie({ animation: 'shine', buttonColor: '#123456', ...o }).layers.find((l) => l.nm === 'sheen'));
+    expect(sheen({})).toContain('[1,1,1');
+    expect(sheen({ accentColor: '#0000ff' })).toContain('[0,0,1');
+  });
+
+  it('reports which colour parts a style has, and ships themes', () => {
+    expect(ctaColorParts('phone')).toEqual({ icon: true, effect: false });
+    expect(ctaColorParts('ripple')).toEqual({ icon: false, effect: true });
+    expect(ctaColorParts('none')).toEqual({ icon: false, effect: false });
+    CTA_COLOR_THEMES.forEach((t) => ['buttonColor', 'textColor', 'iconColor', 'accentColor'].forEach((k) => expect(t[k]).toMatch(/^#[0-9a-f]{6}$/i)));
+  });
+
+  it('the composition passes icon and effect colours through', () => {
+    const model = timelineToComposition({ timelineSeconds: 10, tracks: [{ type: 'text', name: 'T', items: [{ id: 1, type: 'click-to-call', left: 0, width: 50, buttonText: 'Go', animation: 'phone', iconColor: '#00ff00', style: { buttonColor: '#111111' } }] }] }, { quality: '720p' });
+    const layer = model.layers.find((l) => l.type === 'cta-button');
+    expect(layer.options.iconColor).toBe('#00ff00');
+    expect(JSON.stringify(layer.options.lottie)).toContain('[0,1,0');
   });
 });
