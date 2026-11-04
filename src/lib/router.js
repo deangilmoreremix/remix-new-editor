@@ -12,7 +12,6 @@ const ROUTE_MAP = {
   'Smart Video Viral': 'viral',
   'Apps': 'apps',
 
-  'Community': 'community',
   'Avatar': 'avatar',
   'Audio': 'audio',
   'Smart Video Scheduler': 'smart-video-scheduler',
@@ -21,9 +20,7 @@ const ROUTE_MAP = {
   'Contacts': 'contacts',
   'Social': 'social',
   'Landing': 'landing',
-  'Training': 'training',
   'Video Tools': 'videotools',
-  'Chat': 'chat',
   'Lip Sync': 'lipsync',
   'Video Agent': 'video-agent',
   'Video Agent Studio': 'video-agent-studio',
@@ -53,6 +50,16 @@ export function cleanTemplateParams(params, page) {
   return cleaned;
 }
 
+// Studios retired from the product. Old links and bookmarks land on the
+// closest live surface instead of a dead page.
+export const RETIRED_ROUTES = {
+  training: 'apps',
+  chat: 'apps',
+  assist: 'apps',
+  community: 'explore',
+  'pexels-media': 'library',
+};
+
 const pageLoaders = {
   image: () => import('../components/ImageStudio.js').then(m => m.ImageStudio()),
   video: () => import('../components/VideoStudio.js').then(m => m.VideoStudio()),
@@ -73,17 +80,13 @@ const pageLoaders = {
   brightbean: () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
   'smart-video-studio': () => import('../components/studios/SmartVideoStudio/SmartVideoStudio.tsx').then(m => m.default || m.SmartVideoStudio),
   audio: () => import('../components/AudioStudio.js').then(m => m.AudioStudio()),
-  training: () => import('../components/TrainingStudio.js').then(m => m.TrainingStudio()),
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
-  chat: () => import('../components/ChatStudio.js').then(m => m.ChatStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
   leadfinder: () => import('../components/LeadFinderStudio.js').then(m => m.LeadFinderStudio()),
   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
   'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
-  assist: () => import('../components/AssistPage.js').then(m => m.AssistPage()),
-  community: () => import('../components/CommunityPage.js').then(m => m.CommunityPage()),
   storyboard: () => import('../components/StoryboardStudio.js').then(m => m.StoryboardStudio()),
   'text-to-image': () => import('../components/TextToImagePage.js').then(m => m.TextToImagePage()),
   'image-to-image': () => import('../components/ImageToImagePage.js').then(m => m.ImageToImagePage()),
@@ -99,10 +102,16 @@ const pageLoaders = {
   'commercial-page': () => import('../components/CommercialPage.js').then(m => m.CommercialPage()),
   'upscale-page': () => import('../components/UpscalePage.js').then(m => m.UpscalePage()),
   render: () => import('../components/RenderPage.js').then(m => m.RenderPage()),
-  'video-agent': () => import('../components/VideoAgentPage.js').then(m => m.VideoAgentPage()),
-  'video-agent-studio': () => import('../components/VideoAgentStudioShell.js').then(m => m.VideoAgentStudioShell()),
+  // Video Agent = port of Remotion's prompt-to-motion-graphics (apps/motion-agent).
+  'video-agent': () => import('../components/studios/VideoAgentStudio/VideoAgentStudio.js').then(m => m.VideoAgentStudio()),
+  'video-agent-studio': () => import('../components/studios/VideoAgentStudio/VideoAgentStudio.js').then(m => m.VideoAgentStudio()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
-  cinegen: () => import('../components/studios/CineGenStudio/CineGenStudio.jsx').then(m => m.CineGenStudio()),
+  workbench: () => import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio()),
+  // CineGen Studio was replaced by the Workbench; keep old links working.
+  cinegen: () => {
+    try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }
+    return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
+  },
   timeline: () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
@@ -141,6 +150,8 @@ export async function navigate(page, params = {}) {
   if (isNavigating) {
     return;
   }
+
+  if (RETIRED_ROUTES[page]) page = RETIRED_ROUTES[page];
 
   isNavigating = true;
   currentPage = page;

@@ -15,14 +15,15 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
-import { mountImageModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountUpstreamModelPicker } from './upstream-picker/mountUpstreamModelPicker.jsx';
+import { imageModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { ADVANCED_ICON, TOOLS_ICON } from './studio/actionRow.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
@@ -51,6 +52,9 @@ export function ImageStudio() {
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
     let imageMode = false; // false = t2i models, true = i2i models
     let customThumbnailUrl = getCustomThumbnailFromCache('image-studio');
+    // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+    // in-memory copy in sync so the next generation uses it.
+    subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'image-studio' });
 
     // Restore the last GTM context the user picked in the prompt modal,
     // if any. The modal persists selections to localStorage on apply; we
@@ -142,17 +146,7 @@ export function ImageStudio() {
     // ==========================================
     const hero = document.createElement('div');
     hero.className = 'flex flex-col items-center mb-2 md:mb-4 animate-fade-in-up transition-all duration-700 w-full';
-    const heroBanner = createHeroSection('image', 'h-32 md:h-44 mb-3');
-    if (heroBanner) {
-        const heroContent = document.createElement('div');
-        heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-        heroContent.innerHTML = `
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Image Studio</h1>
-            <p class="text-white/60 text-sm font-medium">Transform images with AI — upscale, stylize, animate and more</p>
-        `;
-        heroBanner.appendChild(heroContent);
-        hero.appendChild(heroBanner);
-    }
+    hero.appendChild(createStudioHeader('image', 'Image Studio', 'Generate images with 20+ AI models'));
 
     container.appendChild(hero);
 
@@ -261,6 +255,7 @@ export function ImageStudio() {
     container.appendChild(picker.panel);
 
     const textarea = document.createElement('textarea');
+    textarea.setAttribute('data-studio-prompt', '');
     textarea.id = 'i-prompt-textarea';
     // Prompt Gallery button
     const promptGalleryBtn = document.createElement('button');
@@ -425,7 +420,7 @@ export function ImageStudio() {
               textarea.focus();
               textarea.style.height = 'auto';
               textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
-            });
+            }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
       openRecipeModal().catch(() => {});
@@ -490,11 +485,14 @@ export function ImageStudio() {
     `, selectedModelName, 'model-btn', 'Select AI generation model');
 
     const updateModelBtnIcon = () => {
-        const iconEl = document.getElementById('model-btn-icon');
+        // The button may not be in the document yet on first call.
+        const iconEl = modelBtn.querySelector('#model-btn-icon') || document.getElementById('model-btn-icon');
         if (!iconEl) return;
         const currentModels = imageMode ? i2iModels : t2iModels;
         const current = currentModels.find(m => m.id === selectedModel);
-        const provider = current?.provider || 'muapi';
+        // Same source as upstream: the picker family's provider.
+        const provider = imageModelPickerEntryByVariantId.get(selectedModel)?.family.provider
+            || current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
             iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
@@ -546,10 +544,6 @@ export function ImageStudio() {
     });
     controlsLeft.appendChild(thumbBtn);
 
-    subscribeToGtmThumbnails(({ imageUrl }) => {
-      customThumbnailUrl = imageUrl;
-      saveCustomThumbnailToCache('image-studio', imageUrl);
-    });
 
     // Advanced options toggle button
     const advancedBtn = createControlBtn(ADVANCED_ICON, 'Advanced', 'advanced-btn', 'Show advanced options');
@@ -867,7 +861,7 @@ generateBtn.type = 'button';
     // 3. DROPDOWNS (Professional implementation)
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'fixed left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 -translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     let modelPickerController = null;
 
@@ -907,26 +901,20 @@ generateBtn.type = 'button';
     const openImageModelPicker = (anchorBtn) => {
         modelPickerController?.close();
         modelPickerController = null;
-        modelPickerController = mountImageModelSelector({
+        // Upstream Open-Generative-AI's own ModelDropdown (React), copied verbatim.
+        modelPickerController = mountUpstreamModelPicker({
+            kind: 'image',
             anchor: anchorBtn,
             selectedModelId: selectedModel,
-            allowedModelTypes: ['t2i', 'i2i'],
-            copy: {
-                categories: { t2i: 'Text to Image', i2i: 'Image to Image' },
-                searchPlaceholder: 'Search models...',
-            },
-            onSelectCategory: (catId) => {
-                const isI2I = catId === 'i2i';
-                const nextModels = isI2I ? i2iModels : t2iModels;
-                if (nextModels.length) applyImageModel(nextModels[0].id, isI2I);
-                modelPickerController?.refresh(nextModels[0]?.id || null);
-            },
-            onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
-                // In the "All" category the mode comes from the variant itself,
-                // so edit-only models still get reference-image validation.
-                const isI2I = catId === 'i2i' || (catId !== 't2i' && variant?.mode === 'i2i');
-                if (variant) applyImageModel(variant.model.id, isI2I);
+            onSelect: (entry, catId) => {
+                // Upstream rule: a mode tab picks that mode's variant. From "All",
+                // keep the current mode (image-to-image when reference images
+                // are uploaded) and only fall back to the family default.
+                const currentMode = (uploadedImageUrls.length || imageMode) && entry.variantsByMode.i2i ? 'i2i' : 't2i';
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId] || entry.defaultVariant
+                    : entry.variantsByMode[currentMode] || entry.defaultVariant;
+                if (variant) applyImageModel(variant.model.id, variant.mode === 'i2i');
                 closeDropdown();
             },
             onClose: () => { modelPickerController = null; },
@@ -1005,11 +993,6 @@ generateBtn.type = 'button';
             dropdown.style.transform = 'translateX(-50%)';
         }
 
-        // Vertical position (always above button)
-        dropdown.style.bottom = '';
-        const btnRect = anchorBtn.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
     const closeDropdown = () => {

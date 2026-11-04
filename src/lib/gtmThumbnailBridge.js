@@ -32,6 +32,7 @@ function installWindowListener() {
     const detail = e && e.detail ? e.detail : {};
     const prompt = detail.prompt;
     const candidate = detail.candidate;
+    const studioId = detail.studioId || null;
     if (!candidate) return;
     const imageUrl =
       candidate.dataUrl ||
@@ -39,22 +40,30 @@ function installWindowListener() {
       candidate.url ||
       (candidate.b64_json ? `data:image/png;base64,${candidate.b64_json}` : null);
     if (!imageUrl) return;
-    dispatchGtmThumbnail(prompt, imageUrl);
+    dispatchGtmThumbnail(prompt, imageUrl, studioId);
   });
 }
 
 /**
- * Register a callback to receive every generated GTM thumbnail.
- * @param {(payload: {prompt: string, imageUrl: string}) => void} callback
+ * Register a callback to receive generated GTM thumbnails.
+ *
+ * Pass `{ studioId }` to only receive thumbnails made for that studio.
+ * Studios never unsubscribe when the user navigates away, so without the
+ * filter every studio visited this session would save every GTM thumbnail
+ * as its own custom thumbnail.
+ *
+ * @param {(payload: {prompt: string, imageUrl: string, studioId: string|null}) => void} callback
+ * @param {{ studioId?: string }} [options]
  * @returns {() => void} unsubscribe function
  */
-export function subscribeToGtmThumbnails(callback) {
+export function subscribeToGtmThumbnails(callback, options = {}) {
   if (typeof callback !== 'function') {
     return () => {};
   }
   installWindowListener();
-  subscribers.add(callback);
-  return () => subscribers.delete(callback);
+  const entry = { callback, studioId: options.studioId || null };
+  subscribers.add(entry);
+  return () => subscribers.delete(entry);
 }
 
 /**
@@ -63,13 +72,15 @@ export function subscribeToGtmThumbnails(callback) {
  * generated to fan out the same payload to JS subscribers.
  * @param {string} prompt
  * @param {string} imageUrl
+ * @param {string|null} [studioId] studio the thumbnail was made for
  */
-export function dispatchGtmThumbnail(prompt, imageUrl) {
+export function dispatchGtmThumbnail(prompt, imageUrl, studioId = null) {
   if (!imageUrl) return;
-  const payload = { prompt, imageUrl };
-  subscribers.forEach((cb) => {
+  const payload = { prompt, imageUrl, studioId };
+  subscribers.forEach(({ callback, studioId: wanted }) => {
+    if (wanted && studioId && wanted !== studioId) return;
     try {
-      cb(payload);
+      callback(payload);
     } catch (err) {
       console.warn('[gtmThumbnailBridge] subscriber threw:', err);
     }

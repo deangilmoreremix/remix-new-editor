@@ -2,7 +2,7 @@
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
-import { confirmDeleteGeneration } from '../lib/generationHistory.js';
+import { confirmDeleteGeneration, registerGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
@@ -13,7 +13,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
 import { mountVideoModelSelector } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getCinemaStudioAsset } from '../lib/personalizerAdapters.js';
@@ -101,13 +101,12 @@ export function CinemaStudio() {
     // Character Lock: reuses a stored character reference across shots.
     let characterLock = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
+    // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+    // in-memory copy in sync so the next generation uses it.
+    subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'cinema-studio' });
     let activePersonalizationContext = null;
 
     // Listen for thumbnails generated via GTM Boost and apply them.
-    subscribeToGtmThumbnails(({ imageUrl }) => {
-      customThumbnailUrl = imageUrl;
-      saveCustomThumbnailToCache('cinema-studio', imageUrl);
-    });
 
     // Read gallery / deep-link params and apply them as studio defaults.
     try {
@@ -149,19 +148,7 @@ export function CinemaStudio() {
     // ==========================================
     const heroSection = document.createElement('div');
     heroSection.className = 'flex flex-col items-center text-center px-4 animate-fade-in-up w-full mb-2 md:mb-4';
-    const cinemaBanner = createHeroSection('cinema', 'h-32 md:h-44 mb-3');
-    if (cinemaBanner) {
-        const bannerContent = document.createElement('div');
-        bannerContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10 text-left';
-        bannerContent.innerHTML = `
-            <div class="mb-2 text-xs font-bold text-white/40 tracking-[0.2em] uppercase">Cinema Studio 2.0</div>
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
-                What would you shoot<br>with infinite budget?
-            </h1>
-        `;
-        cinemaBanner.appendChild(bannerContent);
-        heroSection.appendChild(cinemaBanner);
-     }
+    heroSection.appendChild(createStudioHeader('cinema', 'Cinema Studio', 'Cinematic shots with real camera, lens and movement controls'));
 
      container.appendChild(heroSection);
 
@@ -345,6 +332,7 @@ export function CinemaStudio() {
 
     // Textarea
     const textarea = document.createElement('textarea');
+    textarea.setAttribute('data-studio-prompt', '');
     textarea.placeholder = 'Describe your scene - use @ to add characters & props';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.style.height = 'auto'; // Auto-grow check
@@ -440,7 +428,7 @@ export function CinemaStudio() {
               textarea.value = prompt;
               textarea.dispatchEvent(new Event('input', { bubbles: true }));
               textarea.focus();
-            });
+            }, { basePrompt: textarea.value });
           }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
         }
         enhanceMenu.classList.remove('is-open');
@@ -670,8 +658,15 @@ export function CinemaStudio() {
                 cinemaPickerController?.refresh(nextModels[0]?.id || null);
             },
             onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
-                if (variant) currentSettings.model = variant.model.id;
+                // From "All", use the variant that matches how Cinema will
+                // generate (image-to-video when a reference is set). Cinema
+                // only runs T2V/I2V, so ignore any other variant.
+                const currentMode = currentSettings.referenceUrl ? 'i2v' : 't2v';
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId]
+                    : entry.variantsByMode[currentMode] || entry.variantsByMode.t2v || entry.variantsByMode.i2v;
+                if (!variant || !['t2v', 'i2v'].includes(variant.mode)) return;
+                currentSettings.model = variant.model.id;
                 updateModelBtn();
                 updateControlsForModel();
                 closeModelDropdown();
@@ -1291,6 +1286,12 @@ export function CinemaStudio() {
 
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
+        // Shared library + "Edit in Workbench" (covers fresh results and recovered jobs).
+        const s = entry.settings || {};
+        registerGeneration('cinema', 'video', entry.url, {
+            prompt: s.prompt || '', model: s.model || '',
+            parameters: { aspect_ratio: s.aspect_ratio, duration: s.duration, resolution: s.resolution },
+        });
         try {
             localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50)));
         } catch (e) {

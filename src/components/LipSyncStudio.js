@@ -8,7 +8,8 @@ import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getResolutionsFo
 import { AuthModal } from './AuthModal.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
@@ -23,7 +24,7 @@ import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
-    container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+    container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
   mountStudioChrome(container, { currentRoute: 'lipsync' });
 
     // --- State ---
@@ -36,6 +37,9 @@ export function LipSyncStudio() {
     const selectedProvider = 'all';
     let uploadedImageUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('lipsync-studio');
+    // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+    // in-memory copy in sync so the next generation uses it.
+    subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'lipsync-studio' });
     let uploadedVideoUrl = null;
     let uploadedAudioUrl = null;
     let dropdownOpen = null;
@@ -51,17 +55,7 @@ export function LipSyncStudio() {
     // ==========================================
     const hero = document.createElement('div');
     hero.className = 'flex flex-col items-center mb-4 md:mb-6 animate-fade-in-up transition-all duration-700 w-full';
-    const heroBanner = createHeroSection('lipsync', 'h-32 md:h-44 mb-6');
-    if (heroBanner) {
-        const heroContent = document.createElement('div');
-        heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-        heroContent.innerHTML = `
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Lip Sync</h1>
-            <p class="text-white/60 text-sm font-medium">Animate portraits or sync lips to audio with AI</p>
-        `;
-        heroBanner.appendChild(heroContent);
-        hero.appendChild(heroBanner);
-    }
+    hero.appendChild(createStudioHeader('lipsync', 'Lip Sync Studio', 'Make a portrait talk or re-sync any video to new audio'));
     container.appendChild(hero);
 
     // ==========================================
@@ -267,7 +261,7 @@ export function LipSyncStudio() {
               textarea.value = prompt;
               textarea.dispatchEvent(new Event('input', { bubbles: true }));
               textarea.focus();
-            });
+            }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
@@ -572,14 +566,16 @@ export function LipSyncStudio() {
         const spaceBelow = window.innerHeight - rect.bottom - 8;
         const spaceAbove = rect.top - 8;
 
-        if (spaceBelow >= ddHeight || spaceBelow >= spaceAbove) {
-            dropdown.style.top = `${rect.bottom + 8}px`;
-            dropdown.style.bottom = 'auto';
-            dropdown.style.maxHeight = `${Math.max(150, spaceBelow - 8)}px`;
-        } else {
+        // Prefer opening upward (shrinking to fit); only drop down when
+        // there's less than ~240px above the trigger.
+        if (spaceAbove >= ddHeight || spaceAbove >= 240 || spaceAbove >= spaceBelow) {
             dropdown.style.top = 'auto';
             dropdown.style.bottom = `${window.innerHeight - rect.top + 8}px`;
             dropdown.style.maxHeight = `${Math.max(150, spaceAbove - 8)}px`;
+        } else {
+            dropdown.style.top = `${rect.bottom + 8}px`;
+            dropdown.style.bottom = 'auto';
+            dropdown.style.maxHeight = `${Math.max(150, spaceBelow - 8)}px`;
         }
         dropdown.style.left = `${Math.min(rect.left, window.innerWidth - 220)}px`;
 

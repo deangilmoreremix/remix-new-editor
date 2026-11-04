@@ -1,13 +1,15 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
@@ -529,6 +531,9 @@ export function AudioStudio() {
   let toneValue = 'neutral';
   let emotionValue = 'none';
   let customThumbnailUrl = getCustomThumbnailFromCache('audio-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'audio-studio' });
   let schemaParams = {};
   let internalHistory = [];
   let activeResultUrl = null;
@@ -588,15 +593,8 @@ export function AudioStudio() {
 
   // Header with hero banner
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full';
-  const audioBanner = createHeroSection('audio', 'h-32 md:h-44 mb-4');
-  if (audioBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Audio Studio</h1><p class="text-white/60 text-sm">Generate music and speech with AI</p>';
-    audioBanner.appendChild(bannerText);
-    header.appendChild(audioBanner);
-  }
+  header.className = 'animate-fade-in-up text-center w-full';
+  header.appendChild(createStudioHeader('audio', 'Audio Studio', 'Generate music, speech and sound effects'));
   container.appendChild(header);
 
   // Model selector
@@ -651,6 +649,7 @@ export function AudioStudio() {
   promptLabel.textContent = 'Prompt';
   promptGroup.appendChild(promptLabel);
   const promptInput = document.createElement('textarea');
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none';
   promptInput.rows = 3;
   promptInput.placeholder = 'Describe the music or speech you want to generate...';
@@ -731,7 +730,7 @@ export function AudioStudio() {
             promptInput.value = p;
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
-          });
+          }, { basePrompt: promptInput.value });
         }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
         openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
@@ -942,12 +941,14 @@ export function AudioStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'audio-studio',
+      layout: 'panel',
       studioId: 'audio-studio',
       studioName: 'Audio Studio',
-      aspectRatio: '16:9',
-      outputType: 'image',
+      // Cover art for a track — square fits players and social posts.
+      aspectRatio: '1:1',
+      outputType: 'audio',
       onApply: ({ imageUrl }) => {
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache('audio-studio', imageUrl);
@@ -957,7 +958,7 @@ export function AudioStudio() {
         clearCustomThumbnailCache('audio-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   styleThumbnailButton(thumbBtn);
@@ -1306,6 +1307,10 @@ export function AudioStudio() {
 
   function addToHistory(entry) {
     internalHistory = [entry, ...internalHistory].slice(0, 30);
+    // Shared library + "Edit in Workbench" (fresh results and recovered jobs).
+    registerGeneration('audio', 'audio', entry.url, {
+      prompt: entry.prompt || entry.title || '', model: entry.model || '', name: entry.title || undefined,
+    });
     renderHistoryGrid();
     schedulePersist();
   }

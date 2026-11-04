@@ -3,6 +3,7 @@ import { createUploadPicker } from '../components/UploadPicker.js';
 import { createSafeVideo, createSafeImage, safeSetText } from '../lib/security.js';
 import { listContentLibrary, saveContentLibraryEntry, deleteFromContentLibrary } from '../lib/contentLibrary.js';
 import { showToast } from '../lib/loading.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
 
 export function ContentLibraryPage() {
   const container = document.createElement('div');
@@ -14,33 +15,15 @@ export function ContentLibraryPage() {
   let isLoading = true;
 
   // Studio chrome
-  mountStudioChrome(container, { currentRoute: 'content-library', title: 'Content Library' });
-
-  // Hero banner
-  const hero = document.createElement('div');
-  hero.className = 'relative w-full h-32 md:h-44 rounded-2xl overflow-hidden mb-4';
-  hero.innerHTML = '<div class="absolute inset-0 bg-gradient-to-br from-primary/20 via-app-bg to-accent/20"></div>';
-  const heroOverlay = document.createElement('div');
-  heroOverlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent';
-  hero.appendChild(heroOverlay);
-  const heroText = document.createElement('div');
-  heroText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-  heroText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Content Library</h1><p class="text-white/60 text-xs">Upload and manage PDFs and webinar replays</p>';
-  hero.appendChild(heroText);
+  mountStudioChrome(container, { currentRoute: 'content-library' });
 
   const topBar = document.createElement('div');
-  topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  topBar.appendChild(hero);
+  topBar.className = 'px-4 md:px-8 pb-4 shrink-0';
+  topBar.appendChild(createStudioHeader('content-library', 'Content', 'Your saved content — generations you saved, uploads, PDFs and stock media'));
 
   // Controls
   const controls = document.createElement('div');
   controls.className = 'flex items-center gap-3 flex-wrap mt-4';
-
-  // Upload button
-  const uploadBtn = document.createElement('button');
-  uploadBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all btn-secondary-modern hover:shadow-glow flex items-center gap-2';
-  uploadBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload';
-  controls.appendChild(uploadBtn);
 
   const pexelsBtn = document.createElement('button');
   pexelsBtn.type = 'button';
@@ -82,12 +65,12 @@ export function ContentLibraryPage() {
   topBar.appendChild(pexelsContentAttr);
 
   // Filter tabs
-  const filters = ['all', 'images', 'pdfs', 'videos'];
+  const filters = ['all', 'saved', 'images', 'videos', 'audio', 'pdfs'];
   const filterBtns = {};
   filters.forEach(f => {
     const btn = document.createElement('button');
     btn.className = 'px-4 py-2 rounded-full text-xs font-bold transition-all';
-    safeSetText(btn, f.charAt(0).toUpperCase() + f.slice(1));
+    safeSetText(btn, f === 'pdfs' ? 'PDFs' : f.charAt(0).toUpperCase() + f.slice(1));
     btn.onclick = () => { activeFilter = f; updateFilters(); renderGrid(); };
     filterBtns[f] = btn;
     controls.appendChild(btn);
@@ -96,7 +79,7 @@ export function ContentLibraryPage() {
   // Search input
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
-  searchInput.placeholder = 'Search by filename...';
+  searchInput.placeholder = 'Search saved content...';
   searchInput.className = 'ml-auto bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors w-48';
   searchInput.oninput = () => { searchQuery = searchInput.value.toLowerCase(); renderGrid(); };
   controls.appendChild(searchInput);
@@ -124,7 +107,7 @@ export function ContentLibraryPage() {
 
   // Upload picker setup
   const uploadPicker = createUploadPicker({
-    anchorContainer: uploadBtn,
+    anchorContainer: controls,
     onSelect: async ({ url, urls }) => {
       const urlsToSave = urls || (url ? [url] : []);
       for (const uploadedUrl of urlsToSave) {
@@ -138,7 +121,7 @@ export function ContentLibraryPage() {
   });
 
   // Wire the upload picker trigger into the visible controls
-  controls.insertBefore(uploadPicker.trigger, uploadBtn.nextSibling);
+  controls.insertBefore(uploadPicker.trigger, controls.firstChild);
   container.appendChild(uploadPicker.panel);
 
   function updateFilters() {
@@ -170,9 +153,11 @@ export function ContentLibraryPage() {
     if (activeFilter === 'images') items = items.filter(i => i.type === 'image' || (!i.type && /\.(jpg|jpeg|png|webp|gif|svg|bmp)$/i.test(i.filename || '')));
     else if (activeFilter === 'pdfs') items = items.filter(i => i.type === 'pdf');
     else if (activeFilter === 'videos') items = items.filter(i => i.type === 'video');
+    else if (activeFilter === 'audio') items = items.filter(i => i.type === 'audio');
+    else if (activeFilter === 'saved') items = items.filter(i => i.source === 'saved');
 
     if (searchQuery) {
-      items = items.filter(i => (i.filename || '').toLowerCase().includes(searchQuery));
+      items = items.filter(i => `${i.filename || ''} ${i.prompt || ''} ${i.model || ''}`.toLowerCase().includes(searchQuery));
     }
 
     // Update status
@@ -194,8 +179,8 @@ export function ContentLibraryPage() {
       gridArea.innerHTML = `
         <div class="flex flex-col items-center justify-center h-64 text-muted">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="mb-4 opacity-30"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-          <div class="text-sm">No content yet</div>
-          <div class="text-xs mt-1">Upload PDFs and videos to get started</div>
+          <div class="text-sm">Nothing saved yet</div>
+          <div class="text-xs mt-1 text-center max-w-xs">Use <b>Save to Content</b> on any result in a studio or in your Library, or upload files here.</div>
         </div>
       `;
       return;
@@ -227,6 +212,11 @@ export function ContentLibraryPage() {
         badge.className = 'absolute top-2 right-2 bg-emerald-500/80 px-1.5 py-0.5 rounded text-[9px] font-bold text-white';
         safeSetText(badge, 'IMAGE');
         card.appendChild(badge);
+      } else if (item.type === 'audio') {
+        const wrap = document.createElement('div');
+        wrap.className = 'w-full h-full flex flex-col items-center justify-center gap-2 p-3 bg-gradient-to-br from-purple-500/10 to-transparent';
+        wrap.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-purple-300"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+        card.appendChild(wrap);
       } else {
         // PDF - show icon
         const iconWrapper = document.createElement('div');
@@ -255,12 +245,12 @@ export function ContentLibraryPage() {
 
       const filenameEl = document.createElement('div');
       filenameEl.className = 'text-[10px] text-white/80 truncate';
-      safeSetText(filenameEl, item.filename || 'Untitled');
+      safeSetText(filenameEl, item.prompt || item.filename || 'Untitled');
       overlay.appendChild(filenameEl);
 
       const sizeEl = document.createElement('div');
       sizeEl.className = 'text-[9px] text-white/40 mt-0.5';
-      safeSetText(sizeEl, formatFileSize(item.size || 0));
+      safeSetText(sizeEl, item.source === 'saved' ? `Saved${item.model ? ` · ${item.model}` : ''}` : formatFileSize(item.size || 0));
       overlay.appendChild(sizeEl);
 
       card.appendChild(overlay);
@@ -274,7 +264,7 @@ export function ContentLibraryPage() {
       deleteBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
       deleteBtn.onclick = (e) => {
         e.stopPropagation();
-        if (confirm(`Delete "${item.filename}"?`)) {
+        if (confirm(item.source === 'saved' ? 'Remove this from Content? (It stays in your Library.)' : `Delete "${item.filename}"?`)) {
           deleteFromContentLibrary(item.id)
             .then(() => refreshContent())
             .catch((err) => showToast(`Failed to delete: ${err.message}`, 'error'));
@@ -311,6 +301,12 @@ export function ContentLibraryPage() {
     } else if (item.type === 'image') {
       const img = createSafeImage(item.url, item.filename || 'Image', 'max-h-[75vh] rounded-xl object-contain');
       wrapper.appendChild(img);
+    } else if (item.type === 'audio') {
+      const audio = document.createElement('audio');
+      audio.src = item.url;
+      audio.controls = true;
+      audio.className = 'w-full max-w-xl';
+      wrapper.appendChild(audio);
     } else {
       const video = document.createElement('video');
       video.src = item.url;

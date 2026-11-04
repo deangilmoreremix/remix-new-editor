@@ -230,6 +230,9 @@ export class ThumbnailService {
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let settled = false;
+    const finish = (result) => { if (!settled) { settled = true; onDone?.(result); } };
+    const fail = (err) => { if (!settled) { settled = true; onError?.(err); } };
     try {
       for (;;) {
         const { value, done } = await reader.read();
@@ -246,16 +249,32 @@ export class ThumbnailService {
           let evt;
           try { evt = JSON.parse(payload); } catch { continue; }
           if (evt.type === 'partial') onPartial?.(evt.b64);
-          else if (evt.type === 'done') onDone?.(evt.result);
+          else if (evt.type === 'done') finish(evt.result);
           else if (evt.type === 'error') {
             const err = new Error(evt.message);
             if (evt.moderation_blocked) err.code = 'moderation_blocked';
-            onError?.(err);
+            fail(err);
           }
         }
       }
     } catch (err) {
-      onError?.(err);
+      fail(err);
+      return;
+    }
+
+    // The stream closed without a `done`/`error` event. Callers await one of
+    // the two callbacks, so settle here instead of leaving the UI spinning.
+    // A non-streaming JSON body (e.g. an error or a server that ignored
+    // `stream: true`) is still honoured.
+    if (!settled) {
+      const rest = buffer.trim();
+      let json = null;
+      try { json = rest ? JSON.parse(rest) : null; } catch { /* not JSON */ }
+      if (json?.candidates?.length) {
+        finish({ candidates: json.candidates, params: json.params || null, keySource: json.key_source || null });
+      } else {
+        fail(new Error(json?.error || 'Thumbnail stream ended before any image was returned'));
+      }
     }
   }
 

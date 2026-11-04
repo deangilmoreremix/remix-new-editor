@@ -1,15 +1,18 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import Store from '../stores/base/Store.js';
 import { t2iModels, getAspectRatiosForModel, getModelById, getI2IModelById, getI2VModelById, getV2VModelById } from '../lib/models.js';
 import { showToast } from '../lib/loading.js';
+import { navigate } from '../lib/router.js';
+import { createFullscreenPreview } from './MediaPreview.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
@@ -207,16 +210,7 @@ export async function StoryboardStudio(options = {}) {
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
   if (!embedded) {
-    const storyBanner = createHeroSection('storyboard', 'h-32 md:h-44 mb-4');
-    if (storyBanner) {
-      const bannerText = document.createElement('div');
-      bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-      bannerText.innerHTML = `<h1 class="${CINEMATIC_THEME.text.title} text-white mb-1">Storyboard Studio</h1><p class="${CINEMATIC_THEME.text.eyebrow} text-white/60">Plan your scenes with AI-generated storyboard frames</p>`;
-      storyBanner.appendChild(bannerText);
-      topBar.appendChild(storyBanner);
-    } else {
-      topBar.innerHTML = `<h1 class="${CINEMATIC_THEME.text.title} text-white mb-1">Storyboard Studio</h1><p class="${CINEMATIC_THEME.text.eyebrow} text-secondary mb-4">Plan your scenes with AI-generated storyboard frames</p>`;
-    }
+    topBar.appendChild(createStudioHeader('storyboard', 'Storyboard Studio', 'Plan scenes as AI storyboard frames, then turn them into video', 'mb-4'));
   }
   const inlineInstructions = createInlineInstructions('storyboard');
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
@@ -433,6 +427,9 @@ export async function StoryboardStudio(options = {}) {
     try {
       const result = await generateStoryboardFromIntent(intent, { generateImages: true });
       generatedStoryboard = result;
+      for (const f of result.frames || []) {
+        if (f.imageUrl) registerGeneration('storyboard', 'image', f.imageUrl, { prompt: f.prompt || '', model: intent.model || '', parameters: { shot: f.shot } });
+      }
       frames.length = 0;
       frames.push(...result.frames.map(f => ({ ...f, imageUrl: f.imageUrl || null })));
       frameDurations = frames.map(() => Math.max(2, Math.round(intent.duration / frames.length)));
@@ -572,9 +569,12 @@ export async function StoryboardStudio(options = {}) {
     const id = projectIdInput.value.trim();
     if (!id) { showToast('Enter a project ID', 'warning'); return; }
     let loadedFromSupabase = false;
-    if (supabaseAvailable) {
+    let supabaseModule = null;
+    try {
+      supabaseModule = await import('../lib/supabase.js');
+    } catch { /* Supabase unavailable — fall back to local storage below */ }
+    if (supabaseModule?.isSupabaseConfigured?.()) {
       try {
-        const supabaseModule = await import('../lib/supabase.js');
         const { data, error } = await supabaseModule.supabase
           .from('timeline_projects')
           .select('project')
@@ -697,6 +697,9 @@ genAllBtn.type = 'button';
           openGTMPromptModal('storyboard-studio', (prompt) => {
             enhancedConcept = prompt;
             renderFrames();
+          }, {
+            // Seed with the current concept, or the frames written so far.
+            basePrompt: enhancedConcept || frames.map((f) => f.prompt).filter(Boolean).join(' → '),
           });
         }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
@@ -809,7 +812,7 @@ genAllBtn.type = 'button';
     customThumbnailUrl = imageUrl;
     saveCustomThumbnailToCache('storyboard-studio', imageUrl);
     renderFrames();
-  });
+  }, { studioId: 'storyboard-studio' });
 
   const exportBtn = document.createElement('button');
   exportBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all ml-auto';
@@ -1062,6 +1065,8 @@ const compareBtn = document.createElement('button');
   advancedControlsContainer.className = 'flex flex-col gap-4';
   advancedCard.appendChild(advancedControlsContainer);
 
+  const currentSettings = { negativePrompt: '' };
+
   const dynamicControls = createAdvancedControls({
     model: getExtendedModel(getModelById(selectedModel)),
     state: {},
@@ -1076,7 +1081,11 @@ const compareBtn = document.createElement('button');
       if (key === 'style')    { selectedStyle    = value; }
       if (key === 'lighting') { selectedLighting = value; }
       if (key === 'color')    { selectedColor    = value; }
-      if (key === 'aspect_ratio') { selectedAr = value; if (updateArBtn) updateArBtn(); }
+      if (key === 'aspect_ratio') {
+        selectedAr = value;
+        const arLabel = document.getElementById('ar-btn-label');
+        if (arLabel) arLabel.textContent = value;
+      }
       if (key === 'negative_prompt') { currentSettings.negativePrompt = value; }
     }
   });
@@ -1085,6 +1094,11 @@ const compareBtn = document.createElement('button');
   advancedPanel.querySelector('#close-storyboard-adv-btn').onclick = () => {
     advancedPanel.classList.add('hidden');
   };
+
+  let comparisonMode = false;
+  const compareIndices = [0, 1];
+  const fullscreen = createFullscreenPreview();
+  container.appendChild(fullscreen.element);
 
   const comparisonOverlay = document.createElement('div');
   comparisonOverlay.className = 'fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4';
@@ -1329,11 +1343,12 @@ const compareBtn = document.createElement('button');
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard-studio', (prompt) => {
+          // A single frame renders as a still image, so boost it as an image prompt.
+          openGTMPromptModal('storyboard-frame', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');
-          });
+          }, { basePrompt: frame.enhancedPrompt || frame.prompt });
         }).catch((err) => console.error('[StoryboardStudio] Frame GTM Boost failed:', err));
       });
       const enhanceRow = document.createElement('div');
@@ -1585,6 +1600,7 @@ const compareBtn = document.createElement('button');
       const url = await engineGenerateFrameImage(prompt, selectedAr, selectedModel, selectedStyle, selectedLighting, selectedColor, customThumbnailUrl);
       if (url) {
         frame.imageUrl = url;
+        registerGeneration('storyboard', 'image', url, { prompt, model: selectedModel || '', parameters: { shot: frame.shot, aspect_ratio: selectedAr } });
         imageArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
       }
     } catch (err) {

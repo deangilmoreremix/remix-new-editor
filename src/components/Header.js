@@ -39,13 +39,20 @@ export function Header(navigate) {
     { label: 'Image Studio', route: 'image' },
     { label: 'Edit Studio', route: 'edit' },
     { label: 'Upscale', route: 'upscale' },
+    { label: 'Character Studio', route: 'character' },
+    { label: 'Product Shot Studio', route: 'commercial' },
+    { label: 'Brand Studio', route: 'brand' },
   ];
 
   const videoDropdownItems = [
     { label: 'Video Studio', route: 'video' },
     { label: 'Cinema Studio', route: 'cinema' },
+    { label: 'Storyboard Studio', route: 'storyboard' },
+    { label: 'Vibe Motion', route: 'effects' },
+    { label: 'AI VFX Studio', route: 'ai-vfx' },
+    { label: 'Animate Studio', route: 'animate' },
+    { label: 'Lip Sync Studio', route: 'lipsync' },
     { label: 'Video Tools', route: 'videotools' },
-    { label: 'Lip Sync', route: 'lipsync' },
   ];
 
   const createDropdown = (items, parent) => {
@@ -59,25 +66,21 @@ export function Header(navigate) {
   };
 
   const toolsDropdownItems = [
-    { label: 'Commercial', route: 'commercial' },
-    { label: 'Upscale', route: 'upscale' },
+    { label: 'Product Shot', route: 'commercial' },
     { label: 'Audio', route: 'audio' },
     { label: 'Avatar', route: 'avatar' },
-    { label: 'Training', route: 'training' },
-    { label: 'Video Tools', route: 'videotools' },
-    { label: 'Chat', route: 'chat' },
     { label: 'Lip Sync', route: 'lipsync' },
-    { label: 'Personalizer', route: 'personalizer' },
-    { label: 'Video Agent', route: 'video-agent' },
+    { label: 'Video Tools', route: 'videotools' },
     { label: 'AI VFX', route: 'ai-vfx' },
-    { label: 'CineGen Studio', route: 'cinegen' },
-    { label: 'Brand Studio', route: 'brand' },
     { label: 'Animate', route: 'animate' },
+    { label: 'Brand Studio', route: 'brand' },
+    { label: 'Video Agent', route: 'video-agent' },
+    { label: 'Workbench', route: 'workbench' },
+    { label: 'Personalizer', route: 'personalizer' },
     { label: 'Website Builder', route: 'website-builder' },
+    { label: 'Library', route: 'library' },
+    { label: 'Content', route: 'content-library' },
     { label: 'All Apps', route: 'apps' },
-    { label: 'Assist', route: 'assist' },
-    { label: 'Community', route: 'community' },
-    { label: 'Content Library', route: 'content-library' },
   ];
 
   items.forEach(item => {

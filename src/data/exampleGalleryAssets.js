@@ -192,11 +192,25 @@ export const EXAMPLE_ASSETS = [
   }),
 ];
 
+// Keeps each studio's example gallery on-topic. Broad prompt sources tag many
+// assets to a studio by loose keywords, which put infographics and YouTube
+// thumbnails into Character / AI Influencer. A studio listed here only shows
+// assets whose text matches what that studio actually makes.
+const assetText = (a) => `${a.title || ''} ${a.category || ''} ${(a.tags || []).join(' ')}`.toLowerCase();
+const OFF_TOPIC = /infographic|thumbnail|patent|map of|poster|game asset|comic|storyboard|ui\/ux|web \/ ui|app \/ web|logo/;
+const STUDIO_RELEVANCE = {
+  character: (a) => /character|portrait|avatar|anime|chibi|hero|warrior|princess|knight|samurai|figure|mascot|face|selfie|cosplay/.test(assetText(a)) && !OFF_TOPIC.test(assetText(a)),
+  influencer: (a) => /influencer|fashion|beauty|lifestyle|model|selfie|portrait|ugc|vlog|outfit|makeup|skincare|profile|avatar|editorial|street style/.test(assetText(a)) && !OFF_TOPIC.test(assetText(a)),
+  avatar: (a) => !OFF_TOPIC.test(assetText(a)),
+};
+
 export function getAssetsForStudio(studioId) {
+  const relevant = STUDIO_RELEVANCE[studioId];
   return EXAMPLE_ASSETS
     .filter((asset) => {
       if (asset.studio !== studioId) return false;
       if (studioId === 'image' && asset.videoSrc) return false;
+      if (relevant && !relevant(asset)) return false;
       return true;
     })
     .slice(0, MAX_EXAMPLES_PER_STUDIO);

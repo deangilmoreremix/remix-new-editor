@@ -13,7 +13,8 @@ import { createMediaPreview } from './MediaPreview.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { i2iModels, i2vModels } from '../lib/models.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createActionRow, createActionPill, setActionPillLabel, arrangeActionRow, ADVANCED_ICON } from './studio/actionRow.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -59,6 +60,9 @@ export async function EffectsStudio() {
   let uploadedUrl = null;
   let uploadedAssetId = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('effects-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'effects-studio' });
   let comparisonMode = false;
   let lastResultUrl = null;
   let lastResultType = null;
@@ -139,16 +143,7 @@ export async function EffectsStudio() {
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  const effectsBanner = createHeroSection('effects', 'h-32 md:h-44 mb-4');
-  if (effectsBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-white/60 text-xs">Apply 350+ visual effects to your photos and videos</p>';
-    effectsBanner.appendChild(bannerText);
-    topBar.appendChild(effectsBanner);
-  } else {
-    topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
-  }
+  topBar.appendChild(createStudioHeader('effects', 'Vibe Motion', 'Apply 350+ motion and visual effects to your photos and videos', 'mb-4'));
 
   const tabRow = document.createElement('div');
   tabRow.className = 'flex gap-2 overflow-x-auto no-scrollbar pb-2';
@@ -414,6 +409,7 @@ export async function EffectsStudio() {
   promptRow.className = 'flex items-center gap-3';
   const promptInput = document.createElement('input');
   promptInput.id = 'fx-prompt-input';
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.type = 'text';
   promptInput.placeholder = 'Optional prompt...';
   promptInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';

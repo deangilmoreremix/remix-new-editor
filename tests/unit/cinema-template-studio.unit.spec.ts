@@ -71,6 +71,13 @@ vi.mock('../../src/lib/editor/captionActions.js', () => ({
 
 // Mock thumbnail modal dependencies
 vi.mock('../../src/lib/thumbnails.js', () => ({
+  createStudioHeader: vi.fn((_id, title = '', subtitle = '') => {
+    const el = document.createElement('div');
+    el.innerHTML = `<h1></h1><p></p>`;
+    el.querySelector('h1').textContent = title;
+    el.querySelector('p').textContent = subtitle;
+    return el;
+  }),
   getTemplateThumbnailCandidates: vi.fn((template) => ['/thumb.png']),
   saveCustomThumbnailToCache: vi.fn(),
   clearCustomThumbnailCache: vi.fn(),

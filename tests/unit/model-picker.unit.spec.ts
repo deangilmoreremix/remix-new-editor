@@ -453,3 +453,58 @@ describe('Shared studio picker category contract', () => {
     expect(onSelectModel).toHaveBeenCalledWith(model, mode);
   });
 });
+
+describe('Template picker: restricted modes, tab callbacks, listener lifecycle', () => {
+  let anchor: HTMLButtonElement;
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    anchor = document.createElement('button');
+    document.body.appendChild(anchor);
+  });
+  afterEach(() => { document.body.innerHTML = ''; vi.restoreAllMocks(); });
+
+  it('limits the All tab to entries with an allowed mode (Cinema: t2v/i2v)', () => {
+    const picker = mountVideoModelSelector({
+      anchor, selectedModelId: null, allowedModelTypes: ['t2v', 'i2v'],
+      onSelectModel: () => {}, onClose: () => {},
+    });
+    picker.open();
+    const shownIds = [...document.querySelectorAll('.model-picker-panel [data-entry-id]')]
+      .map((el) => (el as HTMLElement).dataset.entryId);
+    const v2vOnly = videoModelPickerEntries
+      .filter((e) => e.variantsByMode.v2v && !e.variantsByMode.t2v && !e.variantsByMode.i2v)
+      .map((e) => e.id);
+    expect(v2vOnly.length).toBeGreaterThan(0);
+    for (const id of v2vOnly) expect(shownIds).not.toContain(id);
+    picker.cleanup();
+  });
+
+  it('calls onSelectCategory for mode tabs but not for All', () => {
+    const onSelectCategory = vi.fn();
+    const picker = mountVideoModelSelector({
+      anchor, selectedModelId: null, allowedModelTypes: ['t2v', 'i2v'],
+      onSelectModel: () => {}, onSelectCategory, onClose: () => {},
+    });
+    picker.open();
+    (document.querySelector('.model-picker-panel [data-category="i2v"]') as HTMLElement).click();
+    (document.querySelector('.model-picker-panel [data-category="all"]') as HTMLElement).click();
+    expect(onSelectCategory).toHaveBeenCalledTimes(1);
+    expect(onSelectCategory).toHaveBeenCalledWith('i2v');
+    picker.cleanup();
+  });
+
+  it('removes its window/document listeners on close()', () => {
+    const winRemove = vi.spyOn(window, 'removeEventListener');
+    const docRemove = vi.spyOn(document, 'removeEventListener');
+    const picker = mountVideoModelSelector({
+      anchor, selectedModelId: null, allowedModelTypes: ['t2v'],
+      onSelectModel: () => {}, onClose: () => {},
+    });
+    picker.open();
+    picker.close();
+    const winEvents = winRemove.mock.calls.map((c) => c[0]);
+    const docEvents = docRemove.mock.calls.map((c) => c[0]);
+    expect(winEvents).toEqual(expect.arrayContaining(['resize', 'scroll']));
+    expect(docEvents).toEqual(expect.arrayContaining(['keydown', 'click']));
+  });
+});
