@@ -140,11 +140,24 @@ function applyCountLayout(count, wrapperContainer, inputWrapper, buttonsInner, s
   }
 }
 
+/** Load a Google Font once, as upstream's buildForm did with its fontSheet. */
+export function ensureFormFont(family) {
+  if (!family || typeof document === 'undefined') return;
+  const id = `addon-font-${family.replace(/[^a-z0-9]+/gi, '-')}`;
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id = id;
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css?family=${encodeURIComponent(family).replace(/%20/g, '+')}:400,700`;
+  document.head.appendChild(link);
+}
+
 /**
  * Build the upstream-style opt-in form element (not attached).
  * `prefill` maps field tokens to values (personalization).
  */
 export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
+  ensureFormFont(config.fontFamily);
   const form = document.createElement('form');
   form.className = `popcorn retarget-form addon-optin ${config.transition && config.transition !== 'popcorn-none' ? config.transition : ''}`.trim();
   form.setAttribute('action', '#');

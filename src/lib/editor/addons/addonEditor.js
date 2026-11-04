@@ -85,8 +85,10 @@ function renderField(field, options, idPrefix) {
 export function renderAddonEditor(container, { fields, options, idPrefix = 'addon', onChange, fieldsFor }) {
   let current = JSON.parse(JSON.stringify(options || {}));
   let activeTab = null;
+  let drawnFields = [];
   const draw = () => {
     const all = ((fieldsFor ? fieldsFor(current) : fields) || []).filter((f) => !f.showIf || f.showIf(current));
+    drawnFields = all;
     // Upstream settings panels are tabbed (Basic / Styles / Fields /
     // Integrations); fields carry a `tab` and the tab bar is drawn when
     // there is more than one.
@@ -125,7 +127,8 @@ export function renderAddonEditor(container, { fields, options, idPrefix = 'addo
       if (e.type === 'click') {
         if (el.classList.contains('addon-fieldlist__add')) {
           const ids = new Set(list.map((f) => String(f.id)));
-          const type = (field.fieldTypes && field.fieldTypes[0] && field.fieldTypes[0][0]) || 'text';
+          const field = drawnFields.find((f) => f.key === listWrap.dataset.key);
+          const type = field?.fieldTypes?.[0]?.[0] || 'text';
           list.push({ id: slugify('field', ids), type, label: 'New field', token: 'NEW FIELD' });
         } else if (el.classList.contains('addon-fieldlist__remove')) {
           list.splice(i, 1);

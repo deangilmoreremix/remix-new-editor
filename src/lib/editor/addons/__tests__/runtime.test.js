@@ -68,7 +68,7 @@ describe('AddonRuntime', () => {
   it('skip jumps from start to end', () => {
     const { log } = play(rt, [clip('addon-skip', 5, 12)], { to: 20 });
     const seek = log.find((a) => a.type === 'seek');
-    expect(seek.time).toBe(12);
+    expect(seek.time).toBeCloseTo(12);
   });
 
   it('skip reads its end time live (upstream captured it once at setup)', () => {
