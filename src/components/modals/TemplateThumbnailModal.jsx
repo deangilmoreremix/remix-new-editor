@@ -1157,7 +1157,10 @@ export class TemplateThumbnailModal extends BaseModal {
           });
         });
       } else {
-        const { candidates, params, keySource } = await this.thumbnailService.generateCandidates(promptText, baseOpts);
+        const { candidates, params, keySource, requested, returned } = await this.thumbnailService.generateCandidates(promptText, baseOpts);
+        this.generateNotice = requested && returned != null && returned < requested
+          ? `Got ${returned} of ${requested} thumbnails — the others failed or timed out. Generate again for more.`
+          : null;
         // MuAPI models return AVIF/PNG/JPEG and say which in `mime`; OpenAI omits it.
         this.candidates = (candidates || []).map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json, c.mime) }));
         this.selectedIndex = this.candidates.length > 0 ? 0 : -1;
@@ -1264,6 +1267,7 @@ export class TemplateThumbnailModal extends BaseModal {
     try {
       const result = await this.thumbnailService.saveToStorage({
         imageB64: selected.b64_json,
+        mime: selected.mime,
         promptUsed: selected.revised_prompt || this.selectedPromptText(),
         presetKey: this.presetKey,
         controls: { ...this.controls },
@@ -2478,6 +2482,14 @@ export class TemplateThumbnailModal extends BaseModal {
       body.appendChild(banner);
     }
 
+    if (this.generateNotice && this.step === 'generate') {
+      const notice = document.createElement('div');
+      notice.className = 'thumb-notice';
+      notice.setAttribute('role', 'status');
+      notice.textContent = this.generateNotice;
+      body.appendChild(notice);
+    }
+
     if (this.saveNotice && this.step === 'saved') {
       const notice = document.createElement('div');
       notice.className = 'thumb-notice';
@@ -3666,6 +3678,7 @@ export class TemplateThumbnailModal extends BaseModal {
     try {
       const result = await this.thumbnailService.saveToStorage({
         imageB64: selected.b64_json,
+        mime: selected.mime,
         promptUsed: selected.revised_prompt || this.brief,
         presetKey: this.presetKey,
         controls: { ...this.controls },

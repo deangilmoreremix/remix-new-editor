@@ -241,6 +241,8 @@ interface GenerateRequest {
   platform?: string;
   // User-supplied OpenAI key.
   apiKey?: string;
+  // User-supplied MuAPI key (non-OpenAI models).
+  muapi_api_key?: string;
 }
 
 interface RefineRequest {
@@ -331,6 +333,8 @@ interface SaveRequest {
    * GIF byte stream and the file is saved with a .gif extension. */
   asGif?: boolean;
   gifData?: string;
+  /** Real image type of imageB64 (e.g. image/avif from MuAPI models). */
+  mime?: string;
 }
 
 type RequestBody = PromptsRequest | GenerateRequest | RefineRequest | InpaintRequest | SaveRequest | BrandKitRequest | PlatformRequest | VideoThumbnailRequest | UploadReferenceRequest | RecommendTemplatesRequest | SurpriseMeRequest;
@@ -802,6 +806,7 @@ function normalizeLegacyEndpoint(endpoint: string): string {
 
 // Pixel sizes for MuAPI models that take width/height instead of aspect_ratio.
 // Models that take aspect_ratio ignore these, so both are always sent.
+// Every edge is a multiple of 16 and at most 1536px.
 const MUAPI_DIMENSIONS: Record<string, [number, number]> = {
   "16:9": [1344, 768],
   "9:16": [768, 1344],
@@ -809,11 +814,19 @@ const MUAPI_DIMENSIONS: Record<string, [number, number]> = {
   "4:3": [1152, 864],
   "3:4": [864, 1152],
   "4:5": [896, 1120],
+  "3:2": [1248, 832],
+  "2:3": [832, 1248],
+  "2:1": [1536, 768],
   "21:9": [1536, 640],
 };
 const MUAPI_MAX_CANDIDATES = 4;
 const MUAPI_POLL_INTERVAL_MS = 2000;
-const MUAPI_POLL_TIMEOUT_MS = 110_000; // stay inside the edge-function wall clock
+// One budget for the whole request (submit + poll + download) so it always
+// answers inside the edge function's 150s wall clock, with room to spare.
+const MUAPI_TOTAL_BUDGET_MS = 100_000;
+const MUAPI_CALL_TIMEOUT_MS = 20_000;     // each muapi-proxy hop
+const MUAPI_DOWNLOAD_TIMEOUT_MS = 20_000; // each result image
+const MUAPI_MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 function bytesToBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -826,15 +839,18 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 function muapiOutputUrls(result: Record<string, unknown>): string[] {
   const urls: string[] = [];
-  const outputs = result.outputs;
-  if (Array.isArray(outputs)) urls.push(...outputs.filter((u): u is string => typeof u === "string"));
-  const images = result.images;
-  if (Array.isArray(images)) {
-    for (const img of images) {
-      if (typeof img === "string") urls.push(img);
-      else if (img && typeof (img as { url?: unknown }).url === "string") urls.push((img as { url: string }).url);
-    }
+  const pushUrl = (v: unknown) => {
+    if (typeof v === "string") urls.push(v);
+    else if (v && typeof (v as { url?: unknown }).url === "string") urls.push((v as { url: string }).url);
+  };
+  for (const key of ["outputs", "images"]) {
+    const list = result[key];
+    if (Array.isArray(list)) list.forEach(pushUrl);
   }
+  // Some models return a single `output` (string, { url }, or a list).
+  const output = result.output;
+  if (Array.isArray(output)) output.forEach(pushUrl);
+  else pushUrl(output);
   if (typeof result.url === "string") urls.push(result.url);
   return urls;
 }
@@ -842,7 +858,7 @@ function muapiOutputUrls(result: Record<string, unknown>): string[] {
 async function handleGenerateMuapi(
   body: GenerateRequest,
   model: string,
-  keySource: "user" | "server",
+  _keySource: "user" | "server",
   clerkToken: string | null = null
 ) {
   const muapiKey = body.muapi_api_key || readEnv("MUAPI_API_KEY");
@@ -852,8 +868,13 @@ async function handleGenerateMuapi(
     }, 500);
   }
 
+  const deadline = Date.now() + MUAPI_TOTAL_BUDGET_MS;
   const endpoint = normalizeLegacyEndpoint(model);
-  const aspectRatio = body.aspectRatio || "16:9";
+  // Same precedence as the OpenAI path: a chosen platform sets the format.
+  let aspectRatio = body.aspectRatio || "16:9";
+  if (body.platform && PLATFORM_SPECS[body.platform]) {
+    aspectRatio = PLATFORM_SPECS[body.platform].aspectRatio;
+  }
   const [width, height] = MUAPI_DIMENSIONS[aspectRatio] || MUAPI_DIMENSIONS["16:9"];
   // MuAPI models take num_images / width / height, not OpenAI's n / size.
   // Each job returns one image, so request one per job and run n jobs.
@@ -876,12 +897,22 @@ async function handleGenerateMuapi(
     apikey: SUPABASE_SERVICE_ROLE_KEY || "",
   };
 
+  const timeLeft = () => deadline - Date.now();
+  const signalFor = (ms: number) => AbortSignal.timeout(Math.max(1000, Math.min(ms, timeLeft())));
+
   async function callProxy(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const res = await fetch(proxyUrl, {
-      method: "POST",
-      headers: proxyHeaders,
-      body: JSON.stringify({ ...payload, muapi_api_key: muapiKey }),
-    });
+    let res: Response;
+    try {
+      res = await fetch(proxyUrl, {
+        method: "POST",
+        headers: proxyHeaders,
+        body: JSON.stringify({ ...payload, muapi_api_key: muapiKey }),
+        signal: signalFor(MUAPI_CALL_TIMEOUT_MS),
+      });
+    } catch (err) {
+      const timedOut = err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError");
+      throw new Error(timedOut ? "MuAPI did not respond in time" : `Failed to reach muapi-proxy: ${err instanceof Error ? err.message : "network error"}`);
+    }
     let json: Record<string, unknown> = {};
     try { json = await res.json(); } catch { /* non-JSON body */ }
     if (!res.ok) {
@@ -901,8 +932,8 @@ async function handleGenerateMuapi(
     const requestId = (submitted.request_id || submitted.id) as string | undefined;
     if (!requestId) throw new Error("MuAPI did not return a request id");
 
-    const deadline = Date.now() + MUAPI_POLL_TIMEOUT_MS;
-    while (Date.now() < deadline) {
+    // Leave time to download the result after the last poll.
+    while (timeLeft() > MUAPI_DOWNLOAD_TIMEOUT_MS / 2) {
       await new Promise((r) => setTimeout(r, MUAPI_POLL_INTERVAL_MS));
       const polled = await callProxy({ endpoint: `predictions/${requestId}/result`, params: {}, generationType: "poll" });
       const status = String(polled.status || "").toLowerCase();
@@ -919,32 +950,38 @@ async function handleGenerateMuapi(
   }
 
   async function toCandidate(url: string) {
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: signalFor(MUAPI_DOWNLOAD_TIMEOUT_MS) });
     if (!res.ok) throw new Error(`Failed to download generated image (${res.status})`);
-    const mime = (res.headers.get("content-type") || "image/png").split(";")[0].trim();
+    const declared = Number(res.headers.get("content-length") || "0");
+    if (declared > MUAPI_MAX_IMAGE_BYTES) throw new Error("Generated image is too large");
     const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.byteLength > MUAPI_MAX_IMAGE_BYTES) throw new Error("Generated image is too large");
+    const mime = (res.headers.get("content-type") || "image/png").split(";")[0].trim();
     return { b64_json: bytesToBase64(bytes), mime, revised_prompt: "", url };
   }
 
   const settled = await Promise.allSettled(Array.from({ length: count }, runJob));
   const urls = settled.flatMap((s) => (s.status === "fulfilled" ? s.value : [])).slice(0, count);
+  const firstError = settled.find((s): s is PromiseRejectedResult => s.status === "rejected");
+  const errorText = (r?: PromiseRejectedResult) =>
+    r ? (r.reason instanceof Error ? r.reason.message : String(r.reason)) : "";
   if (!urls.length) {
-    const firstError = settled.find((s): s is PromiseRejectedResult => s.status === "rejected");
-    return jsonResponse({
-      error: firstError ? (firstError.reason instanceof Error ? firstError.reason.message : String(firstError.reason)) : "MuAPI returned no images",
-    }, 502);
+    return jsonResponse({ error: errorText(firstError) || "MuAPI returned no images" }, 502);
   }
 
   const downloaded = await Promise.allSettled(urls.map(toCandidate));
   const candidates = downloaded.flatMap((d) => (d.status === "fulfilled" ? [d.value] : []));
   if (!candidates.length) {
-    return jsonResponse({ error: "Generated images could not be downloaded" }, 502);
+    const dlError = downloaded.find((d): d is PromiseRejectedResult => d.status === "rejected");
+    return jsonResponse({ error: errorText(dlError) || "Generated images could not be downloaded" }, 502);
   }
 
+  // No key_source: it describes the OpenAI key, which MuAPI models don't use.
   return jsonResponse({
     candidates,
+    requested: count,
+    returned: candidates.length,
     params: { size: `${width}x${height}`, quality: body.quality, aspectRatio },
-    key_source: keySource,
     model_used: model,
   });
 }
@@ -1693,9 +1730,16 @@ async function handleSave(body: SaveRequest) {
     const imageBuffer = isGif
       ? await base64ToUint8Array(body.gifData || body.imageB64)
       : await base64ToUint8Array(body.imageB64);
-    const fileExt = isGif ? "gif" : (body.controls?.outputFormat || "webp");
+    // MuAPI results keep their upstream bytes (AVIF/PNG/JPEG); the client
+    // sends that type as `mime` so the file is named and served correctly.
+    const MIME_EXT: Record<string, string> = {
+      "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/avif": "avif", "image/gif": "gif",
+    };
+    const mimeExt = body.mime ? MIME_EXT[body.mime] : undefined;
+    const fileExt = isGif ? "gif" : (mimeExt || body.controls?.outputFormat || "webp");
+    const contentType = isGif ? "image/gif" : (mimeExt ? body.mime! : `image/${fileExt === "jpg" ? "jpeg" : fileExt}`);
     const filename = `${body.templateId}/${crypto.randomUUID()}.${fileExt}`;
-    const imageUrl = await uploadBufferToStorage(imageBuffer, filename);
+    const imageUrl = await uploadBufferToStorage(imageBuffer, filename, contentType);
 
     await persistThumbnailRow({
       templateId: body.templateId,
