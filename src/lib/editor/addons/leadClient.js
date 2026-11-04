@@ -25,6 +25,21 @@ export function webhookUrlsFor(config) {
     .filter((u) => u && isValidWebhookUrl(u));
 }
 
+/**
+ * Upstream form field token: the label upper-cased ("Phone number" →
+ * "PHONE NUMBER"), used as the submitted answer's key. Duplicate labels get
+ * _2, _3 suffixes so no answer overwrites another.
+ */
+export function leadFieldTokens(fields = []) {
+  const seen = new Map();
+  return fields.map((f) => {
+    const base = String(f?.label || f?.id || 'FIELD').trim().toUpperCase() || 'FIELD';
+    const n = (seen.get(base) || 0) + 1;
+    seen.set(base, n);
+    return n === 1 ? base : `${base}_${n}`;
+  });
+}
+
 /** Drop empty values and keep only string-able answers, capped in length. */
 export function sanitizeLeadData(data) {
   const out = {};

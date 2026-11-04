@@ -24,7 +24,7 @@ import {
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
-  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor,
+  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
 } from '../lib/editor/addons/index.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
@@ -1615,19 +1615,28 @@ export function TimelineEditorPage() {
 
         const style = selected.style || {};
         const captionAlign = style.captionAlignment || 'center';
+        const fieldTokens = leadFieldTokens(fields);
 
         card.innerHTML = `
           <form class="preview-lead-form">
             ${selected.brandLogoUrl ? `<img class="preview-form-logo" src="${escapeHtml(selected.brandLogoUrl)}" alt="" />` : ''}
             ${heading ? `<h3 class="preview-form-heading" style="text-align:${captionAlign};${style.captionFontSize ? `font-size:${style.captionFontSize}%;` : ''}">${escapeHtml(heading)}</h3>` : ''}
             <div class="preview-form-fields">
-            ${fields.map((f) => {
+            ${fields.map((f, i) => {
               const varKey = FIELD_TOKEN_ALIASES[f.id] || f.id;
               const prefill = activeProfile?.variables?.[varKey];
               const prefillStr = prefill ? escapeHtml(String(prefill)) : '';
+              // Upstream form.js parity: answers are keyed by the field's
+              // token (upper-cased label), single-line inputs cap at 80
+              // chars and multiline at 250, Number is digits-only text, and
+              // fields are optional unless marked required.
+              const token = escapeHtml(fieldTokens[i]);
+              const req = f.required ? ' required' : '';
               const fieldInput = f.type === 'multiline'
-                ? `<textarea name="${f.id}" placeholder="${escapeHtml(f.label || '')}" rows="3" required>${prefillStr}</textarea>`
-                : `<input type="${inputType(f.type)}" name="${f.id}" placeholder="${escapeHtml(f.label || '')}"${prefillStr ? ` value="${prefillStr}"` : ''} required />`;
+                ? `<textarea name="${token}" placeholder="${escapeHtml(f.label || '')}" rows="3" maxlength="250"${req}>${prefillStr}</textarea>`
+                : f.type === 'number'
+                  ? `<input type="text" inputmode="numeric" pattern="\\d*" maxlength="80" data-digits-only name="${token}" placeholder="${escapeHtml(f.label || '')}"${prefillStr ? ` value="${prefillStr}"` : ''}${req} />`
+                  : `<input type="${inputType(f.type)}" name="${token}" placeholder="${escapeHtml(f.label || '')}"${f.type === 'email' || f.type === 'date' ? '' : ' maxlength="80"'}${prefillStr ? ` value="${prefillStr}"` : ''}${req} />`;
               return `
               <div class="preview-form-field">
                 <label>${escapeHtml(f.label || f.type)}</label>
@@ -1676,6 +1685,12 @@ export function TimelineEditorPage() {
           card.classList.add(`preview-form-card--enter-${style.transition}`);
         }
         els.previewStage.appendChild(card);
+
+        card.querySelectorAll('[data-digits-only]').forEach((input) => {
+          input.addEventListener('input', () => {
+            input.value = input.value.replace(/[^0-9]/g, '');
+          });
+        });
 
         const skipBtn = card.querySelector('.preview-form-skip');
         if (skipBtn) {
@@ -3348,6 +3363,7 @@ export function TimelineEditorPage() {
                     <option value="number" ${f.type === 'number' ? 'selected' : ''}>Number</option>
                     <option value="date" ${f.type === 'date' ? 'selected' : ''}>Date</option>
                   </select>
+                  <label title="Viewer must fill this field" style="display:flex;align-items:center;gap:2px;font-size:11px;white-space:nowrap"><input type="checkbox" class="lf-field-required" ${f.required ? 'checked' : ''} /> req</label>
                   <button type="button" class="lf-field-remove mini-btn" data-tooltip="Remove field">✕</button>
                 </div>
               `).join('')}
@@ -3538,6 +3554,10 @@ export function TimelineEditorPage() {
           clip.fields[index].type = e.target.value;
           updatePreview(clip);
         });
+        row.querySelector('.lf-field-required').addEventListener('change', (e) => {
+          clip.fields[index].required = e.target.checked;
+          updatePreview(clip);
+        });
         row.querySelector('.lf-field-remove').addEventListener('click', () => {
           if (clip.fields.length <= 1) return;
           clip.fields.splice(index, 1);
@@ -3577,7 +3597,7 @@ export function TimelineEditorPage() {
           showToast('A lead form can have a maximum of 5 fields', 'info');
           return;
         }
-        clip.fields.push({ id: `field_${clip.fields.length + 1}`, type: 'text', label: 'New Field' });
+        clip.fields.push({ id: `field_${clip.fields.length + 1}`, type: 'text', label: 'New Field', required: false });
         rerenderFields();
       });
       els.clipEditorContainer.querySelector('#lf-brand-logo').addEventListener('input', (e) => {
