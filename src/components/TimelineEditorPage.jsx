@@ -19,6 +19,20 @@ import AIChatPanel from './timeline/AIChatPanel.js';
 import TIMELINE_DESIGN_SYSTEM, { enforceDesignSystem } from '../lib/designSystemEnforcer.js';
 import { createVideoPreview, addVideoErrorRecovery } from '../lib/videoPlayer.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import {
+  IMAGE_SLOTS,
+  availableImageSlots,
+  buildBrandOverlayClips,
+  buildPersonalizedImageClip,
+  listTimelineImageAssets,
+  resolveClipImageSrc,
+} from '../lib/personalization/timelineAssets.js';
+import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
+import {
+  addPersonalizationAsset,
+  setDiscoveredPersonalizationAssets,
+} from '../lib/personalization/personalizationProfile.js';
+import { saveProfile as saveContactProfile } from '../lib/contactStore.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
 // project-root path 404s in production because Vite never copies unreferenced
@@ -1493,12 +1507,27 @@ export function TimelineEditorPage() {
         return;
       }
 
-      if (selected.type === 'image' && selected.src) {
+      // Personalized image clips bound to a contact slot ("contact's logo")
+      // re-resolve against whichever contact is active, so switching
+      // contacts in the Personalize modal swaps the image here. The bridge's
+      // preview shape drops custom fields, so read the binding off the real
+      // clip in state.
+      const imageSrc = selected.type === 'image'
+        ? resolveClipImageSrc(findStateClip(selected.id) || selected, getActivePersonalizationProfile())
+        : '';
+      if (selected.type === 'image' && imageSrc) {
         const image = document.createElement('img');
         image.className = `preview-media ${selected.fit === 'cover' ? '' : 'contain'}`;
-        image.src = selected.src;
+        image.src = imageSrc;
         image.alt = selected.name;
         image.dataset.clipId = selected.id;
+        const placement = findStateClip(selected.id)?.placement;
+        if (placement === 'top-right') {
+          // Logo overlays sit in the corner like the final composite will.
+          Object.assign(image.style, {
+            position: 'absolute', top: '5%', right: '4%', width: '18%', height: 'auto', maxHeight: '22%', objectFit: 'contain',
+          });
+        }
         els.previewStage.appendChild(image);
         return;
       }
@@ -3770,6 +3799,62 @@ export function TimelineEditorPage() {
       });
     }
 
+    // Image clips: choose between the fixed image and a per-contact slot.
+    function renderImagePersonalizationSection(clip) {
+      const profile = getActivePersonalizationProfile();
+      const binding = clip.personalization || {};
+      const current = binding.mode === 'slot' ? binding.slot : 'fixed';
+      const shown = resolveClipImageSrc(clip, profile);
+      const slotOptions = availableImageSlots(profile).map((slot) => `
+        <option value="${slot.id}" ${current === slot.id ? 'selected' : ''}>${escapeHtml(slot.label)}${slot.url ? '' : ' (none for this contact)'}</option>`).join('');
+      return `
+        <div class="clip-editor__section">
+          <h3>Personalized Image</h3>
+          ${shown ? `<img src="${escapeHtml(shown)}" alt="" referrerpolicy="no-referrer" style="width:100%;max-height:120px;object-fit:contain;border-radius:6px;background:#222226;margin-bottom:8px" />` : ''}
+          <div class="clip-editor__field">
+            <label for="clip-image-source" data-tooltip="A fixed image is the same for everyone. A contact slot swaps to each contact's own image.">Image source</label>
+            <select id="clip-image-source">
+              <option value="fixed" ${current === 'fixed' ? 'selected' : ''}>This exact image (same for every contact)</option>
+              ${slotOptions}
+            </select>
+          </div>
+          <div class="clip-editor__field">
+            <button type="button" id="clip-image-pick" class="mini-btn" style="width:100%">🖼️ Choose from image finder…</button>
+          </div>
+        </div>`;
+    }
+
+    function wireImagePersonalizationSection(clip) {
+      const select = els.clipEditorContainer.querySelector('#clip-image-source');
+      select?.addEventListener('change', () => {
+        const profile = getActivePersonalizationProfile();
+        const value = select.value;
+        if (value === 'fixed') {
+          clip.src = resolveClipImageSrc(clip, profile) || clip.src || '';
+          clip.personalization = { ...(clip.personalization || {}), mode: 'fixed' };
+          delete clip.personalization.slot;
+          delete clip.personalization.token;
+        } else {
+          const rebuilt = buildPersonalizedImageClip({ slot: value, profile, left: clip.left, width: clip.width });
+          clip.personalization = {
+            ...rebuilt.personalization,
+            // Keep what the clip showed before as the fallback for contacts
+            // with nothing in this slot.
+            fallbackSrc: rebuilt.personalization.fallbackSrc || clip.src || '',
+          };
+          clip.src = rebuilt.src || clip.src;
+          if (/^(Image|Personalized|Personalized Image)\b/.test(clip.name || '')) clip.name = rebuilt.name;
+        }
+        renderTracks();
+        updatePreview();
+        renderClipEditor(clip.id);
+      });
+      els.clipEditorContainer.querySelector('#clip-image-pick')?.addEventListener('click', () => {
+        pimgReplaceClipId = clip.id;
+        showPersonalizationPanel();
+      });
+    }
+
     function renderClipEditor(clipId) {
       const clip = state.tracks.flatMap(t => t.items || t.clips || []).find(c => c.id === clipId);
       if (!clip) {
@@ -3803,6 +3888,7 @@ export function TimelineEditorPage() {
               <input id="clip-end" type="number" step="0.1" min="0" value="${(clip.left || 0) + (clip.width || 0)}" data-tooltip="Set the end time in seconds" />
             </div>
           </div>
+          ${clip.type === 'image' ? renderImagePersonalizationSection(clip) : ''}
            <div class="clip-editor__section">
              <h3>Keyframes</h3>
              <div class="clip-editor__field">
@@ -3884,6 +3970,8 @@ export function TimelineEditorPage() {
           </div>
         </div>
       `;
+
+      if (clip.type === 'image') wireImagePersonalizationSection(clip);
 
       // Add event listeners
       els.clipEditorContainer.querySelector('#clip-title').addEventListener('input', (e) => {
@@ -4615,19 +4703,11 @@ export function TimelineEditorPage() {
     };
     TLEditor.applyPersonalizationLayer = window.applyPersonalizationLayer;
 
-    // Global function to add personalized image overlay
+    // "Add Image Overlay" (Personalization Hub) opens the Personalization
+    // panel, which lists the active contact's images from the image finder.
+    // It used to insert an image clip with an empty src that nothing could fill.
     window.addPersonalizationImage = () => {
-      const imageClip = {
-        id: Date.now(),
-        name: 'Personalized Image',
-        left: state.playheadPercent * 10,
-        width: 8,
-        type: 'image',
-        src: '', // Will be set by user
-        personalizationTokens: ['first_name', 'company'],
-        overlayText: 'Welcome {first_name} from {company}!'
-      };
-      insertClipIntoTrack(imageClip, 'Video');
+      showPersonalizationPanel();
     };
     TLEditor.addPersonalizationImage = window.addPersonalizationImage;
 
@@ -5576,42 +5656,287 @@ export function TimelineEditorPage() {
       }
     }
 
+    // ── Personalization panel: images from the image finder ──────────────
+    // Lists the active contact's images (saved profile assets + unsaved
+    // image-finder results from the Personalize modal) and puts them on the
+    // timeline, either as a fixed image or as a dynamic slot that follows
+    // whichever contact is active.
+
+    function findStateClip(clipId) {
+      if (clipId === undefined || clipId === null) return null;
+      return state.tracks.flatMap((t) => t.items || t.clips || []).find((c) => String(c.id) === String(clipId)) || null;
+    }
+
+    // Find a track by type/name, or create it with the items/clips alias the
+    // rest of the editor expects (addTrack() doesn't set it up).
+    function ensureTrack({ type, name }) {
+      let track = state.tracks.find((t) => t.name === name)
+        || (type === 'text' ? state.tracks.find((t) => t.type === 'text') : null);
+      if (!track) {
+        track = { id: `track-${type}-${Date.now()}`, type, name, muted: false, solo: false, locked: false, items: [] };
+        track.clips = track.items;
+        // Overlay tracks sit right under the main video track.
+        const videoIndex = state.tracks.findIndex((t) => t.type === 'video');
+        state.tracks.splice(videoIndex >= 0 ? videoIndex + 1 : 0, 0, track);
+      }
+      if (!Array.isArray(track.items)) { track.items = Array.isArray(track.clips) ? track.clips : []; track.clips = track.items; }
+      return track;
+    }
+
+    function placeClipOnTrack(clip, track) {
+      track.items.push(clip);
+      state.selectedClipId = clip.id;
+      renderTracks();
+      updatePreview();
+    }
+
+    const PERSONALIZED_TRACK = { type: 'overlay', name: 'Personalized Images' };
+    // Set when "Choose from image finder…" is clicked in the Clip Editor:
+    // the next pick swaps that clip's image instead of adding a new clip.
+    let pimgReplaceClipId = null;
+
+    function replaceClipImage(clip, { asset = null, slot = null }) {
+      const rebuilt = buildPersonalizedImageClip({
+        asset, slot, profile: getActivePersonalizationProfile(), left: clip.left, width: clip.width,
+      });
+      clip.src = rebuilt.src;
+      clip.personalization = rebuilt.personalization;
+      clip.name = rebuilt.name;
+      state.selectedClipId = clip.id;
+      renderTracks();
+      updatePreview();
+      renderClipEditor(clip.id);
+      return clip;
+    }
+
+    function addPersonalizedImageClip({ asset = null, slot = null }) {
+      const profile = getActivePersonalizationProfile();
+      const clip = buildPersonalizedImageClip({
+        asset,
+        slot,
+        profile,
+        left: state.playheadPercent || 0,
+        width: 10,
+      });
+      placeClipOnTrack(clip, ensureTrack(PERSONALIZED_TRACK));
+      return clip;
+    }
+
+    // Image-finder results that were never saved point at the business's own
+    // website. Save them to the contact first (durable URL), falling back to
+    // the website URL if that isn't possible (e.g. signed out).
+    async function ensureSavedImageAsset(asset) {
+      if (!asset || asset.saved || !asset.discovered) return asset;
+      let profile = getActivePersonalizationProfile();
+      if (!profile) return asset;
+      try {
+        const imported = await importDiscoveredAsset(asset.discovered, {
+          name: asset.discovered.altText || asset.discovered.category,
+        });
+        profile = addPersonalizationAsset(profile, imported);
+        const discovered = (profile.personalization.discoveredAssets || []).map((candidate) => (
+          candidate.id === asset.discovered.id
+            ? { ...candidate, importedAssetId: imported.id, selected: false, importError: null }
+            : candidate
+        ));
+        profile = setDiscoveredPersonalizationAssets(profile, discovered);
+        saveContactProfile(profile);
+        return {
+          ...asset,
+          id: imported.id,
+          url: imported.url,
+          role: imported.role,
+          saved: true,
+          discovered: null,
+        };
+      } catch (error) {
+        showToast(`Using the website copy of this image (${error?.message || 'could not save it to the contact'}).`, 'warning');
+        return asset;
+      }
+    }
+
+    async function openImageFinder() {
+      try {
+        const { PersonalizeModal } = await import('./modals/PersonalizeModal.jsx');
+        const modal = new PersonalizeModal({
+          appId: 'timeline-editor',
+          studioId: 'timeline-editor',
+          studioName: 'Timeline Editor',
+          onApply: () => showPersonalizationPanel(),
+          onClear: () => showPersonalizationPanel(),
+        });
+        modal._forcedTab = 'assets';
+        const originalClose = modal.close?.bind(modal);
+        if (originalClose) {
+          modal.close = (...args) => {
+            const result = originalClose(...args);
+            showPersonalizationPanel();
+            updatePreview();
+            return result;
+          };
+        }
+        modal.open();
+      } catch (error) {
+        console.error('Failed to open image finder:', error);
+        showToast(`Could not open the image finder: ${error?.message || error}`, 'error');
+      }
+    }
+
+    function addBrandOverlays() {
+      const profile = getActivePersonalizationProfile();
+      if (!profile) {
+        showToast('Pick a contact in the image finder first.', 'warning');
+        return;
+      }
+      const overlays = buildBrandOverlayClips(profile);
+      if (!overlays.length) {
+        showToast('This contact has no logo, CTA graphic or CTA text to add yet.', 'info');
+        return;
+      }
+      overlays.forEach(({ trackType, clip }) => {
+        const track = trackType === 'text'
+          ? ensureTrack({ type: 'text', name: 'Titles' })
+          : ensureTrack({ type: 'overlay', name: 'Brand Overlays' });
+        track.items.push(clip);
+        state.selectedClipId = clip.id;
+      });
+      renderTracks();
+      updatePreview();
+      showToast(`Added ${overlays.map((o) => o.clip.name).join(' + ')}.`, 'success');
+    }
+
+    function ensurePersonalizationPanelStyles() {
+      if (document.getElementById('tl-pimg-styles')) return;
+      const style = document.createElement('style');
+      style.id = 'tl-pimg-styles';
+      style.textContent = `
+        .pimg { display: flex; flex-direction: column; gap: 12px; font-size: 12px; color: var(--text, #e5e7eb); }
+        .pimg-contact { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .pimg-contact strong { font-size: 13px; }
+        .pimg-muted { color: var(--text-dim, #9ca3af); line-height: 1.45; }
+        .pimg h4 { margin: 0; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-dim, #9ca3af); font-weight: 600; }
+        .pimg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+        .pimg-card { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 4px; border-radius: 8px; padding: 4px; border: 1px solid var(--border, rgba(255,255,255,.08)); background: rgba(255,255,255,.02); }
+        .pimg-card:hover, .pimg-card:focus-visible { border-color: var(--accent, #d9ff00); }
+        .pimg-card[aria-busy="true"] { opacity: .5; pointer-events: none; }
+        .pimg-thumb { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 6px; background: repeating-conic-gradient(#2a2a2e 0 25%, #222226 0 50%) 0 0 / 12px 12px; }
+        .pimg-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+        .pimg-tag { font-size: 10px; color: var(--text-dim, #9ca3af); }
+        .pimg-tag.web { color: #fbbf24; }
+        .pimg-slots { display: flex; flex-direction: column; gap: 6px; }
+        .pimg-slot { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; }
+        .pimg-slot img { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; background: #222226; flex: none; }
+        .pimg-slot code { margin-left: auto; font-size: 10px; color: var(--text-dim, #9ca3af); }
+        .pimg-actions { display: grid; gap: 6px; }
+      `;
+      document.head.appendChild(style);
+    }
+
     function showPersonalizationPanel() {
       hideAllEditorPanels();
       els.personalizationPanel?.style && (els.personalizationPanel.style.display = 'block');
+      if (els.personalizationPanel) els.personalizationPanel.hidden = false;
+      renderPersonalizationPanel();
+      els.personalizationPanel?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+    }
 
-      if (els.personalizationContainer && !els.personalizationContainer.innerHTML) {
-        els.personalizationContainer.innerHTML = `
-          <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-            <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Personalization</h3>
-            <p style="color: #9ca3af; margin-bottom: 16px;">Create personalized content using merge fields.</p>
-            <div style="flex: 1; overflow-y: auto; display: grid; gap: 8px;">
-              <div class="merge-field" style="background: #1f2937; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="font-weight: bold; color: #e5e7eb;">First Name</div>
-                  <div style="font-size: 12px; color: #6b7280;">{first_name}</div>
-                </div>
-                <span style="color: #9ca3af;">John</span>
-              </div>
-              <div class="merge-field" style="background: #1f2937; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="font-weight: bold; color: #e5e7eb;">Email</div>
-                  <div style="font-size: 12px; color: #6b7280;">{email}</div>
-                </div>
-                <span style="color: #9ca3af;">john@example.com</span>
-              </div>
-              <div class="merge-field" style="background: #1f2937; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="font-weight: bold; color: #e5e7eb;">Company</div>
-                  <div style="font-size: 12px; color: #6b7280;">{company}</div>
-                </div>
-                <span style="color: #9ca3af;">Acme Corp</span>
-              </div>
-            </div>
-            <button style="margin-top: 16px; padding: 10px; background: #3b82f6; color: white; border: none; border-radius: 4px;">Add Field</button>
-          </div>
-        `;
+    function renderPersonalizationPanel() {
+      const container = els.personalizationContainer;
+      if (!container) return;
+      ensurePersonalizationPanelStyles();
+
+      const profile = getActivePersonalizationProfile();
+      const contactName = profile?.personalization?.business?.businessName
+        || profile?.contact?.company || profile?.company?.name
+        || profile?.contact?.name || profile?.name || null;
+      const images = listTimelineImageAssets(profile);
+      const slots = availableImageSlots(profile);
+
+      if (!profile) {
+        container.innerHTML = `
+          <div class="pimg">
+            <p class="pimg-muted">No contact selected. Open the image finder, pick or discover a contact, and find their logo, photos and product shots. They'll show up here ready to drop on the timeline.</p>
+            <button type="button" class="mini-btn" data-pimg-action="finder">🔎 Open image finder</button>
+          </div>`;
+        container.querySelector('[data-pimg-action="finder"]').addEventListener('click', openImageFinder);
+        return;
       }
+
+      const imageCards = images.map((img, index) => `
+        <button type="button" class="pimg-card" data-pimg-index="${index}" title="Add “${escapeHtml(img.name)}” at the playhead">
+          <img class="pimg-thumb" src="${escapeHtml(img.url)}" alt="" loading="lazy" referrerpolicy="no-referrer" />
+          <span class="pimg-name">${escapeHtml(img.name)}</span>
+          <span class="pimg-tag ${img.saved ? '' : 'web'}">${escapeHtml(img.roleLabel)}${img.saved ? (img.videoReady ? ' · Video Ready' : '') : ' · not saved'}</span>
+        </button>`).join('');
+
+      const slotButtons = slots.map((slot) => `
+        <button type="button" class="mini-btn pimg-slot" data-pimg-slot="${slot.id}" ${slot.url ? '' : 'disabled'} title="${slot.url ? 'Swaps to each contact’s own image' : 'This contact has no image in this slot yet'}">
+          ${slot.url ? `<img src="${escapeHtml(slot.url)}" alt="" referrerpolicy="no-referrer" />` : '<span style="width:22px"></span>'}
+          <span>${escapeHtml(slot.label)}</span>
+          <code>${escapeHtml(slot.token)}</code>
+        </button>`).join('');
+
+      const replacing = pimgReplaceClipId !== null ? findStateClip(pimgReplaceClipId) : null;
+      if (!replacing) pimgReplaceClipId = null;
+
+      container.innerHTML = `
+        <div class="pimg">
+          ${replacing ? `
+            <div class="pimg-contact" style="background:rgba(217,255,0,.08);border-radius:6px;padding:6px 8px">
+              <span>Picking a new image for <strong>${escapeHtml(replacing.name || 'clip')}</strong></span>
+              <button type="button" class="mini-btn" data-pimg-action="cancel-replace">Cancel</button>
+            </div>` : ''}
+          <div class="pimg-contact">
+            <div><div class="pimg-muted">Active contact</div><strong>${escapeHtml(contactName || 'Unnamed contact')}</strong></div>
+            <button type="button" class="mini-btn" data-pimg-action="finder">🔎 Image finder</button>
+          </div>
+
+          <h4>From the image finder</h4>
+          ${images.length
+            ? `<div class="pimg-grid">${imageCards}</div>
+               <p class="pimg-muted">Click an image to add it at the playhead. Images marked “not saved” are saved to the contact first.</p>`
+            : '<p class="pimg-muted">No images for this contact yet. Use the image finder to discover their website’s logo, team and product photos.</p>'}
+
+          <h4>Dynamic (per contact)</h4>
+          <p class="pimg-muted">These follow whichever contact is active, so one timeline works for every contact.</p>
+          <div class="pimg-slots">${slotButtons}</div>
+
+          <h4>Brand overlays</h4>
+          <div class="pimg-actions">
+            <button type="button" class="mini-btn" data-pimg-action="overlays">✨ Add logo overlay + CTA end card</button>
+          </div>
+        </div>`;
+
+      container.querySelector('[data-pimg-action="finder"]').addEventListener('click', openImageFinder);
+      container.querySelector('[data-pimg-action="overlays"]').addEventListener('click', addBrandOverlays);
+      container.querySelector('[data-pimg-action="cancel-replace"]')?.addEventListener('click', () => {
+        pimgReplaceClipId = null;
+        renderPersonalizationPanel();
+      });
+      // Add a new clip, or swap the image of the clip being edited.
+      const placeImage = (choice) => {
+        const target = pimgReplaceClipId !== null ? findStateClip(pimgReplaceClipId) : null;
+        pimgReplaceClipId = null;
+        return target ? replaceClipImage(target, choice) : addPersonalizedImageClip(choice);
+      };
+      container.querySelectorAll('[data-pimg-slot]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const clip = placeImage({ slot: btn.dataset.pimgSlot });
+          renderPersonalizationPanel();
+          showToast(`Added ${clip.name.replace('Personalized: ', '')} — it will follow the active contact.`, 'success');
+        });
+      });
+      container.querySelectorAll('[data-pimg-index]').forEach((card) => {
+        card.addEventListener('click', async () => {
+          const picked = images[Number(card.dataset.pimgIndex)];
+          if (!picked) return;
+          card.setAttribute('aria-busy', 'true');
+          const asset = await ensureSavedImageAsset(picked);
+          const clip = placeImage({ asset });
+          showToast(`${clip.name.replace('Image: ', '')} is on the timeline.`, 'success');
+          renderPersonalizationPanel();
+        });
+      });
     }
 
     function showPersonalizationEditorPanel() {
