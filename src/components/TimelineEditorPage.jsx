@@ -4791,8 +4791,23 @@ export function TimelineEditorPage() {
           updatePlaybackUI();
         },
         insertClip(clip, kind) {
-          insertClipIntoTrack(clip, trackNameFor(kind));
+          // A kind ('video' | 'audio' | 'text') or an exact track name ('Music').
+          insertClipIntoTrack(clip, ['video', 'audio', 'text'].includes(kind) ? trackNameFor(kind) : kind);
           return clip;
+        },
+        ensureTrack(name, type) {
+          let track = state.tracks.find((t) => t.name === name);
+          if (!track) {
+            track = { id: `track-${String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}`, type, name, muted: false, solo: false, locked: false, items: [] };
+            state.tracks.push(track);
+          }
+          return track;
+        },
+        async generateAudio(kind, params) {
+          const { generateAudio, persistAudio, probeDuration } = await import('../lib/editor/agent/audioGen.js');
+          const remote = await generateAudio(kind, params);
+          const url = await persistAudio(remote, { upload: uploadFileToStorage, name: kind === 'tts' ? 'voiceover' : 'music' });
+          return { url, duration: await probeDuration(url) };
         },
         createAddon(type, startSec, durationSec) {
           const clip = createAddonClip(type, { startSec, timelineSeconds: T() });

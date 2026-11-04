@@ -16,6 +16,8 @@
  *   removeBackground(clip) → Promise
  *   renderStill(sec) → { blob, codeErrors }
  *   exportVideo({ container, quality }) → Promise<{ filename }>
+ *   generateAudio('tts'|'music', params) → Promise<{ url, duration }>
+ *   ensureTrack(name, type) → track
  *   confirm(message) → Promise<boolean>
  */
 import { getAddon, listAddons, addonOptions } from '../addons/registry.js';
@@ -24,6 +26,7 @@ import { listEffects, getEffectDef, effectParams, createEffect, EFFECT_CATEGORIE
 import { setKeyframe, KEYFRAME_PROPERTIES, EASINGS } from '../remotion/keyframes.js';
 import { CAPTION_PRESETS, defaultCaptionStyle, sortCaptions } from '../remotion/captions.js';
 import { checkAnimationCode, normalizeAnimationCode } from './codeGate.js';
+import { VOICES, duckingKeyframes } from './audioGen.js';
 
 const OVERLAY_TYPES = () => listAddons('overlay').map((a) => a.type).filter((t) => t !== 'overlay-video-transition');
 const INTERACTIVE_TYPES = () => listAddons('interactive').map((a) => a.type);
@@ -98,6 +101,8 @@ export function toolDefinitions() {
     { name: 'add_effect', description: 'Add a visual effect to a video/image clip or image overlay. Returns the effect uid (for keyframing its parameters).', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, effect: { type: 'string', description: 'Effect id, e.g. color-correction, blur, vignette, glow, grayscale, color-key' }, params: { type: 'object' } }, required: ['clip_id', 'effect'], additionalProperties: false } },
     { name: 'set_keyframes', description: `Animate a clip property with keyframes (replaces that property's keyframes). Properties: ${KEYFRAME_PROPERTIES.map((p) => p.key).join(', ')}, or fx:<effect uid>:<param>. t is seconds from the clip's start.`, parameters: { type: 'object', properties: { clip_id: { type: 'string' }, property: { type: 'string' }, keyframes: { type: 'array', minItems: 1, items: { type: 'object', properties: { t: { type: 'number' }, v: { type: 'number' }, easing: { type: 'string', enum: EASINGS.map(([e]) => e) } }, required: ['t', 'v'], additionalProperties: false } } }, required: ['clip_id', 'property', 'keyframes'], additionalProperties: false } },
     { name: 'add_captions', description: 'Add captions. Either transcribe a video/audio clip in the browser (source_clip_id; can take a minute), or pass caption lines yourself (start/end seconds from the captions clip start).', parameters: { type: 'object', properties: { source_clip_id: { type: 'string' }, lines: { type: 'array', items: { type: 'object', properties: { text: { type: 'string' }, start: { type: 'number' }, end: { type: 'number' } }, required: ['text', 'start', 'end'], additionalProperties: false } }, start: { type: 'number' }, duration: { type: 'number' }, style: { type: 'string', enum: Object.keys(CAPTION_PRESETS) }, position: { type: 'string', enum: ['bottom', 'middle', 'top'] }, language: { type: 'string', description: 'e.g. en, es; default auto' } }, additionalProperties: false } },
+    { name: 'add_voiceover', description: 'Generate a spoken voiceover from a script (text-to-speech) and place it on the Voiceover track. Takes ~10–60 s. The clip length matches the speech; the timeline grows if needed. Caption it afterwards with add_captions { source_clip_id }.', parameters: { type: 'object', properties: { text: { type: 'string', description: 'The script to speak (max 3000 characters)' }, voice: { type: 'string', enum: VOICES.map(([v]) => v), description: VOICES.map(([v, l]) => `${v}: ${l}`).join('; ') }, speed: { type: 'number', minimum: 0.5, maximum: 2 }, start: { type: 'number' }, volume: { type: 'number', minimum: 0, maximum: 1 } }, required: ['text'], additionalProperties: false } },
+    { name: 'add_music', description: 'Generate instrumental background music and place it on a Music track. Takes 1–3 minutes. By default it fades in/out and ducks (gets quieter) under voiceovers.', parameters: { type: 'object', properties: { prompt: { type: 'string', description: 'e.g. "warm acoustic coffee shop morning"' }, genre: { type: 'string' }, mood: { type: 'string' }, start: { type: 'number' }, duration: { type: 'number', description: 'Seconds (default: to the end of the timeline, 10–180)' }, volume: { type: 'number', minimum: 0, maximum: 1, description: 'Default 0.25' }, duck: { type: 'boolean', description: 'Lower the music under voiceovers (default true)' } }, additionalProperties: false } },
     { name: 'remove_background', description: 'Cut the people out of a video or image clip (or Image overlay) so what is underneath shows through. Slow on long videos.', parameters: { type: 'object', properties: { clip_id: { type: 'string' } }, required: ['clip_id'], additionalProperties: false } },
     { name: 'create_animation', description: 'Create a motion-graphics clip from Remotion React code (see the system prompt rules). It goes on the Titles track over the footage. Returns an error list if the code is rejected or fails to render.', parameters: { type: 'object', properties: { title: { type: 'string' }, code: { type: 'string', description: 'JavaScript+JSX defining function Animation({ props })' }, start: { type: 'number' }, duration: { type: 'number' }, props: { type: 'object', description: 'Values passed to the component, e.g. media URLs from search_stock, text, colors' } }, required: ['title', 'code', 'duration'], additionalProperties: false } },
     { name: 'update_clip', description: 'Change a clip: timing, name, overlay options, volume/fit, or (for animations) code/props.', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, start: { type: 'number' }, end: { type: 'number' }, name: { type: 'string' }, options: { type: 'object' }, volume: { type: 'number', minimum: 0, maximum: 1 }, fit: { type: 'string', enum: ['cover', 'contain'] }, code: { type: 'string' }, props: { type: 'object' } }, required: ['clip_id'], additionalProperties: false } },
@@ -286,6 +291,43 @@ export function createAgentTools(editor) {
       return { clip: summarizeClip(clip, editor), words: captions.length };
     },
 
+    async add_voiceover({ text, voice, speed, start, volume = 1 }) {
+      const script = String(text || '').trim();
+      need(script, 'text is required');
+      need(script.length <= 3000, 'text is too long (max 3000 characters) — split it into several voiceovers');
+      const { url, duration } = await editor.generateAudio('tts', { text: script, voice, speed });
+      const words = script.split(/\s+/).length;
+      const len = Math.max(0.5, duration || words / 2.6);
+      const s = Math.max(0, num(start, editor.snapshot().playheadSec));
+      growTimeline(s + len);
+      editor.ensureTrack('Voiceover', 'audio');
+      const clip = editor.insertClip({
+        id: `vo-${Date.now().toString(36)}`, type: 'audio', role: 'voiceover', name: `Voiceover: ${script.slice(0, 40)}${script.length > 40 ? '…' : ''}`,
+        src: url, volume: Math.max(0, Math.min(1, num(volume, 1))), script, voice: voice || null, start: s, end: s + len,
+      }, 'Voiceover');
+      reduck();
+      editor.commit();
+      return { clip: summarizeClip(clip, editor), seconds: round(len), tip: 'Use add_captions with source_clip_id to caption this voiceover.' };
+    },
+
+    async add_music({ prompt, genre, mood, start = 0, duration, volume = 0.25, duck = true }) {
+      need(prompt || genre || mood, 'Describe the music with prompt, genre or mood');
+      const T = editor.snapshot().timelineSeconds;
+      const s = Math.max(0, num(start, 0));
+      const want = Math.max(5, Math.min(180, num(duration, T - s)));
+      const { url, duration: actual } = await editor.generateAudio('music', { prompt, genre, mood, duration: Math.max(10, Math.ceil(want)) });
+      const len = Math.min(want, actual || want);
+      editor.ensureTrack('Music', 'audio');
+      const clip = editor.insertClip({
+        id: `music-${Date.now().toString(36)}`, type: 'audio', role: 'music', duck: duck !== false,
+        name: `Music: ${String(prompt || mood || genre).slice(0, 40)}`, src: url, volume: Math.max(0, Math.min(1, num(volume, 0.25))),
+        start: s, end: Math.min(T, s + len),
+      }, 'Music');
+      reduck();
+      editor.commit();
+      return { clip: summarizeClip(clip, editor), seconds: round(len), ducked: duck !== false };
+    },
+
     async remove_background({ clip_id }) {
       const clip = clipOrFail(clip_id);
       need(['video', 'image', 'overlay-image'].includes(clip.type), 'Background removal works on video/image clips and Image overlays');
@@ -367,6 +409,23 @@ export function createAgentTools(editor) {
       return { exported: filename };
     },
   };
+
+  /** Extend the timeline so `end` fits (never shrinks it). */
+  function growTimeline(end) {
+    const T = editor.snapshot().timelineSeconds;
+    if (end > T) editor.setTimelineSeconds(Math.min(600, Math.ceil(end + 0.5)));
+  }
+
+  /** Recompute fades + ducking on every music clip that ducks under voiceovers. */
+  function reduck() {
+    const all = editor.snapshot().tracks.flatMap((t) => t.clips);
+    const voices = all.filter((c) => c.role === 'voiceover').map((c) => { const t = editor.clipTimes(c); return [t.start, t.end]; });
+    all.filter((c) => c.role === 'music' && c.duck).forEach((m) => {
+      const t = editor.clipTimes(m);
+      const kfs = duckingKeyframes(t.start, t.end, voices);
+      m.keyframes = { ...(m.keyframes || {}), volume: kfs };
+    });
+  }
 
   async function renderCheck(clip, sec) {
     try {

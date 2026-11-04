@@ -27,6 +27,8 @@ Tool definitions and handlers: `src/lib/editor/agent/tools.js`.
 | `set_keyframes` | | Animate `x`, `y`, `scale`, `rotation`, `opacity`, `volume` or `fx:<uid>:<param>` with easing |
 | `add_captions` | | Transcribe a clip in the browser (Whisper) or add caption lines; styles `tiktok`, `classic`, `box`, `karaoke`, `minimal` |
 | `remove_background` | | MODNet person cut-out → transparent WebM/PNG (slow on CPU) |
+| `add_voiceover` | | Text-to-speech narration (MiniMax via MuAPI) on the Voiceover track, sized to the speech |
+| `add_music` | | Instrumental music (Suno via MuAPI) on a Music track, with fades and ducking under voiceovers |
 | `create_animation` | | Remotion component code (`function Animation({ props })`) as a timeline clip |
 | `update_clip` / `remove_clip` | | Timing, name, options, volume, fit, animation code/props / delete |
 | `set_duration` | | Timeline length (5–600 s); clip times are preserved |

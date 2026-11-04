@@ -69,6 +69,13 @@
   status = 200
   force = true
 
+# AI Agent voiceover + music (MuAPI, MUAPI_API_KEY).
+[[redirects]]
+  from = "/api/agent-audio"
+  to = "/.netlify/functions/agent-audio"
+  status = 200
+  force = true
+
 # Restored thumbnails are WebP-encoded but keep their historical `.webp.png`
 # filenames so every existing reference resolves; declare the real type.
 [[headers]]

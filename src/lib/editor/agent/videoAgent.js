@@ -92,6 +92,8 @@ export function describeToolCall(name, args = {}) {
     case 'set_keyframes': return `Animating ${a.property}`;
     case 'add_captions': return a.source_clip_id ? 'Transcribing captions' : 'Adding captions';
     case 'remove_background': return 'Removing the background';
+    case 'add_voiceover': return `Recording voiceover${a.voice ? ` (${String(a.voice).replace(/_/g, ' ')})` : ''}`;
+    case 'add_music': return `Composing music${a.mood || a.prompt ? ` — ${String(a.mood || a.prompt).slice(0, 40)}` : ''}`;
     case 'create_animation': return `Creating animation “${a.title || ''}”`;
     case 'update_clip': return 'Updating a clip';
     case 'remove_clip': return 'Removing a clip';

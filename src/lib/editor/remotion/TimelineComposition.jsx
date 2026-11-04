@@ -408,6 +408,15 @@ const overlayOrigin = (o = {}) => {
   return `${(Number(g.left) || 0) + (Number(g.width) || 0) / 2}% ${(Number(g.top) || 0) + (Number(g.height) || 0) / 2}%`;
 };
 
+/** Audio clip; volume keyframes (fades, ducking under a voiceover) multiply its volume. */
+export function AudioLayer({ layer }) {
+  const { fps } = useVideoConfig();
+  const kf = layer.keyframes?.volume;
+  const base = Math.max(0, Math.min(1, layer.volume ?? 1));
+  const volume = kf?.length ? (f) => Math.max(0, Math.min(1, base * valueAt(kf, f / fps, 1))) : base;
+  return <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} volume={volume} />;
+}
+
 // ------------------------------------------------------------------ captions
 
 const CAPTION_TOP = { top: '8%', middle: '50%', bottom: '82%' };
@@ -535,7 +544,7 @@ export function TimelineComposition({ model }) {
       </FontGate>
       {(m.audio || []).map((a) => (
         <Sequence key={a.id} from={a.from} durationInFrames={a.durationInFrames}>
-          <Audio src={a.src} trimBefore={a.trimBefore || undefined} volume={a.volume} />
+          <AudioLayer layer={a} />
         </Sequence>
       ))}
     </AbsoluteFill>
