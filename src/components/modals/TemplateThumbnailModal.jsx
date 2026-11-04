@@ -1141,7 +1141,7 @@ export class TemplateThumbnailModal extends BaseModal {
               this.updateBody(this.renderBody());
             },
             onDone: (result) => {
-              this.candidates = (result.candidates || []).map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json) }));
+              this.candidates = (result.candidates || []).map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json, c.mime) }));
               this.selectedIndex = this.candidates.length > 0 ? 0 : -1;
               this.partialPreview = null;
               this.lastParams = result.params || this.lastParams;
@@ -1158,7 +1158,8 @@ export class TemplateThumbnailModal extends BaseModal {
         });
       } else {
         const { candidates, params, keySource } = await this.thumbnailService.generateCandidates(promptText, baseOpts);
-        this.candidates = (candidates || []).map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json) }));
+        // MuAPI models return AVIF/PNG/JPEG and say which in `mime`; OpenAI omits it.
+        this.candidates = (candidates || []).map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json, c.mime) }));
         this.selectedIndex = this.candidates.length > 0 ? 0 : -1;
         if (params) this.lastParams = params;
         this.lastKeySource = keySource || null;
