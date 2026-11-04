@@ -570,7 +570,8 @@ export class MuapiClient {
         if (p.cfg_scale !== undefined && p.cfg_scale !== 0.5) finalPayload.cfg_scale = p.cfg_scale;
         if (p.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (p.thumbnail_url) finalPayload.thumbnail_url = p.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (p.thumbnail_url && !String(p.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = p.thumbnail_url;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -729,7 +730,8 @@ export class MuapiClient {
         if (p.cfg_scale !== undefined && p.cfg_scale !== 0.5) finalPayload.cfg_scale = p.cfg_scale;
         if (p.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (p.thumbnail_url) finalPayload.thumbnail_url = p.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (p.thumbnail_url && !String(p.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = p.thumbnail_url;
         if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Multimodal references (Phase 0)
@@ -887,7 +889,8 @@ export class MuapiClient {
         const videoField = modelInfo?.videoField || 'video_url';
         const finalPayload = { [videoField]: params.video_url };
 
-        if (params.thumbnail_url) {
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) {
             finalPayload.thumbnail_url = params.thumbnail_url;
         }
 
