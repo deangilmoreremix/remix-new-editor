@@ -1377,7 +1377,12 @@ export const THUMBNAIL_TEMPLATES = {
  * @returns {ThumbnailTemplate|undefined}
  */
 export function getTemplateById(id) {
-  return THUMBNAIL_TEMPLATES[id] || undefined;
+  if (!id) return undefined;
+  // Accept the registry key (e.g. 'boldHeadline') or the template's own id
+  // (e.g. 'bold-headline'), which is what cards put in data-id.
+  return THUMBNAIL_TEMPLATES[id]
+    || Object.values(THUMBNAIL_TEMPLATES).find((t) => t.id === id)
+    || undefined;
 }
 
 /**

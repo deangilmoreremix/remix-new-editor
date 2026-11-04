@@ -568,6 +568,9 @@
   display: block;
   width: 100%;
   height: auto;
+  /* Square / portrait results must not push the controls off screen. */
+  max-height: 360px;
+  object-fit: contain;
 }
 
 .studio-thumb-panel .candidate-grid {
@@ -991,6 +994,20 @@
 
   .studio-thumb-panel .thumb-step-indicator {
     overflow-x: auto;
+    gap: 4px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  /* Tighter pills so all five steps fit on a phone (completed steps add a ✓). */
+  .studio-thumb-panel .thumb-step {
+    gap: 3px;
+    padding: 4px 7px;
+    font-size: 10px;
+  }
+
+  .studio-thumb-panel .thumb-step-line {
+    min-width: 4px;
   }
 }
 

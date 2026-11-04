@@ -290,7 +290,7 @@ export const STUDIO_LANDING_PAGES = {
   },
   effects: {
     slug: 'effects',
-    label: 'Vibe Motion',
+    label: 'Effects Studio',
     heroTitle: 'AI Effects Studio — Add VFX, Transitions, and Motion to Your Videos',
     heroDescription: 'Apply AI-powered visual effects, transitions, and motion graphics. Open-source VFX studio for creators who want cinematic quality without complex software.',
     thumbnail: '/thumbnails/studios/effects.webp',

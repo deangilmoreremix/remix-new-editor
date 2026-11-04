@@ -11,7 +11,7 @@ import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTUR
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
-import { mountVideoModelSelector } from '../lib/modelSelectorUI.js';
+import { mountVideoModelSelector, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -258,11 +258,11 @@ export function CinemaStudio() {
     // 2. CAMERA CONTROLS OVERLAY
     // ==========================================
     const overlayBackdrop = document.createElement('div');
-    overlayBackdrop.className = 'fixed inset-0 bg-black/80 backdrop-blur-md z-40 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center';
+    overlayBackdrop.className = 'fixed inset-0 bg-black/80 backdrop-blur-md z-[150] p-4 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center';
 
     const overlayContent = document.createElement('div');
     // Reduced padding for mobile (p-4) and added max-height/overflow handling
-    overlayContent.className = 'w-full bg-white/[0.04] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]';
+    overlayContent.className = 'w-full max-w-5xl bg-[#111] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
     overlayBackdrop.appendChild(overlayContent);
 
     // Header for Overlay
@@ -317,7 +317,7 @@ export function CinemaStudio() {
     promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
+    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
 
     // --- INPUT AREA (Prompt + Upload) ---
     const inputArea = document.createElement('div');
@@ -411,6 +411,18 @@ export function CinemaStudio() {
     function toggleEnhanceMenu() {
       const isOpen = enhanceMenu.classList.contains('is-open');
       enhanceMenu.classList.toggle('is-open', !isOpen);
+      if (!isOpen) {
+        // The shared panel is right-aligned to its trigger; here the trigger
+        // is the first toolbar item, so flip it to open rightward when it
+        // would spill off the left edge.
+        enhancePanel.style.left = '';
+        enhancePanel.style.right = '';
+        enhancePanel.style.zIndex = '200';
+        if (enhancePanel.getBoundingClientRect().left < 8) {
+          enhancePanel.style.left = '0';
+          enhancePanel.style.right = 'auto';
+        }
+      }
     }
 
     enhanceTrigger.addEventListener('click', (e) => {
@@ -536,6 +548,9 @@ export function CinemaStudio() {
     function showReferenceThumb(url) {
       const thumb = container.querySelector('#reference-thumb');
       if (!thumb) return;
+      // The whole pill (thumb + "Reference scene loaded" text) only shows
+      // while a reference is actually loaded.
+      thumb.parentElement?.classList.toggle('hidden', !url);
       if (url) {
         thumb.src = url;
         thumb.classList.remove('hidden');
@@ -549,7 +564,7 @@ export function CinemaStudio() {
 
     // Small reference preview pill (hidden until an image is uploaded)
     const referencePill = document.createElement('div');
-    referencePill.className = 'flex items-center gap-2 mt-1';
+    referencePill.className = `${currentSettings.referenceUrl ? '' : 'hidden '}flex items-center gap-2 mt-1`;
     referencePill.innerHTML = `
       <img id="reference-thumb" class="hidden w-10 h-10 rounded-lg border border-white/10 object-cover" alt="reference" />
       <span class="text-[10px] text-secondary">Reference scene loaded — used as the seed for your cinematic shot.</span>
@@ -561,12 +576,10 @@ export function CinemaStudio() {
         const existing = document.querySelectorAll('.custom-dropdown');
         existing.forEach(el => el.remove());
 
-        const rect = trigger.getBoundingClientRect();
         const menu = document.createElement('div');
-        menu.className = 'custom-dropdown fixed bg-white/[0.04] border border-white/10 rounded-xl py-1 shadow-2xl z-50 flex flex-col min-w-[100px] animate-fade-in';
-        menu.style.bottom = '';
-        menu.style.top = (rect.bottom + 8) + 'px';
-        menu.style.left = rect.left + 'px';
+        // Solid panel above the page (and the History rail); placed by the
+        // shared helper so it flips up/down and stays inside the viewport.
+        menu.className = 'custom-dropdown fixed glass rounded-xl py-1 shadow-2xl z-[200] flex flex-col min-w-[100px] overflow-y-auto animate-fade-in';
 
         items.forEach(item => {
             const btn = document.createElement('button');
@@ -588,6 +601,7 @@ export function CinemaStudio() {
         };
         setTimeout(() => document.addEventListener('click', closeHandler), 0);
         document.body.appendChild(menu);
+        positionModelSelectorDropdown(menu, trigger, 8);
     };
 
     // Model picker — same catalog-driven dropdown used by Video Studio.
@@ -601,9 +615,6 @@ export function CinemaStudio() {
     };
     updateModelBtn();
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };
-    const gtmBtn = document.createElement('button');
-    gtmBtn.textContent = 'GTM';
-    settingsToolbar.appendChild(gtmBtn);
     settingsToolbar.appendChild(modelBtn);
 
 
@@ -916,11 +927,13 @@ export function CinemaStudio() {
     // 3B. CAMERA BUILDER PANEL (Collapsible)
     // ==========================================
     const cameraBuilderPanel = document.createElement('div');
-    cameraBuilderPanel.className = 'absolute bottom-8 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-full z-20';
+    // Centered popup above the page (and the History rail) so it never
+    // overlaps the prompt bar or the panels below it.
+    cameraBuilderPanel.className = 'fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm p-4 flex items-center justify-center';
     cameraBuilderPanel.style.display = 'none'; // Hidden by default
     
     const builderCard = document.createElement('div');
-    builderCard.className = 'bg-white/[0.04] border border-white/10 rounded-2xl p-4 shadow-3xl';
+    builderCard.className = 'glass w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl p-4 md:p-6 shadow-3xl';
     
     builderCard.innerHTML = `
         <div class="flex items-center justify-between mb-4">
@@ -993,9 +1006,21 @@ export function CinemaStudio() {
     // Camera Builder toggle logic
     cameraBuilderBtn.onclick = () => {
         showCameraBuilder = !showCameraBuilder;
-        cameraBuilderPanel.style.display = showCameraBuilder ? 'block' : 'none';
+        cameraBuilderPanel.style.display = showCameraBuilder ? 'flex' : 'none';
         if (showCameraBuilder) updateBuilderPreview();
     };
+    const hideCameraBuilder = () => {
+        showCameraBuilder = false;
+        cameraBuilderPanel.style.display = 'none';
+    };
+    cameraBuilderPanel.addEventListener('click', (e) => { if (e.target === cameraBuilderPanel) hideCameraBuilder(); });
+    const onBuilderEscape = (e) => {
+        if (!container.isConnected) { document.removeEventListener('keydown', onBuilderEscape); return; }
+        if (e.key !== 'Escape') return;
+        if (showCameraBuilder) hideCameraBuilder();
+        if (!overlayBackdrop.classList.contains('pointer-events-none')) closeOverlay();
+    };
+    document.addEventListener('keydown', onBuilderEscape);
     
     const closeBuilderBtn = cameraBuilderPanel.querySelector('#close-builder-btn');
     if (closeBuilderBtn) closeBuilderBtn.onclick = () => {
@@ -1063,7 +1088,9 @@ export function CinemaStudio() {
 
     // History Sidebar - VISIBLE BY DEFAULT (removed translate-x-full opacity-0)
     const historySidebar = document.createElement('div');
-    historySidebar.className = 'fixed right-0 top-0 h-full w-20 md:w-24 bg-black/60 backdrop-blur-xl border-l border-white/5 z-50 flex flex-col items-center py-4 gap-3 overflow-y-auto transition-all duration-500';
+    // Hidden until there is history (as in Video Studio), so an empty rail
+    // never covers the right edge of the page; below popups (z-150/200).
+    historySidebar.className = 'fixed right-0 top-0 h-full w-20 md:w-24 bg-black/60 backdrop-blur-xl border-l border-white/5 z-40 flex flex-col items-center py-4 gap-3 overflow-y-auto transition-all duration-500 translate-x-full opacity-0 pointer-events-none';
 
     const historyLabel = document.createElement('div');
     historyLabel.className = 'text-[9px] font-bold text-white/40 uppercase tracking-widest mb-2';
@@ -1125,6 +1152,8 @@ export function CinemaStudio() {
       advancedPanel.classList.toggle('hidden', !showAdvanced);
       const label = container.querySelector('[data-advanced-label]');
       if (label) label.textContent = showAdvanced ? 'Less' : 'Advanced';
+      // The panel sits below the prompt bar, often below the fold.
+      if (showAdvanced) requestAnimationFrame(() => advancedPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
     };
 
     // ==========================================
@@ -1230,6 +1259,10 @@ export function CinemaStudio() {
     // --- History Logic ---
     const renderHistory = () => {
         historyList.innerHTML = '';
+        const hasHistory = generationHistory.length > 0;
+        historySidebar.classList.toggle('translate-x-full', !hasHistory);
+        historySidebar.classList.toggle('opacity-0', !hasHistory);
+        historySidebar.classList.toggle('pointer-events-none', !hasHistory);
         generationHistory.forEach((entry, idx) => {
             const thumb = document.createElement('div');
             thumb.className = `relative group/thumb cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 aspect-square ${idx === 0 ? 'border-primary shadow-glow-sm' : 'border-white/10 hover:border-white/30'}`;

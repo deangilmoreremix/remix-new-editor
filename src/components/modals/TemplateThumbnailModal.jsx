@@ -8,7 +8,7 @@ import { ModelSelectorDropdown } from './ModelSelectorDropdown.jsx';
 import { t2iModels } from '../../lib/models.js';
 import { ThumbnailExploreIdeas } from './thumbnail-explore/ThumbnailExploreIdeas.jsx';
 import { ThumbnailTemplateGrid } from './thumbnail-explore/ThumbnailTemplateGrid.jsx';
-import { THUMBNAIL_TEMPLATES, getAllTemplates, getFeaturedTemplates } from '../../lib/thumbnailTemplateRegistry.js';
+import { THUMBNAIL_TEMPLATES, getAllTemplates, getFeaturedTemplates, getTemplateById } from '../../lib/thumbnailTemplateRegistry.js';
 import { ThumbnailConfigurator } from './thumbnail-explore/ThumbnailConfigurator.jsx';
 import { TONALITIES, getTonality } from '../../lib/tonalities.js';
 import { encodeGif } from '../../lib/gifEncoder.js';
@@ -1804,7 +1804,7 @@ export class TemplateThumbnailModal extends BaseModal {
     body.querySelectorAll('[data-action="select-design"]').forEach((card) => {
       card.addEventListener('click', () => {
         const id = card.getAttribute('data-id');
-        const tpl = THUMBNAIL_TEMPLATES[id];
+        const tpl = getTemplateById(id);
         if (!tpl) return;
         this.pendingTemplate = tpl;
         this.step = 'configure';
@@ -2799,7 +2799,7 @@ export class TemplateThumbnailModal extends BaseModal {
     container.querySelectorAll('[data-action="select-design"]').forEach((card) => {
       card.addEventListener('click', () => {
         const id = card.getAttribute('data-id');
-        const tpl = THUMBNAIL_TEMPLATES[id];
+        const tpl = getTemplateById(id);
         if (!tpl) return;
         this.pendingTemplate = tpl;
         this.step = 'configure';

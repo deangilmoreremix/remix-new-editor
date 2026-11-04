@@ -165,7 +165,7 @@ const STUDIOS = {
   'cinema-template-studio': { kind: 'video', studioName: 'Cinema Template Studio', thumbnailStudioId: null, aspectRatio: '16:9' },
   'template-studio': { kind: 'video', studioName: 'Template Studio', thumbnailStudioId: null, aspectRatio: '16:9' },
   'video-tools-studio': { kind: 'video', studioName: 'Video Tools Studio', thumbnailStudioId: 'videotools-studio', aspectRatio: '16:9' },
-  'effects-studio': { kind: 'video', studioName: 'Vibe Motion', thumbnailStudioId: 'effects-studio', aspectRatio: '16:9' },
+  'effects-studio': { kind: 'video', studioName: 'Effects Studio', thumbnailStudioId: 'effects-studio', aspectRatio: '16:9' },
   'timeline-editor': { kind: 'video', studioName: 'Timeline Editor', thumbnailStudioId: null, aspectRatio: '16:9' },
   'image-studio': { kind: 'image', studioName: 'Image Studio', thumbnailStudioId: 'image-studio', aspectRatio: '1:1' },
   'text-to-image': { kind: 'image', studioName: 'Text to Image', thumbnailStudioId: 'image-studio', aspectRatio: '1:1' },
