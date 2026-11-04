@@ -21,7 +21,7 @@
 create table if not exists public.published_videos (
   id text primary key
     check (id ~ '^[A-Za-z0-9_-]{8,32}$'),
-  clerk_user_id text not null default ((select auth.jwt() ->> 'sub')),
+  clerk_user_id text not null default (auth.jwt() ->> 'sub'),
   title text not null default 'Untitled video'
     check (char_length(title) <= 200),
   project jsonb not null,
@@ -74,6 +74,8 @@ create policy "Owners delete own videos"
   for delete
   to anon, authenticated
   using ((select auth.jwt() ->> 'sub') = clerk_user_id);
+
+grant select, insert, update, delete on public.published_videos to anon, authenticated;
 
 -- Owners (API roles) can't change view_count, created_at or the owner
 -- through updates; increment_video_view runs as the function owner.

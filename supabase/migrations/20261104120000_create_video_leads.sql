@@ -19,7 +19,7 @@
 
 create table if not exists public.video_leads (
   id uuid primary key default gen_random_uuid(),
-  clerk_user_id text not null default ((select auth.jwt() ->> 'sub')),
+  clerk_user_id text not null default (auth.jwt() ->> 'sub'),
   project_id text,
   clip_id text,
   kind text not null default 'lead-form'
