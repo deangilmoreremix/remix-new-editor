@@ -106,6 +106,9 @@ interface WorkbenchState {
   splitClip: (clipId: string, atFrame: number) => void;
   duplicateClip: (clipId: string) => void;
   moveClipToTrack: (clipId: string, trackId: string) => void;
+  /** SmartVid: swap a media file URL everywhere (project + undo history), e.g. a local
+   *  blob: preview for its uploaded permanent URL. Not an undoable edit. */
+  replaceFile: (from: string, to: string) => void;
 }
 
 const mutateProject = (
@@ -316,6 +319,22 @@ export const useStore = create<WorkbenchState>((set, get) => ({
       }),
       selectedClipId: newId,
     }));
+  },
+
+  replaceFile: (from, to) => {
+    const swap = (p: ProjectData): ProjectData => {
+      let hit = false;
+      const tracks = p.tracks.map((t) => ({
+        ...t,
+        clips: t.clips.map((c) => {
+          if (c.props.file !== from) return c;
+          hit = true;
+          return { ...c, props: { ...c.props, file: to } };
+        }),
+      }));
+      return hit ? { ...p, tracks } : p;
+    };
+    set((s) => ({ project: swap(s.project), past: s.past.map(swap), future: s.future.map(swap) }));
   },
 
   moveClipToTrack: (clipId, trackId) =>

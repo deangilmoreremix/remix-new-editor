@@ -3,7 +3,6 @@
  * UI Component for the Cinematic Template System
  */
 
-import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
@@ -71,9 +70,6 @@ export function resolveGenerationAspectRatio(inputs, template) {
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
   container.className = 'cinema-template-studio w-full h-full flex flex-col bg-black overflow-hidden';
-
-  // All-studios side menu (drawer)
-  const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'cinema' });
 
   // State
   const registry = getTemplateRegistry();
@@ -149,14 +145,6 @@ export function CinemaTemplateStudio() {
         renderPreviewView();
         break;
     }
-
-    // Add an "all studios" menu button next to every back button in this view
-    container.querySelectorAll('[id="back-btn"]').forEach((backBtn) => {
-      if (backBtn.previousElementSibling && backBtn.previousElementSibling.dataset.studioMenu) return;
-      const menuBtn = createStudioMenuButton(studioDrawer.toggle);
-      menuBtn.dataset.studioMenu = '1';
-      backBtn.parentElement.insertBefore(menuBtn, backBtn);
-    });
   }
 
   function renderBrowseView() {
@@ -311,7 +299,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         template,
         layout: 'panel',
         onApply: ({ imageUrl }) => {
-          img.src = imageUrl + '?v=' + Date.now();
+          img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
           customThumbnailUrl = imageUrl;
           saveCustomThumbnailToCache(template.id, imageUrl);
         },
@@ -514,7 +502,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         template: currentTemplate,
         layout: 'panel',
         onApply: ({ imageUrl }) => {
-          img.src = imageUrl + '?v=' + Date.now();
+          img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
           customThumbnailUrl = imageUrl;
           saveCustomThumbnailToCache(currentTemplate.id, imageUrl);
         },

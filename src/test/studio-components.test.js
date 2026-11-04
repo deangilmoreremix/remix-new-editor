@@ -72,15 +72,15 @@ describe('prompt composer', () => {
 
   it('puts studio extras in a single ⋯ menu', () => {
     const wrap = document.createElement('div');
-    const aiPick = vi.fn();
-    const more = createMoreMenu([{ label: 'AI Pick', onSelect: aiPick }, { label: 'Personalize', onSelect: vi.fn() }]);
+    const thumbnail = vi.fn();
+    const more = createMoreMenu([{ label: 'Thumbnail', onSelect: thumbnail }, { label: 'Personalize', onSelect: vi.fn() }]);
     wrap.appendChild(more);
     document.body.appendChild(wrap);
     more.click();
     const labels = [...wrap.querySelectorAll('[role="menuitemradio"]')].map((r) => r.textContent);
-    expect(labels).toEqual(['AI Pick', 'Personalize']);
+    expect(labels).toEqual(['Thumbnail', 'Personalize']);
     wrap.querySelector('[role="menuitemradio"]').click();
-    expect(aiPick).toHaveBeenCalled();
+    expect(thumbnail).toHaveBeenCalled();
   });
 
   it('segmented control reports changes and marks the selected option', () => {

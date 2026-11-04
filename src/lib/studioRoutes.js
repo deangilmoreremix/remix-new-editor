@@ -117,7 +117,7 @@ export const STUDIO_ROUTES = {
   'brand-photo-studio': { label: 'Brand Photo Studio', category: 'Brand' },
   'studios/product-photo-studio': { label: 'Product Photo Studio', category: 'Pages' },
   'studios/fashion-studio': { label: 'Fashion Studio', category: 'Pages' },
-  openthorn: { label: 'OpenThorn', category: 'Pages' },
+  openthorn: { label: 'Smart Website Builder', category: 'Pages' },
 };
 
 // Ordered category groups for the drawer. 'Generate', 'Pages' and 'Brand'
@@ -144,6 +144,78 @@ export function getGroupedStudioRoutes() {
   return STUDIO_CATEGORIES
     .filter((c) => groups[c] && groups[c].length)
     .map((c) => ({ category: c, items: groups[c] }));
+}
+
+// The app's one studio menu (the left side menu). Edit this list to add,
+// rename, reorder or retire a studio in the navigation; the top bar and the
+// studio pages no longer carry their own menus.
+export const NAV_GROUPS = [
+  { title: '', items: [
+    { id: 'apps', label: 'Apps' },
+    { id: 'explore', label: 'Explore' },
+    { id: 'templates', label: 'Templates' },
+  ] },
+  { title: 'Image', items: [
+    { id: 'image', label: 'Image' },
+    { id: 'edit', label: 'Edit' },
+    { id: 'upscale', label: 'Upscale' },
+    { id: 'character', label: 'Character' },
+    { id: 'commercial', label: 'Product Shot' },
+    { id: 'brand', label: 'Brand' },
+  ] },
+  { title: 'Video', items: [
+    { id: 'video', label: 'Video' },
+    { id: 'cinema', label: 'Cinema' },
+    { id: 'cinema-template', label: 'Cinema Templates' },
+    { id: 'storyboard', label: 'Storyboard' },
+    { id: 'effects', label: 'Effects' },
+    { id: 'ai-vfx', label: 'AI VFX' },
+    { id: 'animate', label: 'Animate' },
+    { id: 'lipsync', label: 'Lip Sync' },
+    { id: 'videotools', label: 'Video Tools' },
+    { id: 'avatar', label: 'Avatar' },
+    { id: 'audio', label: 'Audio' },
+  ] },
+  { title: 'Agents', items: [
+    { id: 'video-agent', label: 'Video Agent' },
+    { id: 'director', label: 'Director' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'workbench', label: 'Workbench' },
+    { id: 'viral', label: 'Viral' },
+    { id: 'personalizer', label: 'Personalizer' },
+    { id: 'website-builder', label: 'Website' },
+  ] },
+  { title: 'My Work', items: [
+    { id: 'library', label: 'Library' },
+    { id: 'content-library', label: 'Content' },
+  ] },
+];
+
+// Routes that are part of a menu entry without being one themselves.
+const NAV_ALIASES = {
+  cinegen: 'workbench',
+  'video-agent-studio': 'video-agent',
+  'brand-dna': 'brand',
+  campaign: 'brand',
+  'campaign-page': 'brand',
+  'asset-edit': 'brand',
+  'photo-studio': 'brand',
+  'brand-photo-studio': 'brand',
+  'text-to-image': 'image',
+  'image-to-image': 'image',
+  'text-to-video': 'video',
+  'image-to-video': 'video',
+  'video-to-video': 'video',
+  'video-watermark': 'video',
+};
+
+// Which side-menu entry to highlight for a route (null when none applies).
+export function getNavItemForRoute(route) {
+  if (!route) return null;
+  const page = String(route).replace(/^#?\/?/, '').split('?')[0];
+  if (page.startsWith('template/')) return 'templates';
+  const id = NAV_ALIASES[page] || page;
+  return NAV_GROUPS.some((g) => g.items.some((it) => it.id === id)) ? id : null;
 }
 
 export default STUDIO_ROUTES;

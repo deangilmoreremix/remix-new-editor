@@ -41,7 +41,7 @@
   display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 28px; border-radius: var(--radius-full);
   font-family: var(--font-body); font-size: 15px; font-weight: 600;
-  color: #fff; background: var(--color-accent); border: none; cursor: pointer;
+  color: var(--color-accent-contrast); background: var(--color-accent); border: none; cursor: pointer;
   transition: filter 0.2s, transform 0.15s;
 }
 .configureBtn:hover { filter: brightness(1.08); }
@@ -80,7 +80,7 @@
   color: #34D399; background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2);
 }
 .modelPill svg { flex-shrink: 0; }
-.modelPillCustom { color: var(--color-accent); background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.2); }
+.modelPillCustom { color: var(--color-accent); background: rgba(217,255,0,0.08); border-color: rgba(217,255,0,0.2); }
 .modelRemove { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; color: inherit; opacity: 0.5; background: transparent; border: none; cursor: pointer; padding: 0; margin-left: 2px; }
 .modelRemove:hover { opacity: 1; background: rgba(255,255,255,0.1); }
 
@@ -137,7 +137,7 @@ select.addModelInput { appearance: none; cursor: pointer; }
 .saveBtn {
   padding: 12px 28px; border-radius: var(--radius-full);
   font-family: var(--font-body); font-size: 14px; font-weight: 600;
-  color: #fff; background: var(--color-accent); border: none; cursor: pointer;
+  color: var(--color-accent-contrast); background: var(--color-accent); border: none; cursor: pointer;
   transition: filter 0.2s, opacity 0.2s;
 }
 .saveBtn:hover:not(:disabled) { filter: brightness(1.08); }
@@ -220,11 +220,11 @@ select.addModelInput { appearance: none; cursor: pointer; }
 .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
 .toggleSlider { position: absolute; inset: 0; background: rgba(255,255,255,0.08); border-radius: 13px; transition: background 0.25s; }
 .toggleSlider::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--color-text-muted); transition: transform 0.25s, background 0.25s; }
-.toggle input:checked + .toggleSlider { background: rgba(139,92,246,0.35); }
+.toggle input:checked + .toggleSlider { background: rgba(217,255,0,0.35); }
 .toggle input:checked + .toggleSlider::after { transform: translateX(18px); background: var(--color-accent); }
 
 /* ===== Picker modal ===== */
-.pickerOverlay { position: fixed; inset: 0; z-index: 300; background: rgba(8,6,11,0.8); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
+.pickerOverlay { position: fixed; inset: 0; z-index: 300; background: rgba(5,5,5,0.8); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
 .pickerModal { width: 100%; max-width: 560px; background: var(--color-surface-overlay); border: 1px solid var(--color-border-visible); border-radius: var(--radius-xl); padding: 28px; box-shadow: 0 24px 64px rgba(0,0,0,0.5); }
 .pickerHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
 .pickerHeader h3 { font-size: 20px; font-weight: 700; color: var(--color-text); letter-spacing: 0; }
@@ -267,7 +267,7 @@ select.addModelInput { appearance: none; cursor: pointer; }
 .setupGuideLink {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
   padding: 9px 16px; border-radius: var(--radius-full);
-  font-size: 13px; font-weight: 600; color: #fff; text-decoration: none;
+  font-size: 13px; font-weight: 600; color: var(--color-accent-contrast); text-decoration: none;
   background: var(--color-accent); transition: filter 0.15s, transform 0.15s;
 }
 .setupGuideLink:hover { filter: brightness(1.08); }
@@ -297,7 +297,7 @@ select.addModelInput { appearance: none; cursor: pointer; }
     height: 56px;
     padding: 0 16px;
     z-index: 48;
-    background: rgba(18, 14, 19, 0.88);
+    background: rgba(10, 10, 10, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border);

@@ -581,15 +581,14 @@ describe('CinemaTemplateStudio feature tests', () => {
     expect(grid).not.toBeNull();
   });
 
-  it('adds studio menu button next to back button', async () => {
+  it('does not add its own studio menu (the side menu is the only one)', async () => {
     mount();
     await new Promise(r => setTimeout(r, 50));
 
     const backBtn = container.querySelector('#back-btn');
     expect(backBtn).not.toBeNull();
-    // The menu button should be inserted before the back button
-    const menuBtn = backBtn.previousElementSibling;
-    expect(menuBtn).not.toBeNull();
+    expect(container.querySelector('[data-studio-menu]')).toBeNull();
+    expect(document.querySelector('[data-studio-drawer]')).toBeNull();
   });
 
   it('renders template card with hover effect', async () => {

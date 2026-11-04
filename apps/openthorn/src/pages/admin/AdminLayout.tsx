@@ -1,6 +1,7 @@
 import { NavLink, Outlet, Link } from 'react-router-dom'
 import { usePageTitle } from '../../lib/usePageTitle'
 import styles from './AdminLayout.module.css'
+import BrandLogo from '../../components/BrandLogo/BrandLogo'
 
 const NAV_ITEMS = [
   { to: '/admin', label: 'Moderation', end: true },
@@ -18,7 +19,7 @@ export default function AdminLayout() {
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
         <Link to="/dashboard" className={styles.logo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.logoImg} />
+          <BrandLogo className={styles.logoImg} />
           <span className={styles.logoText}>Admin</span>
         </Link>
         <nav className={styles.nav}>

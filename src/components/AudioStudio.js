@@ -6,9 +6,10 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
@@ -529,6 +530,9 @@ export function AudioStudio() {
   let toneValue = 'neutral';
   let emotionValue = 'none';
   let customThumbnailUrl = getCustomThumbnailFromCache('audio-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'audio-studio' });
   let schemaParams = {};
   let internalHistory = [];
   let activeResultUrl = null;
@@ -725,7 +729,7 @@ export function AudioStudio() {
             promptInput.value = p;
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
-          });
+          }, { basePrompt: promptInput.value });
         }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
         openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
@@ -935,12 +939,14 @@ export function AudioStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'audio-studio',
+      layout: 'panel',
       studioId: 'audio-studio',
       studioName: 'Audio Studio',
-      aspectRatio: '16:9',
-      outputType: 'image',
+      // Cover art for a track — square fits players and social posts.
+      aspectRatio: '1:1',
+      outputType: 'audio',
       onApply: ({ imageUrl }) => {
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache('audio-studio', imageUrl);
@@ -950,7 +956,7 @@ export function AudioStudio() {
         clearCustomThumbnailCache('audio-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   formCard.appendChild(thumbBtn);

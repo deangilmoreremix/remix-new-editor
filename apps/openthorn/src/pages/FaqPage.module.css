@@ -15,7 +15,7 @@
   transform: translateX(-50%);
   width: 720px;
   height: 480px;
-  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.1), transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(217, 255, 0, 0.1), transparent 70%);
   pointer-events: none;
 }
 
@@ -125,7 +125,7 @@
 
 .itemOpen {
   border-color: var(--color-border-glow);
-  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.08);
+  box-shadow: 0 8px 28px rgba(217, 255, 0, 0.08);
 }
 
 .question {

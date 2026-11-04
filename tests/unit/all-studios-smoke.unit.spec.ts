@@ -167,10 +167,6 @@ vi.mock('../../src/components/studios/ExampleGallery.js', () => ({
   default: vi.fn(() => document.createElement('div')),
 }));
 
-vi.mock('../../src/lib/modelPickerIntegration.js', () => ({
-  openModelPicker: vi.fn(() => Promise.resolve()),
-}));
-
 vi.mock('../../src/lib/studioControls.js', () => ({
   createAdvancedControls: vi.fn(() => document.createElement('div')),
 }));

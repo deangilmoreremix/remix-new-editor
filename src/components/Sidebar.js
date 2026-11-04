@@ -1,55 +1,14 @@
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { getStudioIcon } from '../lib/studioRoutes.js';
+import { getStudioIcon, NAV_GROUPS, getNavItemForRoute } from '../lib/studioRoutes.js';
 
 export function Sidebar(navigate) {
   const element = document.createElement('aside');
   element.className = 'hidden md:flex flex-col items-center py-4 z-40 border-r border-white/5 bg-panel-bg overflow-y-auto custom-scrollbar';
   element.style.width = '68px';
 
-  // Side menu, grouped by what the studio makes. Icons come from the shared
-  // route table so the sidebar, the in-studio drawer and the top bar agree.
-  // Training, Chat, Assist, Stock Media and Community were retired from the menu.
-  const navGroups = [
-    { title: '', items: [
-      { id: 'apps', label: 'Apps' },
-      { id: 'explore', label: 'Explore' },
-      { id: 'templates', label: 'Templates' },
-    ] },
-    { title: 'Image', items: [
-      { id: 'image', label: 'Image' },
-      { id: 'edit', label: 'Edit' },
-      { id: 'upscale', label: 'Upscale' },
-      { id: 'character', label: 'Character' },
-      { id: 'commercial', label: 'Product Shot' },
-      { id: 'brand', label: 'Brand' },
-    ] },
-    { title: 'Video', items: [
-      { id: 'video', label: 'Video' },
-      { id: 'cinema', label: 'Cinema' },
-      { id: 'cinema-template', label: 'Cinema Templates' },
-      { id: 'storyboard', label: 'Storyboard' },
-      { id: 'effects', label: 'Effects' },
-      { id: 'ai-vfx', label: 'AI VFX' },
-      { id: 'animate', label: 'Animate' },
-      { id: 'lipsync', label: 'Lip Sync' },
-      { id: 'videotools', label: 'Video Tools' },
-      { id: 'avatar', label: 'Avatar' },
-      { id: 'audio', label: 'Audio' },
-    ] },
-    { title: 'Agents', items: [
-      { id: 'video-agent', label: 'Video Agent' },
-      { id: 'director', label: 'Director' },
-      { id: 'timeline', label: 'Timeline' },
-      { id: 'workbench', label: 'Workbench' },
-      { id: 'viral', label: 'Viral' },
-      { id: 'personalizer', label: 'Personalizer' },
-      { id: 'website-builder', label: 'Website' },
-    ] },
-    { title: 'My Work', items: [
-      { id: 'library', label: 'Library' },
-      { id: 'content-library', label: 'Content' },
-    ] },
-  ].map((g) => ({ ...g, items: g.items.map((it) => ({ ...it, icon: getStudioIcon(it.id) })) }));
+  // The app's only studio menu. The list lives in src/lib/studioRoutes.js
+  // (NAV_GROUPS) so there is one place to add, rename or retire a studio.
+  const navGroups = NAV_GROUPS.map((g) => ({ ...g, items: g.items.map((it) => ({ ...it, icon: getStudioIcon(it.id) })) }));
 
   const bottomItems = [
     { id: 'settings', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>', label: 'Settings' },
@@ -69,12 +28,6 @@ export function Sidebar(navigate) {
     label.textContent = item.label;
     label.className = 'text-[9px] leading-tight text-center font-bold uppercase tracking-wider text-secondary group-hover:text-white transition-colors';
 
-    if (item.id === 'image') {
-      iconBtn.style.color = 'var(--color-primary)';
-      iconBtn.classList.add('bg-primary/10');
-      label.style.color = 'var(--color-primary)';
-    }
-
     container.onclick = () => {
       if (item.id === 'settings') {
         const event = new CustomEvent('navigate', { detail: { page: 'settings' } });
@@ -90,7 +43,8 @@ export function Sidebar(navigate) {
 
     container.appendChild(iconBtn);
     container.appendChild(label);
-    buttons[item.id] = { iconBtn, label };
+    container.dataset.sidebarItem = item.id;
+    buttons[item.id] = { container, iconBtn, label };
     return container;
   };
 
@@ -113,22 +67,33 @@ export function Sidebar(navigate) {
   bottomItems.forEach(item => bottomContainer.appendChild(createButton(item)));
   element.appendChild(bottomContainer);
 
-  element.addEventListener('route-changed', (e) => {
-    const page = e.detail.page;
-    const mappedPage = page === 'cinegen' ? 'workbench' : page.startsWith('template/') ? 'apps' : (['brand-dna', 'campaign', 'campaign-page', 'asset-edit', 'photo-studio', 'brand-photo-studio'].includes(page) ? 'brand' : (page === 'video-agent-studio' ? 'video-agent' : page));
-
-    Object.entries(buttons).forEach(([id, { iconBtn, label }]) => {
-      if (id === mappedPage) {
-        iconBtn.style.color = 'var(--color-primary)';
-        iconBtn.classList.add('bg-primary/10');
-        label.style.color = 'var(--color-primary)';
+  const setActive = (page) => {
+    const activeId = getNavItemForRoute(page);
+    Object.entries(buttons).forEach(([id, { container, iconBtn, label }]) => {
+      const active = id === activeId;
+      iconBtn.style.color = active ? 'var(--color-primary)' : '';
+      iconBtn.classList.toggle('bg-primary/10', active);
+      label.style.color = active ? 'var(--color-primary)' : '';
+      if (active) {
+        container.setAttribute('aria-current', 'page');
+        // Keep the current studio visible in the scrolling menu without
+        // scrolling the page itself.
+        requestAnimationFrame(() => {
+          const box = element.getBoundingClientRect();
+          const item = container.getBoundingClientRect();
+          const top = item.top - box.top + element.scrollTop;
+          const bottom = top + item.height;
+          if (top < element.scrollTop) element.scrollTop = Math.max(0, top - 8);
+          else if (bottom > element.scrollTop + element.clientHeight) element.scrollTop = bottom - element.clientHeight + 8;
+        });
       } else {
-        iconBtn.style.color = '';
-        iconBtn.classList.remove('bg-primary/10');
-        label.style.color = '';
+        container.removeAttribute('aria-current');
       }
     });
-  });
+  };
+
+  setActive(typeof window !== 'undefined' ? window.location.hash.slice(2) : '');
+  element.addEventListener('route-changed', (e) => setActive(e.detail.page));
 
   // Mobile menu toggle button. On desktop the sidebar is always visible (via
   // the `hidden md:flex` class), so this button is `md:hidden` and only
@@ -147,7 +112,8 @@ export function Sidebar(navigate) {
   const openSidebar = () => {
     sidebarOpen = true;
     element.style.display = 'flex';
-    element.style.paddingLeft = '52px';
+    // Start the list below the fixed hamburger instead of beside it.
+    element.style.paddingTop = '64px';
     element.classList.add('fixed', 'inset-y-0', 'left-0', 'z-50');
     backdrop.classList.remove('hidden');
   };
@@ -155,7 +121,7 @@ export function Sidebar(navigate) {
     if (!sidebarOpen) return;
     sidebarOpen = false;
     element.style.display = '';
-    element.style.paddingLeft = '';
+    element.style.paddingTop = '';
     element.classList.remove('fixed', 'inset-y-0', 'left-0', 'z-50');
     backdrop.classList.add('hidden');
   };

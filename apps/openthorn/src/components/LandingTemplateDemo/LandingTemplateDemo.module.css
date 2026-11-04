@@ -174,7 +174,7 @@
   border-radius: 999px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--color-accent-contrast);
   background: var(--color-accent);
   border: none;
   cursor: pointer;

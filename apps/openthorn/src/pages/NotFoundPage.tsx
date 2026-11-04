@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { usePageTitle } from '../lib/usePageTitle'
 import styles from './NotFoundPage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
 
 export default function NotFoundPage() {
   usePageTitle('Page Not Found', {
@@ -9,7 +10,7 @@ export default function NotFoundPage() {
   return (
     <div className={styles.root}>
       <div className={styles.inner}>
-        <img src="/assets/logo.png" alt="Smart Video" className={styles.logo} />
+        <BrandLogo className={styles.logo} />
         <span className={styles.code} aria-hidden="true">404</span>
         <h1 className={styles.title}>This page wandered off</h1>
         <p className={styles.message}>
@@ -17,7 +18,7 @@ export default function NotFoundPage() {
         </p>
         <div className={styles.actions}>
           <Link to="/" className={styles.button}>
-            Back to Smart Video
+            Back to Smart Website Builder
           </Link>
           <Link to="/faq" className={styles.ghostLink}>
             Visit the FAQ

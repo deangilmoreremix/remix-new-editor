@@ -15,7 +15,6 @@ import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
-import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
@@ -116,41 +115,6 @@ export function TemplateStudio(templateId) {
   const main = document.createElement('main');
   main.className = 'flex-1';
 
-  // Top nav row
-  const navHeader = document.createElement('div');
-  navHeader.className = 'border-b border-white/5 px-6 py-4';
-  navHeader.innerHTML = `
-    <div class="flex items-center gap-3">
-      <div id="studio-menu-slot"></div>
-      <div class="flex items-center gap-8 overflow-x-auto text-sm text-zinc-400">
-        <button class="hover:text-white transition" data-nav="explore">Explore</button>
-        <button class="hover:text-white transition" data-nav="image">Image</button>
-        <button class="hover:text-white transition" data-nav="video">Video</button>
-        <button class="hover:text-white transition" data-nav="tools">Storyboard</button>
-        <button class="hover:text-white transition" data-nav="edit">Edit</button>
-        <button class="hover:text-white transition" data-nav="character">Character</button>
-        <button class="hover:text-white transition" data-nav="effects">Effects Studio</button>
-        <button class="hover:text-white transition" data-nav="cinema">Cinema Studio</button>
-        <button class="hover:text-white transition" data-nav="influencer">AI Influencer</button>
-        <button class="hover:text-white transition" data-nav="apps">Apps</button>
-        <button class="text-white font-semibold" data-nav="templates">Templates</button>
-        <button class="hover:text-white transition" data-nav="assist">Assist</button>
-        <button class="hover:text-white transition" data-nav="community">Community</button>
-      </div>
-    </div>
-  `;
-  main.appendChild(navHeader);
-
-  // All-studios side menu (drawer) — opened via the menu icon
-  const drawer = mountStudioDrawer(document.body, { currentRoute: 'templates' });
-  const menuSlot = navHeader.querySelector('#studio-menu-slot');
-  if (menuSlot) menuSlot.appendChild(createStudioMenuButton(drawer.toggle));
-
-  // Add nav click handlers
-  navHeader.querySelectorAll('[data-nav]').forEach(btn => {
-    btn.onclick = () => navigate(btn.dataset.nav);
-  });
-
   // Content area with padding
   const contentArea = document.createElement('div');
   contentArea.className = 'px-8 py-10';
@@ -158,7 +122,7 @@ export function TemplateStudio(templateId) {
   // Back button
   const backBtn = document.createElement('button');
   backBtn.className = 'mb-10 text-sm text-zinc-400 transition hover:text-white';
-  backBtn.innerHTML = '&larr; Back to Apps';
+  backBtn.innerHTML = '&larr; Back to Templates';
   backBtn.onclick = () => navigate('templates');
   contentArea.appendChild(backBtn);
 
@@ -209,7 +173,7 @@ export function TemplateStudio(templateId) {
       template,
       layout: 'panel',
       onApply: ({ imageUrl, revisedPrompt }) => {
-        img.src = imageUrl + '?v=' + Date.now();
+        img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache(template.id, imageUrl);
         if (revisedPrompt && primaryPromptField) {

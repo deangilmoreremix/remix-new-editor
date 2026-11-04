@@ -9,6 +9,7 @@ import type { ProjectData } from "./types";
 import { exportProjectOnWeb, explainExportError } from "./host/webExport";
 import { notifyExported } from "./host/bridge";
 import { ChatPanel } from "./panels/ChatPanel";
+import { ACCEPT, addFiles, useUploads } from "./host/uploads";
 import { applyLocaleToDocument, LOCALES, useLocale, useT, type Locale } from "./i18n";
 
 const isEditable = (el: EventTarget | null) =>
@@ -112,6 +113,39 @@ const ExportButton: React.FC = () => {
   );
 };
 
+/** SmartVid: upload the user's own videos / images / audio (also: drag files anywhere). */
+const UploadButton: React.FC = () => {
+  const ref = useRef<HTMLInputElement>(null);
+  const items = useUploads((s) => s.items);
+  const uploading = items.filter((i) => i.state === "uploading").length;
+  const last = items[items.length - 1];
+  const status =
+    uploading > 0 ? `Uploading ${uploading}…`
+    : last?.state === "error" ? `⚠ ${last.message}`
+    : last?.state === "local" ? `⚠ ${last.name}: ${last.message}`
+    : last?.state === "done" ? "✓ Saved to your library" : "";
+  return (
+    <>
+      <button className="btn" onClick={() => ref.current?.click()} title="Add videos, images or audio from your computer (or drag files onto the timeline)">
+        ⬆ Upload
+      </button>
+      {status && <span className={`upload-status${last?.state === "error" || last?.state === "local" ? " warn" : ""}`} title={status}>{status}</span>}
+      <input
+        ref={ref}
+        type="file"
+        multiple
+        accept={ACCEPT}
+        style={{ display: "none" }}
+        aria-label="Upload media"
+        onChange={(e) => {
+          if (e.target.files?.length) void addFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
+    </>
+  );
+};
+
 export const App: React.FC = () => {
   const t = useT();
   const locale = useLocale((s) => s.locale);
@@ -157,7 +191,23 @@ export const App: React.FC = () => {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Files dropped anywhere else (preview, library…) are appended to the project, and
+    // the browser never navigates away to the dropped file.
+    const onDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes("Files")) e.preventDefault();
+    };
+    const onDrop = (e: DragEvent) => {
+      if (!e.dataTransfer?.files?.length) return;
+      e.preventDefault();
+      void addFiles(e.dataTransfer.files);
+    };
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("drop", onDrop);
+    };
   }, []);
 
   const exportJson = () => {
@@ -192,6 +242,8 @@ export const App: React.FC = () => {
           spellCheck={false}
         />
         <span style={{ flex: 1 }} />
+        <UploadButton />
+        <span className="tl-sep" />
         <button className="btn" disabled={!canUndo} onClick={undo} title={t("undo.title")}>
           {t("undo")}
         </button>

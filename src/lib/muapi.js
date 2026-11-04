@@ -236,7 +236,9 @@ export class MuapiClient {
         if (params.cfg_scale !== undefined && params.cfg_scale !== 0.5) finalPayload.cfg_scale = params.cfg_scale;
         if (params.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = params.thumbnail_url;
         if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Forward any tool-specific params defined in the model's input schema
@@ -460,7 +462,9 @@ export class MuapiClient {
         if (params.cfg_scale !== undefined && params.cfg_scale !== 0.5) finalPayload.cfg_scale = params.cfg_scale;
         if (params.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = params.thumbnail_url;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -969,7 +973,8 @@ export class MuapiClient {
         if (params.video_url) finalPayload.video_url = params.video_url;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
-        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = params.thumbnail_url;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -1703,7 +1708,8 @@ export class MuapiClient {
         if (params.video_url) finalPayload.video_url = params.video_url;
         if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
-        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = params.thumbnail_url;
         if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Native audio

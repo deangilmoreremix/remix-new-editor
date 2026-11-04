@@ -197,3 +197,25 @@ describe('studio completion points stay wired to the Workbench', () => {
     expect(fs.readFileSync(`src/components/${file}`, 'utf8')).toContain(call);
   });
 });
+
+describe('Workbench uploads from the computer', () => {
+  it('recognises media by MIME type or extension', async () => {
+    const { kindOfFile } = await import('../../apps/shotcraft/workbench/src/host/uploadRules.ts');
+    expect(kindOfFile({ type: 'video/mp4', name: 'a.mp4' })).toBe('video');
+    expect(kindOfFile({ type: 'image/png', name: 'a.png' })).toBe('image');
+    expect(kindOfFile({ type: 'audio/mpeg', name: 'a.mp3' })).toBe('audio');
+    expect(kindOfFile({ type: '', name: 'clip.MOV' })).toBe('video');
+    expect(kindOfFile({ type: '', name: 'song.m4a' })).toBe('audio');
+    expect(kindOfFile({ type: 'text/plain', name: 'notes.txt' })).toBeNull();
+  });
+
+  it('applies the same size limits as SmartVid uploads', async () => {
+    const { checkFile, UPLOAD_LIMITS } = await import('../../apps/shotcraft/workbench/src/host/uploadRules.ts');
+    const { UPLOAD_LIMITS: SV } = await import('../lib/editor/uploadLimits.js');
+    expect(UPLOAD_LIMITS).toEqual({ image: SV.image, video: SV.video, audio: SV.audio });
+    const big = { name: 'big.png', type: 'image/png', size: SV.image + 1 };
+    expect(checkFile(big).error).toMatch(/too large \(max 10 MB for image\)/);
+    expect(checkFile({ name: 'ok.mp4', type: 'video/mp4', size: 1024 })).toEqual({ kind: 'video' });
+    expect(checkFile({ name: 'x.txt', type: 'text/plain', size: 3 }).error).toMatch(/isn't a video, image or audio/);
+  });
+});

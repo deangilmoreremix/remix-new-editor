@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { T, RPC } from './tables'
 
 export interface AdminUserRow {
   id: string
@@ -16,7 +17,7 @@ export type AdminUserAction = 'suspend-user' | 'unsuspend-user' | 'delete-user'
 
 /** All users with per-user counts. Server-side admin check via RPC. */
 export async function adminListUsers(): Promise<AdminUserRow[]> {
-  const { data, error } = await supabase.rpc('admin_list_users')
+  const { data, error } = await supabase.rpc(RPC.admin_list_users)
   if (error) throw new Error(error.message)
   return (data ?? []) as AdminUserRow[]
 }
@@ -42,7 +43,7 @@ export async function adminUserAction(action: AdminUserAction, userId: string): 
 /** Toggle a user's permission to publish to the community (direct, via admin RLS). */
 export async function adminSetPublishBanned(userId: string, banned: boolean): Promise<void> {
   const { error } = await supabase
-    .from('profiles')
+    .from(T.profiles)
     .update({ publish_banned: banned })
     .eq('id', userId)
   if (error) throw new Error(error.message)

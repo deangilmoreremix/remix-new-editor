@@ -7,6 +7,7 @@
 //   → sv:import-assets  generations handed off by "Edit in Workbench" / the picker
 //   ← sv:ready
 //   ← sv:exported       in-browser rendered MP4 → uploaded and saved to the library
+//   ← sv:upload         user's own file → uploaded to storage → sv:uploaded / sv:upload-failed
 import { mountStudioChrome } from '../../../lib/studioChrome.js';
 import { WORKBENCH_APP_PATH, consumeWorkbenchHandoff, isWorkbenchEligible, toWorkbenchAsset } from '../../../lib/workbench.js';
 import { loadGenerationHistory, saveGeneration } from '../../../lib/generationHistory.js';
@@ -91,6 +92,23 @@ export function WorkbenchStudio() {
     }
   }
 
+  // The user's own files (Upload button / drag from desktop): store them so the clip
+  // keeps working after a reload, then hand the permanent URL back to the Workbench.
+  async function uploadUserFile(id, blob, kind) {
+    const category = ['video', 'image', 'audio'].includes(kind) ? kind : undefined;
+    const file = blob instanceof File ? blob : new File([blob], `upload-${Date.now()}`, { type: blob.type });
+    setStatus(`Uploading ${file.name}…`);
+    try {
+      const userId = window.Clerk?.user?.id;
+      const { url } = await uploadFileToSupabase(file, { category, ...(userId ? { userId } : {}) });
+      post({ type: 'sv:uploaded', id, url });
+      setStatus(`${file.name} saved`);
+    } catch (e) {
+      post({ type: 'sv:upload-failed', id, error: e?.message || 'upload failed' });
+      setStatus(`Couldn't save ${file.name} — ${e?.message || 'upload failed'}`);
+    }
+  }
+
   const onMessage = (e) => {
     if (e.origin !== window.location.origin || e.source !== iframe.contentWindow) return;
     const d = e.data;
@@ -105,6 +123,8 @@ export function WorkbenchStudio() {
         pending = null;
         sendAssets(p.assets, p.mode || 'new', p.name);
       }
+    } else if (d.type === 'sv:upload' && typeof d.id === 'string' && d.file instanceof Blob) {
+      uploadUserFile(d.id, d.file, d.kind);
     } else if (d.type === 'sv:exported' && d.blob instanceof Blob) {
       saveExport(d.blob, typeof d.name === 'string' ? d.name : 'workbench.mp4');
     }

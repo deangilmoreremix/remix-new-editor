@@ -15,7 +15,7 @@
   transform: translateX(-50%);
   width: 760px;
   height: 460px;
-  background: radial-gradient(ellipse at center, rgba(246, 193, 119, 0.06), rgba(139, 92, 246, 0.07) 40%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(217, 255, 0, 0.06), rgba(217, 255, 0, 0.07) 40%, transparent 70%);
   pointer-events: none;
 }
 
@@ -128,11 +128,11 @@
 
 .legendFeatured {
   background: var(--color-warm-accent);
-  box-shadow: 0 0 18px rgba(246, 193, 119, 0.35);
+  box-shadow: 0 0 18px rgba(217, 255, 0, 0.35);
 }
 
 .legendStandard {
-  background: rgba(201, 193, 211, 0.48);
+  background: rgba(161, 161, 170, 0.48);
 }
 
 .storyGrid {
@@ -199,20 +199,20 @@
 
 .bestValue {
   --role-color: var(--color-warm-accent);
-  --role-bg: rgba(246, 193, 119, 0.11);
-  --role-border: rgba(246, 193, 119, 0.28);
+  --role-bg: rgba(217, 255, 0, 0.11);
+  --role-border: rgba(217, 255, 0, 0.28);
 }
 
 .highestQuality {
   --role-color: var(--color-accent);
-  --role-bg: rgba(167, 139, 250, 0.12);
-  --role-border: rgba(167, 139, 250, 0.32);
+  --role-bg: rgba(217, 255, 0, 0.12);
+  --role-border: rgba(217, 255, 0, 0.32);
 }
 
 .cheapestUsable {
   --role-color: var(--color-secondary);
-  --role-bg: rgba(94, 234, 212, 0.1);
-  --role-border: rgba(94, 234, 212, 0.26);
+  --role-bg: rgba(217, 255, 0, 0.1);
+  --role-border: rgba(217, 255, 0, 0.26);
 }
 
 .storyCard.bestValue,
@@ -337,7 +337,7 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: rgba(201, 193, 211, 0.72);
+  background: rgba(161, 161, 170, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.32);
   transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
   flex-shrink: 0;
@@ -358,7 +358,7 @@
 .dot:hover .dotCircle {
   transform: scale(1.45);
   opacity: 1;
-  box-shadow: 0 0 28px rgba(94, 234, 212, 0.38);
+  box-shadow: 0 0 28px rgba(217, 255, 0, 0.38);
 }
 
 .dotFeatured:hover .dotCircle {
@@ -374,7 +374,7 @@
   max-width: 138px;
   padding: 4px 7px;
   border-radius: 8px;
-  background: rgba(9, 7, 11, 0.74);
+  background: rgba(5, 5, 5, 0.74);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(8px);
   font-size: 10.5px;
@@ -390,7 +390,7 @@
   min-width: 126px;
   color: var(--color-text);
   border-color: var(--role-border);
-  background: rgba(9, 7, 11, 0.9);
+  background: rgba(5, 5, 5, 0.9);
 }
 
 .dotBadge {
@@ -438,7 +438,7 @@
   letter-spacing: 0.07em;
   color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-border-visible);
-  background: rgba(18, 14, 19, 0.96);
+  background: rgba(10, 10, 10, 0.96);
   backdrop-filter: blur(10px);
 }
 
@@ -466,7 +466,7 @@
 }
 
 .highlightRow td {
-  background: rgba(246, 193, 119, 0.035);
+  background: rgba(217, 255, 0, 0.035);
 }
 
 .highlightCardsRow {
@@ -494,7 +494,7 @@
 }
 
 .highlightCard.bestValue {
-  border-top-color: #f6c177;
+  border-top-color: #d9ff00;
 }
 
 .highlightCard.highestQuality {
