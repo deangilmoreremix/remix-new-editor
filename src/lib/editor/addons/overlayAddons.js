@@ -13,7 +13,8 @@
  * composites every overlay active at the playhead above the video.
  */
 import { registerAddon } from './registry.js';
-import { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS } from './overlayData.js';
+import { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, VIDEO_TRANSITIONS } from './overlayData.js';
+import { TRANSITION_CATEGORIES } from './stockMedia.js';
 import { LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';
 
 const ICON = (name) => `/static/images/toolbar/${name}.svg`;
@@ -325,6 +326,51 @@ export const LOWER_THIRD = registerAddon({
   summary: (o) => `Lower third: ${String(o.name || '').slice(0, 30)}`,
 });
 
+// Upstream "Overlays" (CREATIVE, lib/popcorn/plugins/jsonTransition): a
+// full-screen animation over a cut. Here the animations are Pixabay
+// transition videos (light leaks, film burns, glitches, wipes) blended with
+// "screen" so their black background disappears.
+export const OVERLAY_TRANSITION = registerAddon({
+  ...BASE,
+  type: 'overlay-transition',
+  label: 'Overlay Transitions',
+  icon: '✨',
+  iconSrc: ICON('overlay'),
+  section: 'Creative',
+  description: 'Full-screen light leaks, film burns, glitches and wipes over a cut (videos from Pixabay or Pexels).',
+  defaultDuration: 3,
+  needsPicker: 'src',
+  defaults: () => ({
+    src: '', preview: '', thumbnail: '', name: '', pixabayId: null, pageURL: '',
+    durationSec: 3, blendMode: 'screen', opacity: 100,
+  }),
+  fields: [
+    { key: 'src', label: 'Transition', type: 'videoPicker', categories: TRANSITION_CATEGORIES },
+    ...LOOK_FIELDS(),
+  ],
+  summary: (o) => (o.name ? `FX: ${o.name}` : 'Overlay Transition'),
+});
+
+// Upstream "Transitions" (lib/popcorn/plugins/videoTransition): a WebGL
+// blend from one clip into the next using gl-transitions shaders.
+export const VIDEO_TRANSITION = registerAddon({
+  ...BASE,
+  type: 'overlay-video-transition',
+  label: 'Video Transitions',
+  icon: '🔀',
+  iconSrc: ICON('transitions'),
+  section: 'Creative',
+  description: '125 GPU transitions (dissolve, swirl, page curl, zoom…) that blend one clip into the next across a cut.',
+  defaultDuration: 1,
+  defaults: () => ({ transition: 'fade', opacity: 100, blendMode: 'normal' }),
+  fields: [
+    { key: 'transition', label: 'Transition', type: 'select', options: VIDEO_TRANSITIONS },
+    ...LOOK_FIELDS(),
+  ],
+  summary: (o) => `Transition: ${(VIDEO_TRANSITIONS.find(([v]) => v === o.transition) || [null, o.transition])[1]}`,
+});
+
 // Upstream toolbar order: BASIC (Smart Text, Text Mask, Personalized Image,
-// Image, Stickers) then CREATIVE (Wrapper, Lower Thirds).
-export const OVERLAY_ADDONS = [SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD];
+// Image, Stickers) then CREATIVE (Wrapper, Lower Thirds, Overlays,
+// Transitions).
+export const OVERLAY_ADDONS = [SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD, OVERLAY_TRANSITION, VIDEO_TRANSITION];

@@ -14,9 +14,10 @@ describe('overlay registry (upstream toolbar)', () => {
     expect(OVERLAY_ADDONS.map((a) => [a.label, a.section])).toEqual([
       ['Smart Text', 'Basic'], ['Text Mask', 'Basic'], ['Personalized Image', 'Basic'],
       ['Image', 'Basic'], ['Stickers', 'Basic'], ['Wrapper', 'Creative'], ['Lower Thirds', 'Creative'],
+      ['Overlay Transitions', 'Creative'], ['Video Transitions', 'Creative'],
     ]);
     expect(OVERLAY_ADDONS.map((a) => a.iconSrc.split('/').pop())).toEqual([
-      'vrText.svg', 'textMask.svg', 'vrImage.svg', 'image.svg', 'stickers.svg', 'background.svg', 'lowerThirds.svg',
+      'vrText.svg', 'textMask.svg', 'vrImage.svg', 'image.svg', 'stickers.svg', 'background.svg', 'lowerThirds.svg', 'overlay.svg', 'transitions.svg',
     ]);
     OVERLAY_ADDONS.forEach((a) => expect(a.category).toBe('overlay'));
   });

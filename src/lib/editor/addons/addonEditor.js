@@ -42,6 +42,28 @@ const POSITION_PRESETS = [
 ];
 const STICKER_TABS = [['emoticons', 'Emoticons'], ['shapes', 'Shapes'], ['animatedEmoji', 'Animated emoji'], ['animated', 'Your file']];
 
+/** Stock photo search (Pixabay / Pexels) inside an image field. */
+function renderImageStock(field, ui, services) {
+  const sources = services.stockSources || [['pixabay', 'Pixabay']];
+  const source = ui.imgSource || sources[0][0];
+  const query = ui.imgQuery || '';
+  const res = (ui.imgResults || {})[`${source}:${query}`];
+  const label = (sources.find(([id]) => id === source) || [source, source])[1];
+  let grid = '';
+  if (query) {
+    if (!res || res.loading) grid = '<p class="addon-field__hint">Loading…</p>';
+    else if (res.error) grid = `<p class="addon-field__hint addon-field__hint--error">${esc(res.error)}</p>`;
+    else if (!res.items.length) grid = '<p class="addon-field__hint">No images found.</p>';
+    else grid = `<div class="addon-image-library" role="list">${res.items.map((it, i) => `<button type="button" role="listitem" class="addon-image-thumb" data-stock-image="${i}" data-pick-key="${field.key}" title="${esc(it.name)}${it.user ? ` by ${esc(it.user)}` : ''}" style="background-image:url(${esc(JSON.stringify(String(it.thumbnail || '')))})"></button>`).join('')}</div>`;
+  }
+  return `<div class="addon-image-stock">
+    <div class="addon-tabs">${sources.map(([id, l]) => `<button type="button" class="mini-btn addon-tab${id === source ? ' active' : ''}" data-img-source="${id}">${esc(l)}</button>`).join('')}</div>
+    <div class="addon-video-search"><input type="search" class="addon-img-query" placeholder="Search ${esc(label)} images" value="${esc(query)}"/><button type="button" class="mini-btn" data-img-search="1">Search</button></div>
+    ${grid}
+    ${query ? `<p class="addon-field__hint addon-source-label">Images from <a href="${source === 'pexels' ? 'https://www.pexels.com' : 'https://pixabay.com'}" target="_blank" rel="noopener noreferrer">${esc(label)}</a></p>` : ''}
+  </div>`;
+}
+
 function renderField(field, options, idPrefix, ui = {}, services = {}) {
   const value = getPath(options, field.key);
   const id = `${idPrefix}-${field.key.replace(/\./g, '-')}`;
@@ -78,6 +100,7 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
           <label class="mini-btn addon-upload-btn">Upload<input type="file" accept="image/*" data-image-upload="${field.key}" hidden /></label>
         </div>
         ${media.length ? `<div class="addon-image-library" role="list" aria-label="Media library images">${media.map((m) => `<button type="button" role="listitem" class="addon-image-thumb" data-image-pick="${esc(m.src)}" data-pick-key="${field.key}" title="${esc(m.name || '')}" style="background-image:url(${esc(JSON.stringify(String(m.src)))})"></button>`).join('')}</div>` : ''}
+        ${typeof services.searchStock === 'function' ? renderImageStock(field, ui, services) : ''}
       </div>`;
     }
     case 'animation': {
@@ -94,6 +117,39 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
       return `<div class="clip-editor__field addon-field addon-field--position"><label>${esc(field.label)}</label>
         <div class="addon-position-grid">${POSITION_PRESETS.map(([v, icon, title]) => `<button type="button" class="mini-btn" data-position-key="${field.key}" data-position-value="${v}" title="${title}" aria-label="${title}">${icon}</button>`).join('')}</div>
       </div>`;
+    case 'videoPicker': {
+      // Overlay transition videos from Pixabay / Pexels. Results load
+      // asynchronously through services.searchTransitions and are kept in
+      // ui.vp so redraws don't refetch.
+      const sources = services.stockSources || [['pixabay', 'Pixabay']];
+      const source = ui.vpSource || sources[0][0];
+      const cats = field.categories || [];
+      const tab = ui.vpTab || cats[0]?.[0] || 'search';
+      const query = tab === 'search' ? (ui.vpQuery || '') : (cats.find(([id]) => id === tab)?.[2] || '');
+      const key = `${source}:${query}`;
+      const result = (ui.vp || {})[key];
+      const sourceLabel = (sources.find(([id]) => id === source) || [source, source])[1];
+      const sourceHome = source === 'pexels' ? 'https://www.pexels.com' : 'https://pixabay.com';
+      const current = options.src
+        ? `<div class="addon-video-current"><video src="${esc(options.preview || options.src)}" muted loop autoplay playsinline></video><span>${esc(options.name || 'Selected')}</span></div>`
+        : '';
+      let grid;
+      if (!query) grid = '<p class="addon-field__hint">Type a search, e.g. "light leak", "film burn", "glitch".</p>';
+      else if (!result || result.loading) grid = '<p class="addon-field__hint">Loading…</p>';
+      else if (result.error) grid = `<p class="addon-field__hint addon-field__hint--error">${esc(result.error)}</p>`;
+      else if (!result.items.length) grid = '<p class="addon-field__hint">No videos found.</p>';
+      else {
+        grid = `<div class="addon-video-grid" role="list">${result.items.map((it, i) => `<button type="button" role="listitem" class="addon-video-thumb${it.src === value ? ' is-on' : ''}" data-video-pick="${i}" data-video-key="${esc(key)}" data-pick-key="${field.key}" title="${esc(it.name)}${it.user ? ` by ${esc(it.user)}` : ''}" style="background-image:url(${esc(JSON.stringify(String(it.thumbnail || '')))})"><span class="addon-video-dur">${Math.round(it.duration)}s</span></button>`).join('')}</div>`;
+      }
+      return `<div class="clip-editor__field addon-field addon-field--video">${label}
+        ${current}
+        ${sources.length > 1 ? `<div class="addon-tabs addon-video-sources">${sources.map(([id, l]) => `<button type="button" class="mini-btn addon-tab${id === source ? ' active' : ''}" data-vp-source="${id}">${esc(l)}</button>`).join('')}</div>` : ''}
+        <div class="addon-tabs addon-video-tabs">${cats.map(([id, l]) => `<button type="button" class="mini-btn addon-tab${id === tab ? ' active' : ''}" data-vp-tab="${id}">${esc(l)}</button>`).join('')}<button type="button" class="mini-btn addon-tab${tab === 'search' ? ' active' : ''}" data-vp-tab="search">Search</button></div>
+        ${tab === 'search' ? `<div class="addon-video-search"><input type="search" class="addon-vp-query" placeholder="Search ${esc(sourceLabel)} videos" value="${esc(ui.vpQuery || '')}"/><button type="button" class="mini-btn" data-vp-search="1">Search</button></div>` : ''}
+        ${grid}
+        <p class="addon-field__hint addon-source-label">Videos from <a href="${sourceHome}" target="_blank" rel="noopener noreferrer">${esc(sourceLabel)}</a></p>
+      </div>`;
+    }
     case 'stickerPicker': {
       const tab = ui.stickerTab || 'emoticons';
       const lib = services.stickers || {};
@@ -173,6 +229,8 @@ export function renderAddonEditor(container, {
       .map((f) => renderField(f, current, idPrefix, ui, services))
       .join('');
     container.innerHTML = tabBar + (body || '<p class="addon-field__empty">No settings — drag the clip on the timeline to set where it applies.</p>');
+    loadVideos();
+    loadImages();
   };
   // Descriptor hook (e.g. Personalized Image shape → width, Smart Text
   // position presets → geometry) runs after each edit.
@@ -190,6 +248,41 @@ export function renderAddonEditor(container, {
   };
   const readList = (wrap) => getPath(current, wrap.dataset.key) || [];
 
+  // Kick off any video-picker search the current draw needs.
+  const loadVideos = () => {
+    const field = drawnFields.find((f) => f.type === 'videoPicker');
+    if (!field || typeof services.searchStock !== 'function') return;
+    const sources = services.stockSources || [['pixabay', 'Pixabay']];
+    const source = ui.vpSource || sources[0][0];
+    const cats = field.categories || [];
+    const tab = ui.vpTab || cats[0]?.[0] || 'search';
+    const query = tab === 'search' ? (ui.vpQuery || '') : (cats.find(([id]) => id === tab)?.[2] || '');
+    if (!query) return;
+    const key = `${source}:${query}`;
+    ui.vp = ui.vp || {};
+    if (ui.vp[key]) return;
+    ui.vp[key] = { loading: true, items: [] };
+    Promise.resolve(services.searchStock('videos', source, query))
+      .then((res) => { ui.vp[key] = { items: res?.items || [], error: res?.ok === false ? (res.error || 'Search failed') : null }; })
+      .catch((err) => { ui.vp[key] = { items: [], error: err?.message || 'Search failed' }; })
+      .then(() => draw());
+  };
+
+  const loadImages = () => {
+    if (!ui.imgQuery || typeof services.searchStock !== 'function') return;
+    if (!drawnFields.some((f) => f.type === 'image')) return;
+    const sources = services.stockSources || [['pixabay', 'Pixabay']];
+    const source = ui.imgSource || sources[0][0];
+    const key = `${source}:${ui.imgQuery}`;
+    ui.imgResults = ui.imgResults || {};
+    if (ui.imgResults[key]) return;
+    ui.imgResults[key] = { loading: true, items: [] };
+    Promise.resolve(services.searchStock('images', source, ui.imgQuery))
+      .then((r) => { ui.imgResults[key] = { items: r?.items || [], error: r?.ok === false ? (r.error || 'Search failed') : null }; })
+      .catch((err) => { ui.imgResults[key] = { items: [], error: err?.message || 'Search failed' }; })
+      .then(() => draw());
+  };
+
   const handle = (e) => {
     const el = e.target;
     if (e.type === 'click' && el.dataset?.addonTab) {
@@ -200,6 +293,59 @@ export function renderAddonEditor(container, {
     // ---- richer field types
     if (e.type === 'click') {
       const btn = el.closest('button');
+      if (btn?.dataset.imgSource) {
+        ui.imgSource = btn.dataset.imgSource;
+        draw();
+        return;
+      }
+      if (btn?.dataset.imgSearch) {
+        ui.imgQuery = container.querySelector('.addon-img-query')?.value.trim() || '';
+        draw();
+        return;
+      }
+      if (btn?.dataset.stockImage != null) {
+        const sources = services.stockSources || [['pixabay', 'Pixabay']];
+        const item = ui.imgResults?.[`${ui.imgSource || sources[0][0]}:${ui.imgQuery}`]?.items?.[Number(btn.dataset.stockImage)];
+        if (!item) return;
+        const key = btn.dataset.pickKey;
+        btn.classList.add('is-busy');
+        // Pixabay images must be copied before use (no permanent hotlinks).
+        Promise.resolve(services.importStockImage ? services.importStockImage(item) : item.src)
+          .then((url) => { if (url) setAndEmit(key, url); })
+          .catch((err) => services.onError?.(err))
+          .finally(() => btn.classList.remove('is-busy'));
+        return;
+      }
+      if (btn?.dataset.vpSource) {
+        ui.vpSource = btn.dataset.vpSource;
+        draw();
+        return;
+      }
+      if (btn?.dataset.vpTab) {
+        ui.vpTab = btn.dataset.vpTab;
+        draw();
+        return;
+      }
+      if (btn?.dataset.vpSearch) {
+        ui.vpQuery = container.querySelector('.addon-vp-query')?.value.trim() || '';
+        draw();
+        return;
+      }
+      if (btn?.dataset.videoPick != null && btn?.dataset.videoKey) {
+        const item = ui.vp?.[btn.dataset.videoKey]?.items?.[Number(btn.dataset.videoPick)];
+        if (!item) return;
+        Object.assign(current, {
+          preview: item.preview,
+          thumbnail: item.thumbnail,
+          name: item.name,
+          pixabayId: item.id,
+          pageURL: item.pageURL,
+          source: item.source || 'pixabay',
+          durationSec: Math.min(8, Math.max(1, Math.round(item.duration || 3))),
+        });
+        setAndEmit(btn.dataset.pickKey, item.src);
+        return;
+      }
       if (btn?.dataset.stickerTab) {
         ui.stickerTab = btn.dataset.stickerTab;
         draw();
@@ -227,6 +373,16 @@ export function renderAddonEditor(container, {
         setAndEmit(btn.dataset.lottieUse, url);
         return;
       }
+    }
+    if (e.type === 'change' && el.classList?.contains('addon-img-query')) {
+      ui.imgQuery = el.value.trim();
+      draw();
+      return;
+    }
+    if (e.type === 'change' && el.classList?.contains('addon-vp-query')) {
+      ui.vpQuery = el.value.trim();
+      draw();
+      return;
     }
     if (e.type === 'change' && el.classList?.contains('addon-token-insert')) {
       const ta = el.closest('.addon-field--tokens')?.querySelector('textarea');

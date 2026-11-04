@@ -26,9 +26,12 @@ import {
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
-  setOverlayPlaying, syncOverlayTime, playInAnimation, playOutAndRemove, activeOverlays, attachDragResize,
+  setOverlayPlaying, syncOverlayTime, playInAnimation,
+  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
 } from '../lib/editor/addons/index.js';
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
+import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
+import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../lib/pexelsApi.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
 // project-root path 404s in production because Vite never copies unreferenced
@@ -555,6 +558,11 @@ export function TimelineEditorPage() {
       <aside class="side-card" id="overlaysPanel" hidden data-tooltip="Overlays - Text, images and stickers over the video">
         <div class="card-title">🧩 Overlays</div>
         <div id="overlayAddonList"></div>
+        <div class="addon-panel__section" id="overlayPresets"></div>
+      </aside>
+      <aside class="side-card" id="stockPanel" hidden data-tooltip="Stock media - Pixabay and Pexels videos and images">
+        <div class="card-title">🎬 Stock Media</div>
+        <div id="stockBrowser"></div>
       </aside>
       <aside class="side-card" id="cameraEffectsPanel" hidden>
         <div id="cameraEffectsContainer"></div>
@@ -712,6 +720,7 @@ export function TimelineEditorPage() {
         ['⬆', 'Export'],
         ['⚡', 'Interactive'],
         ['🧩', 'Overlays'],
+        ['🎞️', 'Stock Media'],
         ['🎬', 'Scene Detector'],
         ['🎥', 'Camera FX'],
         ['📊', 'Color Scopes'],
@@ -1178,6 +1187,9 @@ export function TimelineEditorPage() {
       interactiveAddonList: root.querySelector('#interactiveAddonList'),
       overlaysPanel: root.querySelector('#overlaysPanel'),
       overlayAddonList: root.querySelector('#overlayAddonList'),
+      overlayPresets: root.querySelector('#overlayPresets'),
+      stockPanel: root.querySelector('#stockPanel'),
+      stockBrowser: root.querySelector('#stockBrowser'),
       listBuilderSettings: root.querySelector('#listBuilderSettings'),
       previewEmpty: root.querySelector('#previewEmpty'),
       playheadLine: root.querySelector('#playheadLine'),
@@ -3893,6 +3905,117 @@ export function TimelineEditorPage() {
       return null;
     }
 
+    function baseClips() {
+      const T = state.timelineSeconds || 60;
+      return state.tracks
+        .filter((tr) => (tr.type || '').toLowerCase() === 'video' || (tr.items || []).some((c) => c.type === 'video'))
+        .flatMap((tr) => (tr.items || tr.clips || []).filter((c) => (c.type === 'video' || c.type === 'image') && c.src))
+        .map((c) => ({ clip: c, ...clipTimeRange(c, T) }))
+        .sort((a, b) => a.start - b.start);
+    }
+
+    /** Outgoing/incoming clips for a video transition spanning [start, end]. */
+    function transitionSources(start, end) {
+      const mid = (start + end) / 2;
+      const clips = baseClips();
+      const describe = (c) => (c ? { src: c.clip.src, type: c.clip.type, start: c.start } : null);
+      const from = [...clips].reverse().find((c) => c.start < mid) || null;
+      const to = clips.find((c) => c.start >= mid - 0.05 && c !== from) || clips.find((c) => c.end > end && c !== from) || null;
+      return { from: describe(from), to: describe(to) };
+    }
+
+    /** Nearest cut (clip boundary on the video track) to `t`, or null. */
+    function nearestCut(t) {
+      const edges = baseClips().flatMap((c) => [c.start, c.end]).filter((x) => x > 0.2);
+      if (!edges.length) return null;
+      return edges.reduce((best, x) => (Math.abs(x - t) < Math.abs(best - t) ? x : best), edges[0]);
+    }
+
+    function videoTrackName() {
+      return (state.tracks.find((tr) => (tr.type || '').toLowerCase() === 'video') || state.tracks[0])?.name;
+    }
+
+    /** Add a stock video/image (Pixabay or Pexels) to the timeline at the playhead. */
+    async function addStockToTimeline(item, kind) {
+      const T = state.timelineSeconds || 60;
+      const isVideo = kind === 'videos';
+      const src = isVideo ? item.src : await importStockImage(item);
+      if (!src) return;
+      const duration = isVideo ? Math.min(30, Math.max(1, item.duration || 5)) : 5;
+      const start = Math.min((state.playheadPercent / 100) * T, Math.max(0, T - duration));
+      insertClipIntoTrack({
+        id: Date.now(),
+        name: item.name,
+        type: isVideo ? 'video' : 'image',
+        src,
+        poster: item.thumbnail,
+        fit: 'cover',
+        start,
+        end: Math.min(T, start + duration),
+        source: item.source,
+        credit: { user: item.user, pageURL: item.pageURL },
+      }, videoTrackName());
+      debouncedSave();
+      showToast(`Added ${isVideo ? 'video' : 'image'} to the timeline`, 'success');
+    }
+
+    let stockBrowserMounted = false;
+    function mountStockBrowser() {
+      if (stockBrowserMounted || !els.stockBrowser) return;
+      stockBrowserMounted = true;
+      renderStockBrowser(els.stockBrowser, {
+        search: (kind, source, query) => stockSearch(kind, source, query),
+        onPick: (item, kind) => addStockToTimeline(item, kind),
+      });
+    }
+
+    // Presets (upstream "combined"): save the overlays at the playhead as a
+    // reusable group and drop them onto any video.
+    function renderOverlayPresets() {
+      const box = els.overlayPresets;
+      if (!box) return;
+      const presets = loadPresets();
+      box.innerHTML = `
+        <h4 class="addon-panel__heading">Presets</h4>
+        <button type="button" class="mini-btn" data-preset-save style="width:100%">＋ Save overlays at playhead as preset</button>
+        ${presets.length ? `<ul class="overlay-preset-list">${presets.map((p) => `
+          <li><span class="overlay-preset-name" title="${escapeHtml(p.items.length)} overlay(s)">${escapeHtml(p.name)}</span>
+            <button type="button" class="mini-btn" data-preset-insert="${escapeHtml(p.id)}">Add</button>
+            <button type="button" class="mini-btn" data-preset-delete="${escapeHtml(p.id)}" aria-label="Delete preset ${escapeHtml(p.name)}">✕</button></li>`).join('')}</ul>`
+          : '<p class="addon-field__hint">No presets yet. Arrange overlays (e.g. lower third + logo + sticker), put the playhead over them and save.</p>'}`;
+    }
+
+    function bindOverlayPresets() {
+      els.overlayPresets?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const T = state.timelineSeconds || 60;
+        const t = (state.playheadPercent / 100) * T;
+        if (btn.dataset.presetSave !== undefined) {
+          const name = window.prompt('Preset name', 'My preset');
+          if (name === null) return;
+          const preset = capturePreset(state.tracks, t, T, name);
+          if (!preset) {
+            showToast('No overlays under the playhead to save', 'info');
+            return;
+          }
+          savePresets([preset, ...loadPresets()]);
+          renderOverlayPresets();
+          showToast(`Saved preset "${preset.name}" (${preset.items.length} overlay${preset.items.length === 1 ? '' : 's'})`, 'success');
+        } else if (btn.dataset.presetInsert) {
+          const preset = loadPresets().find((p) => p.id === btn.dataset.presetInsert);
+          if (!preset) return;
+          presetToClips(preset, t, T).forEach(({ trackName, ...clip }) => insertClipIntoTrack(clip, trackName || 'Text'));
+          debouncedSave();
+          showToast(`Added preset "${preset.name}"`, 'success');
+        } else if (btn.dataset.presetDelete) {
+          savePresets(loadPresets().filter((p) => p.id !== btn.dataset.presetDelete));
+          renderOverlayPresets();
+        }
+      });
+      renderOverlayPresets();
+    }
+
     function overlaySignature(clip, profileId = getActivePersonalizationProfile()?.id || null) {
       return JSON.stringify([clip.addon, clip.left, clip.width, clip.id === state.selectedClipId, profileId]);
     }
@@ -3900,6 +4023,11 @@ export function TimelineEditorPage() {
     function renderOverlayLayer() {
       if (!els.viewerFrame && !els.previewStage) return;
       const layer = addonOverlayLayer();
+      // Pixel size for overlay font sizing (see .addon-overlay-layer CSS).
+      if (layer.clientWidth) {
+        layer.style.setProperty('--ovl-w', `${layer.clientWidth}px`);
+        layer.style.setProperty('--ovl-h', `${layer.clientHeight}px`);
+      }
       const T = state.timelineSeconds || 60;
       const t = (state.playheadPercent / 100) * T;
       const active = activeOverlays(state.tracks, t, T);
@@ -3955,8 +4083,10 @@ export function TimelineEditorPage() {
       // Lower thirds follow the playhead frame-by-frame (scrubbing included).
       syncOverlayTime(layer, t, new Map(active.map((c) => {
         const r = clipTimeRange(c, T);
-        return [String(c.id), { start: r.start, duration: r.end - r.start }];
-      })));
+        const span = { start: r.start, duration: r.end - r.start };
+        if (c.type === 'overlay-video-transition') Object.assign(span, transitionSources(r.start, r.end));
+        return [String(c.id), span];
+      })), { playing: state.playing });
     }
 
     function selectOverlayClip(clipId) {
@@ -4023,7 +4153,39 @@ export function TimelineEditorPage() {
 
     // Services the overlay settings form uses: uploads, the media library
     // and the personalization token list.
+    // Pixabay + Pexels search through the existing server-side proxies
+    // (/api/pixabay, /api/pexels) — the same ones Stock Media uses.
+    const stockSearch = createStockSearch({
+      pixabay: { searchImages: searchPixabayImages, searchVideos: searchPixabayVideos },
+      pexels: { searchPhotos: searchPexelsPhotos, searchVideos: searchPexelsVideos },
+    });
+
+    /**
+     * Pixabay doesn't allow permanent hotlinking of images, so a picked
+     * Pixabay image is copied to the project's storage first. Pexels images
+     * and all stock videos are used from their CDN.
+     */
+    async function importStockImage(item) {
+      if (!item?.mustCopy) return item?.src;
+      try {
+        const res = await fetch(item.src);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const ext = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+        const file = new File([blob], `${item.id}.${ext}`, { type: blob.type || 'image/jpeg' });
+        const url = await uploadFileToStorage(file);
+        if (url) return url;
+      } catch (err) {
+        console.warn('[Stock] could not copy Pixabay image to storage', err);
+      }
+      showToast("Couldn't save a copy of this Pixabay image to your storage; using Pixabay's link for now, which may expire.", 'info');
+      return item.src;
+    }
+
     const addonEditorServices = {
+      stockSources: STOCK_SOURCES,
+      searchStock: (kind, source, query) => stockSearch(kind, source, query),
+      importStockImage,
       tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
       stickers: STICKER_LIBRARY,
       animatedEmoji: ANIMATED_EMOJI,
@@ -4107,8 +4269,14 @@ export function TimelineEditorPage() {
         services: addonEditorServices,
         onFieldChange: addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined,
         onChange: (next) => {
+          const prevDuration = clip.addon?.durationSec;
           clip.addon = next;
           if (addon.summary) clip.name = addon.summary(next);
+          // Picking an overlay-transition video sizes the clip to the video.
+          if (next.durationSec && next.durationSec !== prevDuration) {
+            const T = state.timelineSeconds || 60;
+            clip.width = Math.min(100 - clip.left, (next.durationSec / T) * 100);
+          }
           renderTracks();
           if (addon.category !== 'overlay') updatePreview(clip);
           debouncedSave();
@@ -4221,7 +4389,14 @@ export function TimelineEditorPage() {
     // Add any registered addon as a clip starting at the playhead.
     function addAddonAtPlayhead(type) {
       const T = state.timelineSeconds || 60;
-      const startSec = (state.playheadPercent / 100) * T;
+      let startSec = (state.playheadPercent / 100) * T;
+      if (type === 'overlay-video-transition') {
+        // Centre the blend on the nearest cut between two clips.
+        const cut = nearestCut(startSec);
+        const half = (getAddon(type).defaultDuration || 1) / 2;
+        if (cut != null) startSec = Math.max(0, cut - half);
+        else showToast('Tip: place Video Transitions over a cut between two clips', 'info');
+      }
       const clip = createAddonClip(type, { startSec, timelineSeconds: T });
       const addon = getAddon(type);
       if (addon.summary) clip.name = addon.summary(addonOptions(clip));
@@ -5348,6 +5523,7 @@ export function TimelineEditorPage() {
     function openPanel(id) {
       const el = root.querySelector('#' + id);
       if (!el) return;
+      if (id === 'stockPanel') mountStockBrowser();
       el.hidden = false;
       el.style.display = 'block';
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -5357,6 +5533,7 @@ export function TimelineEditorPage() {
     const RAIL_PANEL_MAP = {
       'Interactive': 'interactivePanel',
       'Overlays': 'overlaysPanel',
+      'Stock Media': 'stockPanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
       'Color Scopes': 'colorScopesPanel',
@@ -5453,7 +5630,8 @@ export function TimelineEditorPage() {
         'Transitions Panel': 'Transitions - Add effects between clips',
         'CineGen Results': 'CineGen AI Tools results history',
         'Interactive': 'Interactive - Skip, Pause, Loop, Lead Generator, List Builder, Personalizer, CTA',
-        'Overlays': 'Overlays - Smart Text, Text Mask, Personalized Image, Image, Stickers, Wrapper'
+        'Overlays': 'Overlays - Smart Text, Text Mask, Personalized Image, Image, Stickers, Wrapper, Lower Thirds, Transitions, Presets',
+        'Stock Media': 'Stock Media - Pixabay and Pexels videos and images for the timeline'
       };
       state.railActions.forEach(([icon, label, active]) => {
         const button = document.createElement('button');
@@ -6789,38 +6967,9 @@ export function TimelineEditorPage() {
       els.uploadBtn?.addEventListener('click', () => els.uploadInput?.click());
       els.uploadInput?.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
 
-      els.pexelsMediaBtn?.addEventListener('click', async () => {
-        try {
-          const { browsePexels } = await import('../lib/studioPexels.js');
-          browsePexels({
-            accept: ['image', 'video'],
-            title: 'Add Stock Media to Timeline',
-            studioName: 'Timeline Editor',
-            onSelect: async (asset) => {
-              const isVideo = asset.type === 'video' || !!asset.video_files;
-              const mediaUrl = isVideo
-                ? (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url
-                : (asset.src?.large || asset.src?.original || asset.url);
-              const media = {
-                type: isVideo ? 'video' : 'image',
-                url: mediaUrl,
-                thumbnail: isVideo ? asset.image : (asset.src?.medium || asset.src?.small || asset.url),
-                label: asset.alt || (isVideo ? 'Pexels Video' : 'Pexels Photo'),
-                source: 'pexels',
-                id: asset.id || `pexels-${Date.now()}`,
-                duration: asset.duration || 5,
-                photographer: asset.photographer || asset.user?.name || '',
-                pexelsUrl: asset.url || ('https://www.pexels.com/photo/' + asset.id + '/'),
-              };
-              addMediaToTimeline(media, state.mediaLibrary?.length || 0, state, showToast);
-              showToast('Added to timeline', 'success');
-            },
-          });
-        } catch (err) {
-          console.error('Failed to open Pexels browser:', err);
-          showToast('Failed to open Pexels browser', 'error');
-        }
-      });
+      // Browse Stock Media: Pixabay + Pexels videos and images, added to
+      // the timeline at the playhead (the Stock Media panel).
+      els.pexelsMediaBtn?.addEventListener('click', () => openPanel('stockPanel'));
 
       // VideoDB: add an indexed video to the timeline using the user's VideoDB
       // API key (configured in Settings).
@@ -7248,6 +7397,7 @@ export function TimelineEditorPage() {
       bindEvents();
       bindInteractivePanel();
       renderOverlaysPanel();
+      bindOverlayPresets();
       setupEnhancedTooltips();
       setupUploadSources({ state, showToast });
 

@@ -9,11 +9,18 @@ export {
 export {
   submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
 } from './leadClient.js';
-export { OVERLAY_ADDONS, SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD, applyPositionPreset } from './overlayAddons.js';
+export { OVERLAY_ADDONS, SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD, OVERLAY_TRANSITION, VIDEO_TRANSITION, applyPositionPreset } from './overlayAddons.js';
 export { buildLowerThirdLottie, lowerThirdFrame, LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';
 export {
   buildOverlayElement, finishOverlayElement, destroyOverlayElement, setOverlayPlaying, playInAnimation, playOutAndRemove,
   activeOverlays, syncOverlayTime, resolveOverlayText, sanitizeWrapperStyles, safeHref, safeImageUrl, OVERLAY_TAG,
 } from './overlayRender.js';
 export { attachDragResize, dragGeometry, clampGeometry } from './dragResize.js';
-export { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, STICKER_LIBRARY, ANIMATED_EMOJI } from './overlayData.js';
+export { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, STICKER_LIBRARY, ANIMATED_EMOJI, VIDEO_TRANSITIONS } from './overlayData.js';
+export {
+  createStockSearch, STOCK_SOURCES, STOCK_HOME, TRANSITION_CATEGORIES,
+  normalizePixabayVideo, normalizePexelsVideo, normalizePixabayImage, normalizePexelsPhoto,
+} from './stockMedia.js';
+export { renderStockBrowser, STOCK_SUGGESTIONS } from './stockBrowser.js';
+export { capturePreset, presetToClips, loadPresets, savePresets, PRESETS_STORAGE_KEY } from './overlayPresets.js';
+export { loadGlTransitions, createTransitionRenderer, fragmentFor } from './glTransitionRenderer.js';

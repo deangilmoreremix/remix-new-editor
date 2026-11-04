@@ -17,6 +17,7 @@ import { resolveToken, TOKEN_PATTERN } from '../../../components/personalize/tok
 import { getAddon, addonOptions } from './registry.js';
 import { ensureFormFont } from './addonOverlay.js';
 import { buildLowerThirdLottie, lowerThirdFrame } from './lowerThirds.js';
+import { loadGlTransitions, createTransitionRenderer } from './glTransitionRenderer.js';
 
 export const OVERLAY_TAG = 'overlay-clip';
 export const PERSONALIZED_PLACEHOLDER = '/static/images/personalized-image-placeholder.svg';
@@ -219,7 +220,7 @@ function buildText(opts, ctx) {
     el.dataset.fit = 'text';
   } else {
     // Fixed size: % of the frame height (upstream fontSize% of its 22.5em base).
-    span.style.fontSize = `${Number(opts.fontSize) || 8}cqh`;
+    span.style.fontSize = `calc(var(--ovl-h, 450px) * ${(Number(opts.fontSize) || 8) / 100})`;
     el.style.height = 'auto';
   }
   return el;
@@ -336,7 +337,42 @@ function buildLowerThird(opts, ctx) {
   return el;
 }
 
+// Overlay Transitions: a Pixabay/Pexels video played full-frame, blended
+// with "screen" by default so its black background drops out.
+function buildOverlayTransition(opts) {
+  const el = document.createElement('div');
+  el.className = 'popcorn-json-transition';
+  const src = safeImageUrl(opts.src);
+  if (!src) {
+    el.classList.add('is-empty');
+    return el;
+  }
+  const video = document.createElement('video');
+  video.src = src;
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = 'auto';
+  video.setAttribute('aria-hidden', 'true');
+  el.appendChild(video);
+  el.dataset.sync = 'video';
+  return el;
+}
+
+// Video Transitions: gl-transitions blend of the outgoing and incoming
+// clips, drawn on a canvas covering the frame.
+function buildVideoTransition(opts) {
+  const el = document.createElement('div');
+  el.className = 'popcorn-video-transition';
+  const canvas = document.createElement('canvas');
+  el.appendChild(canvas);
+  el.dataset.sync = 'gl';
+  el.dataset.transition = opts.transition || 'fade';
+  return el;
+}
+
 const BUILDERS = {
+  'overlay-transition': (o) => buildOverlayTransition(o),
+  'overlay-video-transition': (o) => buildVideoTransition(o),
   'overlay-lower-third': (o, ctx) => buildLowerThird(o, ctx),
   'overlay-text': (o, ctx) => buildText(o, ctx),
   'overlay-image': (o, ctx) => buildImage(o, ctx),
@@ -346,7 +382,7 @@ const BUILDERS = {
   'overlay-sticker': (o) => buildSticker(o),
 };
 
-const FULL_FRAME = new Set(['overlay-text-mask', 'overlay-background']);
+const FULL_FRAME = new Set(['overlay-text-mask', 'overlay-background', 'overlay-transition', 'overlay-video-transition']);
 
 /**
  * Build the overlay element for a clip. `ctx`:
@@ -407,20 +443,122 @@ export async function finishOverlayElement(el, { playing = false } = {}) {
 
 export function destroyOverlayElement(el) {
   try { el._lottie?.destroy(); } catch { /* already gone */ }
+  try { el._gl?.destroy(); } catch { /* already gone */ }
+  Object.values(el._media || {}).forEach((m) => { try { m.pause(); m.removeAttribute('src'); m.load?.(); } catch { /* ignore */ } });
   el.remove();
 }
 
+/** Seek a media element to `time` when it has drifted (or always while paused). */
+function seekMedia(media, time, playing, tolerance = 0.3) {
+  if (!media || !Number.isFinite(time)) return;
+  const target = Math.max(0, time);
+  if (!playing || Math.abs((media.currentTime || 0) - target) > tolerance) {
+    try { media.currentTime = target; } catch { /* not seekable yet */ }
+  }
+  if (playing && media.paused) media.play?.().catch(() => {});
+  if (!playing && !media.paused) media.pause?.();
+}
+
+function mediaFor(el, role, info) {
+  el._media = el._media || {};
+  const current = el._media[role];
+  if (!info?.src) return null;
+  if (current && current.dataset.src === info.src) return current;
+  let m;
+  if (info.type === 'image') {
+    m = new Image();
+    m.crossOrigin = 'anonymous';
+    m.src = info.src;
+  } else {
+    m = document.createElement('video');
+    m.crossOrigin = 'anonymous';
+    m.muted = true;
+    m.playsInline = true;
+    m.preload = 'auto';
+    m.src = info.src;
+  }
+  m.dataset.src = info.src;
+  m.className = `vt-media vt-media--${role}`;
+  el._media[role] = m;
+  return m;
+}
+
+/** CSS crossfade used when WebGL can't read the media (no CORS / no WebGL). */
+function crossfadeFallback(el, from, to, progress) {
+  [from, to].forEach((m) => { if (m && m.parentNode !== el) el.appendChild(m); });
+  el.classList.add('vt-fallback');
+  if (from) from.style.opacity = String(1 - progress);
+  if (to) to.style.opacity = String(progress);
+}
+
+function renderVideoTransition(el, span, t, playing) {
+  const progress = Math.max(0, Math.min(1, (t - span.start) / (span.duration || 1)));
+  const from = mediaFor(el, 'from', span.from);
+  const to = mediaFor(el, 'to', span.to);
+  if (from && span.from.type !== 'image') seekMedia(from, t - span.from.start, playing);
+  if (to && span.to.type !== 'image') seekMedia(to, t - span.to.start, playing);
+  // Redraw when a frame becomes available (load / seek finished), so a
+  // paused scrub shows the right blend without waiting for another tick.
+  const redraw = () => { if (el.isConnected && el._lastSync) renderVideoTransition(el, ...el._lastSync); };
+  [from, to].forEach((m) => {
+    if (m && !m._vtHooked) {
+      m._vtHooked = true;
+      ['loadeddata', 'seeked', 'load'].forEach((ev) => m.addEventListener(ev, redraw));
+      m.addEventListener('error', () => {
+        // Media that can't load with CORS: retry without it and crossfade.
+        if (m.crossOrigin) {
+          el._glFailed = true;
+          m.removeAttribute('crossorigin');
+          m.src = m.dataset.src;
+          redraw();
+        }
+      }, { once: true });
+    }
+  });
+  if (el._glFailed) {
+    crossfadeFallback(el, from, to, progress);
+    return;
+  }
+  if (!el._gl) {
+    if (!el._glLoading) {
+      el._glLoading = loadGlTransitions().then((list) => {
+        const def = list.find((x) => x.name === el.dataset.transition) || list.find((x) => x.name === 'fade');
+        el._gl = createTransitionRenderer(el.querySelector('canvas'));
+        el._gl.setTransition(def);
+        redraw();
+      }).catch(() => { el._glFailed = true; redraw(); });
+    }
+    return;
+  }
+  try {
+    el._gl.render(from, to, progress);
+  } catch {
+    // Cross-origin media without CORS headers taints WebGL: fall back.
+    el._glFailed = true;
+    el.querySelector('canvas')?.remove();
+    crossfadeFallback(el, from, to, progress);
+  }
+}
+
 /**
- * Show each lower third at the frame for the current time:
- * `times` maps clip id → { start, duration } in seconds.
+ * Keep time-driven overlays in step with the playhead. `times` maps clip id
+ * → { start, duration, from?, to? } (seconds; from/to = { src, type, start }
+ * of the clips a video transition blends).
  */
-export function syncOverlayTime(layer, t, times) {
-  layer.querySelectorAll(`[data-overlay="${OVERLAY_TAG}"][data-sync="lower-third"]`).forEach((el) => {
+export function syncOverlayTime(layer, t, times, { playing = false } = {}) {
+  layer.querySelectorAll(`[data-overlay="${OVERLAY_TAG}"][data-sync]`).forEach((el) => {
     const span = times.get(el.dataset.clipId);
     if (!span) return;
-    const frame = lowerThirdFrame(t - span.start, span.duration);
-    if (el._lottie) el._lottie.goToAndStop(frame, true);
-    else el._pendingFrame = frame;
+    if (el.dataset.sync === 'lower-third') {
+      const frame = lowerThirdFrame(t - span.start, span.duration);
+      if (el._lottie) el._lottie.goToAndStop(frame, true);
+      else el._pendingFrame = frame;
+    } else if (el.dataset.sync === 'video') {
+      seekMedia(el.querySelector('video'), t - span.start, playing);
+    } else if (el.dataset.sync === 'gl') {
+      el._lastSync = [span, t, playing];
+      renderVideoTransition(el, span, t, playing);
+    }
   });
 }
 

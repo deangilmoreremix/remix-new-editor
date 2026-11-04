@@ -1235,3 +1235,507 @@ export const ANIMATED_EMOJI = [
     "src": "/assets/sticker/animated-emoji/rainbow.json"
   }
 ];
+
+/** gl-transitions (MIT / BSD) names for the Video Transitions picker; popular first. */
+export const VIDEO_TRANSITIONS = [
+  [
+    "fade",
+    "Fade"
+  ],
+  [
+    "crosswarp",
+    "Crosswarp"
+  ],
+  [
+    "dissolve",
+    "Dissolve"
+  ],
+  [
+    "wipeLeft",
+    "Wipe Left"
+  ],
+  [
+    "wipeRight",
+    "Wipe Right"
+  ],
+  [
+    "wipeUp",
+    "Wipe Up"
+  ],
+  [
+    "wipeDown",
+    "Wipe Down"
+  ],
+  [
+    "CrossZoom",
+    "Cross Zoom"
+  ],
+  [
+    "directionalwarp",
+    "Directionalwarp"
+  ],
+  [
+    "Swirl",
+    "Swirl"
+  ],
+  [
+    "cube",
+    "Cube"
+  ],
+  [
+    "circleopen",
+    "Circleopen"
+  ],
+  [
+    "Radial",
+    "Radial"
+  ],
+  [
+    "pixelize",
+    "Pixelize"
+  ],
+  [
+    "InvertedPageCurl",
+    "Inverted Page Curl"
+  ],
+  [
+    "GlitchMemories",
+    "Glitch Memories"
+  ],
+  [
+    "burn",
+    "Burn"
+  ],
+  [
+    "Dreamy",
+    "Dreamy"
+  ],
+  [
+    "ripple",
+    "Ripple"
+  ],
+  [
+    "heart",
+    "Heart"
+  ],
+  [
+    "AdvancedMosaic",
+    "Advanced Mosaic"
+  ],
+  [
+    "angular",
+    "Angular"
+  ],
+  [
+    "BlockDissolve",
+    "Block Dissolve"
+  ],
+  [
+    "BookFlip",
+    "Book Flip"
+  ],
+  [
+    "Bounce",
+    "Bounce"
+  ],
+  [
+    "BowTieHorizontal",
+    "Bow Tie Horizontal"
+  ],
+  [
+    "BowTieVertical",
+    "Bow Tie Vertical"
+  ],
+  [
+    "BowTieWithParameter",
+    "Bow Tie With Parameter"
+  ],
+  [
+    "Box",
+    "Box"
+  ],
+  [
+    "burn0",
+    "Burn0"
+  ],
+  [
+    "ButterflyWaveScrawler",
+    "Butterfly Wave Scrawler"
+  ],
+  [
+    "cannabisleaf",
+    "Cannabisleaf"
+  ],
+  [
+    "chessboard",
+    "Chessboard"
+  ],
+  [
+    "circle",
+    "Circle"
+  ],
+  [
+    "CircleCrop",
+    "Circle Crop"
+  ],
+  [
+    "colorphase",
+    "Colorphase"
+  ],
+  [
+    "ColourDistance",
+    "Colour Distance"
+  ],
+  [
+    "coord-from-in",
+    "Coord from in"
+  ],
+  [
+    "CrazyParametricFun",
+    "Crazy Parametric Fun"
+  ],
+  [
+    "crosshatch",
+    "Crosshatch"
+  ],
+  [
+    "DefocusBlur",
+    "Defocus Blur"
+  ],
+  [
+    "Directional",
+    "Directional"
+  ],
+  [
+    "directional-easing",
+    "Directional easing"
+  ],
+  [
+    "DirectionalScaled",
+    "Directional Scaled"
+  ],
+  [
+    "directionalwipe",
+    "Directionalwipe"
+  ],
+  [
+    "displacement",
+    "Displacement"
+  ],
+  [
+    "DoomScreenTransition",
+    "Doom Screen Transition"
+  ],
+  [
+    "doorway",
+    "Doorway"
+  ],
+  [
+    "DreamyZoom",
+    "Dreamy Zoom"
+  ],
+  [
+    "Drop_Zone_Flicker",
+    "Drop Zone Flicker"
+  ],
+  [
+    "EdgeTransition",
+    "Edge Transition"
+  ],
+  [
+    "fadecolor",
+    "Fadecolor"
+  ],
+  [
+    "fadegrayscale",
+    "Fadegrayscale"
+  ],
+  [
+    "FilmBurn",
+    "Film Burn"
+  ],
+  [
+    "flyeye",
+    "Flyeye"
+  ],
+  [
+    "Fold",
+    "Fold"
+  ],
+  [
+    "fragment",
+    "Fragment"
+  ],
+  [
+    "GlitchDisplace",
+    "Glitch Displace"
+  ],
+  [
+    "GridFlip",
+    "Grid Flip"
+  ],
+  [
+    "hexagonalize",
+    "Hexagonalize"
+  ],
+  [
+    "HorizontalClose",
+    "Horizontal Close"
+  ],
+  [
+    "HorizontalOpen",
+    "Horizontal Open"
+  ],
+  [
+    "HSVfade",
+    "HSVfade"
+  ],
+  [
+    "kaleidoscope",
+    "Kaleidoscope"
+  ],
+  [
+    "LeftRight",
+    "Left Right"
+  ],
+  [
+    "LinearBlur",
+    "Linear Blur"
+  ],
+  [
+    "luma",
+    "Luma"
+  ],
+  [
+    "luminance_melt",
+    "Luminance melt"
+  ],
+  [
+    "morph",
+    "Morph"
+  ],
+  [
+    "Mosaic",
+    "Mosaic"
+  ],
+  [
+    "mosaic_transition",
+    "Mosaic transition"
+  ],
+  [
+    "multiply_blend",
+    "Multiply blend"
+  ],
+  [
+    "old_tv_lost_signal",
+    "Old tv lost signal"
+  ],
+  [
+    "Overexposure",
+    "Overexposure"
+  ],
+  [
+    "parametric_glitch",
+    "Parametric glitch"
+  ],
+  [
+    "perlin",
+    "Perlin"
+  ],
+  [
+    "pinwheel",
+    "Pinwheel"
+  ],
+  [
+    "polar_function",
+    "Polar function"
+  ],
+  [
+    "PolkaDotsCurtain",
+    "Polka Dots Curtain"
+  ],
+  [
+    "powerKaleido",
+    "Power Kaleido"
+  ],
+  [
+    "PuzzleRight",
+    "Puzzle Right"
+  ],
+  [
+    "randomNoisex",
+    "Random Noisex"
+  ],
+  [
+    "randomsquares",
+    "Randomsquares"
+  ],
+  [
+    "Rectangle",
+    "Rectangle"
+  ],
+  [
+    "RectangleCrop",
+    "Rectangle Crop"
+  ],
+  [
+    "Revolve_Left",
+    "Revolve Left"
+  ],
+  [
+    "Rolls",
+    "Rolls"
+  ],
+  [
+    "rotate_scale_fade",
+    "Rotate scale fade"
+  ],
+  [
+    "RotateScaleVanish",
+    "Rotate Scale Vanish"
+  ],
+  [
+    "rotateTransition",
+    "Rotate Transition"
+  ],
+  [
+    "scale-in",
+    "Scale in"
+  ],
+  [
+    "SimpleFlip",
+    "Simple Flip"
+  ],
+  [
+    "SimpleZoom",
+    "Simple Zoom"
+  ],
+  [
+    "SimpleZoomOut",
+    "Simple Zoom Out"
+  ],
+  [
+    "Slides",
+    "Slides"
+  ],
+  [
+    "splitSlideInHorizontal",
+    "Split Slide In Horizontal"
+  ],
+  [
+    "splitSlideInOutHorizontal",
+    "Split Slide In Out Horizontal"
+  ],
+  [
+    "splitSlideInOutVertical",
+    "Split Slide In Out Vertical"
+  ],
+  [
+    "splitSlideInVertical",
+    "Split Slide In Vertical"
+  ],
+  [
+    "splitSlideOutHorizontal",
+    "Split Slide Out Horizontal"
+  ],
+  [
+    "splitSlideOutVertical",
+    "Split Slide Out Vertical"
+  ],
+  [
+    "squareswire",
+    "Squareswire"
+  ],
+  [
+    "squeeze",
+    "Squeeze"
+  ],
+  [
+    "StarWipe",
+    "Star Wipe"
+  ],
+  [
+    "StaticFade",
+    "Static Fade"
+  ],
+  [
+    "static_wipe",
+    "Static wipe"
+  ],
+  [
+    "StereoViewer",
+    "Stereo Viewer"
+  ],
+  [
+    "StripDatamoshGlitch",
+    "Strip Datamosh Glitch"
+  ],
+  [
+    "swap",
+    "Swap"
+  ],
+  [
+    "tangentMotionBlur",
+    "Tangent Motion Blur"
+  ],
+  [
+    "TilesWave",
+    "Tiles Wave"
+  ],
+  [
+    "TopBottom",
+    "Top Bottom"
+  ],
+  [
+    "TVStatic",
+    "TVStatic"
+  ],
+  [
+    "undulatingBurnOut",
+    "Undulating Burn Out"
+  ],
+  [
+    "VerticalClose",
+    "Vertical Close"
+  ],
+  [
+    "VerticalOpen",
+    "Vertical Open"
+  ],
+  [
+    "WaterDrop",
+    "Water Drop"
+  ],
+  [
+    "wind",
+    "Wind"
+  ],
+  [
+    "windowblinds",
+    "Windowblinds"
+  ],
+  [
+    "windowslice",
+    "Windowslice"
+  ],
+  [
+    "x_axis_translation",
+    "X axis translation"
+  ],
+  [
+    "ZoomInCircles",
+    "Zoom In Circles"
+  ],
+  [
+    "zoomInOut",
+    "Zoom In Out"
+  ],
+  [
+    "ZoomLeftWipe",
+    "Zoom Left Wipe"
+  ],
+  [
+    "ZoomRigthWipe",
+    "Zoom Right Wipe"
+  ]
+];
