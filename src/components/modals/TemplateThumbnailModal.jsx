@@ -1252,6 +1252,8 @@ export class TemplateThumbnailModal extends BaseModal {
           this.textOverlay.color,
         );
         selected.b64_json = composited;
+        // Text compositing re-encodes the image as PNG.
+        selected.mime = 'image/png';
         selected.dataUrl = `data:image/png;base64,${composited}`;
         this.isGenerating = false;
       } catch (err) {
@@ -1372,6 +1374,9 @@ export class TemplateThumbnailModal extends BaseModal {
     const handleResult = (result) => {
       if (result?.b64_json) {
         selected.b64_json = result.b64_json;
+        // New bytes from OpenAI in controls.outputFormat; drop the old type so
+        // save falls back to that format instead of the original candidate's.
+        delete selected.mime;
         selected.revised_prompt = result.revised_prompt || selected.revised_prompt || '';
         selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
       }
@@ -1464,6 +1469,9 @@ export class TemplateThumbnailModal extends BaseModal {
       });
       if (result?.b64_json) {
         selected.b64_json = result.b64_json;
+        // New bytes from OpenAI in controls.outputFormat; drop the old type so
+        // save falls back to that format instead of the original candidate's.
+        delete selected.mime;
         selected.revised_prompt = result.revised_prompt;
         selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
       }
@@ -3493,6 +3501,9 @@ export class TemplateThumbnailModal extends BaseModal {
             onDone: (result) => {
               if (result?.b64_json) {
                 selected.b64_json = result.b64_json;
+                // New bytes from OpenAI in controls.outputFormat; drop the old type so
+                // save falls back to that format instead of the original candidate's.
+                delete selected.mime;
                 selected.revised_prompt = result.revised_prompt || '';
                 selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
               }
@@ -3526,6 +3537,9 @@ export class TemplateThumbnailModal extends BaseModal {
         const result = await this.thumbnailService.refineLastImage(refineOpts);
         if (result?.b64_json) {
           selected.b64_json = result.b64_json;
+          // New bytes from OpenAI in controls.outputFormat; drop the old type so
+          // save falls back to that format instead of the original candidate's.
+          delete selected.mime;
           selected.revised_prompt = result.revised_prompt || '';
           selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
         }
@@ -3663,6 +3677,8 @@ export class TemplateThumbnailModal extends BaseModal {
           this.textOverlay.color,
         );
         selected.b64_json = composited;
+        // Text compositing re-encodes the image as PNG.
+        selected.mime = 'image/png';
         selected.dataUrl = `data:image/png;base64,${composited}`;
         this.isGenerating = false;
       } catch (err) {
