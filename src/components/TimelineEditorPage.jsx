@@ -25,7 +25,10 @@ import {
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  OVERLAY_ADDONS, STICKER_LIBRARY, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
+  setOverlayPlaying, playInAnimation, playOutAndRemove, activeOverlays, attachDragResize,
 } from '../lib/editor/addons/index.js';
+import { TOKEN_DEFS } from './personalize/tokenSchema.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
 // project-root path 404s in production because Vite never copies unreferenced
@@ -549,6 +552,10 @@ export function TimelineEditorPage() {
         <div id="interactiveAddonList"></div>
         <div id="listBuilderSettings" class="addon-panel__optin" hidden></div>
       </aside>
+      <aside class="side-card" id="overlaysPanel" hidden data-tooltip="Overlays - Text, images and stickers over the video">
+        <div class="card-title">🧩 Overlays</div>
+        <div id="overlayAddonList"></div>
+      </aside>
       <aside class="side-card" id="cameraEffectsPanel" hidden>
         <div id="cameraEffectsContainer"></div>
         <div class="camera-effects-quick">
@@ -704,6 +711,7 @@ export function TimelineEditorPage() {
         ['✨', 'Generate', true],
         ['⬆', 'Export'],
         ['⚡', 'Interactive'],
+        ['🧩', 'Overlays'],
         ['🎬', 'Scene Detector'],
         ['🎥', 'Camera FX'],
         ['📊', 'Color Scopes'],
@@ -1168,6 +1176,8 @@ export function TimelineEditorPage() {
       viewerFrame: root.querySelector('#viewerFrame'),
       interactivePanel: root.querySelector('#interactivePanel'),
       interactiveAddonList: root.querySelector('#interactiveAddonList'),
+      overlaysPanel: root.querySelector('#overlaysPanel'),
+      overlayAddonList: root.querySelector('#overlayAddonList'),
       listBuilderSettings: root.querySelector('#listBuilderSettings'),
       previewEmpty: root.querySelector('#previewEmpty'),
       playheadLine: root.querySelector('#playheadLine'),
@@ -1467,6 +1477,17 @@ export function TimelineEditorPage() {
         clearPreviewStage();
         els.previewEmpty.style.display = 'flex';
         if (els.vfSubtitle) els.vfSubtitle.textContent = 'Your story starts here.';
+        return;
+      }
+
+      // Overlays (Smart Text, Image, Stickers, ...) are drawn by the overlay
+      // compositor on top of the video, so selecting one shows the video
+      // clip under the playhead rather than replacing it.
+      if (getAddon(selected.type)?.category === 'overlay') {
+        const base = findBaseClipAtPlayhead();
+        if (base) renderPreviewAsset(base);
+        else if (!els.previewStage.firstElementChild) els.previewEmpty.style.display = 'none';
+        renderOverlayLayer();
         return;
       }
 
@@ -2060,6 +2081,7 @@ export function TimelineEditorPage() {
       const tbNow = root.querySelector('.time-readout .time-now');
       if (tbNow) tbNow.textContent = mm + ':' + ss;
       syncMediaPlayState();
+      renderOverlayLayer();
     }
 
     // Top action bar functionality
@@ -2946,6 +2968,7 @@ export function TimelineEditorPage() {
       // be incrementally diffed; mini-map is rebuilt fresh on every render.
       renderTimecodeRuler(state.timelineSeconds || 60, state.playheadPercent, state.zoom);
       renderMiniMap();
+      renderOverlayLayer();
 
       // Add enhanced drag and drop handlers
       els.trackRows.querySelectorAll('.track-lane').forEach(lane => {
@@ -3852,6 +3875,173 @@ export function TimelineEditorPage() {
       });
     }
 
+    // ---------------------------------------------------------------
+    // Overlay compositor: every overlay clip active at the playhead is
+    // drawn into the overlay layer above the video (upstream Popcorn showed
+    // all track events at once; the old preview showed only the selection).
+    // ---------------------------------------------------------------
+    function findBaseClipAtPlayhead() {
+      const T = state.timelineSeconds || 60;
+      const t = (state.playheadPercent / 100) * T;
+      for (const track of state.tracks) {
+        for (const clip of track.items || track.clips || []) {
+          if (!['video', 'image'].includes(clip.type)) continue;
+          const { start, end } = clipTimeRange(clip, T);
+          if (t >= start && t < end) return clip;
+        }
+      }
+      return null;
+    }
+
+    function overlaySignature(clip, profileId = getActivePersonalizationProfile()?.id || null) {
+      return JSON.stringify([clip.addon, clip.id === state.selectedClipId, profileId]);
+    }
+
+    function renderOverlayLayer() {
+      if (!els.viewerFrame && !els.previewStage) return;
+      const layer = addonOverlayLayer();
+      const T = state.timelineSeconds || 60;
+      const t = (state.playheadPercent / 100) * T;
+      const active = activeOverlays(state.tracks, t, T);
+      const activeIds = new Set(active.map((c) => String(c.id)));
+      const existing = new Map();
+      layer.querySelectorAll(`[data-overlay="${OVERLAY_TAG}"]`).forEach((el) => {
+        if (el.dataset.leaving) return;
+        existing.set(el.dataset.clipId, el);
+      });
+      // Leave: out-animation, then remove.
+      existing.forEach((el, id) => {
+        if (activeIds.has(id)) return;
+        el.dataset.leaving = '1';
+        if (el._detach) el._detach();
+        const clip = allClips().find((c) => String(c.id) === id);
+        playOutAndRemove(el, state.playing ? clip?.addon?.animation : null);
+      });
+      const profile = getActivePersonalizationProfile();
+      const profileId = profile?.id || null;
+      let previous = null;
+      active.forEach((clip) => {
+        const id = String(clip.id);
+        const sig = overlaySignature(clip, profileId);
+        let el = existing.get(id);
+        if (el && el.dataset.sig !== sig) {
+          if (el._detach) el._detach();
+          destroyOverlayElement(el);
+          el = null;
+        }
+        const isNew = !el;
+        if (isNew) {
+          el = buildOverlayElement(clip, { profile, editor: true });
+          if (!el) return;
+          el.dataset.sig = sig;
+          el.addEventListener('click', (e) => {
+            if (e.target.closest('a') && state.selectedClipId === clip.id) return;
+            if (state.selectedClipId === clip.id) return;
+            e.preventDefault();
+            selectOverlayClip(clip.id);
+          });
+        }
+        // Keep paint order: insert after the previous active overlay.
+        const ref = previous ? previous.nextSibling : layer.firstChild;
+        if (ref !== el) layer.insertBefore(el, ref);
+        previous = el;
+        if (isNew) {
+          finishOverlayElement(el, { playing: state.playing });
+          if (state.playing) playInAnimation(el, clip.addon?.animation);
+          if (clip.id === state.selectedClipId) attachOverlayHandles(el, clip);
+        }
+      });
+      setOverlayPlaying(layer, state.playing);
+    }
+
+    function selectOverlayClip(clipId) {
+      state.selectedClipId = clipId;
+      renderTracks();
+      showClipEditor(clipId);
+    }
+
+    function removeClipById(clipId) {
+      state.tracks.forEach((t) => {
+        const items = t.items || t.clips || [];
+        const i = items.findIndex((c) => c.id === clipId);
+        if (i >= 0) items.splice(i, 1);
+      });
+      if (state.selectedClipId === clipId) {
+        state.selectedClipId = null;
+        els.clipEditorContainer.innerHTML = '';
+      }
+      renderTracks();
+      debouncedSave();
+    }
+
+    function attachOverlayHandles(el, clip) {
+      const addon = getAddon(clip.type);
+      const fullFrame = !addon.positioned;
+      const detach = fullFrame
+        ? attachDragResize(el, document.createElement('div'), { onDelete: () => removeClipById(clip.id) })
+        : attachDragResize(el, addonOverlayLayer(), {
+          geometry: clip.addon?.geometry,
+          preserveRatio: !!addon.preserveRatio,
+          onCommit: (g) => {
+            clip.addon = { ...addonOptions(clip), geometry: g, position: 'custom' };
+            el.dataset.sig = overlaySignature(clip);
+            if (state.selectedClipId === clip.id) renderClipEditor(clip.id);
+            debouncedSave();
+          },
+          onDelete: () => removeClipById(clip.id),
+        });
+      el._detach = detach;
+      // Full-frame overlays: handles would be meaningless; keep only delete.
+      if (fullFrame) el.querySelectorAll('.overlay-handle').forEach((h) => h.remove());
+    }
+
+    // Overlays panel: upstream toolbar sections BASIC and CREATIVE.
+    function renderOverlaysPanel() {
+      if (!els.overlayAddonList) return;
+      const sections = {};
+      OVERLAY_ADDONS.forEach((a) => {
+        (sections[a.section] = sections[a.section] || []).push(
+          `<button type="button" class="addon-panel__item" data-add-addon="${a.type}" title="${escapeHtml(a.description)}">
+            ${a.iconSrc ? `<img src="${escapeHtml(a.iconSrc)}" alt="" />` : ''}<span>${escapeHtml(a.label)}</span>
+          </button>`,
+        );
+      });
+      els.overlayAddonList.innerHTML = ['Basic', 'Creative']
+        .filter((name) => sections[name])
+        .map((name) => `<div class="addon-panel__section"><h4 class="addon-panel__heading">${name}</h4><div class="addon-panel__grid">${sections[name].join('')}</div></div>`)
+        .join('');
+      els.overlaysPanel?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-add-addon]');
+        if (btn) addAddonAtPlayhead(btn.dataset.addAddon);
+      });
+    }
+
+    // Services the overlay settings form uses: uploads, the media library
+    // and the personalization token list.
+    const addonEditorServices = {
+      tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
+      stickers: STICKER_LIBRARY,
+      mediaImages: () => {
+        const seen = new Set();
+        return [...(state.mediaLibrary || []), ...(state.assets || []), ...(state.media || [])]
+          .map((m) => ({ name: m.title || m.name || m.label || '', src: m.url || m.src || m.media?.url, type: m.type }))
+          .filter((m) => m.src && (m.type === 'image' || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(m.src)))
+          .filter((m) => (seen.has(m.src) ? false : seen.add(m.src)));
+      },
+      uploadFile: async (file) => {
+        try {
+          const url = await uploadFileToStorage(file);
+          if (typeof url === 'string' && url) return url;
+          if (url?.url) return url.url;
+        } catch (err) {
+          console.warn('[Overlays] upload failed, using a local preview URL', err);
+        }
+        showToast('Upload unavailable — using a local preview of the file (it will not be saved with the project)', 'info');
+        return URL.createObjectURL(file);
+      },
+      onError: (err) => showToast(err?.message || 'Upload failed', 'error'),
+    };
+
     // Settings panel for schema-driven addons (Skip / Pause / Loop). Mirrors
     // upstream's DefaultSettings "Basic" tab: Start (and End) time inputs
     // plus each plugin's manifest options, rendered from the descriptor.
@@ -3908,11 +4098,13 @@ export function TimelineEditorPage() {
         fields: addon.fields,
         options: clip.addon,
         idPrefix: `addon-${clip.id}`,
+        services: addonEditorServices,
+        onFieldChange: addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined,
         onChange: (next) => {
           clip.addon = next;
           if (addon.summary) clip.name = addon.summary(next);
           renderTracks();
-          updatePreview(clip);
+          if (addon.category !== 'overlay') updatePreview(clip);
           debouncedSave();
         },
       });
@@ -5158,6 +5350,7 @@ export function TimelineEditorPage() {
     // Maps floating-rail labels to collapsed panel element ids.
     const RAIL_PANEL_MAP = {
       'Interactive': 'interactivePanel',
+      'Overlays': 'overlaysPanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
       'Color Scopes': 'colorScopesPanel',
@@ -5253,7 +5446,8 @@ export function TimelineEditorPage() {
         'Clip Editor': 'Clip editor - Edit selected clip properties',
         'Transitions Panel': 'Transitions - Add effects between clips',
         'CineGen Results': 'CineGen AI Tools results history',
-        'Interactive': 'Interactive - Skip, Pause, Loop, Lead Generator, List Builder, Personalizer, CTA'
+        'Interactive': 'Interactive - Skip, Pause, Loop, Lead Generator, List Builder, Personalizer, CTA',
+        'Overlays': 'Overlays - Smart Text, Text Mask, Personalized Image, Image, Stickers, Wrapper'
       };
       state.railActions.forEach(([icon, label, active]) => {
         const button = document.createElement('button');
@@ -7047,6 +7241,7 @@ export function TimelineEditorPage() {
       renderAll();
       bindEvents();
       bindInteractivePanel();
+      renderOverlaysPanel();
       setupEnhancedTooltips();
       setupUploadSources({ state, showToast });
 
