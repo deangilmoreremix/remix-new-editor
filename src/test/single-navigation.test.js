@@ -62,3 +62,24 @@ describe('single navigation', () => {
     expect(sidebar.querySelector('[aria-current="page"]').dataset.sidebarItem).toBe('brand');
   });
 });
+
+describe('studio page title', () => {
+  it('is a one-line text title with no picture banner', async () => {
+    const { createStudioHeader } = await import('../lib/thumbnails.js');
+    const el = createStudioHeader('image', 'Image Studio', 'Generate images with 20+ AI models', 'mb-4');
+
+    expect(el.dataset.studioHeader).toBe('image');
+    expect(el.querySelector('h1').textContent).toBe('Image Studio');
+    expect(el.textContent).toContain('Generate images with 20+ AI models');
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.classList.contains('hero-banner')).toBe(false);
+    expect(el.className).not.toMatch(/\bh-(24|28|32|44)\b/);
+    expect(el.classList.contains('mb-4')).toBe(true);
+  });
+
+  it('omits the description when none is given', async () => {
+    const { createStudioHeader } = await import('../lib/thumbnails.js');
+    const el = createStudioHeader('library', 'Library');
+    expect(el.querySelector('p')).toBeNull();
+  });
+});
