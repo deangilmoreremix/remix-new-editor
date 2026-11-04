@@ -115,9 +115,10 @@ export function createAdvancedPanel({ id = 'advanced-btn', elements = [], toolti
   panel.appendChild(emptyNote);
 
   // Show the note only when no visible control is in the panel.
+  const CONTROL_SELECTOR = 'input, select, textarea, button';
   const syncEmptyNote = () => {
     const hasContent = [...panel.children].some(
-      (c) => c !== emptyNote && !c.classList.contains('hidden') && c.querySelector('input, select, textarea, button'),
+      (c) => c !== emptyNote && !c.classList.contains('hidden') && (c.matches(CONTROL_SELECTOR) || c.querySelector(CONTROL_SELECTOR)),
     );
     emptyNote.classList.toggle('hidden', hasContent);
   };

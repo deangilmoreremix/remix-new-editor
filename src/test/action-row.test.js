@@ -61,3 +61,15 @@ describe('advanced panel empty note', () => {
     expect(note.classList.contains('hidden')).toBe(false);
   });
 });
+
+describe('advanced panel empty note with direct controls', () => {
+  it('hides the note when a control is passed directly in elements', async () => {
+    const { createAdvancedPanel } = await import('../components/studio/actionRow.js');
+    const input = document.createElement('input');
+    const { button, panel } = createAdvancedPanel({ id: 'adv4', elements: [input] });
+    document.body.appendChild(panel);
+    button.click();
+    const note = [...panel.children].find((c) => c.textContent.includes('No advanced options'));
+    expect(note.classList.contains('hidden')).toBe(true);
+  });
+});
