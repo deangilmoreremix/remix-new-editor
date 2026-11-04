@@ -29,6 +29,7 @@ import {
   setOverlayPlaying, syncOverlayTime, playInAnimation,
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
   OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT,
+  BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
 } from '../lib/editor/addons/index.js';
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
@@ -563,6 +564,10 @@ export function TimelineEditorPage() {
         <div id="overlayAddonList"></div>
         <div class="addon-panel__section" id="overlayPresets"></div>
       </aside>
+      <aside class="side-card" id="blendPanel" hidden data-tooltip="Blend Modes - light leaks, bokeh, textures and colour washes blended over the video">
+        <div class="card-title">🌈 Blend Modes</div>
+        <div id="blendLibrary"></div>
+      </aside>
       <aside class="side-card" id="stockPanel" hidden data-tooltip="Stock media - Pixabay and Pexels videos and images">
         <div class="card-title">🎬 Stock Media</div>
         <div id="stockBrowser"></div>
@@ -731,6 +736,7 @@ export function TimelineEditorPage() {
         ['⬆', 'Export'],
         ['⚡', 'Interactive'],
         ['🧩', 'Overlays'],
+        ['🌈', 'Blend Modes'],
         ['🎞️', 'Stock Media'],
         ['🤖', 'AI Agent'],
         ['🔗', 'Share'],
@@ -1200,6 +1206,8 @@ export function TimelineEditorPage() {
       interactivePanel: root.querySelector('#interactivePanel'),
       interactiveAddonList: root.querySelector('#interactiveAddonList'),
       overlaysPanel: root.querySelector('#overlaysPanel'),
+      blendPanel: root.querySelector('#blendPanel'),
+      blendLibrary: root.querySelector('#blendLibrary'),
       overlayAddonList: root.querySelector('#overlayAddonList'),
       overlayPresets: root.querySelector('#overlayPresets'),
       stockPanel: root.querySelector('#stockPanel'),
@@ -4443,6 +4451,72 @@ export function TimelineEditorPage() {
       });
     }
 
+    // Blend Modes (upstream toolbar): full-frame looks on their own layer,
+    // like upstream's blend tracks. Each is an editable Image/Wrapper clip.
+    function renderBlendPanel() {
+      if (!els.blendLibrary) return;
+      els.blendLibrary.innerHTML = `
+        <p class="blend-lib__hint">Click a look to add it at the playhead on its own layer. Change its blend mode and strength in the clip settings.</p>
+        <label class="blend-lib__span"><input type="checkbox" id="blendWholeVideo" /> Cover the whole video</label>
+        ${BLEND_CATEGORIES.map((cat) => `
+          <div class="blend-lib__section">
+            <h4 class="addon-panel__heading">${escapeHtml(cat.label)}</h4>
+            <div class="blend-lib__grid">
+              ${cat.items.map((item) => `
+                <button type="button" class="blend-lib__tile" data-blend-id="${escapeHtml(item.id)}" title="${escapeHtml(`${item.label} · ${item.blendMode}`)}">
+                  <span class="blend-lib__thumb" style="${escapeHtml(blendThumbStyle(item))}"></span>
+                  <span class="blend-lib__label">${escapeHtml(item.label)}</span>
+                  <span class="blend-lib__mode">${escapeHtml(item.blendMode)}</span>
+                </button>`).join('')}
+            </div>
+          </div>`).join('')}
+        <div class="blend-lib__section">
+          <h4 class="addon-panel__heading">Light leak videos</h4>
+          <button type="button" class="blend-lib__stock" data-add-addon="overlay-transition">🎞️ Search Pixabay &amp; Pexels light leaks, film burns and glitches</button>
+        </div>`;
+      els.blendLibrary.addEventListener('click', (e) => {
+        const stock = e.target.closest('[data-add-addon]');
+        if (stock) { addAddonAtPlayhead(stock.dataset.addAddon); return; }
+        const tile = e.target.closest('[data-blend-id]');
+        if (tile) addBlendLook(tile.dataset.blendId, { whole: root.querySelector('#blendWholeVideo')?.checked });
+      });
+    }
+
+    function addBlendLook(id, { whole = false } = {}) {
+      const mapped = blendItemToAddon(getBlendItem(id));
+      if (!mapped) return null;
+      const T = state.timelineSeconds || 60;
+      const startSec = whole ? 0 : (state.playheadPercent / 100) * T;
+      const clip = createAddonClip(mapped.type, { startSec, timelineSeconds: T });
+      if (whole) clip.end = T;
+      clip.addon = { ...clip.addon, ...mapped.options };
+      clip.name = mapped.name;
+      // A free "Blend" layer for this time span (new layer when it overlaps).
+      const overlaps = (t) => (t.items || []).some((c) => {
+        const r = clipTimeRange(c, T);
+        return r.start < clip.end && clip.start < r.end;
+      });
+      let n = 1;
+      let track = state.tracks.find((t) => t.name === 'Blend');
+      while (track && overlaps(track)) {
+        n += 1;
+        const name = `Blend ${n}`;
+        track = state.tracks.find((t) => t.name === name);
+      }
+      const name = n === 1 ? 'Blend' : `Blend ${n}`;
+      if (!track) {
+        track = { id: `track-blend-${Date.now().toString(36)}`, type: 'text', name, muted: false, solo: false, locked: false, items: [] };
+        state.tracks.push(track);
+      }
+      saveStateSnapshot(state);
+      insertClipIntoTrack(clip, name);
+      showClipEditor(clip.id);
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`${mapped.name.replace('Blend: ', '')} added (${getBlendItem(id).blendMode})`, 'success');
+      return clip;
+    }
+
     // Services the overlay settings form uses: uploads, the media library
     // and the personalization token list.
     // Pixabay + Pexels search through the existing server-side proxies
@@ -6304,6 +6378,7 @@ export function TimelineEditorPage() {
     const RAIL_PANEL_MAP = {
       'Interactive': 'interactivePanel',
       'Overlays': 'overlaysPanel',
+      'Blend Modes': 'blendPanel',
       'Stock Media': 'stockPanel',
       'AI Agent': 'aiAgentPanel',
       'Share': 'sharePanel',
@@ -8259,6 +8334,7 @@ export function TimelineEditorPage() {
       bindEvents();
       bindInteractivePanel();
       renderOverlaysPanel();
+      renderBlendPanel();
       bindOverlayPresets();
       initRemotionEngine();
       window.addEventListener('resize', () => renderOverlayLayer());

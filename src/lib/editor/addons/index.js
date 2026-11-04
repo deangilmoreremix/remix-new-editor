@@ -26,3 +26,4 @@ export { capturePreset, presetToClips, loadPresets, savePresets, PRESETS_STORAGE
 export { loadGlTransitions, createTransitionRenderer, fragmentFor } from './glTransitionRenderer.js';
 export { CTA_ANIMATIONS, buildCtaLottie, ctaBox, CTA_ASPECT } from './ctaLottie.js';
 export { ctaTarget, COUNTRY_CODES } from './ctaLink.js';
+export { BLEND_CATEGORIES, BLEND_ITEMS, blendItemToAddon, getBlendItem, blendThumbStyle, validateBlendLibrary } from './blendLibrary.js';
