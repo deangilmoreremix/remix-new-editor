@@ -14,10 +14,28 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
  *   setPublished(bool) → Promise
  *   countLeads()   → Promise<number|null>
  *   copy(text)     → Promise
+ *   personalLinks(link) → [{ name, email, company, link }]   one link per contact
+ *   downloadCsv(rows)
  *   defaultTitle
  */
 export function renderSharePanel(container, opts) {
   const ui = { info: null, busy: false, error: '', leads: null, copied: '' };
+
+  // One link per Personalization Studio contact: their details fill the
+  // video and their own Smart Speech line plays.
+  const personalHtml = (link) => {
+    const rows = opts.personalLinks?.(link) || [];
+    if (!opts.personalLinks) return '';
+    if (!rows.length) return '<p class="addon-field__hint">Personal links: add contacts in the Personalize window to get one link per contact.</p>';
+    ui.rows = rows;
+    return `<div class="share-personal">
+      <div class="share-personal__head"><strong>Personal links</strong><span>${rows.length} contact${rows.length === 1 ? '' : 's'}</span>
+        <button type="button" class="mini-btn" data-share-csv>Download CSV</button></div>
+      <ul class="share-personal__list">${rows.slice(0, 100).map((r, i) => `<li><span title="${esc(r.email)}">${esc(r.name)}</span>
+        <button type="button" class="mini-btn" data-share-personal="${i}">${ui.copied === `p${i}` ? 'Copied ✓' : 'Copy link'}</button></li>`).join('')}</ul>
+      ${rows.length > 100 ? `<p class="addon-field__hint">Showing 100 of ${rows.length}. The CSV has them all.</p>` : ''}
+    </div>`;
+  };
 
   const draw = () => {
     const info = ui.info;
@@ -39,6 +57,7 @@ export function renderSharePanel(container, opts) {
               <span class="share-copy"><textarea readonly rows="3" data-share-embed aria-label="Embed code">${esc(embedCode(info.id))}</textarea><button type="button" class="mini-btn" data-share-copy="embed">${ui.copied === 'embed' ? 'Copied ✓' : 'Copy'}</button></span></label>
             <p class="addon-field__hint">Personalize a link with the viewer's details, e.g. <code>${esc(link)}?firstname=Ann&amp;company=Acme</code> — {{tokens}} in your text fill in automatically.</p>
             <div class="share-stats"><span>👁 ${Number(info.view_count) || 0} views</span><span>✉️ ${ui.leads == null ? '–' : ui.leads} leads</span><a href="${esc(link)}" target="_blank" rel="noopener">Open ↗</a></div>
+            ${personalHtml(link)}
             <p class="addon-field__hint">Changes in the editor go live when you press “Update published video”.</p>
           </div>` : info ? '<p class="addon-field__hint">This video is unpublished — its link shows “not found”.</p>' : ''}
       </div>`;
@@ -76,6 +95,14 @@ export function renderSharePanel(container, opts) {
         ui.error = err?.message || 'Could not unpublish';
       }
       draw();
+    } else if (d.shareCsv !== undefined) {
+      opts.downloadCsv?.(ui.rows || []);
+    } else if (d.sharePersonal !== undefined) {
+      const row = (ui.rows || [])[Number(d.sharePersonal)];
+      if (!row) return;
+      try { await opts.copy(row.link); ui.copied = `p${d.sharePersonal}`; } catch { ui.copied = ''; }
+      draw();
+      setTimeout(() => { ui.copied = ''; draw(); }, 1800);
     } else if (d.shareCopy) {
       const text = d.shareCopy === 'link' ? watchUrl(ui.info.id) : embedCode(ui.info.id);
       try { await opts.copy(text); ui.copied = d.shareCopy; } catch { ui.copied = ''; }

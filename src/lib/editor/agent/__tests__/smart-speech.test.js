@@ -52,6 +52,10 @@ describe('Smart Speech', () => {
     fb.value = 'Hi there';
     fb.dispatchEvent(new Event('input', { bubbles: true }));
     el.querySelector('[data-act="add"]').click();
+    // No contacts in the Personalization Studio yet: the contacts step says so and offers the fallback only.
+    expect(el.querySelector('.speech-modal__empty').textContent).toMatch(/Personalize/);
+    expect(el.querySelector('[data-act="voice-all"]').textContent).toBe('Add with fallback only');
+    el.querySelector('[data-act="voice-all"]').click();
     await vi.waitFor(() => expect(add).toHaveBeenCalled());
     expect(generate.mock.calls[0][0].text).toBe('Hi there');
     expect(add.mock.calls[0][0]).toMatchObject({ url: 'https://a/Hi%20there.mp3', tts: { personalized: true, text: 'Hi {{firstname}}, welcome!', fallback: 'Hi there' } });
