@@ -10,6 +10,7 @@ import {
 } from '../../lib/providers'
 import { getDisabledProviders } from '../../lib/app-config'
 import styles from './ModelSelector.module.css'
+import { T } from '../../lib/tables'
 
 // ── Types ──────────────────────────────────────────────
 
@@ -105,7 +106,7 @@ export default function ModelSelector({ page, selectedModel, onModelSelect, plac
 
       if (page === 'landing') {
         const { data, error } = await supabase
-          .from('default_models')
+          .from(T.default_models)
           .select('*')
           .in('provider_id', LANDING_PROVIDERS)
 
@@ -134,7 +135,7 @@ export default function ModelSelector({ page, selectedModel, onModelSelect, plac
         if (!user) { setLoading(false); return }
 
         const { data: keys, error: keysError } = await supabase
-          .from('provider_keys')
+          .from(T.provider_keys)
           .select('*')
           .eq('user_id', user.id)
           .eq('enabled', true)
@@ -149,7 +150,7 @@ export default function ModelSelector({ page, selectedModel, onModelSelect, plac
           const providerIds = [...new Set(keys.map((k: { provider_id: string }) => k.provider_id))]
 
           const { data: defaults } = await supabase
-            .from('default_models')
+            .from(T.default_models)
             .select('*')
             .in('provider_id', providerIds)
 

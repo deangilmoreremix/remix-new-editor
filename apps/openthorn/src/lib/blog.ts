@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { BlogPost } from '../data/blogPosts'
+import { T } from './tables'
 
 interface BlogRow {
   slug: string
@@ -36,7 +37,7 @@ function rowToPost(r: BlogRow): BlogPost {
 /** Published posts, newest first. Returns null on error so callers keep bundled data. */
 export async function fetchPublishedPosts(): Promise<BlogPost[] | null> {
   const { data, error } = await supabase
-    .from('blog_posts')
+    .from(T.blog_posts)
     .select('slug,title,excerpt,content,date,date_modified,cover_youtube,cover_image,og_image,tldr,how_to,item_list')
     .eq('status', 'published')
     .order('date', { ascending: false })

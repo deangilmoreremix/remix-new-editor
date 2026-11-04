@@ -6,7 +6,8 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { uploadMediaFile } from '../lib/editor/upload.js';
 import { saveGeneration } from '../lib/generationHistory.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -18,7 +19,6 @@ import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -35,6 +35,9 @@ export function AvatarStudio() {
   let uploadedAudioUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('avatar-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'avatar-studio' });
   let dynamicControls = null;
   let dynamicControlsContainer = null;
   let avatarAbortController = null;
@@ -42,15 +45,8 @@ export function AvatarStudio() {
 
   // Header with hero banner
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
-  const avatarBanner = createHeroSection('avatar', 'h-32 md:h-44 mb-4');
-  if (avatarBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Avatar Studio</h1><p class="text-white/60 text-sm">Create talking avatars and lip sync videos</p>';
-    avatarBanner.appendChild(bannerText);
-    header.appendChild(avatarBanner);
-  }
+  header.className = 'animate-fade-in-up text-center w-full';
+  header.appendChild(createStudioHeader('avatar', 'Avatar Studio', 'Create talking avatars and lip sync videos'));
   container.appendChild(header);
 
   // Model selector
@@ -137,7 +133,7 @@ const triggerBtn = document.createElement('button');
 
   // Form card
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-md bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.2s';
 
   // Video/Image upload (for lip sync models)
@@ -245,28 +241,13 @@ const triggerBtn = document.createElement('button');
   promptLabel.textContent = 'Prompt (optional)';
   promptGroup.appendChild(promptLabel);
   const promptInput = document.createElement('textarea');
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none';
   promptInput.rows = 2;
   promptInput.placeholder = 'Describe the animation you want...';
   promptInput.setAttribute('aria-label', 'Avatar prompt');
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (modelId) => {
-        selectedModel = avatarModels.find(m => m.id === modelId) || selectedModel;
-      }
-    }).catch(() => {});
-  });
-  formCard.appendChild(modelPickerBtn);
 
   // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
     const enhanceMenu = document.createElement('div');
@@ -305,7 +286,7 @@ const triggerBtn = document.createElement('button');
               promptInput.value = prompt;
               promptInput.dispatchEvent(new Event('input', { bubbles: true }));
               promptInput.focus();
-            });
+            }, { basePrompt: promptInput.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
@@ -341,21 +322,6 @@ const triggerBtn = document.createElement('button');
   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
-  // Model Picker button
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (modelId) => {
-        selectedModel = avatarModels.find(m => m.id === modelId) || selectedModel;
-      }
-    }).catch(() => {});
-  });
-  formCard.appendChild(modelPickerBtn);
 
   // Dynamic model-specific advanced controls
   dynamicControlsContainer = document.createElement('div');
@@ -440,12 +406,12 @@ const triggerBtn = document.createElement('button');
 
   // Instructions
   const inlineInstructions = createInlineInstructions('avatar');
-  inlineInstructions.classList.add('max-w-md', 'mt-6');
+  inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
   // Result area
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-md mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);

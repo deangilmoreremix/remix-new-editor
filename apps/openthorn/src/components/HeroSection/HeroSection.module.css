@@ -123,16 +123,16 @@
 
 .valueItem:nth-child(2) {
   background:
-    linear-gradient(180deg, rgba(94, 234, 212, 0.12), rgba(94, 234, 212, 0.045)),
+    linear-gradient(180deg, rgba(217, 255, 0, 0.12), rgba(217, 255, 0, 0.045)),
     rgba(255, 255, 255, 0.035);
-  border-color: rgba(94, 234, 212, 0.2);
+  border-color: rgba(217, 255, 0, 0.2);
 }
 
 .valueItem:nth-child(3) {
   background:
-    linear-gradient(180deg, rgba(246, 193, 119, 0.13), rgba(246, 193, 119, 0.045)),
+    linear-gradient(180deg, rgba(217, 255, 0, 0.13), rgba(217, 255, 0, 0.045)),
     rgba(255, 255, 255, 0.035);
-  border-color: rgba(246, 193, 119, 0.2);
+  border-color: rgba(217, 255, 0, 0.2);
 }
 
 .valueIcon {
@@ -143,7 +143,7 @@
   justify-content: center;
   border-radius: 9px;
   color: var(--color-secondary);
-  background: rgba(94, 234, 212, 0.1);
+  background: rgba(217, 255, 0, 0.1);
   flex-shrink: 0;
 }
 

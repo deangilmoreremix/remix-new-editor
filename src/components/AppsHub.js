@@ -10,25 +10,33 @@ const CORE_STUDIOS = [
 
 const TOOL_STUDIOS = [
   { id: 'storyboard', name: 'Storyboard Studio', description: 'Multi-frame generation for sequences', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="6" height="8" rx="1"/><rect x="9" y="3" width="6" height="8" rx="1"/><rect x="16" y="3" width="6" height="8" rx="1"/><rect x="2" y="13" width="6" height="8" rx="1"/><rect x="9" y="13" width="6" height="8" rx="1"/><rect x="16" y="13" width="6" height="8" rx="1"/></svg>', badge: 'Frames', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
-  { id: 'effects', name: 'Effects Studio', description: 'Apply 350+ visual effects', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>', badge: '350+ effects', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
+  { id: 'effects', name: 'Effects Studio', description: 'Apply 350+ motion and visual effects', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>', badge: '350+ effects', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
   { id: 'edit', name: 'Edit Studio', description: 'Remove objects, backgrounds, reframe', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>', badge: '9 tools', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
   { id: 'upscale', name: 'Upscale Suite', description: 'AI upscale and enhance images', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', badge: '3 methods', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
   { id: 'character', name: 'Character Studio', description: 'Consistent character generation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', badge: 'Face ID', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
-  { id: 'commercial', name: 'Commercial Studio', description: 'Product photography and ads', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>', badge: 'Ads', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  { id: 'commercial', name: 'Product Shot Studio', description: 'Studio-quality product photos from one image', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>', badge: 'Product', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
   { id: 'viral', name: 'Smart Video Viral', description: 'AI-powered viral video generation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', badge: 'Viral', color: 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20' },
 ];
 
 const AI_APPS = [
   { id: 'audio', name: 'Audio Studio', description: 'Generate music, speech, and sound effects', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', badge: 'AI Audio', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
   { id: 'avatar', name: 'Avatar Studio', description: 'AI avatars and lip sync video generation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 11v2"/><path d="M8 13h8"/></svg>', badge: 'AI Avatars', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' },
-  { id: 'training', name: 'Training Studio', description: 'Train custom LoRA models from your images', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', badge: 'LoRA', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
   { id: 'videotools', name: 'Video Tools', description: 'Upscale, edit, translate, and enhance videos', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3V9z"/></svg>', badge: 'Video Tools', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
-  { id: 'chat', name: 'Chat Studio', description: 'AI-powered text generation and conversation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', badge: 'LLM', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
-  { id: 'lipsync', name: 'Lip Sync', description: 'Animate portraits or sync lips to audio with AI', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>', badge: 'Lip Sync', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
+  { id: 'lipsync', name: 'Lip Sync Studio', description: 'Animate portraits or sync lips to audio with AI', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>', badge: 'Lip Sync', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
   { id: 'personalizer', name: 'Personalizer', description: 'Personalize templates and assets with your data', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>', badge: 'Personalize', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
   { id: 'video-agent', name: 'Video Agent', description: 'AI-powered video production assistant', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', badge: 'Agent', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
-  { id: 'ai-vfx', name: 'AI VFX', description: 'AI-powered visual effects and compositing', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.39 6.95H22l-6.19 4.5L18.18 22 12 17.5 5.82 22l2.37-8.55L2 8.95h7.61L12 2z"/><circle cx="12" cy="12" r="3"/></svg>', badge: 'VFX', color: 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20' },
+  { id: 'ai-vfx', name: 'AI VFX Studio', description: 'Camera moves, VFX and AI effects from one image', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.39 6.95H22l-6.19 4.5L18.18 22 12 17.5 5.82 22l2.37-8.55L2 8.95h7.61L12 2z"/><circle cx="12" cy="12" r="3"/></svg>', badge: 'VFX', color: 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20' },
   { id: 'brand', name: 'Brand Studio', description: 'Brand-consistent content generation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', badge: 'Brand', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
+];
+
+const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS].map((a) => [a.id, a]));
+const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
+
+// Grouped the same way as the side menu.
+const APP_SECTIONS = [
+  ['Image Studios', pick(['image', 'edit', 'upscale', 'character', 'commercial', 'brand'])],
+  ['Video Studios', pick(['video', 'cinema', 'storyboard', 'effects', 'ai-vfx', 'animate', 'lipsync', 'videotools', 'avatar', 'audio'])],
+  ['Agents & Editors', pick(['video-agent', 'viral', 'personalizer'])],
 ];
 
 export function AppsHub() {
@@ -75,23 +83,13 @@ export function AppsHub() {
   const recentRow = createRecentRow();
   if (recentRow) inner.appendChild(recentRow);
 
-  inner.appendChild(createSection('Core Studios', CORE_STUDIOS.map(s => ({
-    ...s,
-    thumbnail: getStudioThumbnail(s.id),
-    onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
-  })), true));
-
-  inner.appendChild(createSection('Tools & Editors', TOOL_STUDIOS.map(s => ({
-    ...s,
-    thumbnail: getStudioThumbnail(s.id),
-    onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
-  })), true));
-
-  inner.appendChild(createSection('AI Apps', AI_APPS.map(s => ({
-    ...s,
-    thumbnail: getStudioThumbnail(s.id),
-    onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
-  })), true));
+  APP_SECTIONS.forEach(([title, apps]) => {
+    inner.appendChild(createSection(title, apps.map(s => ({
+      ...s,
+      thumbnail: getStudioThumbnail(s.id),
+      onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
+    })), true));
+  });
 
   const noResults = document.createElement('div');
   noResults.className = 'hidden text-center py-16 text-white/50 text-sm';
@@ -134,7 +132,7 @@ function createSection(title, items, isStudio = false) {
 
   const grid = document.createElement('div');
   grid.className = isStudio
-    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'
+    ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3'
     : 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3';
 
   items.forEach(item => {
@@ -145,7 +143,7 @@ function createSection(title, items, isStudio = false) {
     card.setAttribute('tabindex', '0');
 
     if (item.thumbnail) {
-      const heroHeight = isStudio ? 'h-32' : 'h-20';
+      const heroHeight = isStudio ? 'h-28' : 'h-20';
       const heroWrapper = document.createElement('div');
       heroWrapper.className = `thumb-hero ${heroHeight}`;
 

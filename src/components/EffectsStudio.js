@@ -13,7 +13,8 @@ import { createMediaPreview } from './MediaPreview.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { i2iModels, i2vModels } from '../lib/models.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -22,14 +23,11 @@ import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { showToast } from '../lib/loading.js';
 import { validateEffectParams, EFFECT_PARAM_SCHEMA, createSliderControl, createAdvancedSection } from '../lib/effectParamValidator.js';
 import { EffectCompositor } from '../lib/editor/effectCompositor.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -39,6 +37,20 @@ const EFFECT_TABS = [
   { id: 'motion-controls', label: 'Motion Controls', type: 'i2v', field: 'name' },
   { id: 'video-effects', label: 'Video FX v2', type: 'i2v', field: 'name' },
 ];
+
+// MuAPI request schemas (api.muapi.ai/openapi.json) mark `prompt` as required
+// for these effect endpoints (flux-kontext-effects, generate_wan_ai_effects).
+const PROMPT_REQUIRED_TABS = new Set(['flux-kontext-effects', 'ai-video-effects', 'motion-controls']);
+
+// Effect names whose MuAPI enum value is spelled differently from the label
+// we show. The API only accepts its own spelling.
+const API_EFFECT_NAMES = {
+  'Acrylic Ornaments': 'Acryclic Ornaments',
+};
+
+function toApiEffectName(name) {
+  return API_EFFECT_NAMES[name] || name;
+}
 
 function getEffectsForModel(modelId) {
   const allModels = [...i2iModels, ...i2vModels];
@@ -59,6 +71,9 @@ export async function EffectsStudio() {
   let uploadedUrl = null;
   let uploadedAssetId = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('effects-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'effects-studio' });
   let comparisonMode = false;
   let lastResultUrl = null;
   let lastResultType = null;
@@ -139,32 +154,7 @@ export async function EffectsStudio() {
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  const effectsBanner = createHeroSection('effects', 'h-32 md:h-44 mb-4');
-  if (effectsBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-white/60 text-xs">Apply 350+ visual effects to your photos and videos</p>';
-    effectsBanner.appendChild(bannerText);
-    topBar.appendChild(effectsBanner);
-
-    // Thumbnail studio button
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'btn-action-secondary shrink-0';
-    thumbBtn.onclick = () => {
-      const modal = new TemplateThumbnailModal({
-        studioId: 'effects-studio',
-        layout: 'panel',
-        studioLabel: 'Vibe Motion',
-        accentGradient: 'from-violet-500 to-indigo-500',
-      });
-      mountThumbnailModal(modal);
-    };
-  } else {
-    topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
-  }
+  topBar.appendChild(createStudioHeader('effects', 'Effects Studio', 'Apply 350+ motion and visual effects to your photos and videos', 'mb-4'));
 
   const tabRow = document.createElement('div');
   tabRow.className = 'flex gap-2 overflow-x-auto no-scrollbar pb-2';
@@ -179,23 +169,6 @@ export async function EffectsStudio() {
     tabButtons[tab.id] = btn;
     tabRow.appendChild(btn);
   });
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: activeTab.id,
-      onSelectModel: (id) => {
-      const tab = EFFECT_TABS.find(t => t.id === id);
-      if (tab) switchTab(tab);
-      }
-    }).catch((err) => console.error('[ModelPicker] open failed:', err));
-  });
-  tabRow.appendChild(modelPickerBtn);
 
   topBar.appendChild(tabRow);
 
@@ -305,7 +278,7 @@ export async function EffectsStudio() {
     const { browsePexelsImages } = await import('../lib/studioPexels.js');
     browsePexelsImages({
       title: 'Select Reference Photo',
-      studioName: 'Vibe Motion',
+      studioName: 'Effects Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
         // Pexels photos are not Asset Library rows — drop any previously
@@ -447,6 +420,7 @@ export async function EffectsStudio() {
   promptRow.className = 'flex items-center gap-3';
   const promptInput = document.createElement('input');
   promptInput.id = 'fx-prompt-input';
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.type = 'text';
   promptInput.placeholder = 'Optional prompt...';
   promptInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
@@ -488,7 +462,7 @@ export async function EffectsStudio() {
       appTheme: 'effects-studio',
       layout: 'panel',
       studioId: 'effects-studio',
-      studioName: 'Vibe Motion',
+      studioName: 'Effects Studio',
       aspectRatio: '16:9',
       outputType: 'image',
       onApply: ({ imageUrl }) => {
@@ -1178,7 +1152,7 @@ generateBtn.type = 'button';
     setActionBusy(mobileGenBtn, true);
     const notifyId = `effects:${Date.now()}`;
     let failed = null;
-    notifyGeneration({ phase: 'start', id: notifyId, studio: 'effects', label: 'Vibe Motion' });
+    notifyGeneration({ phase: 'start', id: notifyId, studio: 'effects', label: 'Effects Studio' });
 
     outputPreview.showLoading(`Applying "${selectedEffect}"...`);
     mobileOutputPreview.showLoading('Processing...');
@@ -1213,8 +1187,8 @@ generateBtn.type = 'button';
       generateBtn.disabled = false;
       mobileGenBtn.disabled = false;
       notifyGeneration(failed
-        ? { phase: 'error', id: notifyId, studio: 'effects', label: 'Vibe Motion', message: failed }
-        : { phase: 'success', id: notifyId, studio: 'effects', label: 'Vibe Motion' });
+        ? { phase: 'error', id: notifyId, studio: 'effects', label: 'Effects Studio', message: failed }
+        : { phase: 'success', id: notifyId, studio: 'effects', label: 'Effects Studio' });
       if (failed) { setActionRetry(generateBtn); setActionRetry(mobileGenBtn); }
       else { setActionBusy(generateBtn, false); setActionBusy(mobileGenBtn, false); }
     }
@@ -1240,7 +1214,7 @@ generateBtn.type = 'button';
     const params = {
       model: activeTab.id,
       image_url: mainUrl,
-      [activeTab.field]: selectedEffect,
+      [activeTab.field]: toApiEffectName(selectedEffect),
       customThumbnailUrl: customThumbnailUrl || undefined,
       guidance_scale: advancedSettings.guidanceScale,
       steps: advancedSettings.steps,
@@ -1263,6 +1237,9 @@ generateBtn.type = 'button';
     const activeProfile = profiles?.find((p) => p.id === selectedContactId) || null;
     const prompt = replaceTokensInPrompt(promptInput.value.trim() || mobilePrompt.value.trim(), activeProfile);
     if (prompt) params.prompt = prompt;
+    // Kontext and Wan effect endpoints require `prompt`; the studio's prompt
+    // box is optional, so fall back to the effect name.
+    else if (PROMPT_REQUIRED_TABS.has(activeTab.id)) params.prompt = selectedEffect;
 
     // Merge attachment URLs from the unified toolbar.
     if (attachmentImages.length) {
@@ -1622,7 +1599,7 @@ generateBtn.type = 'button';
     const detailView = new MediaDetailView({
       mediaUrl: url,
       mediaType: outputPreview.getType() || 'image',
-      title: 'Vibe Motion Output',
+      title: 'Effects Studio Output',
       model: activeTab.label || '',
       autoCollapsePrompt: true,
     });
@@ -1630,11 +1607,8 @@ generateBtn.type = 'button';
   };
 
   switchTab(EFFECT_TABS[0]);
-    const galleryAssets = getAssetsForStudio('effects');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'effects', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
-    }
 
-    return container;
+  // No template/example gallery here: the effects grid is the catalogue, and
+  // an appended gallery squeezed the studio workspace to zero height.
+  return container;
 }

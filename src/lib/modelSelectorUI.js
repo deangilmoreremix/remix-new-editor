@@ -125,17 +125,27 @@ function createProviderButton(provider, selectedProvider, availableProviders, co
   </button>`;
 }
 
-function createModelItem(entry, isSelected, activeItemRef) {
+function createModelItem(entry, isSelected, { isVideo = false, showProvider = false } = {}) {
   const { family } = entry;
-  return `<button type="button" data-entry-id="${entry.id}" data-variant-ids="${[...entry.variantIds].join(",")}" aria-pressed="${isSelected}" ${isSelected ? `ref="${activeItemRef}"` : ""} class="flex w-full text-left items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${isSelected ? "bg-white/5 border-white/5" : ""}">
-    <div class="flex items-center gap-3.5">
-      ${PROVIDER_LOGOS[family.provider] ? `<div class="w-8 h-8 rounded-xl border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${PROVIDER_LOGOS[family.provider]}" alt="${family.provider_name}" class="w-full h-full object-contain p-1 ${invertLogos.includes(family.provider) ? "invert" : ""}" loading="lazy" /></div>` : `<div class="w-9 h-9 ${getProviderStyle(family.provider).bg} border rounded-xl flex items-center justify-center font-black text-xs shadow-inner uppercase">${entry.name.charAt(0)}</div>`}
+  const logo = PROVIDER_LOGOS[family.provider];
+  const invert = invertLogos.includes(family.provider) ? "invert" : "";
+  // Upstream image rows: compact, round logos. Video rows: roomier, rounded-square logos.
+  const rowClass = isVideo
+    ? "flex w-full text-left items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+    : "flex w-full text-left items-center justify-between p-3 hover:bg-white/5 rounded-lg cursor-pointer transition-all border border-transparent hover:border-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary";
+  const logoHtml = logo
+    ? `<div class="w-8 h-8 ${isVideo ? "rounded-xl" : "rounded-full"} border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logo}" alt="${family.provider_name || ""}" class="w-full h-full object-contain p-1 ${invert}" loading="lazy" /></div>`
+    : `<div class="${isVideo ? "w-9 h-9 rounded-xl font-black" : "w-8 h-8 rounded-full font-bold"} ${getProviderStyle(family.provider).bg} border flex items-center justify-center text-xs shadow-inner uppercase">${entry.name.charAt(0)}</div>`;
+  const checkSize = isVideo ? 16 : 14;
+  return `<button type="button" data-entry-id="${entry.id}" data-variant-ids="${[...entry.variantIds].join(",")}" aria-pressed="${isSelected}" class="${rowClass} ${isSelected ? "bg-white/5 border-white/5" : ""}">
+    <div class="flex items-center ${isVideo ? "gap-3.5" : "gap-3"} min-w-0">
+      ${logoHtml}
       <div class="flex flex-col gap-0.5 min-w-0">
         <span class="text-xs font-bold text-white tracking-tight truncate">${entry.name}</span>
-        <div class="flex items-center gap-1.5"></div>
+        <div class="flex items-center gap-1.5">${showProvider && family.provider_name ? `<span class="text-[9px] text-white/40">${family.provider_name}</span>` : ""}</div>
       </div>
     </div>
-    ${isSelected ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4"><polyline points="20 6 9 17 4 12" /></svg>` : ""}
+    ${isSelected ? `<svg width="${checkSize}" height="${checkSize}" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="4" class="shrink-0"><polyline points="20 6 9 17 4 12" /></svg>` : ""}
   </button>`;
 }
 
@@ -148,7 +158,7 @@ function createModelItem(entry, isSelected, activeItemRef) {
  * @param {string[]} options.allowedModelTypes - Allowed workflow modes (e.g. ['t2i','i2i'])
  * @param {Function} options.onSelectModel - Called with (pickerEntry, categoryId)
  * @param {Function} options.onClose - Called when dropdown closes
- * @param {Function} [options.onSelectCategory] - Called with the new category id when a category tab is clicked
+ * @param {Function} [options.onSelectCategory] - Called with the mode id when a mode tab (not "All") is clicked
  * @param {string} [options.placeholder='Select model'] - Placeholder text
  * @param {boolean} [options.loading=false] - Show loading state
  * @param {string} [copy.searchPlaceholder='Search models...']
@@ -174,6 +184,7 @@ export function mountTemplateModelSelector({
     categoryAll = "All",
     allProviders = "All Providers",
     categories = {},
+    headerTitle = "Model",
   } = copy;
 
   // Resolve selected entry from catalog (mutable so refresh() can re-sync after category switch)
@@ -187,54 +198,37 @@ export function mountTemplateModelSelector({
   const usesVideoCatalog = allowedModelTypes.some((t) => ["t2v", "i2v", "v2v"].includes(t));
   const allEntries = usesVideoCatalog ? videoModelPickerEntries : imageModelPickerEntries;
 
-  // Build category definitions based on allowed types
-  const modelCategories = [];
-  if (allowedModelTypes.length === 0 || allowedModelTypes.includes("t2i")) {
+  // Tabs mirror upstream: "All" first, then each allowed mode in order.
+  const modeOrder = usesVideoCatalog ? ["t2v", "i2v", "v2v"] : ["t2i", "i2i"];
+  const defaultModeLabels = {
+    t2i: "Text to Image", i2i: "Image to Image",
+    t2v: "Text to Video", i2v: "Image to Video", v2v: "Video to Video",
+  };
+  // With allowedModelTypes set, "All" only lists entries the caller can run
+  // (e.g. Cinema passes ['t2v','i2v'], so V2V-only tools are left out).
+  const allowedEntries = allowedModelTypes.length
+    ? allEntries.filter((entry) => allowedModelTypes.some((mode) => entry.variantsByMode[mode]))
+    : allEntries;
+  const modelCategories = [{ id: "all", label: categoryAll, entries: allowedEntries }];
+  for (const mode of modeOrder) {
+    if (allowedModelTypes.length && !allowedModelTypes.includes(mode)) continue;
     modelCategories.push({
-      id: "all",
-      label: categoryAll,
-      entries: allEntries,
-      allowed: allowedModelTypes.length === 0 || allowedModelTypes.includes("t2i"),
-    });
-  }
-  if (allowedModelTypes.includes("t2v")) {
-    modelCategories.push({
-      id: "t2v",
-      label: categories.t2v || "T2V",
-      entries: allEntries.filter((entry) => entry.variantsByMode.t2v),
-      allowed: true,
-    });
-  }
-  if (allowedModelTypes.includes("i2v")) {
-    modelCategories.push({
-      id: "i2v",
-      label: categories.i2v || "I2V",
-      entries: allEntries.filter((entry) => entry.variantsByMode.i2v),
-      allowed: true,
-    });
-  }
-  if (allowedModelTypes.includes("v2v")) {
-    modelCategories.push({
-      id: "v2v",
-      label: categories.v2v || "V2V",
-      entries: allEntries.filter((entry) => entry.variantsByMode.v2v),
-      allowed: true,
-    });
-  }
-  if (allowedModelTypes.includes("i2i")) {
-    modelCategories.push({
-      id: "i2i",
-      label: categories.i2i || "I2I",
-      entries: allEntries.filter((entry) => entry.variantsByMode.i2i),
-      allowed: true,
+      id: mode,
+      label: categories[mode] || defaultModeLabels[mode],
+      entries: allEntries.filter((entry) => entry.variantsByMode[mode]),
     });
   }
 
+  // Upstream starts the image rail on "all" and the video rail on the
+  // selected model's provider.
+  const initialProvider = () =>
+    usesVideoCatalog && selectedEntry ? (selectedEntry.family.provider || "muapi") : "all";
+
   // State
   let search = "";
-  let selectedCategory = modelCategories[0]?.id || "all";
-  let selectedProvider = selectedEntry ? (selectedEntry.family.provider || "all") : "all";
-  let activeItemRef = null;
+  let selectedCategory = "all";
+  let selectedProvider = initialProvider();
+  const activeItemRef = null;
 
   // Build provider list from current category entries
   function getAvailableProviders(entries) {
@@ -272,7 +266,6 @@ export function mountTemplateModelSelector({
     const selectedProviderData = availableProviders.find((p) => p.id === selectedProvider);
 
     const categoryButtons = modelCategories
-      .filter((c) => c.allowed)
       .map(
         (cat) => `<button type="button" data-category="${cat.id}" class="shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-colors border ${selectedCategory === cat.id ? "bg-primary/15 text-primary border-primary/30" : "bg-white/[0.02] text-white/50 border-white/[0.04] hover:bg-white/5 hover:text-white"}">${cat.label}</button>`,
       )
@@ -286,16 +279,17 @@ export function mountTemplateModelSelector({
     const items = filtered.length === 0
       ? `<div class="text-xs text-white/30 text-center py-6">${noModelsFound}</div>`
       : filtered
-          .map((entry) => createModelItem(entry, selectedEntry === entry, activeItemRef ? 'activeItemRef' : ''))
+          .map((entry) => createModelItem(entry, selectedEntry === entry, { isVideo: usesVideoCatalog, showProvider: selectedProvider === "all" }))
           .join("");
 
     return `
-      <div class="model-picker-dropdown flex gap-4 h-full max-h-[70vh] min-h-[350px]" role="listbox" aria-label="Model selector">
+      <div class="model-picker-header text-[11px] font-semibold text-white/30 uppercase tracking-wider pb-2 border-b border-white/[0.05] mb-2 px-1">${headerTitle}</div>
+      <div class="model-picker-dropdown flex gap-4 h-full ${usesVideoCatalog ? "max-h-[70vh]" : "max-h-[60vh] overflow-x-hidden"} min-h-[350px]" role="listbox" aria-label="Model selector">
         <div class="flex flex-col gap-2.5 items-center pr-2 border-r border-white/5 shrink-0 select-none overflow-y-auto custom-scrollbar w-14 pt-0.5">
           ${providerButtons}
         </div>
         <div class="flex-1 flex flex-col gap-2 min-w-0">
-          <div class="px-1 pb-2 border-b border-white/5 shrink-0 space-y-2">
+          <div class="${usesVideoCatalog ? "px-1 " : ""}pb-2 border-b border-white/5 shrink-0 space-y-2">
             <div class="flex gap-1.5 overflow-x-auto custom-scrollbar pb-0.5">
               ${categoryButtons}
             </div>
@@ -304,9 +298,9 @@ export function mountTemplateModelSelector({
               <input type="text" placeholder="${searchPlaceholder}" value="${search}" class="bg-transparent border-none text-xs text-white focus:ring-0 w-full p-0 outline-none" />
             </div>
           </div>
-          <div class="text-xs font-bold text-secondary px-2 py-1 shrink-0 flex items-center justify-between">
+          <div class="text-xs ${usesVideoCatalog ? "font-bold px-2" : "font-semibold"} text-secondary py-1 shrink-0 flex items-center justify-between">
             <span>${activeCategory ? activeCategory.label : ""} models</span>
-            ${selectedProviderData ? `<span class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60">${selectedProviderData.name}</span>` : ""}
+            ${selectedProvider !== "all" && selectedProviderData ? `<span class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60">${selectedProviderData.name}</span>` : ""}
           </div>
           <div class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2 flex-1">
             ${items}
@@ -318,52 +312,98 @@ export function mountTemplateModelSelector({
 
   // Create dropdown panel
   const panel = document.createElement("div");
-  panel.className = "model-picker-panel fixed bg-[#141414] border border-white/10 rounded-3xl p-4 shadow-2xl z-50 transform scale-95 opacity-0 pointer-events-none transition-all duration-200";
+  panel.className = "model-picker-panel fixed z-50 rounded-xl p-3.5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] border border-white/[0.08] backdrop-blur-2xl bg-[#0c0c0f]/95 w-[calc(100vw-2rem)] md:w-[480px] max-w-md md:max-w-none max-h-[70vh] transform scale-95 opacity-0 pointer-events-none transition-all duration-200";
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-label", "Select model");
   panel.innerHTML = render();
 
-  // Position dropdown relative to anchor
+  // Position dropdown relative to anchor. The trigger usually lives in the
+  // bottom prompt bar, so prefer opening upward (like upstream
+  // Open-Generative-AI) and cap the height to the space that is actually free
+  // so the panel never runs off-screen.
   function positionPanel() {
+    if (!anchor || !panel.parentNode) return;
+    // The trigger was removed (e.g. route change) — close instead of jumping
+    // to the top-left corner.
+    if (!anchor.isConnected) { cleanup(); onClose?.(); return; }
     const rect = anchor.getBoundingClientRect();
-    const panelRect = panel.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
+    const margin = 16;
+    const gap = 8;
 
-    // Reset classes
     panel.style.top = "";
     panel.style.bottom = "";
     panel.style.left = "";
     panel.style.right = "";
+    panel.style.maxHeight = "";
+    const innerEl = panel.querySelector(".model-picker-dropdown");
+    if (innerEl) {
+      innerEl.style.maxHeight = "";
+      innerEl.style.minHeight = "";
+    }
 
-    // Default: below anchor
-    let top = rect.bottom + 8;
-    let flipped = false;
+    const naturalHeight = panel.scrollHeight || panel.getBoundingClientRect().height;
+    const spaceAbove = rect.top - gap - getPickerTopLimit();
+    const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+    const openAbove = spaceAbove >= naturalHeight || spaceAbove >= 240 || spaceAbove >= spaceBelow;
+    const available = Math.max(160, Math.min(viewportHeight * 0.7, openAbove ? spaceAbove : spaceBelow));
 
-    // If not enough space below, flip above
-    if (top + panelRect.height > viewportHeight - 16 && rect.top > panelRect.height + 16) {
-      top = rect.top - panelRect.height - 8;
-      flipped = true;
+    panel.style.maxHeight = `${available}px`;
+    panel.style.overflow = "hidden";
+    const inner = panel.querySelector(".model-picker-dropdown");
+    if (inner) {
+      // Panel has p-3.5 (14px each side) padding plus the "Model" header.
+      const header = panel.querySelector(".model-picker-header");
+      const headerHeight = header ? header.offsetHeight + 8 : 0;
+      const innerMax = Math.max(120, available - 28 - headerHeight);
+      inner.style.maxHeight = `${innerMax}px`;
+      inner.style.minHeight = `${Math.min(350, innerMax)}px`;
+    }
+
+    if (openAbove) {
+      panel.style.bottom = `${viewportHeight - rect.top + gap}px`;
+      panel.classList.remove("origin-top-left");
+      panel.classList.add("origin-bottom-left");
+    } else {
+      panel.style.top = `${rect.bottom + gap}px`;
+      panel.classList.remove("origin-bottom-left");
+      panel.classList.add("origin-top-left");
     }
 
     // Horizontal positioning
+    const panelWidth = panel.getBoundingClientRect().width;
     let left = rect.left;
-    if (left + panelRect.width > viewportWidth - 16) {
-      left = viewportWidth - panelRect.width - 16;
+    if (left + panelWidth > viewportWidth - margin) {
+      left = viewportWidth - panelWidth - margin;
     }
-    if (left < 16) left = 16;
+    if (left < margin) left = margin;
 
-    panel.style.top = `${top}px`;
     panel.style.left = `${left}px`;
-    panel.dataset.flipped = flipped ? "1" : "0";
+    panel.dataset.flipped = openAbove ? "1" : "0";
+  }
+
+  function addListeners() {
+    document.addEventListener("keydown", escapeHandler);
+    document.addEventListener("click", outsideClickHandler);
+    window.addEventListener("resize", positionPanel);
+    window.addEventListener("scroll", positionPanel, { capture: true, passive: true });
+  }
+
+  function removeListeners() {
+    document.removeEventListener("keydown", escapeHandler);
+    document.removeEventListener("click", outsideClickHandler);
+    window.removeEventListener("resize", positionPanel);
+    window.removeEventListener("scroll", positionPanel, { capture: true });
   }
 
   function open() {
     document.body.appendChild(panel);
+    addListeners();
     // Reset state
     search = "";
-    selectedCategory = modelCategories[0]?.id || "all";
-    selectedProvider = selectedEntry ? (selectedEntry.family.provider || "all") : "all";
+    selectedCategory = "all";
+    selectedProvider = initialProvider();
     panel.innerHTML = render();
     positionPanel();
     // Animate in
@@ -381,6 +421,7 @@ export function mountTemplateModelSelector({
   }
 
   function close() {
+    removeListeners();
     panel.classList.add("scale-95", "opacity-0", "pointer-events-none");
     panel.classList.remove("scale-100", "opacity-100");
     setTimeout(() => {
@@ -393,10 +434,13 @@ export function mountTemplateModelSelector({
   panel.addEventListener("click", (e) => {
     const categoryBtn = e.target.closest('[data-category]');
     if (categoryBtn) {
+      // Tabs filter the list (as upstream). Callers that pass onSelectCategory
+      // (e.g. Cinema) also switch their model when a mode tab is chosen.
       selectedCategory = categoryBtn.dataset.category;
-      onSelectCategory?.(selectedCategory);
+      if (selectedCategory !== "all") onSelectCategory?.(selectedCategory);
       selectedProvider = "all";
       panel.innerHTML = render();
+      positionPanel();
       requestAnimationFrame(() => {
         const active = panel.querySelector('[aria-pressed="true"]');
         if (active && typeof active.scrollIntoView === 'function') {
@@ -410,6 +454,7 @@ export function mountTemplateModelSelector({
     if (providerBtn) {
       selectedProvider = providerBtn.dataset.provider;
       panel.innerHTML = render();
+      positionPanel();
       requestAnimationFrame(() => {
         const active = panel.querySelector('[aria-pressed="true"]');
         if (active && typeof active.scrollIntoView === 'function') {
@@ -442,8 +487,16 @@ export function mountTemplateModelSelector({
   panel.addEventListener("input", (e) => {
     if (e.target.matches('input[type="text"]')) {
       search = e.target.value;
+      const caret = e.target.selectionStart;
       if (search.trim()) selectedProvider = "all";
       panel.innerHTML = render();
+      // Re-rendering replaces the input; keep typing uninterrupted.
+      const nextInput = panel.querySelector('input[type="text"]');
+      if (nextInput) {
+        nextInput.focus();
+        nextInput.setSelectionRange(caret, caret);
+      }
+      positionPanel();
       requestAnimationFrame(() => {
         const active = panel.querySelector('[aria-pressed="true"]');
         if (active && typeof active.scrollIntoView === 'function') {
@@ -457,28 +510,24 @@ export function mountTemplateModelSelector({
   function escapeHandler(e) {
     if (e.key === "Escape" && panel.parentNode) {
       close();
-      document.removeEventListener("keydown", escapeHandler);
     }
   }
-  document.addEventListener("keydown", escapeHandler);
 
   // Outside click to close
   function outsideClickHandler(e) {
+    // Use the event path: clicks on tabs/providers re-render the panel, which
+    // detaches e.target before this runs, so panel.contains() would be false.
+    const path = typeof e.composedPath === "function" ? e.composedPath() : [];
+    if (path.includes(panel)) return;
     if (!panel.contains(e.target) && e.target !== anchor && !anchor.contains(e.target)) {
       close();
-      document.removeEventListener("click", outsideClickHandler);
     }
   }
-  document.addEventListener("click", outsideClickHandler);
-
-  // Reposition on resize
-  window.addEventListener("resize", positionPanel);
+  // Document/window listeners are added in open() and removed in close().
 
   // Cleanup
   const cleanup = () => {
-    document.removeEventListener("keydown", escapeHandler);
-    document.removeEventListener("click", outsideClickHandler);
-    window.removeEventListener("resize", positionPanel);
+    removeListeners();
     if (panel.parentNode) panel.parentNode.removeChild(panel);
   };
 
@@ -492,6 +541,7 @@ export function mountTemplateModelSelector({
       : null;
     if (panel.parentNode) {
       panel.innerHTML = render();
+      positionPanel();
       requestAnimationFrame(() => {
         const active = panel.querySelector('[aria-pressed="true"]');
         if (active && typeof active.scrollIntoView === "function") {
@@ -553,43 +603,79 @@ export {
   videoModelPickerEntryByVariantId,
 } from "./modelFamilies.js";
 
+// Top edge pickers may extend to: just below the app header when it is
+// visible, otherwise a 16px viewport margin.
+function getPickerTopLimit() {
+  const header = typeof document !== 'undefined' ? document.querySelector('header') : null;
+  const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+  return Math.max(16, headerBottom > 0 ? headerBottom + 8 : 0);
+}
+
 export function positionModelSelectorDropdown(dropdown, trigger, offset, container) {
   if (!dropdown || !trigger) return;
   const rect = trigger.getBoundingClientRect();
-  const panelRect = dropdown.getBoundingClientRect();
   const viewportHeight = window.innerHeight;
   const viewportWidth = window.innerWidth;
+  const gap = offset || 8;
+  const margin = 16;
 
-  // Reset positioning
   dropdown.style.top = '';
   dropdown.style.bottom = '';
   dropdown.style.left = '';
   dropdown.style.right = '';
+  dropdown.style.maxHeight = '';
 
-  // Default: below trigger
-  let top = rect.bottom + (offset || 8);
-  let flipped = false;
+  // Pickers open upward (like upstream Open-Generative-AI), shrinking to fit.
+  // Only open downward when there's less than ~240px above the trigger.
+  const panelRect = dropdown.getBoundingClientRect();
+  const height = Math.max(panelRect.height, dropdown.scrollHeight || 0);
+  const spaceAbove = rect.top - gap - getPickerTopLimit();
+  const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+  const openAbove = spaceAbove >= height || spaceAbove >= 240 || spaceAbove >= spaceBelow;
 
-  // If not enough space below, flip above
-  if (top + panelRect.height > viewportHeight - 16 && rect.top > panelRect.height + 16) {
-    top = rect.top - panelRect.height - (offset || 8);
-    flipped = true;
+  // The dropdown's containing block is not always the viewport: a `fixed`
+  // element inside a transformed/animated ancestor (or an `absolute` one) is
+  // positioned relative to that ancestor. Probe its real edges so the
+  // viewport coordinates below land where intended.
+  dropdown.style.top = '0px';
+  dropdown.style.bottom = 'auto';
+  dropdown.style.left = '0px';
+  const originRect = dropdown.getBoundingClientRect();
+  const originTop = originRect.top;
+  const originLeft = originRect.left;
+  dropdown.style.top = 'auto';
+  dropdown.style.bottom = '0px';
+  const blockBottom = dropdown.getBoundingClientRect().bottom;
+
+  if (openAbove) {
+    // Anchor by bottom so the panel grows upward even if it is populated or
+    // resized after positioning.
+    dropdown.style.top = 'auto';
+    dropdown.style.bottom = `${blockBottom - rect.top + gap}px`;
+  } else {
+    dropdown.style.top = `${rect.bottom + gap - originTop}px`;
+    dropdown.style.bottom = 'auto';
   }
+  const maxHeight = Math.max(160, openAbove ? spaceAbove : spaceBelow);
+  dropdown.style.maxHeight = `${maxHeight}px`;
+  dropdown.style.overflowY = 'auto';
+  // Some studios set an inline min-height (e.g. 350px) that would override
+  // the cap; shrink it when space is short and restore it next time.
+  if (dropdown.dataset.origMinHeight === undefined) {
+    dropdown.dataset.origMinHeight = dropdown.style.minHeight || '';
+  }
+  const origMin = parseFloat(dropdown.dataset.origMinHeight) || 0;
+  dropdown.style.minHeight = origMin > maxHeight ? `${maxHeight}px` : dropdown.dataset.origMinHeight;
 
   // Horizontal positioning
   let left = rect.left;
-  if (left + panelRect.width > viewportWidth - 16) {
-    left = viewportWidth - panelRect.width - 16;
+  if (left + panelRect.width > viewportWidth - margin) {
+    left = viewportWidth - panelRect.width - margin;
   }
-  if (left < 16) left = 16;
+  if (left < margin) left = margin;
+  dropdown.style.left = `${left - originLeft}px`;
 
-  dropdown.style.top = `${top}px`;
-  dropdown.style.left = `${left}px`;
-  if (flipped) {
-    dropdown.classList.add('flipped');
-  } else {
-    dropdown.classList.remove('flipped');
-  }
+  dropdown.classList.toggle('flipped', openAbove);
 }
 
 export function getAvailableProviders(entries) {

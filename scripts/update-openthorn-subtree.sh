@@ -7,7 +7,7 @@ set -euo pipefail
 
 BRANCH="${1:-master}"
 PREFIX="apps/openthorn"
-REMOTE="https://github.com/deangilmoraremix/OpenThorn.git"
+REMOTE="https://github.com/deangilmoreremix/OpenThorn.git"
 
 echo "Updating OpenThorn subtree from ${REMOTE} (${BRANCH})..."
 
@@ -18,5 +18,8 @@ git fetch "${REMOTE}" "${BRANCH}"
 git subtree pull --prefix="${PREFIX}" "${REMOTE}" "${BRANCH}" --squash
 
 echo "OpenThorn subtree updated successfully."
+echo "NOTE: apps/openthorn carries SmartVideo customizations (Smart Website Builder"
+echo "branding, studio color tokens, dashboard-only routing in src/App.tsx)."
+echo "Resolve any conflicts in favour of those customizations."
 echo "Review the changes with: git log --oneline -5 -- ${PREFIX}"
 echo "Commit the update with: git commit -m 'chore: update OpenThorn subtree'"

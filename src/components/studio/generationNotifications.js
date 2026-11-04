@@ -6,6 +6,8 @@
 //
 // Studios report progress with notifyGeneration({ phase, studio, label, url, message }).
 
+import { WORKBENCH_GENERATION_EVENT, isWorkbenchEligible, openInWorkbench } from '../../lib/workbench.js';
+
 const STORAGE_KEY = 'smartvideo_generation_notifications';
 const EVENT = 'studio:generation';
 const MAX_CARDS = 3;
@@ -61,6 +63,15 @@ function card(c) {
   msg.textContent = c.message || (c.type === 'error' ? 'Generation failed' : 'Ready');
   body.append(title, msg);
   el.append(icon, body);
+  if (c.type === 'success' && c.workbench) {
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.dataset.action = 'edit-in-workbench';
+    edit.className = 'text-xs font-bold shrink-0 self-center rounded-lg bg-black text-primary px-2 py-1';
+    edit.textContent = 'Edit in Workbench';
+    edit.onclick = () => { dismiss(c.id); openInWorkbench([c.workbench], { navigate: navigateFn || undefined }); };
+    el.appendChild(edit);
+  }
   if (c.type !== 'running' && c.studio) {
     const open = document.createElement('button');
     open.type = 'button';
@@ -94,10 +105,29 @@ function handle({ phase, id, studio, label, url, message }) {
     running.set(key, { studio, label });
   } else {
     running.delete(key);
-    cards = [{ id: `${key}:${Date.now()}`, type: phase === 'error' ? 'error' : 'success', studio, label, url, message, expiresAt: Date.now() + TTL_MS }, ...cards].slice(0, MAX_CARDS);
+    // saveGeneration() may already have added a card for this output: merge into it.
+    const saved = phase !== 'error' && url ? cards.find((c) => c.type === 'success' && c.url === url && !c.studio) : null;
+    if (saved) cards = cards.filter((c) => c !== saved);
+    cards = [{ id: `${key}:${Date.now()}`, type: phase === 'error' ? 'error' : 'success', studio, label, url, message, ...(saved?.workbench ? { workbench: saved.workbench } : {}), expiresAt: Date.now() + TTL_MS }, ...cards].slice(0, MAX_CARDS);
     save(); schedule();
   }
   render();
+}
+
+/** saveGeneration() fired: attach "Edit in Workbench" to the matching success card,
+ *  or add one. Director / Timeline / Video Agent keep their own editors. */
+function handleSaved({ entry, studio } = {}) {
+  if (!entry?.url || !isWorkbenchEligible(studio)) return;
+  const workbench = { url: entry.url, type: entry.type, prompt: entry.prompt || '', parameters: entry.parameters || {} };
+  const existing = cards.find((c) => c.type === 'success' && c.url === entry.url);
+  if (existing) {
+    existing.workbench = workbench;
+  } else {
+    const label = `${entry.type === 'video' ? 'Video' : entry.type === 'audio' ? 'Audio' : 'Image'} ready`;
+    cards = [{ id: `saved:${entry.id || entry.url}:${Date.now()}`, type: 'success', label, url: entry.url, message: entry.prompt ? String(entry.prompt).slice(0, 120) : 'Saved to your library', workbench, expiresAt: Date.now() + TTL_MS }, ...cards].slice(0, MAX_CARDS);
+    schedule();
+  }
+  save(); render();
 }
 
 /** Report a generation lifecycle event from a studio. */
@@ -117,6 +147,7 @@ export function mountGenerationNotifications(navigate) {
   document.body.appendChild(host);
   load();
   window.addEventListener(EVENT, (e) => handle(e.detail || {}));
+  window.addEventListener(WORKBENCH_GENERATION_EVENT, (e) => handleSaved(e.detail || {}));
   render(); schedule();
   return host;
 }

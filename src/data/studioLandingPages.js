@@ -290,7 +290,7 @@ export const STUDIO_LANDING_PAGES = {
   },
   effects: {
     slug: 'effects',
-    label: 'Vibe Motion',
+    label: 'Effects Studio',
     heroTitle: 'AI Effects Studio — Add VFX, Transitions, and Motion to Your Videos',
     heroDescription: 'Apply AI-powered visual effects, transitions, and motion graphics. Open-source VFX studio for creators who want cinematic quality without complex software.',
     thumbnail: '/thumbnails/studios/effects.webp',
@@ -571,9 +571,9 @@ export const STUDIO_LANDING_PAGES = {
   },
   openthorn: {
     slug: 'openthorn',
-    label: 'Smart Video Website Builder',
-    heroTitle: 'Smart Video — AI Website Builder',
-    heroDescription: 'Smart Video is a free, browser-based AI website builder. Describe what you want in plain language; the AI agent writes the code, previews it live in-browser, and deploys a working site. Bring your own API key from 18 providers — no subscription, no credit markup.',
+    label: 'Smart Website Builder',
+    heroTitle: 'Smart Website Builder',
+    heroDescription: 'Smart Website Builder is a free, browser-based AI website builder. Describe what you want in plain language; the AI agent writes the code, previews it live in-browser, and deploys a working site. Bring your own API key from 18 providers — no subscription, no credit markup.',
     thumbnail: '/thumbnails/studios/video.webp',
     miniMaxDemoIds: [],
     academyTracks: [],
@@ -586,10 +586,10 @@ export const STUDIO_LANDING_PAGES = {
         'open source alternative to Lovable Bolt v0',
       ],
     },
-    valueProp: 'Smart Video flips the AI builder pricing model: you connect your own key from any of 18 providers and pay them directly. The platform is free.',
+    valueProp: 'Smart Website Builder flips the AI builder pricing model: you connect your own key from any of 18 providers and pay them directly. The platform is free.',
     howItWorks: [
       { title: 'Describe Your Site', description: 'Enter a plain-language description of the website you want to build.', gif: '', video: '' },
-      { title: 'AI Generates Code', description: 'The Smart Video agent writes full code, previews it live in-browser, and iterates with you.', gif: '', video: '' },
+      { title: 'AI Generates Code', description: 'The Smart Website Builder agent writes full code, previews it live in-browser, and iterates with you.', gif: '', video: '' },
       { title: 'Deploy Instantly', description: 'One-click deploy to Cloudflare Pages with a public URL — no local setup required.', gif: '', video: '' },
     ],
     features: [
@@ -607,7 +607,7 @@ export const STUDIO_LANDING_PAGES = {
       ],
       pricingAnchors: [
         'Lovable / Bolt.new / v0: $25–50+/month for platform credits',
-        'Smart Video: $0 platform cost, pay provider rates only',
+        'Smart Website Builder: $0 platform cost, pay provider rates only',
       ],
       gtmSteps: [
         'Lead with provider free tiers — pair with Gemini, Groq, Cerebras, or local Ollama for $0 builds',

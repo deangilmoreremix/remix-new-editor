@@ -1,16 +1,15 @@
-import { restyleAction, setActionBusy, setActionRetry } from './studio/studioLayout.js';
-import { createPill, openComposerPopover } from './studio/promptComposer.js';
-import { notifyGeneration } from './studio/generationNotifications.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { i2iModels } from '../lib/models.js';
 import { createSafeImage } from '../lib/security.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -19,7 +18,6 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -321,6 +319,9 @@ export async function InfluencerStudio() {
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = { id: 'higgsfield-soul-image-to-image', name: 'Influencer Image' };
   let customThumbnailUrl = getCustomThumbnailFromCache('influencer-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'influencer-studio' });
   let styleIntensity = 70;
   let seedLocked = false;
   const currentSeed = Math.floor(Math.random() * 999999999);
@@ -342,36 +343,24 @@ export async function InfluencerStudio() {
   const TAGS_VISIBLE = 7;
 
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
-  const influBanner = createHeroSection('influencer', 'h-32 md:h-44 mb-4');
-  if (influBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">AI Influencer Studio</h1><p class="text-white/60 text-sm max-w-md">Generate social content with 20+ fashion presets and format templates</p>';
-    influBanner.appendChild(bannerText);
-    header.appendChild(influBanner);
-  }
+  header.className = 'animate-fade-in-up text-center w-full';
+  header.appendChild(createStudioHeader('influencer', 'AI Influencer Studio', 'Design a consistent AI influencer and their content'));
   container.appendChild(header);
 
-  // Model as an upstream-style pill + popover. mountModelSelector rendered
-  // its full list inline here, so every model name showed above the builder.
   const modelSelectorContainer = document.createElement('div');
-  modelSelectorContainer.className = 'w-full max-w-6xl mb-4 flex justify-start';
-  const modelPill = createPill({ label: selectedModel.name, title: 'Model' });
-  modelPill.addEventListener('click', () => openComposerPopover(modelPill, {
-    title: 'Model',
-    className: 'top-[calc(100%+8px)] bottom-auto w-[280px]',
-    items: i2iModels.map((m) => ({
-      label: m.name,
-      selected: m.id === selectedModel.id,
-      onSelect: () => { selectedModel = m; modelPill.setLabel(m.name); },
-    })),
-  }));
-  modelSelectorContainer.appendChild(modelPill);
+  modelSelectorContainer.className = 'w-full mb-6';
   container.appendChild(modelSelectorContainer);
 
+  mountModelSelector(modelSelectorContainer, {
+    models: i2iModels,
+    selectedModelId: selectedModel.id,
+    onSelectModel: (model) => {
+      selectedModel = model;
+    },
+  });
+
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.15s';
 
   const uploadRow = document.createElement('div');
@@ -464,7 +453,6 @@ export async function InfluencerStudio() {
   shuffleBtn.type = 'button';
   shuffleBtn.innerHTML = `${SVG_SHUF} Shuffle`;
   shuffleBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/10 transition-all w-full mt-1';
-  shuffleBtn.hidden = true; // the preview's top bar has the Shuffle, as upstream
   shuffleBtn.onclick = () => {
     Object.values(TABS_CONFIG).forEach((tab) =>
       tab.subcategories.forEach((sub) => {
@@ -712,21 +700,7 @@ export async function InfluencerStudio() {
   }
 
   const promptInput = document.createElement('textarea');
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (modelId) => {
-        selectedModel = i2iModels.find(m => m.id === modelId) || selectedModel;
-      }
-    }).catch(() => {});
-  });
-  formCard.appendChild(modelPickerBtn);
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 2;
   promptInput.placeholder = 'Additional instructions (optional)';
@@ -782,7 +756,7 @@ export async function InfluencerStudio() {
             promptInput.value = prompt;
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
-          });
+          }, { basePrompt: promptInput.value });
         }).catch(() => {});
       } else if (action === 'recipe') {
         openRecipeModal({
@@ -860,40 +834,32 @@ export async function InfluencerStudio() {
   genBtn.textContent = 'Generate Content';
   genBtn.setAttribute('aria-label', 'Generate content');
   formCard.appendChild(genBtn);
-  // Upstream AI Influencer has a single Generate (in the preview's top bar);
-  // this one stays as the hidden handler that button drives.
-  genBtn.hidden = true;
-  // Builder and preview side by side on wide screens (upstream's columns).
-  const columns = document.createElement('div');
-  columns.className = 'w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start';
-  formCard.classList.remove('max-w-xl');
-  columns.appendChild(formCard);
-  container.appendChild(columns);
+  container.appendChild(formCard);
 
   const previewCard = document.createElement('div');
-  previewCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 animate-fade-in-up';
+  previewCard.className = 'w-full bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 animate-fade-in-up';
   previewCard.style.animationDelay = '0.2s';
 
   const previewHeader = document.createElement('div');
   previewHeader.className = 'flex items-center justify-between';
 
   const arGroup = document.createElement('div');
-  arGroup.className = 'inline-flex items-center gap-1 bg-white/[0.03] border border-white/[0.05] rounded-full p-0.5';
+  arGroup.className = 'flex gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1';
   ['3:4', '1:1', '9:16', '16:9'].forEach((r) => {
     const arBtn = document.createElement('button');
     arBtn.type = 'button';
     arBtn.textContent = r;
     const isActive = r === selectedFormat.ar;
     arBtn.className = isActive
-      ? 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all bg-primary text-black shadow-md shadow-primary/20'
-      : 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all text-white/40 hover:text-white/70';
+      ? 'px-3 py-1.5 rounded-lg text-xs font-bold btn-secondary-modern transition-all'
+      : 'px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all';
     arBtn.onclick = () => {
       selectedFormat = { name: selectedFormat.name, ar: r };
       arGroup.querySelectorAll('button').forEach((b) => {
         const active = b.textContent === r;
         b.className = active
-          ? 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all bg-primary text-black shadow-md shadow-primary/20'
-          : 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all text-white/40 hover:text-white/70';
+          ? 'px-3 py-1.5 rounded-lg text-xs font-bold btn-secondary-modern transition-all'
+          : 'px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all';
       });
     };
     arGroup.appendChild(arBtn);
@@ -922,7 +888,8 @@ export async function InfluencerStudio() {
 
   const previewGenBtn = document.createElement('button');
   previewGenBtn.type = 'button';
-  restyleAction(previewGenBtn);
+  previewGenBtn.innerHTML = `${SVG_BOLT} Generate`;
+  previewGenBtn.className = 'btn-secondary-modern flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all';
   previewGenBtn.onclick = () => genBtn.click();
   actionGroup.appendChild(previewGenBtn);
 
@@ -1018,11 +985,10 @@ export async function InfluencerStudio() {
 
   refreshTagsBar();
   previewCard.appendChild(tagsBar);
-  previewCard.classList.remove('max-w-xl');
-  columns.appendChild(previewCard);
+  container.appendChild(previewCard);
 
   const genArea = document.createElement('div');
-  genArea.className = 'w-full max-w-xl mt-4';
+  genArea.className = 'w-full mt-4';
   const genWrapper = document.createElement('div');
   genWrapper.className = 'flex gap-3 items-center';
 
@@ -1034,7 +1000,7 @@ export async function InfluencerStudio() {
   container.appendChild(genArea);
 
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-xl mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
@@ -1144,10 +1110,7 @@ export async function InfluencerStudio() {
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;
-    setActionBusy(previewGenBtn, true);
-    const notifyId = `influencer:${Date.now()}`;
-    let failed = null;
-    notifyGeneration({ phase: 'start', id: notifyId, studio: 'influencer', label: 'AI Influencer' });
+    genBtn.innerHTML = `<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...`;
 
     try {
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
@@ -1186,14 +1149,10 @@ export async function InfluencerStudio() {
         showToast('Influencer content generated!', 'success');
       }
     } catch (err) {
-      failed = err.message || 'Generation failed';
-      showToast(failed, 'error', 5000);
+      showToast(`Error: ${err.message}`, 'error');
     } finally {
       genBtn.disabled = false;
-      notifyGeneration(failed
-        ? { phase: 'error', id: notifyId, studio: 'influencer', label: 'AI Influencer', message: failed }
-        : { phase: 'success', id: notifyId, studio: 'influencer', label: 'AI Influencer' });
-      if (failed) setActionRetry(previewGenBtn); else setActionBusy(previewGenBtn, false);
+      genBtn.textContent = 'Generate Content';
     }
   };
 

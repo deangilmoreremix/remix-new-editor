@@ -360,7 +360,7 @@
   transform: none !important;
 }
 
-/* Secondary action: AI Pick, Tools, Thumbnail */
+/* Secondary action: Tools, Thumbnail */
 .btn-action-secondary {
   display: inline-flex;
   align-items: center;

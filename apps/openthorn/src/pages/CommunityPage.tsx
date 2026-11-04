@@ -7,6 +7,8 @@ import type { AgentCodeFile } from '../lib/agent'
 import DashboardSidebar from '../components/DashboardSidebar/DashboardSidebar'
 import ModelSelector, { type SelectedModel } from '../components/ModelSelector/ModelSelector'
 import styles from './CommunityPage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
+import { T } from '../lib/tables'
 
 interface CommunityPost {
   id: string
@@ -52,7 +54,7 @@ function postAccentColor(title: string): string {
 
 export default function CommunityPage() {
   usePageTitle('Community', {
-    description: 'Browse and remix websites shared by the Smart Video community.',
+    description: 'Browse and remix websites shared by the Smart Website Builder community.',
   })
   const { user, loading } = useAuth()
   const navigate = useNavigate()
@@ -76,7 +78,7 @@ export default function CommunityPage() {
   useEffect(() => {
     if (!user) return
     supabase
-      .from('community_posts')
+      .from(T.community_posts)
       .select('*')
       .order('featured', { ascending: false })
       .order('published_at', { ascending: false })
@@ -89,7 +91,7 @@ export default function CommunityPage() {
   useEffect(() => {
     if (!user) return
     supabase
-      .from('community_likes')
+      .from(T.community_likes)
       .select('post_id')
       .eq('user_id', user.id)
       .then(({ data }) => {
@@ -132,10 +134,10 @@ export default function CommunityPage() {
     ))
 
     if (isLiked) {
-      await supabase.from('community_likes').delete()
+      await supabase.from(T.community_likes).delete()
         .eq('user_id', user.id).eq('post_id', postId)
     } else {
-      await supabase.from('community_likes').insert({ user_id: user.id, post_id: postId })
+      await supabase.from(T.community_likes).insert({ user_id: user.id, post_id: postId })
     }
   }, [user, likedSet])
 
@@ -145,7 +147,7 @@ export default function CommunityPage() {
     if (!trimTitle) return
     setSaving(true)
     const { error } = await supabase
-      .from('community_posts')
+      .from(T.community_posts)
       .update({ title: trimTitle, description: editDesc.trim() || null })
       .eq('id', selected.id)
     if (!error) {
@@ -159,7 +161,7 @@ export default function CommunityPage() {
 
   const handleDeletePost = useCallback(async () => {
     if (!selected || !user) return
-    const { error } = await supabase.from('community_posts').delete().eq('id', selected.id)
+    const { error } = await supabase.from(T.community_posts).delete().eq('id', selected.id)
     if (!error) {
       setPosts((prev) => prev.filter((p) => p.id !== selected.id))
       setSelected(null)
@@ -171,7 +173,7 @@ export default function CommunityPage() {
     setLaunching(true)
     const projectId = crypto.randomUUID()
 
-    const { error } = await supabase.from('projects').upsert({
+    const { error } = await supabase.from(T.projects).upsert({
       id: projectId,
       user_id: user.id,
       title: selected.title,
@@ -232,14 +234,14 @@ export default function CommunityPage() {
           </svg>
         </button>
         <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
+          <BrandLogo className={styles.mobileLogoImg} />
         </a>
       </div>
 
       <main className={styles.main}>
         <div className={styles.header}>
           <h1 className={styles.heading}>Community</h1>
-          <p className={styles.subheading}>Projects built and shared by the Smart Video community.</p>
+          <p className={styles.subheading}>Projects built and shared by the Smart Website Builder community.</p>
         </div>
 
         <div className={styles.controls}>

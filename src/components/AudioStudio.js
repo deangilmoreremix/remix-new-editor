@@ -1,15 +1,15 @@
 import { muapi } from '../lib/muapi.js';
-import { restyleAction, setActionBusy, setActionRetry } from './studio/studioLayout.js';
-import { notifyGeneration } from './studio/generationNotifications.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
@@ -530,6 +530,9 @@ export function AudioStudio() {
   let toneValue = 'neutral';
   let emotionValue = 'none';
   let customThumbnailUrl = getCustomThumbnailFromCache('audio-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'audio-studio' });
   let schemaParams = {};
   let internalHistory = [];
   let activeResultUrl = null;
@@ -589,20 +592,13 @@ export function AudioStudio() {
 
   // Header with hero banner
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full';
-  const audioBanner = createHeroSection('audio', 'h-32 md:h-44 mb-4');
-  if (audioBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Audio Studio</h1><p class="text-white/60 text-sm">Generate music and speech with AI</p>';
-    audioBanner.appendChild(bannerText);
-    header.appendChild(audioBanner);
-  }
+  header.className = 'animate-fade-in-up text-center w-full';
+  header.appendChild(createStudioHeader('audio', 'Audio Studio', 'Generate music, speech and sound effects'));
   container.appendChild(header);
 
   // Model selector
   const modelWrapper = document.createElement('div');
-  modelWrapper.className = 'w-full max-w-xl mb-6 animate-fade-in-up';
+  modelWrapper.className = 'w-full mb-6 animate-fade-in-up';
   modelWrapper.style.animationDelay = '0.1s';
   container.appendChild(modelWrapper);
 
@@ -641,7 +637,7 @@ export function AudioStudio() {
 
   // Form card
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.2s';
 
   // Prompt input
@@ -652,6 +648,7 @@ export function AudioStudio() {
   promptLabel.textContent = 'Prompt';
   promptGroup.appendChild(promptLabel);
   const promptInput = document.createElement('textarea');
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none';
   promptInput.rows = 3;
   promptInput.placeholder = 'Describe the music or speech you want to generate...';
@@ -732,7 +729,7 @@ export function AudioStudio() {
             promptInput.value = p;
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
-          });
+          }, { basePrompt: promptInput.value });
         }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
         openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
@@ -942,12 +939,14 @@ export function AudioStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'audio-studio',
+      layout: 'panel',
       studioId: 'audio-studio',
       studioName: 'Audio Studio',
-      aspectRatio: '16:9',
-      outputType: 'image',
+      // Cover art for a track — square fits players and social posts.
+      aspectRatio: '1:1',
+      outputType: 'audio',
       onApply: ({ imageUrl }) => {
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache('audio-studio', imageUrl);
@@ -957,7 +956,7 @@ export function AudioStudio() {
         clearCustomThumbnailCache('audio-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
   formCard.appendChild(thumbBtn);
@@ -965,27 +964,27 @@ export function AudioStudio() {
   // Generate button
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
-  restyleAction(genBtn);
-  genBtn.classList.add('sm:w-full');
+  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
+  genBtn.textContent = 'Generate Audio';
   genBtn.setAttribute('aria-label', 'Generate audio');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
   // Instructions
   const inlineInstructions = createInlineInstructions('audio');
-  inlineInstructions.classList.add('max-w-md', 'mt-6');
+  inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
   // Result area
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-xl mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   // Audio editor controls (trim + fade)
   const editorControls = document.createElement('div');
-  editorControls.className = 'w-full max-w-xl mt-4 hidden';
+  editorControls.className = 'w-full mt-4 hidden';
   editorControls.id = 'audio-editor-controls';
   editorControls.innerHTML = `
     <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
@@ -1023,46 +1022,14 @@ export function AudioStudio() {
 
   // Loading overlay
   const loadingOverlay = document.createElement('div');
-  // Upstream Audio shows progress in the result pane, not a full-page overlay.
-  loadingOverlay.className = 'hidden w-full rounded-2xl border border-white/10 bg-[#111]/80 py-16 flex-col items-center justify-center gap-4';
+  loadingOverlay.className = 'fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm';
   loadingOverlay.innerHTML = `
-      <div class="relative w-24 h-24 flex items-center justify-center">
-        <div class="absolute inset-0 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary animate-pulse"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-      </div>
-      <p class="text-xs font-bold uppercase tracking-widest text-white/60">Generating audio…</p>
+    <div class="flex flex-col items-center gap-4 p-8 rounded-2xl border border-white/10 bg-card-bg shadow-3xl">
+      <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-sm font-medium text-secondary text-center max-w-xs">Generating audio...</p>
+    </div>
   `;
-
-  // ── Upstream two-pane layout: settings sidebar left, results right ──
-  const panes = document.createElement('div');
-  panes.className = 'w-full max-w-6xl flex flex-col lg:flex-row gap-6 items-start';
-  const leftPane = document.createElement('div');
-  leftPane.className = 'w-full lg:w-[400px] lg:shrink-0 flex flex-col gap-4';
-  const rightPane = document.createElement('div');
-  rightPane.className = 'flex-1 min-w-0 w-full flex flex-col gap-4';
-  const emptyCard = document.createElement('div');
-  emptyCard.className = 'w-full rounded-2xl border border-white/10 bg-[#111]/60 py-16 flex flex-col items-center justify-center gap-3 text-center';
-  emptyCard.innerHTML = `
-      <div class="relative w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_40px_rgba(217,255,0,0.15)]">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-      </div>
-      <div class="text-sm font-bold text-white">Your audio will appear here</div>
-      <div class="text-xs text-white/40 max-w-xs">Pick a model, fill in the settings on the left and press Generate.</div>
-  `;
-  [modelWrapper, formCard].forEach((el) => { el.classList.remove('max-w-xl', 'mb-6'); leftPane.appendChild(el); });
-  [resultArea, editorControls].forEach((el) => el.classList.remove('max-w-xl', 'mt-6', 'mt-4'));
-  rightPane.append(emptyCard, loadingOverlay, resultArea, editorControls, historyGridContainer);
-  panes.append(leftPane, rightPane);
-  container.insertBefore(panes, inlineInstructions);
-  const syncEmptyCard = () => {
-    const busy = !loadingOverlay.classList.contains('hidden');
-    const hasResult = !resultArea.classList.contains('hidden');
-    const hasHistory = historyGridContainer.childElementCount > 0 && historyGridContainer.textContent.trim().length > 0;
-    emptyCard.classList.toggle('hidden', busy || hasResult || hasHistory);
-  };
-  const emptyObserver = new MutationObserver(syncEmptyCard);
-  [loadingOverlay, resultArea].forEach((el) => emptyObserver.observe(el, { attributes: true, attributeFilter: ['class'] }));
-  emptyObserver.observe(historyGridContainer, { childList: true, subtree: true });
+  container.appendChild(loadingOverlay);
 
   function showLoading() {
     loadingOverlay.classList.remove('hidden');
@@ -1334,6 +1301,10 @@ export function AudioStudio() {
 
   function addToHistory(entry) {
     internalHistory = [entry, ...internalHistory].slice(0, 30);
+    // Shared library + "Edit in Workbench" (fresh results and recovered jobs).
+    registerGeneration('audio', 'audio', entry.url, {
+      prompt: entry.prompt || entry.title || '', model: entry.model || '', name: entry.title || undefined,
+    });
     renderHistoryGrid();
     schedulePersist();
   }
@@ -1354,11 +1325,9 @@ export function AudioStudio() {
     audioAbortController = new AbortController();
     let pendingJob = null;
 
-    setActionBusy(genBtn, true);
+    genBtn.disabled = true;
+    genBtn.textContent = 'Generating...';
     showLoading();
-    const notifyId = `audio:${Date.now()}`;
-    let failed = null;
-    notifyGeneration({ phase: 'start', id: notifyId, studio: 'audio', label: 'Audio Studio' });
 
     cleanupResult();
 
@@ -1471,16 +1440,13 @@ export function AudioStudio() {
     } catch (err) {
       console.error('[AudioStudio]', err);
       const errMsg = formatErrorMessage(err, 'Failed to generate audio');
-      failed = errMsg;
-      showToast(errMsg, 'error', 5000);
+      showToast(errMsg, 'error');
     } finally {
       pendingJob?.finish();
       hideLoading();
       audioAbortController = null;
-      notifyGeneration(failed
-        ? { phase: 'error', id: notifyId, studio: 'audio', label: 'Audio Studio', message: failed }
-        : { phase: 'success', id: notifyId, studio: 'audio', label: 'Audio Studio' });
-      if (failed) setActionRetry(genBtn); else setActionBusy(genBtn, false);
+      genBtn.disabled = false;
+      genBtn.textContent = 'Generate Audio';
     }
   };
 

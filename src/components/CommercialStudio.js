@@ -5,23 +5,16 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
-import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
-import { createPromptComposer, createPill, openComposerPopover, mediaButtonClassName } from './studio/promptComposer.js';
-import { foldIntoMoreMenu, mountStudioResults, restylePill } from './studio/studioLayout.js';
-import { notifyGeneration } from './studio/generationNotifications.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -49,22 +42,14 @@ export async function CommercialStudio() {
   let dynamicControlsContainer = null;
   let commercialPrompt = null;
   let _modelSelectorOutsideClickHandler = null;
-  let customThumbnailUrl = getCustomThumbnailFromCache('commercial-studio');
 
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full';
-  const commBanner = createHeroSection('commercial', 'h-32 md:h-44 mb-4');
-  if (commBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Commercial Studio</h1><p class="text-white/60 text-sm max-w-md">AI product photography, ads, and commercial content</p>';
-    commBanner.appendChild(bannerText);
-    header.appendChild(commBanner);
-  }
+  header.className = 'animate-fade-in-up text-center w-full';
+  header.appendChild(createStudioHeader('commercial', 'Product Shot Studio', 'Studio-quality product photos from a single image'));
   container.appendChild(header);
 
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.15s';
 
   const modelLabel = document.createElement('label');
@@ -156,22 +141,6 @@ const COMMERCIAL_MODELS = [
   modelWrapper.appendChild(dropdown);
   formCard.appendChild(modelWrapper);
 
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-      }
-    }).catch(() => {});
-  });
-  formCard.appendChild(modelPickerBtn);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -202,7 +171,7 @@ const COMMERCIAL_MODELS = [
     const { browsePexelsImages } = await import('../lib/studioPexels.js');
     browsePexelsImages({
       title: 'Select Reference Photo',
-      studioName: 'Commercial Studio',
+      studioName: 'Product Shot Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
         const attrContainer = document.getElementById('pexels-commercial-attribution');
@@ -292,34 +261,6 @@ const COMMERCIAL_MODELS = [
   }
   buildDynamicControls();
 
-  // Thumbnail studio button — next to creation controls, GTM Boost styling
-  const thumbBtn = document.createElement('button');
-  thumbBtn.type = 'button';
-  thumbBtn.textContent = '🖼 Thumbnail';
-  thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-action-secondary shrink-0';
-  thumbBtn.addEventListener('click', () => {
-    const modal = new TemplateThumbnailModal({
-      appTheme: 'commercial-studio',
-      layout: 'panel',
-      studioId: 'commercial-studio',
-      studioName: 'Commercial Studio',
-      aspectRatio: selectedFormat.ar || '1:1',
-      outputType: 'image',
-      onApply: ({ imageUrl }) => {
-        customThumbnailUrl = imageUrl;
-        saveCustomThumbnailToCache('commercial-studio', imageUrl);
-      },
-      onClear: () => {
-        customThumbnailUrl = null;
-        clearCustomThumbnailCache('commercial-studio');
-      },
-    });
-    mountThumbnailModal(modal);
-    modal.open();
-  });
-  formCard.appendChild(thumbBtn);
-
   const genBtn = document.createElement('button');
  genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
@@ -369,7 +310,6 @@ const COMMERCIAL_MODELS = [
           appTheme: 'commercial-studio',
           onSelect: (prompt) => {
             commercialPrompt = prompt;
-            composer.setPrompt(prompt);
           }
         }).catch(() => {});
       }
@@ -385,115 +325,24 @@ const COMMERCIAL_MODELS = [
   window.addEventListener('click', closeEnhanceMenu);
 
   formCard.appendChild(enhanceMenu);
-
-  // ── Upstream Marketing-style composer ──────────────────────────────────
-  // Prompt first, then a footer with the product upload circle, Model /
-  // Scene / Format / Advanced pills and Generate; extras fold into ⋯.
-  const composer = createPromptComposer({
-    placeholder: 'Describe the shot or add art direction (optional)',
-    onSubmit: () => genBtn.click(),
-    textareaFirst: true,
-    positionClass: 'sticky bottom-4 z-30 w-full max-w-[95%] lg:max-w-4xl mx-auto animate-fade-in-up',
-  });
-  if (commercialPrompt) composer.setPrompt(commercialPrompt);
-  composer.textarea.addEventListener('input', () => { commercialPrompt = composer.getPrompt() || null; });
-
-  picker.trigger.className = mediaButtonClassName();
-  picker.trigger.title = 'Upload product image or video';
-  composer.controls.appendChild(picker.trigger);
-
-  restylePill(triggerBtn);
-  triggerBtn.classList.add('text-xs', 'font-semibold');
-  composer.controls.appendChild(modelWrapper);
-  modelWrapper.className = 'flex items-center';
-
-  const scenePill = createPill({ label: selectedScene, title: 'Scene preset' });
-  scenePill.addEventListener('click', () => openComposerPopover(scenePill, {
-    title: 'Scene',
-    items: SCENE_PRESETS.map((sp) => ({ label: sp, selected: sp === selectedScene, onSelect: () => { selectedScene = sp; scenePill.setLabel(sp); } })),
-  }));
-  const formatPill = createPill({ label: `${selectedFormat.name} · ${selectedFormat.ar}`, icon: 'aspect', title: 'Output format' });
-  formatPill.addEventListener('click', () => openComposerPopover(formatPill, {
-    title: 'Format',
-    items: FORMAT_PRESETS.map((f) => ({ label: f.name, description: f.ar, selected: f.name === selectedFormat.name, onSelect: () => { selectedFormat = f; formatPill.setLabel(`${f.name} · ${f.ar}`); } })),
-  }));
-  const advancedPill = createPill({ label: 'Advanced', title: 'Advanced settings' });
-  dynamicControlsContainer.classList.add('hidden', 'max-h-[45vh]', 'overflow-y-auto', 'custom-scrollbar');
-  composer.panel.insertBefore(dynamicControlsContainer, composer.footer);
-  advancedPill.addEventListener('click', () => {
-    const open = dynamicControlsContainer.classList.toggle('hidden') === false;
-    advancedPill.setActive(open);
-  });
-  composer.controls.append(scenePill, formatPill, advancedPill);
-
-  const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
-  foldIntoMoreMenu(composer.controls, [
-    { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
-    { label: 'Stock photo', description: 'Use a Pexels product photo', el: pexelsBtn },
-    { label: 'Custom thumbnail', el: thumbBtn },
-    { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
-    { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
-    { label: 'Recipes', onSelect: enhanceAction('recipe') },
-    { label: 'Monetize', onSelect: enhanceAction('monetize') },
-  ]);
-  composer.panel.appendChild(pexelsCommercialAttr);
-  enhanceMenu.hidden = true;
-  composer.controls.appendChild(enhanceMenu);
-  // The composer's own Generate drives the existing handler.
-  genBtn.hidden = true;
-  composer.controls.appendChild(genBtn);
-  container.appendChild(composer.root);
-
-  const COMMERCIAL_HISTORY_KEY = 'commercial_history';
-  const results = mountStudioResults({
-    container,
-    hero: commBanner,
-    before: composer.root,
-    kind: 'image',
-    historyType: 'image',
-    studio: 'commercial',
-    label: 'Commercial Studio',
-    filenamePrefix: 'product-shot',
-    empty: {
-      heading: 'Create product shots with',
-      highlight: (COMMERCIAL_MODELS.find(m => m.id === selectedModel) || COMMERCIAL_MODELS[0]).name,
-      subtitle: 'Upload a product image, pick a scene and format, then press Generate.',
-      samples: getAssetsForStudio('commercial').map(a => a.thumbnail || a.posterSrc).filter(Boolean).slice(0, 4),
-    },
-    extraActions: (item) => [{ label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'image' }) }],
-    onDelete: () => persistCommercial(),
-  });
-  const persistCommercial = () => {
-    try { localStorage.setItem(COMMERCIAL_HISTORY_KEY, JSON.stringify(results.gallery.items.slice(0, 50))); } catch { /* ignore */ }
-  };
-  try { results.gallery.setItems(JSON.parse(localStorage.getItem(COMMERCIAL_HISTORY_KEY) || '[]')); } catch { /* ignore */ }
+  container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('commercial');
-  inlineInstructions.classList.add('max-w-xl', 'mt-6');
+  inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
-  // "Create This Style" deep-link: apply the staged MiniMax example (model +
-  // a design-reference note) and show its example rail.
+  // Product Shot Studio is a focused tool: no template rails or example
+  // galleries — upload a product, pick a scene and format, generate.
   try {
-    const { consumeAndApply, renderExamplesRail, getMiniMaxDemosWithTargets } = await import('../lib/examplesRail.js');
+    const { consumeAndApply } = await import('../lib/examplesRail.js');
     consumeAndApply('commercial', (staged) => {
       if (staged.model) selectedModel = staged.model;
       if (staged.prompt) commercialPrompt = staged.prompt;
     });
-    const demos = getMiniMaxDemosWithTargets().filter((d) => d.__route === 'commercial');
-    const rail = renderExamplesRail({
-      title: 'MiniMax H3 Product & Commercial Styles',
-      subtitle: 'Click any clip to open it pre-filled in Commercial Studio',
-      ref: 'minimax-h3-commercial',
-      items: demos,
-    });
-    rail.classList.add('max-w-xl', 'mt-8');
-    container.appendChild(rail);
-  } catch (e) {
-  }
+  } catch { /* deep links are optional */ }
 
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-xl mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
@@ -508,11 +357,7 @@ const COMMERCIAL_MODELS = [
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;
-    composer.setGenerating(true);
-    const pendingCard = results.gallery.addPending('Shooting product…');
-    const notifyId = `commercial:${Date.now()}`;
-    notifyGeneration({ phase: 'start', id: notifyId, studio: 'commercial', label: 'Commercial Studio' });
-    let failed = null;
+    genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     const controller = new AbortController();
 
@@ -520,7 +365,6 @@ const COMMERCIAL_MODELS = [
       const params = {
         model: selectedModel,
         image_url: uploadedUrl,
-        thumbnail_url: customThumbnailUrl || undefined,
         signal: controller.signal,
       };
       if (dynamicControls) {
@@ -535,21 +379,6 @@ const COMMERCIAL_MODELS = [
       }
       const result = await muapi.generateI2I(params);
        if (result?.url) {
-         results.gallery.addItem({ id: result.id || Date.now().toString(), url: result.url, prompt: `${selectedScene}${commercialPrompt ? ` — ${commercialPrompt}` : ''}`, model: selectedModel, aspect_ratio: selectedFormat.ar });
-         persistCommercial();
-         saveGeneration({
-           studio: 'commercial',
-           type: 'image',
-           url: result.url,
-           prompt: `${selectedScene}, professional product photography, commercial quality`,
-           model: selectedModel,
-           parameters: { scene: selectedScene, format: selectedFormat.ar, ...(dynamicControls ? dynamicControls.getPayload({}) : {}) },
-         });
-       } else {
-         throw new Error('No image URL returned by API');
-       }
-       // Previous single-result card, superseded by the results gallery.
-       if (false) {
          resultArea.classList.remove('hidden');
          resultArea.innerHTML = `
            <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
@@ -575,23 +404,12 @@ const COMMERCIAL_MODELS = [
          showToast('Product shot generated successfully!', 'success');
        }
     } catch (err) {
-      failed = err.message || 'Generation failed';
-      showToast(failed, 'error', 5000);
+      showToast(`Error: ${err.message}`, 'error');
     } finally {
       genBtn.disabled = false;
-      pendingCard.remove();
-      notifyGeneration(failed
-        ? { phase: 'error', id: notifyId, studio: 'commercial', label: 'Commercial Studio', message: failed }
-        : { phase: 'success', id: notifyId, studio: 'commercial', label: 'Commercial Studio' });
-      if (failed) composer.setRetry(); else composer.setGenerating(false);
+      genBtn.textContent = 'Generate Product Shot';
     }
   };
-
-    const galleryAssets = getAssetsForStudio('commercial');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'commercial', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
-    }
 
     return container;
 }

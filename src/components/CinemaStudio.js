@@ -2,10 +2,7 @@
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { muapi } from '../lib/muapi.js';
-import { confirmDeleteGeneration } from '../lib/generationHistory.js';
-import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
-import { controlClassName, CONTROL_LABEL_CLASS } from './studio/promptComposer.js';
-import { notifyGeneration } from './studio/generationNotifications.js';
+import { confirmDeleteGeneration, registerGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
@@ -14,9 +11,9 @@ import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTUR
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, getModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
-import { mountVideoModelSelector } from '../lib/modelSelectorUI.js';
+import { mountVideoModelSelector, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getCinemaStudioAsset } from '../lib/personalizerAdapters.js';
@@ -37,7 +34,6 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 
@@ -76,7 +72,6 @@ export function CinemaStudio() {
   mountStudioChrome(container, { currentRoute: 'cinema' });
 
     // --- State ---
-    let results = null; // upstream-style empty state + results gallery, mounted with the composer
     const currentSettings = {
         prompt: '',
         aspect_ratio: '16:9',
@@ -105,13 +100,12 @@ export function CinemaStudio() {
     // Character Lock: reuses a stored character reference across shots.
     let characterLock = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
+    // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+    // in-memory copy in sync so the next generation uses it.
+    subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'cinema-studio' });
     let activePersonalizationContext = null;
 
     // Listen for thumbnails generated via GTM Boost and apply them.
-    subscribeToGtmThumbnails(({ imageUrl }) => {
-      customThumbnailUrl = imageUrl;
-      saveCustomThumbnailToCache('cinema-studio', imageUrl);
-    });
 
     // Read gallery / deep-link params and apply them as studio defaults.
     try {
@@ -153,19 +147,7 @@ export function CinemaStudio() {
     // ==========================================
     const heroSection = document.createElement('div');
     heroSection.className = 'flex flex-col items-center text-center px-4 animate-fade-in-up w-full mb-2 md:mb-4';
-    const cinemaBanner = createHeroSection('cinema', 'h-32 md:h-44 mb-3');
-    if (cinemaBanner) {
-        const bannerContent = document.createElement('div');
-        bannerContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10 text-left';
-        bannerContent.innerHTML = `
-            <div class="mb-2 text-xs font-bold text-white/40 tracking-[0.2em] uppercase">Cinema Studio 2.0</div>
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
-                What would you shoot<br>with infinite budget?
-            </h1>
-        `;
-        cinemaBanner.appendChild(bannerContent);
-        heroSection.appendChild(cinemaBanner);
-     }
+    heroSection.appendChild(createStudioHeader('cinema', 'Cinema Studio', 'Cinematic shots with real camera, lens and movement controls'));
 
      container.appendChild(heroSection);
 
@@ -276,11 +258,11 @@ export function CinemaStudio() {
     // 2. CAMERA CONTROLS OVERLAY
     // ==========================================
     const overlayBackdrop = document.createElement('div');
-    overlayBackdrop.className = 'fixed inset-0 bg-black/80 backdrop-blur-md z-40 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center';
+    overlayBackdrop.className = 'fixed inset-0 bg-black/80 backdrop-blur-md z-[150] p-4 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center';
 
     const overlayContent = document.createElement('div');
     // Reduced padding for mobile (p-4) and added max-height/overflow handling
-    overlayContent.className = 'w-full bg-white/[0.04] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]';
+    overlayContent.className = 'w-full max-w-5xl bg-[#111] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
     overlayBackdrop.appendChild(overlayContent);
 
     // Header for Overlay
@@ -335,7 +317,7 @@ export function CinemaStudio() {
     promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
+    promptBar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
 
     // --- INPUT AREA (Prompt + Upload) ---
     const inputArea = document.createElement('div');
@@ -349,6 +331,7 @@ export function CinemaStudio() {
 
     // Textarea
     const textarea = document.createElement('textarea');
+    textarea.setAttribute('data-studio-prompt', '');
     textarea.placeholder = 'Describe your scene - use @ to add characters & props';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.style.height = 'auto'; // Auto-grow check
@@ -428,6 +411,18 @@ export function CinemaStudio() {
     function toggleEnhanceMenu() {
       const isOpen = enhanceMenu.classList.contains('is-open');
       enhanceMenu.classList.toggle('is-open', !isOpen);
+      if (!isOpen) {
+        // The shared panel is right-aligned to its trigger; here the trigger
+        // is the first toolbar item, so flip it to open rightward when it
+        // would spill off the left edge.
+        enhancePanel.style.left = '';
+        enhancePanel.style.right = '';
+        enhancePanel.style.zIndex = '200';
+        if (enhancePanel.getBoundingClientRect().left < 8) {
+          enhancePanel.style.left = '0';
+          enhancePanel.style.right = 'auto';
+        }
+      }
     }
 
     enhanceTrigger.addEventListener('click', (e) => {
@@ -444,7 +439,7 @@ export function CinemaStudio() {
               textarea.value = prompt;
               textarea.dispatchEvent(new Event('input', { bubbles: true }));
               textarea.focus();
-            });
+            }, { basePrompt: textarea.value });
           }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
         }
         enhanceMenu.classList.remove('is-open');
@@ -553,14 +548,15 @@ export function CinemaStudio() {
     function showReferenceThumb(url) {
       const thumb = container.querySelector('#reference-thumb');
       if (!thumb) return;
+      // The whole pill (thumb + "Reference scene loaded" text) only shows
+      // while a reference is actually loaded.
+      thumb.parentElement?.classList.toggle('hidden', !url);
       if (url) {
         thumb.src = url;
         thumb.classList.remove('hidden');
       } else {
         thumb.classList.add('hidden');
       }
-      // The "reference loaded" note only makes sense while a reference is set.
-      thumb.parentElement?.classList.toggle('hidden', !url);
     }
 
     inputArea.appendChild(inputRow);
@@ -568,7 +564,7 @@ export function CinemaStudio() {
 
     // Small reference preview pill (hidden until an image is uploaded)
     const referencePill = document.createElement('div');
-    referencePill.className = 'hidden flex items-center gap-2 mt-1';
+    referencePill.className = `${currentSettings.referenceUrl ? '' : 'hidden '}flex items-center gap-2 mt-1`;
     referencePill.innerHTML = `
       <img id="reference-thumb" class="hidden w-10 h-10 rounded-lg border border-white/10 object-cover" alt="reference" />
       <span class="text-[10px] text-secondary">Reference scene loaded — used as the seed for your cinematic shot.</span>
@@ -580,12 +576,10 @@ export function CinemaStudio() {
         const existing = document.querySelectorAll('.custom-dropdown');
         existing.forEach(el => el.remove());
 
-        const rect = trigger.getBoundingClientRect();
         const menu = document.createElement('div');
-        menu.className = 'custom-dropdown fixed bg-white/[0.04] border border-white/10 rounded-xl py-1 shadow-2xl z-50 flex flex-col min-w-[100px] animate-fade-in';
-        menu.style.bottom = '';
-        menu.style.top = (rect.bottom + 8) + 'px';
-        menu.style.left = rect.left + 'px';
+        // Solid panel above the page (and the History rail); placed by the
+        // shared helper so it flips up/down and stays inside the viewport.
+        menu.className = 'custom-dropdown fixed glass rounded-xl py-1 shadow-2xl z-[200] flex flex-col min-w-[100px] overflow-y-auto animate-fade-in';
 
         items.forEach(item => {
             const btn = document.createElement('button');
@@ -607,6 +601,7 @@ export function CinemaStudio() {
         };
         setTimeout(() => document.addEventListener('click', closeHandler), 0);
         document.body.appendChild(menu);
+        positionModelSelectorDropdown(menu, trigger, 8);
     };
 
     // Model picker — same catalog-driven dropdown used by Video Studio.
@@ -616,34 +611,12 @@ export function CinemaStudio() {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
             || t2vModels.find(x => x.id === currentSettings.model)
             || t2vModels[0];
-        results?.emptyState?.setHighlight?.(m ? m.name : currentSettings.model);
         modelBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-[8px] font-black text-black">V</span></div> ${m ? m.name : currentSettings.model}`;
     };
     updateModelBtn();
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };
-    const gtmBtn = document.createElement('button');
-    gtmBtn.textContent = 'GTM';
-    settingsToolbar.appendChild(gtmBtn);
     settingsToolbar.appendChild(modelBtn);
 
-    // Model Picker button
-    const modelPickerBtn = document.createElement('button');
-    modelPickerBtn.type = 'button';
-    modelPickerBtn.textContent = 'AI Pick';
-    modelPickerBtn.title = 'Open intelligent model picker';
-    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'btn-action-secondary shrink-0';
-    modelPickerBtn.addEventListener('click', () => {
-      openModelPicker({
-        currentModelId: currentSettings.model,
-        onSelectModel: (id) => {
-          currentSettings.model = id;
-          updateModelBtn();
-          updateControlsForModel();
-        }
-      }).catch((err) => console.error('[ModelPicker] open failed:', err));
-    });
-    settingsToolbar.appendChild(modelPickerBtn);
 
     // Shared model dropdown (glass panel) — lists T2V models, or I2V models
     // when a reference image is loaded, with live search + per-model metadata.
@@ -695,8 +668,15 @@ export function CinemaStudio() {
                 cinemaPickerController?.refresh(nextModels[0]?.id || null);
             },
             onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
-                if (variant) currentSettings.model = variant.model.id;
+                // From "All", use the variant that matches how Cinema will
+                // generate (image-to-video when a reference is set). Cinema
+                // only runs T2V/I2V, so ignore any other variant.
+                const currentMode = currentSettings.referenceUrl ? 'i2v' : 't2v';
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId]
+                    : entry.variantsByMode[currentMode] || entry.variantsByMode.t2v || entry.variantsByMode.i2v;
+                if (!variant || !['t2v', 'i2v'].includes(variant.mode)) return;
+                currentSettings.model = variant.model.id;
                 updateModelBtn();
                 updateControlsForModel();
                 closeModelDropdown();
@@ -939,80 +919,21 @@ export function CinemaStudio() {
     promptBar.appendChild(buttonsRow);
 
     promptBarWrapper.appendChild(promptBar);
-
-    // Upstream Cinema composer: a large start-frame tile beside the prompt,
-    // then 38px pills (Model, AR, Resolution, Advanced, Builder) and a camera
-    // summary pill ("● Camera · lens…") that opens the camera overlay.
-    [modelBtn, arBtn, resBtn, advancedBtn, cameraBuilderBtn].forEach((b) => {
-        restylePill(b);
-        if (b) b.classList.add('text-xs', 'font-semibold');
-    });
-    uploadPicker.trigger.className = 'w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] hover:border-primary/50 hover:bg-white/[0.06] transition-all flex items-center justify-center relative overflow-hidden group';
-    uploadPicker.trigger.title = 'Start frame (optional)';
-    inputRow.className = 'flex items-start gap-4';
-    inputRow.insertBefore(uploadPicker.trigger, inputRow.firstChild);
-    textarea.className = 'flex-1 w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:outline-none resize-none pt-1 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
-    inputRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
-    summaryCard.className = controlClassName({ className: 'max-w-[260px]' });
-    summaryCard.innerHTML = '';
-    dot.className = 'w-2 h-2 rounded-full bg-primary shrink-0 shadow-glow-sm';
-    summaryTitle.className = CONTROL_LABEL_CLASS + ' truncate max-w-[110px]';
-    summaryValue.className = 'text-xs text-white/40 truncate max-w-[120px]';
-    summaryCard.append(dot, summaryTitle, summaryValue);
-    settingsToolbar.appendChild(summaryCard);
-    const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
-    foldIntoMoreMenu(settingsToolbar, [
-        { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
-        { label: 'Character lock', description: 'Keep the same character across shots', onSelect: () => csCharacterLockBtn?.click() },
-        { label: 'Personalize', description: 'Personalize with a contact', el: settingsToolbar.querySelector('#v-contact-btn') },
-        { label: 'Custom thumbnail', el: thumbBtn },
-        { label: 'Stock photo', description: 'Pexels photo as the start frame', el: pexelsRefBtn },
-        { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
-        { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
-        { label: 'Recipes', onSelect: enhanceAction('recipe') },
-        { label: 'Monetize', onSelect: enhanceAction('monetize') },
-    ]);
-    [gtmBtn, characterLockWrap, enhanceMenu].forEach((el) => { if (el) el.hidden = true; });
-    restyleAction(generateBtn);
-    rightGroup.className = 'flex items-center';
-    styleComposer({ wrapper: promptBarWrapper, bar: promptBar, footer: buttonsRow, controls: settingsToolbar });
+    // Place the controls ABOVE the inline-instruction tips (which are appended
+    // earlier as `inlineInstructions`), instead of pinning them to the bottom.
     container.insertBefore(promptBarWrapper, inlineInstructions);
-
-    results = mountStudioResults({
-        container,
-        hero: cinemaBanner,
-        before: promptBarWrapper,
-        kind: 'video',
-        historyType: 'video',
-        studio: 'cinema',
-        label: 'Cinema Studio',
-        filenamePrefix: 'cinema-shot',
-        empty: {
-            heading: 'Start shooting with',
-            highlight: ((currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model) || t2vModels[0])?.name || 'Cinema Studio',
-            subtitle: 'Write the scene, set camera, lens and look, optionally add a start frame — then Generate.',
-            samples: getAssetsForStudio('cinema').map(a => a.thumbnail || a.posterSrc).filter(Boolean).slice(0, 4),
-        },
-        extraActions: (item) => [
-            { label: 'Load settings', onSelect: () => loadHistoryItem(generationHistory.find(e => e.url === item.url) || { url: item.url }, null) },
-            { label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'video' }) },
-        ],
-        onDelete: (item) => {
-            const i = generationHistory.findIndex(e => e.url === item.url);
-            if (i >= 0) generationHistory.splice(i, 1);
-            try { localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50))); } catch { /* ignore */ }
-        },
-    });
 
     // ==========================================
     // 3B. CAMERA BUILDER PANEL (Collapsible)
     // ==========================================
     const cameraBuilderPanel = document.createElement('div');
-    cameraBuilderPanel.className = 'absolute bottom-8 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-full z-20';
+    // Centered popup above the page (and the History rail) so it never
+    // overlaps the prompt bar or the panels below it.
+    cameraBuilderPanel.className = 'fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm p-4 flex items-center justify-center';
     cameraBuilderPanel.style.display = 'none'; // Hidden by default
     
     const builderCard = document.createElement('div');
-    builderCard.className = 'bg-white/[0.04] border border-white/10 rounded-2xl p-4 shadow-3xl';
+    builderCard.className = 'glass w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl p-4 md:p-6 shadow-3xl';
     
     builderCard.innerHTML = `
         <div class="flex items-center justify-between mb-4">
@@ -1085,9 +1006,21 @@ export function CinemaStudio() {
     // Camera Builder toggle logic
     cameraBuilderBtn.onclick = () => {
         showCameraBuilder = !showCameraBuilder;
-        cameraBuilderPanel.style.display = showCameraBuilder ? 'block' : 'none';
+        cameraBuilderPanel.style.display = showCameraBuilder ? 'flex' : 'none';
         if (showCameraBuilder) updateBuilderPreview();
     };
+    const hideCameraBuilder = () => {
+        showCameraBuilder = false;
+        cameraBuilderPanel.style.display = 'none';
+    };
+    cameraBuilderPanel.addEventListener('click', (e) => { if (e.target === cameraBuilderPanel) hideCameraBuilder(); });
+    const onBuilderEscape = (e) => {
+        if (!container.isConnected) { document.removeEventListener('keydown', onBuilderEscape); return; }
+        if (e.key !== 'Escape') return;
+        if (showCameraBuilder) hideCameraBuilder();
+        if (!overlayBackdrop.classList.contains('pointer-events-none')) closeOverlay();
+    };
+    document.addEventListener('keydown', onBuilderEscape);
     
     const closeBuilderBtn = cameraBuilderPanel.querySelector('#close-builder-btn');
     if (closeBuilderBtn) closeBuilderBtn.onclick = () => {
@@ -1155,7 +1088,9 @@ export function CinemaStudio() {
 
     // History Sidebar - VISIBLE BY DEFAULT (removed translate-x-full opacity-0)
     const historySidebar = document.createElement('div');
-    historySidebar.className = 'fixed right-0 top-0 h-full w-20 md:w-24 bg-black/60 backdrop-blur-xl border-l border-white/5 z-50 flex flex-col items-center py-4 gap-3 overflow-y-auto transition-all duration-500';
+    // Hidden until there is history (as in Video Studio), so an empty rail
+    // never covers the right edge of the page; below popups (z-150/200).
+    historySidebar.className = 'fixed right-0 top-0 h-full w-20 md:w-24 bg-black/60 backdrop-blur-xl border-l border-white/5 z-40 flex flex-col items-center py-4 gap-3 overflow-y-auto transition-all duration-500 translate-x-full opacity-0 pointer-events-none';
 
     const historyLabel = document.createElement('div');
     historyLabel.className = 'text-[9px] font-bold text-white/40 uppercase tracking-widest mb-2';
@@ -1166,8 +1101,7 @@ export function CinemaStudio() {
     historyList.className = 'flex flex-col gap-2 w-full px-2';
     historySidebar.appendChild(historyList);
 
-    // Results live in the upstream-style gallery; the old side rail and
-    // full-page canvas stay detached for handlers that still read them.
+    container.appendChild(historySidebar);
 
     // ==========================================
     // 4. ADVANCED OPTIONS PANEL (control engine)
@@ -1213,15 +1147,13 @@ export function CinemaStudio() {
     });
     container.appendChild(advancedPanel);
 
-    // Advanced settings open inside the floating composer, above its footer.
-    advancedPanel.className = 'w-full animate-fade-in-up hidden max-h-[45vh] overflow-y-auto custom-scrollbar';
-    promptBar.insertBefore(advancedPanel, buttonsRow);
-
     const toggleAdvanced = () => {
       showAdvanced = !showAdvanced;
       advancedPanel.classList.toggle('hidden', !showAdvanced);
       const label = container.querySelector('[data-advanced-label]');
       if (label) label.textContent = showAdvanced ? 'Less' : 'Advanced';
+      // The panel sits below the prompt bar, often below the fold.
+      if (showAdvanced) requestAnimationFrame(() => advancedPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
     };
 
     // ==========================================
@@ -1322,10 +1254,15 @@ export function CinemaStudio() {
 
     canvas.appendChild(canvasControls);
 
+    container.appendChild(canvas);
 
     // --- History Logic ---
     const renderHistory = () => {
         historyList.innerHTML = '';
+        const hasHistory = generationHistory.length > 0;
+        historySidebar.classList.toggle('translate-x-full', !hasHistory);
+        historySidebar.classList.toggle('opacity-0', !hasHistory);
+        historySidebar.classList.toggle('pointer-events-none', !hasHistory);
         generationHistory.forEach((entry, idx) => {
             const thumb = document.createElement('div');
             thumb.className = `relative group/thumb cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 aspect-square ${idx === 0 ? 'border-primary shadow-glow-sm' : 'border-white/10 hover:border-white/30'}`;
@@ -1375,21 +1312,20 @@ export function CinemaStudio() {
         });
     };
 
-    const toCard = (entry) => ({
-        url: entry.url,
-        prompt: entry.settings?.prompt || '',
-        model: entry.settings?.model || '',
-        aspect_ratio: entry.settings?.aspect_ratio || '',
-    });
-
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
+        // Shared library + "Edit in Workbench" (covers fresh results and recovered jobs).
+        const s = entry.settings || {};
+        registerGeneration('cinema', 'video', entry.url, {
+            prompt: s.prompt || '', model: s.model || '',
+            parameters: { aspect_ratio: s.aspect_ratio, duration: s.duration, resolution: s.resolution },
+        });
         try {
             localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50)));
         } catch (e) {
             // Ignore storage errors (private mode, quota exceeded, etc.)
         }
-        results.gallery.addItem(toCard(entry));
+        renderHistory();
     };
 
     const loadHistoryItem = (entry, thumbElement) => {
@@ -1425,9 +1361,6 @@ export function CinemaStudio() {
 
     const showCanvas = (url) => {
         currentResultUrl = url;
-        results.area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-        // eslint-disable-next-line no-unreachable
         // Render a <video> for cinematic video results, <img> for stills.
         const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url);
         copyMediaBtn.textContent = isVideo ? '⧉ Copy Link' : '⧉ Copy Image';
@@ -1498,7 +1431,7 @@ export function CinemaStudio() {
         const saved = JSON.parse(localStorage.getItem('cinema_history') || '[]');
         if (saved.length > 0) {
             saved.forEach(e => generationHistory.push(e));
-            results.gallery.setItems(generationHistory.map(toCard));
+            renderHistory();
         }
     } catch (e) { }
 
@@ -1547,11 +1480,8 @@ export function CinemaStudio() {
             return;
         }
 
-        const pendingCard = results.gallery.addPending('Shooting…');
-        const notifyId = `cinema:${Date.now()}`;
-        notifyGeneration({ phase: 'start', id: notifyId, studio: 'cinema', label: 'Cinema Studio' });
-        setActionBusy(generateBtn, true);
-        let failed = null;
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = "SHOOTING...";
 
         // Compile Prompt — include camera movement + film look so the
         // "Render the shot" step produces a real cinematic video.
@@ -1761,15 +1691,11 @@ export function CinemaStudio() {
 
         } catch (e) {
             console.error(e);
-            failed = e.message || 'Generation failed';
-            showToast('Generation failed: ' + failed, 'error', 5000);
+            showToast('Generation Failed: ' + e.message, 'error');
         } finally {
             pendingJob?.finish();
-            pendingCard.remove();
-            notifyGeneration(failed
-                ? { phase: 'error', id: notifyId, studio: 'cinema', label: 'Cinema Studio', message: failed }
-                : { phase: 'success', id: notifyId, studio: 'cinema', label: 'Cinema Studio' });
-            if (failed) setActionRetry(generateBtn); else setActionBusy(generateBtn, false);
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = `GENERATE ✨`;
         }
     };
 

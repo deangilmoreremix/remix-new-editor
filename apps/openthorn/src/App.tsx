@@ -1,48 +1,22 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
-import { Analytics } from '@vercel/analytics/react'
-import { SpeedInsights } from '@vercel/speed-insights/react'
-import { usePageTitle } from './lib/usePageTitle'
-import { useJsonLd } from './lib/useJsonLd'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { getErrorMessage, logError } from './lib/errors'
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
-import Header from './components/Header/Header'
-import HeroSection from './components/HeroSection/HeroSection'
-import MeetOpenThornSection from './components/MeetOpenThornSection/MeetOpenThornSection'
-import BYOKSection from './components/BYOKSection/BYOKSection'
-import BottomCTA from './components/BottomCTA/BottomCTA'
-import Footer from './components/Footer/Footer'
-import AuthModal from './components/AuthModal/AuthModal'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import AdminGuard from './components/AdminGuard/AdminGuard'
-import AnnouncementBanner from './components/AnnouncementBanner/AnnouncementBanner'
 import styles from './App.module.css'
 
-// Route pages are code-split so the heavy builder/preview stack (esbuild-wasm,
-// jszip, html2canvas, the agent) isn't pulled into the initial landing bundle.
-const PricingPage = lazy(() => import('./pages/PricingPage'))
-const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
-const TermsPage = lazy(() => import('./pages/TermsPage'))
-const CookiesPage = lazy(() => import('./pages/CookiesPage'))
-const ImprintPage = lazy(() => import('./pages/ImprintPage'))
+// Embedded in SmartVideo as the Website Builder studio: the app opens straight
+// on the Dashboard. The upstream marketing pages (landing, blog, pricing, FAQ,
+// compare, legal, community) are not routed; every such URL redirects to
+// /dashboard. Route pages stay code-split so the builder/preview stack
+// (esbuild-wasm, jszip, html2canvas, the agent) loads only when needed.
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const ProjectBuilderPage = lazy(() => import('./pages/ProjectBuilderPage'))
 const ProvidersPage = lazy(() => import('./pages/ProvidersPage'))
 const TemplatesPage = lazy(() => import('./pages/TemplatesPage'))
-const CommunityPage = lazy(() => import('./pages/CommunityPage'))
-const BlogPage = lazy(() => import('./pages/BlogPage'))
-const BlogPostPage = lazy(() => import('./pages/BlogPostPage'))
-const FaqPage = lazy(() => import('./pages/FaqPage'))
-const ChangelogPage = lazy(() => import('./pages/ChangelogPage'))
-const CompareIndexPage = lazy(() => import('./pages/CompareIndexPage'))
-const ComparePage = lazy(() => import('./pages/ComparePage'))
-const BuildWithIndexPage = lazy(() => import('./pages/BuildWithIndexPage'))
-const BuildWithPage = lazy(() => import('./pages/BuildWithPage'))
-const GlossaryPage = lazy(() => import('./pages/GlossaryPage'))
-const ModerationPage = lazy(() => import('./pages/ModerationPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
 const AdminModerationPage = lazy(() => import('./pages/admin/AdminModerationPage'))
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'))
@@ -50,77 +24,6 @@ const AdminConfigPage = lazy(() => import('./pages/admin/AdminConfigPage'))
 const AdminBlogPage = lazy(() => import('./pages/admin/AdminBlogPage'))
 const AdminTemplatesPage = lazy(() => import('./pages/admin/AdminTemplatesPage'))
 const AdminNotificationsPage = lazy(() => import('./pages/admin/AdminNotificationsPage'))
-
-function HomePage() {
-  usePageTitle()
-  useJsonLd({
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'Smart Video',
-    applicationCategory: 'DeveloperApplication',
-    operatingSystem: 'Web',
-    description:
-      'Smart Video is the BYOK AI website builder — describe what you want, get a complete, deployable website. No subscription, no lock-in.',
-    url: 'https://www.openthorn.app',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-      description: 'Free to use — bring your own API keys',
-    },
-  })
-
-  return (
-    <>
-      <HeroSection />
-      <MeetOpenThornSection />
-      <BYOKSection />
-      <BottomCTA />
-    </>
-  )
-}
-
-function ScrollToTop() {
-  const { pathname, search } = useLocation()
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0 })
-  }, [pathname, search])
-
-  return null
-}
-
-function Layout({ children }: { children: React.ReactNode }) {
-  const [authModalOpen, setAuthModalOpen] = useState(false)
-  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin')
-
-  const openSignIn = () => { setAuthModalMode('signin'); setAuthModalOpen(true) }
-  const openSignUp = () => { setAuthModalMode('signup'); setAuthModalOpen(true) }
-
-  useEffect(() => {
-    const handleRequireAuth = (e: Event) => {
-      const mode = (e as CustomEvent<{ mode?: 'signin' | 'signup' }>).detail?.mode
-      if (mode === 'signup') openSignUp()
-      else openSignIn()
-    }
-    window.addEventListener('openthorn:require-auth', handleRequireAuth)
-    return () => window.removeEventListener('openthorn:require-auth', handleRequireAuth)
-  }, [])
-
-  return (
-    <>
-      <ScrollToTop />
-      <Header onSignIn={openSignIn} onSignUp={openSignUp} />
-      <main>{children}</main>
-      <Footer />
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        initialMode={authModalMode}
-      />
-    </>
-  )
-}
 
 export default function App() {
   const [globalError, setGlobalError] = useState<string | null>(null)
@@ -147,29 +50,12 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div className={styles.app}>
-        <AnnouncementBanner />
         <Suspense fallback={<div className={styles.routeLoading}>Loading...</div>}>
           <Routes>
-            <Route path="/" element={<Layout><HomePage /></Layout>} />
-            <Route path="/pricing" element={<Layout><PricingPage /></Layout>} />
-            <Route path="/privacy" element={<Layout><PrivacyPage /></Layout>} />
-            <Route path="/terms" element={<Layout><TermsPage /></Layout>} />
-            <Route path="/cookies" element={<Layout><CookiesPage /></Layout>} />
-            <Route path="/imprint" element={<Layout><ImprintPage /></Layout>} />
-            <Route path="/moderation" element={<Layout><ModerationPage /></Layout>} />
-            <Route path="/blog" element={<Layout><BlogPage /></Layout>} />
-            <Route path="/blog/:slug" element={<Layout><BlogPostPage /></Layout>} />
-            <Route path="/faq" element={<Layout><FaqPage /></Layout>} />
-            <Route path="/changelog" element={<Layout><ChangelogPage /></Layout>} />
-            <Route path="/compare" element={<Layout><CompareIndexPage /></Layout>} />
-            <Route path="/compare/:slug" element={<Layout><ComparePage /></Layout>} />
-            <Route path="/build-with" element={<Layout><BuildWithIndexPage /></Layout>} />
-            <Route path="/build-with/:slug" element={<Layout><BuildWithPage /></Layout>} />
-            <Route path="/glossary" element={<Layout><GlossaryPage /></Layout>} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<ProtectedRoute pageName="the Dashboard"><DashboardPage /></ProtectedRoute>} />
             <Route path="/projects/:projectId" element={<ProtectedRoute pageName="your project"><ProjectBuilderPage /></ProtectedRoute>} />
             <Route path="/templates" element={<ProtectedRoute pageName="Templates"><TemplatesPage /></ProtectedRoute>} />
-            <Route path="/community" element={<ProtectedRoute pageName="Community"><CommunityPage /></ProtectedRoute>} />
             <Route path="/providers" element={<ProtectedRoute pageName="Providers"><ProvidersPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute pageName="Profile"><ProfilePage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute pageName="Settings"><SettingsPage /></ProtectedRoute>} />
@@ -181,7 +67,7 @@ export default function App() {
               <Route path="blog" element={<AdminBlogPage />} />
               <Route path="templates" element={<AdminTemplatesPage />} />
             </Route>
-            <Route path="*" element={<NotFoundPage />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
         {globalError && (
@@ -193,8 +79,6 @@ export default function App() {
           </div>
         )}
       </div>
-      <Analytics />
-      <SpeedInsights />
     </ErrorBoundary>
   )
 }

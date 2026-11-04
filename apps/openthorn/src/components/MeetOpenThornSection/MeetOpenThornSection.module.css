@@ -3,7 +3,7 @@
   text-align: center;
   position: relative;
   border-top: 1px solid var(--color-border);
-  background: linear-gradient(180deg, rgba(33, 23, 17, 0.22), transparent 72%);
+  background: linear-gradient(180deg, rgba(17, 17, 17, 0.22), transparent 72%);
 }
 
 .kicker {

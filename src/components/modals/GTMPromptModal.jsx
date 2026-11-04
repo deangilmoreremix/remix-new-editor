@@ -1,111 +1,118 @@
 import { BaseModal } from './BaseModal.jsx';
-import { openaiService } from '../../lib/openaiService.js';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { gtmContentLibrary } from '../../lib/gtmContentLibrary.js';
 import { gtmResponses, gtmStructuredToText, GTM_MODEL_OPTIONS, resolveGtmModel } from '../../lib/gtmResponses.js';
+import {
+  getGtmStudioProfile,
+  defaultEnhancements,
+  normalizeGtmResult,
+  buildLocalStudioPrompt,
+  GTM_GOALS,
+} from '../../lib/gtmStudioProfiles.js';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
 import { AuthModal } from '../AuthModal.js';
 import { GTMInfoModal } from './GTMInfoModal.jsx';
 
 /**
- * GTMPromptModal - GTM-Powered Prompt Enhancement Modal
- * Creates conversion-optimized video prompts using GTM methodologies
- * Adapts to each app's color scheme and loads prompts into prompt spaces.
+ * GTMPromptModal — GTM Boost, adapted to the studio that opened it.
  *
- * Includes a GTM ↔ Thumbnail bridge: when constructed with onGenerateThumbnail,
- * the generated-prompt section shows a "🎨 Generate Thumbnail" button.
+ * Every studio passes its theme key (e.g. 'image-studio', 'avatar-studio').
+ * The key resolves a studio profile (src/lib/gtmStudioProfiles.js) that
+ * decides what the boosted output looks like:
+ *   - Video studios  → one flowing text-to-video prompt
+ *   - Image studios  → a dense still-image prompt (no camera moves / audio)
+ *   - Avatar / Lip Sync → the exact words to be spoken
+ *   - Audio Studio   → a music / voiceover brief
+ *   - Storyboard     → a frame-ready story concept
+ *
+ * Layout: 1) Idea  2) Audience & angle  3) Result. The result shows the
+ * studio-specific breakdown plus an editable "ready-to-use" prompt — that
+ * prompt (not the breakdown) is what Apply sends back to the studio.
+ *
+ * Options:
+ *   appTheme            studio theme key (drives profile + colors)
+ *   basePrompt          seed the idea box (e.g. the studio's current prompt)
+ *   studioName          override the display name
+ *   templateContext     { basePrompt, role, industry, methodology, tonality }
+ *   onPromptGenerated   (text) => void — called by Apply
+ *   onGenerateThumbnail (text, { profile }) => Promise — "Make Thumbnail"
  */
 export class GTMPromptModal extends BaseModal {
   constructor(options = {}) {
+    const appTheme = options.appTheme || 'timeline-editor';
+    const profile = getGtmStudioProfile(appTheme, { outputType: options.templateContext?.outputType });
+    const studioName = options.studioName || profile.studioName;
     super({
-      title: '🚀 GTM Boost - Cinematic Prompt Enhancement',
+      title: `🎯 GTM Boost · ${studioName}`,
       size: 'large',
       showFooter: true,
-      ...options
+      ...options,
     });
 
-    // Capture footer content (BaseModal does not read props.footerContent)
-    this.footerContent = options.footerContent || `
-      <button class="modal-btn modal-btn-secondary" data-action="cancel">Cancel</button>
-      <button class="modal-btn modal-btn-secondary" data-action="variants">🎲 Variants</button>
-      <button class="modal-btn modal-btn-primary" data-action="generate">🚀 Generate Cinematic Prompt</button>
-    `;
-
-    // App-specific theming
-    this.appTheme = options.appTheme || 'timeline-editor';
+    this.appTheme = appTheme;
+    this.profile = { ...profile, studioName };
     this.appColors = this.getAppColorScheme(this.appTheme);
 
-    // GTM Selection State
-    this.selectedRole = '';
-    this.selectedIndustry = '';
-    this.selectedMethodology = '';
-    this.selectedTonality = '';
+    // BaseModal does not read props.footerContent, so keep our own copy.
+    this.footerContent = options.footerContent || `
+      <button class="modal-btn modal-btn-secondary" data-action="cancel">Cancel</button>
+      <button class="modal-btn modal-btn-secondary" data-action="variants" title="Generate 3 alternatives to compare">🎲 3 Variants</button>
+      <button class="modal-btn modal-btn-primary" data-action="generate">🚀 Boost ${this.escapeHtml(this.profile.kindLabel)}</button>
+    `;
+
+    const ctx = options.templateContext || null;
+    this.templateContext = ctx;
+
+    // Selections
+    this.selectedRole = this._matchOption(gtmContentLibrary.getRoleOptions(), ctx?.role);
+    this.selectedIndustry = this._matchOption(gtmContentLibrary.getIndustryOptions(), ctx?.industry);
+    this.selectedMethodology = this._matchOption(gtmContentLibrary.getMethodologyOptions(), ctx?.methodology);
+    this.selectedTonality = this._matchOption(gtmContentLibrary.getTonalityOptions(), ctx?.tonality);
+    this.selectedAngle = '';
     this.selectedModel = this._readStoredModel();
-    this.basePrompt = options.templateContext?.basePrompt || '';
-    this.generatedPrompt = '';
-    this.templateContext = options.templateContext || null;
-
-    // Responses API output state — always a plain text string (the Responses
-    // API returns a flat `output_text` payload, not a structured object).
-    this.generatedResult = null;
-    this.streamingText = '';           // live streamed text during generation
-    this.responseId = '';              // previous_response_id for refine
-    this.usage = null;                 // { inputTokens, outputTokens }
-    this.variants = [];                // array of structured prompts
-    this.selectedVariantIndex = 0;
-    this.refineInstruction = '';
-    this.isRefining = false;
-
-    // Responses API structured output state
-    this.generatedStructured = null;   // { hook, storybeat_1, ... }
-    this.streamingText = '';           // live streamed text during generation
-    this.responseId = '';              // previous_response_id for refine
-    this.usage = null;                 // { inputTokens, outputTokens }
-    this.variants = [];                // array of structured prompts
-    this.selectedVariantIndex = 0;
-    this.refineInstruction = '';
-    this.isRefining = false;
-
-    // Cinematic Enhancement Options
-    this.cinematicOptions = {
-      openingHook: true,
-      storytellingStructure: true,
-      visualElements: true,
-      audioElements: true,
-      pacingEditing: true,
-      emotionalEngagement: true,
-      ctaIntegration: true
-    };
-
-    // Advanced options
+    this.basePrompt = (typeof options.basePrompt === 'string' && options.basePrompt.trim())
+      ? options.basePrompt.trim()
+      : (ctx?.basePrompt || '');
     this.focusAreas = [];
+    // Studio-specific enhancement toggles (key → on/off).
+    this.cinematicOptions = defaultEnhancements(this.profile);
 
-    // UI State
+    // Result state
+    this.generatedPrompt = '';         // ready-to-use prompt text (what Apply sends)
+    this.generatedStructured = null;   // { finalPrompt, angle, sections[], cta, estimatedDurationSec }
+    this.isLocalResult = false;        // true when produced by the offline fallback
+    this.streamingText = '';
+    this.responseId = '';
+    this.usage = null;
+    this.variants = [];
+    this.selectedVariantIndex = 0;
+    this.refineInstruction = '';
+    this.isRefining = false;
+
+    // UI state
     this.isGenerating = false;
     this.generationStep = 0;
     this.showAdvanced = false;
     this.errorMessage = '';
-    this.missingOpenAIKey = false;   // true when no user key + no edge function
-    this.abortController = null;     // cancels an in-flight stream
-    this.skillExamples = [];         // retrieved real GTM examples (Step 2)
+    this.missingOpenAIKey = false;
+    this.abortController = null;
+    this.skillExamples = [];
 
     // Callbacks
     this.onPromptGenerated = options.onPromptGenerated || (() => {});
     this.onGenerateThumbnail = options.onGenerateThumbnail || null;
   }
 
+  // ---------------------------------------------------------------------------
+  // Theming
+  // ---------------------------------------------------------------------------
+
   getAppColorScheme(theme) {
-    // Single source of truth — see STUDIO_SCHEME in openaiConfig.js. Every
-    // theme key resolves to the shared studio palette so this modal always
-    // matches the studio it was opened from.
+    // Single source of truth — see STUDIO_SCHEME in openaiConfig.js.
     return openaiConfig.getStudioColorScheme(theme);
   }
 
-  /**
-   * Inline `style` attribute that publishes the studio palette as the
-   * `--app-*` custom properties the modal stylesheet is written against.
-   * Shared by every render path so the theming can never drift.
-   */
+  /** Publishes the studio palette as the --app-* custom properties. */
   themeVars() {
     const { primary, accent, onPrimary } = this.appColors;
     return [
@@ -118,110 +125,6 @@ export class GTMPromptModal extends BaseModal {
     ].join('; ');
   }
 
-  renderBody() {
-    return `
-      <div class="gtm-prompt-modal" style="${this.themeVars()}">
-        <p class="gtm-subtitle">Transform basic prompts into professional cinematic videos with GTM methodologies and storytelling mastery</p>
-        <div class="gtm-info-trigger-row">
-          <button type="button" class="gtm-info-trigger" data-action="open-gtm-info" aria-label="What is GTM Boost?">What is GTM Boost?</button>
-        </div>
-        <div class="gtm-form">
-          ${this.errorMessage ? `<div class="error-message" role="alert">⚠ ${this.errorMessage}</div>` : ''}
-          ${this.missingOpenAIKey ? `
-            <div class="gtm-key-cta" role="alert">
-              <span>🔑 Add your OpenAI key to enable AI prompt enhancement (streaming).</span>
-              <button type="button" class="gtm-action" data-action="open-key-modal">Add API Key</button>
-            </div>` : ''}
-          <div class="form-section">
-            <label for="gtm-base-prompt">Base Prompt</label>
-            <textarea id="gtm-base-prompt" placeholder="Describe your video idea...">${this.basePrompt}</textarea>
-          </div>
-          <div class="form-grid">
-            <div class="form-section">
-              <label for="gtm-role-select">Target Role</label>
-              <select id="gtm-role-select">
-                <option value="">Select Role...</option>
-                ${gtmContentLibrary.getRoleOptions().map((o) => `<option value="${o.value}" ${this.selectedRole === o.value ? 'selected' : ''}>${this.escapeHtml(o.label)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="form-section">
-              <label for="gtm-industry-select">Industry</label>
-              <select id="gtm-industry-select">
-                <option value="">Select Industry...</option>
-                ${gtmContentLibrary.getIndustryOptions().map((o) => `<option value="${o.value}" ${this.selectedIndustry === o.value ? 'selected' : ''}>${this.escapeHtml(o.label)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="form-section">
-              <label for="gtm-methodology-select">Sales Methodology</label>
-              <select id="gtm-methodology-select">
-                <option value="">Select Methodology...</option>
-                ${gtmContentLibrary.getMethodologyOptions().map((o) => `<option value="${o.value}" ${this.selectedMethodology === o.value ? 'selected' : ''}>${this.escapeHtml(o.label)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="form-section">
-              <label for="gtm-tonality-select">Writing Style</label>
-              <select id="gtm-tonality-select">
-                <option value="">Select Style...</option>
-                ${gtmContentLibrary.getTonalityOptions().map((o) => `<option value="${o.value}" ${this.selectedTonality === o.value ? 'selected' : ''}>${this.escapeHtml(o.label)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="form-section">
-              <label for="gtm-model-select">Model</label>
-              <select id="gtm-model-select">
-                ${GTM_MODEL_OPTIONS.map((m) => `<option value="${m.id}" ${this.selectedModel === m.id ? 'selected' : ''}>${this.escapeHtml(m.label)}</option>`).join('')}
-              </select>
-            </div>
-          </div>
-          <button type="button" class="toggle-advanced" data-action="toggle-advanced" aria-expanded="${this.showAdvanced}">${this.showAdvanced ? '▼' : '▶'} Advanced Options</button>
-          ${this.showAdvanced ? `
-            <div class="advanced-options">
-              <div class="option-group">
-                <label>Conversion Focus</label>
-                <div class="checkbox-group" role="group" aria-label="Conversion focus">
-                  <label><input type="checkbox" name="focus" value="lead-gen" ${this.focusAreas.includes('lead-gen') ? 'checked' : ''}><span>Lead Generation</span></label>
-                  <label><input type="checkbox" name="focus" value="awareness" ${this.focusAreas.includes('awareness') ? 'checked' : ''}><span>Brand Awareness</span></label>
-                  <label><input type="checkbox" name="focus" value="education" ${this.focusAreas.includes('education') ? 'checked' : ''}><span>Education</span></label>
-                  <label><input type="checkbox" name="focus" value="demo" ${this.focusAreas.includes('demo') ? 'checked' : ''}><span>Product Demo</span></label>
-                </div>
-              </div>
-              <div class="option-group">
-                <label>Cinematic Enhancement Elements</label>
-                <div class="checkbox-group" role="group" aria-label="Cinematic enhancements">
-                  <label><input type="checkbox" name="cinematic" value="openingHook" ${this.cinematicOptions.openingHook ? 'checked' : ''}><span>Opening Hooks</span></label>
-                  <label><input type="checkbox" name="cinematic" value="storytellingStructure" ${this.cinematicOptions.storytellingStructure ? 'checked' : ''}><span>Storytelling Structure</span></label>
-                  <label><input type="checkbox" name="cinematic" value="visualElements" ${this.cinematicOptions.visualElements ? 'checked' : ''}><span>Visual Cinematography</span></label>
-                  <label><input type="checkbox" name="cinematic" value="audioElements" ${this.cinematicOptions.audioElements ? 'checked' : ''}><span>Audio Excellence</span></label>
-                  <label><input type="checkbox" name="cinematic" value="pacingEditing" ${this.cinematicOptions.pacingEditing ? 'checked' : ''}><span>Pacing &amp; Editing</span></label>
-                  <label><input type="checkbox" name="cinematic" value="emotionalEngagement" ${this.cinematicOptions.emotionalEngagement ? 'checked' : ''}><span>Emotional Engagement</span></label>
-                  <label><input type="checkbox" name="cinematic" value="ctaIntegration" ${this.cinematicOptions.ctaIntegration ? 'checked' : ''}><span>CTA Integration</span></label>
-                </div>
-              </div>
-            </div>
-          ` : ''}
-          ${this.renderSkillExamples()}
-          ${this.isGenerating ? this.renderGenerationProgress() : ''}
-          ${this.isGenerating && this.streamingText ? `
-            <div class="generated-prompt-section">
-              <label>Generating cinematic prompt…</label>
-              <div class="generated-prompt-container">
-                <textarea id="gtm-generated-prompt" readonly class="generated-prompt streaming">${this.escapeHtml(this.streamingText)}</textarea>
-              </div>
-              <div class="generated-prompt-actions">
-                <button type="button" class="gtm-action stop-btn" data-action="stop">⏹ Stop</button>
-              </div>
-            </div>
-          ` : ''}
-          ${!this.isGenerating && this.generatedPrompt ? this.renderGeneratedPrompt() : ''}
-        </div>
-        <p class="gtm-footnote">✨ First-of-its-kind: GTM sales methodology + cinematic structure for AI video. Powered by your OpenAI key.</p>
-      </div>
-    `;
-  }
-
-  /**
-   * Convert a hex color (#rrggbb / #rgb) to an rgba() string with the given alpha.
-   * Used to derive soft tints from the per-app primary/accent at render time.
-   */
   hexToRgba(hex, alpha) {
     if (typeof hex !== 'string') return `rgba(217, 255, 0, ${alpha})`;
     const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
@@ -234,35 +137,129 @@ export class GTMPromptModal extends BaseModal {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
+  escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Rendering
+  // ---------------------------------------------------------------------------
+
+  renderBody() {
+    const p = this.profile;
+    const hasResult = !this.isGenerating && Boolean(this.generatedPrompt);
+    return `
+      <div class="gtm-prompt-modal gtm-kind-${p.kind}" style="${this.themeVars()}">
+        <div class="gtm-studio-banner">
+          <div class="gtm-studio-banner-text">
+            <span class="gtm-studio-badge">${this.escapeHtml(p.kindLabel)}</span>
+            <p class="gtm-subtitle">Turn a rough idea into a conversion-ready ${this.escapeHtml(p.kindLabel.toLowerCase())} for <strong>${this.escapeHtml(p.studioName)}</strong>, written for your buyer.</p>
+          </div>
+          <button type="button" class="gtm-info-trigger" data-action="open-gtm-info" aria-label="What is GTM Boost?">What is GTM Boost?</button>
+        </div>
+
+        <div class="gtm-form">
+          ${this.errorMessage ? `<div class="error-message" role="alert">⚠ ${this.escapeHtml(this.errorMessage)}</div>` : ''}
+          ${this.missingOpenAIKey ? `
+            <div class="gtm-key-cta" role="alert">
+              <span>🔑 Add your OpenAI key for AI-written results. Until then GTM Boost uses a built-in template.</span>
+              <button type="button" class="gtm-action" data-action="open-key-modal">Add API Key</button>
+            </div>` : ''}
+
+          <section class="gtm-step" aria-labelledby="gtm-step-idea">
+            <h3 class="gtm-step-title" id="gtm-step-idea"><span class="gtm-step-num">1</span>${this.escapeHtml(p.promptLabel)}</h3>
+            <div class="form-section">
+              <textarea id="gtm-base-prompt" aria-labelledby="gtm-step-idea" placeholder="${this.escapeHtml(p.placeholder)}">${this.escapeHtml(this.basePrompt)}</textarea>
+            </div>
+            <div class="gtm-chip-row" role="group" aria-label="Content angle">
+              ${p.angles.map((a) => `<button type="button" class="gtm-chip ${this.selectedAngle === a ? 'active' : ''}" data-action="select-angle" data-value="${this.escapeHtml(a)}" aria-pressed="${this.selectedAngle === a}">${this.escapeHtml(a)}</button>`).join('')}
+            </div>
+          </section>
+
+          <section class="gtm-step" aria-labelledby="gtm-step-audience">
+            <h3 class="gtm-step-title" id="gtm-step-audience"><span class="gtm-step-num">2</span>Audience &amp; goal</h3>
+            <div class="form-grid">
+              ${this._renderSelect('gtm-role-select', 'Target role', 'Any role', gtmContentLibrary.getRoleOptions(), this.selectedRole)}
+              ${this._renderSelect('gtm-industry-select', 'Industry', 'Any industry', gtmContentLibrary.getIndustryOptions(), this.selectedIndustry)}
+              ${this._renderSelect('gtm-methodology-select', 'Sales methodology', 'None', gtmContentLibrary.getMethodologyOptions(), this.selectedMethodology)}
+              ${this._renderSelect('gtm-tonality-select', 'Writing style', 'Default', gtmContentLibrary.getTonalityOptions(), this.selectedTonality)}
+            </div>
+            <div class="gtm-chip-row" role="group" aria-label="Conversion goal">
+              <span class="gtm-chip-label">Goal</span>
+              ${GTM_GOALS.map((g) => `<button type="button" class="gtm-chip ${this.focusAreas.includes(g.value) ? 'active' : ''}" data-action="toggle-goal" data-value="${g.value}" aria-pressed="${this.focusAreas.includes(g.value)}">${this.escapeHtml(g.label)}</button>`).join('')}
+            </div>
+            <button type="button" class="toggle-advanced" data-action="toggle-advanced" aria-expanded="${this.showAdvanced}">${this.showAdvanced ? '▾' : '▸'} Fine-tune (${this.escapeHtml(p.kindLabel.toLowerCase())} details &amp; model)</button>
+            ${this.showAdvanced ? `
+              <div class="advanced-options">
+                <div class="option-group">
+                  <label>Include in the ${this.escapeHtml(p.kindLabel.toLowerCase())}</label>
+                  <div class="checkbox-group" role="group" aria-label="Enhancements">
+                    ${p.enhancements.map((e) => `<label><input type="checkbox" name="cinematic" value="${e.key}" ${this.cinematicOptions[e.key] ? 'checked' : ''}><span>${this.escapeHtml(e.label)}</span></label>`).join('')}
+                  </div>
+                </div>
+                <div class="form-section">
+                  <label for="gtm-model-select">AI model</label>
+                  <select id="gtm-model-select">
+                    ${GTM_MODEL_OPTIONS.map((m) => `<option value="${m.id}" ${this.selectedModel === m.id ? 'selected' : ''}>${this.escapeHtml(m.label)} — ${this.escapeHtml(m.tier)}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+            ` : ''}
+            ${this.renderSkillExamples()}
+          </section>
+
+          ${this.isGenerating ? this.renderGenerationProgress() : ''}
+          ${this.isGenerating && this.streamingText ? `
+            <div class="generated-prompt-section">
+              <label>Writing your ${this.escapeHtml(p.kindLabel.toLowerCase())}…</label>
+              <div class="generated-prompt-container">
+                <textarea readonly class="generated-prompt streaming" aria-label="Streaming output">${this.escapeHtml(this.streamingText)}</textarea>
+              </div>
+              <div class="generated-prompt-actions">
+                <button type="button" class="gtm-action stop-btn" data-action="stop">⏹ Stop</button>
+              </div>
+            </div>
+          ` : ''}
+          ${hasResult ? this.renderGeneratedPrompt() : ''}
+        </div>
+        <p class="gtm-footnote">GTM sales methodology + ${this.escapeHtml(p.kindLabel.toLowerCase())} best practices. Uses your OpenAI key when set.</p>
+      </div>
+    `;
+  }
+
+  _renderSelect(id, label, emptyLabel, options, selected) {
+    return `
+      <div class="form-section">
+        <label for="${id}">${label}</label>
+        <select id="${id}">
+          <option value="">${emptyLabel}</option>
+          ${options.map((o) => `<option value="${o.value}" ${selected === o.value ? 'selected' : ''}>${this.escapeHtml(o.label)}</option>`).join('')}
+        </select>
+      </div>
+    `;
+  }
+
   /**
-   * Derive the active progress step (0-4) from REAL streaming state rather than
-   * a fake timer. The GTM schema streams as JSON; we count which top-level
-   * fields have arrived to advance through the 5 conceptual steps:
-   *   0 Analyzing GTM methodologies
-   *   1 Applying cinematic storytelling   (hook + storybeat_1)
-   *   2 Integrating visual & audio        (storybeat_2/3 + visualDirection)
-   *   3 Optimizing for conversion         (audioDirection + cta)
-   *   4 Finalizing                        (estimatedDurationSec / done)
+   * Progress (0-4) from real streaming state — no fake timer. Before the
+   * structured result arrives it is inferred from streamed length.
    */
   computeGenerationStep() {
     if (this.generationStep >= 4) return 4;
     const p = this.generatedStructured;
     if (p && typeof p === 'object') {
-      const has = (k) => !!p[k] && String(p[k]).trim().length > 0;
       let score = 0;
-      if (has('hook')) score++;
-      if (has('storybeat_1')) score++;
-      if (has('storybeat_2') || has('storybeat_3')) score++;
-      if (has('visualDirection')) score++;
-      if (has('audioDirection') || has('cta')) score++;
-      if (has('estimatedDurationSec')) score = 5;
-      // Map the 0-5 field score onto the 0-4 step scale (clamped).
-      const step = Math.min(4, Math.floor(score * (4 / 5)) + (score > 0 ? 0 : 0));
-      return Math.min(4, step);
+      if (p.angle) score++;
+      if (Array.isArray(p.sections) && p.sections.length) score++;
+      if (p.finalPrompt) score++;
+      if (p.cta) score++;
+      return Math.min(4, score);
     }
-    // Before any structured field arrives, infer from raw streamed length.
     const len = (this.streamingText || '').length;
-    if (len === 0) return 0;
     if (len < 80) return 0;
     if (len < 240) return 1;
     if (len < 480) return 2;
@@ -270,133 +267,106 @@ export class GTMPromptModal extends BaseModal {
   }
 
   renderGenerationProgress() {
+    const kind = this.profile.kindLabel.toLowerCase();
     const steps = [
-      'Analyzing GTM methodologies...',
-      'Applying cinematic storytelling...',
-      'Integrating visual & audio elements...',
-      'Optimizing for conversion...',
-      'Finalizing cinematic prompt...'
+      'Reading your audience…',
+      'Choosing the GTM angle…',
+      `Writing the ${kind}…`,
+      'Tuning for conversion…',
+      'Finalizing…',
     ];
     const active = this.computeGenerationStep();
     const stepEls = steps.map((label, i) => {
       const state = i < active ? 'done' : i === active ? 'active' : 'pending';
       return `<div class="progress-step ${state}"><span class="progress-dot"></span>${label}</div>`;
     }).join('');
-
     const pct = ((active + 1) / steps.length) * 100;
     return `
-      <div class="generation-progress">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${pct}%"></div>
-        </div>
+      <div class="generation-progress" role="status" aria-live="polite">
+        <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
         <div class="progress-steps">${stepEls}</div>
       </div>
     `;
   }
 
   renderGeneratedPrompt() {
-    // Local fallback returns plain text (no structured object).
-    if (!this.generatedStructured) {
-      const thumbnailBtn = this.onGenerateThumbnail
-        ? `<button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate-thumbnail">🎨 Generate Thumbnail</button>`
-        : '';
-      return `
-        <div class="generated-prompt-section">
-          <label for="gtm-generated-prompt">Generated Cinematic Prompt</label>
-          <div class="generated-prompt-container">
-            <textarea id="gtm-generated-prompt" class="generated-prompt" aria-label="Generated cinematic prompt">${this.escapeHtml(this.generatedPrompt)}</textarea>
-            <div class="generated-prompt-actions">
-              ${thumbnailBtn}
-              <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 Copy</button>
-              <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">✅ Apply</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
     const p = this.generatedStructured;
-    const sections = [
-      ['🎯 Hook', p.hook],
-      ['📖 Story Beat 1', p.storybeat_1],
-      ['📖 Story Beat 2', p.storybeat_2],
-      ['📖 Story Beat 3', p.storybeat_3],
-      ['🎬 Visual Direction', p.visualDirection],
-      ['🔊 Audio Direction', p.audioDirection],
-      ['🚀 CTA', p.cta],
-    ].filter(([, v]) => v);
+    const profile = this.profile;
 
-    const sectionsHtml = sections.map(([label, value]) => `
+    const sectionsHtml = (p?.sections || []).map((s) => `
       <div class="gtm-section">
-        <div class="gtm-section-label">${label}</div>
-        <div class="gtm-section-body">${this.escapeHtml(value)}</div>
+        <div class="gtm-section-label">${this.escapeHtml(s.label)}</div>
+        <div class="gtm-section-body">${this.escapeHtml(s.content)}</div>
       </div>
     `).join('');
 
-    const duration = p.estimatedDurationSec
-      ? `<span class="gtm-meta-pill">⏱ ~${p.estimatedDurationSec}s</span>` : '';
+    const pills = [
+      p?.estimatedDurationSec && profile.hasDuration ? `<span class="gtm-meta-pill">⏱ ~${p.estimatedDurationSec}s</span>` : '',
+      this.isLocalResult
+        ? '<span class="gtm-meta-pill">📦 Built-in template</span>'
+        : `<span class="gtm-meta-pill">🧠 ${this.escapeHtml((GTM_MODEL_OPTIONS.find((m) => m.id === this.selectedModel) || {}).label || this.selectedModel || '')}</span>`,
+      this.usage ? `<span class="gtm-meta-pill">🪙 ${this.usage.inputTokens} in / ${this.usage.outputTokens} out</span>` : '',
+      this.skillExamples?.length ? `<span class="gtm-meta-pill gtm-grounding-pill">📚 ${this.skillExamples.length} GTM examples</span>` : '',
+    ].join('');
 
-    const usageHtml = this.usage
-      ? `<span class="gtm-meta-pill">🪙 ${this.usage.inputTokens} in / ${this.usage.outputTokens} out tokens</span>`
-      : '';
-
-    const modelLabel = (GTM_MODEL_OPTIONS.find((m) => m.id === this.selectedModel) || {}).label || this.selectedModel || '';
-    const modelHtml = modelLabel
-      ? `<span class="gtm-meta-pill">🧠 ${this.escapeHtml(modelLabel)}</span>`
-      : '';
-
-    // Variant selector
     const variantSelector = this.variants.length > 1 ? `
       <div class="gtm-variants">
-        <div class="gtm-section-label">Pick a variant</div>
+        <div class="gtm-section-label">Variants</div>
         <div class="gtm-variant-chips">
           ${this.variants.map((v, i) => `
-            <button type="button" class="gtm-variant-chip ${i === this.selectedVariantIndex ? 'active' : ''}" data-action="select-variant" data-index="${i}">#${i + 1}</button>
+            <button type="button" class="gtm-variant-chip ${i === this.selectedVariantIndex ? 'active' : ''}" data-action="select-variant" data-index="${i}" aria-pressed="${i === this.selectedVariantIndex}">#${i + 1}</button>
           `).join('')}
         </div>
       </div>
     ` : '';
 
     const thumbnailBtn = this.onGenerateThumbnail
-      ? `<button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate-thumbnail">🎨 Generate Thumbnail</button>`
+      ? '<button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate-thumbnail" title="Open Thumbnail Studio with this prompt">🎨 Make Thumbnail</button>'
       : '';
 
     const refining = this.isRefining;
-    const refineBox = `
+    const refineBox = this.responseId ? `
       <div class="gtm-refine">
-        <div class="gtm-section-label">Refine (multi-turn)</div>
+        <div class="gtm-section-label">Refine</div>
         <div class="gtm-refine-row">
-          <input type="text" id="gtm-refine-input" class="gtm-refine-input" placeholder="e.g. make the hook bolder and shorter" value="${this.escapeHtml(this.refineInstruction)}" ${refining ? 'disabled' : ''}>
+          <input type="text" id="gtm-refine-input" class="gtm-refine-input" placeholder="e.g. shorter, more urgent, mention the free trial" value="${this.escapeHtml(this.refineInstruction)}" ${refining ? 'disabled' : ''}>
           <button type="button" class="gtm-action refine-btn" data-action="refine" ${refining ? 'disabled' : ''}>${refining ? 'Refining…' : '✏️ Refine'}</button>
         </div>
       </div>
-    `;
+    ` : '';
 
-    const groundingHtml = this.skillExamples && this.skillExamples.length
-      ? `<span class="gtm-meta-pill gtm-grounding-pill">📚 ${this.skillExamples.length} real GTM examples grounded</span>`
+    const hasBrief = this._hasBrief();
+    const studio = this.escapeHtml(profile.studioName);
+    const ctaHtml = p?.cta && !(p.sections || []).some((s) => /call to action|cta/i.test(s.label))
+      ? `<div class="gtm-section"><div class="gtm-section-label">Call to action</div><div class="gtm-section-body">${this.escapeHtml(p.cta)}</div></div>`
       : '';
 
+    // The GTM brief (Hook / Story beats / Visual / Audio / CTA, worded for the
+    // studio's medium) is the main result. The clean prompt below it is the
+    // same idea rewritten as a single prompt the studio's model reads best.
     return `
-      <div class="generated-prompt-section">
-        <div class="gtm-meta-row">${duration}${modelHtml}${usageHtml}${groundingHtml}</div>
+      <section class="generated-prompt-section gtm-step" aria-labelledby="gtm-step-result">
+        <h3 class="gtm-step-title" id="gtm-step-result"><span class="gtm-step-num">3</span>${hasBrief ? 'Your GTM brief' : `Your ${this.escapeHtml(profile.kindLabel.toLowerCase())}`}</h3>
+        <div class="gtm-meta-row">${pills}</div>
+        ${p?.angle ? `<p class="gtm-angle"><strong>Angle:</strong> ${this.escapeHtml(p.angle)}</p>` : ''}
         ${variantSelector}
-        <div class="gtm-structured">${sectionsHtml}</div>
-        <div class="gtm-refine-wrap">${refineBox}</div>
+        ${hasBrief ? `<div class="gtm-structured gtm-brief">${sectionsHtml}${ctaHtml}</div>` : ''}
+        <div class="gtm-final-card">
+          <label for="gtm-generated-prompt">${hasBrief ? `Clean prompt for ${studio}` : `Ready to use in ${studio}`} <span class="gtm-final-hint">— ${hasBrief ? `the brief as one ${this.escapeHtml(profile.kindLabel.toLowerCase())}; edit freely` : 'edit freely before applying'}</span></label>
+          <textarea id="gtm-generated-prompt" class="generated-prompt" aria-label="Clean prompt">${this.escapeHtml(this.generatedPrompt)}</textarea>
+        </div>
+        ${refineBox ? `<div class="gtm-refine-wrap">${refineBox}</div>` : ''}
         <div class="generated-prompt-actions">
           ${thumbnailBtn}
-          <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 Copy</button>
-          <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">✅ Apply</button>
+          <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 ${hasBrief ? 'Copy brief' : 'Copy'}</button>
+          ${hasBrief ? `<button type="button" class="gtm-action apply-brief-btn" data-action="apply-brief" title="Send the whole Hook / Story beats / Visual / Audio / CTA brief to ${studio}">📄 Apply full brief</button>` : ''}
+          <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt" title="Send the clean prompt to ${studio}">✅ ${hasBrief ? 'Apply as clean prompt' : `Apply to ${studio}`}</button>
         </div>
-      </div>
+      </section>
     `;
   }
 
-  /**
-   * Render the retrieved real GTM skill examples as clickable cards.
-   * Returns "" when no role/industry/methodology is selected (keeps the
-   * UI clean — the panel is meaningless against universal fallbacks) or
-   * when the example list is empty.
-   */
+  /** Real GTM skill examples for the current selection (empty → hidden). */
   renderSkillExamples() {
     if (!this.selectedRole && !this.selectedIndustry && !this.selectedMethodology) return '';
     const examples = this.skillExamples || [];
@@ -418,36 +388,20 @@ export class GTMPromptModal extends BaseModal {
     }).join('');
 
     return `
-      <div class="gtm-examples">
-        <div class="gtm-section-label">📚 Real GTM skill examples for your selection</div>
+      <details class="gtm-examples">
+        <summary class="gtm-section-label">📚 ${examples.length} real GTM examples for this audience</summary>
         <div class="gtm-example-grid">${cards}</div>
-      </div>
+      </details>
     `;
   }
 
-  /**
-   * Seed the base prompt with a clicked example's full prompt text.
-   * If the box already has text, append so the user doesn't lose work.
-   */
+  /** Seed the idea box with a clicked example (appends to existing text). */
   handleUseExample(id) {
     const ex = (this.skillExamples || []).find((e) => (e.id || '') === id);
     if (!ex || !ex.prompt) return;
     const seed = ex.prompt.trim();
-    if (this.basePrompt.trim()) {
-      this.basePrompt = `${this.basePrompt.trim()}\n\n${seed}`;
-    } else {
-      this.basePrompt = seed;
-    }
+    this.basePrompt = this.basePrompt.trim() ? `${this.basePrompt.trim()}\n\n${seed}` : seed;
     this.refreshBody();
-  }
-
-  escapeHtml(str) {
-    if (typeof str !== 'string') return '';
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
   }
 
   renderFooter() {
@@ -455,138 +409,145 @@ export class GTMPromptModal extends BaseModal {
   }
 
   /**
-   * Re-render the modal body in place and re-bind body listeners.
-   * BaseModal.render() builds a detached element and does NOT touch the
-   * live DOM, so calling this.render() during generation silently discards output.
+   * Re-render the body in place and re-bind body listeners. BaseModal.render()
+   * builds a detached element, so it cannot be used for live updates.
    */
   refreshBody() {
     if (!this.overlay) return;
     const body = this.overlay.querySelector('.modal-body');
     if (body) body.innerHTML = this.renderBody();
     this.bindBodyListeners();
+    this._syncFooterState();
   }
+
+  /** Disable footer actions while a run is in flight. */
+  _syncFooterState() {
+    const busy = this.isGenerating || this.isRefining;
+    ['generate', 'variants'].forEach((action) => {
+      const btn = this.overlay?.querySelector(`.modal-footer [data-action="${action}"], [data-action="${action}"]`);
+      if (btn) btn.disabled = busy;
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Events
+  // ---------------------------------------------------------------------------
 
   setupEventListeners() {
     super.setupEventListeners();
     this.bindBodyListeners();
 
-    // Footer buttons (live in the overlay, untouched by refreshBody)
-    this.overlay.querySelector('[data-action="cancel"]')?.addEventListener('click', () => {
-      this.close();
-    });
-    this.overlay.querySelector('[data-action="generate"]')?.addEventListener('click', () => {
-      this.handleGenerate();
-    });
-    this.overlay.querySelector('[data-action="variants"]')?.addEventListener('click', () => {
-      this.handleGenerateVariants();
-    });
+    this.overlay.querySelector('[data-action="cancel"]')?.addEventListener('click', () => this.close());
+    this.overlay.querySelector('[data-action="generate"]')?.addEventListener('click', () => this.handleGenerate());
+    this.overlay.querySelector('[data-action="variants"]')?.addEventListener('click', () => this.handleGenerateVariants());
+    this.overlay.querySelector('[data-action="open-key-modal"]')?.addEventListener('click', () => this._openKeyModal());
+  }
 
-    // Open the global API-key modal when the user has no OpenAI key.
-    this.overlay.querySelector('[data-action="open-key-modal"]')?.addEventListener('click', () => {
-      AuthModal(() => {
-        // Re-render to clear the CTA if the user added a key.
-        this.missingOpenAIKey = false;
-        this.refreshBody();
-      });
+  _openKeyModal() {
+    AuthModal(() => {
+      this.missingOpenAIKey = false;
+      this.refreshBody();
     });
   }
 
-  /**
-   * Bind only the controls inside .modal-body. Called on mount and after
-   * every refreshBody(). Scoped to .modal-body to avoid re-binding footer buttons.
-   */
+  /** Bind controls inside .modal-body (called on mount and every refresh). */
   bindBodyListeners() {
-    const scope = this.overlay.querySelector('.modal-body');
+    const scope = this.overlay?.querySelector('.modal-body');
     if (!scope) return;
 
-    const basePromptEl = scope.querySelector('#gtm-base-prompt');
-    if (basePromptEl) {
-      basePromptEl.addEventListener('input', (e) => { this.basePrompt = e.target.value; });
-    }
+    scope.querySelector('#gtm-base-prompt')?.addEventListener('input', (e) => { this.basePrompt = e.target.value; });
 
-    const roleSelect = scope.querySelector('#gtm-role-select');
-    const industrySelect = scope.querySelector('#gtm-industry-select');
-    const methodologySelect = scope.querySelector('#gtm-methodology-select');
-    const tonalitySelect = scope.querySelector('#gtm-tonality-select');
-    if (roleSelect) roleSelect.addEventListener('change', (e) => { this.selectedRole = e.target.value; this.refreshSkillExamples(); });
-    if (industrySelect) industrySelect.addEventListener('change', (e) => { this.selectedIndustry = e.target.value; this.refreshSkillExamples(); });
-    if (methodologySelect) methodologySelect.addEventListener('change', (e) => { this.selectedMethodology = e.target.value; this.refreshSkillExamples(); });
-    if (tonalitySelect) tonalitySelect.addEventListener('change', (e) => { this.selectedTonality = e.target.value; this.refreshSkillExamples(); });
+    const bindSelect = (id, key) => {
+      scope.querySelector(id)?.addEventListener('change', (e) => {
+        this[key] = e.target.value;
+        this.refreshSkillExamples();
+      });
+    };
+    bindSelect('#gtm-role-select', 'selectedRole');
+    bindSelect('#gtm-industry-select', 'selectedIndustry');
+    bindSelect('#gtm-methodology-select', 'selectedMethodology');
+    bindSelect('#gtm-tonality-select', 'selectedTonality');
 
-    const modelSelect = scope.querySelector('#gtm-model-select');
-    if (modelSelect) modelSelect.addEventListener('change', (e) => { this.selectedModel = e.target.value; this._persistModel(); });
+    scope.querySelector('#gtm-model-select')?.addEventListener('change', (e) => {
+      this.selectedModel = e.target.value;
+      this._persistModel();
+    });
 
-    const toggleBtn = scope.querySelector('[data-action="toggle-advanced"]');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        this.showAdvanced = !this.showAdvanced;
+    scope.querySelectorAll('[data-action="select-angle"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const value = btn.getAttribute('data-value') || '';
+        this.selectedAngle = this.selectedAngle === value ? '' : value;
         this.refreshBody();
-      });
-    }
-
-    const infoBtn = scope.querySelector('[data-action="open-gtm-info"]');
-    if (infoBtn) {
-      infoBtn.addEventListener('click', () => {
-        new GTMInfoModal({ appTheme: this.appTheme }).open();
-      });
-    }
-
-    const focusCheckboxes = scope.querySelectorAll('input[name="focus"]');
-    focusCheckboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', (e) => {
-        const value = e.target.value;
-        if (e.target.checked) {
-          if (!this.focusAreas.includes(value)) this.focusAreas.push(value);
-        } else {
-          this.focusAreas = this.focusAreas.filter(area => area !== value);
-        }
       });
     });
 
-    const cinematicCheckboxes = scope.querySelectorAll('input[name="cinematic"]');
-    cinematicCheckboxes.forEach(checkbox => {
+    scope.querySelectorAll('[data-action="toggle-goal"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const value = btn.getAttribute('data-value') || '';
+        this.focusAreas = this.focusAreas.includes(value)
+          ? this.focusAreas.filter((f) => f !== value)
+          : [...this.focusAreas, value];
+        this.refreshBody();
+      });
+    });
+
+    scope.querySelector('[data-action="toggle-advanced"]')?.addEventListener('click', () => {
+      this.showAdvanced = !this.showAdvanced;
+      this.refreshBody();
+    });
+
+    scope.querySelector('[data-action="open-gtm-info"]')?.addEventListener('click', () => {
+      new GTMInfoModal({ appTheme: this.appTheme }).open();
+    });
+
+    scope.querySelector('[data-action="open-key-modal"]')?.addEventListener('click', () => this._openKeyModal());
+
+    scope.querySelectorAll('input[name="cinematic"]').forEach((checkbox) => {
       checkbox.addEventListener('change', (e) => { this.cinematicOptions[e.target.value] = e.target.checked; });
     });
 
-    const copyBtn = scope.querySelector('[data-action="copy-prompt"]');
-    if (copyBtn) copyBtn.addEventListener('click', () => this.handleCopyPrompt());
+    const generatedEl = scope.querySelector('#gtm-generated-prompt');
+    if (generatedEl) generatedEl.addEventListener('input', (e) => { this.generatedPrompt = e.target.value; });
 
-    const copyOnlyBtn = scope.querySelector('[data-action="copy-only"]');
-    if (copyOnlyBtn) copyOnlyBtn.addEventListener('click', () => this.handleCopyOnly());
+    scope.querySelector('[data-action="copy-prompt"]')?.addEventListener('click', () => this.handleCopyPrompt());
+    scope.querySelector('[data-action="apply-brief"]')?.addEventListener('click', () => this.handleApplyBrief());
+    scope.querySelector('[data-action="copy-only"]')?.addEventListener('click', () => this.handleCopyOnly());
+    scope.querySelector('[data-action="generate-thumbnail"]')?.addEventListener('click', () => this.handleGenerateThumbnail());
+    scope.querySelector('[data-action="stop"]')?.addEventListener('click', () => this.handleStop());
 
-    const thumbBtn = scope.querySelector('[data-action="generate-thumbnail"]');
-    if (thumbBtn) thumbBtn.addEventListener('click', () => this.handleGenerateThumbnail());
-
-    const stopBtn = scope.querySelector('[data-action="stop"]');
-    if (stopBtn) stopBtn.addEventListener('click', () => this.handleStop());
-
-    const exampleBtns = scope.querySelectorAll('[data-action="use-example"]');
-    exampleBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id') || '';
-        this.handleUseExample(id);
-      });
+    scope.querySelectorAll('[data-action="use-example"]').forEach((btn) => {
+      btn.addEventListener('click', () => this.handleUseExample(btn.getAttribute('data-id') || ''));
     });
 
-    const variantBtns = scope.querySelectorAll('[data-action="select-variant"]');
-    variantBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = parseInt(btn.getAttribute('data-index') || '0', 10);
-        this.selectVariant(idx);
-      });
+    scope.querySelectorAll('[data-action="select-variant"]').forEach((btn) => {
+      btn.addEventListener('click', () => this.selectVariant(parseInt(btn.getAttribute('data-index') || '0', 10)));
     });
 
     const refineInput = scope.querySelector('#gtm-refine-input');
     if (refineInput) {
       refineInput.addEventListener('input', (e) => { this.refineInstruction = e.target.value; });
+      refineInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); this.handleRefine(); }
+      });
     }
-    const refineBtn = scope.querySelector('[data-action="refine"]');
-    if (refineBtn) refineBtn.addEventListener('click', () => this.handleRefine());
+    scope.querySelector('[data-action="refine"]')?.addEventListener('click', () => this.handleRefine());
   }
 
-  /**
-   * Build the params object shared across generation paths.
-   */
+  // ---------------------------------------------------------------------------
+  // Params / persistence
+  // ---------------------------------------------------------------------------
+
+  _matchOption(options, value) {
+    if (!value) return '';
+    const v = String(value).toLowerCase();
+    const hit = options.find((o) => o.value.toLowerCase() === v || String(o.label).toLowerCase() === v);
+    return hit ? hit.value : '';
+  }
+
+  _labelFor(options, value) {
+    return (options.find((o) => o.value === value) || {}).label || '';
+  }
+
   _gtmParams() {
     return {
       basePrompt: this.basePrompt,
@@ -594,16 +555,18 @@ export class GTMPromptModal extends BaseModal {
       industry: this.selectedIndustry,
       methodology: this.selectedMethodology,
       tonality: this.selectedTonality,
+      angle: this.selectedAngle,
       model: resolveGtmModel(this.selectedModel),
       focus: this.focusAreas,
-      cinematicOptions: this.cinematicOptions
+      cinematicOptions: this.cinematicOptions,
+      appTheme: this.appTheme,
+      outputType: this.templateContext?.outputType,
     };
   }
 
   _readStoredModel() {
     try {
-      const stored = localStorage.getItem('gtm:model');
-      return resolveGtmModel(stored || undefined);
+      return resolveGtmModel(localStorage.getItem('gtm:model') || undefined);
     } catch {
       return resolveGtmModel();
     }
@@ -617,22 +580,33 @@ export class GTMPromptModal extends BaseModal {
     }
   }
 
-  /**
-   * Store a generation result (structured prompt + metadata) and sync the
-   * plain-text field used by copy/thumbnail bridges.
-   */
+  /** Store a result and sync the ready-to-use text field. */
   _setResult({ prompt, responseId, usage }) {
-    this.generatedStructured = prompt || null;
+    const normalized = normalizeGtmResult(prompt);
+    this.generatedStructured = normalized;
     this.responseId = responseId || '';
     this.usage = usage || null;
-    this.generatedPrompt = gtmStructuredToText(this.generatedStructured) || (prompt ? JSON.stringify(prompt) : '');
+    this.isLocalResult = false;
+    this.generatedPrompt = normalized?.finalPrompt
+      || gtmStructuredToText(prompt)
+      || (typeof prompt === 'string' ? prompt : '');
   }
 
-  /**
-   * Retrieve the most relevant real GTM skill prompts for the current
-   * selections and store them for the examples panel. Called on every
-   * role/industry/methodology change.
-   */
+  /** Offline result shaped for this studio (no key / network). */
+  _setLocalResult() {
+    const params = this._gtmParams();
+    const result = buildLocalStudioPrompt(this.profile, params, {
+      role: this._labelFor(gtmContentLibrary.getRoleOptions(), params.role),
+      industry: this._labelFor(gtmContentLibrary.getIndustryOptions(), params.industry),
+      tonality: this._labelFor(gtmContentLibrary.getTonalityOptions(), params.tonality),
+    });
+    this.generatedStructured = result;
+    this.generatedPrompt = result.finalPrompt;
+    this.responseId = '';
+    this.usage = null;
+    this.isLocalResult = true;
+  }
+
   refreshSkillExamples() {
     try {
       this.skillExamples = gtmContentLibrary.getGtmSkillsExamples(this._gtmParams());
@@ -642,43 +616,46 @@ export class GTMPromptModal extends BaseModal {
     this.refreshBody();
   }
 
+  _requireIdea() {
+    if (this.basePrompt.trim()) return true;
+    this.errorMessage = `Add your ${this.profile.kindLabel.toLowerCase()} idea first.`;
+    this.refreshBody();
+    return false;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Actions
+  // ---------------------------------------------------------------------------
+
   async handleGenerate() {
+    if (this.isGenerating) return;
     this.errorMessage = '';
     this.missingOpenAIKey = false;
-
-    if (!this.basePrompt.trim()) {
-      this.errorMessage = 'Please describe your video idea first.';
-      this.refreshBody();
-      return;
-    }
+    if (!this._requireIdea()) return;
 
     this.isGenerating = true;
     this.generationStep = 0;
     this.streamingText = '';
     this.generatedStructured = null;
+    this.generatedPrompt = '';
     this.usage = null;
     this.variants = [];
     this.selectedVariantIndex = 0;
     this.abortController = new AbortController();
     this.refreshBody();
 
-    // Primary path: streamed Responses API call using the user's own key.
+    // Primary: streamed Responses API call with the user's own key.
     try {
       const result = await gtmResponses.streamGTMPrompt(this._gtmParams(), {
         signal: this.abortController.signal,
-        onDelta: (delta, raw) => {
+        onDelta: (_delta, raw) => {
           this.streamingText = raw;
-          // Advance the 5-step bar from REAL streamed data (no mock timer).
           this.generationStep = this.computeGenerationStep();
           this.refreshBody();
         },
-        onDone: (res) => {
-          // When streaming completes, mark all steps done.
-          this.generationStep = 4;
-          this._setResult(res);
-        },
+        onDone: () => { this.generationStep = 4; },
         onError: (err) => {
-          if (err && err.name === 'AbortError') return; // user cancelled
+          if (err && err.name === 'AbortError') return;
           console.warn('[GTM] stream error:', err?.message);
         },
       });
@@ -689,38 +666,33 @@ export class GTMPromptModal extends BaseModal {
       return;
     } catch (error) {
       if (error && error.name === 'AbortError') {
-        // Cancelled by the user — leave the modal ready for a new run.
         this.isGenerating = false;
         this.streamingText = '';
         this.refreshBody();
         return;
       }
-      // Distinguish "no key configured" so we can show a precise CTA.
-      if (/not configured|API key/i.test(error.message || '')) {
+      if (/not configured|API key/i.test(error?.message || '')) {
         this.missingOpenAIKey = true;
+      } else {
+        // A real API error — tell the user rather than silently swapping in a template.
+        this.errorMessage = `AI generation failed (${error?.message || 'unknown error'}). Showing a built-in template instead.`;
       }
-      console.warn('[GTM] OpenAI Responses API (user key) unavailable, trying edge function:', error.message);
+      console.warn('[GTM] Responses API unavailable, using local template:', error?.message);
     }
 
-    // Tertiary path: local template library (always works offline).
+    // Fallback: studio-shaped offline template (always works).
     try {
-      const text = gtmContentLibrary.generateOptimizedPrompt(this._gtmParams());
-      if (!text) throw new Error('Empty fallback');
-      this.generatedPrompt = text;
-      this.generatedStructured = null;
-      this.isGenerating = false;
-      this.refreshBody();
+      this._setLocalResult();
     } catch (fallbackError) {
       console.error('[GTM] Fallback generation failed:', fallbackError);
-      this.isGenerating = false;
-      this.errorMessage = 'Failed to generate prompt. Please try again.';
-      this.refreshBody();
+      this.errorMessage = 'Failed to generate a prompt. Please try again.';
     }
+    this.isGenerating = false;
+    this.streamingText = '';
+    this.refreshBody();
   }
 
-  /**
-   * Cancel an in-flight generation (used by the Stop button during streaming).
-   */
+  /** Cancel an in-flight generation. */
   handleStop() {
     if (this.abortController) {
       this.abortController.abort();
@@ -731,18 +703,12 @@ export class GTMPromptModal extends BaseModal {
     this.refreshBody();
   }
 
-  /**
-   * Parallel variant generation. Produces N structured prompts; the user picks
-   * the best via the variant selector.
-   */
+  /** Three parallel variants; the user picks the best. */
   async handleGenerateVariants() {
-    if (!this.basePrompt.trim()) {
-      this.errorMessage = 'Please describe your video idea first.';
-      this.refreshBody();
-      return;
-    }
-
+    if (this.isGenerating) return;
     this.errorMessage = '';
+    if (!this._requireIdea()) return;
+
     this.isGenerating = true;
     this.variants = [];
     this.selectedVariantIndex = 0;
@@ -754,24 +720,24 @@ export class GTMPromptModal extends BaseModal {
         this.selectedVariantIndex = 0;
         this._setResult(list[0]);
       }
-      this.refreshBody();
     };
 
     try {
-      const list = await gtmResponses.generateGTMVariants(this._gtmParams(), { count: 3 });
-      if (list.length > 0) { collect(list); }
-      else { throw new Error('No variants returned'); }
+      collect(await gtmResponses.generateGTMVariants(this._gtmParams(), { count: 3 }));
     } catch (err) {
-      console.warn('[GTM] Variants via user key failed, trying edge function:', err.message);
+      if (/not configured|API key/i.test(err?.message || '')) this.missingOpenAIKey = true;
+      console.warn('[GTM] Variants via user key failed, trying edge function:', err?.message);
       try {
-        if (!isSupabaseConfigured()) throw new Error('Supabase not configured');
+        if (!isSupabaseConfigured()) throw new Error('add your OpenAI key to generate variants');
         const { data, error } = await supabase.functions.invoke('ai-cinematic-prompt-generator', {
-          body: { ...this._gtmParams(), action: 'variants', count: 3, studioType: this.appTheme }
+          body: { ...this._gtmParams(), action: 'variants', count: 3, studioType: this.appTheme },
         });
         if (error || !data?.variants) throw new Error(error?.message || 'Variant generation failed');
-        const mapped = data.variants.map(v => ({ prompt: v.prompt, responseId: v.response_id, usage: v.usage }));
-        if (mapped.length > 0) collect(mapped);
-        else throw new Error('No variants returned');
+        const mapped = data.variants
+          .map((v) => ({ prompt: v.prompt, responseId: v.response_id, usage: v.usage }))
+          .filter((v) => normalizeGtmResult(v.prompt));
+        if (mapped.length === 0) throw new Error('No variants returned');
+        collect(mapped);
       } catch (fnErr) {
         this.errorMessage = `Variant generation failed: ${fnErr.message}`;
       }
@@ -781,9 +747,7 @@ export class GTMPromptModal extends BaseModal {
     }
   }
 
-  /**
-   * Multi-turn refine using previous_response_id (Responses API store: true).
-   */
+  /** Multi-turn refine via previous_response_id. */
   async handleRefine() {
     const instruction = (this.refineInstruction || '').trim();
     if (!instruction) {
@@ -804,12 +768,12 @@ export class GTMPromptModal extends BaseModal {
     try {
       let result;
       try {
-        result = await gtmResponses.refineGTMPrompt(this.responseId, instruction, { model: this.selectedModel });
+        result = await gtmResponses.refineGTMPrompt(this.responseId, instruction, { model: this.selectedModel, appTheme: this.appTheme, outputType: this.templateContext?.outputType });
       } catch (err) {
-        console.warn('[GTM] Refine via user key failed, trying edge function:', err.message);
-        if (!isSupabaseConfigured()) throw new Error('Supabase not configured');
+        console.warn('[GTM] Refine via user key failed, trying edge function:', err?.message);
+        if (!isSupabaseConfigured()) throw err;
         const { data, error } = await supabase.functions.invoke('ai-cinematic-prompt-generator', {
-          body: { action: 'refine', previousResponseId: this.responseId, refineInstruction: instruction, model: resolveGtmModel(this.selectedModel), studioType: this.appTheme }
+          body: { action: 'refine', previousResponseId: this.responseId, refineInstruction: instruction, model: resolveGtmModel(this.selectedModel), studioType: this.appTheme },
         });
         if (error || !data?.prompt) throw new Error(error?.message || 'Refine failed');
         result = { prompt: data.prompt, responseId: data.response_id, usage: data.usage };
@@ -832,45 +796,68 @@ export class GTMPromptModal extends BaseModal {
     this.refreshBody();
   }
 
-  /**
-   * Read the best available prompt text, preferring the user-editable
-   * textarea so any manual tweaks are preserved.
-   */
+  /** Best prompt text, preferring the user-edited textarea. */
   _currentPromptText() {
     const ta = this.overlay?.querySelector('#gtm-generated-prompt');
     const live = ta && ta.value ? ta.value.trim() : '';
     if (live) return live;
-    return gtmStructuredToText(this.generatedStructured) || this.generatedPrompt || '';
+    return this.generatedPrompt || gtmStructuredToText(this.generatedStructured) || '';
+  }
+
+  /** True when the result carries a structured GTM brief (AI results do; the offline template does not). */
+  _hasBrief() {
+    return Array.isArray(this.generatedStructured?.sections) && this.generatedStructured.sections.length > 0;
+  }
+
+  /** The full GTM brief as plain text, one labelled line per section. */
+  _briefText() {
+    const p = this.generatedStructured;
+    if (!this._hasBrief()) return '';
+    const lines = p.sections.map((s) => `${String(s.label).toUpperCase()}: ${s.content}`);
+    if (p.cta && !p.sections.some((s) => /call to action|cta/i.test(s.label))) lines.push(`CALL TO ACTION: ${p.cta}`);
+    if (this.profile.hasDuration && p.estimatedDurationSec) lines.push(`ESTIMATED DURATION: ${p.estimatedDurationSec}s`);
+    return lines.join('\n');
+  }
+
+  async _writeClipboard(text) {
+    try {
+      await navigator.clipboard?.writeText(text);
+      return true;
+    } catch (err) {
+      console.warn('[GTM] clipboard unavailable:', err?.message);
+      return false;
+    }
+  }
+
+  /** Copy without handing off to the studio (the brief when there is one). */
+  async handleCopyOnly() {
+    const text = this._briefText() || this._currentPromptText();
+    if (!text) return;
+    if (await this._writeClipboard(text)) this._flashCopied('copy-only');
   }
 
   /**
-   * Copy only (no handoff to the studio). Keeps the modal open for further
-   * editing/pasting.
+   * Apply the prompt to the studio and close. Clipboard failures (e.g. no
+   * permission / insecure context) must not block applying the prompt.
    */
-  handleCopyOnly() {
+  async handleCopyPrompt() {
     const text = this._currentPromptText();
     if (!text) return;
-    navigator.clipboard.writeText(text).then(() => {
-      this._flashCopied('copy-only');
-    }).catch(err => {
-      console.error('Failed to copy prompt:', err);
-    });
+    await this._writeClipboard(text);
+    if (this.onPromptGenerated) this.onPromptGenerated(text);
+    this.close();
   }
 
-  handleCopyPrompt() {
-    const text = this._currentPromptText();
-    if (!text) return;
-    navigator.clipboard.writeText(text).then(() => {
-      if (this.onPromptGenerated) this.onPromptGenerated(text);
-      this.close();
-    }).catch(err => {
-      console.error('Failed to copy prompt:', err);
-    });
+  /** Apply the whole GTM brief to the studio and close. */
+  async handleApplyBrief() {
+    const text = this._briefText();
+    if (!text) return this.handleCopyPrompt();
+    await this._writeClipboard(text);
+    if (this.onPromptGenerated) this.onPromptGenerated(text);
+    this.close();
+    return undefined;
   }
 
-  /**
-   * Briefly change a copy button's label to "Copied!" for feedback.
-   */
   _flashCopied(action) {
     const btn = this.overlay?.querySelector(`[data-action="${action}"]`);
     if (!btn) return;
@@ -884,27 +871,25 @@ export class GTMPromptModal extends BaseModal {
   }
 
   /**
-   * Bridge to the ai-thumbnail-generator edge function.
-   * Calls the optional onGenerateThumbnail callback with the current prompt.
-   * Errors are surfaced via the inline error banner; the modal stays open.
+   * Hand the current prompt to the thumbnail flow (by default this opens the
+   * studio's Thumbnail Studio pre-filled with it). Errors show inline.
    */
   async handleGenerateThumbnail() {
-    const text = gtmStructuredToText(this.generatedStructured) || this.generatedPrompt;
+    const text = this._currentPromptText();
     if (!text || !this.onGenerateThumbnail) return;
 
-    const btn = this.content?.querySelector('[data-action="generate-thumbnail"]');
-    if (btn) { btn.disabled = true; btn.textContent = '🎨 Generating…'; }
+    const btn = this.overlay?.querySelector('[data-action="generate-thumbnail"]');
+    if (btn) { btn.disabled = true; btn.textContent = '🎨 Opening…'; }
     this.errorMessage = '';
 
     try {
-      await this.onGenerateThumbnail(text);
+      await this.onGenerateThumbnail(text, { profile: this.profile, modal: this });
     } catch (err) {
       console.error('[GTM] Thumbnail generation failed:', err);
       this.errorMessage = err && err.message
         ? `Thumbnail generation failed: ${err.message}`
         : 'Thumbnail generation failed.';
     } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '🎨 Generate Thumbnail'; }
       this.refreshBody();
     }
   }

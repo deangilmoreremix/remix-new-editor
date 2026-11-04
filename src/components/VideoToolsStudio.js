@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -6,7 +7,8 @@ import { videoToolsModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -23,7 +25,7 @@ import { showToast } from '../lib/loading.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
+  container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-4 md:p-6 relative';
   mountStudioChrome(container, { currentRoute: 'videotools' });
 
   let selectedModel = videoToolsModels[0];
@@ -33,25 +35,21 @@ export function VideoToolsStudio() {
   let lastOutputUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('videotools-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'videotools-studio' });
   let dynamicControls = null;
   let dynamicControlsContainer = null;
 
   // Header with hero banner
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full';
-  const videoToolsBanner = createHeroSection('videotools', 'h-32 md:h-44 mb-4');
-  if (videoToolsBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Video Tools Studio</h1><p class="text-white/60 text-sm">Enhance, edit, and transform your videos with AI</p>';
-    videoToolsBanner.appendChild(bannerText);
-    header.appendChild(videoToolsBanner);
-  }
+  header.className = 'animate-fade-in-up text-center w-full';
+  header.appendChild(createStudioHeader('videotools', 'Video Tools', 'Upscale, extend, translate, clean up and enhance videos'));
   container.appendChild(header);
 
   // Model selector
   const modelWrapper = document.createElement('div');
-  modelWrapper.className = 'mb-6 flex flex-col items-center gap-2 animate-fade-in-up';
+  modelWrapper.className = 'mt-4 mb-4 flex flex-col items-center gap-2 animate-fade-in-up';
   modelWrapper.style.animationDelay = '0.1s';
 
 const triggerBtn = document.createElement('button');
@@ -135,7 +133,7 @@ const triggerBtn = document.createElement('button');
 
   // Form card
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-md bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full max-w-3xl bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 flex flex-col gap-4 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.2s';
 
   // Video upload
@@ -157,7 +155,12 @@ const triggerBtn = document.createElement('button');
     },
     onClear: () => { uploadedVideoUrl = null; uploadedVideoAssetId = null; },
   });
-  videoUploadGroup.appendChild(videoPicker.trigger);
+  // Upload + stock buttons sit side by side with a hint, not stacked.
+  const sourceRow = document.createElement('div');
+  sourceRow.className = 'flex items-center gap-2';
+  sourceRow.dataset.videoSourceRow = '';
+  videoUploadGroup.appendChild(sourceRow);
+  sourceRow.appendChild(videoPicker.trigger);
 
   const pexelsVideoBtn = document.createElement('button');
   pexelsVideoBtn.type = 'button';
@@ -182,7 +185,11 @@ const triggerBtn = document.createElement('button');
       }
     });
   };
-  videoUploadGroup.appendChild(pexelsVideoBtn);
+  sourceRow.appendChild(pexelsVideoBtn);
+  const sourceHint = document.createElement('span');
+  sourceHint.className = 'text-xs text-white/40';
+  sourceHint.textContent = 'Upload a video or pick a stock clip';
+  sourceRow.appendChild(sourceHint);
 
   formCard.appendChild(videoUploadGroup);
 
@@ -269,7 +276,7 @@ const triggerBtn = document.createElement('button');
               promptInput.value = prompt;
               promptInput.dispatchEvent(new Event('input', { bubbles: true }));
               promptInput.focus();
-            });
+            }, { basePrompt: promptInput.value });
           }).catch((err) => console.error('[VideoToolsStudio] GTM Boost failed:', err));
         } else if (action === 'recipe') {
           openRecipeModal({
@@ -390,12 +397,12 @@ genBtn.type = 'button';
 
   // Instructions
   const inlineInstructions = createInlineInstructions('videotools');
-  inlineInstructions.classList.add('max-w-md', 'mt-6');
+  inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
   // Result area
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-md mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
@@ -475,6 +482,7 @@ genBtn.type = 'button';
        const result = await muapi.processVideoTool(params);
        if (result?.url) {
          lastOutputUrl = result.url;
+         registerGeneration('videotools', 'video', result.url, { prompt: params.prompt || '', model: selectedModel?.id || '' });
          resultArea.classList.remove('hidden');
          resultArea.innerHTML = `
            <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
@@ -495,6 +503,7 @@ genBtn.type = 'button';
                  videoUrl: result.url,
                  appTheme: 'video-tools-studio',
                  onComplete: (captionedUrl) => {
+                   registerGeneration('videotools', 'video', captionedUrl, { prompt: 'Captioned video', model: selectedModel?.id || '', parameters: { captions: true } });
                    const vid = resultArea.querySelector('video');
                    if (vid) vid.src = captionedUrl;
                    const dl = resultArea.querySelector('a[download]');

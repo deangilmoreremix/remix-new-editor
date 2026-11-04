@@ -1,6 +1,4 @@
-import { handleViewPrompt, handleCreateThisStyle } from '../../lib/exampleGalleryBridge.js';
-import { MediaDetailView } from '../MediaDetailView.js';
-import { getRelatedAssets } from '../../data/exampleGalleryAssets.js';
+import { handleViewPrompt, handleCreateThisStyle, openAssetDetail } from '../../lib/exampleGalleryBridge.js';
 
 /** Fallback thumbnail shown when an example has no image of its own. */
 const PLACEHOLDER_SVG =
@@ -185,11 +183,9 @@ export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
       img.alt = asset.title || 'Example';
       img.loading = 'lazy';
 
-      const applyAspectRatio = () => {
-        if (img.naturalWidth && img.naturalHeight) {
-          media.style.aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
-        }
-      };
+      // Cards keep one fixed media ratio (see .eg-media) so a tall portrait
+      // example no longer stretches its whole row into empty space.
+      const applyAspectRatio = () => {};
       img.onload = applyAspectRatio;
       img.onerror = () => {
         img.onerror = null;
@@ -199,42 +195,6 @@ export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
       img.src = thumbnailSrc;
       if (img.complete && img.naturalWidth) applyAspectRatio();
       media.appendChild(img);
-
-      function openAssetDetail(asset) {
-        const url = asset.videoSrc || asset.thumbnail || '';
-        const type = asset.videoSrc ? 'video' : 'image';
-        const related = getRelatedAssets(asset, 8);
-        const detailView = new MediaDetailView({
-          mediaUrl: url,
-          mediaType: type,
-          title: asset.title || '',
-          prompt: asset.prompt || '',
-          model: asset.source || '',
-          source: asset.source || '',
-          author: asset.sourceAuthor || '',
-          category: asset.category || '',
-          date: asset.date || '',
-          tags: asset.tags || [],
-          relatedItems: related,
-          onRelatedClick: (index) => {
-            const relatedItem = related[index];
-            if (relatedItem) openAssetDetail(relatedItem);
-          },
-          actions: [
-            {
-              id: 'view-prompt',
-              label: 'View Prompt',
-              onClick: () => handleViewPrompt(asset),
-            },
-            {
-              id: 'create-style',
-              label: 'Create This Style',
-              onClick: () => handleCreateThisStyle(asset),
-            },
-          ],
-        });
-        detailView.show();
-      }
 
       card.addEventListener('click', () => {
         openAssetDetail(asset);

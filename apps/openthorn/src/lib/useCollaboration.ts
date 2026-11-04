@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import type { AgentCodeFile } from './agent'
+import { T } from './tables'
 
 export interface CollaboratorPresence {
   userId: string
@@ -77,7 +78,7 @@ export function useCollaboration({
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'projects',
+          table: T.projects,
           filter: `id=eq.${projectId}`,
         },
         (payload) => {

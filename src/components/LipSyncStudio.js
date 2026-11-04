@@ -8,7 +8,8 @@ import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getResolutionsFo
 import { AuthModal } from './AuthModal.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
@@ -16,15 +17,11 @@ import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
-import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
-import { notifyGeneration } from './studio/generationNotifications.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 
 export function LipSyncStudio() {
-    let results = null; // upstream-style empty state + results gallery, mounted with the composer
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
   mountStudioChrome(container, { currentRoute: 'lipsync' });
@@ -39,6 +36,9 @@ export function LipSyncStudio() {
     const selectedProvider = 'all';
     let uploadedImageUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('lipsync-studio');
+    // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+    // in-memory copy in sync so the next generation uses it.
+    subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'lipsync-studio' });
     let uploadedVideoUrl = null;
     let uploadedAudioUrl = null;
     let dropdownOpen = null;
@@ -54,17 +54,7 @@ export function LipSyncStudio() {
     // ==========================================
     const hero = document.createElement('div');
     hero.className = 'flex flex-col items-center mb-4 md:mb-6 animate-fade-in-up transition-all duration-700 w-full';
-    const heroBanner = createHeroSection('lipsync', 'h-32 md:h-44 mb-6');
-    if (heroBanner) {
-        const heroContent = document.createElement('div');
-        heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-        heroContent.innerHTML = `
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Lip Sync</h1>
-            <p class="text-white/60 text-sm font-medium">Animate portraits or sync lips to audio with AI</p>
-        `;
-        heroBanner.appendChild(heroContent);
-        hero.appendChild(heroBanner);
-    }
+    hero.appendChild(createStudioHeader('lipsync', 'Lip Sync Studio', 'Make a portrait talk or re-sync any video to new audio'));
     container.appendChild(hero);
 
     // ==========================================
@@ -87,12 +77,12 @@ export function LipSyncStudio() {
 
     const imageModeBtn = document.createElement('button');
     imageModeBtn.type = 'button';
-    imageModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 bg-primary text-black shadow-md shadow-primary/20';
+    imageModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-primary bg-primary/10 text-primary';
     imageModeBtn.textContent = '🖼 Portrait Image';
 
     const videoModeBtn = document.createElement('button');
     videoModeBtn.type = 'button';
-    videoModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-white/40 hover:text-white/70';
+    videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
     videoModeBtn.textContent = '🎬 Video';
 
     modeToggleRow.appendChild(modeLabel);
@@ -270,7 +260,7 @@ export function LipSyncStudio() {
               textarea.value = prompt;
               textarea.dispatchEvent(new Event('input', { bubbles: true }));
               textarea.focus();
-            });
+            }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
@@ -368,38 +358,6 @@ export function LipSyncStudio() {
     const modelBtn = document.createElement('button');
     modelBtn.id = 'ls-model-btn';
     modelBtn.type = 'button';
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-        document.getElementById('ls-model-btn-label').textContent = getCurrentModels().find(x => x.id === id)?.name || id;
-        const resolutions = getResolutionsForLipSyncModel(selectedModel);
-        if (resolutions.length > 0) {
-          selectedResolution = resolutions[0];
-          document.getElementById('ls-resolution-btn-label').textContent = selectedResolution;
-          document.getElementById('ls-resolution-btn').classList.remove('hidden');
-        } else {
-          document.getElementById('ls-resolution-btn').classList.add('hidden');
-        }
-        const model = getCurrentModels().find(x => x.id === id);
-        if (model?.inputs?.native_audio) {
-          nativeAudioRow.classList.remove('hidden');
-        } else {
-          nativeAudioRow.classList.add('hidden');
-          nativeAudio = false;
-        }
-      }
-    }).catch(() => {});
-  });
-  bottomRow.appendChild(modelPickerBtn);
 
     modelBtn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/40 transition-all text-xs font-bold text-white group';
     modelBtn.innerHTML = `<div id="ls-model-btn-icon" class="w-5 h-5 rounded flex items-center justify-center overflow-hidden bg-white/5"></div><span id="ls-model-btn-label">${getCurrentModels()[0].name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
@@ -478,69 +436,7 @@ export function LipSyncStudio() {
     bar.appendChild(bottomRow);
 
     promptWrapper.appendChild(bar);
-
-    // Upstream Lip Sync composer: Image/Video segmented control above round
-    // upload circles, the prompt, then a footer of 38px pills (Model,
-    // Resolution, Advanced) and Generate; SmartVideo-only tools go in ⋯.
-    modeLabel.hidden = true;
-    modeToggleRow.className = 'inline-flex items-center gap-1 bg-white/[0.03] border border-white/[0.05] rounded-full p-0.5 self-start';
-    [imageUploadBtn, videoUploadBtn, audioUploadBtn].forEach((b) => {
-        b.className = b.className.replace('rounded-xl', 'rounded-full').replace('w-14 h-14', 'w-12 h-12');
-        b.querySelectorAll('.rounded-xl').forEach((el) => el.classList.replace('rounded-xl', 'rounded-full'));
-    });
-    uploadsRow.className = 'flex items-center gap-2 flex-wrap';
-    bar.insertBefore(textarea, statusRow);
-    statusRow.className = 'flex items-center gap-2 text-[11px] text-white/40';
-    textarea.className = 'w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:outline-none resize-none pt-1 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
-    const lsControls = document.createElement('div');
-    [modelBtn, resolutionBtn, advancedBtn].forEach((b) => { restylePill(b); lsControls.appendChild(b); });
-    modelBtn.querySelector('#ls-model-btn-label')?.setAttribute('class', 'text-xs font-semibold text-current opacity-70 group-hover:text-primary group-hover:opacity-100 transition-all');
-    nativeAudioRow.className = nativeAudioRow.className.includes('hidden') ? 'hidden flex items-center gap-2' : 'flex items-center gap-2';
-    lsControls.appendChild(nativeAudioRow);
-    const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
-    foldIntoMoreMenu(lsControls, [
-        { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
-        { label: 'Personalize', description: 'Personalize with a contact', el: bottomRow.querySelector('#v-contact-btn') },
-        { label: 'Custom thumbnail', el: thumbBtn },
-        { label: 'Stock photo', description: 'Pexels portrait', el: pexelsImageBtn },
-        { label: 'Stock video', description: 'Pexels source video', el: pexelsVideoBtn },
-        { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
-        { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
-        { label: 'Recipes', onSelect: enhanceAction('recipe') },
-        { label: 'Monetize', onSelect: enhanceAction('monetize') },
-    ]);
-    actionToolbar.hidden = true;
-    bottomRow.innerHTML = '';
-    restyleAction(generateBtn);
-    bottomRow.append(lsControls, generateBtn);
-    styleComposer({ wrapper: promptWrapper, bar, footer: bottomRow, controls: lsControls });
     container.appendChild(promptWrapper);
-
-    results = mountStudioResults({
-        container,
-        hero: heroBanner,
-        before: promptWrapper,
-        kind: 'video',
-        historyType: 'video',
-        studio: 'lipsync',
-        label: 'Lip Sync Studio',
-        filenamePrefix: 'lipsync',
-        empty: {
-            heading: 'Make it talk with',
-            highlight: getCurrentModels()[0]?.name || 'Lip Sync',
-            subtitle: 'Add a portrait image or a video plus an audio track, then press Generate.',
-            samples: [],
-        },
-        extraActions: (item) => [
-            { label: 'Add AI captions', onSelect: () => addCaptionButton({ videoUrl: item.url, appTheme: 'lipsync-studio', onComplete: () => showToast('Captioned video ready') }) },
-            { label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'video' }) },
-        ],
-        onDelete: (item) => {
-            const i = generationHistory.findIndex(e => e.url === item.url);
-            if (i >= 0) generationHistory.splice(i, 1);
-            try { localStorage.setItem('lipsync_history', JSON.stringify(generationHistory.slice(0, 30))); } catch { /* ignore */ }
-        },
-    });
 
     const advancedPanel = document.createElement('div');
     advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
@@ -571,10 +467,7 @@ export function LipSyncStudio() {
       onChange: (key, value) => {
       }
     });
-    // Advanced settings open inside the floating composer, above its footer.
-    advancedPanel.classList.remove('mt-6', 'mt-4');
-    advancedPanel.classList.add('max-h-[45vh]', 'overflow-y-auto', 'custom-scrollbar');
-    bar.insertBefore(advancedPanel, bottomRow);
+    container.appendChild(advancedPanel);
 
     const toggleAdvanced = () => {
         showAdvanced = !showAdvanced;
@@ -672,14 +565,16 @@ export function LipSyncStudio() {
         const spaceBelow = window.innerHeight - rect.bottom - 8;
         const spaceAbove = rect.top - 8;
 
-        if (spaceBelow >= ddHeight || spaceBelow >= spaceAbove) {
-            dropdown.style.top = `${rect.bottom + 8}px`;
-            dropdown.style.bottom = 'auto';
-            dropdown.style.maxHeight = `${Math.max(150, spaceBelow - 8)}px`;
-        } else {
+        // Prefer opening upward (shrinking to fit); only drop down when
+        // there's less than ~240px above the trigger.
+        if (spaceAbove >= ddHeight || spaceAbove >= 240 || spaceAbove >= spaceBelow) {
             dropdown.style.top = 'auto';
             dropdown.style.bottom = `${window.innerHeight - rect.top + 8}px`;
             dropdown.style.maxHeight = `${Math.max(150, spaceAbove - 8)}px`;
+        } else {
+            dropdown.style.top = `${rect.bottom + 8}px`;
+            dropdown.style.bottom = 'auto';
+            dropdown.style.maxHeight = `${Math.max(150, spaceBelow - 8)}px`;
         }
         dropdown.style.left = `${Math.min(rect.left, window.innerWidth - 220)}px`;
 
@@ -700,13 +595,13 @@ export function LipSyncStudio() {
     // ==========================================
     const updateUIForMode = () => {
         if (inputMode === 'image') {
-            imageModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 bg-primary text-black shadow-md shadow-primary/20';
-            videoModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-white/40 hover:text-white/70';
+            imageModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-primary bg-primary/10 text-primary';
+            videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
             imageUploadBtn.classList.remove('hidden');
             videoUploadBtn.classList.add('hidden');
         } else {
-            videoModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 bg-primary text-black shadow-md shadow-primary/20';
-            imageModeBtn.className = 'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-white/40 hover:text-white/70';
+            videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-primary bg-primary/10 text-primary';
+            imageModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
             videoUploadBtn.classList.remove('hidden');
             imageUploadBtn.classList.add('hidden');
         }
@@ -964,7 +859,7 @@ export function LipSyncStudio() {
     const historyList = document.createElement('div');
     historyList.className = 'flex flex-col gap-2 w-full px-2';
     historySidebar.appendChild(historyList);
-    // Results live in the upstream-style gallery; the side rail and canvas stay detached.
+    container.appendChild(historySidebar);
 
     // Main canvas
     const canvas = document.createElement('div');
@@ -1012,12 +907,9 @@ export function LipSyncStudio() {
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
+    container.appendChild(canvas);
 
     const showVideoInCanvas = (videoUrl) => {
-        resultVideo.src = videoUrl;
-        results.area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-        // eslint-disable-next-line no-unreachable
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
         resultVideo.src = videoUrl;
@@ -1053,7 +945,9 @@ export function LipSyncStudio() {
         } catch (e) {
             // Ignore storage errors (private mode, quota exceeded, etc.)
         }
-        results.gallery.addItem(entry);
+        historySidebar.classList.remove('translate-x-full', 'opacity-0');
+        historySidebar.classList.add('translate-x-0', 'opacity-100');
+        renderHistory();
     };
 
     const renderHistory = () => {
@@ -1108,7 +1002,9 @@ export function LipSyncStudio() {
         const saved = JSON.parse(localStorage.getItem('lipsync_history') || '[]');
         if (saved.length > 0) {
             saved.forEach(e => generationHistory.push(e));
-            results.gallery.setItems(generationHistory);
+            historySidebar.classList.remove('translate-x-full', 'opacity-0');
+            historySidebar.classList.add('translate-x-0', 'opacity-100');
+            renderHistory();
         }
     } catch { /* ignore */ }
 
@@ -1190,10 +1086,9 @@ export function LipSyncStudio() {
         const apiKey = apiKeyManager.getKey();
         if (!apiKey) { AuthModal(() => generateBtn.click()); return; }
 
-        const pendingCard = results.gallery.addPending('Syncing lips…');
-        const notifyId = `lipsync:${Date.now()}`;
-        notifyGeneration({ phase: 'start', id: notifyId, studio: 'lipsync', label: 'Lip Sync Studio' });
-        setActionBusy(generateBtn, true);
+        hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> Generating...`;
         lipsyncAbortController = new AbortController();
 
         let hadError = false;
@@ -1251,15 +1146,12 @@ export function LipSyncStudio() {
         } catch (e) {
             hadError = true;
             if (capturedRequestId) removePendingJob(capturedRequestId);
-            showToast(e.message || 'Generation failed', 'error', 5000);
-            notifyGeneration({ phase: 'error', id: notifyId, studio: 'lipsync', label: 'Lip Sync Studio', message: e.message });
+            hero.classList.remove('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
+            generateBtn.innerHTML = `Error: ${e.message.slice(0, 60)}`;
+            setTimeout(() => { generateBtn.innerHTML = `Generate ✨`; }, 4000);
         } finally {
-            pendingCard.remove();
-            if (hadError) setActionRetry(generateBtn);
-            else {
-                setActionBusy(generateBtn, false);
-                notifyGeneration({ phase: 'success', id: notifyId, studio: 'lipsync', label: 'Lip Sync Studio' });
-            }
+            generateBtn.disabled = false;
+            if (!hadError) generateBtn.innerHTML = `Generate ✨`;
             lipsyncAbortController = null;
         }
     };

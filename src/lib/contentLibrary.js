@@ -3,8 +3,65 @@ import { uploadFileToStorage } from '../lib/uploadService.js';
 import { getUserKey } from './userKey.js';
 import { formatErrorMessage } from './errorMessages.js';
 
+// ── Saved content (local store) ──────────────────────────────────────────
+// "Content" is where people keep what they want to come back to: generations
+// they saved from a studio or the Library, plus uploads and stock media. Saved
+// generations live in localStorage so saving always works (with or without
+// Supabase) and deleting one never touches a storage bucket.
+const SAVED_KEY = 'sv_saved_content';
+
+function readSaved() {
+  try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]'); } catch { return []; }
+}
+function writeSaved(list) {
+  try { localStorage.setItem(SAVED_KEY, JSON.stringify(list)); } catch { /* storage full/blocked */ }
+  try { window.dispatchEvent(new CustomEvent('sv:content-saved')); } catch { /* non-browser */ }
+}
+
+function inferType(url, type) {
+  if (type === 'video' || type === 'audio' || type === 'image' || type === 'pdf') return type;
+  const ext = (String(url).split('?')[0].split('.').pop() || '').toLowerCase();
+  if (['mp4', 'webm', 'mov', 'm4v'].includes(ext)) return 'video';
+  if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audio';
+  if (ext === 'pdf') return 'pdf';
+  return 'image';
+}
+
+export function isSavedToContent(url) {
+  return readSaved().some((i) => i.url === url);
+}
+
+/** Save a generation (or any media URL) to Content. Returns the saved entry. */
+export function saveToContent({ url, type, prompt = '', model = '', studio = '', filename, source = 'saved', attribution } = {}) {
+  if (!url) return null;
+  const list = readSaved();
+  const existing = list.find((i) => i.url === url);
+  if (existing) return existing;
+  const kind = inferType(url, type);
+  const entry = {
+    id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    url,
+    type: kind,
+    filename: filename || (prompt ? prompt.slice(0, 60) : `${studio || 'saved'}-${kind}`),
+    prompt,
+    model,
+    studio,
+    source,
+    ...(attribution ? { attribution } : {}),
+    created_at: new Date().toISOString(),
+  };
+  list.unshift(entry);
+  writeSaved(list);
+  return entry;
+}
+
+export function removeSavedContent(idOrUrl) {
+  writeSaved(readSaved().filter((i) => i.id !== idOrUrl && i.url !== idOrUrl));
+}
+
 export async function listContentLibrary() {
-  if (!isSupabaseConfigured()) return [];
+  const saved = readSaved();
+  if (!isSupabaseConfigured()) return saved;
   const { data, error } = await supabase
     .from('content_library')
     .select('*')
@@ -12,10 +69,12 @@ export async function listContentLibrary() {
 
   if (error) {
     console.error('Failed to list content library:', error);
-    return [];
+    return saved;
   }
 
-  return data || [];
+  const seen = new Set(saved.map((i) => i.url));
+  return [...saved, ...(data || []).filter((i) => !seen.has(i.url))]
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 }
 
 export async function uploadToContentLibrary(file) {
@@ -69,7 +128,10 @@ export async function uploadToContentLibrary(file) {
 }
 
 export async function saveContentLibraryEntry(url, meta = {}) {
-  if (!isSupabaseConfigured()) return;
+  // Without Supabase keep the entry locally so uploads/stock picks still show up.
+  if (!isSupabaseConfigured()) {
+    return saveToContent({ url, type: meta.type, filename: meta.filename, source: meta.source || 'upload', attribution: meta.attribution });
+  }
 
   try {
     const urlPath = new URL(url).pathname;
@@ -140,6 +202,10 @@ export async function saveContentLibraryEntry(url, meta = {}) {
 }
 
 export async function deleteFromContentLibrary(id) {
+  if (typeof id === 'string' && id.startsWith('local-')) {
+    removeSavedContent(id);
+    return;
+  }
   if (!isSupabaseConfigured()) return;
 
   // First, fetch the record to get the storage path

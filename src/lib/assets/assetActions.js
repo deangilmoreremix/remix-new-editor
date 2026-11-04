@@ -1,5 +1,6 @@
 import { assetStore } from './assetStore.js';
 import { ASSET_TYPE_VALUES } from './assetSchema.js';
+import { isWorkbenchEligible, openInWorkbench } from '../workbench.js';
 
 export async function saveGeneratedAsset(type, data, sourceApp) {
   try {
@@ -74,6 +75,8 @@ export async function openInTimeline(assetId) {
   }
 }
 
+// AI-content editor = SmartVid Workbench (src/lib/workbench.js). Director, Timeline
+// and Video Agent keep their own editors (openInDirector / openInTimeline).
 export async function openInEditor(assetId) {
   try {
     const asset = await assetStore.getAsset(assetId);
@@ -81,8 +84,12 @@ export async function openInEditor(assetId) {
       console.warn(`Asset not found: ${assetId}`);
       return;
     }
-    
-    window.location.hash = `/edit?asset=${assetId}`;
+
+    const media = asset.media || {};
+    const type = asset.type === 'video' || asset.type === 'audio' ? asset.type : 'image';
+    if (!isWorkbenchEligible(asset.sourceApp) || !openInWorkbench([{ url: media.url || asset.url, type, prompt: asset.title }])) {
+      window.location.hash = `/edit?asset=${assetId}`;
+    }
     
     await assetStore.updateAsset(assetId, {
       routing: {

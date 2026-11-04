@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import styles from './Footer.module.css'
+import BrandLogo from '../BrandLogo/BrandLogo'
 
 const solutionsLinks = [
   { label: 'Founders', href: '/blog/introducing-smartvideo' },
@@ -41,8 +42,8 @@ export default function Footer() {
           {/* Brand */}
           <div className={styles.brand}>
             <a href="/" className={styles.logo}>
-              <img src="/assets/logo.png" alt="" className={styles.logoImg} />
-              <span className={styles.logoText}>Smart Video</span>
+              <BrandLogo className={styles.logoImg} decorative />
+              <span className={styles.logoText}>Smart Website Builder</span>
             </a>
             <p className={styles.tagline}>
               Turn a description into a deployed website â€” with your own API keys and your
@@ -87,7 +88,7 @@ export default function Footer() {
 
         <div className={styles.bottom}>
           <span className={styles.copyright}>
-            &copy; {new Date().getFullYear()} Smart Video. All rights reserved.
+            &copy; {new Date().getFullYear()} Smart Website Builder. All rights reserved.
           </span>
           <div className={styles.socials}>
             <a href="https://x.com" aria-label="X" target="_blank" rel="noopener noreferrer">

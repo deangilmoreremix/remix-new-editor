@@ -33,7 +33,7 @@ export function EffectsPage() {
   if (hero) {
     const heroContent = document.createElement('div');
     heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `<h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Vibe Motion</h1><p class="text-white/60 text-sm font-medium mb-3">Apply stunning visual effects to your photos and videos</p><button class="start-btn btn-primary-modern">Browse Effects</button>`;
+    heroContent.innerHTML = `<h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Effects Studio</h1><p class="text-white/60 text-sm font-medium mb-3">Apply stunning visual effects to your photos and videos</p><button class="start-btn btn-primary-modern">Browse Effects</button>`;
     hero.appendChild(heroContent);
     container.appendChild(hero);
   }

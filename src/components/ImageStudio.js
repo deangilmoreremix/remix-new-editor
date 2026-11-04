@@ -15,23 +15,21 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { getImageStudioAsset } from '../lib/personalizerAdapters.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
-import { mountImageModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
+import { mountUpstreamModelPicker } from './upstream-picker/mountUpstreamModelPicker.jsx';
+import { imageModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import ExampleGallery from './studios/ExampleGallery.js';
-import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy, setActionRetry } from './studio/studioLayout.js';
-import { notifyGeneration } from './studio/generationNotifications.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
@@ -44,7 +42,6 @@ export function ImageStudio() {
   mountStudioChrome(container, { currentRoute: 'image' });
 
     // --- State ---
-    let results = null; // upstream-style empty state + results gallery, mounted with the composer
     const defaultModel = t2iModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
@@ -54,6 +51,9 @@ export function ImageStudio() {
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
     let imageMode = false; // false = t2i models, true = i2i models
     let customThumbnailUrl = getCustomThumbnailFromCache('image-studio');
+    // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+    // in-memory copy in sync so the next generation uses it.
+    subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'image-studio' });
 
     // Restore the last GTM context the user picked in the prompt modal,
     // if any. The modal persists selections to localStorage on apply; we
@@ -145,17 +145,7 @@ export function ImageStudio() {
     // ==========================================
     const hero = document.createElement('div');
     hero.className = 'flex flex-col items-center mb-2 md:mb-4 animate-fade-in-up transition-all duration-700 w-full';
-    const heroBanner = createHeroSection('image', 'h-32 md:h-44 mb-3');
-    if (heroBanner) {
-        const heroContent = document.createElement('div');
-        heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-        heroContent.innerHTML = `
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Image Studio</h1>
-            <p class="text-white/60 text-sm font-medium">Transform images with AI — upscale, stylize, animate and more</p>
-        `;
-        heroBanner.appendChild(heroContent);
-        hero.appendChild(heroBanner);
-    }
+    hero.appendChild(createStudioHeader('image', 'Image Studio', 'Generate images with 20+ AI models'));
 
     container.appendChild(hero);
 
@@ -264,6 +254,7 @@ export function ImageStudio() {
     container.appendChild(picker.panel);
 
     const textarea = document.createElement('textarea');
+    textarea.setAttribute('data-studio-prompt', '');
     textarea.id = 'i-prompt-textarea';
     // Prompt Gallery button
     const promptGalleryBtn = document.createElement('button');
@@ -428,7 +419,7 @@ export function ImageStudio() {
               textarea.focus();
               textarea.style.height = 'auto';
               textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
-            });
+            }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
       openRecipeModal().catch(() => {});
@@ -493,12 +484,14 @@ export function ImageStudio() {
     `, selectedModelName, 'model-btn', 'Select AI generation model');
 
     const updateModelBtnIcon = () => {
-        results?.emptyState?.setHighlight?.(selectedModelName);
-        const iconEl = document.getElementById('model-btn-icon');
+        // The button may not be in the document yet on first call.
+        const iconEl = modelBtn.querySelector('#model-btn-icon') || document.getElementById('model-btn-icon');
         if (!iconEl) return;
         const currentModels = imageMode ? i2iModels : t2iModels;
         const current = currentModels.find(m => m.id === selectedModel);
-        const provider = current?.provider || 'muapi';
+        // Same source as upstream: the picker family's provider.
+        const provider = imageModelPickerEntryByVariantId.get(selectedModel)?.family.provider
+            || current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
             iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
@@ -550,41 +543,12 @@ export function ImageStudio() {
     });
     controlsLeft.appendChild(thumbBtn);
 
-    subscribeToGtmThumbnails(({ imageUrl }) => {
-      customThumbnailUrl = imageUrl;
-      saveCustomThumbnailToCache('image-studio', imageUrl);
-    });
 
     // Advanced options toggle button
     const advancedBtn = createControlBtn(`
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     `, 'Advanced', 'advanced-btn', 'Show advanced options');
     controlsLeft.appendChild(advancedBtn);
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-        const m = getCurrentModels().find(x => x.id === id);
-        selectedModelName = m ? m.name : id;
-        document.getElementById('model-btn-label').textContent = selectedModelName;
-        const availableArs = getCurrentAspectRatios(selectedModel);
-        selectedAr = availableArs[0];
-        document.getElementById('ar-btn-label').textContent = selectedAr;
-        const validResolutions = getCurrentResolutions(selectedModel);
-        qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
-        if (validResolutions.length > 0) document.getElementById('quality-btn-label').textContent = validResolutions[0];
-      }
-    }).catch(() => {});
-  });
-  controlsLeft.appendChild(modelPickerBtn);
 
     
     // Quick Tools toggle button
@@ -651,51 +615,7 @@ generateBtn.type = 'button';
     bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
     promptWrapper.appendChild(bar);
-
-    // Upstream composer layout: 38px pills, one ⋯ menu for SmartVideo-only
-    // tools, 40px round upload circle, lime Generate.
-    [modelBtn, arBtn, qualityBtn, advancedBtn].forEach(restylePill);
-    picker.trigger.className = picker.trigger.className.replace('rounded-xl', 'rounded-full').replace('mt-1.5', '');
-    topRow.className = 'flex items-start gap-3';
-    topRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
-    const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
-    foldIntoMoreMenu(controlsLeft, [
-        { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
-        { label: 'Prompt tools', description: 'Quick starters & prompt enhancer', el: toolsBtn },
-        { label: 'Personalize', description: 'Personalize with a contact', el: controlsLeft.querySelector('#v-contact-btn') },
-        { label: 'Custom thumbnail', el: thumbBtn },
-        { label: 'Stock photos', description: 'Use a Pexels photo as reference', el: pexelsBtn },
-        { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
-        { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
-        { label: 'Recipes', onSelect: enhanceAction('recipe') },
-        { label: 'Monetize', onSelect: enhanceAction('monetize') },
-    ]);
-    toolbar.hidden = true;
-    restyleAction(generateBtn);
-    styleComposer({ wrapper: promptWrapper, bar, footer: bottomRow, controls: controlsLeft });
     container.appendChild(promptWrapper);
-
-    results = mountStudioResults({
-        container,
-        hero: heroBanner,
-        before: promptWrapper,
-        kind: 'image',
-        historyType: 'image',
-        studio: 'image',
-        label: 'Image Studio',
-        filenamePrefix: 'smartvideo-image',
-        empty: {
-            heading: 'Start creating with',
-            highlight: selectedModelName,
-            subtitle: 'Describe an image, pick a model and aspect ratio, then press Generate — or upload a reference to transform it.',
-            samples: EXAMPLE_ASSETS.filter(a => a.studio === 'image' && a.thumbnail).slice(0, 4).map(a => a.thumbnail),
-        },
-        extraActions: (item) => [{ label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'image' }) }],
-        onDelete: (item) => {
-            const i = generationHistory.indexOf(item);
-            if (i >= 0) generationHistory.splice(i, 1);
-        },
-    });
 
     const inlineInstructions = createInlineInstructions('image');
     inlineInstructions.classList.add('mt-8');
@@ -820,19 +740,10 @@ generateBtn.type = 'button';
     });
     container.appendChild(advancedPanel);
 
-    // Settings panels open inside the floating composer, above its footer,
-    // instead of far down the page under the quick tips.
-    [toolsPanel, advancedPanel].forEach((panel) => {
-        panel.classList.remove('mt-6');
-        panel.classList.add('max-h-[45vh]', 'overflow-y-auto', 'custom-scrollbar');
-        bar.insertBefore(panel, bottomRow);
-    });
-
     // Advanced panel toggle logic
     const toggleAdvanced = () => {
         showAdvanced = !showAdvanced;
         advancedPanel.classList.toggle('hidden', !showAdvanced);
-        if (showAdvanced && showToolsPanel) { showToolsPanel = false; toolsPanel.classList.add('hidden'); }
         document.getElementById('advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
     };
     
@@ -845,13 +756,14 @@ generateBtn.type = 'button';
     const toggleTools = () => {
         showToolsPanel = !showToolsPanel;
         toolsPanel.classList.toggle('hidden', !showToolsPanel);
-        if (showToolsPanel && showAdvanced) {
-            // Only one settings panel open inside the composer at a time.
-            showAdvanced = false;
-            advancedPanel.classList.add('hidden');
-            const advLabel = document.getElementById('advanced-btn-label');
-            if (advLabel) advLabel.textContent = 'Advanced';
+        if (showToolsPanel) {
+            // Close advanced panel when opening tools
+            if (!showAdvanced) {
+                showAdvanced = true;
+                advancedPanel.classList.remove('hidden');
+            }
         }
+        document.getElementById('tools-btn-label').textContent = showToolsPanel ? 'Tools' : 'Tools';
     };
     
     toolsBtn.onclick = toggleTools;
@@ -950,7 +862,7 @@ generateBtn.type = 'button';
     // 3. DROPDOWNS (Professional implementation)
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'fixed left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 -translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     let modelPickerController = null;
 
@@ -990,26 +902,20 @@ generateBtn.type = 'button';
     const openImageModelPicker = (anchorBtn) => {
         modelPickerController?.close();
         modelPickerController = null;
-        modelPickerController = mountImageModelSelector({
+        // Upstream Open-Generative-AI's own ModelDropdown (React), copied verbatim.
+        modelPickerController = mountUpstreamModelPicker({
+            kind: 'image',
             anchor: anchorBtn,
             selectedModelId: selectedModel,
-            allowedModelTypes: ['t2i', 'i2i'],
-            copy: {
-                categories: { t2i: 'Text to Image', i2i: 'Image to Image' },
-                searchPlaceholder: 'Search models...',
-            },
-            onSelectCategory: (catId) => {
-                const isI2I = catId === 'i2i';
-                const nextModels = isI2I ? i2iModels : t2iModels;
-                if (nextModels.length) applyImageModel(nextModels[0].id, isI2I);
-                modelPickerController?.refresh(nextModels[0]?.id || null);
-            },
-            onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
-                // In the "All" category the mode comes from the variant itself,
-                // so edit-only models still get reference-image validation.
-                const isI2I = catId === 'i2i' || (catId !== 't2i' && variant?.mode === 'i2i');
-                if (variant) applyImageModel(variant.model.id, isI2I);
+            onSelect: (entry, catId) => {
+                // Upstream rule: a mode tab picks that mode's variant. From "All",
+                // keep the current mode (image-to-image when reference images
+                // are uploaded) and only fall back to the family default.
+                const currentMode = (uploadedImageUrls.length || imageMode) && entry.variantsByMode.i2i ? 'i2i' : 't2i';
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId] || entry.defaultVariant
+                    : entry.variantsByMode[currentMode] || entry.defaultVariant;
+                if (variant) applyImageModel(variant.model.id, variant.mode === 'i2i');
                 closeDropdown();
             },
             onClose: () => { modelPickerController = null; },
@@ -1088,11 +994,6 @@ generateBtn.type = 'button';
             dropdown.style.transform = 'translateX(-50%)';
         }
 
-        // Vertical position (always above button)
-        dropdown.style.bottom = '';
-        const btnRect = anchorBtn.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
     const closeDropdown = () => {
@@ -1176,8 +1077,7 @@ generateBtn.type = 'button';
     historyList.className = 'flex flex-col gap-2 w-full px-2';
     historySidebar.appendChild(historyList);
 
-    // Results now live in the upstream-style gallery; the old side rail and
-    // full-page canvas are kept detached only for code that still reads them.
+    container.appendChild(historySidebar);
 
     // Main canvas
     const canvas = document.createElement('div');
@@ -1221,12 +1121,11 @@ generateBtn.type = 'button';
 
     canvas.appendChild(imageContainer);
     canvas.appendChild(canvasControls);
+    container.appendChild(canvas);
 
     // --- Helper: Show image in canvas ---
     const showImageInCanvas = (imageUrl) => {
-        results.area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-        // eslint-disable-next-line no-unreachable
+        // Fully hide hero and prompt
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
@@ -1259,7 +1158,11 @@ generateBtn.type = 'button';
             request_id: entry.id,
         });
 
-        results.gallery.addItem(entry);
+        // Show sidebar
+        historySidebar.classList.remove('translate-x-full', 'opacity-0');
+        historySidebar.classList.add('translate-x-0', 'opacity-100');
+
+        renderHistory();
     };
 
     const renderHistory = () => {
@@ -1338,7 +1241,9 @@ generateBtn.type = 'button';
         const saved = JSON.parse(localStorage.getItem('muapi_history') || '[]');
         if (saved.length > 0) {
             saved.forEach(e => generationHistory.push(e));
-            results.gallery.setItems(generationHistory);
+            historySidebar.classList.remove('translate-x-full', 'opacity-0');
+            historySidebar.classList.add('translate-x-0', 'opacity-100');
+            renderHistory();
         }
     } catch (e) { /* ignore */ }
 
@@ -1422,13 +1327,15 @@ generateBtn.type = 'button';
             return;
         }
 
-        const pendingCard = results.gallery.addPending('Generating image…');
-        const notifyId = `image:${Date.now()}`;
-        notifyGeneration({ phase: 'start', id: notifyId, studio: 'image', label: 'Image Studio' });
-        setActionBusy(generateBtn, true);
+        hero.classList.add('opacity-0', 'scale-95', '-translate-y-10', 'pointer-events-none');
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = `<span class="animate-spin inline-block mr-2 text-black">◌</span> Generating...`;
         const controller = new AbortController();
         const pendingJob = createPendingJobTracker('image', { prompt, model: selectedModel, aspect_ratio: selectedAr }, { maxAttempts: 60 });
-        const loadingOverlay = null;
+        const loadingOverlay = createLoadingOverlay('Generating image...');
+        const progressBar = createProgressBar(0);
+        loadingOverlay.appendChild(progressBar);
+        container.appendChild(loadingOverlay);
 
         try {
             let res;
@@ -1484,8 +1391,6 @@ generateBtn.type = 'button';
             }
 
             if (res && res.url) {
-                pendingCard.remove();
-                notifyGeneration({ phase: 'success', id: notifyId, studio: 'image', label: 'Image Studio', url: res.url });
                 // Add to history
                 addToHistory({
                     id: res.id || Date.now().toString(),
@@ -1503,14 +1408,18 @@ generateBtn.type = 'button';
             }
         } catch (e) {
             pendingJob.finish();
-            pendingCard.remove();
-            notifyGeneration({ phase: 'error', id: notifyId, studio: 'image', label: 'Image Studio', message: e.message });
-            showToast(e.message || 'Generation failed', 'error', 5000);
-            setActionRetry(generateBtn);
+            if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
+            generateBtn.innerHTML = `Error: ${e.message.slice(0, 40)}`;
+            setTimeout(() => {
+                generateBtn.innerHTML = `Generate ✨`;
+                generateBtn.disabled = false;
+            }, 3000);
             return;
         }
         pendingJob.finish();
-        setActionBusy(generateBtn, false);
+        if (loadingOverlay && loadingOverlay.parentNode) loadingOverlay.remove();
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = `Generate ✨`;
     };
 
     // Pick up generations that were still running when the page was reloaded.

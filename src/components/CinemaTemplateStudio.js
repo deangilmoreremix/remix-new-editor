@@ -3,7 +3,6 @@
  * UI Component for the Cinematic Template System
  */
 
-import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
@@ -72,9 +71,6 @@ export function CinemaTemplateStudio() {
   const container = document.createElement('div');
   container.className = 'cinema-template-studio w-full h-full flex flex-col bg-black overflow-hidden';
 
-  // All-studios side menu (drawer)
-  const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'cinema' });
-
   // State
   const registry = getTemplateRegistry();
   let currentTemplate = null;
@@ -103,7 +99,6 @@ export function CinemaTemplateStudio() {
   let outputTabValues = {};
   let activeTab = 'Enhanced Prompt';
   let showAdvanced = false;
-  let showMobileOutput = false;
   let promptManuallyEdited = false;
   let browseFilter = 'all'; // 'all' | 'favorites' | 'recent' | 'custom'
   let sceneTimelineDebounce = null;
@@ -150,14 +145,6 @@ export function CinemaTemplateStudio() {
         renderPreviewView();
         break;
     }
-
-    // Add an "all studios" menu button next to every back button in this view
-    container.querySelectorAll('[id="back-btn"]').forEach((backBtn) => {
-      if (backBtn.previousElementSibling && backBtn.previousElementSibling.dataset.studioMenu) return;
-      const menuBtn = createStudioMenuButton(studioDrawer.toggle);
-      menuBtn.dataset.studioMenu = '1';
-      backBtn.parentElement.insertBefore(menuBtn, backBtn);
-    });
   }
 
   function renderBrowseView() {
@@ -312,7 +299,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         template,
         layout: 'panel',
         onApply: ({ imageUrl }) => {
-          img.src = imageUrl + '?v=' + Date.now();
+          img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
           customThumbnailUrl = imageUrl;
           saveCustomThumbnailToCache(template.id, imageUrl);
         },
@@ -460,16 +447,24 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     `;
     container.appendChild(header);
 
+    // Layout mirrors TemplateStudio's editor view: a scrolling content area
+    // holding a centered 980px column — centered hero on top, then a
+    // two-column grid (form card left, preview/output right) that stacks on
+    // narrower screens.
     const content = document.createElement('div');
-    content.className = 'flex-1 flex overflow-hidden flex-col lg:flex-row';
+    content.className = 'flex-1 overflow-auto px-8 py-10';
+
+    const centeredContainer = document.createElement('div');
+    centeredContainer.className = 'mx-auto max-w-[980px]';
+    content.appendChild(centeredContainer);
 
     // Left: Form inputs
     const formPanel = document.createElement('div');
-    formPanel.className = 'rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)] overflow-auto';
+    formPanel.className = 'min-w-0 rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
 
     // Hero thumbnail section (matches TemplateStudio editor view)
     const heroSection = document.createElement('div');
-    heroSection.className = 'mb-8 flex flex-col items-center text-center';
+    heroSection.className = 'flex flex-col items-center text-center';
 
     const thumbnailEl = document.createElement('div');
     thumbnailEl.className = 'mb-4 h-24 w-24 rounded-[28px] border border-emerald-400/20 shadow-[0_0_40px_rgba(16,185,129,0.10)] overflow-hidden flex items-center justify-center';
@@ -496,7 +491,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     // Thumbnail action button — matches TemplateStudio styling
     const thumbAction = document.createElement('button');
-    thumbAction.className = 'btn-action-secondary shrink-0';
+    thumbAction.className = 'mb-5 btn-action-secondary shrink-0';
     thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
     thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
     thumbAction.style.color = '#022c22';
@@ -507,7 +502,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         template: currentTemplate,
         layout: 'panel',
         onApply: ({ imageUrl }) => {
-          img.src = imageUrl + '?v=' + Date.now();
+          img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
           customThumbnailUrl = imageUrl;
           saveCustomThumbnailToCache(currentTemplate.id, imageUrl);
         },
@@ -543,11 +538,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     `;
     heroSection.appendChild(pills);
 
-    formPanel.appendChild(heroSection);
+    centeredContainer.appendChild(heroSection);
+
+    // Two-column grid — same breakpoints/widths as TemplateStudio
+    const grid = document.createElement('div');
+    grid.className = 'mt-10 grid grid-cols-1 gap-8 xl:grid-cols-[520px_1fr] xl:items-start';
+    centeredContainer.appendChild(grid);
 
     // Inner content wrapper (form fields, etc.)
     const innerWrapper = document.createElement('div');
-    innerWrapper.className = 'max-w-2xl mx-auto';
     innerWrapper.innerHTML = `
       <div id="video-intent-section" class="mb-6">
         <!-- Video Intent form rendered here -->
@@ -612,7 +611,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       ` : ''}
     `;
     formPanel.appendChild(innerWrapper);
-    content.appendChild(formPanel);
+    grid.appendChild(formPanel);
 
     renderModelSelector(formPanel);
     renderVideoUploadButton(formPanel);
@@ -631,11 +630,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     // Right: Output panel
     const outputPanel = document.createElement('div');
     outputPanel.id = 'output-panel';
-    outputPanel.className = 'w-full lg:w-96 border-l border-white/10 p-6 overflow-auto hidden lg:block';
+    outputPanel.className = 'min-w-0 space-y-5';
     outputPanel.innerHTML = `
-      <div class="sticky top-0 relative">
+      <div class="relative">
           <h3 class="${CINEMATIC_THEME.text.eyebrow} text-white mb-4">Output</h3>
-        <button id="close-output-btn" class="lg:hidden absolute top-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition" title="Close output">✕</button>
 
          <div class="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.018))] p-5 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
            <div class="mb-4 flex flex-wrap items-center gap-2">
@@ -660,35 +658,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
          </div>
        `;
-     content.appendChild(outputPanel);
+    grid.appendChild(outputPanel);
 
     renderOutputTabs(outputPanel);
     updateOutputContent();
 
-    outputPanel.querySelector('#close-output-btn')?.addEventListener('click', toggleMobileOutput);
-
-    function toggleMobileOutput() {
-      showMobileOutput = !showMobileOutput;
-      const panel = document.getElementById('output-panel');
-      const btn = document.getElementById('mobile-output-btn');
-      if (!panel || !btn) return;
-      if (showMobileOutput) {
-        panel.className = 'fixed inset-0 z-50 bg-black/90 backdrop-blur-md lg:relative lg:bg-transparent w-full lg:w-96 p-6 overflow-auto';
-        btn.classList.add('hidden');
-      } else {
-        panel.className = 'w-full lg:w-96 border-l border-white/10 p-6 overflow-auto hidden lg:block';
-        btn.classList.remove('hidden');
-      }
-    }
-
     container.appendChild(content);
-
-    const mobileOutputBtn = document.createElement('button');
-    mobileOutputBtn.id = 'mobile-output-btn';
-    mobileOutputBtn.className = 'lg:hidden fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-black text-sm font-bold shadow-lg hover:scale-105 transition-transform';
-    mobileOutputBtn.textContent = 'Output';
-    mobileOutputBtn.onclick = toggleMobileOutput;
-    container.appendChild(mobileOutputBtn);
 
     renderFormInputs();
     renderVideoIntentForm();

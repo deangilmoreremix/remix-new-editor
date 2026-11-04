@@ -188,7 +188,10 @@ try {
   mountGenerationNotifications((page) => navigate(page));
 
   const body = document.createElement('div');
-  body.className = 'flex flex-1';
+  // min-h-0 keeps the row inside the viewport: without it the (long) sidebar
+  // stretches every studio to the sidebar's height and centred layouts drift
+  // off-screen. Each column scrolls on its own.
+  body.className = 'flex flex-1 min-h-0 overflow-hidden';
 
   const { sidebar, toggleBtn } = Sidebar((page) => navigate(page));
   body.appendChild(sidebar);
@@ -196,7 +199,7 @@ try {
 
   const contentArea = document.createElement('main');
   contentArea.id = 'content-area';
-  contentArea.className = 'flex-1 relative w-full flex flex-col bg-app-bg';
+  contentArea.className = 'flex-1 min-w-0 min-h-0 relative w-full flex flex-col bg-app-bg overflow-y-auto';
   body.appendChild(contentArea);
 
   app.appendChild(body);
@@ -263,6 +266,10 @@ try {
   // skipped during local dev auth-bypass (a placeholder key is already seeded).
   if (isDevBypass) {
     console.info('[App] Dev auth bypass active — skipping setup popup.');
+  } else if (initialPage === 'website-builder') {
+    // Smart Website Builder manages its own provider keys inside the studio;
+    // nothing should pop up over it. The flag is left unset so the popup can
+    // still appear the next time the user lands on another studio.
   } else {
     showSetupModalOnce();
   }

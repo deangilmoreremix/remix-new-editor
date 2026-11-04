@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useAuth } from '../../lib/AuthContext'
 import { useIsAdmin } from '../../lib/useIsAdmin'
+import { BRAND_NAME } from '../../lib/brand'
 import styles from './DashboardSidebar.module.css'
 
 interface Project {
@@ -56,17 +57,6 @@ const mainNavItems: NavItem[] = [
         <rect x="14" y="3" width="7" height="7" rx="1"/>
         <rect x="14" y="14" width="7" height="7" rx="1"/>
         <rect x="3" y="14" width="7" height="7" rx="1"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Community',
-    icon: (
-      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
     ),
   },
@@ -134,13 +124,12 @@ const filterMap: Record<string, ProjectFilter> = {
 }
 
 export default function DashboardSidebar({ projects = [], activeFilter = 'all', onProjectFilterChange, notifications: externalNotifications, onNotificationsRead, isOpen = false, onClose }: DashboardSidebarProps) {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [activeNav, setActiveNav] = useState(() => {
     if (location.pathname === '/providers') return 'Providers'
     if (location.pathname === '/templates') return 'Templates'
-    if (location.pathname === '/community') return 'Community'
     return 'Home'
   })
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -152,7 +141,6 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
     if (location.pathname === '/providers') setActiveNav('Providers')
     else if (location.pathname === '/dashboard') setActiveNav('Home')
     else if (location.pathname === '/templates') setActiveNav('Templates')
-    else if (location.pathname === '/community') setActiveNav('Community')
   }, [location.pathname])
 
   useEffect(() => {
@@ -172,7 +160,6 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
     if (label === 'Providers') navigate('/providers')
     if (label === 'Home') navigate('/dashboard')
     if (label === 'Templates') navigate('/templates')
-    if (label === 'Community') navigate('/community')
   }
 
   const handleProjectFilterClick = (label: string) => {
@@ -209,9 +196,9 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
       <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
       {/* Logo */}
       <div className={styles.logoRow}>
-        <a href="/dashboard" className={styles.logo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.logoImg} />
-        </a>
+        <Link to="/dashboard" className={styles.logo} aria-label={`${BRAND_NAME} home`}>
+          <span className={styles.logoText}>{BRAND_NAME}</span>
+        </Link>
         <button
           className={`${styles.bellBtn} ${notificationsOpen ? styles.bellBtnActive : ''}`}
           onClick={() => {
@@ -311,21 +298,12 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
             <div className={styles.profileMenuDivider} />
 
             {/* Navigation links */}
-            <button className={styles.profileMenuItem} onClick={() => { navigate('/'); setProfileMenuOpen(false) }} type="button">
+            <button className={styles.profileMenuItem} onClick={() => { navigate('/dashboard'); setProfileMenuOpen(false) }} type="button">
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                 <polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
               Home
-            </button>
-            <button className={styles.profileMenuItem} onClick={() => { navigate('/community'); setProfileMenuOpen(false) }} type="button">
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-              Community
             </button>
             <button className={styles.profileMenuItem} onClick={() => { navigate('/templates'); setProfileMenuOpen(false) }} type="button">
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -335,21 +313,6 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
                 <rect x="3" y="14" width="7" height="7" rx="1"/>
               </svg>
               Templates
-            </button>
-            <button className={styles.profileMenuItem} onClick={() => { navigate('/faq'); setProfileMenuOpen(false) }} type="button">
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-              Docs &amp; FAQs
-            </button>
-            <button className={styles.profileMenuItem} onClick={() => { navigate('/blog'); setProfileMenuOpen(false) }} type="button">
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-              </svg>
-              Blog
             </button>
 
             <div className={styles.profileMenuDivider} />
@@ -377,20 +340,6 @@ export default function DashboardSidebar({ projects = [], activeFilter = 'all', 
               </button>
             )}
 
-            <div className={styles.profileMenuDivider} />
-
-            <button
-              className={`${styles.profileMenuItem} ${styles.profileMenuSignOut}`}
-              onClick={async () => { await signOut(); navigate('/') }}
-              type="button"
-            >
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
-              Sign out
-            </button>
           </div>
         )}
 

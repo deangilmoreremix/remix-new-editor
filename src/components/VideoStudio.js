@@ -1,8 +1,6 @@
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
-import { restylePill, restyleAction, styleComposer, foldIntoMoreMenu, mountStudioResults, setActionBusy } from './studio/studioLayout.js';
-import { notifyGeneration } from './studio/generationNotifications.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { uploadMediaFile } from '../lib/editor/upload.js';
@@ -15,7 +13,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { navigate } from '../lib/router.js';
 import { consumeStudioPrefill } from '../lib/studioPrefill.js';
@@ -25,7 +23,8 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateTh
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
-import { mountVideoModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
+import { mountUpstreamModelPicker } from './upstream-picker/mountUpstreamModelPicker.jsx';
+import { videoModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { categorizeGenerationError, createAbortAwareGenerateButton, startGenerationProgress, showInlineError, hideInlineError } from '../lib/studioHelpers.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -33,7 +32,6 @@ import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -45,7 +43,6 @@ export function VideoStudio() {
   mountStudioChrome(container, { currentRoute: 'video' });
 
     // --- State ---
-    let results = null; // upstream-style empty state + results gallery, mounted with the composer
     const defaultModel = t2vModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
@@ -75,6 +72,9 @@ export function VideoStudio() {
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
+    // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+    // in-memory copy in sync so the next generation uses it.
+    subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'video-studio' });
 
     // Restore the last GTM context the user picked in the prompt modal,
     // if any. The modal persists selections to localStorage on apply; we
@@ -162,17 +162,7 @@ export function VideoStudio() {
     // ==========================================
     const hero = document.createElement('div');
     hero.className = 'flex flex-col items-center mb-2 md:mb-4 animate-fade-in-up transition-all duration-700 w-full';
-    const heroBanner = createHeroSection('video', 'h-32 md:h-44 mb-3');
-    if (heroBanner) {
-        const heroContent = document.createElement('div');
-        heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-        heroContent.innerHTML = `
-            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Video Studio</h1>
-            <p class="text-white/60 text-sm font-medium">Animate images into stunning AI videos with motion effects</p>
-        `;
-        heroBanner.appendChild(heroContent);
-        hero.appendChild(heroBanner);
-    }
+    hero.appendChild(createStudioHeader('video', 'Video Studio', 'Create AI videos from text and images with 15+ models'));
 
     container.appendChild(hero);
 
@@ -538,6 +528,7 @@ export function VideoStudio() {
     topRow.appendChild(pexelsVideoVideoAttr);
 
     const textarea = document.createElement('textarea');
+    textarea.setAttribute('data-studio-prompt', '');
     textarea.id = 'v-v-prompt-textarea';
     textarea.placeholder = 'Describe the video you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
@@ -677,7 +668,7 @@ export function VideoStudio() {
               textarea.focus();
               textarea.style.height = 'auto';
               textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
-            });
+            }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal().catch(() => {});
@@ -751,11 +742,14 @@ export function VideoStudio() {
     `, selectedModelName, 'v-model-btn', 'Select AI video model');
 
     const updateModelBtnIcon = () => {
-        const iconEl = document.getElementById('v-model-btn-icon');
+        // The button may not be in the document yet on first call.
+        const iconEl = modelBtn.querySelector('#v-model-btn-icon') || document.getElementById('v-model-btn-icon');
         if (!iconEl) return;
         const allCurrentModels = [...t2vModels, ...i2vModels, ...v2vModels];
         const current = allCurrentModels.find(m => m.id === selectedModel);
-        const provider = current?.provider || 'muapi';
+        // Same source as upstream: the picker family's provider.
+        const provider = videoModelPickerEntryByVariantId.get(selectedModel)?.family.provider
+            || current?.provider || 'muapi';
         const logoUrl = PROVIDER_LOGOS[provider];
         if (logoUrl) {
             iconEl.innerHTML = renderProviderLogoImg(provider, '', 'w-full h-full object-contain', invertLogos.includes(provider) ? 'invert' : '');
@@ -789,25 +783,6 @@ export function VideoStudio() {
     controlsLeft.appendChild(resolutionBtn);
     controlsLeft.appendChild(qualityBtn);
 
-    // Model Picker button
-    const modelPickerBtn = document.createElement('button');
-    modelPickerBtn.type = 'button';
-    modelPickerBtn.textContent = 'AI Pick';
-    modelPickerBtn.title = 'Open intelligent model picker';
-    modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-    modelPickerBtn.className = 'btn-action-secondary shrink-0';
-    modelPickerBtn.addEventListener('click', () => {
-      openModelPicker({
-        currentModelId: selectedModel,
-        onSelectModel: (id) => {
-          selectedModel = id;
-          selectedModelName = getCurrentModels().find(x => x.id === id)?.name || id;
-          document.getElementById('v-model-btn-label').textContent = selectedModelName;
-          updateControlsForModel(selectedModel);
-        }
-      }).catch(() => {});
-    });
-    controlsLeft.appendChild(modelPickerBtn);
 
     // Advanced options toggle button
     const advancedBtn = createControlBtn(`
@@ -896,10 +871,6 @@ export function VideoStudio() {
     });
     controlsLeft.appendChild(thumbBtn);
 
-    subscribeToGtmThumbnails(({ imageUrl }) => {
-      customThumbnailUrl = imageUrl;
-      saveCustomThumbnailToCache('video-studio', imageUrl);
-    });
 
     const generateBtn = document.createElement('button');
 generateBtn.type = 'button';
@@ -912,61 +883,7 @@ generateBtn.type = 'button';
     bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
     promptWrapper.appendChild(bar);
-
-    // Upstream composer layout: media circles row, then the prompt, then a
-    // footer of 38px pills; SmartVideo-only tools fold into one ⋯ menu.
-    [modelBtn, arBtn, durationBtn, resolutionBtn, qualityBtn, advancedBtn].forEach(restylePill);
-    [picker.trigger, lastFrameBtn, endFrameBtn, videoPickerBtn].forEach((b) => {
-        if (b) b.className = b.className.replace('rounded-xl', 'rounded-full').replace('mt-1.5', '');
-    });
-    topRow.className = 'flex items-center gap-2 flex-wrap';
-    topRow.querySelector('.studio-attachment-toolbar')?.setAttribute('hidden', '');
-    bar.insertBefore(textarea, bottomRow);
-    const enhanceAction = (key) => () => enhanceMenu.querySelector(`[data-enhance="${key}"]`)?.click();
-    foldIntoMoreMenu(controlsLeft, [
-        { label: 'AI Pick', description: 'Let AI choose the best model', el: modelPickerBtn },
-        { label: 'Motion & style', description: 'Camera movement, motion strength, style', el: motionStyleBtn },
-        { label: 'Personalize', description: 'Personalize with a contact', el: controlsLeft.querySelector('#v-contact-btn') },
-        { label: 'Custom thumbnail', el: thumbBtn },
-        { label: 'Stock photo', description: 'Pexels photo as the start frame', el: pexelsImageBtn },
-        { label: 'Stock video', description: 'Pexels clip as the source video', el: pexelsVideoBtn },
-        { label: 'GTM Boost', onSelect: enhanceAction('gtm') },
-        { label: 'Prompt gallery', onSelect: enhanceAction('prompts') },
-        { label: 'Recipes', onSelect: enhanceAction('recipe') },
-        { label: 'Monetize', onSelect: enhanceAction('monetize') },
-    ]);
-    toolbar.hidden = true;
-    restyleAction(generateBtn);
-    styleComposer({ wrapper: promptWrapper, bar, footer: bottomRow, controls: controlsLeft });
     container.appendChild(promptWrapper);
-
-    results = mountStudioResults({
-        container,
-        hero: heroBanner,
-        before: promptWrapper,
-        kind: 'video',
-        historyType: 'video',
-        studio: 'video',
-        label: 'Video Studio',
-        filenamePrefix: 'smartvideo-video',
-        empty: {
-            heading: 'Start creating with',
-            highlight: selectedModelName,
-            subtitle: 'Describe a shot, or add a start frame or source video, then press Generate.',
-            samples: getAssetsForStudio('video').map(a => a.thumbnail || a.posterSrc).filter(Boolean).slice(0, 4),
-        },
-        extraActions: (item) => [
-            ...(/^seedance-v2\.0-(t2v|i2v)$/.test(item.model || '') ? [{ label: 'Extend', onSelect: () => { lastGenerationId = item.id; lastGenerationModel = item.model; extendBtn.click(); } }] : []),
-            { label: 'Open in Render', onSelect: () => { resultVideo.src = item.url; renderBtn.click(); } },
-            { label: 'Add AI captions', onSelect: () => addCaptionButton({ videoUrl: item.url, appTheme: 'video-studio', onComplete: () => showToast('Captioned video ready') }) },
-            { label: 'Publish to social', onSelect: () => openSocialPublish({ mediaUrl: item.url, mediaType: 'video' }) },
-        ],
-        onDelete: (item) => {
-            const i = generationHistory.indexOf(item);
-            if (i >= 0) generationHistory.splice(i, 1);
-            try { localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 100))); } catch { /* ignore */ }
-        },
-    });
 
     const inlineInstructions = createInlineInstructions('video');
     inlineInstructions.classList.add('mt-8');
@@ -1143,13 +1060,6 @@ generateBtn.type = 'button';
     `;
     container.appendChild(motionStylePanel);
 
-    // Settings panels open inside the floating composer, above its footer.
-    [advancedPanel, motionStylePanel].forEach((panel) => {
-      panel.classList.remove('mt-6', 'mt-4');
-      panel.classList.add('max-h-[45vh]', 'overflow-y-auto', 'custom-scrollbar');
-      bar.insertBefore(panel, bottomRow);
-    });
-
     const toggleMotionStyle = () => {
       showMotionStyle = !showMotionStyle;
       motionStylePanel.classList.toggle('hidden', !showMotionStyle);
@@ -1200,7 +1110,7 @@ generateBtn.type = 'button';
     // 3. DROPDOWNS
     // ==========================================
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute top-[102%] left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-top-left glass rounded-3xl p-3 translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
+    dropdown.className = 'fixed left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 -translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col';
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
@@ -1312,36 +1222,21 @@ generateBtn.type = 'button';
     const openVideoModelPicker = (anchorBtn) => {
         videoPickerController?.close();
         videoPickerController = null;
-        videoPickerController = mountVideoModelSelector({
+        // Upstream Open-Generative-AI's own ModelDropdown (React), copied verbatim.
+        videoPickerController = mountUpstreamModelPicker({
+            kind: 'video',
             anchor: anchorBtn,
             selectedModelId: selectedModel,
-            allowedModelTypes: ['t2v', 'i2v', 'v2v'],
-            copy: {
-                categories: { t2v: 'Text to Video', i2v: 'Image to Video', v2v: 'Video to Video' },
-                searchPlaceholder: 'Search models...',
-            },
-            onSelectCategory: (catId) => {
-                const nextModels = catId === 'v2v' ? v2vModels : (catId === 'i2v' ? i2vModels : t2vModels);
-                const modelId = nextModels[0]?.id || selectedModel;
-                const { newV2V, newI2V } = videoModelBase(modelId, catId);
-                if (newV2V) {
-                    picker.reset();
-                    uploadedImageUrl = null;
-                    uploadedVideoUrl = null;
-                    textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
-                    textarea.disabled = true;
-                } else {
-                    textarea.disabled = false;
-                    textarea.placeholder = newI2V
-                        ? 'Describe the motion or effect (optional)'
-                        : 'Describe the video you want to create';
-                }
-                videoPickerController?.refresh(modelId);
-            },
-            onSelectModel: (entry, catId) => {
-                const variant = entry.variantsByMode[catId] || entry.defaultVariant;
+            onSelect: (entry, catId) => {
+                // Upstream rule: a mode tab picks that mode's variant. From "All",
+                // keep the current mode and only fall back to the family default.
+                const currentMode = v2vMode ? 'v2v' : (imageMode ? 'i2v' : 't2v');
+                const variant = catId !== 'all'
+                    ? entry.variantsByMode[catId] || entry.defaultVariant
+                    : entry.variantsByMode[currentMode] || entry.defaultVariant;
                 const modelId = variant?.model?.id || selectedModel;
-                const { newV2V, newI2V, wasV2V } = videoModelBase(modelId, catId);
+                const mode = variant?.mode || (catId !== 'all' ? catId : currentMode);
+                const { newV2V, newI2V, wasV2V } = videoModelBase(modelId, mode);
                 if (newV2V) {
                     picker.reset();
                     uploadedImageUrl = null;
@@ -1479,10 +1374,6 @@ generateBtn.type = 'button';
             dropdown.style.left = '50%';
             dropdown.style.transform = 'translateX(-50%)';
         }
-        dropdown.style.bottom = '';
-        const btnRect = anchorBtn.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        dropdown.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
     };
 
     const closeDropdown = () => {
@@ -1550,8 +1441,7 @@ generateBtn.type = 'button';
     const historyList = document.createElement('div');
     historyList.className = 'flex flex-col gap-2 w-full px-2';
     historySidebar.appendChild(historyList);
-    // Results live in the upstream-style gallery; the old side rail and the
-    // full-page canvas stay detached for the handlers that still read them.
+    container.appendChild(historySidebar);
 
     // Main canvas
     const canvas = document.createElement('div');
@@ -1656,13 +1546,10 @@ generateBtn.type = 'button';
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
+    container.appendChild(canvas);
 
     // --- Helper: Show video in canvas ---
     const showVideoInCanvas = (videoUrl, genModel) => {
-        results.area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        resultVideo.src = videoUrl;
-        return;
-        // eslint-disable-next-line no-unreachable
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
@@ -1715,7 +1602,9 @@ generateBtn.type = 'button';
             request_id: entry.id,
         });
 
-        results.gallery.addItem(entry);
+        historySidebar.classList.remove('translate-x-full', 'opacity-0');
+        historySidebar.classList.add('translate-x-0', 'opacity-100');
+        renderHistory();
     };
 
     const renderHistory = () => {
@@ -1802,7 +1691,9 @@ generateBtn.type = 'button';
         const saved = JSON.parse(localStorage.getItem('video_history') || '[]');
         if (saved.length > 0) {
             saved.forEach(e => generationHistory.push(e));
-            results.gallery.setItems(generationHistory);
+            historySidebar.classList.remove('translate-x-full', 'opacity-0');
+            historySidebar.classList.add('translate-x-0', 'opacity-100');
+            renderHistory();
         }
     } catch (e) { /* ignore */ }
 
@@ -2082,12 +1973,15 @@ generateBtn.type = 'button';
         abortController = controller;
         const pendingJob = createPendingJobTracker('video', { prompt: enrichedPrompt || '', model: selectedModel }, { maxAttempts: 180 });
 
-        // Pending card in the results grid + notification, like upstream.
-        const pendingCard = results.gallery.addPending('Generating video…');
-        const notifyId = `video:${Date.now()}`;
-        notifyGeneration({ phase: 'start', id: notifyId, studio: 'video', label: 'Video Studio' });
-        setActionBusy(generateBtn, true);
-        const progressBar = {};
+        loadingOverlay = createLoadingOverlay('Generating video...');
+        const progressBar = createProgressBar(0);
+        loadingOverlay.appendChild(progressBar);
+        container.appendChild(loadingOverlay);
+        progressHandle = startGenerationProgress({
+            parent: loadingOverlay,
+            type: 'video',
+            message: 'Generating video (this may take a few minutes)...'
+        });
         showCancel();
 
         // Simulate indeterminate progress since API does not expose progress
@@ -2240,17 +2134,16 @@ generateBtn.type = 'button';
             return;
         } finally {
             pendingJob.finish();
-            pendingCard.remove();
-            notifyGeneration(generationError
-                ? { phase: 'error', id: notifyId, studio: 'video', label: 'Video Studio', message: generationError }
-                : { phase: 'success', id: notifyId, studio: 'video', label: 'Video Studio' });
             clearInterval(progressInterval);
             if (progressHandle) { progressHandle.stop(); progressHandle = null; }
             if (loadingOverlay && loadingOverlay.parentNode) { loadingOverlay.remove(); loadingOverlay = null; }
             resetCancel();
             isLoading = false;
             abortController = null;
-            if (!generationError) setActionBusy(generateBtn, false);
+            if (!generationError) {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = `Generate ✨`;
+            }
         }
     };
 

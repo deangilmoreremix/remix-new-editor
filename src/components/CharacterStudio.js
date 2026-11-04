@@ -5,7 +5,8 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -17,7 +18,6 @@ import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -35,6 +35,9 @@ export function CharacterStudio() {
 
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('character-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'character-studio' });
   let selectedModel = CHARACTER_MODELS[0];
   let dynamicControls = null;
   let dynamicControlsContainer = null;
@@ -83,19 +86,12 @@ export function CharacterStudio() {
   } catch { /* ignore */ }
 
   const header = document.createElement('div');
-  header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-lg';
-  const charBanner = createHeroSection('character', 'h-32 md:h-44 mb-4');
-  if (charBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Character Studio</h1><p class="text-white/60 text-sm max-w-md">Generate consistent character images using face ID preservation</p>';
-    charBanner.appendChild(bannerText);
-    header.appendChild(charBanner);
-  }
+  header.className = 'animate-fade-in-up text-center w-full';
+  header.appendChild(createStudioHeader('character', 'Character Studio', 'Consistent characters with face ID preservation'));
   container.appendChild(header);
 
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-lg bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.15s';
 
   const modelLabel = document.createElement('label');
@@ -182,22 +178,6 @@ export function CharacterStudio() {
   modelWrapper.appendChild(dropdown);
   formCard.appendChild(modelWrapper);
 
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (id) => {
-        selectedModel = CHARACTER_MODELS.find(x => x.id === id) || selectedModel;
-      }
-    }).catch(() => {});
-  });
-  formCard.appendChild(modelPickerBtn);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -251,6 +231,7 @@ const pexelsBtn = document.createElement('button');
   formCard.appendChild(promptLabel);
 
   const promptInput = document.createElement('textarea');
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.id = 'character-prompt-input';
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 3;
@@ -317,7 +298,7 @@ const pexelsBtn = document.createElement('button');
               promptInput.value = prompt;
               promptInput.dispatchEvent(new Event('input', { bubbles: true }));
               promptInput.focus();
-            });
+            }, { basePrompt: promptInput.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
@@ -400,14 +381,14 @@ const pexelsBtn = document.createElement('button');
   container.appendChild(formCard);
 
   const inlineInstructions = createInlineInstructions('character');
-  inlineInstructions.classList.add('max-w-lg', 'mt-6');
+  inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
   // ==========================================
   // EXPRESSION PRESETS
   // ==========================================
   const expressionSection = document.createElement('div');
-  expressionSection.className = 'w-full max-w-lg mt-6';
+  expressionSection.className = 'w-full mt-6';
   expressionSection.innerHTML = `
     <h3 class="text-sm font-bold text-white mb-3">Expression Presets</h3>
     <div class="flex gap-2 flex-wrap">
@@ -441,7 +422,7 @@ const pexelsBtn = document.createElement('button');
   // CHARACTER LIBRARY (from localStorage)
   // ==========================================
   const librarySection = document.createElement('div');
-  librarySection.className = 'w-full max-w-lg mt-6';
+  librarySection.className = 'w-full mt-6';
   const savedCharacters = JSON.parse(localStorage.getItem('character_library') || '[]');
   
   librarySection.innerHTML = `
@@ -482,7 +463,7 @@ const pexelsBtn = document.createElement('button');
   });
 
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-lg mt-6 hidden';
+  resultArea.className = 'w-full mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);

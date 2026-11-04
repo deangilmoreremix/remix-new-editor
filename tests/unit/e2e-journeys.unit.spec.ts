@@ -53,6 +53,13 @@ vi.mock('../../src/lib/editor/captionActions.js', () => ({
 }));
 
 vi.mock('../../src/lib/thumbnails.js', () => ({
+  createStudioHeader: vi.fn((_id, title = '', subtitle = '') => {
+    const el = document.createElement('div');
+    el.innerHTML = `<h1></h1><p></p>`;
+    el.querySelector('h1').textContent = title;
+    el.querySelector('p').textContent = subtitle;
+    return el;
+  }),
   getTemplateThumbnailCandidates: vi.fn((template) => ['/thumb.png']),
   saveCustomThumbnailToCache: vi.fn(),
   clearCustomThumbnailCache: vi.fn(),
@@ -512,25 +519,14 @@ describe('E2E User Journey Tests', () => {
       expect(browseHeader.textContent).toBe('CINEMATIC TEMPLATES');
     });
 
-    it('TemplateStudio has navigation header with studio links', async () => {
+    it('TemplateStudio has no studio menu of its own (side menu is the only one)', async () => {
       const element = TemplateStudio('restaurant-brand-film');
       container.innerHTML = '';
       container.appendChild(element);
       await wait(50);
 
-      // Verify nav buttons exist
-      const navBtns = container.querySelectorAll('[data-nav]');
-      expect(navBtns.length).toBeGreaterThan(5);
-
-      // Verify specific studio links
-      const cinemaBtn = Array.from(navBtns).find(btn => btn.dataset.nav === 'cinema');
-      expect(cinemaBtn).not.toBeNull();
-
-      const imageBtn = Array.from(navBtns).find(btn => btn.dataset.nav === 'image');
-      expect(imageBtn).not.toBeNull();
-
-      const videoBtn = Array.from(navBtns).find(btn => btn.dataset.nav === 'video');
-      expect(videoBtn).not.toBeNull();
+      expect(container.querySelectorAll('[data-nav]').length).toBe(0);
+      expect(container.querySelector('[data-studio-menu]')).toBeNull();
     });
 
     it('TemplateStudio back button navigates to templates', async () => {

@@ -3,74 +3,72 @@ import { fireEvent } from '@testing-library/dom';
 import { ImageStudio } from '../../src/components/ImageStudio.js';
 import { VideoStudio } from '../../src/components/VideoStudio.js';
 
+// The studios mount upstream Open-Generative-AI's own ModelDropdown (React,
+// copied into src/components/upstream-picker) inside a fixed host.
+
 function mount(factory) {
   const ret = factory();
   const p = ret && typeof ret.then === 'function' ? ret : Promise.resolve(ret);
   return p.then((container) => { document.body.appendChild(container); });
 }
 
-function expectPicker(root = document.body) {
-  const panel = root.querySelector('.model-picker-dropdown');
-  expect(panel, 'model-picker-dropdown not rendered').not.toBeNull();
-  expect(panel.querySelector('[data-provider="all"]'), 'All Providers sidebar item').not.toBeNull();
-  expect(panel.querySelectorAll('[data-provider]').length).toBeGreaterThan(1);
-  expect(panel.querySelector('input[type="text"]'), 'search box').not.toBeNull();
-  expect(panel.querySelector('[data-category]'), 'category tab').not.toBeNull();
-  expect(panel.querySelector('[data-entry-id]'), 'model entry').not.toBeNull();
-  return panel;
+const tabLabels = (host) =>
+  [...host.querySelectorAll('button')]
+    .filter((b) => /rounded-lg px-2\.5/.test(b.className))
+    .map((b) => b.textContent.trim());
+
+const modelRows = (host) =>
+  [...host.querySelectorAll('.cursor-pointer')].filter((r) => r.querySelector('span.tracking-tight'));
+
+function expectPicker() {
+  const host = document.querySelector('.upstream-model-picker');
+  expect(host, 'upstream model picker not rendered').not.toBeNull();
+  expect(host.textContent, 'MODEL header').toContain('Model');
+  expect(host.querySelector('[title="All Providers"]'), 'All Providers rail item').not.toBeNull();
+  expect(host.querySelector('input[type="text"]'), 'search box').not.toBeNull();
+  expect(modelRows(host).length, 'model entries').toBeGreaterThan(1);
+  return host;
 }
 
-describe('ImageStudio upstream model picker', () => {
-  beforeEach(() => {
-    document.body.innerHTML = '';
-    window.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {} });
-  });
-  afterEach(() => { document.body.innerHTML = ''; });
+async function pickRowAndExpectClosed(host, labelId) {
+  const row = modelRows(host)[1];
+  await fireEvent.click(row);
+  const label = document.getElementById(labelId);
+  expect(label.textContent.trim()).not.toBe('');
+  // The host unmounts on the next tick after the pick.
+  await new Promise((r) => setTimeout(r, 50));
+  expect(document.querySelector('.upstream-model-picker')).toBeNull();
+}
 
-  it('opens split-pane picker with sidebar/search/categories/entries, and selects a model', async () => {
+beforeEach(() => {
+  document.body.innerHTML = '';
+  window.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {} });
+  Element.prototype.scrollIntoView = Element.prototype.scrollIntoView || function () {};
+});
+afterEach(() => { document.body.innerHTML = ''; });
+
+describe('ImageStudio upstream model picker', () => {
+  it('opens the split-pane picker with upstream tabs, and selects a model', async () => {
     await mount(ImageStudio);
     const btn = document.getElementById('model-btn');
     expect(btn).not.toBeNull();
     await fireEvent.click(btn);
 
-    const panel = expectPicker();
-    const firstEntry = panel.querySelector('[data-entry-id]');
-    const name = (firstEntry.textContent || '').trim();
-    expect(name).not.toBe('');
-
-    await fireEvent.click(firstEntry);
-    const label = document.getElementById('model-btn-label');
-    expect(label.textContent).not.toBe('');
-    // Rich picker removes its portal after its 200ms close animation.
-    await new Promise((r) => setTimeout(r, 260));
-    expect(document.querySelector('.model-picker-dropdown')).toBeNull();
+    const host = expectPicker();
+    expect(tabLabels(host)).toEqual(['All', 'Text to Image', 'Image to Image']);
+    await pickRowAndExpectClosed(host, 'model-btn-label');
   }, 30000);
 });
 
 describe('VideoStudio upstream model picker', () => {
-  beforeEach(() => {
-    document.body.innerHTML = '';
-    window.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {} });
-  });
-  afterEach(() => { document.body.innerHTML = ''; });
-
-  it('opens split-pane picker with T2V/I2V/V2V categories; selecting updates label', async () => {
+  it('opens the split-pane picker with upstream T2V/I2V/Video Tools tabs, and selects a model', async () => {
     await mount(VideoStudio);
     const btn = document.getElementById('v-model-btn');
     expect(btn).not.toBeNull();
     await fireEvent.click(btn);
 
-    expectPicker();
-    const cats = [...document.body.querySelectorAll('[data-category]')].map((c) => c.getAttribute('data-category'));
-    expect(cats).toEqual(expect.arrayContaining(['t2v', 'i2v', 'v2v']));
-
-    const panel = document.body.querySelector('.model-picker-dropdown');
-    const firstEntry = panel.querySelector('[data-entry-id]');
-    const name = (firstEntry.textContent || '').trim();
-    await fireEvent.click(firstEntry);
-    const label = document.getElementById('v-model-btn-label');
-    expect(label.textContent).not.toBe('');
-    await new Promise((r) => setTimeout(r, 260));
-    expect(document.querySelector('.model-picker-dropdown')).toBeNull();
+    const host = expectPicker();
+    expect(tabLabels(host)).toEqual(['All', 'Text to Video', 'Image to Video', 'Video Tools']);
+    await pickRowAndExpectClosed(host, 'v-model-btn-label');
   }, 30000);
 });

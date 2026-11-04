@@ -8,10 +8,26 @@ import { ModelSelectorDropdown } from './ModelSelectorDropdown.jsx';
 import { t2iModels } from '../../lib/models.js';
 import { ThumbnailExploreIdeas } from './thumbnail-explore/ThumbnailExploreIdeas.jsx';
 import { ThumbnailTemplateGrid } from './thumbnail-explore/ThumbnailTemplateGrid.jsx';
-import { THUMBNAIL_TEMPLATES, getAllTemplates, getFeaturedTemplates } from '../../lib/thumbnailTemplateRegistry.js';
+import { THUMBNAIL_TEMPLATES, getAllTemplates, getFeaturedTemplates, getTemplateById } from '../../lib/thumbnailTemplateRegistry.js';
 import { ThumbnailConfigurator } from './thumbnail-explore/ThumbnailConfigurator.jsx';
 import { TONALITIES, getTonality } from '../../lib/tonalities.js';
 import { encodeGif } from '../../lib/gifEncoder.js';
+import { getPlatformSpec } from '../../lib/thumbnailPlatformSpecs.js';
+import '../../styles/thumbnail-studio.css';
+
+/**
+ * Pick the platform preset that matches a studio's aspect ratio so the
+ * Target Platform dropdown starts on something that fits the studio output.
+ */
+function platformForAspectRatio(ar) {
+  switch (ar) {
+    case '9:16': return 'youtube-shorts';
+    case '1:1': return 'instagram-post';
+    case '4:5': return 'instagram-post';
+    case '2:3': return 'pinterest';
+    default: return 'youtube';
+  }
+}
 
 /**
  * TemplateThumbnailModal — redesigned to match the GTM Boost modal design system.
@@ -58,11 +74,25 @@ export class TemplateThumbnailModal extends BaseModal {
     this.onApply = options.onApply || (() => {});
     this.onClear = options.onClear || (() => {});
 
+    // Studio identity. Studios open the panel without a `template`, so their
+    // own id / aspect ratio / output type must drive generation and saving —
+    // otherwise every studio generated 16:9 art and saved it under an empty
+    // template id (all studios overwrote the same row).
+    this.studioId = options.studioId || 'studio';
+    this.studioName = options.studioName || 'Studio';
+    this.studioOutputType = options.outputType || options.studioOutputType || this.template?.outputType || 'video';
+    this.defaultAspectRatio = this.template?.aspectRatio || options.aspectRatio || '16:9';
+    // Where the saved thumbnail is stored: the template being edited, or the studio.
+    this.targetId = this.template?.id || options.studioId || 'studio';
+    // Optional starting brief (e.g. the studio's current prompt or a GTM prompt).
+    this.seedBrief = typeof options.brief === 'string' ? options.brief : '';
+    this.saveNotice = '';
+
     this.thumbnailService = new ThumbnailService({
-      templateId: this.template?.id || '',
-      templateName: this.template?.name || 'Template',
-      aspectRatio: this.template?.aspectRatio || '16:9',
-      outputType: this.template?.outputType,
+      templateId: this.targetId,
+      templateName: this.template?.name || this.studioName,
+      aspectRatio: this.defaultAspectRatio,
+      outputType: this.studioOutputType,
       visualStyle: this.template?.visualStyle,
       cinematography: this.template?.cinematography,
       niche: this.template?.niche,
@@ -102,8 +132,11 @@ export class TemplateThumbnailModal extends BaseModal {
       background: openaiConfig.defaultConfig.thumbnailBackground,
       outputFormat: openaiConfig.defaultConfig.thumbnailFormat,
       outputCompression: openaiConfig.defaultConfig.thumbnailCompression,
-      aspectRatio: this.template?.aspectRatio || '16:9',
-      size: openaiConfig.defaultConfig.thumbnailDefaultSize,
+      aspectRatio: this.defaultAspectRatio,
+      // Leave size unset so the edge function derives it from the aspect
+      // ratio — an explicit size overrides the ratio server-side, which made
+      // every studio thumbnail 1792x1024 landscape.
+      size: undefined,
       moderation: openaiConfig.defaultConfig.thumbnailModeration,
     };
     this.referenceImage = null;
@@ -166,10 +199,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.gifHeight = 1024;
     this.gifDelayMs = 500;
     this.customSize = 'auto';
-    this.platform = 'youtube';
-    this.studioId = options.studioId || 'studio';
-    this.studioName = options.studioName || 'Studio';
-    this.studioOutputType = options.outputType || options.studioOutputType || 'video';
+    this.platform = options.platform || platformForAspectRatio(this.defaultAspectRatio);
     this.tonality = options.tonality || '';
     this.refineImageAction = 'auto';
     this.refineMaskB64 = '';
@@ -810,13 +840,15 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   _canGenerate() {
-    return Boolean(this.brief?.trim()) && (this.videoThumbEnabled || this.selectedVariantIndex >= 0);
+    // A drafted prompt variant is optional — selectedPromptText() falls back
+    // to the brief. Requiring a variant made the panel (which has no
+    // "Draft prompts" step) impossible to generate from its footer.
+    return Boolean(this.brief?.trim()) && !this.isGenerating;
   }
 
   _renderGenerateStatus() {
     const missing = [];
     if (!this.brief?.trim()) missing.push('Enter a thumbnail concept');
-    if (!this.videoThumbEnabled && this.selectedVariantIndex < 0) missing.push('Select a prompt variant');
     const message = missing.join(' and ') || 'Complete the steps above to continue';
     return `<span style="font-size:12px; color:var(--text-secondary); font-style:italic; text-align:center; display:block; padding:8px 0;">${message}</span>`;
   }
@@ -842,6 +874,13 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   updateBody(content) {
+    // Panel layout has no BaseModal `.modal-body`; every shared action
+    // (setLoading / setError / goGenerate …) re-renders through here, so
+    // route it to the drawer instead of silently doing nothing.
+    if (this.layout === 'panel') {
+      if (this._panel) this._refreshPanel();
+      return undefined;
+    }
     if (this._modelDropdown) {
       this._modelDropdown.destroy();
       this._modelDropdown = null;
@@ -941,10 +980,12 @@ export class TemplateThumbnailModal extends BaseModal {
     if (config?.platform) this.platform = config.platform;
 
     this.thumbnailService = new ThumbnailService({
-      templateId: template?.id || '',
-      templateName: template?.name || 'Template',
-      aspectRatio: template?.aspectRatio || this.controls.aspectRatio || '16:9',
-      outputType: template?.outputType,
+      // Keep saving under the studio/template the panel was opened for —
+      // a design is only a starting style, not a new save target.
+      templateId: this.targetId || template?.id || '',
+      templateName: template?.name || this.studioName || 'Template',
+      aspectRatio: this.controls.aspectRatio || template?.aspectRatio || this.defaultAspectRatio,
+      outputType: template?.outputType || this.studioOutputType,
       visualStyle: template?.visualStyle,
       cinematography: template?.cinematography,
       niche: template?.niche,
@@ -1030,8 +1071,37 @@ export class TemplateThumbnailModal extends BaseModal {
     }
   }
 
+  /** Sync the Target Platform choice into aspect ratio and the service. */
+  _applyPlatform() {
+    const spec = getPlatformSpec(this.platform);
+    if (spec?.aspectRatio) this.controls = { ...this.controls, aspectRatio: spec.aspectRatio };
+    this.thumbnailService?.setPlatform?.(this.platform || null);
+  }
+
+  /** Push brand-kit + platform state onto the service right before a call. */
+  _syncServiceContext() {
+    if (!this.thumbnailService) return;
+    this.thumbnailService.setPlatform?.(this.platform || null);
+    this.thumbnailService.setBrandKit?.(this.brandKitEnabled ? {
+      brandName: this.brandName || this.studioName,
+      primaryColor: this.primaryColor || this.appColors.primary,
+      secondaryColor: this.secondaryColor || this.appColors.accent,
+      font: 'Inter',
+      logoUrl: this.logoUrl || undefined,
+    } : null);
+  }
+
+  _refreshFooter() {
+    if (!this._panel || !this._footer) return;
+    const next = this._renderPanelFooter();
+    next.classList.add('thumb-panel-footer');
+    if (this._footer.parentNode === this._panel) this._panel.replaceChild(next, this._footer);
+    this._footer = next;
+  }
+
   async goGenerate() {
     this.clearError();
+    this._syncServiceContext();
     const promptText = document.getElementById('thumb-prompt')?.value || this.selectedPromptText();
     const startTime = performance.now();
     this.setLoading('Generating candidates…');
@@ -1127,7 +1197,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.preset = preset;
     this.presetKey = presetKey;
     this.brief = applyPresetToBrief(preset, this.buildInitialBrief());
-    this.controls = applyPresetToControls(preset, { ...this.controls, aspectRatio: this.template?.aspectRatio || '16:9' });
+    this.controls = applyPresetToControls(preset, { ...this.controls, aspectRatio: this.template?.aspectRatio || this.defaultAspectRatio });
     this.updateBody(this.renderBody());
   }
 
@@ -1734,7 +1804,7 @@ export class TemplateThumbnailModal extends BaseModal {
     body.querySelectorAll('[data-action="select-design"]').forEach((card) => {
       card.addEventListener('click', () => {
         const id = card.getAttribute('data-id');
-        const tpl = THUMBNAIL_TEMPLATES[id];
+        const tpl = getTemplateById(id);
         if (!tpl) return;
         this.pendingTemplate = tpl;
         this.step = 'configure';
@@ -1986,16 +2056,35 @@ export class TemplateThumbnailModal extends BaseModal {
     this.refineMessages = [];
     this.refineChatResponseId = '';
 
-    this.preset = getPresetForTemplate(this.template);
-    this.presetKey = this.preset.key;
-    this.brief = applyPresetToBrief(this.preset, this.brief);
-    this.controls = applyPresetToControls(this.preset, { ...this.controls, aspectRatio: this.template?.aspectRatio || '16:9' });
+    this._applyInitialPreset();
 
     super.open();
   }
 
+  /**
+   * Pick the opening preset for this template/studio and apply it.
+   * Presets carry their own aspect ratio (the default "cinematic" one is
+   * 16:9), so for a studio we restore the studio's ratio afterwards —
+   * otherwise a 1:1 or 9:16 studio always generated widescreen art.
+   */
+  _applyInitialPreset() {
+    let preset = getPresetForTemplate(this.template);
+    if (!this.template) {
+      const byKey = (key) => PRESET_LIST.find((p) => p.key === key);
+      if (this.defaultAspectRatio === '9:16') preset = byKey('vertical') || preset;
+      else if (this.studioOutputType !== 'video') preset = byKey('boldText') || preset;
+    }
+    this.preset = preset;
+    this.presetKey = preset.key;
+    this.brief = applyPresetToBrief(preset, this.brief);
+    this.controls = applyPresetToControls(preset, { ...this.controls });
+    this.controls.aspectRatio = this.template
+      ? (this.template.aspectRatio || preset.controls?.aspectRatio || '16:9')
+      : this.defaultAspectRatio;
+  }
+
   buildInitialBrief() {
-    if (!this.template) return '';
+    if (!this.template) return this.seedBrief || '';
     const t = this.template;
     const parts = [
       `Template: ${t.name}`,
@@ -2044,7 +2133,8 @@ export class TemplateThumbnailModal extends BaseModal {
 
   // Override open() to render as side panel instead of modal
   _openPanel() {
-        this._error = null;
+    this._error = null;
+    this.saveNotice = '';
     this.step = 'brief';
     this.brief = this.buildInitialBrief();
     this.candidates = [];
@@ -2084,7 +2174,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.imageDetail = openaiConfig.defaultConfig.thumbnailImageDetail;
     this.moderation = openaiConfig.defaultConfig.thumbnailModeration;
     this.controls.moderation = this.moderation;
-    this.customSize = openaiConfig.defaultConfig.thumbnailDefaultSize;
+    this.customSize = 'auto';
     this.referenceImage = null;
     this.referenceImages = [];
     this.partialPreview = null;
@@ -2095,13 +2185,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.refineChatResponseId = '';
     this._exploreInstance = null;
 
-    this.preset = getPresetForTemplate(this.template);
-    this.presetKey = this.preset.key;
-    this.brief = applyPresetToBrief(this.preset, this.brief);
-    this.controls = applyPresetToControls(this.preset, {
-      ...this.controls,
-      aspectRatio: this.template?.aspectRatio || '16:9',
-    });
+    this._applyInitialPreset();
 
     // Create overlay
     this._overlay = document.createElement('div');
@@ -2117,12 +2201,19 @@ export class TemplateThumbnailModal extends BaseModal {
     this._panel.style.setProperty('--app-accent', accent);
     this._panel.style.setProperty('--app-soft', this.hexToRgba(primary, 0.12));
     this._panel.style.setProperty('--app-soft-accent', this.hexToRgba(accent, 0.12));
+    this._panel.style.setProperty('--thumb-on-primary', this.appColors.onPrimary || '#05070b');
+    this._panel.setAttribute('role', 'dialog');
+    this._panel.setAttribute('aria-modal', 'true');
+    this._panel.setAttribute('aria-label', `Thumbnail Studio — ${this.template?.name || this.studioName}`);
 
     // Header
     const header = document.createElement('div');
     header.className = 'thumb-panel-header';
     header.innerHTML = `
-      <h3 class="thumb-panel-title">🎬 Thumbnail Studio</h3>
+      <div>
+        <h3 class="thumb-panel-title">🎬 Thumbnail Studio</h3>
+        <span class="thumb-panel-studio">${this.escapeHtml(this.template?.name || this.studioName)}</span>
+      </div>
       <button class="thumb-panel-close" aria-label="Close thumbnail panel">&times;</button>
     `;
     header.querySelector('.thumb-panel-close').addEventListener('click', () => this.close());
@@ -2180,6 +2271,11 @@ export class TemplateThumbnailModal extends BaseModal {
     // Keyboard shortcuts
     if (this._boundKeydown) document.removeEventListener('keydown', this._boundKeydown);
     this._boundKeydown = (e) => {
+      if (e.key === 'Escape' && !this.isGenerating) {
+        e.preventDefault();
+        this.close();
+        return;
+      }
       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         if (this.step === 'refine' && !this.isGenerating) {
@@ -2264,8 +2360,9 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   _renderStepIndicator() {
-    const steps = ['Explore', 'Brief', 'Configure', 'Generate', 'Refine', 'Text Overlay', 'Saved'];
-    const currentIndex = steps.indexOf(this.step);
+    const steps = ['Brief', 'Generate', 'Refine', 'Text', 'Saved'];
+    const stepMap = { explore: 0, configure: 0, brief: 0, generate: 1, refine: 2, textoverlay: 3, saved: 4 };
+    const currentIndex = stepMap[this.step] ?? 0;
 
     const indicator = document.createElement('div');
     indicator.className = 'thumb-step-indicator';
@@ -2273,7 +2370,7 @@ export class TemplateThumbnailModal extends BaseModal {
     steps.forEach((label, i) => {
       const step = document.createElement('div');
       step.className = 'thumb-step';
-      step.textContent = i + 1;
+      step.textContent = i < currentIndex ? `✓ ${label}` : label;
       if (i < currentIndex) step.classList.add('done');
       if (i === currentIndex) step.classList.add('active');
       step.title = label;
@@ -2364,8 +2461,28 @@ export class TemplateThumbnailModal extends BaseModal {
     body.className = 'thumb-form';
 
     if (this._error) {
-      body.innerHTML = `<div class="error-message" role="alert">⚠ ${this._error}</div>`;
-      return body;
+      // Show the error above the current step instead of replacing it, so
+      // the user can fix the brief / settings and retry without reopening.
+      const banner = document.createElement('div');
+      banner.className = 'error-message';
+      banner.setAttribute('role', 'alert');
+      banner.innerHTML = `<span>⚠ ${this.escapeHtml(this._error)}</span>`;
+      const dismiss = document.createElement('button');
+      dismiss.type = 'button';
+      dismiss.className = 'thumb-action-btn thumb-action-secondary';
+      dismiss.textContent = 'Dismiss';
+      dismiss.style.alignSelf = 'flex-start';
+      dismiss.addEventListener('click', () => { this.clearError(); this._refreshPanel(); });
+      banner.appendChild(dismiss);
+      body.appendChild(banner);
+    }
+
+    if (this.saveNotice && this.step === 'saved') {
+      const notice = document.createElement('div');
+      notice.className = 'thumb-notice';
+      notice.setAttribute('role', 'status');
+      notice.textContent = this.saveNotice;
+      body.appendChild(notice);
     }
 
     if (this.isGenerating) {
@@ -2666,6 +2783,7 @@ export class TemplateThumbnailModal extends BaseModal {
       
       const cta = container.querySelector('#thumb-brief-cta');
       if (cta) cta.disabled = !e.target.value.trim() || this.isGenerating;
+      if (hadContent !== hasContent) this._refreshFooter();
     });
 
     const exploreBtn = container.querySelector('[data-action="explore-ideas"]');
@@ -2681,7 +2799,7 @@ export class TemplateThumbnailModal extends BaseModal {
     container.querySelectorAll('[data-action="select-design"]').forEach((card) => {
       card.addEventListener('click', () => {
         const id = card.getAttribute('data-id');
-        const tpl = THUMBNAIL_TEMPLATES[id];
+        const tpl = getTemplateById(id);
         if (!tpl) return;
         this.pendingTemplate = tpl;
         this.step = 'configure';
@@ -2720,6 +2838,7 @@ export class TemplateThumbnailModal extends BaseModal {
     const platformSelect = container.querySelector('#thumb-platform');
     platformSelect.addEventListener('change', (e) => {
       this.platform = e.target.value;
+      this._applyPlatform();
     });
 
     // Tonality (writing style) select — only present in _renderBriefForm
@@ -2940,7 +3059,8 @@ export class TemplateThumbnailModal extends BaseModal {
    * the three fixed sizes plus "auto".
    */
   _buildSizeOptions(opts) {
-    const all = opts.customSizes;
+    // 'auto' = derive the size from the aspect ratio / platform.
+    const all = ['auto', ...(opts.customSizes || []).filter((x) => x !== 'auto')];
     if (this.model === 'gpt-image-2') return all;
     return ['auto', '1024x1024', '1536x1024', '1024x1536'];
   }
@@ -3553,13 +3673,27 @@ export class TemplateThumbnailModal extends BaseModal {
       this.savedPromptUsed = selected.revised_prompt || this.brief;
       this.completedAt = result?.job?.completedAt || new Date().toISOString();
       this.revisedPrompt = selected.revised_prompt || '';
+      this.saveNotice = '';
       this.step = 'saved';
       this.isGenerating = false;
       this._refreshPanel();
       this.enableApplyButton();
     } catch (err) {
+      // Cloud save needs a signed-in user + storage. When it is unavailable,
+      // still hand the generated image back to the studio so the user does
+      // not lose the thumbnail they just paid to generate.
+      const reason = err instanceof Error ? err.message : 'Save failed';
+      console.warn('[thumbnail] cloud save failed, applying locally:', reason);
+      this.savedImageUrl = selected.dataUrl || ThumbnailService.b64ToDataUrl(selected.b64_json);
+      this.savedPromptUsed = selected.revised_prompt || this.brief;
+      this.completedAt = new Date().toISOString();
+      this.revisedPrompt = selected.revised_prompt || '';
+      this.saveNotice = /auth/i.test(reason)
+        ? 'Saved on this device only — sign in to keep it in your library.'
+        : `Saved on this device only (cloud save failed: ${reason}).`;
+      this.step = 'saved';
       this.isGenerating = false;
-      this.setError(err instanceof Error ? err.message : 'Save failed');
+      this._error = null;
       this._refreshPanel();
     }
   }
@@ -3569,9 +3703,11 @@ export class TemplateThumbnailModal extends BaseModal {
   _renderLoading() {
     const container = document.createElement('div');
     container.style.cssText = 'display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px;';
+    const message = this.escapeHtml(this.generationMessage || 'Generating thumbnails…');
     container.innerHTML = `
+      ${this.partialPreview ? `<img src="${this.partialPreview}" alt="Generating preview" style="width:100%; border-radius:12px; opacity:0.85;" />` : ''}
       <div class="loading-spinner"></div>
-      <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Generating thumbnails...</p>
+      <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">${message}</p>
     `;
     return container;
   }
@@ -3587,7 +3723,7 @@ export class TemplateThumbnailModal extends BaseModal {
       } else {
         this.controls = {
           ...this.controls,
-          size: this.customSize && this.customSize !== 'auto' ? this.customSize : (this.controls.size || undefined),
+          size: this.customSize && this.customSize !== 'auto' ? this.customSize : undefined,
           moderation: this.controls.moderation,
         };
         this.partialImages = this.partialImages;
@@ -3609,6 +3745,7 @@ export class TemplateThumbnailModal extends BaseModal {
 
   async _generateVideoThumbnail() {
     this.clearError();
+    this._syncServiceContext();
     const promptText = document.getElementById('thumb-brief')?.value || this.brief;
     this.isGenerating = true;
     this.candidates = [];
@@ -3844,10 +3981,7 @@ export class TemplateThumbnailModal extends BaseModal {
         statusMsg.style.color = 'var(--text-secondary)';
         statusMsg.style.fontStyle = 'italic';
         
-        const missing = [];
-        if (!this.brief?.trim()) missing.push('Enter a thumbnail concept');
-        if (!this.videoThumbEnabled && this.selectedVariantIndex < 0) missing.push('Select a prompt variant');
-        statusMsg.textContent = missing.join(' and ') || 'Complete the steps above to continue';
+        statusMsg.textContent = this.isGenerating ? 'Generating…' : 'Describe your thumbnail to continue';
         footer.appendChild(statusMsg);
       }
     } else if (this.step === 'generate') {
