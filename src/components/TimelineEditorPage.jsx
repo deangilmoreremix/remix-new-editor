@@ -19,12 +19,31 @@ import AIChatPanel from './timeline/AIChatPanel.js';
 import TIMELINE_DESIGN_SYSTEM, { enforceDesignSystem } from '../lib/designSystemEnforcer.js';
 import { createVideoPreview, addVideoErrorRecovery } from '../lib/videoPlayer.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import {
+  getAddon, isAddonType, createAddonClip, addonOptions, clipTimeRange, AddonRuntime,
+  INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
+  ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
+  defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
+  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
+  setOverlayPlaying, syncOverlayTime, playInAnimation,
+  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
+  OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT, CTA_COLOR_THEMES, ctaColorParts,
+  BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
+  openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES, resolveOverlayText,
+} from '../lib/editor/addons/index.js';
+import { TOKEN_DEFS } from './personalize/tokenSchema.js';
+import { renderSmartSpeech } from '../lib/editor/agent/smartSpeech.js';
+import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
+import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
+import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../lib/pexelsApi.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
 // project-root path 404s in production because Vite never copies unreferenced
 // files into the build output.
 import '../../styles/timeline-tokens.css';
 import '../../styles/timeline-editor-page.css';
+import '../../styles/timeline-addons.css';
 // Import rendiv animation primitives
 import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } from '../lib/editor/animationControls.jsx';
 // Agent system integration
@@ -414,6 +433,7 @@ export function TimelineEditorPage() {
           <div class="viewer">
             <div class="viewer-stage" id="viewerStage">
               <div class="viewer-frame" id="viewerFrame">
+                <div class="remotion-stage" id="remotionStage" aria-label="Video preview"></div>
                 <div class="preview-stage" id="previewStage"></div>
                 <div class="mask-overlay" id="maskOverlay" hidden></div>
                 <div class="vf-gradient"></div>
@@ -536,6 +556,36 @@ export function TimelineEditorPage() {
 
       <!-- Hidden editor panels (accessible from floating rail) -->
       <aside class="side-card" id="sceneDetectorPanel" hidden><div id="sceneDetectorContainer"></div></aside>
+      <aside class="side-card" id="interactivePanel" hidden data-tooltip="Interactive - Video controls and lead generation">
+        <div class="card-title">⚡ Interactive</div>
+        <div id="interactiveAddonList"></div>
+        <div id="listBuilderSettings" class="addon-panel__optin" hidden></div>
+      </aside>
+      <aside class="side-card" id="overlaysPanel" hidden data-tooltip="Overlays - Text, images and stickers over the video">
+        <div class="card-title">🧩 Overlays</div>
+        <div id="overlayAddonList"></div>
+        <div class="addon-panel__section" id="overlayPresets"></div>
+      </aside>
+      <aside class="side-card" id="blendPanel" hidden data-tooltip="Blend Modes - light leaks, bokeh, textures and colour washes blended over the video">
+        <div class="card-title">🌈 Blend Modes</div>
+        <div id="blendLibrary"></div>
+      </aside>
+      <aside class="side-card" id="speechPanel" hidden data-tooltip="Smart Speech - AI voice lines, personalized with each viewer's name">
+        <div class="card-title">🗣️ Smart Speech</div>
+        <div id="speechBody"></div>
+      </aside>
+      <aside class="side-card" id="stockPanel" hidden data-tooltip="Stock media - Pixabay and Pexels videos and images">
+        <div class="card-title">🎬 Stock Media</div>
+        <div id="stockBrowser"></div>
+      </aside>
+      <aside class="side-card" id="sharePanel" hidden data-tooltip="Share - publish an interactive video link and embed code">
+        <div class="card-title">🔗 Share</div>
+        <div id="shareBody"></div>
+      </aside>
+      <aside class="side-card" id="aiAgentPanel" hidden data-tooltip="AI Agent - describe a video or animation and the agent builds it">
+        <div class="card-title">🤖 AI Agent</div>
+        <div id="aiAgentChat"></div>
+      </aside>
       <aside class="side-card" id="cameraEffectsPanel" hidden>
         <div id="cameraEffectsContainer"></div>
         <div class="camera-effects-quick">
@@ -690,6 +740,15 @@ export function TimelineEditorPage() {
         ['＋', 'Media'],
         ['✨', 'Generate', true],
         ['⬆', 'Export'],
+        ['⚡', 'Interactive'],
+        ['🧩', 'Overlays'],
+        ['🌈', 'Blend Modes'],
+        ['🏁', 'End Screens'],
+        ['📇', 'Connect Form'],
+        ['🗣️', 'Smart Speech'],
+        ['🎞️', 'Stock Media'],
+        ['🤖', 'AI Agent'],
+        ['🔗', 'Share'],
         ['🎬', 'Scene Detector'],
         ['🎥', 'Camera FX'],
         ['📊', 'Color Scopes'],
@@ -903,6 +962,10 @@ export function TimelineEditorPage() {
         const projectData = JSON.parse(saved);
 
         const state = { ...createState(), ...projectData };
+        // The floating rail is UI configuration, not project data: a saved
+        // project must not pin an old button list (it would hide rail
+        // entries added since, such as Interactive).
+        state.railActions = createState().railActions;
         // Ensure tracks is always an array
         if (!Array.isArray(state.tracks)) {
           state.tracks = createState().tracks;
@@ -1147,6 +1210,20 @@ export function TimelineEditorPage() {
       progressFill: root.querySelector('#progressFill'),
       vfSubtitle: root.querySelector('#vfSubtitle'),
       previewStage: root.querySelector('#previewStage'),
+      viewerFrame: root.querySelector('#viewerFrame'),
+      remotionStage: root.querySelector('#remotionStage'),
+      interactivePanel: root.querySelector('#interactivePanel'),
+      interactiveAddonList: root.querySelector('#interactiveAddonList'),
+      overlaysPanel: root.querySelector('#overlaysPanel'),
+      blendPanel: root.querySelector('#blendPanel'),
+      blendLibrary: root.querySelector('#blendLibrary'),
+      speechPanel: root.querySelector('#speechPanel'),
+      speechBody: root.querySelector('#speechBody'),
+      overlayAddonList: root.querySelector('#overlayAddonList'),
+      overlayPresets: root.querySelector('#overlayPresets'),
+      stockPanel: root.querySelector('#stockPanel'),
+      stockBrowser: root.querySelector('#stockBrowser'),
+      listBuilderSettings: root.querySelector('#listBuilderSettings'),
       previewEmpty: root.querySelector('#previewEmpty'),
       playheadLine: root.querySelector('#playheadLine'),
       playheadKnob: root.querySelector('#playheadKnob'),
@@ -1441,10 +1518,31 @@ export function TimelineEditorPage() {
     }
 
     function renderPreviewAsset(selected) {
+      // Remotion engine: the Player shows the whole composition, so media,
+      // text and overlay clips need no separate single-clip preview.
+      // Interactive cards (Lead Generator, CTA, Pause/Loop/Skip) still render
+      // on top, since they are live UI rather than video pixels.
+      if (remotionEngine && (!selected || isComposited(selected))) {
+        clearPreviewStage();
+        els.previewEmpty.style.display = engineHasContent() ? 'none' : 'flex';
+        renderOverlayLayer();
+        return;
+      }
       if (!selected) {
         clearPreviewStage();
         els.previewEmpty.style.display = 'flex';
         if (els.vfSubtitle) els.vfSubtitle.textContent = 'Your story starts here.';
+        return;
+      }
+
+      // Overlays (Smart Text, Image, Stickers, ...) are drawn by the overlay
+      // compositor on top of the video, so selecting one shows the video
+      // clip under the playhead rather than replacing it.
+      if (getAddon(selected.type)?.category === 'overlay') {
+        const base = findBaseClipAtPlayhead();
+        if (base) renderPreviewAsset(base);
+        else if (!els.previewStage.firstElementChild) els.previewEmpty.style.display = 'none';
+        renderOverlayLayer();
         return;
       }
 
@@ -1542,6 +1640,24 @@ export function TimelineEditorPage() {
         return;
       }
 
+      // Behaviour-only addons (Skip / Pause / Loop) have nothing to draw on
+      // the video; in the editor they show a card naming what they do, like
+      // upstream's track-event label ("Pause forever", "Loop: 2", "Skip").
+      const schemaAddon = getAddon(selected.type);
+      if (schemaAddon && !schemaAddon.flatOptions) {
+        const opts = addonOptions(selected);
+        const card = document.createElement('div');
+        card.className = 'preview-addon-card';
+        card.dataset.clipId = selected.id;
+        card.innerHTML = `
+          ${schemaAddon.iconSrc ? `<img src="${escapeHtml(schemaAddon.iconSrc)}" alt="" />` : `<span aria-hidden="true">${schemaAddon.icon}</span>`}
+          <strong>${escapeHtml(schemaAddon.summary ? schemaAddon.summary(opts) : schemaAddon.label)}</strong>
+          <span>${escapeHtml(schemaAddon.description || '')}</span>
+        `;
+        els.previewStage.appendChild(card);
+        return;
+      }
+
       if (selected.type === 'lead-form') {
         const card = document.createElement('div');
         const fields = Array.isArray(selected.fields) && selected.fields.length
@@ -1575,19 +1691,28 @@ export function TimelineEditorPage() {
 
         const style = selected.style || {};
         const captionAlign = style.captionAlignment || 'center';
+        const fieldTokens = leadFieldTokens(fields);
 
         card.innerHTML = `
           <form class="preview-lead-form">
             ${selected.brandLogoUrl ? `<img class="preview-form-logo" src="${escapeHtml(selected.brandLogoUrl)}" alt="" />` : ''}
             ${heading ? `<h3 class="preview-form-heading" style="text-align:${captionAlign};${style.captionFontSize ? `font-size:${style.captionFontSize}%;` : ''}">${escapeHtml(heading)}</h3>` : ''}
             <div class="preview-form-fields">
-            ${fields.map((f) => {
+            ${fields.map((f, i) => {
               const varKey = FIELD_TOKEN_ALIASES[f.id] || f.id;
               const prefill = activeProfile?.variables?.[varKey];
               const prefillStr = prefill ? escapeHtml(String(prefill)) : '';
+              // Upstream form.js parity: answers are keyed by the field's
+              // token (upper-cased label), single-line inputs cap at 80
+              // chars and multiline at 250, Number is digits-only text, and
+              // fields are optional unless marked required.
+              const token = escapeHtml(fieldTokens[i]);
+              const req = f.required ? ' required' : '';
               const fieldInput = f.type === 'multiline'
-                ? `<textarea name="${f.id}" placeholder="${escapeHtml(f.label || '')}" rows="3" required>${prefillStr}</textarea>`
-                : `<input type="${inputType(f.type)}" name="${f.id}" placeholder="${escapeHtml(f.label || '')}"${prefillStr ? ` value="${prefillStr}"` : ''} required />`;
+                ? `<textarea name="${token}" placeholder="${escapeHtml(f.label || '')}" rows="3" maxlength="250"${req}>${prefillStr}</textarea>`
+                : f.type === 'number'
+                  ? `<input type="text" inputmode="numeric" pattern="\\d*" maxlength="80" data-digits-only name="${token}" placeholder="${escapeHtml(f.label || '')}"${prefillStr ? ` value="${prefillStr}"` : ''}${req} />`
+                  : `<input type="${inputType(f.type)}" name="${token}" placeholder="${escapeHtml(f.label || '')}"${f.type === 'email' || f.type === 'date' ? '' : ' maxlength="80"'}${prefillStr ? ` value="${prefillStr}"` : ''}${req} />`;
               return `
               <div class="preview-form-field">
                 <label>${escapeHtml(f.label || f.type)}</label>
@@ -1609,7 +1734,8 @@ export function TimelineEditorPage() {
           card.style.backgroundSize = 'cover';
           card.style.backgroundPosition = 'center';
         } else if (style.backgroundColor) {
-          card.style.background = style.backgroundColor;
+          // Upstream form background: radial gradient of the chosen colour.
+          card.style.background = formBackground({ backgroundColor: style.backgroundColor });
         }
         if (style.fontFamily) {
           ensureGoogleFontLoaded(style.fontFamily);
@@ -1636,6 +1762,12 @@ export function TimelineEditorPage() {
         }
         els.previewStage.appendChild(card);
 
+        card.querySelectorAll('[data-digits-only]').forEach((input) => {
+          input.addEventListener('input', () => {
+            input.value = input.value.replace(/[^0-9]/g, '');
+          });
+        });
+
         const skipBtn = card.querySelector('.preview-form-skip');
         if (skipBtn) {
           skipBtn.addEventListener('click', () => {
@@ -1643,6 +1775,7 @@ export function TimelineEditorPage() {
             card.addEventListener('animationend', () => {
               card.style.display = 'none';
             }, { once: true });
+            selected._gating = false;
             if (!state.playing) togglePlayback();
           });
         }
@@ -1659,33 +1792,35 @@ export function TimelineEditorPage() {
             const downloadBtn = els.clipEditorContainer.querySelector('#lf-download-leads');
             if (downloadBtn) {
               downloadBtn.disabled = false;
-              downloadBtn.textContent = `Download leads (${selected._submittedLeads.length})`;
+              downloadBtn.textContent = `Download leads (${selected._submittedLeads.length} this session)`;
             }
           }
 
-          const webhookUrls = selected.webhookEnabled
-            ? [selected.webhookUrl, selected.webhookUrl2, selected.webhookUrl3].filter(Boolean)
-            : [];
-          if (webhookUrls.length) {
-            const results = await Promise.allSettled(webhookUrls.map((url) => fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(data),
-            })));
-            const failed = results.filter((r) => r.status === 'rejected').length;
-            showToast(
-              failed ? `Submitted, but ${failed}/${webhookUrls.length} webhook(s) failed` : 'Form submitted to webhook',
-              failed ? 'error' : 'success',
-            );
-          } else {
-            showToast('Form submitted (no webhook configured — this is a preview)', 'info');
-          }
+          // Stored via the lead-capture edge function (which forwards the
+          // webhooks server-side); falls back to browser-side webhook POSTs
+          // when the backend is unreachable.
+          const res = await captureLead({
+            clipId: selected.id,
+            kind: 'lead-form',
+            data,
+            config: selected,
+            notificationEmail: selected.emailNotificationEnabled ? selected.notificationEmail : '',
+          });
+          const lastLead = selected._submittedLeads[selected._submittedLeads.length - 1];
+          if (lastLead) lastLead._stored = !!res.stored;
+          showToast(
+            leadResultMessage(res, selected.emailNotificationEnabled && selected.notificationEmail),
+            res.failed ? 'error' : 'success',
+          );
 
-          if (selected.emailNotificationEnabled && selected.notificationEmail) {
-            // No backend mail service is wired into this fork — there is no
-            // client-side mechanism that can actually deliver an email, so
-            // this is surfaced honestly rather than faked as "sent".
-            showToast(`Email notification to ${selected.notificationEmail} configured, but no email service is connected yet`, 'info');
+          // Upstream form: once submitted it never shows again, and a form
+          // that paused the video resumes it.
+          selected._submitted = true;
+          addonRuntime.markSubmitted(selected.id);
+          if (selected._gating) {
+            selected._gating = false;
+            card.classList.add('preview-form-card--exit');
+            if (!state.playing) togglePlayback();
           }
 
           if (selected.fbPixelId) {
@@ -1700,27 +1835,45 @@ export function TimelineEditorPage() {
       }
 
       if (selected.type === 'click-to-call') {
-        // Intentionally a plain <a href="tel:..."> styled with CSS, not a
-        // Lottie animation like upstream's json-button plugin. Decided
-        // against porting Lottie support: upstream's animated button has
-        // no real href at all (a decorative click-away overlay), while a
-        // native tel: link is a strictly more functional call-to-action,
-        // and this avoids an ongoing per-clip Lottie-asset authoring
-        // burden for a general-purpose clip type. This is the permanent
-        // design, not a placeholder pending a future upgrade.
+        // A real <a href="tel:…"> / https link. The button itself is either
+        // the plain CSS pill or an animated Lottie (upstream json-button):
+        // generated styles from ctaLottie.js, or the user's own Lottie file.
         const ctcStyle = selected.style || {};
         const wrap = document.createElement('div');
         wrap.className = 'preview-click-to-call';
         wrap.dataset.clipId = selected.id;
-        const valid = isValidPhoneNumber(selected.phoneNumber);
-        const telHref = valid ? `tel:${(selected.phoneNumber || '').replace(/[^0-9+]/g, '')}` : '#';
+        // Upstream json-button's single "URL (Call-to-action)" accepted a
+        // phone number or a web link; here a valid phone number wins, else
+        // an http(s) link opens in a new tab.
+        const phoneValid = isValidPhoneNumber(selected.phoneNumber);
+        const linkValid = !phoneValid && isValidCtaLink(selected.linkUrl);
+        const valid = phoneValid || linkValid;
+        const telHref = phoneValid
+          ? `tel:${(selected.phoneNumber || '').replace(/[^0-9+]/g, '')}`
+          : linkValid ? escapeHtml(selected.linkUrl.trim()) : '#';
         wrap.innerHTML = `
-          <a class="preview-call-btn ${valid ? '' : 'preview-call-btn--invalid'}" href="${telHref}"${valid ? '' : ' aria-disabled="true" title="Enter a valid phone number in the clip settings"'}${ctcStyle.buttonColor ? ` style="background:${ctcStyle.buttonColor}"` : ''}>
-            📞 ${selected.buttonText || 'Call Now'}
+          <a class="preview-call-btn ${valid ? '' : 'preview-call-btn--invalid'}" href="${telHref}"${linkValid ? ' target="_blank" rel="noopener noreferrer"' : ''}${valid ? '' : ' aria-disabled="true" title="Enter a valid phone number or link in the clip settings"'}${ctcStyle.buttonColor ? ` style="background:${escapeHtml(ctcStyle.buttonColor)}"` : ''}>
+            ${linkValid ? '🔗' : '📞'} ${escapeHtml(selected.buttonText || 'Call Now')}
           </a>
         `;
         if (!valid) {
           wrap.querySelector('a').addEventListener('click', (e) => e.preventDefault());
+        }
+        const ctaAnim = selected.animation || 'none';
+        if (ctaAnim !== 'none') {
+          const a = wrap.querySelector('a');
+          a.classList.add('preview-call-btn--lottie');
+          a.innerHTML = `<span class="cta-lottie" aria-label="${escapeHtml(selected.buttonText || 'Call Now')}"></span>`;
+          wrap.style.aspectRatio = String(CTA_ASPECT);
+          const host = a.firstElementChild;
+          (async () => {
+            const lottie = (await import('lottie-web')).default;
+            let data = ctaAnim === 'custom' ? null : buildCtaLottie({ ...selected, buttonColor: ctcStyle.buttonColor });
+            if (ctaAnim === 'custom' && selected.lottieSrc) {
+              try { data = await (await fetch(selected.lottieSrc)).json(); } catch { data = null; }
+            }
+            if (data && host.isConnected) lottie.loadAnimation({ container: host, renderer: 'svg', loop: true, autoplay: true, animationData: data });
+          })();
         }
 
         // Positioning within the frame (% of the preview stage), matching
@@ -1805,6 +1958,16 @@ export function TimelineEditorPage() {
     // Shared with the click-to-call settings panel for live validation
     // feedback. Pattern matches upstream json-button.js's phoneRegex
     // (country-code prefix, optional parenthesized area code, 10-14 digits).
+    function isValidCtaLink(value) {
+      if (!value) return false;
+      try {
+        const url = new URL(String(value).trim());
+        return url.protocol === 'https:' || url.protocol === 'http:';
+      } catch {
+        return false;
+      }
+    }
+
     function isValidPhoneNumber(value) {
       if (!value) return false;
       return /^(\+[0-9\s]*-?)?(\([0-9\s]*\))?[0-9-.\s]{10,14}$/.test(value.trim());
@@ -1984,6 +2147,11 @@ export function TimelineEditorPage() {
       const tbNow = root.querySelector('.time-readout .time-now');
       if (tbNow) tbNow.textContent = mm + ':' + ss;
       syncMediaPlayState();
+      // Scrubbing / stepping while paused moves the Player too.
+      if (remotionEngine && !state.playing) remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+      if (!state.playing) codePreview?.frame(percentToFrame(state.playheadPercent));
+      renderOverlayLayer();
+      if (!state.playing) activeKeyframesPanel?.refresh();
     }
 
     // Top action bar functionality
@@ -2154,23 +2322,55 @@ export function TimelineEditorPage() {
     }
 
     function addEndScreenToTimeline(endScreenData, state) {
-      // Add end screen elements to the end of the timeline
-      const videoTrack = state.tracks.find(t => t.type === 'video');
-      if (videoTrack && endScreenData.buttons) {
-        endScreenData.buttons.forEach(button => {
-          const clip = {
-            ...button,
-            id: Date.now() + Math.random(),
-            name: button.text || 'End Screen Element',
-            left: state.timelineSeconds * 10, // Position at end
-            width: button.duration || 5,
-            type: button.type || 'text',
-          };
-          videoTrack.items.push(clip);
-        });
-        renderTracks();
-      }
+      // Classic End Screen modal result: its elements go on the Titles
+      // track, timed to finish at the end of the video.
+      const T = state.timelineSeconds || 60;
+      (endScreenData?.buttons || []).forEach((button, i) => {
+        const dur = Math.min(T, Math.max(1, Number(button.duration) || 5));
+        insertClipIntoTrack({
+          ...button,
+          id: Date.now() + i,
+          name: button.text || 'End Screen Element',
+          type: button.type || 'text',
+          start: T - dur,
+          end: T,
+        }, 'text');
+      });
+      debouncedSave();
     }
+
+    // End Screens / Connect Form libraries (upstream toolbar windows):
+    // pick a template, preview it live, insert it as editable clips.
+    function openTemplateLibrary(library) {
+      openTemplateWindow({
+        library,
+        buildModel: (project) => timelineToComposition(project, { fps: ENGINE_FPS, quality: '720p', profile: getActivePersonalizationProfile() }),
+        onUse: (tpl, lib) => insertTemplate(tpl, lib),
+      });
+    }
+
+    function insertTemplate(tpl, lib) {
+      const T = state.timelineSeconds || 60;
+      const startSec = templateStart(tpl, lib.anchor, { playheadSec: (state.playheadPercent / 100) * T, timelineSeconds: T });
+      const trackName = lib.anchor === 'end' ? 'End Screen' : 'Connect';
+      if (!state.tracks.some((t) => t.name === trackName)) {
+        state.tracks.push({ id: `track-${lib.id}-${Date.now().toString(36)}`, type: 'text', name: trackName, muted: false, solo: false, locked: false, items: [] });
+      }
+      saveStateSnapshot(state);
+      const clips = presetToClips(templateToPreset(tpl), startSec, T);
+      clips.forEach(({ trackName: _ignored, ...clip }) => insertClipIntoTrack(clip, trackName));
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added "${tpl.name}" — click any part to edit it`, 'success');
+      return clips;
+    }
+    TLEditor.openTemplateLibrary = openTemplateLibrary;
+    TLEditor.insertTemplate = (id, library = 'endScreens') => {
+      const lib = TEMPLATE_LIBRARIES[library];
+      const tpl = lib?.templates.find((t) => t.id === id);
+      return tpl ? insertTemplate(tpl, lib) : null;
+    };
+    TLEditor.openClassicEndScreen = () => openEndScreenModal(state, showToast);
 
     // Header top actions: the template IS the single source of truth
     // (prototype markup: ↶ ↷ ▦[active] ⚙ 🔗 🤖 💾 + Render Ready pill).
@@ -2455,6 +2655,7 @@ export function TimelineEditorPage() {
               clipEl.appendChild(kfEl);
             });
           }
+          renderKeyframeDiamonds(clipEl, clip, (leftPercent / 100) * (state.timelineSeconds || 60), (widthPercent / 100) * (state.timelineSeconds || 60));
           clipEl.addEventListener('click', (event) => {
             if (event.target.classList.contains('clip-handle')) return;
             event.stopPropagation();
@@ -2544,6 +2745,26 @@ export function TimelineEditorPage() {
         html += '<span style="height:' + hgt + '%"></span>';
       }
       el.innerHTML = html;
+    }
+
+    /** Keyframes stored on the clip (Remotion engine): diamonds, click to jump. */
+    function renderKeyframeDiamonds(clipEl, clip, startSec, durSec) {
+      clipEl.querySelectorAll('.kf-diamond').forEach((d) => d.remove());
+      if (!clip.keyframes || typeof clip.keyframes !== 'object' || !(durSec > 0)) return;
+      const times = new Set();
+      Object.values(clip.keyframes).forEach((l) => (Array.isArray(l) ? l : []).forEach((k) => times.add(Number(k.t))));
+      [...times].filter(Number.isFinite).forEach((t) => {
+        const d = document.createElement('span');
+        d.className = 'keyframe-marker kf-diamond';
+        d.style.left = `${Math.max(0, Math.min(100, (t / durSec) * 100))}%`;
+        d.title = `Keyframe at ${t.toFixed(2)}s — click to jump`;
+        d.addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.playheadPercent = Math.max(0, Math.min(100, ((startSec + t) / (state.timelineSeconds || 60)) * 100));
+          updatePlaybackUI();
+        });
+        clipEl.appendChild(d);
+      });
     }
 
     function renderTracksIncremental(viewState, els, showToast) {
@@ -2700,10 +2921,9 @@ export function TimelineEditorPage() {
           const needsStructure = !prevData || prevData.label !== label || prevData.type !== trackType;
           if (needsStructure) {
             const isAudio = trackType === 'audio';
-            const isText = trackType === 'text' || clip.type === 'lead-form' || clip.type === 'click-to-call';
+            const isText = trackType === 'text' || isAddonType(clip.type);
             const isFx = trackType === 'effects' || trackType === 'fx';
-            const icon = clip.type === 'lead-form' ? '📝'
-              : clip.type === 'click-to-call' ? '📞'
+            const icon = isAddonType(clip.type) ? getAddon(clip.type).icon
               : isAudio ? '🎙️' : (trackType === 'text') ? '🅣' : isFx ? '✨' : '🎥';
             const durSec = Math.max(0, (clip.end || 0) - (clip.start || 0)).toFixed(1);
             clipEl.setAttribute('aria-label', `Clip: ${label}, ${durSec}s`);
@@ -2716,6 +2936,8 @@ export function TimelineEditorPage() {
             `;
             if (isAudio) fillClipWave(clipEl.querySelector('.clip-wave'));
           }
+
+          renderKeyframeDiamonds(clipEl, clip, clip.start || 0, Math.max(0, (clip.end || 0) - (clip.start || 0)));
 
           cached.clipData.set(clip.id, {
             leftPercent, widthPercent,
@@ -2850,7 +3072,18 @@ export function TimelineEditorPage() {
             _submittedLeads: clip._submittedLeads,
             style: clip.style,
             phoneNumber: clip.phoneNumber,
-            buttonText: clip.buttonText
+            linkUrl: clip.linkUrl,
+            buttonText: clip.buttonText,
+            // Schema-driven addons (Skip/Pause/Loop, ...) keep every option
+            // under clip.addon, forwarded wholesale so new options never
+            // need adding to this list.
+            addon: clip.addon,
+            // Remotion engine data (effects, keyframes, captions).
+            effects: clip.effects,
+            keyframes: clip.keyframes,
+            captions: clip.captions,
+            captionStyle: clip.captionStyle,
+            sourceClipId: clip.sourceClipId,
           }))
         })),
         selectedClipId: state.selectedClipId,
@@ -2866,6 +3099,8 @@ export function TimelineEditorPage() {
       // be incrementally diffed; mini-map is rebuilt fresh on every render.
       renderTimecodeRuler(state.timelineSeconds || 60, state.playheadPercent, state.zoom);
       renderMiniMap();
+      renderOverlayLayer();
+      scheduleEngineUpdate();
 
       // Add enhanced drag and drop handlers
       els.trackRows.querySelectorAll('.track-lane').forEach(lane => {
@@ -3089,7 +3324,12 @@ export function TimelineEditorPage() {
     }
 
     function insertClipIntoTrack(clip, preferredTrackName) {
-      const targetTrack = state.tracks.find((track) => track.name === preferredTrackName) || state.tracks[0];
+      // Match the track by name, then by type ('Text' → the text track, which
+      // is named "Titles"), so overlays never land on the video track.
+      const wanted = String(preferredTrackName || '').toLowerCase();
+      const targetTrack = state.tracks.find((track) => track.name === preferredTrackName)
+        || state.tracks.find((track) => String(track.type || '').toLowerCase() === wanted)
+        || state.tracks[0];
 
       // Convert start/end format to left/width format used by this timeline
       if (clip.start !== undefined && clip.end !== undefined) {
@@ -3283,6 +3523,7 @@ export function TimelineEditorPage() {
                     <option value="number" ${f.type === 'number' ? 'selected' : ''}>Number</option>
                     <option value="date" ${f.type === 'date' ? 'selected' : ''}>Date</option>
                   </select>
+                  <label title="Viewer must fill this field" style="display:flex;align-items:center;gap:2px;font-size:11px;white-space:nowrap"><input type="checkbox" class="lf-field-required" ${f.required ? 'checked' : ''} /> req</label>
                   <button type="button" class="lf-field-remove mini-btn" data-tooltip="Remove field">✕</button>
                 </div>
               `).join('')}
@@ -3414,7 +3655,7 @@ export function TimelineEditorPage() {
               <input id="lf-fb-pixel" type="text" value="${clip.fbPixelId || ''}" placeholder="1234567890" />
             </div>
             <div class="clip-editor__field">
-              <button id="lf-download-leads" class="mini-btn" style="width:100%" ${(clip._submittedLeads || []).length ? '' : 'disabled'}>Download leads (${(clip._submittedLeads || []).length})</button>
+              <button id="lf-download-leads" class="mini-btn" style="width:100%" >Download leads${(clip._submittedLeads || []).length ? ` (${(clip._submittedLeads || []).length} this session)` : ''}</button>
             </div>
           </div>
           </div>
@@ -3473,6 +3714,10 @@ export function TimelineEditorPage() {
           clip.fields[index].type = e.target.value;
           updatePreview(clip);
         });
+        row.querySelector('.lf-field-required').addEventListener('change', (e) => {
+          clip.fields[index].required = e.target.checked;
+          updatePreview(clip);
+        });
         row.querySelector('.lf-field-remove').addEventListener('click', () => {
           if (clip.fields.length <= 1) return;
           clip.fields.splice(index, 1);
@@ -3512,7 +3757,7 @@ export function TimelineEditorPage() {
           showToast('A lead form can have a maximum of 5 fields', 'info');
           return;
         }
-        clip.fields.push({ id: `field_${clip.fields.length + 1}`, type: 'text', label: 'New Field' });
+        clip.fields.push({ id: `field_${clip.fields.length + 1}`, type: 'text', label: 'New Field', required: false });
         rerenderFields();
       });
       els.clipEditorContainer.querySelector('#lf-brand-logo').addEventListener('input', (e) => {
@@ -3657,20 +3902,8 @@ export function TimelineEditorPage() {
         clip.fbPixelId = e.target.value;
       });
       els.clipEditorContainer.querySelector('#lf-download-leads').addEventListener('click', () => {
-        const leads = clip._submittedLeads || [];
-        if (!leads.length) return;
-        const headers = Array.from(new Set(leads.flatMap((l) => Object.keys(l))));
-        const csvRows = [
-          headers.join(','),
-          ...leads.map((lead) => headers.map((h) => `"${String(lead[h] ?? '').replace(/"/g, '""')}"`).join(',')),
-        ];
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${(clip.name || 'leads').replace(/[^a-z0-9]+/gi, '_')}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+        // Stored leads (lead-capture backend) merged with this session's.
+        downloadLeadsCsv({ clipId: clip.id, local: clip._submittedLeads || [], name: clip.name || 'leads' });
       });
     }
 
@@ -3688,15 +3921,54 @@ export function TimelineEditorPage() {
               <span id="ctc-phone-error" style="color:#f87171;font-size:11px;${valid || !clip.phoneNumber ? 'display:none' : ''}">Enter a valid phone number</span>
             </div>
             <div class="clip-editor__field">
+              <label for="ctc-link">Link URL (used when no phone number is set)</label>
+              <input id="ctc-link" type="url" value="${escapeHtml(clip.linkUrl || '')}" placeholder="https://" />
+            </div>
+            <div class="clip-editor__field">
               <label for="ctc-btn-text">Button Text</label>
-              <input id="ctc-btn-text" type="text" value="${clip.buttonText || 'Call Now'}" />
+              <input id="ctc-btn-text" type="text" maxlength="40" value="${escapeHtml(clip.buttonText || 'Call Now')}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-notify">Email to notify about call attempt</label>
+              <input id="ctc-notify" type="email" value="${escapeHtml(clip.callNotifyAddress || '')}" placeholder="you@example.com" />
+            </div>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Animation</h3>
+            <div class="cta-anim-grid" role="radiogroup" aria-label="Button animation">
+              ${CTA_ANIMATIONS.map(([id, label]) => `<button type="button" class="cta-anim${(clip.animation || 'none') === id ? ' is-on' : ''}" data-cta-anim="${id}" role="radio" aria-checked="${(clip.animation || 'none') === id}" title="${escapeHtml(label)}"><span class="cta-anim__preview" data-cta-preview="${id}"></span><span class="cta-anim__label">${escapeHtml(label)}</span></button>`).join('')}
+              <button type="button" class="cta-anim${clip.animation === 'custom' ? ' is-on' : ''}" data-cta-anim="custom" role="radio" aria-checked="${clip.animation === 'custom'}"><span class="cta-anim__preview cta-anim__preview--custom">{ }</span><span class="cta-anim__label">Your Lottie file</span></button>
+            </div>
+            <div class="clip-editor__field" data-cta-custom ${clip.animation === 'custom' ? '' : 'hidden'}>
+              <label for="ctc-lottie">Lottie JSON (URL or upload)</label>
+              <input id="ctc-lottie" type="url" value="${escapeHtml(clip.lottieSrc || '')}" placeholder="https://…/button.json" />
+              <label class="mini-btn addon-upload-btn" style="margin-top:6px">Upload .json<input type="file" accept=".json,application/json" id="ctc-lottie-file" hidden /></label>
             </div>
           </div>
           <div class="clip-editor__section">
             <h3>Style</h3>
             <div class="clip-editor__field">
-              <label for="ctc-btn-color">Button Color</label>
-              <input id="ctc-btn-color" type="color" value="${clip.style.buttonColor || '#22d3ee'}" />
+              <label>Color theme</label>
+              <div class="cta-themes" role="group" aria-label="Color themes">
+                ${CTA_COLOR_THEMES.map((t) => `<button type="button" class="cta-theme" data-cta-theme="${t.id}" title="${escapeHtml(t.label)}" aria-label="${escapeHtml(t.label)} theme" style="background:${t.buttonColor};color:${t.textColor}">Aa</button>`).join('')}
+              </div>
+            </div>
+            ${[
+              ['button', 'Button color', clip.style.buttonColor || '#eb5054', ''],
+              ['text', 'Text color', clip.textColor || '#ffffff', ''],
+              ['icon', 'Icon color', clip.iconColor || clip.textColor || '#ffffff', 'icon'],
+              ['effect', 'Effect color (ring, glow, ripple, shine)', clip.accentColor || (clip.animation === 'shine' ? '#ffffff' : clip.style.buttonColor || '#eb5054'), 'effect'],
+            ].map(([key, label, value, part]) => `
+            <div class="clip-editor__field cta-color" data-cta-color-row="${key}"${part ? ` data-cta-part="${part}"` : ''}>
+              <label for="ctc-${key}-color">${label}</label>
+              <div class="cta-color__inputs">
+                <input id="ctc-${key}-color" type="color" data-cta-color="${key}" value="${escapeHtml(value)}" />
+                <input type="text" class="cta-color__hex" data-cta-hex="${key}" value="${escapeHtml(value)}" maxlength="7" spellcheck="false" aria-label="${label} hex" />
+              </div>
+            </div>`).join('')}
+            <div class="clip-editor__field">
+              <label for="ctc-font">Font</label>
+              <select id="ctc-font">${OVERLAY_FONTS.map((f) => `<option ${f === (clip.fontFamily || 'Montserrat') ? 'selected' : ''}>${escapeHtml(f)}</option>`).join('')}</select>
             </div>
           </div>
           <div class="clip-editor__section">
@@ -3728,6 +4000,11 @@ export function TimelineEditorPage() {
         </div>
       `;
 
+      els.clipEditorContainer.querySelector('#ctc-link').addEventListener('input', (e) => {
+        clip.linkUrl = e.target.value;
+        updatePreview(clip);
+        debouncedSave();
+      });
       els.clipEditorContainer.querySelector('#ctc-phone').addEventListener('input', (e) => {
         clip.phoneNumber = e.target.value;
         const errEl = els.clipEditorContainer.querySelector('#ctc-phone-error');
@@ -3736,14 +4013,120 @@ export function TimelineEditorPage() {
         renderTracks();
         updatePreview(clip);
       });
+      const ctaChanged = () => {
+        updatePreview(clip);
+        scheduleEngineUpdate();
+        debouncedSave();
+        drawCtaPreviews();
+      };
       els.clipEditorContainer.querySelector('#ctc-btn-text').addEventListener('input', (e) => {
         clip.buttonText = e.target.value;
-        updatePreview(clip);
+        ctaChanged();
       });
-      els.clipEditorContainer.querySelector('#ctc-btn-color').addEventListener('input', (e) => {
-        clip.style.buttonColor = e.target.value;
-        updatePreview(clip);
+      els.clipEditorContainer.querySelector('#ctc-notify').addEventListener('input', (e) => {
+        clip.callNotifyAddress = e.target.value.trim();
+        debouncedSave();
       });
+      els.clipEditorContainer.querySelector('#ctc-font').addEventListener('change', (e) => {
+        clip.fontFamily = e.target.value;
+        ensureGoogleFontLoaded(clip.fontFamily);
+        ctaChanged();
+      });
+      els.clipEditorContainer.querySelectorAll('[data-cta-anim]').forEach((btn) => btn.addEventListener('click', () => {
+        clip.animation = btn.dataset.ctaAnim;
+        els.clipEditorContainer.querySelectorAll('[data-cta-anim]').forEach((b) => {
+          b.classList.toggle('is-on', b === btn);
+          b.setAttribute('aria-checked', String(b === btn));
+        });
+        els.clipEditorContainer.querySelector('[data-cta-custom]').hidden = clip.animation !== 'custom';
+        syncCtaColorParts();
+        updatePreview(clip);
+        scheduleEngineUpdate();
+        debouncedSave();
+      }));
+      els.clipEditorContainer.querySelector('#ctc-lottie').addEventListener('change', (e) => {
+        clip.lottieSrc = e.target.value.trim();
+        ctaChanged();
+      });
+      els.clipEditorContainer.querySelector('#ctc-lottie-file').addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const json = JSON.parse(await file.text());
+          if (!json || !Array.isArray(json.layers)) throw new Error('not a Lottie file');
+          let url = null;
+          try { url = await uploadFileToStorage(file); } catch { url = null; }
+          if (!url) {
+            const { localMediaUrl } = await import('../lib/editor/remotion/localMedia.js');
+            url = localMediaUrl(new Blob([JSON.stringify(json)], { type: 'application/json' }));
+          }
+          clip.lottieSrc = typeof url === 'string' ? url : url.url;
+          els.clipEditorContainer.querySelector('#ctc-lottie').value = clip.lottieSrc;
+          ctaChanged();
+        } catch (err) {
+          showToast(`That file isn't a Lottie animation (${err.message})`, 'error');
+        }
+      });
+      // Live previews of each animation style, in the clip's own text and colours.
+      let ctaPreviewAnims = [];
+      async function drawCtaPreviews() {
+        const lottie = (await import('lottie-web')).default;
+        ctaPreviewAnims.forEach((a) => a.destroy());
+        ctaPreviewAnims = [];
+        els.clipEditorContainer.querySelectorAll('[data-cta-preview]').forEach((host) => {
+          const id = host.dataset.ctaPreview;
+          host.innerHTML = '';
+          if (id === 'none') {
+            host.innerHTML = `<span class="cta-plain" style="background:${escapeHtml(clip.style.buttonColor || '#eb5054')};color:${escapeHtml(clip.textColor || '#fff')}">${escapeHtml(clip.buttonText || 'Call Now')}</span>`;
+            return;
+          }
+          const data = buildCtaLottie({ ...clip, animation: id, buttonColor: clip.style.buttonColor });
+          if (data) ctaPreviewAnims.push(lottie.loadAnimation({ container: host, renderer: 'svg', loop: true, autoplay: true, animationData: data }));
+        });
+      }
+      drawCtaPreviews();
+      // Colors: button, text, icon (icon styles) and effect (ring/glow/ripple/shine styles).
+      const CTA_COLOR_KEYS = { button: null, text: 'textColor', icon: 'iconColor', effect: 'accentColor' };
+      const setCtaColor = (key, value) => {
+        if (!/^#[0-9a-f]{6}$/i.test(value)) return false;
+        if (key === 'button') clip.style.buttonColor = value;
+        else clip[CTA_COLOR_KEYS[key]] = value;
+        const row = els.clipEditorContainer.querySelector(`[data-cta-color-row="${key}"]`);
+        if (row) {
+          row.querySelector('[data-cta-color]').value = value;
+          const hex = row.querySelector('[data-cta-hex]');
+          if (document.activeElement !== hex) hex.value = value;
+        }
+        return true;
+      };
+      const syncCtaColorParts = () => {
+        const parts = ctaColorParts(clip.animation || 'none');
+        els.clipEditorContainer.querySelectorAll('[data-cta-part]').forEach((row) => { row.hidden = !parts[row.dataset.ctaPart]; });
+        // Unset colors show what the animation will actually use.
+        const shown = { icon: clip.iconColor || clip.textColor || '#ffffff', effect: clip.accentColor || (clip.animation === 'shine' ? '#ffffff' : clip.style.buttonColor || '#eb5054') };
+        Object.entries(shown).forEach(([key, value]) => {
+          const row = els.clipEditorContainer.querySelector(`[data-cta-color-row="${key}"]`);
+          if (row) { row.querySelector('[data-cta-color]').value = value; row.querySelector('[data-cta-hex]').value = value; }
+        });
+      };
+      syncCtaColorParts();
+      els.clipEditorContainer.querySelectorAll('[data-cta-color]').forEach((input) => input.addEventListener('input', () => {
+        if (setCtaColor(input.dataset.ctaColor, input.value)) ctaChanged();
+      }));
+      els.clipEditorContainer.querySelectorAll('[data-cta-hex]').forEach((input) => input.addEventListener('input', () => {
+        const v = input.value.trim().replace(/^([0-9a-f]{6})$/i, '#$1');
+        input.classList.toggle('is-invalid', !/^#[0-9a-f]{6}$/i.test(v));
+        if (setCtaColor(input.dataset.ctaHex, v.toLowerCase())) ctaChanged();
+      }));
+      els.clipEditorContainer.querySelectorAll('[data-cta-theme]').forEach((btn) => btn.addEventListener('click', () => {
+        const t = CTA_COLOR_THEMES.find((x) => x.id === btn.dataset.ctaTheme);
+        if (!t) return;
+        setCtaColor('button', t.buttonColor);
+        setCtaColor('text', t.textColor);
+        setCtaColor('icon', t.iconColor);
+        setCtaColor('effect', t.accentColor);
+        ctaChanged();
+      }));
       els.clipEditorContainer.querySelector('#ctc-pos-left').addEventListener('input', (e) => {
         clip.style.posLeft = parseInt(e.target.value, 10);
         e.target.previousElementSibling.textContent = `Horizontal Position (${clip.style.posLeft}%)`;
@@ -3770,7 +4153,1319 @@ export function TimelineEditorPage() {
       });
     }
 
+    // ---------------------------------------------------------------
+    // Remotion engine (preview). The <Player> renders the timeline as a
+    // Remotion composition and is the playhead clock while playing. If it
+    // can't start, the editor keeps its previous DOM preview, so nothing is
+    // lost.
+    // ---------------------------------------------------------------
+    // `var` on purpose: functions that read these (renderPreviewAsset,
+    // updatePlaybackUI) can run during start-up before this line executes.
+    // eslint-disable-next-line no-var
+    var remotionEngine = null;
+    // eslint-disable-next-line no-var -- AI animation preview frame (sandboxed iframe)
+    var codePreview = null;
+    // eslint-disable-next-line no-var
+    var remotionModel = null;
+    // eslint-disable-next-line no-var
+    var engineUpdateTimer = null;
+    // eslint-disable-next-line no-var
+    var ENGINE_FPS = 30;
+
+    function isComposited(clip) {
+      const addon = getAddon(clip.type);
+      if (addon) return addon.category === 'overlay';
+      return ['video', 'image', 'audio', 'text', 'remotion-code'].includes(clip.type);
+    }
+    function engineHasContent() {
+      return !!remotionModel && (remotionModel.layers.length > 0 || remotionModel.audio.length > 0);
+    }
+    function buildEngineModel() {
+      return timelineToComposition(state, { fps: ENGINE_FPS, quality: '1080p', profile: getActivePersonalizationProfile() });
+    }
+    function percentToFrame(p) {
+      return Math.round(((p / 100) * (state.timelineSeconds || 60)) * ENGINE_FPS);
+    }
+    function frameToPercent(f) {
+      return Math.max(0, Math.min(100, ((f / ENGINE_FPS) / (state.timelineSeconds || 60)) * 100));
+    }
+
+    async function initRemotionEngine() {
+      if (remotionEngine || !els.remotionStage) return;
+      try {
+        const { createPreviewEngine } = await import('../lib/editor/remotion/previewEngine.jsx');
+        remotionModel = buildEngineModel();
+        remotionEngine = createPreviewEngine(els.remotionStage, {
+          model: remotionModel,
+          onFrame: handleEngineFrame,
+          onEnded: () => {
+            state.playing = false;
+            updatePlaybackUI();
+          },
+          onReady: () => remotionEngine?.seekToFrame(percentToFrame(state.playheadPercent)),
+          onError: (err) => console.warn('[Remotion preview]', err),
+        });
+        root.classList.add('remotion-engine-on');
+        remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+        import('../lib/editor/remotion/codePreviewClient.js').then(({ createCodePreview }) => {
+          codePreview = createCodePreview(els.remotionStage.parentElement, {
+            onError: (layerId, message) => {
+              const clip = allClips().find((c) => String(c.id) === String(layerId));
+              if (clip) clip.lastError = message;
+              showToast(`Animation "${clip?.name || layerId}" has an error: ${message}`, 'error');
+            },
+          });
+          codePreview.update(remotionModel);
+          codePreview.frame(percentToFrame(state.playheadPercent));
+        });
+        updatePreview();
+        renderOverlayLayer();
+      } catch (err) {
+        console.warn('[Remotion preview] unavailable, using the classic preview', err);
+        remotionEngine = null;
+      }
+    }
+
+    /** Rebuild the composition after timeline edits (debounced). */
+    function scheduleEngineUpdate() {
+      if (!remotionEngine) return;
+      window.clearTimeout(engineUpdateTimer);
+      engineUpdateTimer = window.setTimeout(() => {
+        remotionModel = buildEngineModel();
+        remotionEngine.update(remotionModel);
+        codePreview?.update(remotionModel);
+      }, 60);
+    }
+
+    /** Player frame while playing → playhead, addon runtime, UI. */
+    function handleEngineFrame(frame) {
+      if (!state.playing) return;
+      const prevPercent = state.playheadPercent;
+      state.playheadPercent = frameToPercent(frame);
+      codePreview?.frame(frame);
+      runAddonTick(prevPercent, state.playheadPercent);
+      if (!state.playing) {
+        remotionEngine.pause();
+        remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+      } else if (Math.abs(frameToPercent(frame) - state.playheadPercent) > 0.01) {
+        // A Skip/Loop moved the playhead.
+        remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+      }
+      updatePlaybackUI();
+    }
+
+    /** Fit the interaction layer to the Player's letterboxed picture. */
+    function fitOverlayLayerToPlayer(layer) {
+      if (!remotionEngine || !remotionModel || !els.remotionStage) {
+        layer.style.left = layer.style.top = layer.style.right = layer.style.bottom = '';
+        layer.style.width = layer.style.height = '';
+        return;
+      }
+      const W = els.remotionStage.clientWidth;
+      const H = els.remotionStage.clientHeight;
+      if (!W || !H) return;
+      const aspect = remotionModel.width / remotionModel.height;
+      let w = W;
+      let h = W / aspect;
+      if (h > H) { h = H; w = H * aspect; }
+      Object.assign(layer.style, { left: `${(W - w) / 2}px`, top: `${(H - h) / 2}px`, right: 'auto', bottom: 'auto', width: `${w}px`, height: `${h}px` });
+    }
+
+    // ---------------------------------------------------------------
+    // Overlay compositor: every overlay clip active at the playhead is
+    // drawn into the overlay layer above the video (upstream Popcorn showed
+    // all track events at once; the old preview showed only the selection).
+    // ---------------------------------------------------------------
+    function findBaseClipAtPlayhead() {
+      const T = state.timelineSeconds || 60;
+      const t = (state.playheadPercent / 100) * T;
+      for (const track of state.tracks) {
+        for (const clip of track.items || track.clips || []) {
+          if (!['video', 'image'].includes(clip.type)) continue;
+          const { start, end } = clipTimeRange(clip, T);
+          if (t >= start && t < end) return clip;
+        }
+      }
+      return null;
+    }
+
+    function baseClips() {
+      const T = state.timelineSeconds || 60;
+      return state.tracks
+        .filter((tr) => (tr.type || '').toLowerCase() === 'video' || (tr.items || []).some((c) => c.type === 'video'))
+        .flatMap((tr) => (tr.items || tr.clips || []).filter((c) => (c.type === 'video' || c.type === 'image') && c.src))
+        .map((c) => ({ clip: c, ...clipTimeRange(c, T) }))
+        .sort((a, b) => a.start - b.start);
+    }
+
+    /** Outgoing/incoming clips for a video transition spanning [start, end]. */
+    function transitionSources(start, end) {
+      const mid = (start + end) / 2;
+      const clips = baseClips();
+      const describe = (c) => (c ? { src: c.clip.src, type: c.clip.type, start: c.start } : null);
+      const from = [...clips].reverse().find((c) => c.start < mid) || null;
+      const to = clips.find((c) => c.start >= mid - 0.05 && c !== from) || clips.find((c) => c.end > end && c !== from) || null;
+      return { from: describe(from), to: describe(to) };
+    }
+
+    /** Nearest cut (clip boundary on the video track) to `t`, or null. */
+    function nearestCut(t) {
+      const edges = baseClips().flatMap((c) => [c.start, c.end]).filter((x) => x > 0.2);
+      if (!edges.length) return null;
+      return edges.reduce((best, x) => (Math.abs(x - t) < Math.abs(best - t) ? x : best), edges[0]);
+    }
+
+    function videoTrackName() {
+      return (state.tracks.find((tr) => (tr.type || '').toLowerCase() === 'video') || state.tracks[0])?.name;
+    }
+
+    /** Add a stock video/image (Pixabay or Pexels) to the timeline at the playhead. */
+    async function addStockToTimeline(item, kind) {
+      const T = state.timelineSeconds || 60;
+      const isVideo = kind === 'videos';
+      const src = isVideo ? item.src : await importStockImage(item);
+      if (!src) return;
+      const duration = isVideo ? Math.min(30, Math.max(1, item.duration || 5)) : 5;
+      const start = Math.min((state.playheadPercent / 100) * T, Math.max(0, T - duration));
+      insertClipIntoTrack({
+        id: Date.now(),
+        name: item.name,
+        type: isVideo ? 'video' : 'image',
+        src,
+        poster: item.thumbnail,
+        fit: 'cover',
+        start,
+        end: Math.min(T, start + duration),
+        source: item.source,
+        credit: { user: item.user, pageURL: item.pageURL },
+      }, videoTrackName());
+      debouncedSave();
+      showToast(`Added ${isVideo ? 'video' : 'image'} to the timeline`, 'success');
+    }
+
+    let stockBrowserMounted = false;
+    function mountStockBrowser() {
+      if (stockBrowserMounted || !els.stockBrowser) return;
+      stockBrowserMounted = true;
+      renderStockBrowser(els.stockBrowser, {
+        search: (kind, source, query) => stockSearch(kind, source, query),
+        onPick: (item, kind) => addStockToTimeline(item, kind),
+      });
+    }
+
+    // Presets (upstream "combined"): save the overlays at the playhead as a
+    // reusable group and drop them onto any video.
+    function renderOverlayPresets() {
+      const box = els.overlayPresets;
+      if (!box) return;
+      const presets = loadPresets();
+      box.innerHTML = `
+        <h4 class="addon-panel__heading">Presets</h4>
+        <button type="button" class="mini-btn" data-preset-save style="width:100%">＋ Save overlays at playhead as preset</button>
+        ${presets.length ? `<ul class="overlay-preset-list">${presets.map((p) => `
+          <li><span class="overlay-preset-name" title="${escapeHtml(p.items.length)} overlay(s)">${escapeHtml(p.name)}</span>
+            <button type="button" class="mini-btn" data-preset-insert="${escapeHtml(p.id)}">Add</button>
+            <button type="button" class="mini-btn" data-preset-delete="${escapeHtml(p.id)}" aria-label="Delete preset ${escapeHtml(p.name)}">✕</button></li>`).join('')}</ul>`
+          : '<p class="addon-field__hint">No presets yet. Arrange overlays (e.g. lower third + logo + sticker), put the playhead over them and save.</p>'}`;
+    }
+
+    function bindOverlayPresets() {
+      els.overlayPresets?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const T = state.timelineSeconds || 60;
+        const t = (state.playheadPercent / 100) * T;
+        if (btn.dataset.presetSave !== undefined) {
+          const name = window.prompt('Preset name', 'My preset');
+          if (name === null) return;
+          const preset = capturePreset(state.tracks, t, T, name);
+          if (!preset) {
+            showToast('No overlays under the playhead to save', 'info');
+            return;
+          }
+          savePresets([preset, ...loadPresets()]);
+          renderOverlayPresets();
+          showToast(`Saved preset "${preset.name}" (${preset.items.length} overlay${preset.items.length === 1 ? '' : 's'})`, 'success');
+        } else if (btn.dataset.presetInsert) {
+          const preset = loadPresets().find((p) => p.id === btn.dataset.presetInsert);
+          if (!preset) return;
+          presetToClips(preset, t, T).forEach(({ trackName, ...clip }) => insertClipIntoTrack(clip, trackName || 'Text'));
+          debouncedSave();
+          showToast(`Added preset "${preset.name}"`, 'success');
+        } else if (btn.dataset.presetDelete) {
+          savePresets(loadPresets().filter((p) => p.id !== btn.dataset.presetDelete));
+          renderOverlayPresets();
+        }
+      });
+      renderOverlayPresets();
+    }
+
+    function overlaySignature(clip, profileId = getActivePersonalizationProfile()?.id || null) {
+      return JSON.stringify([clip.addon, clip.left, clip.width, clip.id === state.selectedClipId, profileId]);
+    }
+
+    function renderOverlayLayer() {
+      if (!els.viewerFrame && !els.previewStage) return;
+      const layer = addonOverlayLayer();
+      // With the Remotion engine the Player draws the overlays; this layer
+      // keeps invisible hit boxes + selection handles at the same geometry.
+      layer.classList.toggle('engine-on', !!remotionEngine);
+      fitOverlayLayerToPlayer(layer);
+      // Pixel size for overlay font sizing (see .addon-overlay-layer CSS).
+      if (layer.clientWidth) {
+        layer.style.setProperty('--ovl-w', `${layer.clientWidth}px`);
+        layer.style.setProperty('--ovl-h', `${layer.clientHeight}px`);
+      }
+      const T = state.timelineSeconds || 60;
+      const t = (state.playheadPercent / 100) * T;
+      const active = activeOverlays(state.tracks, t, T);
+      const activeIds = new Set(active.map((c) => String(c.id)));
+      const existing = new Map();
+      layer.querySelectorAll(`[data-overlay="${OVERLAY_TAG}"]`).forEach((el) => {
+        if (el.dataset.leaving) return;
+        existing.set(el.dataset.clipId, el);
+      });
+      // Leave: out-animation, then remove.
+      existing.forEach((el, id) => {
+        if (activeIds.has(id)) return;
+        el.dataset.leaving = '1';
+        if (el._detach) el._detach();
+        const clip = allClips().find((c) => String(c.id) === id);
+        playOutAndRemove(el, state.playing ? clip?.addon?.animation : null);
+      });
+      const profile = getActivePersonalizationProfile();
+      const profileId = profile?.id || null;
+      let previous = null;
+      active.forEach((clip) => {
+        const id = String(clip.id);
+        const sig = overlaySignature(clip, profileId);
+        let el = existing.get(id);
+        if (el && el.dataset.sig !== sig) {
+          if (el._detach) el._detach();
+          destroyOverlayElement(el);
+          el = null;
+        }
+        const isNew = !el;
+        if (isNew) {
+          el = buildOverlayElement(clip, { profile, editor: true });
+          if (!el) return;
+          el.dataset.sig = sig;
+          el.addEventListener('click', (e) => {
+            if (e.target.closest('a') && state.selectedClipId === clip.id) return;
+            if (state.selectedClipId === clip.id) return;
+            e.preventDefault();
+            selectOverlayClip(clip.id);
+          });
+        }
+        // Keep paint order: insert after the previous active overlay.
+        const ref = previous ? previous.nextSibling : layer.firstChild;
+        if (ref !== el) layer.insertBefore(el, ref);
+        previous = el;
+        if (isNew) {
+          if (!remotionEngine) finishOverlayElement(el, { playing: state.playing });
+          if (state.playing) playInAnimation(el, clip.addon?.animation);
+          if (clip.id === state.selectedClipId) attachOverlayHandles(el, clip);
+        }
+      });
+      if (remotionEngine) return;
+      setOverlayPlaying(layer, state.playing);
+      // Lower thirds follow the playhead frame-by-frame (scrubbing included).
+      syncOverlayTime(layer, t, new Map(active.map((c) => {
+        const r = clipTimeRange(c, T);
+        const span = { start: r.start, duration: r.end - r.start };
+        if (c.type === 'overlay-video-transition') Object.assign(span, transitionSources(r.start, r.end));
+        return [String(c.id), span];
+      })), { playing: state.playing });
+    }
+
+    function selectOverlayClip(clipId) {
+      state.selectedClipId = clipId;
+      renderTracks();
+      showClipEditor(clipId);
+    }
+
+    function removeClipById(clipId) {
+      state.tracks.forEach((t) => {
+        const items = t.items || t.clips || [];
+        const i = items.findIndex((c) => c.id === clipId);
+        if (i >= 0) items.splice(i, 1);
+      });
+      if (state.selectedClipId === clipId) {
+        state.selectedClipId = null;
+        els.clipEditorContainer.innerHTML = '';
+      }
+      renderTracks();
+      debouncedSave();
+    }
+
+    function attachOverlayHandles(el, clip) {
+      const addon = getAddon(clip.type);
+      const fullFrame = !addon.positioned;
+      const detach = fullFrame
+        ? attachDragResize(el, document.createElement('div'), { onDelete: () => removeClipById(clip.id) })
+        : attachDragResize(el, addonOverlayLayer(), {
+          geometry: clip.addon?.geometry,
+          preserveRatio: !!addon.preserveRatio,
+          onCommit: (g) => {
+            clip.addon = { ...addonOptions(clip), geometry: g, position: 'custom' };
+            el.dataset.sig = overlaySignature(clip);
+            if (state.selectedClipId === clip.id) renderClipEditor(clip.id);
+            debouncedSave();
+          },
+          onDelete: () => removeClipById(clip.id),
+        });
+      el._detach = detach;
+      // Full-frame overlays: handles would be meaningless; keep only delete.
+      if (fullFrame) el.querySelectorAll('.overlay-handle').forEach((h) => h.remove());
+    }
+
+    // Overlays panel: upstream toolbar sections BASIC and CREATIVE.
+    function renderOverlaysPanel() {
+      if (!els.overlayAddonList) return;
+      const sections = {};
+      OVERLAY_ADDONS.forEach((a) => {
+        (sections[a.section] = sections[a.section] || []).push(
+          `<button type="button" class="addon-panel__item" data-add-addon="${a.type}" title="${escapeHtml(a.description)}">
+            ${a.iconSrc ? `<img src="${escapeHtml(a.iconSrc)}" alt="" />` : ''}<span>${escapeHtml(a.label)}</span>
+          </button>`,
+        );
+      });
+      els.overlayAddonList.innerHTML = ['Basic', 'Creative']
+        .filter((name) => sections[name])
+        .map((name) => `<div class="addon-panel__section"><h4 class="addon-panel__heading">${name}</h4><div class="addon-panel__grid">${sections[name].join('')}</div></div>`)
+        .join('');
+      els.overlaysPanel?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-add-addon]');
+        if (btn) addAddonAtPlayhead(btn.dataset.addAddon);
+      });
+    }
+
+    // Smart Speech (upstream toolbar): AI voice lines on the Voiceover track.
+    function renderSpeechPanel() {
+      if (!els.speechBody) return;
+      renderSmartSpeech(els.speechBody, {
+        tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
+        resolveTokens: (text) => resolveOverlayText(text, getActivePersonalizationProfile()),
+        toast: showToast,
+        async generate(request) {
+          const { generateAudio, persistAudio, probeDuration } = await import('../lib/editor/agent/audioGen.js');
+          const remote = await generateAudio('tts', request);
+          const url = await persistAudio(remote, { upload: uploadFileToStorage, name: 'speech' });
+          return { url, duration: (await probeDuration(url)) || 3 };
+        },
+        add({ url, duration, tts, name }) {
+          const T = state.timelineSeconds || 60;
+          const start = Math.min((state.playheadPercent / 100) * T, Math.max(0, T - 0.5));
+          const len = Math.max(0.5, Number(duration) || 3);
+          if (start + len > T) {
+            const next = Math.ceil(start + len + 1);
+            state.tracks.forEach((t) => (t.items || []).forEach((c) => {
+              if (typeof c.left === 'number') { c.left = (c.left * T) / next; c.width = (c.width * T) / next; }
+            }));
+            state.playheadPercent = ((state.playheadPercent || 0) * T) / next;
+            state.timelineSeconds = next;
+            drawRuler();
+          }
+          if (!state.tracks.some((t) => t.name === 'Voiceover')) {
+            state.tracks.push({ id: `track-voiceover-${Date.now().toString(36)}`, type: 'audio', name: 'Voiceover', muted: false, solo: false, locked: false, items: [] });
+          }
+          saveStateSnapshot(state);
+          const clip = { id: `speech-${Date.now().toString(36)}`, type: 'audio', role: 'voiceover', name, src: url, volume: 1, tts, start, end: start + len };
+          insertClipIntoTrack(clip, 'Voiceover');
+          scheduleEngineUpdate();
+          debouncedSave();
+          showToast(tts.personalized ? 'Speech added — viewers with personal links hear their own line' : 'Speech added to the Voiceover track', 'success');
+          return clip;
+        },
+      });
+    }
+
+    // Blend Modes (upstream toolbar): full-frame looks on their own layer,
+    // like upstream's blend tracks. Each is an editable Image/Wrapper clip.
+    function renderBlendPanel() {
+      if (!els.blendLibrary) return;
+      els.blendLibrary.innerHTML = `
+        <p class="blend-lib__hint">Click a look to add it at the playhead on its own layer. Change its blend mode and strength in the clip settings.</p>
+        <label class="blend-lib__span"><input type="checkbox" id="blendWholeVideo" /> Cover the whole video</label>
+        ${BLEND_CATEGORIES.map((cat) => `
+          <div class="blend-lib__section">
+            <h4 class="addon-panel__heading">${escapeHtml(cat.label)}</h4>
+            <div class="blend-lib__grid">
+              ${cat.items.map((item) => `
+                <button type="button" class="blend-lib__tile" data-blend-id="${escapeHtml(item.id)}" title="${escapeHtml(`${item.label} · ${item.blendMode}`)}">
+                  <span class="blend-lib__thumb" style="${escapeHtml(blendThumbStyle(item))}"></span>
+                  <span class="blend-lib__label">${escapeHtml(item.label)}</span>
+                  <span class="blend-lib__mode">${escapeHtml(item.blendMode)}</span>
+                </button>`).join('')}
+            </div>
+          </div>`).join('')}
+        <div class="blend-lib__section">
+          <h4 class="addon-panel__heading">Light leak videos</h4>
+          <button type="button" class="blend-lib__stock" data-add-addon="overlay-transition">🎞️ Search Pixabay &amp; Pexels light leaks, film burns and glitches</button>
+        </div>`;
+      els.blendLibrary.addEventListener('click', (e) => {
+        const stock = e.target.closest('[data-add-addon]');
+        if (stock) { addAddonAtPlayhead(stock.dataset.addAddon); return; }
+        const tile = e.target.closest('[data-blend-id]');
+        if (tile) addBlendLook(tile.dataset.blendId, { whole: root.querySelector('#blendWholeVideo')?.checked });
+      });
+    }
+
+    function addBlendLook(id, { whole = false } = {}) {
+      const mapped = blendItemToAddon(getBlendItem(id));
+      if (!mapped) return null;
+      const T = state.timelineSeconds || 60;
+      const startSec = whole ? 0 : (state.playheadPercent / 100) * T;
+      const clip = createAddonClip(mapped.type, { startSec, timelineSeconds: T });
+      if (whole) clip.end = T;
+      clip.addon = { ...clip.addon, ...mapped.options };
+      clip.name = mapped.name;
+      // A free "Blend" layer for this time span (new layer when it overlaps).
+      const overlaps = (t) => (t.items || []).some((c) => {
+        const r = clipTimeRange(c, T);
+        return r.start < clip.end && clip.start < r.end;
+      });
+      let n = 1;
+      let track = state.tracks.find((t) => t.name === 'Blend');
+      while (track && overlaps(track)) {
+        n += 1;
+        const name = `Blend ${n}`;
+        track = state.tracks.find((t) => t.name === name);
+      }
+      const name = n === 1 ? 'Blend' : `Blend ${n}`;
+      if (!track) {
+        track = { id: `track-blend-${Date.now().toString(36)}`, type: 'text', name, muted: false, solo: false, locked: false, items: [] };
+        state.tracks.push(track);
+      }
+      saveStateSnapshot(state);
+      insertClipIntoTrack(clip, name);
+      showClipEditor(clip.id);
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`${mapped.name.replace('Blend: ', '')} added (${getBlendItem(id).blendMode})`, 'success');
+      return clip;
+    }
+
+    // Services the overlay settings form uses: uploads, the media library
+    // and the personalization token list.
+    // Pixabay + Pexels search through the existing server-side proxies
+    // (/api/pixabay, /api/pexels) — the same ones Stock Media uses.
+    const stockSearch = createStockSearch({
+      pixabay: { searchImages: searchPixabayImages, searchVideos: searchPixabayVideos },
+      pexels: { searchPhotos: searchPexelsPhotos, searchVideos: searchPexelsVideos },
+    });
+
+    /**
+     * Pixabay doesn't allow permanent hotlinking of images, so a picked
+     * Pixabay image is copied to the project's storage first. Pexels images
+     * and all stock videos are used from their CDN.
+     */
+    async function importStockImage(item) {
+      if (!item?.mustCopy) return item?.src;
+      try {
+        const res = await fetch(item.src);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const ext = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+        const file = new File([blob], `${item.id}.${ext}`, { type: blob.type || 'image/jpeg' });
+        const url = await uploadFileToStorage(file);
+        if (url) return url;
+      } catch (err) {
+        console.warn('[Stock] could not copy Pixabay image to storage', err);
+      }
+      showToast("Couldn't save a copy of this Pixabay image to your storage; using Pixabay's link for now, which may expire.", 'info');
+      return item.src;
+    }
+
+    const addonEditorServices = {
+      stockSources: STOCK_SOURCES,
+      searchStock: (kind, source, query) => stockSearch(kind, source, query),
+      importStockImage,
+      tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
+      stickers: STICKER_LIBRARY,
+      animatedEmoji: ANIMATED_EMOJI,
+      mediaImages: () => {
+        const seen = new Set();
+        return [...(state.mediaLibrary || []), ...(state.assets || []), ...(state.media || [])]
+          .map((m) => ({ name: m.title || m.name || m.label || '', src: m.url || m.src || m.media?.url, type: m.type }))
+          .filter((m) => m.src && (m.type === 'image' || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(m.src)))
+          .filter((m) => (seen.has(m.src) ? false : seen.add(m.src)));
+      },
+      uploadFile: async (file) => {
+        try {
+          const url = await uploadFileToStorage(file);
+          if (typeof url === 'string' && url) return url;
+          if (url?.url) return url.url;
+        } catch (err) {
+          console.warn('[Overlays] upload failed, using a local preview URL', err);
+        }
+        showToast('Upload unavailable — using a local preview of the file (it will not be saved with the project)', 'info');
+        const { localMediaUrl } = await import('../lib/editor/remotion/localMedia.js');
+        return localMediaUrl(file);
+      },
+      onError: (err) => showToast(err?.message || 'Upload failed', 'error'),
+    };
+
+    // Settings panel for schema-driven addons (Skip / Pause / Loop). Mirrors
+    // upstream's DefaultSettings "Basic" tab: Start (and End) time inputs
+    // plus each plugin's manifest options, rendered from the descriptor.
+    let activeAddonEditor = null;
+    function renderSchemaAddonEditor(clip) {
+      const addon = getAddon(clip.type);
+      clip.addon = addonOptions(clip);
+      const T = state.timelineSeconds || 60;
+      const { start, end } = clipTimeRange(clip, T);
+      const timing = addon.timing || ['start', 'end'];
+      els.clipEditorContainer.innerHTML = `
+        <div class="clip-editor addon-editor">
+          <p class="addon-summary"><span aria-hidden="true">${addon.icon}</span> <strong>${escapeHtml(addon.label)}</strong> — ${escapeHtml(addon.description || '')}</p>
+          <div class="clip-editor__section addon-timing">
+            ${timing.includes('start') ? `<div class="clip-editor__field"><label for="addon-start">Start (seconds)</label><input id="addon-start" type="number" min="0" max="${T}" step="0.01" value="${start.toFixed(2)}" /></div>` : ''}
+            ${timing.includes('end') ? `<div class="clip-editor__field"><label for="addon-end">End (seconds)</label><input id="addon-end" type="number" min="0" max="${T}" step="0.01" value="${end.toFixed(2)}" /></div>` : ''}
+          </div>
+          <div class="clip-editor__section" id="addonOptionsForm"></div>
+          <button type="button" class="mini-btn" id="addon-delete" style="width:100%;margin-top:8px">Remove ${escapeHtml(addon.label)}</button>
+        </div>
+      `;
+      const setTiming = (newStart, newEnd) => {
+        const s0 = Math.max(0, Math.min(T, newStart));
+        const e0 = Math.max(s0 + 0.1, Math.min(T, newEnd));
+        clip.left = (s0 / T) * 100;
+        clip.width = ((e0 - s0) / T) * 100;
+        renderTracks();
+        debouncedSave();
+      };
+      els.clipEditorContainer.querySelector('#addon-start')?.addEventListener('change', (e) => {
+        const cur = clipTimeRange(clip, T);
+        const v = Number(e.target.value) || 0;
+        // Pause is a point event: moving it keeps its length.
+        setTiming(v, timing.includes('end') ? cur.end : v + (cur.end - cur.start));
+      });
+      els.clipEditorContainer.querySelector('#addon-end')?.addEventListener('change', (e) => {
+        const cur = clipTimeRange(clip, T);
+        setTiming(cur.start, Number(e.target.value) || cur.end);
+      });
+      els.clipEditorContainer.querySelector('#addon-delete').addEventListener('click', () => {
+        state.tracks.forEach((t) => {
+          const items = t.items || t.clips || [];
+          const i = items.findIndex((c) => c.id === clip.id);
+          if (i >= 0) items.splice(i, 1);
+        });
+        state.selectedClipId = null;
+        els.clipEditorContainer.innerHTML = '';
+        renderTracks();
+        updatePreview(null);
+        debouncedSave();
+      });
+      activeAddonEditor?.destroy();
+      activeAddonEditor = renderAddonEditor(els.clipEditorContainer.querySelector('#addonOptionsForm'), {
+        fields: addon.fields,
+        options: clip.addon,
+        idPrefix: `addon-${clip.id}`,
+        services: addonEditorServices,
+        onFieldChange: addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined,
+        onChange: (next) => {
+          const prevDuration = clip.addon?.durationSec;
+          clip.addon = next;
+          if (addon.summary) clip.name = addon.summary(next);
+          // Picking an overlay-transition video sizes the clip to the video.
+          if (next.durationSec && next.durationSec !== prevDuration) {
+            const T = state.timelineSeconds || 60;
+            clip.width = Math.min(100 - clip.left, (next.durationSec / T) * 100);
+          }
+          renderTracks();
+          if (addon.category !== 'overlay') updatePreview(clip);
+          debouncedSave();
+        },
+      });
+    }
+
+    // Interactive panel: upstream toolbar sections "Video Controls" and
+    // "Lead Generation" with upstream's icons and labels.
+    function renderInteractivePanel() {
+      if (!els.interactiveAddonList) return;
+      const lb = state.listBuilder;
+      const sections = {};
+      INTERACTIVE_ADDONS.forEach((a) => {
+        (sections[a.section] = sections[a.section] || []).push(
+          `<button type="button" class="addon-panel__item" data-add-addon="${a.type}" title="${escapeHtml(a.description)}">
+            ${a.iconSrc ? `<img src="${escapeHtml(a.iconSrc)}" alt="" />` : ''}<span>${escapeHtml(a.label)}</span>
+          </button>`,
+        );
+      });
+      PROJECT_FORMS.forEach((f) => {
+        const on = lb?.enabled && lb.kind === f.kind;
+        (sections[f.section] = sections[f.section] || []).push(
+          `<button type="button" class="addon-panel__item${on ? ' is-on' : ''}" data-project-form="${f.kind}" aria-pressed="${on ? 'true' : 'false'}" title="${escapeHtml(f.label)} — shown at the start of the video">
+            ${f.iconSrc ? `<img src="${escapeHtml(f.iconSrc)}" alt="" />` : ''}<span>${escapeHtml(f.label)}</span>
+          </button>`,
+        );
+      });
+      els.interactiveAddonList.innerHTML = ['Video Controls', 'Lead Generation']
+        .filter((name) => sections[name])
+        .map((name) => `<div class="addon-panel__section"><h4 class="addon-panel__heading">${name}</h4><div class="addon-panel__grid">${sections[name].join('')}</div></div>`)
+        .join('');
+    }
+
+    let listBuilderEditor = null;
+    function renderListBuilderSettings() {
+      const box = els.listBuilderSettings;
+      if (!box) return;
+      const lb = state.listBuilder;
+      if (!lb) {
+        box.hidden = true;
+        box.innerHTML = '';
+        return;
+      }
+      box.hidden = false;
+      box.innerHTML = `
+        <div class="addon-panel__heading" style="display:flex;justify-content:space-between;align-items:center">
+          <span>${lb.kind === 'personalizer' ? 'Personalizer' : 'List Builder'} settings</span>
+          <span>
+            <button type="button" class="mini-btn" id="lbPreview">Preview</button>
+            <button type="button" class="mini-btn" id="lbDownload">Leads</button>
+            <button type="button" class="mini-btn" id="lbRemove">Remove</button>
+          </span>
+        </div>
+        <div id="lbForm"></div>`;
+      listBuilderEditor?.destroy();
+      listBuilderEditor = renderAddonEditor(box.querySelector('#lbForm'), {
+        options: lb,
+        fieldsFor: (o) => listBuilderFields(o),
+        idPrefix: 'listbuilder',
+        onChange: (next) => {
+          const kindChanged = next.kind !== state.listBuilder.kind;
+          state.listBuilder = kindChanged ? switchListBuilderKind(next, next.kind) : next;
+          if (kindChanged) listBuilderEditor.setOptions(state.listBuilder);
+          renderInteractivePanel();
+          debouncedSave();
+        },
+      });
+      box.querySelector('#lbPreview').addEventListener('click', () => openListBuilderOverlay({ preview: true }));
+      box.querySelector('#lbRemove').addEventListener('click', () => {
+        state.listBuilder = null;
+        clearOverlay(addonOverlayLayer(), 'list-builder');
+        renderInteractivePanel();
+        renderListBuilderSettings();
+        debouncedSave();
+      });
+      box.querySelector('#lbDownload').addEventListener('click', () => downloadLeadsCsv({
+        clipId: 'list-builder', local: state.listBuilder?._localLeads || [], name: 'list_builder_leads',
+      }));
+    }
+
+    function bindInteractivePanel() {
+      if (!els.interactivePanel) return;
+      els.interactivePanel.addEventListener('click', (e) => {
+        const addBtn = e.target.closest('[data-add-addon]');
+        if (addBtn) {
+          addAddonAtPlayhead(addBtn.dataset.addAddon);
+          return;
+        }
+        const formBtn = e.target.closest('[data-project-form]');
+        if (formBtn) {
+          const kind = formBtn.dataset.projectForm;
+          // Upstream addRetargetForm: one form per project; picking the
+          // other kind switches it.
+          if (!state.listBuilder || state.listBuilder.kind !== kind) {
+            state.listBuilder = { ...defaultListBuilder(kind), enabled: true };
+          } else {
+            state.listBuilder.enabled = true;
+          }
+          renderInteractivePanel();
+          renderListBuilderSettings();
+          openListBuilderOverlay({ preview: true });
+          debouncedSave();
+        }
+      });
+      renderInteractivePanel();
+      renderListBuilderSettings();
+    }
+
+    // Add any registered addon as a clip starting at the playhead.
+    function addAddonAtPlayhead(type) {
+      const T = state.timelineSeconds || 60;
+      let startSec = (state.playheadPercent / 100) * T;
+      if (type === 'overlay-video-transition') {
+        // Centre the blend on the nearest cut between two clips.
+        const cut = nearestCut(startSec);
+        const half = (getAddon(type).defaultDuration || 1) / 2;
+        if (cut != null) startSec = Math.max(0, cut - half);
+        else showToast('Tip: place Video Transitions over a cut between two clips', 'info');
+      }
+      const clip = createAddonClip(type, { startSec, timelineSeconds: T });
+      const addon = getAddon(type);
+      if (addon.summary) clip.name = addon.summary(addonOptions(clip));
+      insertClipIntoTrack(clip, addon.track || 'Text');
+      showClipEditor(clip.id);
+      debouncedSave();
+      return clip;
+    }
+
+    function addonOverlayLayer() {
+      return ensureOverlayLayer(els.viewerFrame || els.previewStage.parentElement);
+    }
+
+    // Shared lead capture: stores via the lead-capture edge function, which
+    // also forwards webhooks server-side; falls back to posting webhooks from
+    // the browser if the backend is unreachable.
+    async function captureLead({ clipId, kind, data, config, notificationEmail }) {
+      const webhooks = webhookUrlsFor(config);
+      const result = await submitLead(supabase, {
+        projectId: state.projectId || currentTimelineId(state) || null,
+        clipId,
+        kind,
+        data,
+        webhooks,
+        notificationEmail,
+        preview: true,
+      });
+      if (result.error) {
+        const direct = webhooks.length ? await postWebhooksDirect(webhooks, data) : { forwarded: 0, failed: 0 };
+        return { stored: false, forwarded: direct.forwarded, failed: direct.failed, offline: true };
+      }
+      return result;
+    }
+
+    function leadResultMessage(res, emailConfigured) {
+      const parts = [res.stored ? 'Lead saved' : 'Lead captured (preview only, not saved — sign in to store leads)'];
+      if (res.forwarded || res.failed) {
+        parts.push(res.failed ? `${res.failed} webhook(s) failed` : `sent to ${res.forwarded} webhook(s)`);
+      }
+      if (emailConfigured) parts.push('email notifications need an email provider (not connected yet)');
+      return parts.join(' · ');
+    }
+
+    async function downloadLeadsCsv({ clipId, local = [], name = 'leads' }) {
+      const stored = await fetchLeads(supabase, { projectId: state.projectId || currentTimelineId(state) || null, clipId });
+      // Leads from the published video (/watch link) are filed under its id.
+      const publishedId = (state.publishedVideos || {})[String(currentTimelineId(state) || 'default')];
+      const viewers = publishedId ? await fetchLeads(supabase, { projectId: publishedId, clipId }) : [];
+      const leads = mergeLeads(local, [...stored, ...viewers]);
+      if (!leads.length) {
+        showToast('No leads captured yet', 'info');
+        return;
+      }
+      const blob = new Blob([leadsToCsv(leads)], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${String(name).replace(/[^a-z0-9]+/gi, '_')}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function personalizationPrefill() {
+      const vars = getActivePersonalizationProfile()?.variables || {};
+      return {
+        EMAIL: vars.email,
+        'FIRST NAME': vars.firstName,
+        'LAST NAME': vars.lastName,
+        COMPANY: vars.company,
+      };
+    }
+
+    function openListBuilderOverlay({ preview = false } = {}) {
+      const lb = state.listBuilder;
+      if (!lb) return;
+      const resume = () => {
+        if (!preview && !state.playing) togglePlayback();
+      };
+      showListBuilderOverlay(addonOverlayLayer(), lb, {
+        prefill: personalizationPrefill(),
+        onSkip: resume,
+        onSubmit: async (data) => {
+          const res = await captureLead({
+            clipId: 'list-builder',
+            kind: lb.kind,
+            data,
+            config: lb.kind === 'personalizer' ? null : listBuilderWebhookConfig(lb),
+            notificationEmail: lb.emailEnabled ? lb.emailAddress : '',
+          });
+          lb._localLeads = [...(lb._localLeads || []), { ...data, submittedAt: new Date().toISOString(), _stored: !!res.stored }];
+          if (lb.kind === 'personalizer') {
+            savePersonalizerProfile(data);
+          }
+          if (lb.fbPixelId && typeof window.fbq === 'function') {
+            window.fbq('trackSingle', lb.fbPixelId, 'Lead', data);
+          }
+          if (!preview) lb._submitted = true;
+          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : leadResultMessage(res, lb.emailEnabled && lb.emailAddress), res.failed ? 'error' : 'success');
+          resume();
+          return '';
+        },
+      });
+    }
+
+    // Effects & Color (Remotion @remotion/effects), Captions and Keyframes
+    // panels under the clip's settings.
+    const EFFECT_CLIP_TYPES = new Set(['video', 'image', 'overlay-image', 'overlay-personalized-image', 'overlay-sticker']);
+    const NO_KEYFRAME_TYPES = new Set(['audio', 'overlay-video-transition']);
+    // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
+    var activeEffectsPanel = null;
+    // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
+    var activeKeyframesPanel = null;
+    // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
+    var activeCaptionsPanel = null;
+    // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
+    var pendingAutoCaptions = null;
+    // eslint-disable-next-line no-var -- background-removal jobs outlive the clip editor
+    var bgJobs = new Map();
+    // eslint-disable-next-line no-var
+    var activeBgPanel = null;
+    // eslint-disable-next-line no-var
+    var editorClipId = null;
+    const BG_REMOVAL_TYPES = new Set(['video', 'image', 'overlay-image']);
+    const clipMediaSrc = (clip) => (clip.type === 'overlay-image' ? clip.addon?.src : clip.src);
+    function setClipMediaSrc(clip, src) {
+      if (clip.type === 'overlay-image') clip.addon = { ...(clip.addon || {}), src };
+      else clip.src = src;
+    }
+
+    /** Remove a clip's background in the browser, store the result and swap it in (undoable). */
+    function startBgRemoval(clip, settings) {
+      const controller = new AbortController();
+      const listeners = new Set();
+      const job = {
+        last: null,
+        cancel: () => controller.abort(),
+        subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
+      };
+      const onProgress = (p) => { job.last = p; listeners.forEach((fn) => fn(p)); };
+      job.done = (async () => {
+        const m = await import('../lib/editor/remotion/bgRemoval.js');
+        const src = clipMediaSrc(clip);
+        if (!src) throw new Error('This clip has no media yet');
+        const isVideo = clip.type === 'video';
+        const fromSec = Number(clip.trimIn ?? clip.sourceStart ?? 0) || 0;
+        const blob = isVideo
+          ? await m.removeVideoBackground(src, { fromSec, toSec: fromSec + clipDurationSec(clip), ...settings, onProgress, signal: controller.signal })
+          : await m.removeImageBackground(src, { edge: settings.edge, onProgress, signal: controller.signal });
+        const file = new File([blob], `${String(clip.name || 'clip').replace(/[^\w-]+/g, '_')}-no-background.${isVideo ? 'webm' : 'png'}`, { type: blob.type });
+        let url = null;
+        try {
+          const r = await uploadFileToStorage(file);
+          url = typeof r === 'string' ? r : r?.url || null;
+        } catch (err) {
+          console.warn('[Background removal] upload failed, keeping a local copy', err);
+        }
+        if (!url) {
+          const { localMediaUrl } = await import('../lib/editor/remotion/localMedia.js');
+          url = localMediaUrl(blob);
+          showToast('Background removed — kept for this session only (sign in to save the file with the project)', 'info');
+        } else {
+          showToast('Background removed', 'success');
+        }
+        saveStateSnapshot(state);
+        clip.bgRemoval = { originalSrc: src, originalTrimIn: clip.trimIn ?? null, at: new Date().toISOString() };
+        setClipMediaSrc(clip, url);
+        if (isVideo) clip.trimIn = 0; // the new file starts where the clip started
+        renderTracks();
+        scheduleEngineUpdate();
+        debouncedSave();
+        if (editorClipId === clip.id) renderClipEditor(clip.id);
+      })();
+      job.done.catch((err) => {
+        if (err?.name !== 'AbortError') showToast(`Background removal failed: ${err?.message || err}`, 'error');
+      }).finally(() => bgJobs.delete(clip.id));
+      bgJobs.set(clip.id, job);
+      return job;
+    }
+
+    // ---------------------------------------------------------------
+    // AI Video agent: the editor API its tools (and WebMCP) work through.
+    function agentEditor() {
+      const T = () => state.timelineSeconds || 60;
+      const trackNameFor = (kind) => {
+        if (kind === 'video') return videoTrackName();
+        const t = state.tracks.find((tr) => (tr.type || '').toLowerCase() === kind);
+        return t?.name || (kind === 'audio' ? 'Audio' : 'Text');
+      };
+      const profile = () => getActivePersonalizationProfile();
+      return {
+        snapshot: () => ({
+          timelineSeconds: T(),
+          playheadSec: playheadSec(),
+          tracks: state.tracks.map((t) => ({ id: t.id, name: t.name, type: t.type, clips: t.items || t.clips || [] })),
+        }),
+        setTimelineSeconds(sec) {
+          const T0 = T();
+          // Clips are stored as % of the timeline; keep their times in seconds.
+          allClips().forEach((c) => {
+            if (typeof c.left === 'number') c.left = (c.left * T0) / sec;
+            if (typeof c.width === 'number') c.width = (c.width * T0) / sec;
+          });
+          state.playheadPercent = Math.min(100, ((state.playheadPercent || 0) * T0) / sec);
+          state.timelineSeconds = sec;
+          drawRuler();
+          updatePlaybackUI();
+        },
+        insertClip(clip, kind) {
+          // A kind ('video' | 'audio' | 'text') or an exact track name ('Music').
+          insertClipIntoTrack(clip, ['video', 'audio', 'text'].includes(kind) ? trackNameFor(kind) : kind);
+          return clip;
+        },
+        ensureTrack(name, type) {
+          let track = state.tracks.find((t) => t.name === name);
+          if (!track) {
+            track = { id: `track-${String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}`, type, name, muted: false, solo: false, locked: false, items: [] };
+            state.tracks.push(track);
+          }
+          return track;
+        },
+        async generateAudio(kind, params) {
+          const { generateAudio, persistAudio, probeDuration } = await import('../lib/editor/agent/audioGen.js');
+          const remote = await generateAudio(kind, params);
+          const url = await persistAudio(remote, { upload: uploadFileToStorage, name: kind === 'tts' ? 'voiceover' : 'music' });
+          return { url, duration: await probeDuration(url) };
+        },
+        createAddon(type, startSec, durationSec) {
+          const clip = createAddonClip(type, { startSec, timelineSeconds: T() });
+          clip.start = startSec;
+          clip.end = Math.min(T(), startSec + durationSec);
+          const addon = getAddon(type);
+          if (addon?.summary) clip.name = addon.summary(addonOptions(clip));
+          return clip;
+        },
+        getClip: (id) => allClips().find((c) => String(c.id) === String(id)) || null,
+        clipTimes: (c) => ({ start: clipStartSec(c), end: clipStartSec(c) + clipDurationSec(c) }),
+        setClipTimes(c, start, end) {
+          c.left = (start / T()) * 100;
+          c.width = ((end - start) / T()) * 100;
+        },
+        removeClip(id) {
+          const c = allClips().find((x) => String(x.id) === String(id));
+          if (!c) return false;
+          removeClipById(c.id);
+          return true;
+        },
+        commit() {
+          renderTracks();
+          scheduleEngineUpdate();
+          debouncedSave();
+        },
+        searchStock: (kind, source, query) => stockSearch(kind, source, query),
+        importStockImage,
+        async transcribe(source, { language } = {}) {
+          const { transcribeInBrowser, WHISPER_MODELS } = await import('../lib/editor/remotion/transcribe.js');
+          const fromSec = Number(source.trimIn ?? source.sourceStart ?? 0) || 0;
+          const model = navigator.gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
+          const { captions } = await transcribeInBrowser(source.src, { fromSec, toSec: fromSec + clipDurationSec(source), language, model });
+          return captions;
+        },
+        removeBackground: (clip) => (bgJobs.get(clip.id) || startBgRemoval(clip, { maskEvery: 2, edge: 0, maxSize: 1280 })).done,
+        async renderStill(sec) {
+          const { renderStill } = await import('../lib/editor/remotion/exportClient.js');
+          const model = timelineToComposition(state, { fps: ENGINE_FPS, quality: '720p', profile: profile() });
+          return renderStill(model, Math.round(sec * ENGINE_FPS));
+        },
+        async exportVideo({ container = 'mp4', quality = '1080p' } = {}) {
+          const { exportModel, downloadBlob, EXTENSIONS } = await import('../lib/editor/remotion/exportClient.js');
+          showToast('Exporting video…', 'info');
+          const blob = await exportModel(timelineToComposition(state, { quality, profile: profile() }), { container, quality });
+          const name = String(state.projectTitle || 'timeline').replace(/[^a-z0-9 _-]+/gi, '').trim() || 'timeline';
+          const filename = `${name}.${EXTENSIONS[container] || 'mp4'}`;
+          downloadBlob(blob, filename);
+          showToast('Export complete — your video is downloading', 'success');
+          return { filename };
+        },
+        confirm: (message) => Promise.resolve(window.confirm(message)),
+      };
+    }
+
+    // eslint-disable-next-line no-var -- created on first use
+    var agentToolsPromise = null;
+    function getAgentTools() {
+      agentToolsPromise ||= import('../lib/editor/agent/tools.js').then(({ createAgentTools }) => createAgentTools(agentEditor()));
+      return agentToolsPromise;
+    }
+
+    // eslint-disable-next-line no-var
+    var agentPanel = null;
+    async function mountAgentPanel() {
+      const host = root.querySelector('#aiAgentChat');
+      if (agentPanel || !host) return;
+      const [{ renderAgentPanel }, tools] = await Promise.all([import('../lib/editor/agent/agentPanel.js'), getAgentTools()]);
+      if (agentPanel) return;
+      const providers = (async () => {
+        try {
+          const token = await window.Clerk?.session?.getToken?.();
+          const res = await fetch('/api/video-agent', { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+          const data = await res.json();
+          return data?.providers || null;
+        } catch {
+          return null;
+        }
+      })();
+      agentPanel = renderAgentPanel(host, {
+        tools,
+        providers,
+        onTurnStart: () => saveStateSnapshot(state),
+        onTurnEnd: () => { renderTracks(); scheduleEngineUpdate(); },
+      });
+    }
+
+    /** WebMCP: let in-browser AI agents use the same tools (feature-detected). */
+    async function initWebMcp() {
+      if (typeof navigator === 'undefined' || !navigator.modelContext) return;
+      const [{ registerWebMcpTools }, tools] = await Promise.all([import('../lib/editor/agent/webmcp.js'), getAgentTools()]);
+      registerWebMcpTools(tools, {
+        confirm: (message) => Promise.resolve(window.confirm(message)),
+        onChange: () => saveStateSnapshot(state),
+      });
+    }
+
+    // ---------------------------------------------------------------
+    // Share: publish the timeline as an interactive video (/watch/<id>).
+    // eslint-disable-next-line no-var -- created on first open
+    var sharePanel = null;
+    async function publishOwnerClient() {
+      if (!window.Clerk?.user) throw new Error('Sign in to publish videos');
+      await supabase.refreshUserHeader?.();
+      if (!supabase.supabase) throw new Error('The video service is unavailable — check your connection');
+      return supabase.supabase;
+    }
+    const publishedKey = () => String(currentTimelineId(state) || 'default');
+    async function mountSharePanel() {
+      const host = root.querySelector('#shareBody');
+      if (sharePanel || !host) return;
+      const pub = await import('../lib/editor/publish/publishClient.js');
+      const { renderSharePanel } = await import('../lib/editor/publish/sharePanel.js');
+      const { localMediaBlob } = await import('../lib/editor/remotion/localMedia.js');
+      const videoId = () => (state.publishedVideos || {})[publishedKey()] || null;
+      sharePanel = renderSharePanel(host, {
+        defaultTitle: state.projectTitle || 'Untitled video',
+        async getInfo() {
+          const id = videoId();
+          if (!id || !window.Clerk?.user) return null;
+          return pub.getMyVideo(await publishOwnerClient(), id);
+        },
+        async publish({ title }) {
+          const client = await publishOwnerClient();
+          const uploaded = await pub.uploadLocalMedia(state, { getBlob: localMediaBlob, upload: uploadFileToStorage });
+          if (uploaded) {
+            renderTracks();
+            scheduleEngineUpdate();
+          }
+          const project = pub.preparePublishProject(state, { title });
+          const id = videoId() || pub.makeSlug();
+          const info = await pub.publishVideo(client, { id, project });
+          state.publishedVideos = { ...(state.publishedVideos || {}), [publishedKey()]: id };
+          debouncedSave();
+          showToast('Published — copy the link to share it', 'success');
+          return { ...info, published: true };
+        },
+        async setPublished(on) {
+          await pub.setPublished(await publishOwnerClient(), videoId(), on);
+          showToast(on ? 'Published' : 'Unpublished — the link no longer works', 'success');
+        },
+        async countLeads() {
+          const leads = await fetchLeads(supabase, { projectId: videoId() });
+          return Array.isArray(leads) ? leads.length : null;
+        },
+        copy: (text) => navigator.clipboard.writeText(text),
+      });
+    }
+
+    function restoreBgRemoval(clip) {
+      const info = clip.bgRemoval;
+      if (!info) return;
+      saveStateSnapshot(state);
+      setClipMediaSrc(clip, info.originalSrc);
+      if (clip.type === 'video') {
+        if (info.originalTrimIn == null) delete clip.trimIn; else clip.trimIn = info.originalTrimIn;
+      }
+      delete clip.bgRemoval;
+      renderTracks();
+      scheduleEngineUpdate();
+      debouncedSave();
+      renderClipEditor(clip.id);
+    }
+    const timelineSec = () => state.timelineSeconds || 60;
+    const clipStartSec = (clip) => ((Number(clip.left) || 0) / 100) * timelineSec();
+    const clipDurationSec = (clip) => ((Number(clip.width) || 0) / 100) * timelineSec();
+    const playheadSec = () => ((state.playheadPercent || 0) / 100) * timelineSec();
+    function seekToSeconds(sec) {
+      state.playheadPercent = Math.max(0, Math.min(100, (sec / timelineSec()) * 100));
+      updatePlaybackUI();
+    }
+    function downloadText(name, text, mime) {
+      const url = URL.createObjectURL(new Blob([text], { type: mime || 'text/plain' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+    const isKeyframable = (clip) => {
+      if (NO_KEYFRAME_TYPES.has(clip.type)) return false;
+      const addon = isAddonType(clip.type) ? getAddon(clip.type) : null;
+      if (addon && addon.category !== 'overlay') return false;
+      if (clip.type === 'lead-form' || clip.type === 'click-to-call') return false;
+      return true;
+    };
+    const editorSection = (cls, label) => {
+      const host = document.createElement('section');
+      host.className = `clip-editor__section ${cls}`;
+      host.setAttribute('aria-label', label);
+      els.clipEditorContainer.appendChild(host);
+      return host;
+    };
+    function mediaSourcesForCaptions() {
+      return allClips().filter((c) => (c.type === 'video' || c.type === 'audio') && c.src)
+        .sort((a, b) => (a.left || 0) - (b.left || 0))
+        .map((c) => ({ id: String(c.id), label: `${c.name || c.type} (${clipStartSec(c).toFixed(1)}s)` }));
+    }
+
     function renderClipEditor(clipId) {
+      renderClipEditorBase(clipId);
+      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel].forEach((p) => p?.destroy());
+      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = null;
+      editorClipId = clipId;
+      const clip = allClips().find((c) => c.id === clipId);
+      if (!clip) return;
+
+      if (BG_REMOVAL_TYPES.has(clip.type) && (clipMediaSrc(clip) || clip.bgRemoval)) {
+        const host = editorSection('clip-bg-removal', 'Remove background');
+        Promise.all([import('../lib/editor/remotion/bgRemovalPanel.js'), import('../lib/editor/remotion/bgRemoval.js')])
+          .then(async ([{ renderBgRemovalPanel }, { hasWebGpu }]) => {
+            const gpu = await hasWebGpu();
+            if (!host.isConnected) return;
+            activeBgPanel = renderBgRemovalPanel(host, {
+              kind: clip.type === 'video' ? 'video' : 'image',
+              removed: !!clip.bgRemoval,
+              gpu,
+              job: bgJobs.get(clip.id),
+              start: (settings) => startBgRemoval(clip, settings),
+              onRestore: () => restoreBgRemoval(clip),
+            });
+          });
+      }
+
+      if (clip.type === 'remotion-code') {
+        const host = editorSection('clip-animation', 'Animation');
+        import('../lib/editor/agent/animationPanel.js').then(({ renderAnimationPanel }) => {
+          if (!host.isConnected) return;
+          activeCaptionsPanel = renderAnimationPanel(host, {
+            clip,
+            onApply: ({ code, props }) => {
+              saveStateSnapshot(state);
+              clip.code = code;
+              clip.props = props;
+              delete clip.lastError;
+              scheduleEngineUpdate();
+              debouncedSave();
+              showToast('Animation updated', 'success');
+            },
+            onCheck: async () => {
+              const { renderStill } = await import('../lib/editor/remotion/exportClient.js');
+              const mid = clipStartSec(clip) + clipDurationSec(clip) / 2;
+              const model = timelineToComposition(state, { fps: ENGINE_FPS, quality: '720p', profile: getActivePersonalizationProfile() });
+              try {
+                const { blob, codeErrors } = await renderStill(model, Math.round(mid * ENGINE_FPS));
+                const error = codeErrors?.[String(clip.id)] || null;
+                if (error) clip.lastError = error; else delete clip.lastError;
+                return { blob, error };
+              } catch (err) {
+                return { blob: null, error: err?.codeErrors?.[String(clip.id)] || err?.message };
+              }
+            },
+          });
+        });
+      }
+
+      if (clip.type === 'captions') {
+        const host = editorSection('clip-captions', 'Captions');
+        const auto = pendingAutoCaptions === clip.id;
+        pendingAutoCaptions = null;
+        import('../lib/editor/remotion/captionsPanel.js').then(({ renderCaptionsPanel }) => {
+          if (!host.isConnected) return;
+          activeCaptionsPanel = renderCaptionsPanel(host, {
+            captions: clip.captions || [],
+            style: clip.captionStyle,
+            sources: mediaSourcesForCaptions(),
+            selectedSource: clip.sourceClipId ? String(clip.sourceClipId) : undefined,
+            autoTranscribe: auto,
+            currentMs: () => Math.max(0, (playheadSec() - clipStartSec(clip)) * 1000),
+            onSeek: (ms) => seekToSeconds(clipStartSec(clip) + ms / 1000),
+            onDownload: (name, text, mime) => downloadText(`${(clip.name || 'captions').replace(/[^\w-]+/g, '_')}.${name.split('.').pop()}`, text, mime),
+            onError: (err) => showToast(err?.message || 'Captions error', 'error'),
+            onTranscribe: async ({ sourceId, model, language, onProgress, signal }) => {
+              const source = allClips().find((c) => String(c.id) === sourceId);
+              if (!source?.src) throw new Error('That clip has no media to transcribe');
+              const { transcribeInBrowser } = await import('../lib/editor/remotion/transcribe.js');
+              const fromSec = Number(source.trimIn ?? source.sourceStart ?? 0) || 0;
+              const { captions } = await transcribeInBrowser(source.src, { fromSec, toSec: fromSec + clipDurationSec(source), model, language, onProgress, signal });
+              if (!captions.length) throw new Error('No speech was found in that clip');
+              // Line the captions clip up with the clip it was made from.
+              saveStateSnapshot(state);
+              clip.left = source.left;
+              clip.width = source.width;
+              clip.sourceClipId = source.id;
+              renderTracks();
+              showToast(`${captions.length} words transcribed`, 'success');
+              return captions;
+            },
+            onChange: ({ captions, captionStyle }) => {
+              clip.captions = captions;
+              clip.captionStyle = captionStyle;
+              const first = captions.slice(0, 5).map((c) => c.text).join('').trim();
+              clip.name = first ? `Captions: ${first}${captions.length > 5 ? '…' : ''}` : 'Captions';
+              scheduleEngineUpdate();
+              debouncedSave();
+            },
+          });
+        });
+      }
+
+      if (EFFECT_CLIP_TYPES.has(clip.type) && !(clip.type === 'overlay-sticker' && clip.addon?.kind === 'lottie')) {
+        const host = editorSection('clip-effects', 'Effects and color');
+        import('../lib/editor/remotion/effectsPanel.js').then(({ renderEffectsPanel }) => {
+          if (!host.isConnected) return;
+          activeEffectsPanel = renderEffectsPanel(host, {
+            effects: clip.effects || [],
+            onError: (err) => showToast(err?.message || 'Effect error', 'error'),
+            onChange: (next) => {
+              clip.effects = next;
+              // Drop keyframes of effects that were removed.
+              if (clip.keyframes) {
+                const uids = new Set(next.map((fx) => fx.uid));
+                Object.keys(clip.keyframes).forEach((k) => { const m = /^fx:([^:]+):/.exec(k); if (m && !uids.has(m[1])) delete clip.keyframes[k]; });
+              }
+              activeKeyframesPanel?.refresh();
+              scheduleEngineUpdate();
+              debouncedSave();
+            },
+          });
+        });
+      }
+
+      if (isKeyframable(clip)) {
+        // The new panel replaces the older keyframe controls in the base editor.
+        els.clipEditorContainer.querySelector('#add-keyframe-btn')?.closest('.clip-editor__section')?.remove();
+        const host = editorSection('clip-keyframes', 'Keyframes');
+        import('../lib/editor/remotion/keyframesPanel.js').then(({ renderKeyframesPanel }) => {
+          if (!host.isConnected) return;
+          activeKeyframesPanel = renderKeyframesPanel(host, {
+            clip,
+            duration: clipDurationSec(clip),
+            getTime: () => Math.max(0, Math.min(clipDurationSec(clip), playheadSec() - clipStartSec(clip))),
+            onSeek: (t) => seekToSeconds(clipStartSec(clip) + t),
+            onChange: (keyframes) => {
+              saveStateSnapshot(state);
+              if (Object.keys(keyframes).length) clip.keyframes = keyframes; else delete clip.keyframes;
+              renderTracks();
+              scheduleEngineUpdate();
+              debouncedSave();
+            },
+          });
+        });
+      }
+    }
+
+    function renderClipEditorBase(clipId) {
       const clip = state.tracks.flatMap(t => t.items || t.clips || []).find(c => c.id === clipId);
       if (!clip) {
         els.clipEditorContainer.innerHTML = '<p>Clip not found</p>';
@@ -3783,6 +5478,10 @@ export function TimelineEditorPage() {
       }
       if (clip.type === 'click-to-call') {
         renderClickToCallEditor(clip);
+        return;
+      }
+      if (isAddonType(clip.type) && !getAddon(clip.type).customEditor) {
+        renderSchemaAddonEditor(clip);
         return;
       }
 
@@ -4243,26 +5942,31 @@ export function TimelineEditorPage() {
 
     renderTracks();
 
+    /** Captions: add a captions clip and transcribe the selected (or first) media clip in the browser. */
     async function generateSubtitles() {
-      showToast('Generating subtitles...', 'info');
-      try {
-        // Attempt real transcription if available
-        if (typeof whisperService !== 'undefined' && whisperService.transcribe) {
-          const selectedClip = findSelectedClip();
-          if (!selectedClip || !selectedClip.src) {
-            showToast('Select a video clip to generate subtitles from', 'info');
-            return;
-          }
-          // In a real implementation, fetch the media and run transcription.
-          showToast('Subtitle generation requires media upload', 'info');
-          return;
-        }
-
-        showToast('Subtitle generation requires a transcription service', 'error');
-      } catch (error) {
-        console.error('Subtitle generation failed:', error);
-        showToast('Subtitle generation failed', 'error');
-      }
+      const selected = findSelectedClip();
+      if (selected?.type === 'captions') { showClipEditor(selected.id); return; }
+      const media = allClips().filter((c) => (c.type === 'video' || c.type === 'audio') && c.src);
+      const source = selected && media.includes(selected) ? selected : media.sort((a, b) => (a.left || 0) - (b.left || 0))[0];
+      const { defaultCaptionStyle } = await import('../lib/editor/remotion/captions.js');
+      saveStateSnapshot(state);
+      const startSec = source ? clipStartSec(source) : playheadSec();
+      const clip = {
+        id: `captions-${Date.now()}`,
+        type: 'captions',
+        name: 'Captions',
+        captions: [],
+        captionStyle: defaultCaptionStyle('tiktok'),
+        sourceClipId: source?.id ?? null,
+        start: startSec,
+        end: startSec + (source ? clipDurationSec(source) : Math.min(10, timelineSec() - startSec)),
+      };
+      const textTrack = state.tracks.find((t) => (t.type || '').toLowerCase() === 'text') || state.tracks.find((t) => t.name === 'Text');
+      insertClipIntoTrack(clip, textTrack?.name || 'Text');
+      if (source) pendingAutoCaptions = clip.id;
+      else showToast('Captions added — import an SRT/VTT file or type captions in its settings', 'info');
+      showClipEditor(clip.id);
+      debouncedSave();
     }
 
     async function suggestBRoll() {
@@ -4550,43 +6254,17 @@ export function TimelineEditorPage() {
     TLEditor.addContactImport = window.addContactImport;
 
     // Global function to add lead generation form
-    window.addLeadCapture = () => {
-      const leadClip = {
-        id: Date.now(),
-        name: 'Lead Capture Form',
-        left: state.playheadPercent * 10,
-        width: 6,
-        type: 'lead-form',
-        heading: 'Get Your Free Guide',
-        fields: [
-          { id: 'first_name', type: 'text', label: 'First Name' },
-          { id: 'email', type: 'email', label: 'Email' }
-        ],
-        ctaText: 'Download Now',
-        privacyText: 'We respect your privacy. Unsubscribe anytime.',
-        webhookEnabled: false,
-        webhookUrl: '',
-        style: { backgroundColor: '', buttonColor: '' }
-      };
-      insertClipIntoTrack(leadClip, 'Text');
-    };
+    window.addLeadCapture = () => addAddonAtPlayhead('lead-form');
     TLEditor.addLeadCapture = window.addLeadCapture;
 
     // Global function to add a click-to-call button
-    window.addClickToCall = () => {
-      const callClip = {
-        id: Date.now(),
-        name: 'Click to Call',
-        left: state.playheadPercent * 10,
-        width: 6,
-        type: 'click-to-call',
-        phoneNumber: '',
-        buttonText: 'Call Now',
-        style: { buttonColor: '' }
-      };
-      insertClipIntoTrack(callClip, 'Text');
-    };
+    window.addClickToCall = () => addAddonAtPlayhead('click-to-call');
     TLEditor.addClickToCall = window.addClickToCall;
+
+    // Any registered addon: 'addon-skip' | 'addon-pause' | 'addon-loop' |
+    // 'lead-form' | 'click-to-call'.
+    window.addTimelineAddon = (type) => addAddonAtPlayhead(type);
+    TLEditor.addAddon = window.addTimelineAddon;
 
     // Global function to apply dynamic personalization layer to current clip
     window.applyPersonalizationLayer = async (clipId, scanData) => {
@@ -4817,6 +6495,9 @@ export function TimelineEditorPage() {
     function openPanel(id) {
       const el = root.querySelector('#' + id);
       if (!el) return;
+      if (id === 'stockPanel') mountStockBrowser();
+      if (id === 'aiAgentPanel') mountAgentPanel();
+      if (id === 'sharePanel') mountSharePanel();
       el.hidden = false;
       el.style.display = 'block';
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -4824,6 +6505,13 @@ export function TimelineEditorPage() {
 
     // Maps floating-rail labels to collapsed panel element ids.
     const RAIL_PANEL_MAP = {
+      'Interactive': 'interactivePanel',
+      'Overlays': 'overlaysPanel',
+      'Blend Modes': 'blendPanel',
+      'Smart Speech': 'speechPanel',
+      'Stock Media': 'stockPanel',
+      'AI Agent': 'aiAgentPanel',
+      'Share': 'sharePanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
       'Color Scopes': 'colorScopesPanel',
@@ -4847,13 +6535,13 @@ export function TimelineEditorPage() {
       email: () => openEmailCampaignModal(state, showToast),
       leads: () => openLeadGeneratorModal(state, showToast),
       contacts: () => openContactImporterModal(state, showToast),
-      endScreen: () => openEndScreenModal(state, showToast),
+      endScreen: () => openTemplateLibrary('endScreens'),
       import: () => showToast('Import timeline functionality coming soon', 'info'),
       storyboard: () => { if (window.showCutAIFromTimeline) window.showCutAIFromTimeline(); else showToast('Storyboard coming soon', 'info'); },
       subtitleEditor: () => generateSubtitles(),
       imageCrop: () => showToast('Image cropper coming soon', 'info'),
       imageEdit: () => showToast('Image editor coming soon', 'info'),
-      voice: () => showToast('Voice/TTS coming soon', 'info')
+      voice: () => openPanel('speechPanel')
     };
 
     // Populate the preview filmstrip (prototype-style clip thumbnails).
@@ -4918,7 +6606,12 @@ export function TimelineEditorPage() {
         'Multi-Cam': 'Multi-camera editing, PIP, and split screen',
         'Clip Editor': 'Clip editor - Edit selected clip properties',
         'Transitions Panel': 'Transitions - Add effects between clips',
-        'CineGen Results': 'CineGen AI Tools results history'
+        'CineGen Results': 'CineGen AI Tools results history',
+        'Interactive': 'Interactive - Skip, Pause, Loop, Lead Generator, List Builder, Personalizer, CTA',
+        'Overlays': 'Overlays - Smart Text, Text Mask, Personalized Image, Image, Stickers, Wrapper, Lower Thirds, Transitions, Presets',
+        'Stock Media': 'Stock Media - Pixabay and Pexels videos and images for the timeline',
+        'AI Agent': 'AI Agent - describe a video or animation and the agent builds it on the timeline',
+        'Share': 'Share - publish an interactive video with a link and embed code'
       };
       state.railActions.forEach(([icon, label, active]) => {
         const button = document.createElement('button');
@@ -5021,6 +6714,12 @@ export function TimelineEditorPage() {
             case 'AI Personalizer':
               window.dispatchEvent(new CustomEvent('open-personalizer'));
               break;
+            case 'End Screens':
+              openTemplateLibrary('endScreens');
+              break;
+            case 'Connect Form':
+              openTemplateLibrary('connect');
+              break;
              case 'Export':
                openExportModal(state, showToast);
                break;
@@ -5104,10 +6803,12 @@ export function TimelineEditorPage() {
     }
 
     function openExportModal(state, showToast) {
+      // Remotion web renderer (in-browser, sandboxed runner). The previous
+      // ExportPipeline stays available as "Basic export".
       const content = `
         <div class="export-modal">
           <div class="form-group">
-            <label>Format</label>
+            <label for="exportFormat">Format</label>
             <select id="exportFormat">
               <option value="mp4">MP4 (H.264)</option>
               <option value="webm">WebM (VP9)</option>
@@ -5115,15 +6816,18 @@ export function TimelineEditorPage() {
             </select>
           </div>
           <div class="form-group">
-            <label>Quality</label>
+            <label for="exportQuality">Quality</label>
             <select id="exportQuality">
               <option value="1080p">1080p (Full HD)</option>
               <option value="720p">720p (HD)</option>
-              <option value="4k">4K (Ultra HD)</option>
+              <option value="4k">4K (Ultra HD) — slower</option>
             </select>
           </div>
+          <ul id="exportWarnings" class="export-warnings"></ul>
           <button class="primary-btn" id="startExportBtn">Start Export</button>
           <button class="secondary-btn" id="cancelExportBtn">Cancel</button>
+          <button class="secondary-btn" id="basicExportBtn" title="The previous exporter">Basic export</button>
+          <button class="secondary-btn" id="publishInteractiveBtn" title="Share a link where viewers get the pauses, lead forms and CTA buttons">Publish interactive video…</button>
           <div id="exportProgress" style="margin-top:12px;display:none;">
             <div class="progress-bar"><div class="progress-fill" id="exportProgressFill" style="width:0%"></div></div>
             <div id="exportProgressText">Preparing export...</div>
@@ -5132,41 +6836,108 @@ export function TimelineEditorPage() {
       `;
       openAdvancedModal(content, 'Export Project');
 
-      const startBtn = els.modalBody.querySelector('#startExportBtn');
-      const cancelBtn = els.modalBody.querySelector('#cancelExportBtn');
-      const progress = els.modalBody.querySelector('#exportProgress');
-      const progressFill = els.modalBody.querySelector('#exportProgressFill');
-      const progressText = els.modalBody.querySelector('#exportProgressText');
+      const q = (sel) => els.modalBody.querySelector(sel);
+      const startBtn = q('#startExportBtn');
+      const cancelBtn = q('#cancelExportBtn');
+      const basicBtn = q('#basicExportBtn');
+      q('#publishInteractiveBtn')?.addEventListener('click', () => { closeModal(); openPanel('sharePanel'); });
+      const progress = q('#exportProgress');
+      const progressFill = q('#exportProgressFill');
+      const progressText = q('#exportProgressText');
+      const warningsList = q('#exportWarnings');
+      let abort = null;
+
+      const setProgress = (pct, text) => {
+        progressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+        progressText.textContent = text;
+      };
+
+      const buildModel = async (quality) => {
+        const { timelineToComposition } = await import('../lib/editor/remotion/timelineToComposition.js');
+        return timelineToComposition(state, { quality, profile: getActivePersonalizationProfile() });
+      };
+
+      const refreshWarnings = async () => {
+        try {
+          const { exportWarnings, canExportInBrowser } = await import('../lib/editor/remotion/exportWarnings.js');
+          const quality = q('#exportQuality')?.value || '1080p';
+          const list = exportWarnings(await buildModel(quality), { quality });
+          if (!canExportInBrowser()) list.unshift("This browser can't encode video. Use Chrome or Edge 94+, Firefox 130+ or Safari 26+, or use Basic export.");
+          warningsList.innerHTML = list.map((w) => `<li>${escapeHtml(w)}</li>`).join('');
+        } catch (err) {
+          warningsList.innerHTML = '';
+          console.warn('[Export] warnings unavailable', err);
+        }
+      };
+      q('#exportQuality')?.addEventListener('change', refreshWarnings);
+      refreshWarnings();
 
       const doExport = async () => {
         if (!startBtn) return;
         startBtn.disabled = true;
+        basicBtn.disabled = true;
         progress.style.display = 'block';
-        progressText.textContent = 'Exporting...';
-
+        setProgress(0, 'Preparing export...');
+        abort = new AbortController();
+        const container = q('#exportFormat')?.value || 'mp4';
+        const quality = q('#exportQuality')?.value || '1080p';
         try {
-          const { ExportPipeline } = await import('../lib/editor/exportPipeline.js');
-          const pipeline = new ExportPipeline(els.timelineBody, state);
-
-          pipeline.onProgress = (pct) => {
-            progressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
-            progressText.textContent = `Exporting... ${Math.round(pct)}%`;
-          };
-
-          await pipeline.startExport();
-          progressText.textContent = 'Export complete!';
-          showToast('Export complete', 'success');
+          const { exportModel, downloadBlob, EXTENSIONS } = await import('../lib/editor/remotion/exportClient.js');
+          const model = await buildModel(quality);
+          const blob = await exportModel(model, {
+            container,
+            quality,
+            signal: abort.signal,
+            onProgress: (p) => setProgress(p * 100, `Rendering... ${Math.round(p * 100)}%`),
+          });
+          const name = String(state.projectTitle || 'timeline').replace(/[^a-z0-9 _-]+/gi, '').trim() || 'timeline';
+          downloadBlob(blob, `${name}.${EXTENSIONS[container] || 'mp4'}`);
+          setProgress(100, `Export complete (${(blob.size / 1048576).toFixed(1)} MB)`);
+          showToast('Export complete — your video is downloading', 'success');
           setTimeout(closeModal, 1500);
         } catch (err) {
-          progressText.textContent = `Export error: ${err.message}`;
+          setProgress(0, `Export error: ${err.message}`);
           showToast(`Export error: ${err.message}`, 'error');
         } finally {
           startBtn.disabled = false;
+          basicBtn.disabled = false;
+          abort = null;
+        }
+      };
+
+      // The previous exporter, kept so nothing is removed.
+      const doBasicExport = async () => {
+        startBtn.disabled = true;
+        basicBtn.disabled = true;
+        progress.style.display = 'block';
+        setProgress(0, 'Exporting...');
+        try {
+          const { ExportPipeline } = await import('../lib/editor/exportPipeline.js');
+          const pipeline = new ExportPipeline(els.timelineBody, state);
+          pipeline.onProgress = (pct) => setProgress(pct, `Exporting... ${Math.round(pct)}%`);
+          await pipeline.startExport();
+          setProgress(100, 'Export complete!');
+          showToast('Export complete', 'success');
+          setTimeout(closeModal, 1500);
+        } catch (err) {
+          setProgress(0, `Export error: ${err.message}`);
+          showToast(`Export error: ${err.message}`, 'error');
+        } finally {
+          startBtn.disabled = false;
+          basicBtn.disabled = false;
         }
       };
 
       startBtn?.addEventListener('click', doExport);
-      cancelBtn?.addEventListener('click', closeModal);
+      basicBtn?.addEventListener('click', doBasicExport);
+      cancelBtn?.addEventListener('click', () => {
+        if (abort) {
+          abort.abort();
+          setProgress(0, 'Cancelling...');
+        } else {
+          closeModal();
+        }
+      });
     }
 
     function closeModal() {
@@ -5905,16 +7676,85 @@ export function TimelineEditorPage() {
        }
     }
 
+    // Interactive addon runtime (Skip / Pause / Loop / Lead Generator gate /
+    // List Builder). Replaces upstream's Popcorn start/end hooks: each
+    // playback tick reports the playhead move and applies the actions.
+    const addonRuntime = new AddonRuntime();
+    let addonResumeTimer = null;
+    function allClips() {
+      return state.tracks.flatMap((t) => t.items || t.clips || []);
+    }
+    function pausePlaybackForAddon() {
+      state.playing = false;
+      window.clearInterval(playbackTimer);
+      remotionEngine?.pause();
+    }
+    function runAddonTick(prevPercent, nowPercent) {
+      const T = state.timelineSeconds || 60;
+      const actions = addonRuntime.tick((prevPercent / 100) * T, (nowPercent / 100) * T, {
+        clips: allClips(),
+        timelineSeconds: T,
+        listBuilder: state.listBuilder,
+      });
+      for (const action of actions) {
+        if (action.type === 'seek') {
+          state.playheadPercent = Math.max(0, Math.min(100, (action.time / T) * 100));
+        } else if (action.type === 'pause') {
+          pausePlaybackForAddon();
+          if (action.resumeAfter) {
+            window.clearTimeout(addonResumeTimer);
+            addonResumeTimer = window.setTimeout(() => {
+              if (!state.playing) togglePlayback();
+            }, action.resumeAfter * 1000);
+          }
+        } else if (action.type === 'show') {
+          if (action.overlay === 'pause-continue') {
+            showPauseOverlay(addonOverlayLayer(), {
+              text: addonOptions(action.clip).continueText || 'Click to continue',
+              onContinue: () => { if (!state.playing) togglePlayback(); },
+            });
+          } else if (action.overlay === 'lead-form') {
+            // Show the Lead Generator's own preview (with its submit/skip
+            // handlers) and hold playback until it is completed.
+            state.selectedClipId = action.clip.id;
+            action.clip._gating = true;
+            updatePreview(action.clip);
+            renderTracks();
+          } else if (action.overlay === 'list-builder') {
+            openListBuilderOverlay();
+          }
+        }
+      }
+      return actions.length > 0;
+    }
+
     function togglePlayback() {
       state.playing = !state.playing;
       if (state.playing) {
+        window.clearTimeout(addonResumeTimer);
+        clearOverlay(addonOverlayLayer(), 'pause-continue');
+        // A List Builder at the very start gates before the first frame.
+        if (runAddonTick(state.playheadPercent, state.playheadPercent) && !state.playing) {
+          updatePlaybackUI();
+          return;
+        }
+        if (remotionEngine) {
+          // The Player is the clock; handleEngineFrame follows it.
+          if (state.playheadPercent >= 100) state.playheadPercent = 0;
+          remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+          remotionEngine.play();
+          updatePlaybackUI();
+          return;
+        }
         playbackTimer = window.setInterval(() => {
+          const prevPercent = state.playheadPercent;
           state.playheadPercent += 0.6;
           if (state.playheadPercent >= 100) {
             state.playheadPercent = 100;
             state.playing = false;
             window.clearInterval(playbackTimer);
           }
+          runAddonTick(prevPercent, state.playheadPercent);
           updatePlaybackUI();
           // Apply keyframes during playback
           const selected = findSelectedClip();
@@ -5924,6 +7764,7 @@ export function TimelineEditorPage() {
         }, 120);
       } else {
         window.clearInterval(playbackTimer);
+        remotionEngine?.pause();
       }
       updatePlaybackUI();
     }
@@ -5931,6 +7772,14 @@ export function TimelineEditorPage() {
     function stopPlayback() {
       state.playing = false;
       window.clearInterval(playbackTimer);
+      remotionEngine?.pause();
+      window.clearTimeout(addonResumeTimer);
+      clearOverlay(addonOverlayLayer());
+      // Stop = replay from the top: forms gate again, as a fresh viewer
+      // would see them.
+      addonRuntime.reset();
+      if (state.listBuilder) state.listBuilder._submitted = false;
+      allClips().forEach((c) => { if (c.type === 'lead-form') { c._submitted = false; c._gating = false; } });
       state.playheadPercent = 0;
       updatePlaybackUI();
       const media = els.previewStage.querySelector('video, audio');
@@ -5940,6 +7789,7 @@ export function TimelineEditorPage() {
     function rewindPlayback() {
       state.playing = false;
       window.clearInterval(playbackTimer);
+      remotionEngine?.pause();
       state.playheadPercent = Math.max(0, state.playheadPercent - 10);
       updatePlaybackUI();
     }
@@ -5947,6 +7797,7 @@ export function TimelineEditorPage() {
     function jumpToEndPlayback() {
       state.playing = false;
       window.clearInterval(playbackTimer);
+      remotionEngine?.pause();
       state.playheadPercent = 100;
       updatePlaybackUI();
     }
@@ -6178,7 +8029,7 @@ export function TimelineEditorPage() {
       document.addEventListener('drop', onDragEndAny);
 
       // Feature-index chips (prototype parity) → open the matching editor surface
-      root.querySelectorAll('.fi-chip').forEach(chip => {
+      root.querySelectorAll('.fi-chip, .media-item[data-modal]').forEach(chip => {
         const key = chip.getAttribute('data-modal');
         const handler = FEATURE_INDEX_MODALS[key];
         if (handler) chip.addEventListener('click', handler);
@@ -6187,38 +8038,11 @@ export function TimelineEditorPage() {
       els.uploadBtn?.addEventListener('click', () => els.uploadInput?.click());
       els.uploadInput?.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
 
-      els.pexelsMediaBtn?.addEventListener('click', async () => {
-        try {
-          const { browsePexels } = await import('../lib/studioPexels.js');
-          browsePexels({
-            accept: ['image', 'video'],
-            title: 'Add Stock Media to Timeline',
-            studioName: 'Timeline Editor',
-            onSelect: async (asset) => {
-              const isVideo = asset.type === 'video' || !!asset.video_files;
-              const mediaUrl = isVideo
-                ? (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url
-                : (asset.src?.large || asset.src?.original || asset.url);
-              const media = {
-                type: isVideo ? 'video' : 'image',
-                url: mediaUrl,
-                thumbnail: isVideo ? asset.image : (asset.src?.medium || asset.src?.small || asset.url),
-                label: asset.alt || (isVideo ? 'Pexels Video' : 'Pexels Photo'),
-                source: 'pexels',
-                id: asset.id || `pexels-${Date.now()}`,
-                duration: asset.duration || 5,
-                photographer: asset.photographer || asset.user?.name || '',
-                pexelsUrl: asset.url || ('https://www.pexels.com/photo/' + asset.id + '/'),
-              };
-              addMediaToTimeline(media, state.mediaLibrary?.length || 0, state, showToast);
-              showToast('Added to timeline', 'success');
-            },
-          });
-        } catch (err) {
-          console.error('Failed to open Pexels browser:', err);
-          showToast('Failed to open Pexels browser', 'error');
-        }
-      });
+      // Browse Stock Media: Pixabay + Pexels videos and images, added to
+      // the timeline at the playhead (the Stock Media panel).
+      els.pexelsMediaBtn?.addEventListener('click', () => openPanel('stockPanel'));
+      initWebMcp().catch((err) => console.warn('[WebMCP] unavailable', err));
+      root.querySelector('#openAgents')?.addEventListener('click', () => openPanel('aiAgentPanel'));
 
       // VideoDB: add an indexed video to the timeline using the user's VideoDB
       // API key (configured in Settings).
@@ -6644,6 +8468,13 @@ export function TimelineEditorPage() {
 
       renderAll();
       bindEvents();
+      bindInteractivePanel();
+      renderOverlaysPanel();
+      renderBlendPanel();
+      renderSpeechPanel();
+      bindOverlayPresets();
+      initRemotionEngine();
+      window.addEventListener('resize', () => renderOverlayLayer());
       setupEnhancedTooltips();
       setupUploadSources({ state, showToast });
 

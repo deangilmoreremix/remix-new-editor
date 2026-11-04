@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      AI animation preview frame. Loaded only inside a sandboxed iframe
+      (sandbox="allow-scripts", opaque origin) by the timeline editor, so the
+      AI-written animation code can never reach the
+      app's cookies, storage or session.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' blob: 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https: data: blob:; worker-src blob: 'self';" />
+    <title>Animation preview</title>
+    <meta name="color-scheme" content="light" />
+    <style>:root { color-scheme: light; } html, body, #runner { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }</style>
+  </head>
+  <body>
+    <div id="runner"></div>
+    <script type="module" src="/src/code-preview/main.jsx"></script>
+  </body>
+</html>

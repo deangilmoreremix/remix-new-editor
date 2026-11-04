@@ -1,0 +1,54 @@
+/* Public interactive video player (/watch/<id>) */
+html.watch-root, html.watch-root body { margin: 0; background: #0b0c10; color: #f4f4f5; font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif; }
+html.watch-embed, html.watch-embed body { background: #000; }
+.watch { min-height: 100vh; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 16px; box-sizing: border-box; }
+.watch-embed .watch { padding: 0; min-height: 100vh; justify-content: center; }
+.watch-head { width: min(1100px, 100%); }
+.watch-head h1 { margin: 0; font-size: clamp(18px, 2.4vw, 26px); font-weight: 700; }
+.watch-player { width: min(1100px, 100%); background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+.watch-embed .watch-player { width: 100%; border-radius: 0; box-shadow: none; }
+/* Embedded: fit picture + controls inside the iframe's height. */
+.watch-embed .watch-frame { height: calc(100vh - 52px); width: auto; max-width: 100%; margin: 0 auto; }
+.watch-embed .watch-controls { height: 52px; box-sizing: border-box; }
+.watch-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
+.watch-stage { position: absolute; inset: 0; }
+.watch-bigplay { position: absolute; inset: 0; margin: auto; width: 84px; height: 84px; border-radius: 50%; border: 0; background: rgba(235,80,84,.92); color: #fff; font-size: 30px; cursor: pointer; z-index: 6; box-shadow: 0 8px 30px rgba(0,0,0,.4); }
+.watch-bigplay:hover, .watch-bigplay:focus-visible { transform: scale(1.06); outline: 3px solid #fff; }
+.watch-controls { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #111318; }
+.watch-btn { min-width: 36px; height: 36px; border: 0; border-radius: 8px; background: rgba(255,255,255,.08); color: #fff; font-size: 15px; cursor: pointer; }
+.watch-btn:hover, .watch-btn:focus-visible { background: rgba(255,255,255,.18); outline: none; }
+.watch-time { font-variant-numeric: tabular-nums; font-size: 13px; color: #d4d4d8; min-width: 38px; }
+.watch-seek { flex: 1; accent-color: #eb5054; min-width: 0; }
+.watch--message { justify-content: center; }
+.watch-msg { text-align: center; max-width: 420px; }
+.watch-msg h1 { font-size: 22px; margin: 0 0 8px; }
+.watch-msg p { color: #a1a1aa; margin: 0; }
+.watch-spinner { width: 36px; height: 36px; margin: 0 auto 12px; border-radius: 50%; border: 3px solid rgba(255,255,255,.15); border-top-color: #eb5054; animation: watch-spin 0.9s linear infinite; }
+@keyframes watch-spin { to { transform: rotate(360deg); } }
+@media (max-width: 640px) { .watch { padding: 12px 0; } .watch-player { border-radius: 0; } .watch-head { padding: 0 16px; } }
+
+/* Interactive layer */
+.wf-layer { position: absolute; inset: 0; z-index: 5; pointer-events: none; display: flex; justify-content: center; }
+.wf-layer > * { pointer-events: auto; }
+.wf-card { position: relative; width: min(86%, 480px); max-height: 90%; overflow: auto; margin: auto 0; padding: 18px 20px; border-radius: 14px; background: rgba(17,19,24,.94); color: #fff; box-shadow: 0 16px 50px rgba(0,0,0,.5); box-sizing: border-box; background-size: cover; background-position: center; }
+.wf-logo { display: block; max-height: 48px; max-width: 60%; margin: 0 auto 10px; }
+.wf-heading { margin: 0 0 12px; font-size: clamp(16px, 2.4vw, 22px); }
+.wf-fields { display: grid; gap: 10px; }
+.wf-card--fields-4 .wf-fields, .wf-card--fields-5 .wf-fields { grid-template-columns: 1fr 1fr; }
+.wf-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.wf-field input, .wf-field textarea { padding: 9px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.95); color: #111; font: inherit; }
+.wf-privacy { font-size: 11px; color: rgba(255,255,255,.7); margin: 10px 0 0; }
+.wf-privacy-link { font-size: 11px; color: #fda4af; }
+.wf-status { min-height: 1em; margin: 8px 0 0; font-size: 12px; color: #fecaca; }
+.wf-actions { display: flex; gap: 8px; margin-top: 10px; }
+.wf-submit { flex: 1; padding: 11px; border: 0; border-radius: 8px; background: #eb5054; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; }
+.wf-submit:disabled { opacity: .6; cursor: wait; }
+.wf-skip { padding: 11px 14px; font: inherit; font-size: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,.3); background: transparent; color: #fff; cursor: pointer; }
+/* The video draws the CTA; this is the invisible tap target over it. */
+.wf-cta { position: absolute; display: block; border-radius: 999px; cursor: pointer; }
+.wf-cta:focus-visible { outline: 3px solid #fff; }
+.wf-linkbox { position: absolute; display: block; cursor: pointer; }
+.wf-linkbox:focus-visible { outline: 2px dashed #fff; }
+@media (max-width: 520px) { .wf-card--fields-4 .wf-fields, .wf-card--fields-5 .wf-fields { grid-template-columns: 1fr; } }
+/* OpenAI's usage policy: tell viewers the voice is AI-generated. */
+.watch-ai-voice { position: absolute; top: 10px; right: 10px; z-index: 4; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.55); color: rgba(255,255,255,.85); font-size: 11px; pointer-events: none; }
