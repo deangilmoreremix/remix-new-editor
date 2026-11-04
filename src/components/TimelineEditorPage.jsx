@@ -566,6 +566,10 @@ export function TimelineEditorPage() {
         <div class="card-title">🎬 Stock Media</div>
         <div id="stockBrowser"></div>
       </aside>
+      <aside class="side-card" id="aiAgentPanel" hidden data-tooltip="AI Agent - describe a video or animation and the agent builds it">
+        <div class="card-title">🤖 AI Agent</div>
+        <div id="aiAgentChat"></div>
+      </aside>
       <aside class="side-card" id="cameraEffectsPanel" hidden>
         <div id="cameraEffectsContainer"></div>
         <div class="camera-effects-quick">
@@ -723,6 +727,7 @@ export function TimelineEditorPage() {
         ['⚡', 'Interactive'],
         ['🧩', 'Overlays'],
         ['🎞️', 'Stock Media'],
+        ['🤖', 'AI Agent'],
         ['🎬', 'Scene Detector'],
         ['🎥', 'Camera FX'],
         ['📊', 'Color Scopes'],
@@ -2108,6 +2113,7 @@ export function TimelineEditorPage() {
       syncMediaPlayState();
       // Scrubbing / stepping while paused moves the Player too.
       if (remotionEngine && !state.playing) remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+      if (!state.playing) codePreview?.frame(percentToFrame(state.playheadPercent));
       renderOverlayLayer();
       if (!state.playing) activeKeyframesPanel?.refresh();
     }
@@ -3948,6 +3954,8 @@ export function TimelineEditorPage() {
     // updatePlaybackUI) can run during start-up before this line executes.
     // eslint-disable-next-line no-var
     var remotionEngine = null;
+    // eslint-disable-next-line no-var -- AI animation preview frame (sandboxed iframe)
+    var codePreview = null;
     // eslint-disable-next-line no-var
     var remotionModel = null;
     // eslint-disable-next-line no-var
@@ -3990,6 +3998,17 @@ export function TimelineEditorPage() {
         });
         root.classList.add('remotion-engine-on');
         remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+        import('../lib/editor/remotion/codePreviewClient.js').then(({ createCodePreview }) => {
+          codePreview = createCodePreview(els.remotionStage.parentElement, {
+            onError: (layerId, message) => {
+              const clip = allClips().find((c) => String(c.id) === String(layerId));
+              if (clip) clip.lastError = message;
+              showToast(`Animation "${clip?.name || layerId}" has an error: ${message}`, 'error');
+            },
+          });
+          codePreview.update(remotionModel);
+          codePreview.frame(percentToFrame(state.playheadPercent));
+        });
         updatePreview();
         renderOverlayLayer();
       } catch (err) {
@@ -4005,6 +4024,7 @@ export function TimelineEditorPage() {
       engineUpdateTimer = window.setTimeout(() => {
         remotionModel = buildEngineModel();
         remotionEngine.update(remotionModel);
+        codePreview?.update(remotionModel);
       }, 60);
     }
 
@@ -4013,6 +4033,7 @@ export function TimelineEditorPage() {
       if (!state.playing) return;
       const prevPercent = state.playheadPercent;
       state.playheadPercent = frameToPercent(frame);
+      codePreview?.frame(frame);
       runAddonTick(prevPercent, state.playheadPercent);
       if (!state.playing) {
         remotionEngine.pause();
@@ -4733,6 +4754,134 @@ export function TimelineEditorPage() {
       return job;
     }
 
+    // ---------------------------------------------------------------
+    // AI Video agent: the editor API its tools (and WebMCP) work through.
+    function agentEditor() {
+      const T = () => state.timelineSeconds || 60;
+      const trackNameFor = (kind) => {
+        if (kind === 'video') return videoTrackName();
+        const t = state.tracks.find((tr) => (tr.type || '').toLowerCase() === kind);
+        return t?.name || (kind === 'audio' ? 'Audio' : 'Text');
+      };
+      const profile = () => getActivePersonalizationProfile();
+      return {
+        snapshot: () => ({
+          timelineSeconds: T(),
+          playheadSec: playheadSec(),
+          tracks: state.tracks.map((t) => ({ id: t.id, name: t.name, type: t.type, clips: t.items || t.clips || [] })),
+        }),
+        setTimelineSeconds(sec) {
+          const T0 = T();
+          // Clips are stored as % of the timeline; keep their times in seconds.
+          allClips().forEach((c) => {
+            if (typeof c.left === 'number') c.left = (c.left * T0) / sec;
+            if (typeof c.width === 'number') c.width = (c.width * T0) / sec;
+          });
+          state.playheadPercent = Math.min(100, ((state.playheadPercent || 0) * T0) / sec);
+          state.timelineSeconds = sec;
+          drawRuler();
+          updatePlaybackUI();
+        },
+        insertClip(clip, kind) {
+          insertClipIntoTrack(clip, trackNameFor(kind));
+          return clip;
+        },
+        createAddon(type, startSec, durationSec) {
+          const clip = createAddonClip(type, { startSec, timelineSeconds: T() });
+          clip.start = startSec;
+          clip.end = Math.min(T(), startSec + durationSec);
+          const addon = getAddon(type);
+          if (addon?.summary) clip.name = addon.summary(addonOptions(clip));
+          return clip;
+        },
+        getClip: (id) => allClips().find((c) => String(c.id) === String(id)) || null,
+        clipTimes: (c) => ({ start: clipStartSec(c), end: clipStartSec(c) + clipDurationSec(c) }),
+        setClipTimes(c, start, end) {
+          c.left = (start / T()) * 100;
+          c.width = ((end - start) / T()) * 100;
+        },
+        removeClip(id) {
+          const c = allClips().find((x) => String(x.id) === String(id));
+          if (!c) return false;
+          removeClipById(c.id);
+          return true;
+        },
+        commit() {
+          renderTracks();
+          scheduleEngineUpdate();
+          debouncedSave();
+        },
+        searchStock: (kind, source, query) => stockSearch(kind, source, query),
+        importStockImage,
+        async transcribe(source, { language } = {}) {
+          const { transcribeInBrowser, WHISPER_MODELS } = await import('../lib/editor/remotion/transcribe.js');
+          const fromSec = Number(source.trimIn ?? source.sourceStart ?? 0) || 0;
+          const model = navigator.gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
+          const { captions } = await transcribeInBrowser(source.src, { fromSec, toSec: fromSec + clipDurationSec(source), language, model });
+          return captions;
+        },
+        removeBackground: (clip) => (bgJobs.get(clip.id) || startBgRemoval(clip, { maskEvery: 2, edge: 0, maxSize: 1280 })).done,
+        async renderStill(sec) {
+          const { renderStill } = await import('../lib/editor/remotion/exportClient.js');
+          const model = timelineToComposition(state, { fps: ENGINE_FPS, quality: '720p', profile: profile() });
+          return renderStill(model, Math.round(sec * ENGINE_FPS));
+        },
+        async exportVideo({ container = 'mp4', quality = '1080p' } = {}) {
+          const { exportModel, downloadBlob, EXTENSIONS } = await import('../lib/editor/remotion/exportClient.js');
+          showToast('Exporting video…', 'info');
+          const blob = await exportModel(timelineToComposition(state, { quality, profile: profile() }), { container, quality });
+          const name = String(state.projectTitle || 'timeline').replace(/[^a-z0-9 _-]+/gi, '').trim() || 'timeline';
+          const filename = `${name}.${EXTENSIONS[container] || 'mp4'}`;
+          downloadBlob(blob, filename);
+          showToast('Export complete — your video is downloading', 'success');
+          return { filename };
+        },
+        confirm: (message) => Promise.resolve(window.confirm(message)),
+      };
+    }
+
+    // eslint-disable-next-line no-var -- created on first use
+    var agentToolsPromise = null;
+    function getAgentTools() {
+      agentToolsPromise ||= import('../lib/editor/agent/tools.js').then(({ createAgentTools }) => createAgentTools(agentEditor()));
+      return agentToolsPromise;
+    }
+
+    // eslint-disable-next-line no-var
+    var agentPanel = null;
+    async function mountAgentPanel() {
+      const host = root.querySelector('#aiAgentChat');
+      if (agentPanel || !host) return;
+      const [{ renderAgentPanel }, tools] = await Promise.all([import('../lib/editor/agent/agentPanel.js'), getAgentTools()]);
+      if (agentPanel) return;
+      const providers = (async () => {
+        try {
+          const token = await window.Clerk?.session?.getToken?.();
+          const res = await fetch('/api/video-agent', { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+          const data = await res.json();
+          return data?.providers || null;
+        } catch {
+          return null;
+        }
+      })();
+      agentPanel = renderAgentPanel(host, {
+        tools,
+        providers,
+        onTurnStart: () => saveStateSnapshot(state),
+        onTurnEnd: () => { renderTracks(); scheduleEngineUpdate(); },
+      });
+    }
+
+    /** WebMCP: let in-browser AI agents use the same tools (feature-detected). */
+    async function initWebMcp() {
+      if (typeof navigator === 'undefined' || !navigator.modelContext) return;
+      const [{ registerWebMcpTools }, tools] = await Promise.all([import('../lib/editor/agent/webmcp.js'), getAgentTools()]);
+      registerWebMcpTools(tools, {
+        confirm: (message) => Promise.resolve(window.confirm(message)),
+        onChange: () => saveStateSnapshot(state),
+      });
+    }
+
     function restoreBgRemoval(clip) {
       const info = clip.bgRemoval;
       if (!info) return;
@@ -4808,6 +4957,38 @@ export function TimelineEditorPage() {
               onRestore: () => restoreBgRemoval(clip),
             });
           });
+      }
+
+      if (clip.type === 'remotion-code') {
+        const host = editorSection('clip-animation', 'Animation');
+        import('../lib/editor/agent/animationPanel.js').then(({ renderAnimationPanel }) => {
+          if (!host.isConnected) return;
+          activeCaptionsPanel = renderAnimationPanel(host, {
+            clip,
+            onApply: ({ code, props }) => {
+              saveStateSnapshot(state);
+              clip.code = code;
+              clip.props = props;
+              delete clip.lastError;
+              scheduleEngineUpdate();
+              debouncedSave();
+              showToast('Animation updated', 'success');
+            },
+            onCheck: async () => {
+              const { renderStill } = await import('../lib/editor/remotion/exportClient.js');
+              const mid = clipStartSec(clip) + clipDurationSec(clip) / 2;
+              const model = timelineToComposition(state, { fps: ENGINE_FPS, quality: '720p', profile: getActivePersonalizationProfile() });
+              try {
+                const { blob, codeErrors } = await renderStill(model, Math.round(mid * ENGINE_FPS));
+                const error = codeErrors?.[String(clip.id)] || null;
+                if (error) clip.lastError = error; else delete clip.lastError;
+                return { blob, error };
+              } catch (err) {
+                return { blob: null, error: err?.codeErrors?.[String(clip.id)] || err?.message };
+              }
+            },
+          });
+        });
       }
 
       if (clip.type === 'captions') {
@@ -5930,6 +6111,7 @@ export function TimelineEditorPage() {
       const el = root.querySelector('#' + id);
       if (!el) return;
       if (id === 'stockPanel') mountStockBrowser();
+      if (id === 'aiAgentPanel') mountAgentPanel();
       el.hidden = false;
       el.style.display = 'block';
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -5940,6 +6122,7 @@ export function TimelineEditorPage() {
       'Interactive': 'interactivePanel',
       'Overlays': 'overlaysPanel',
       'Stock Media': 'stockPanel',
+      'AI Agent': 'aiAgentPanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
       'Color Scopes': 'colorScopesPanel',
@@ -6037,7 +6220,8 @@ export function TimelineEditorPage() {
         'CineGen Results': 'CineGen AI Tools results history',
         'Interactive': 'Interactive - Skip, Pause, Loop, Lead Generator, List Builder, Personalizer, CTA',
         'Overlays': 'Overlays - Smart Text, Text Mask, Personalized Image, Image, Stickers, Wrapper, Lower Thirds, Transitions, Presets',
-        'Stock Media': 'Stock Media - Pixabay and Pexels videos and images for the timeline'
+        'Stock Media': 'Stock Media - Pixabay and Pexels videos and images for the timeline',
+        'AI Agent': 'AI Agent - describe a video or animation and the agent builds it on the timeline'
       };
       state.railActions.forEach(([icon, label, active]) => {
         const button = document.createElement('button');
@@ -7459,6 +7643,8 @@ export function TimelineEditorPage() {
       // Browse Stock Media: Pixabay + Pexels videos and images, added to
       // the timeline at the playhead (the Stock Media panel).
       els.pexelsMediaBtn?.addEventListener('click', () => openPanel('stockPanel'));
+      initWebMcp().catch((err) => console.warn('[WebMCP] unavailable', err));
+      root.querySelector('#openAgents')?.addEventListener('click', () => openPanel('aiAgentPanel'));
 
       // VideoDB: add an indexed video to the timeline using the user's VideoDB
       // API key (configured in Settings).

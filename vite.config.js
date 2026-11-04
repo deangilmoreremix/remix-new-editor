@@ -424,7 +424,7 @@ function securityHeaders() {
                 }
                 // The Remotion export runner sets its own (stricter) CSP via
                 // <meta>; the app CSP below would block its WebAssembly encoder.
-                if (url.startsWith('/export-runner.html')) {
+                if (url.startsWith('/export-runner.html') || url.startsWith('/code-preview.html')) {
                     return next();
                 }
                 // Content Security Policy
@@ -1381,6 +1381,7 @@ export default defineConfig({
             input: {
                 main: path.resolve(__dirname, 'index.html'),
                 exportRunner: path.resolve(__dirname, 'export-runner.html'),
+                codePreview: path.resolve(__dirname, 'code-preview.html'),
             },
             output: {
                 // Group heavy, self-contained vendor libs into stable chunks so

@@ -902,3 +902,28 @@
 .bg-panel { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
 .bg-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); overflow: hidden; }
 .bg-bar > span { display: block; height: 100%; background: #eb5054; transition: width .2s; }
+
+/* ---- AI Agent panel ---- */
+.agent-panel { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.agent-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.agent-provider { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.agent-log { display: flex; flex-direction: column; gap: 6px; max-height: 420px; min-height: 80px; overflow: auto; padding: 2px; }
+.agent-msg { padding: 8px 10px; border-radius: 10px; line-height: 1.4; }
+.agent-msg p { margin: 0 0 6px; } .agent-msg p:last-child { margin: 0; }
+.agent-msg ul { margin: 4px 0; padding-left: 18px; }
+.agent-msg--user { align-self: flex-end; background: rgba(235,80,84,.18); max-width: 90%; white-space: pre-wrap; }
+.agent-msg--ai { background: rgba(255,255,255,.06); }
+.agent-msg--error { background: rgba(248,113,113,.14); color: #fecaca; font-size: 12px; }
+.agent-step { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim, rgba(255,255,255,.7)); }
+.agent-step__icon { width: 16px; text-align: center; }
+.agent-step.is-ok .agent-step__icon { color: #4ade80; }
+.agent-step.is-err .agent-step__icon { color: #f87171; }
+.agent-step details { width: 100%; } .agent-step pre { white-space: pre-wrap; font-size: 11px; margin: 4px 0 0; }
+.agent-still { width: 100%; max-height: 180px; object-fit: contain; background: #000; border-radius: 6px; border: 1px solid rgba(255,255,255,.12); margin-top: 4px; }
+.agent-suggest { display: flex; flex-direction: column; gap: 4px; }
+.agent-form textarea { width: 100%; resize: vertical; }
+.agent-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 4px; }
+.agent-actions .addon-field__hint { margin-right: auto; }
+.clip-animation { margin-top: var(--sp-3, 12px); }
+.anim-panel { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.anim-code { width: 100%; font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre; tab-size: 2; }

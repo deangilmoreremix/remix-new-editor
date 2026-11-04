@@ -87,6 +87,29 @@ export async function exportModel(model, { container = 'mp4', quality = '1080p',
   });
 }
 
+/**
+ * Render one frame (JPEG) in the sandboxed runner.
+ * @returns {Promise<{ blob: Blob, codeErrors: object }>}
+ */
+export async function renderStill(model, frame) {
+  const r = ensureRunner();
+  const payload = await inlineLocalMedia(model);
+  await r.ready;
+  const id = `still-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return new Promise((resolve, reject) => {
+    const onMsg = (e) => {
+      if (e.source !== r.iframe.contentWindow || e.data?.id !== id) return;
+      if (e.data.type === 'still-done') { window.removeEventListener('message', onMsg); resolve({ blob: e.data.blob, codeErrors: e.data.codeErrors || {} }); }
+      else if (e.data.type === 'error') {
+        window.removeEventListener('message', onMsg);
+        reject(Object.assign(new Error(e.data.message), { codeErrors: e.data.codeErrors || {} }));
+      }
+    };
+    window.addEventListener('message', onMsg);
+    r.iframe.contentWindow.postMessage({ type: 'still', id, model: payload, frame }, '*');
+  });
+}
+
 export const EXTENSIONS = { mp4: 'mp4', webm: 'webm', mov: 'mov' };
 
 export function downloadBlob(blob, filename) {

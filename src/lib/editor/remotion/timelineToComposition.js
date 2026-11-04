@@ -189,9 +189,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
   };
 }
 
+/** Fonts AI animations may use (create_animation); loaded when the timeline has any. */
+export const ANIMATION_FONTS = ['Inter', 'Montserrat', 'Poppins', 'Anton', 'Bebas Neue', 'Roboto', 'Lobster', 'Pacifico'];
+
 /** Google font families the composition needs to load. */
 export function collectFonts(layers) {
   const set = new Set();
+  if (layers.some((l) => l.kind === 'code')) ANIMATION_FONTS.forEach((f) => set.add(f));
   layers.forEach((l) => {
     const f = l.options?.fontFamily || (l.kind === 'captions' ? l.style?.fontFamily : null);
     if (f) set.add(String(f));

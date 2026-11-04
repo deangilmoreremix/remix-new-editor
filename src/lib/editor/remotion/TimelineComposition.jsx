@@ -32,6 +32,7 @@ import { buildEffectDescriptors } from './effects.js';
 import { stretchLowerThird } from '../addons/lowerThirds.js';
 import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './keyframes.js';
 import { captionPages, pageAt } from './captions.js';
+import { CodeLayer } from './codeLayer.jsx';
 
 // ------------------------------------------------------------------ fonts
 
@@ -507,6 +508,15 @@ export function TimelineComposition({ model }) {
               <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
                 <KeyframeWrap layer={layer} seqFrom={layer.from}>
                   <TitleCard layer={layer} />
+                </KeyframeWrap>
+              </Sequence>
+            );
+          }
+          if (layer.kind === 'code') {
+            return (
+              <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
+                <KeyframeWrap layer={layer} seqFrom={layer.from}>
+                  <CodeLayer layer={layer} />
                 </KeyframeWrap>
               </Sequence>
             );

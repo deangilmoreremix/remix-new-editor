@@ -61,6 +61,14 @@
   status = 200
   force = true
 
+# AI Video Agent (timeline editor): one model step per call. Keys stay
+# server-side: OPENAI_API_KEY (default), ANTHROPIC_API_KEY (optional Claude).
+[[redirects]]
+  from = "/api/video-agent"
+  to = "/.netlify/functions/video-agent"
+  status = 200
+  force = true
+
 # Restored thumbnails are WebP-encoded but keep their historical `.webp.png`
 # filenames so every existing reference resolves; declare the real type.
 [[headers]]
