@@ -30,6 +30,8 @@ import { loadFont } from '@remotion/fonts';
 import { animationStyle } from './overlayAnimations.js';
 import { buildEffectDescriptors } from './effects.js';
 import { stretchLowerThird } from '../addons/lowerThirds.js';
+import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './keyframes.js';
+import { captionPages, pageAt } from './captions.js';
 
 // ------------------------------------------------------------------ fonts
 
@@ -356,14 +358,94 @@ function InTransition({ tr, direction, layerFrom, children }) {
   );
 }
 
-function MediaLayer({ layer }) {
+/** Seconds since the layer's own start, for keyframes (seqFrom = the Sequence's start). */
+function useLayerTime(layer, seqFrom) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  return (seqFrom + frame - layer.from) / fps;
+}
+
+const hasFxKeyframes = (kf) => !!kf && Object.keys(kf).some((k) => k.startsWith('fx:'));
+
+function useLayerEffects(layer, t) {
+  const overrides = hasFxKeyframes(layer.keyframes) ? effectOverridesAt(layer.keyframes, t) : null;
+  if (!layer.effects?.length) return undefined;
+  const fx = buildEffectDescriptors(layer.effects, overrides);
+  return fx.length ? fx : undefined;
+}
+
+/** Keyframed position / scale / rotation / opacity for a whole layer. */
+function KeyframeWrap({ layer, seqFrom, origin, children }) {
+  const t = useLayerTime(layer, seqFrom);
+  if (!hasKeyframes(layer.keyframes)) return children;
+  const style = transformStyleAt(layer.keyframes, t, origin);
+  if (!style) return children;
+  return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
+}
+
+function MediaLayer({ layer, seqFrom }) {
+  const t = useLayerTime(layer, seqFrom);
   const fit = layer.fit === 'contain' ? 'contain' : 'cover';
-  const effects = buildEffectDescriptors(layer.effects);
-  const fx = effects.length ? effects : undefined;
+  const fx = useLayerEffects(layer, t);
   if (layer.kind === 'video') {
-    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} volume={layer.volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%' }} />;
+    const kfVolume = layer.keyframes?.volume?.length ? valueAt(layer.keyframes.volume, t, 1) : 1;
+    const volume = Math.max(0, Math.min(1, (layer.volume ?? 1) * kfVolume));
+    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%' }} />;
   }
   return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit }} />;
+}
+
+function OverlayLayer({ layer, Comp }) {
+  const t = useLayerTime(layer, layer.from);
+  const fx = useLayerEffects(layer, t);
+  return <Comp o={layer.options} durationInFrames={layer.durationInFrames} effects={fx} />;
+}
+
+const overlayOrigin = (o = {}) => {
+  const g = o.geometry;
+  if (!g || o.fill) return '50% 50%';
+  return `${(Number(g.left) || 0) + (Number(g.width) || 0) / 2}% ${(Number(g.top) || 0) + (Number(g.height) || 0) / 2}%`;
+};
+
+// ------------------------------------------------------------------ captions
+
+const CAPTION_TOP = { top: '8%', middle: '50%', bottom: '82%' };
+
+export function CaptionsLayer({ layer }) {
+  const frame = useCurrentFrame();
+  const { fps, height: H } = useVideoConfig();
+  const fontsReady = React.useContext(FontsReady);
+  const s = layer.style || {};
+  const pages = useMemo(() => captionPages(layer.captions, s), [layer.captions, s.combineMs]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!fontsReady) return null;
+  const ms = (frame / fps) * 1000;
+  const page = pageAt(pages, ms);
+  if (!page) return null;
+  const fontSize = (Math.max(1, Number(s.fontSize) || 6) / 100) * H;
+  const stroke = s.stroke ? strokeShadow('#000000', fontSize * 0.06) : undefined;
+  const shadow = [stroke, '0 2px 10px rgba(0,0,0,0.55)'].filter(Boolean).join(', ');
+  const boxedWords = s.preset === 'box';
+  const lineBg = s.background && !boxedWords ? (s.backgroundColor || 'rgba(0,0,0,0.6)') : undefined;
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', left: '6%', right: '6%', top: CAPTION_TOP[s.position] || CAPTION_TOP.bottom, transform: 'translateY(-50%)', display: 'flex', justifyContent: 'center' }}>
+        <div style={{
+          fontFamily: `"${s.fontFamily || 'Inter'}", Arial, sans-serif`, fontWeight: s.bold ? 800 : 500, fontSize, lineHeight: 1.25,
+          textAlign: 'center', color: s.color || '#fff', textTransform: s.uppercase ? 'uppercase' : 'none', textShadow: lineBg ? undefined : shadow,
+          background: lineBg, padding: lineBg ? `${fontSize * 0.12}px ${fontSize * 0.35}px` : undefined, borderRadius: lineBg ? fontSize * 0.18 : undefined,
+          whiteSpace: 'pre-wrap',
+        }}>
+          {page.tokens.map((tk, i) => {
+            const active = s.highlightActive !== false && ms >= tk.fromMs && ms < tk.toMs;
+            const spoken = s.preset === 'karaoke' && ms >= tk.fromMs;
+            const color = active || spoken ? (s.highlightColor || '#FFE14D') : (s.color || '#fff');
+            const box = boxedWords ? { background: active ? (s.highlightColor || '#EB5054') : (s.backgroundColor || 'rgba(0,0,0,0.6)'), color: '#fff', borderRadius: fontSize * 0.15, padding: `0 ${fontSize * 0.15}px`, textShadow: 'none' } : null;
+            return <span key={i} style={{ color, ...(box || {}) }}>{tk.text}</span>;
+          })}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
 }
 
 // ------------------------------------------------------------------ root
@@ -394,7 +476,11 @@ export function TimelineComposition({ model }) {
               trimBefore = Math.max(0, trimBefore - (from - inTr.from));
               from = inTr.from;
             }
-            const content = <MediaLayer layer={{ ...layer, trimBefore }} />;
+            const content = (
+              <KeyframeWrap layer={layer} seqFrom={from}>
+                <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />
+              </KeyframeWrap>
+            );
             return (
               <Sequence key={layer.id} from={from} durationInFrames={Math.max(1, end - from)} layout="absolute-fill">
                 <InTransition tr={inTr} direction="entering" layerFrom={from}>
@@ -410,14 +496,27 @@ export function TimelineComposition({ model }) {
             if (!Comp) return null;
             return (
               <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
-                <Comp o={layer.options} durationInFrames={layer.durationInFrames} effects={layer.effects?.length ? buildEffectDescriptors(layer.effects) : undefined} />
+                <KeyframeWrap layer={layer} seqFrom={layer.from} origin={overlayOrigin(layer.options)}>
+                  <OverlayLayer layer={layer} Comp={Comp} />
+                </KeyframeWrap>
               </Sequence>
             );
           }
           if (layer.kind === 'title') {
             return (
               <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
-                <TitleCard layer={layer} />
+                <KeyframeWrap layer={layer} seqFrom={layer.from}>
+                  <TitleCard layer={layer} />
+                </KeyframeWrap>
+              </Sequence>
+            );
+          }
+          if (layer.kind === 'captions') {
+            return (
+              <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
+                <KeyframeWrap layer={layer} seqFrom={layer.from}>
+                  <CaptionsLayer layer={layer} />
+                </KeyframeWrap>
               </Sequence>
             );
           }

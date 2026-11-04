@@ -91,9 +91,10 @@ export const effectIdsInModel = (model) => {
 
 /**
  * Remotion effect descriptors for a stack. Effects whose module hasn't
- * loaded yet are skipped (call loadEffects first).
+ * loaded yet are skipped (call loadEffects first). `overrides` holds
+ * keyframed parameter values for the current frame ({ 'uid:key': value }).
  */
-export function buildEffectDescriptors(stack = []) {
+export function buildEffectDescriptors(stack = [], overrides = null) {
   const out = [];
   stack.forEach((fx) => {
     if (!fx || fx.enabled === false) return;
@@ -106,6 +107,13 @@ export function buildEffectDescriptors(stack = []) {
       // LUT's file name are dropped).
       const known = new Set(def.params.map((p) => p.key));
       const merged = { ...defaultEffectParams(fx.id), ...(fx.params || {}) };
+      // Keyframed parameters ({ 'uid:key': value }) win for this frame.
+      if (overrides) {
+        Object.entries(overrides).forEach(([k, v]) => {
+          const i = k.indexOf(':');
+          if (k.slice(0, i) === fx.uid && v !== undefined) merged[k.slice(i + 1)] = v;
+        });
+      }
       const params = Object.fromEntries(Object.entries(merged).filter(([k]) => known.has(k)));
       out.push(factory(params));
     } catch (err) {

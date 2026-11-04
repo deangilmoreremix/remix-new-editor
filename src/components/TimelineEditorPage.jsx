@@ -2109,6 +2109,7 @@ export function TimelineEditorPage() {
       // Scrubbing / stepping while paused moves the Player too.
       if (remotionEngine && !state.playing) remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
       renderOverlayLayer();
+      if (!state.playing) activeKeyframesPanel?.refresh();
     }
 
     // Top action bar functionality
@@ -2580,6 +2581,7 @@ export function TimelineEditorPage() {
               clipEl.appendChild(kfEl);
             });
           }
+          renderKeyframeDiamonds(clipEl, clip, (leftPercent / 100) * (state.timelineSeconds || 60), (widthPercent / 100) * (state.timelineSeconds || 60));
           clipEl.addEventListener('click', (event) => {
             if (event.target.classList.contains('clip-handle')) return;
             event.stopPropagation();
@@ -2669,6 +2671,26 @@ export function TimelineEditorPage() {
         html += '<span style="height:' + hgt + '%"></span>';
       }
       el.innerHTML = html;
+    }
+
+    /** Keyframes stored on the clip (Remotion engine): diamonds, click to jump. */
+    function renderKeyframeDiamonds(clipEl, clip, startSec, durSec) {
+      clipEl.querySelectorAll('.kf-diamond').forEach((d) => d.remove());
+      if (!clip.keyframes || typeof clip.keyframes !== 'object' || !(durSec > 0)) return;
+      const times = new Set();
+      Object.values(clip.keyframes).forEach((l) => (Array.isArray(l) ? l : []).forEach((k) => times.add(Number(k.t))));
+      [...times].filter(Number.isFinite).forEach((t) => {
+        const d = document.createElement('span');
+        d.className = 'keyframe-marker kf-diamond';
+        d.style.left = `${Math.max(0, Math.min(100, (t / durSec) * 100))}%`;
+        d.title = `Keyframe at ${t.toFixed(2)}s — click to jump`;
+        d.addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.playheadPercent = Math.max(0, Math.min(100, ((startSec + t) / (state.timelineSeconds || 60)) * 100));
+          updatePlaybackUI();
+        });
+        clipEl.appendChild(d);
+      });
     }
 
     function renderTracksIncremental(viewState, els, showToast) {
@@ -2841,6 +2863,8 @@ export function TimelineEditorPage() {
             if (isAudio) fillClipWave(clipEl.querySelector('.clip-wave'));
           }
 
+          renderKeyframeDiamonds(clipEl, clip, clip.start || 0, Math.max(0, (clip.end || 0) - (clip.start || 0)));
+
           cached.clipData.set(clip.id, {
             leftPercent, widthPercent,
             selectedClipId: viewState.selectedClipId,
@@ -2979,7 +3003,13 @@ export function TimelineEditorPage() {
             // Schema-driven addons (Skip/Pause/Loop, ...) keep every option
             // under clip.addon, forwarded wholesale so new options never
             // need adding to this list.
-            addon: clip.addon
+            addon: clip.addon,
+            // Remotion engine data (effects, keyframes, captions).
+            effects: clip.effects,
+            keyframes: clip.keyframes,
+            captions: clip.captions,
+            captionStyle: clip.captionStyle,
+            sourceClipId: clip.sourceClipId,
           }))
         })),
         selectedClipId: state.selectedClipId,
@@ -4622,33 +4652,150 @@ export function TimelineEditorPage() {
       });
     }
 
-    // Effects & Color (Remotion @remotion/effects) under the clip's settings,
-    // for clips the effects apply to: video/image clips and image-based
-    // overlays.
+    // Effects & Color (Remotion @remotion/effects), Captions and Keyframes
+    // panels under the clip's settings.
     const EFFECT_CLIP_TYPES = new Set(['video', 'image', 'overlay-image', 'overlay-personalized-image', 'overlay-sticker']);
-    let activeEffectsPanel = null;
+    const NO_KEYFRAME_TYPES = new Set(['audio', 'overlay-video-transition']);
+    // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
+    var activeEffectsPanel = null;
+    // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
+    var activeKeyframesPanel = null;
+    // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
+    var activeCaptionsPanel = null;
+    // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
+    var pendingAutoCaptions = null;
+    const timelineSec = () => state.timelineSeconds || 60;
+    const clipStartSec = (clip) => ((Number(clip.left) || 0) / 100) * timelineSec();
+    const clipDurationSec = (clip) => ((Number(clip.width) || 0) / 100) * timelineSec();
+    const playheadSec = () => ((state.playheadPercent || 0) / 100) * timelineSec();
+    function seekToSeconds(sec) {
+      state.playheadPercent = Math.max(0, Math.min(100, (sec / timelineSec()) * 100));
+      updatePlaybackUI();
+    }
+    function downloadText(name, text, mime) {
+      const url = URL.createObjectURL(new Blob([text], { type: mime || 'text/plain' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+    const isKeyframable = (clip) => {
+      if (NO_KEYFRAME_TYPES.has(clip.type)) return false;
+      const addon = isAddonType(clip.type) ? getAddon(clip.type) : null;
+      if (addon && addon.category !== 'overlay') return false;
+      if (clip.type === 'lead-form' || clip.type === 'click-to-call') return false;
+      return true;
+    };
+    const editorSection = (cls, label) => {
+      const host = document.createElement('section');
+      host.className = `clip-editor__section ${cls}`;
+      host.setAttribute('aria-label', label);
+      els.clipEditorContainer.appendChild(host);
+      return host;
+    };
+    function mediaSourcesForCaptions() {
+      return allClips().filter((c) => (c.type === 'video' || c.type === 'audio') && c.src)
+        .sort((a, b) => (a.left || 0) - (b.left || 0))
+        .map((c) => ({ id: String(c.id), label: `${c.name || c.type} (${clipStartSec(c).toFixed(1)}s)` }));
+    }
+
     function renderClipEditor(clipId) {
       renderClipEditorBase(clipId);
-      activeEffectsPanel?.destroy();
-      activeEffectsPanel = null;
+      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel].forEach((p) => p?.destroy());
+      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = null;
       const clip = allClips().find((c) => c.id === clipId);
-      if (!clip || !EFFECT_CLIP_TYPES.has(clip.type) || (clip.type === 'overlay-sticker' && clip.addon?.kind === 'lottie')) return;
-      const host = document.createElement('section');
-      host.className = 'clip-editor__section clip-effects';
-      host.setAttribute('aria-label', 'Effects and color');
-      els.clipEditorContainer.appendChild(host);
-      import('../lib/editor/remotion/effectsPanel.js').then(({ renderEffectsPanel }) => {
-        if (!host.isConnected) return;
-        activeEffectsPanel = renderEffectsPanel(host, {
-          effects: clip.effects || [],
-          onError: (err) => showToast(err?.message || 'Effect error', 'error'),
-          onChange: (next) => {
-            clip.effects = next;
-            scheduleEngineUpdate();
-            debouncedSave();
-          },
+      if (!clip) return;
+
+      if (clip.type === 'captions') {
+        const host = editorSection('clip-captions', 'Captions');
+        const auto = pendingAutoCaptions === clip.id;
+        pendingAutoCaptions = null;
+        import('../lib/editor/remotion/captionsPanel.js').then(({ renderCaptionsPanel }) => {
+          if (!host.isConnected) return;
+          activeCaptionsPanel = renderCaptionsPanel(host, {
+            captions: clip.captions || [],
+            style: clip.captionStyle,
+            sources: mediaSourcesForCaptions(),
+            selectedSource: clip.sourceClipId ? String(clip.sourceClipId) : undefined,
+            autoTranscribe: auto,
+            currentMs: () => Math.max(0, (playheadSec() - clipStartSec(clip)) * 1000),
+            onSeek: (ms) => seekToSeconds(clipStartSec(clip) + ms / 1000),
+            onDownload: (name, text, mime) => downloadText(`${(clip.name || 'captions').replace(/[^\w-]+/g, '_')}.${name.split('.').pop()}`, text, mime),
+            onError: (err) => showToast(err?.message || 'Captions error', 'error'),
+            onTranscribe: async ({ sourceId, model, language, onProgress, signal }) => {
+              const source = allClips().find((c) => String(c.id) === sourceId);
+              if (!source?.src) throw new Error('That clip has no media to transcribe');
+              const { transcribeInBrowser } = await import('../lib/editor/remotion/transcribe.js');
+              const fromSec = Number(source.trimIn ?? source.sourceStart ?? 0) || 0;
+              const { captions } = await transcribeInBrowser(source.src, { fromSec, toSec: fromSec + clipDurationSec(source), model, language, onProgress, signal });
+              if (!captions.length) throw new Error('No speech was found in that clip');
+              // Line the captions clip up with the clip it was made from.
+              saveStateSnapshot(state);
+              clip.left = source.left;
+              clip.width = source.width;
+              clip.sourceClipId = source.id;
+              renderTracks();
+              showToast(`${captions.length} words transcribed`, 'success');
+              return captions;
+            },
+            onChange: ({ captions, captionStyle }) => {
+              clip.captions = captions;
+              clip.captionStyle = captionStyle;
+              const first = captions.slice(0, 5).map((c) => c.text).join('').trim();
+              clip.name = first ? `Captions: ${first}${captions.length > 5 ? '…' : ''}` : 'Captions';
+              scheduleEngineUpdate();
+              debouncedSave();
+            },
+          });
         });
-      });
+      }
+
+      if (EFFECT_CLIP_TYPES.has(clip.type) && !(clip.type === 'overlay-sticker' && clip.addon?.kind === 'lottie')) {
+        const host = editorSection('clip-effects', 'Effects and color');
+        import('../lib/editor/remotion/effectsPanel.js').then(({ renderEffectsPanel }) => {
+          if (!host.isConnected) return;
+          activeEffectsPanel = renderEffectsPanel(host, {
+            effects: clip.effects || [],
+            onError: (err) => showToast(err?.message || 'Effect error', 'error'),
+            onChange: (next) => {
+              clip.effects = next;
+              // Drop keyframes of effects that were removed.
+              if (clip.keyframes) {
+                const uids = new Set(next.map((fx) => fx.uid));
+                Object.keys(clip.keyframes).forEach((k) => { const m = /^fx:([^:]+):/.exec(k); if (m && !uids.has(m[1])) delete clip.keyframes[k]; });
+              }
+              activeKeyframesPanel?.refresh();
+              scheduleEngineUpdate();
+              debouncedSave();
+            },
+          });
+        });
+      }
+
+      if (isKeyframable(clip)) {
+        // The new panel replaces the older keyframe controls in the base editor.
+        els.clipEditorContainer.querySelector('#add-keyframe-btn')?.closest('.clip-editor__section')?.remove();
+        const host = editorSection('clip-keyframes', 'Keyframes');
+        import('../lib/editor/remotion/keyframesPanel.js').then(({ renderKeyframesPanel }) => {
+          if (!host.isConnected) return;
+          activeKeyframesPanel = renderKeyframesPanel(host, {
+            clip,
+            duration: clipDurationSec(clip),
+            getTime: () => Math.max(0, Math.min(clipDurationSec(clip), playheadSec() - clipStartSec(clip))),
+            onSeek: (t) => seekToSeconds(clipStartSec(clip) + t),
+            onChange: (keyframes) => {
+              saveStateSnapshot(state);
+              if (Object.keys(keyframes).length) clip.keyframes = keyframes; else delete clip.keyframes;
+              renderTracks();
+              scheduleEngineUpdate();
+              debouncedSave();
+            },
+          });
+        });
+      }
     }
 
     function renderClipEditorBase(clipId) {
@@ -5128,26 +5275,31 @@ export function TimelineEditorPage() {
 
     renderTracks();
 
+    /** Captions: add a captions clip and transcribe the selected (or first) media clip in the browser. */
     async function generateSubtitles() {
-      showToast('Generating subtitles...', 'info');
-      try {
-        // Attempt real transcription if available
-        if (typeof whisperService !== 'undefined' && whisperService.transcribe) {
-          const selectedClip = findSelectedClip();
-          if (!selectedClip || !selectedClip.src) {
-            showToast('Select a video clip to generate subtitles from', 'info');
-            return;
-          }
-          // In a real implementation, fetch the media and run transcription.
-          showToast('Subtitle generation requires media upload', 'info');
-          return;
-        }
-
-        showToast('Subtitle generation requires a transcription service', 'error');
-      } catch (error) {
-        console.error('Subtitle generation failed:', error);
-        showToast('Subtitle generation failed', 'error');
-      }
+      const selected = findSelectedClip();
+      if (selected?.type === 'captions') { showClipEditor(selected.id); return; }
+      const media = allClips().filter((c) => (c.type === 'video' || c.type === 'audio') && c.src);
+      const source = selected && media.includes(selected) ? selected : media.sort((a, b) => (a.left || 0) - (b.left || 0))[0];
+      const { defaultCaptionStyle } = await import('../lib/editor/remotion/captions.js');
+      saveStateSnapshot(state);
+      const startSec = source ? clipStartSec(source) : playheadSec();
+      const clip = {
+        id: `captions-${Date.now()}`,
+        type: 'captions',
+        name: 'Captions',
+        captions: [],
+        captionStyle: defaultCaptionStyle('tiktok'),
+        sourceClipId: source?.id ?? null,
+        start: startSec,
+        end: startSec + (source ? clipDurationSec(source) : Math.min(10, timelineSec() - startSec)),
+      };
+      const textTrack = state.tracks.find((t) => (t.type || '').toLowerCase() === 'text') || state.tracks.find((t) => t.name === 'Text');
+      insertClipIntoTrack(clip, textTrack?.name || 'Text');
+      if (source) pendingAutoCaptions = clip.id;
+      else showToast('Captions added — import an SRT/VTT file or type captions in its settings', 'info');
+      showClipEditor(clip.id);
+      debouncedSave();
     }
 
     async function suggestBRoll() {
@@ -7194,7 +7346,7 @@ export function TimelineEditorPage() {
       document.addEventListener('drop', onDragEndAny);
 
       // Feature-index chips (prototype parity) → open the matching editor surface
-      root.querySelectorAll('.fi-chip').forEach(chip => {
+      root.querySelectorAll('.fi-chip, .media-item[data-modal]').forEach(chip => {
         const key = chip.getAttribute('data-modal');
         const handler = FEATURE_INDEX_MODALS[key];
         if (handler) chip.addEventListener('click', handler);

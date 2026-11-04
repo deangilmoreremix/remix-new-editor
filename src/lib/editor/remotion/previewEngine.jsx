@@ -12,7 +12,7 @@
 import React, { forwardRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Player } from '@remotion/player';
-import { TimelineComposition } from './TimelineComposition.jsx';
+import { TimelineComposition, registerGoogleFonts } from './TimelineComposition.jsx';
 import { loadEffects, effectIdsInModel } from './effects.js';
 
 const PlayerHost = forwardRef(function PlayerHost({ model }, ref) {
@@ -65,12 +65,14 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
     onReady?.();
   };
 
-  // Effect modules load lazily; render once they're ready so the preview
-  // never shows a frame without the clip's effects.
+  // Effect modules and fonts load lazily; render once they're ready so the
+  // preview never shows a frame without the clip's effects or with a
+  // fallback font (fonts added after the first render included).
   let version = 0;
   const render = () => {
     const v = ++version;
-    loadEffects(effectIdsInModel(current)).then(() => {
+    const fonts = Promise.race([registerGoogleFonts(current?.fonts || []), new Promise((r) => setTimeout(r, 8000))]);
+    Promise.all([loadEffects(effectIdsInModel(current)), fonts]).then(() => {
       if (v === version) root.render(<PlayerHost ref={bind} model={current} />);
     });
   };

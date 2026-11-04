@@ -846,6 +846,8 @@
 /* Remotion engine preview */
 .remotion-stage { position: absolute; inset: 0; }
 .remotion-stage:empty { display: none; }
+/* With the Remotion engine the preview must match the export: no decorative shade over the picture. */
+.remotion-engine-on .vf-gradient { display: none; }
 /* Player draws overlays; the DOM layer keeps invisible hit boxes + handles. */
 .addon-overlay-layer.engine-on > .addon-overlay-clip { background: transparent !important; }
 .addon-overlay-layer.engine-on > .addon-overlay-clip > :not(.overlay-handle):not(.overlay-delete-handle) { visibility: hidden; }
@@ -873,3 +875,26 @@
 .fx-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; max-height: 240px; overflow: auto; }
 .fx-chip { font-size: 11px; padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: inherit; cursor: pointer; text-align: left; }
 .fx-chip:hover, .fx-chip:focus-visible { border-color: #eb5054; outline: none; }
+
+/* ---- Captions & Keyframes panels ---- */
+.clip-captions, .clip-keyframes { margin-top: var(--sp-3, 12px); }
+.cap-panel, .kf-panel { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.cap-row { display: grid; grid-template-columns: 96px 1fr; align-items: center; gap: 6px; }
+.cap-row select, .cap-row input[type="range"] { width: 100%; }
+.cap-row input[type="range"] { accent-color: #eb5054; }
+.cap-primary { width: 100%; background: #eb5054; color: #fff; border-color: #eb5054; }
+.cap-progress { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; border-radius: 6px; background: rgba(235,80,84,.12); }
+.cap-presets, .cap-actions, .cap-toggles { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+.cap-toggles label { display: inline-flex; align-items: center; gap: 4px; }
+.cap-shift { display: flex; align-items: center; gap: 4px; }
+.cap-shift input { width: 64px; }
+.cap-list, .kf-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; max-height: 320px; overflow: auto; }
+.cap-item { display: grid; grid-template-columns: auto 58px 58px 1fr auto auto auto; gap: 3px; align-items: center; }
+.cap-item input { min-width: 0; font-size: 11px; padding: 3px 4px; }
+.kf-value { display: grid; grid-template-columns: 1fr 64px; gap: 6px; }
+.kf-group { border: 1px solid rgba(255,255,255,.1); border-radius: 6px; padding: 6px; }
+.kf-group__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.kf-item { display: grid; grid-template-columns: auto 60px 1fr 1fr auto; gap: 3px; align-items: center; }
+.kf-item input, .kf-item select { min-width: 0; font-size: 11px; padding: 3px 4px; }
+.kf-diamond { padding: 0; margin-left: -4.5px; background: #ffd84d; }
+.kf-diamond:focus-visible { outline: 2px solid #fff; }

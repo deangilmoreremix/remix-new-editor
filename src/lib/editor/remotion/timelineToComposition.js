@@ -16,6 +16,7 @@ import { getAddon, addonOptions } from '../addons/registry.js';
 import { resolveOverlayText, safeImageUrl, sanitizeWrapperStyles } from '../addons/overlayRender.js';
 import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
+import { defaultCaptionStyle } from './captions.js';
 
 export const QUALITY_PRESETS = {
   '720p': { width: 1280, height: 720 },
@@ -126,7 +127,7 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
         return;
       }
       if (clip.type === 'caption-track' || clip.type === 'captions') {
-        layers.push({ ...base, kind: 'captions', captions: clip.captions || [], style: clip.captionStyle || {} });
+        layers.push({ ...base, kind: 'captions', captions: Array.isArray(clip.captions) ? clip.captions : [], style: { ...defaultCaptionStyle(clip.captionStyle?.preset), ...(clip.captionStyle || {}) } });
         return;
       }
 
@@ -192,7 +193,7 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
 export function collectFonts(layers) {
   const set = new Set();
   layers.forEach((l) => {
-    const f = l.options?.fontFamily;
+    const f = l.options?.fontFamily || (l.kind === 'captions' ? l.style?.fontFamily : null);
     if (f) set.add(String(f));
   });
   return [...set];
