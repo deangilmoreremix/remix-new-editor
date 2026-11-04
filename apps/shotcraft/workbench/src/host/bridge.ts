@@ -6,7 +6,7 @@ import { appendAssets, isHostAsset, projectFromAssets, type HostAsset } from "./
  *  Same-origin only: the workbench is served from smartvid.app/workbench-app/.
  *
  *  parent → workbench
- *    { type: "sv:auth", token }                       Clerk session token for AI chat
+ *    { type: "sv:auth", token, openaiKey }            Clerk token + the user's own OpenAI key (BYOK)
  *    { type: "sv:import-assets", assets, mode, name } open AI assets ("new" | "append")
  *    { type: "sv:uploaded", id, url } / { type: "sv:upload-failed", id, error }
  *  workbench → parent
@@ -17,10 +17,13 @@ import { appendAssets, isHostAsset, projectFromAssets, type HostAsset } from "./
 interface HostState {
   embedded: boolean;
   token: string | null;
+  /** BYOK: the user's own OpenAI key from SmartVid's API key modal. Memory only. */
+  openaiKey: string | null;
 }
 export const useHost = create<HostState>(() => ({
   embedded: typeof window !== "undefined" && window.parent !== window,
   token: null,
+  openaiKey: null,
 }));
 
 const post = (msg: Record<string, unknown>) => {
@@ -75,7 +78,10 @@ export const initHostBridge = () => {
     const d = e.data as Record<string, unknown> | null;
     if (!d || typeof d.type !== "string") return;
     if (d.type === "sv:auth") {
-      useHost.setState({ token: typeof d.token === "string" ? d.token : null });
+      useHost.setState({
+        token: typeof d.token === "string" ? d.token : null,
+        openaiKey: typeof d.openaiKey === "string" && d.openaiKey.trim() ? d.openaiKey.trim() : null,
+      });
     } else if ((d.type === "sv:uploaded" || d.type === "sv:upload-failed") && typeof d.id === "string") {
       const blobUrl = pendingUploads.get(d.id);
       if (!blobUrl) return;

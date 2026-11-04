@@ -3,17 +3,24 @@
 // Hosts the Motion Workbench port (apps/shotcraft/workbench, built to
 // public/workbench-app/ by `npm run build:workbench`) in a same-origin iframe and
 // talks to it over postMessage (protocol in apps/shotcraft/workbench/src/host/bridge.ts):
-//   → sv:auth           Clerk session token, refreshed, for AI chat editing
+//   → sv:auth           Clerk session token + the user's own OpenAI key (BYOK) for AI chat
 //   → sv:import-assets  generations handed off by "Edit in Workbench" / the picker
 //   ← sv:ready
 //   ← sv:exported       in-browser rendered MP4 → uploaded and saved to the library
 //   ← sv:upload         user's own file → uploaded to storage → sv:uploaded / sv:upload-failed
 import { mountStudioChrome } from '../../../lib/studioChrome.js';
+import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { WORKBENCH_APP_PATH, consumeWorkbenchHandoff, isWorkbenchEligible, toWorkbenchAsset } from '../../../lib/workbench.js';
 import { loadGenerationHistory, saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
 
-const TOKEN_REFRESH_MS = 45_000;
+// BYOK: the user's own OpenAI key (API key modal) is re-sent on this timer and when the
+// window regains focus, so a key added or changed in Settings reaches the editor quickly.
+const TOKEN_REFRESH_MS = 15_000;
+
+function getUserOpenAIKey() {
+  try { return apiKeyManager.getOpenAIKey() || null; } catch { return null; }
+}
 
 async function getClerkToken() {
   try {
@@ -71,7 +78,7 @@ export function WorkbenchStudio() {
   const post = (msg) => {
     if (ready && iframe.contentWindow) iframe.contentWindow.postMessage(msg, window.location.origin);
   };
-  const sendToken = async () => post({ type: 'sv:auth', token: await getClerkToken() });
+  const sendToken = async () => post({ type: 'sv:auth', token: await getClerkToken(), openaiKey: getUserOpenAIKey() });
   const sendAssets = (assets, mode = 'append', name = null) => {
     if (!assets.length) return;
     if (!ready) { pending = { assets, mode, name }; return; }
@@ -118,6 +125,7 @@ export function WorkbenchStudio() {
       sendToken();
       clearInterval(tokenTimer);
       tokenTimer = setInterval(sendToken, TOKEN_REFRESH_MS);
+      window.addEventListener('focus', sendToken);
       if (pending) {
         const p = pending;
         pending = null;
@@ -208,6 +216,7 @@ export function WorkbenchStudio() {
     clearInterval(tokenTimer);
     window.removeEventListener('message', onMessage);
     window.removeEventListener('resize', fit);
+    window.removeEventListener('focus', sendToken);
   };
   return container;
 }

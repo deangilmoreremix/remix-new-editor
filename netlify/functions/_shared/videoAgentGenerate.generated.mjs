@@ -1357,6 +1357,14 @@ CRITICAL:
 ## PRESERVING USER EDITS
 If the user has made manual edits, preserve them unless explicitly asked to change.
 `;
+function openAIErrorMessage(error, fallback) {
+  const e = error;
+  const status = e?.statusCode ?? e?.status ?? e?.cause?.statusCode;
+  if (status === 401) return "OpenAI rejected your API key. Check it in SmartVid \u2192 Settings \u2192 API keys.";
+  if (status === 429) return "Your OpenAI account is rate-limited or out of credit. Check your OpenAI billing, then try again.";
+  if (status === 404) return "Your OpenAI account doesn't have access to this model. Pick another model and try again.";
+  return fallback;
+}
 var FollowUpResponseSchema = z.object({
   type: z.enum(["edit", "full"]).describe(
     'Use "edit" for small targeted changes, "full" for major restructuring'
@@ -1430,15 +1438,14 @@ async function POST(req) {
     previouslyUsedSkills = [],
     frameImages
   } = await req.json();
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = req.headers.get("x-openai-key")?.trim();
   if (!apiKey) {
     return new Response(
       JSON.stringify({
-        // SmartVid: don't tell end users about server env files.
-        error: "The Video Agent is not configured yet (missing OpenAI key on the server)."
+        error: "The Video Agent uses your own OpenAI key. Add it in SmartVid \u2192 Settings \u2192 API keys (OpenAI API Key)."
       }),
       {
-        status: 400,
+        status: 401,
         headers: { "Content-Type": "application/json" }
       }
     );
@@ -1638,7 +1645,7 @@ Analyze the request and decide: use targeted edits (type: "edit") for small chan
       console.error("Error in follow-up edit:", error);
       return new Response(
         JSON.stringify({
-          error: "Something went wrong while processing the edit request."
+          error: openAIErrorMessage(error, "Something went wrong while processing the edit request.")
         }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
@@ -1684,7 +1691,8 @@ Analyze the request and decide: use targeted edits (type: "edit") for small chan
       hasImages ? `(with ${frameImages.length} image(s))` : ""
     );
     const originalResponse = result.toUIMessageStreamResponse({
-      sendReasoning: true
+      sendReasoning: true,
+      onError: (error) => openAIErrorMessage(error, "Something went wrong while trying to reach OpenAI APIs.")
     });
     const metadataEvent = `data: ${JSON.stringify({
       type: "metadata",
@@ -1716,7 +1724,7 @@ Analyze the request and decide: use targeted edits (type: "edit") for small chan
     console.error("Error generating code:", error);
     return new Response(
       JSON.stringify({
-        error: "Something went wrong while trying to reach OpenAI APIs."
+        error: openAIErrorMessage(error, "Something went wrong while trying to reach OpenAI APIs.")
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );

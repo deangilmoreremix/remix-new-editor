@@ -148,6 +148,16 @@ CRITICAL:
 If the user has made manual edits, preserve them unless explicitly asked to change.
 `;
 
+// SmartVid (BYOK): explain OpenAI failures caused by the user's own key/account.
+function openAIErrorMessage(error: unknown, fallback: string): string {
+  const e = error as { statusCode?: number; status?: number; message?: string; cause?: { statusCode?: number } };
+  const status = e?.statusCode ?? e?.status ?? e?.cause?.statusCode;
+  if (status === 401) return "OpenAI rejected your API key. Check it in SmartVid → Settings → API keys.";
+  if (status === 429) return "Your OpenAI account is rate-limited or out of credit. Check your OpenAI billing, then try again.";
+  if (status === 404) return "Your OpenAI account doesn't have access to this model. Pick another model and try again.";
+  return fallback;
+}
+
 // Schema for follow-up edit responses
 // Note: Using a flat object schema because OpenAI doesn't support discriminated unions
 const FollowUpResponseSchema = z.object({
@@ -316,16 +326,17 @@ export async function POST(req: Request) {
     frameImages,
   }: GenerateRequest = await req.json();
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  // SmartVid (BYOK): the request runs on the user's own OpenAI key, sent by the client in
+  // X-OpenAI-Key (validated by netlify/functions/video-agent-generate.mjs). No platform key.
+  const apiKey = req.headers.get("x-openai-key")?.trim();
 
   if (!apiKey) {
     return new Response(
       JSON.stringify({
-        // SmartVid: don't tell end users about server env files.
-        error: "The Video Agent is not configured yet (missing OpenAI key on the server).",
+        error: "The Video Agent uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).",
       }),
       {
-        status: 400,
+        status: 401,
         headers: { "Content-Type": "application/json" },
       },
     );
@@ -585,7 +596,7 @@ Analyze the request and decide: use targeted edits (type: "edit") for small chan
       console.error("Error in follow-up edit:", error);
       return new Response(
         JSON.stringify({
-          error: "Something went wrong while processing the edit request.",
+          error: openAIErrorMessage(error, "Something went wrong while processing the edit request."),
         }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
@@ -648,6 +659,7 @@ Analyze the request and decide: use targeted edits (type: "edit") for small chan
     // Get the original stream response
     const originalResponse = result.toUIMessageStreamResponse({
       sendReasoning: true,
+      onError: (error) => openAIErrorMessage(error, "Something went wrong while trying to reach OpenAI APIs."),
     });
 
     // Create metadata event to prepend
@@ -687,7 +699,7 @@ Analyze the request and decide: use targeted edits (type: "edit") for small chan
     console.error("Error generating code:", error);
     return new Response(
       JSON.stringify({
-        error: "Something went wrong while trying to reach OpenAI APIs.",
+        error: openAIErrorMessage(error, "Something went wrong while trying to reach OpenAI APIs."),
       }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
