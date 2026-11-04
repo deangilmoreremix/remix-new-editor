@@ -49,13 +49,12 @@ describe('video-agent function', () => {
   });
 
   it('runs an OpenAI step and returns tool calls', async () => {
-    process.env.OPENAI_API_KEY = 'test-key';
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ model: 'gpt-x', status: 'completed', output: [
       { type: 'message', content: [{ type: 'output_text', text: 'Looking' }] },
       { type: 'function_call', call_id: 'k1', name: 'get_timeline', arguments: '{"a":1}' },
     ] }) }));
     vi.stubGlobal('fetch', fetchMock);
-    const res = await step({ messages: [HISTORY[0]], tools: TOOLS });
+    const res = await step({ messages: [HISTORY[0]], tools: TOOLS }, { openaiKey: 'sk-test0123456789abcdefghijkl' });
     const body = JSON.parse(res.body);
     expect(body).toMatchObject({ ok: true, provider: 'openai', text: 'Looking', toolCalls: [{ id: 'k1', name: 'get_timeline', args: { a: 1 } }], stopReason: 'tool_use' });
     const [url, init] = fetchMock.mock.calls[0];
@@ -63,13 +62,18 @@ describe('video-agent function', () => {
     const sent = JSON.parse(init.body);
     expect(sent).toMatchObject({ store: false, include: ['reasoning.encrypted_content'], tools: [{ type: 'function', name: 'get_timeline' }] });
     expect(sent.instructions).toMatch(/create_animation/);
-    expect(init.headers.Authorization).toBe('Bearer test-key');
+    expect(init.headers.Authorization).toBe('Bearer sk-test0123456789abcdefghijkl');
   });
 
-  it('returns 503 when a provider key is missing', async () => {
-    delete process.env.OPENAI_API_KEY;
+  it('needs the user\'s own OpenAI key (BYOK) and reports bad keys', async () => {
+    process.env.OPENAI_API_KEY = 'sk-server-key-should-not-be-used-000';
     delete process.env.ANTHROPIC_API_KEY;
-    expect((await step({ messages: [HISTORY[0]], tools: TOOLS })).statusCode).toBe(503);
+    const noKey = await step({ messages: [HISTORY[0]], tools: TOOLS });
+    expect(noKey.statusCode).toBe(401);
+    expect(JSON.parse(noKey.body).error.message).toMatch(/Settings → API keys/);
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) })));
+    expect((await step({ messages: [HISTORY[0]], tools: TOOLS }, { openaiKey: 'sk-test0123456789abcdefghijkl' })).statusCode).toBe(401);
+    delete process.env.OPENAI_API_KEY;
     expect((await step({ provider: 'anthropic', messages: [HISTORY[0]], tools: TOOLS })).statusCode).toBe(503);
   });
 

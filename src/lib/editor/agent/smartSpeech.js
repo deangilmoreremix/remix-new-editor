@@ -6,7 +6,8 @@
  *
  * Upstream used Google Cloud TTS with 150 / 70 (personalized) character
  * limits, pitch and speed. Here: MiniMax Speech HD (MuAPI, default) or
- * OpenAI gpt-4o-mini-tts, both on server keys via /api/agent-audio.
+ * OpenAI gpt-4o-mini-tts, on the user's own MuAPI / OpenAI keys (BYOK, Settings → API keys)
+ * via /api/agent-audio.
  */
 import { VOICES, OPENAI_VOICES, TTS_PROVIDERS } from './audioGen.js';
 
@@ -136,7 +137,7 @@ export function renderSmartSpeech(el, services = {}) {
         ${services.tokens?.length ? `<select class="speech__tokens" data-insert-token aria-label="Insert personalization token"><option value="">+ Insert token</option>${services.tokens.map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join('')}</select>` : ''}
         ${personal ? `<label class="speech__row speech__row--text"><span>Fallback (no personal details) <output>${d.fallback.length}/${LIMIT}</output></span>
           <textarea data-k="fallback" rows="2" placeholder="Hi there, thanks for watching!">${esc(d.fallback)}</textarea></label>
-          <p class="speech__note">Each viewer hears their own line on the shared video; viewers without details hear the fallback.</p>` : ''}
+          <p class="speech__note">In the editor you hear the line for the selected contact. On a shared link, viewers hear the fallback line.</p>` : ''}
         <ul class="speech__errors" role="alert"></ul>
         <div class="speech__actions">
           <button type="button" class="speech__btn" data-act="preview"${busy ? ' disabled' : ''}>▶ Preview</button>
@@ -144,7 +145,7 @@ export function renderSmartSpeech(el, services = {}) {
         </div>
         <audio class="speech__audio" controls hidden></audio>
         <button type="button" class="speech__save" data-act="save">☆ Save this voice</button>
-        <p class="speech__disclosure">Voices are AI-generated. The shared video tells viewers so.</p>
+        <p class="speech__disclosure">Uses your own ${d.provider === 'openai' ? 'OpenAI' : 'MuAPI'} key from Settings → API keys. Voices are AI-generated; the shared video tells viewers so.</p>
       </div>`;
   };
 

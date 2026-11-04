@@ -29,6 +29,7 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { withClerkAuth } from './_shared/clerkAuth.js';
+import { userOpenAIKey, NEED_OPENAI_KEY, BAD_OPENAI_KEY, OPENAI_NO_CREDIT } from './_shared/byok.js';
 import { AGENT_SYSTEM_PROMPT } from './_shared/videoAgentPrompt.js';
 
 const OPENAI_MODEL = process.env.OPENAI_AGENT_MODEL || process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
@@ -92,9 +93,9 @@ export function toOpenAIInput(messages) {
   return input;
 }
 
-async function stepOpenAI(messages, tools) {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return { error: fail(503, 'not_configured', 'The AI Video agent is not configured on the server (OPENAI_API_KEY).') };
+// BYOK: runs on the user's own OpenAI key (X-OpenAI-Key from Settings → API keys).
+async function stepOpenAI(messages, tools, key) {
+  if (!key) return { error: fail(401, 'need_key', NEED_OPENAI_KEY) };
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
@@ -116,8 +117,10 @@ async function stepOpenAI(messages, tools) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      console.error('[video-agent] OpenAI error', res.status, data?.error?.message);
-      return { error: fail(502, 'provider_error', res.status === 429 ? 'The AI service is busy — try again in a moment.' : 'The AI service returned an error.') };
+      console.error('[video-agent] OpenAI error', res.status);
+      if (res.status === 401) return { error: fail(401, 'bad_key', BAD_OPENAI_KEY) };
+      if (res.status === 429) return { error: fail(429, 'no_credit', OPENAI_NO_CREDIT) };
+      return { error: fail(502, 'provider_error', 'The AI service returned an error.') };
     }
     const output = Array.isArray(data.output) ? data.output : [];
     const text = output.filter((o) => o.type === 'message').flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('\n');
@@ -185,17 +188,17 @@ function safeParse(s) {
   try { return s ? JSON.parse(s) : {}; } catch { return { _invalidJson: String(s).slice(0, 2000) }; }
 }
 
-export async function step(body) {
+export async function step(body, { openaiKey = null } = {}) {
   const err = validateRequest(body);
   if (err) return fail(400, 'bad_request', err);
   const provider = body.provider === 'anthropic' ? 'anthropic' : 'openai';
-  const { result, error } = provider === 'anthropic' ? await stepAnthropic(body.messages, body.tools) : await stepOpenAI(body.messages, body.tools);
+  const { result, error } = provider === 'anthropic' ? await stepAnthropic(body.messages, body.tools) : await stepOpenAI(body.messages, body.tools, openaiKey);
   return error || json(200, { ok: true, ...result });
 }
 
 export const handler = withClerkAuth(async (event) => {
   if (event.httpMethod === 'GET') {
-    return json(200, { ok: true, providers: { openai: !!process.env.OPENAI_API_KEY, anthropic: !!process.env.ANTHROPIC_API_KEY } });
+    return json(200, { ok: true, providers: { openai: !!userOpenAIKey(event.headers), anthropic: !!process.env.ANTHROPIC_API_KEY } });
   }
   if (event.httpMethod !== 'POST') return fail(405, 'method_not_allowed', 'Use POST');
   if ((event.body || '').length > LIMITS.bodyBytes) return fail(413, 'too_large', 'Request too large');
@@ -203,7 +206,7 @@ export const handler = withClerkAuth(async (event) => {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch { return fail(400, 'bad_request', 'Body must be JSON'); }
   try {
-    return await step(body);
+    return await step(body, { openaiKey: userOpenAIKey(event.headers) });
   } catch (e) {
     console.error('[video-agent] failed', e?.message);
     return fail(500, 'internal', 'The AI step failed.');

@@ -8,6 +8,11 @@
  * When a value is missing the player keeps the clip's pre-rendered
  * fallback audio.
  *
+ * BYOK: SmartVid runs on each user's own keys, which stay in their browser, so
+ * a viewer's request has no key to use. This function only speaks when a
+ * platform key is configured (MUAPI_API_KEY / OPENAI_API_KEY); otherwise it
+ * answers 503 and the player plays the fallback line.
+ *
  * POST /api/watch-voice
  *   { action: 'submit', publishedId, clipId, tokens: { firstname: 'Ann' } }
  *     → { ok, status: 'done', url } | { ok, requestId } | 422 use_fallback
