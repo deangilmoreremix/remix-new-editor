@@ -25,8 +25,8 @@ import {
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
-  OVERLAY_ADDONS, STICKER_LIBRARY, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
-  setOverlayPlaying, playInAnimation, playOutAndRemove, activeOverlays, attachDragResize,
+  OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, ANIMATED_EMOJI_CREDIT, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
+  setOverlayPlaying, syncOverlayTime, playInAnimation, playOutAndRemove, activeOverlays, attachDragResize,
 } from '../lib/editor/addons/index.js';
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
 // Design-system styles are imported statically so Vite bundles and emits them
@@ -3894,7 +3894,7 @@ export function TimelineEditorPage() {
     }
 
     function overlaySignature(clip, profileId = getActivePersonalizationProfile()?.id || null) {
-      return JSON.stringify([clip.addon, clip.id === state.selectedClipId, profileId]);
+      return JSON.stringify([clip.addon, clip.left, clip.width, clip.id === state.selectedClipId, profileId]);
     }
 
     function renderOverlayLayer() {
@@ -3952,6 +3952,11 @@ export function TimelineEditorPage() {
         }
       });
       setOverlayPlaying(layer, state.playing);
+      // Lower thirds follow the playhead frame-by-frame (scrubbing included).
+      syncOverlayTime(layer, t, new Map(active.map((c) => {
+        const r = clipTimeRange(c, T);
+        return [String(c.id), { start: r.start, duration: r.end - r.start }];
+      })));
     }
 
     function selectOverlayClip(clipId) {
@@ -4021,6 +4026,8 @@ export function TimelineEditorPage() {
     const addonEditorServices = {
       tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
       stickers: STICKER_LIBRARY,
+      animatedEmoji: ANIMATED_EMOJI,
+      animatedEmojiCredit: ANIMATED_EMOJI_CREDIT,
       mediaImages: () => {
         const seen = new Set();
         return [...(state.mediaLibrary || []), ...(state.assets || []), ...(state.media || [])]

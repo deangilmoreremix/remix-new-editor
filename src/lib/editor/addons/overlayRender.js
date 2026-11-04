@@ -16,6 +16,7 @@
 import { resolveToken, TOKEN_PATTERN } from '../../../components/personalize/tokenSchema.js';
 import { getAddon, addonOptions } from './registry.js';
 import { ensureFormFont } from './addonOverlay.js';
+import { buildLowerThirdLottie, lowerThirdFrame } from './lowerThirds.js';
 
 export const OVERLAY_TAG = 'overlay-clip';
 export const PERSONALIZED_PLACEHOLDER = '/static/images/personalized-image-placeholder.svg';
@@ -322,7 +323,21 @@ function buildSticker(opts) {
   return el;
 }
 
+function buildLowerThird(opts, ctx) {
+  const el = document.createElement('div');
+  el.className = 'popcorn-json-animation';
+  ensureFormFont(opts.fontFamily);
+  el._lottieData = buildLowerThirdLottie({
+    ...opts,
+    name: resolveOverlayText(opts.name, ctx.profile),
+    title: resolveOverlayText(opts.title, ctx.profile),
+  });
+  el.dataset.sync = 'lower-third';
+  return el;
+}
+
 const BUILDERS = {
+  'overlay-lower-third': (o, ctx) => buildLowerThird(o, ctx),
   'overlay-text': (o, ctx) => buildText(o, ctx),
   'overlay-image': (o, ctx) => buildImage(o, ctx),
   'overlay-personalized-image': (o, ctx) => buildImage(o, ctx, { personalized: true }),
@@ -361,6 +376,19 @@ export async function finishOverlayElement(el, { playing = false } = {}) {
     const text = el.querySelector('text');
     if (svg && text) fitSvgText(svg, text);
   }
+  if (el._lottieData && !el._lottie) {
+    // Lower thirds are driven frame-by-frame from the timeline (syncOverlayTime).
+    try {
+      const { default: lottie } = await import('lottie-web');
+      if (!el.isConnected || el._lottie) return;
+      el._lottie = lottie.loadAnimation({ container: el, renderer: 'svg', loop: false, autoplay: false, animationData: el._lottieData });
+      if (el._pendingFrame != null) el._lottie.goToAndStop(el._pendingFrame, true);
+    } catch (err) {
+      el.classList.add('is-error');
+      el.title = `Couldn't render lower third: ${err.message || err}`;
+    }
+    return;
+  }
   if (el.dataset.lottie && !el._lottie) {
     try {
       const [{ default: lottie }, data] = await Promise.all([
@@ -382,10 +410,24 @@ export function destroyOverlayElement(el) {
   el.remove();
 }
 
+/**
+ * Show each lower third at the frame for the current time:
+ * `times` maps clip id → { start, duration } in seconds.
+ */
+export function syncOverlayTime(layer, t, times) {
+  layer.querySelectorAll(`[data-overlay="${OVERLAY_TAG}"][data-sync="lower-third"]`).forEach((el) => {
+    const span = times.get(el.dataset.clipId);
+    if (!span) return;
+    const frame = lowerThirdFrame(t - span.start, span.duration);
+    if (el._lottie) el._lottie.goToAndStop(frame, true);
+    else el._pendingFrame = frame;
+  });
+}
+
 /** Keep Lottie stickers in step with the editor's play/pause state. */
 export function setOverlayPlaying(layer, playing) {
   layer.querySelectorAll(`[data-overlay="${OVERLAY_TAG}"]`).forEach((el) => {
-    if (!el._lottie) return;
+    if (!el._lottie || el.dataset.sync) return;
     if (playing) el._lottie.play();
     else el._lottie.pause();
   });

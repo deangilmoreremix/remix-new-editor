@@ -9,10 +9,11 @@ export {
 export {
   submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
 } from './leadClient.js';
-export { OVERLAY_ADDONS, SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, applyPositionPreset } from './overlayAddons.js';
+export { OVERLAY_ADDONS, SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD, applyPositionPreset } from './overlayAddons.js';
+export { buildLowerThirdLottie, lowerThirdFrame, LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';
 export {
   buildOverlayElement, finishOverlayElement, destroyOverlayElement, setOverlayPlaying, playInAnimation, playOutAndRemove,
-  activeOverlays, resolveOverlayText, sanitizeWrapperStyles, safeHref, safeImageUrl, OVERLAY_TAG,
+  activeOverlays, syncOverlayTime, resolveOverlayText, sanitizeWrapperStyles, safeHref, safeImageUrl, OVERLAY_TAG,
 } from './overlayRender.js';
 export { attachDragResize, dragGeometry, clampGeometry } from './dragResize.js';
-export { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, STICKER_LIBRARY } from './overlayData.js';
+export { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, STICKER_LIBRARY, ANIMATED_EMOJI, ANIMATED_EMOJI_CREDIT } from './overlayData.js';

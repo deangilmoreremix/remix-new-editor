@@ -40,7 +40,7 @@ const POSITION_PRESETS = [
   ['left', '⇤', 'Align left'], ['center', '↔', 'Center horizontally'], ['right', '⇥', 'Align right'],
   ['top', '⤒', 'Align top'], ['middle', '↕', 'Center vertically'], ['bottom', '⤓', 'Align bottom'],
 ];
-const STICKER_TABS = [['emoticons', 'Emoticons'], ['shapes', 'Shapes'], ['animated', 'Animated']];
+const STICKER_TABS = [['emoticons', 'Emoticons'], ['shapes', 'Shapes'], ['animatedEmoji', 'Animated emoji'], ['animated', 'Your file']];
 
 function renderField(field, options, idPrefix, ui = {}, services = {}) {
   const value = getPath(options, field.key);
@@ -106,7 +106,12 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
               <label class="mini-btn addon-upload-btn">Upload .json<input type="file" accept="application/json,.json" data-lottie-upload="${field.key}" hidden /></label>
             </div>
           </div>`
-        : `<div class="addon-sticker-grid" role="list">${(lib[tab] || []).map((st) => `<button type="button" role="listitem" class="addon-sticker${st.src === value ? ' is-on' : ''}" data-sticker-src="${esc(st.src)}" data-sticker-name="${esc(st.name)}" data-pick-key="${field.key}" title="${esc(st.name)}"><img src="${esc(st.src)}" alt="${esc(st.name)}" loading="lazy"/></button>`).join('')}</div>`;
+        : tab === 'animatedEmoji'
+          // Animated Lottie emoji: the button shows the emoji glyph (loading
+          // dozens of animations just to draw a grid would be heavy).
+          ? `<div class="addon-sticker-grid addon-sticker-grid--emoji" role="list">${(services.animatedEmoji || []).map((st) => `<button type="button" role="listitem" class="addon-sticker addon-sticker--emoji${st.src === value ? ' is-on' : ''}" data-sticker-src="${esc(st.src)}" data-sticker-name="${esc(st.name)}" data-sticker-kind="lottie" data-pick-key="${field.key}" title="${esc(st.name)} (animated)" aria-label="${esc(st.name)} (animated)">${esc(st.emoji)}</button>`).join('')}</div>
+            ${services.animatedEmojiCredit ? `<p class="addon-field__hint addon-sticker-credit">${esc(services.animatedEmojiCredit)}</p>` : ''}`
+          : `<div class="addon-sticker-grid" role="list">${(lib[tab] || []).map((st) => `<button type="button" role="listitem" class="addon-sticker${st.src === value ? ' is-on' : ''}" data-sticker-src="${esc(st.src)}" data-sticker-name="${esc(st.name)}" data-pick-key="${field.key}" title="${esc(st.name)}"><img src="${esc(st.src)}" alt="${esc(st.name)}" loading="lazy"/></button>`).join('')}</div>`;
       return `<div class="clip-editor__field addon-field addon-field--stickers"><label>${esc(field.label)}</label>
         <div class="addon-tabs addon-sticker-tabs">${STICKER_TABS.map(([v, l]) => `<button type="button" class="mini-btn addon-tab${v === tab ? ' active' : ''}" data-sticker-tab="${v}">${l}</button>`).join('')}</div>
         ${grid}
@@ -210,7 +215,7 @@ export function renderAddonEditor(container, {
         return;
       }
       if (btn?.dataset.stickerSrc) {
-        setPath(current, 'kind', 'image');
+        setPath(current, 'kind', btn.dataset.stickerKind === 'lottie' ? 'lottie' : 'image');
         setPath(current, 'name', btn.dataset.stickerName || '');
         setAndEmit(btn.dataset.pickKey, btn.dataset.stickerSrc);
         return;

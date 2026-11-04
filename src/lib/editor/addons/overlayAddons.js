@@ -14,6 +14,7 @@
  */
 import { registerAddon } from './registry.js';
 import { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS } from './overlayData.js';
+import { LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';
 
 const ICON = (name) => `/static/images/toolbar/${name}.svg`;
 
@@ -289,6 +290,41 @@ export const WRAPPER = registerAddon({
   summary: () => 'Wrapper',
 });
 
+// Upstream "Lower Thirds" (CREATIVE section, lib/popcorn/plugins/jsonAnimation):
+// a Lottie lower third kept in step with the video. The templates are
+// original (./lowerThirds.js) since upstream's catalog files aren't available.
+export const LOWER_THIRD = registerAddon({
+  ...BASE,
+  type: 'overlay-lower-third',
+  label: 'Lower Thirds',
+  icon: '🏷️',
+  iconSrc: ICON('lowerThirds'),
+  section: 'Creative',
+  description: 'Animated name and title strap: 8 original templates with your text, colours and font.',
+  positioned: true,
+  preserveRatio: true,
+  defaultDuration: 5,
+  defaults: () => ({
+    ...LOWER_THIRD_DEFAULTS,
+    // 1000x250 Lottie canvas → 50% wide in a 16:9 frame is 22.2% tall.
+    geometry: { left: 3, top: 62, width: 50, height: 22.2 },
+    opacity: 100,
+    blendMode: 'normal',
+  }),
+  fields: [
+    { key: 'template', label: 'Template', type: 'select', options: LOWER_THIRD_TEMPLATES, tab: 'Basic' },
+    { key: 'name', label: 'Name', type: 'tokens', rows: 1, tab: 'Basic' },
+    { key: 'title', label: 'Title', type: 'tokens', rows: 1, tab: 'Basic' },
+    { key: 'fontFamily', label: 'Font', type: 'font', options: fontOptions, tab: 'Style' },
+    { key: 'accentColor', label: 'Accent color', type: 'color', tab: 'Style' },
+    { key: 'barColor', label: 'Bar color', type: 'color', tab: 'Style' },
+    { key: 'textColor', label: 'Name color', type: 'color', tab: 'Style' },
+    { key: 'subTextColor', label: 'Title color', type: 'color', tab: 'Style' },
+    ...LOOK_FIELDS('Style'),
+  ],
+  summary: (o) => `Lower third: ${String(o.name || '').slice(0, 30)}`,
+});
+
 // Upstream toolbar order: BASIC (Smart Text, Text Mask, Personalized Image,
-// Image, Stickers) then CREATIVE (Wrapper).
-export const OVERLAY_ADDONS = [SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER];
+// Image, Stickers) then CREATIVE (Wrapper, Lower Thirds).
+export const OVERLAY_ADDONS = [SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD];

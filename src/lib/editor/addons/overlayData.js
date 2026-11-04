@@ -867,3 +867,372 @@ export const STICKER_LIBRARY = {
     }
   ]
 };
+
+/**
+ * Animated emoji stickers (Lottie): Noto Emoji Animation by Google,
+ * CC BY 4.0 — bundled in public/assets/sticker/animated-emoji/ (see the
+ * LICENSE.md there). The picker shows ANIMATED_EMOJI_CREDIT.
+ */
+export const ANIMATED_EMOJI_CREDIT = 'Animated emoji: Noto Emoji Animation by Google, CC BY 4.0';
+export const ANIMATED_EMOJI = [
+  {
+    "name": "grinning",
+    "emoji": "😀",
+    "src": "/assets/sticker/animated-emoji/grinning.json"
+  },
+  {
+    "name": "smiley",
+    "emoji": "😃",
+    "src": "/assets/sticker/animated-emoji/smiley.json"
+  },
+  {
+    "name": "smile",
+    "emoji": "😄",
+    "src": "/assets/sticker/animated-emoji/smile.json"
+  },
+  {
+    "name": "grin",
+    "emoji": "😁",
+    "src": "/assets/sticker/animated-emoji/grin.json"
+  },
+  {
+    "name": "laughing",
+    "emoji": "😆",
+    "src": "/assets/sticker/animated-emoji/laughing.json"
+  },
+  {
+    "name": "sweat smile",
+    "emoji": "😅",
+    "src": "/assets/sticker/animated-emoji/sweat-smile.json"
+  },
+  {
+    "name": "rofl",
+    "emoji": "🤣",
+    "src": "/assets/sticker/animated-emoji/rofl.json"
+  },
+  {
+    "name": "joy",
+    "emoji": "😂",
+    "src": "/assets/sticker/animated-emoji/joy.json"
+  },
+  {
+    "name": "slight smile",
+    "emoji": "🙂",
+    "src": "/assets/sticker/animated-emoji/slight-smile.json"
+  },
+  {
+    "name": "wink",
+    "emoji": "😉",
+    "src": "/assets/sticker/animated-emoji/wink.json"
+  },
+  {
+    "name": "blush",
+    "emoji": "😊",
+    "src": "/assets/sticker/animated-emoji/blush.json"
+  },
+  {
+    "name": "innocent",
+    "emoji": "😇",
+    "src": "/assets/sticker/animated-emoji/innocent.json"
+  },
+  {
+    "name": "smiling hearts",
+    "emoji": "🥰",
+    "src": "/assets/sticker/animated-emoji/smiling-hearts.json"
+  },
+  {
+    "name": "heart eyes",
+    "emoji": "😍",
+    "src": "/assets/sticker/animated-emoji/heart-eyes.json"
+  },
+  {
+    "name": "star struck",
+    "emoji": "🤩",
+    "src": "/assets/sticker/animated-emoji/star-struck.json"
+  },
+  {
+    "name": "kissing heart",
+    "emoji": "😘",
+    "src": "/assets/sticker/animated-emoji/kissing-heart.json"
+  },
+  {
+    "name": "yum",
+    "emoji": "😋",
+    "src": "/assets/sticker/animated-emoji/yum.json"
+  },
+  {
+    "name": "winking tongue",
+    "emoji": "😜",
+    "src": "/assets/sticker/animated-emoji/winking-tongue.json"
+  },
+  {
+    "name": "zany",
+    "emoji": "🤪",
+    "src": "/assets/sticker/animated-emoji/zany.json"
+  },
+  {
+    "name": "money mouth",
+    "emoji": "🤑",
+    "src": "/assets/sticker/animated-emoji/money-mouth.json"
+  },
+  {
+    "name": "hugging",
+    "emoji": "🤗",
+    "src": "/assets/sticker/animated-emoji/hugging.json"
+  },
+  {
+    "name": "hand over mouth",
+    "emoji": "🤭",
+    "src": "/assets/sticker/animated-emoji/hand-over-mouth.json"
+  },
+  {
+    "name": "thinking",
+    "emoji": "🤔",
+    "src": "/assets/sticker/animated-emoji/thinking.json"
+  },
+  {
+    "name": "raised eyebrow",
+    "emoji": "🤨",
+    "src": "/assets/sticker/animated-emoji/raised-eyebrow.json"
+  },
+  {
+    "name": "neutral",
+    "emoji": "😐",
+    "src": "/assets/sticker/animated-emoji/neutral.json"
+  },
+  {
+    "name": "smirk",
+    "emoji": "😏",
+    "src": "/assets/sticker/animated-emoji/smirk.json"
+  },
+  {
+    "name": "eye roll",
+    "emoji": "🙄",
+    "src": "/assets/sticker/animated-emoji/eye-roll.json"
+  },
+  {
+    "name": "grimacing",
+    "emoji": "😬",
+    "src": "/assets/sticker/animated-emoji/grimacing.json"
+  },
+  {
+    "name": "relieved",
+    "emoji": "😌",
+    "src": "/assets/sticker/animated-emoji/relieved.json"
+  },
+  {
+    "name": "sleeping",
+    "emoji": "😴",
+    "src": "/assets/sticker/animated-emoji/sleeping.json"
+  },
+  {
+    "name": "mind blown",
+    "emoji": "🤯",
+    "src": "/assets/sticker/animated-emoji/mind-blown.json"
+  },
+  {
+    "name": "partying",
+    "emoji": "🥳",
+    "src": "/assets/sticker/animated-emoji/partying.json"
+  },
+  {
+    "name": "sunglasses",
+    "emoji": "😎",
+    "src": "/assets/sticker/animated-emoji/sunglasses.json"
+  },
+  {
+    "name": "nerd",
+    "emoji": "🤓",
+    "src": "/assets/sticker/animated-emoji/nerd.json"
+  },
+  {
+    "name": "monocle",
+    "emoji": "🧐",
+    "src": "/assets/sticker/animated-emoji/monocle.json"
+  },
+  {
+    "name": "open mouth",
+    "emoji": "😮",
+    "src": "/assets/sticker/animated-emoji/open-mouth.json"
+  },
+  {
+    "name": "astonished",
+    "emoji": "😲",
+    "src": "/assets/sticker/animated-emoji/astonished.json"
+  },
+  {
+    "name": "flushed",
+    "emoji": "😳",
+    "src": "/assets/sticker/animated-emoji/flushed.json"
+  },
+  {
+    "name": "pleading",
+    "emoji": "🥺",
+    "src": "/assets/sticker/animated-emoji/pleading.json"
+  },
+  {
+    "name": "cry",
+    "emoji": "😢",
+    "src": "/assets/sticker/animated-emoji/cry.json"
+  },
+  {
+    "name": "sob",
+    "emoji": "😭",
+    "src": "/assets/sticker/animated-emoji/sob.json"
+  },
+  {
+    "name": "scream",
+    "emoji": "😱",
+    "src": "/assets/sticker/animated-emoji/scream.json"
+  },
+  {
+    "name": "rage",
+    "emoji": "😡",
+    "src": "/assets/sticker/animated-emoji/rage.json"
+  },
+  {
+    "name": "smiling imp",
+    "emoji": "😈",
+    "src": "/assets/sticker/animated-emoji/smiling-imp.json"
+  },
+  {
+    "name": "skull",
+    "emoji": "💀",
+    "src": "/assets/sticker/animated-emoji/skull.json"
+  },
+  {
+    "name": "clown",
+    "emoji": "🤡",
+    "src": "/assets/sticker/animated-emoji/clown.json"
+  },
+  {
+    "name": "ghost",
+    "emoji": "👻",
+    "src": "/assets/sticker/animated-emoji/ghost.json"
+  },
+  {
+    "name": "alien",
+    "emoji": "👽",
+    "src": "/assets/sticker/animated-emoji/alien.json"
+  },
+  {
+    "name": "robot",
+    "emoji": "🤖",
+    "src": "/assets/sticker/animated-emoji/robot.json"
+  },
+  {
+    "name": "red heart",
+    "emoji": "❤️",
+    "src": "/assets/sticker/animated-emoji/red-heart.json"
+  },
+  {
+    "name": "fire",
+    "emoji": "🔥",
+    "src": "/assets/sticker/animated-emoji/fire.json"
+  },
+  {
+    "name": "party popper",
+    "emoji": "🎉",
+    "src": "/assets/sticker/animated-emoji/party-popper.json"
+  },
+  {
+    "name": "confetti ball",
+    "emoji": "🎊",
+    "src": "/assets/sticker/animated-emoji/confetti-ball.json"
+  },
+  {
+    "name": "thumbs up",
+    "emoji": "👍",
+    "src": "/assets/sticker/animated-emoji/thumbs-up.json"
+  },
+  {
+    "name": "clap",
+    "emoji": "👏",
+    "src": "/assets/sticker/animated-emoji/clap.json"
+  },
+  {
+    "name": "raised hands",
+    "emoji": "🙌",
+    "src": "/assets/sticker/animated-emoji/raised-hands.json"
+  },
+  {
+    "name": "folded hands",
+    "emoji": "🙏",
+    "src": "/assets/sticker/animated-emoji/folded-hands.json"
+  },
+  {
+    "name": "wave",
+    "emoji": "👋",
+    "src": "/assets/sticker/animated-emoji/wave.json"
+  },
+  {
+    "name": "hundred",
+    "emoji": "💯",
+    "src": "/assets/sticker/animated-emoji/hundred.json"
+  },
+  {
+    "name": "sparkles",
+    "emoji": "✨",
+    "src": "/assets/sticker/animated-emoji/sparkles.json"
+  },
+  {
+    "name": "rocket",
+    "emoji": "🚀",
+    "src": "/assets/sticker/animated-emoji/rocket.json"
+  },
+  {
+    "name": "gift",
+    "emoji": "🎁",
+    "src": "/assets/sticker/animated-emoji/gift.json"
+  },
+  {
+    "name": "birthday cake",
+    "emoji": "🎂",
+    "src": "/assets/sticker/animated-emoji/birthday-cake.json"
+  },
+  {
+    "name": "balloon",
+    "emoji": "🎈",
+    "src": "/assets/sticker/animated-emoji/balloon.json"
+  },
+  {
+    "name": "trophy",
+    "emoji": "🏆",
+    "src": "/assets/sticker/animated-emoji/trophy.json"
+  },
+  {
+    "name": "eyes",
+    "emoji": "👀",
+    "src": "/assets/sticker/animated-emoji/eyes.json"
+  },
+  {
+    "name": "collision",
+    "emoji": "💥",
+    "src": "/assets/sticker/animated-emoji/collision.json"
+  },
+  {
+    "name": "light bulb",
+    "emoji": "💡",
+    "src": "/assets/sticker/animated-emoji/light-bulb.json"
+  },
+  {
+    "name": "check mark",
+    "emoji": "✅",
+    "src": "/assets/sticker/animated-emoji/check-mark.json"
+  },
+  {
+    "name": "cross mark",
+    "emoji": "❌",
+    "src": "/assets/sticker/animated-emoji/cross-mark.json"
+  },
+  {
+    "name": "police light",
+    "emoji": "🚨",
+    "src": "/assets/sticker/animated-emoji/police-light.json"
+  },
+  {
+    "name": "rainbow",
+    "emoji": "🌈",
+    "src": "/assets/sticker/animated-emoji/rainbow.json"
+  }
+];
