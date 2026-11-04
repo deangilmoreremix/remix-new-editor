@@ -1,0 +1,285 @@
+/* ==========================================================================
+   Timeline interactive addons
+   --------------------------------------------------------------------------
+   Opt-in form (.retarget-form) and arrow hint (.overlay-arrow) are ported
+   from upstream strategic-limited/remix-new-editor:
+     styles/popcorn/plugins/popcorn.retarget.scss
+     styles/popcorn/style.scss (.overlay-arrow, .on/.off)
+   Scoped under .addon-overlay-layer so they don't leak into the editor UI.
+   ========================================================================== */
+
+.addon-overlay-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  container-type: size;
+  font-size: clamp(12px, 3.2cqw, 28px);
+}
+.addon-overlay-layer > * { pointer-events: auto; }
+
+/* ---- Pause "click to continue" ---- */
+.addon-overlay--pause {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.7em 1.3em;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(23, 23, 28, 0.86);
+  color: #fff;
+  font: 600 0.8em/1 Raleway, system-ui, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}
+.addon-overlay--pause:hover { background: rgba(235, 80, 84, 0.92); }
+.addon-overlay__pause-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 1.8em;
+  height: 1.8em;
+  border-radius: 50%;
+  background: #eb5054;
+  font-size: 0.8em;
+}
+
+/* ---- Opt-in form (List Builder / Personalizer) ---- */
+.addon-overlay--optin { position: absolute; inset: 0; }
+
+.addon-overlay-layer .popcorn.retarget-form {
+  position: absolute;
+  box-sizing: border-box;
+  text-align: center;
+  background-size: cover;
+  background-position: center;
+  font-family: Raleway, system-ui, sans-serif;
+  overflow: hidden;
+}
+.addon-overlay-layer .retarget-form .form-inner {
+  position: absolute;
+  inset: 0;
+  min-height: 7.5em;
+  margin: 5%;
+}
+.addon-overlay-layer .retarget-form .form-scrollable {
+  overflow-y: auto;
+  display: grid;
+  position: relative;
+  height: 100%;
+}
+.addon-overlay-layer .retarget-form .form-scrollable-inner {
+  padding: 3%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.addon-overlay-layer .retarget-form .brand-logo { width: 40%; margin-bottom: 3%; }
+.addon-overlay-layer .retarget-form .retarget-caption { padding: 0 0 2% 0; font-weight: bold; }
+.addon-overlay-layer .retarget-form .input-wrapper { padding: 1% 0; display: block; }
+.addon-overlay-layer .retarget-form .input-wrapper-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 2%;
+}
+.addon-overlay-layer .retarget-form textarea,
+.addon-overlay-layer .retarget-form input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.5em;
+  border: 1px #c1c1c1 solid;
+  background: #fff;
+  color: #000;
+  padding: 0 0.6em;
+  font-family: inherit;
+}
+.addon-overlay-layer .retarget-form textarea { resize: none; height: auto; padding-top: 0.5em; }
+.addon-overlay-layer .retarget-form .buttons-inner {
+  display: inline-block;
+  width: 100%;
+  margin: 2% 0;
+  height: auto;
+  max-width: 75%;
+}
+.addon-overlay-layer .retarget-form .buttons-inner button {
+  position: relative;
+  height: 2.5em;
+  display: block;
+  min-width: 85px;
+  margin: 0 auto;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid transparent;
+  font-family: inherit;
+}
+.addon-overlay-layer .retarget-form .buttons-inner button:disabled { opacity: 0.6; cursor: progress; }
+.addon-overlay-layer .retarget-form .privacy-disclaimer { font-size: 35%; display: inline-block; }
+.addon-overlay-layer .retarget-form .privacy-policy-link {
+  font-size: 35%;
+  display: block;
+  text-decoration: underline;
+  color: inherit;
+}
+.addon-overlay-layer .retarget-form .addon-optin__status { font-size: 40%; min-height: 1em; margin: 0.4em 0 0; }
+.addon-overlay-layer .retarget-form .skip-button {
+  position: absolute;
+  bottom: 0;
+  right: 4px;
+  border: none;
+  background: initial;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Upstream ARRAY_TRANSITIONS (the commonly used subset). */
+@keyframes popcornFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popcornPop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes popcornSlideUp { from { transform: translateY(30%); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes popcornSlideDown { from { transform: translateY(-30%); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes popcornSwivelY { from { transform: perspective(800px) rotateY(90deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes popcornSwivelX { from { transform: perspective(800px) rotateX(90deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes popcornBlurW { from { filter: blur(12px) brightness(2); opacity: 0; } to { filter: none; opacity: 1; } }
+@keyframes popcornWobbleV { 16.65% { transform: translateY(6px); } 33.3% { transform: translateY(-5px); } 49.95% { transform: translateY(4px); } 66.6% { transform: translateY(-2px); } 83.25% { transform: translateY(1px); } 100% { transform: none; } }
+@keyframes popcornWobbleH { 16.65% { transform: translateX(6px); } 33.3% { transform: translateX(-5px); } 49.95% { transform: translateX(4px); } 66.6% { transform: translateX(-2px); } 83.25% { transform: translateX(1px); } 100% { transform: none; } }
+@keyframes popcornPulse { 25% { transform: scale(1.03); } 75% { transform: scale(0.97); } }
+@keyframes popcornBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4%); } }
+@keyframes popcornBuzz { 50% { transform: translateX(3px) rotate(2deg); } 100% { transform: translateX(-3px) rotate(-2deg); } }
+.addon-overlay-layer .popcorn-fade,
+.addon-overlay-layer .popcorn-fade-in { animation: popcornFade 0.4s ease-out both; }
+.addon-overlay-layer .popcorn-fade-in-up,
+.addon-overlay-layer .popcorn-slide-up { animation: popcornSlideUp 0.4s ease-out both; }
+.addon-overlay-layer .popcorn-slide-down { animation: popcornSlideDown 0.4s ease-out both; }
+.addon-overlay-layer .popcorn-pop { animation: popcornPop 0.45s ease-out both; }
+.addon-overlay-layer .popcorn-swivel-y { animation: popcornSwivelY 0.5s ease-out both; }
+.addon-overlay-layer .popcorn-swivel-x { animation: popcornSwivelX 0.5s ease-out both; }
+.addon-overlay-layer .popcorn-blur-w { animation: popcornBlurW 0.5s ease-out both; }
+.addon-overlay-layer .popcorn-wobble-vertical { animation: popcornWobbleV 1s ease-in-out both; }
+.addon-overlay-layer .popcorn-wobble-horizontal { animation: popcornWobbleH 1s ease-in-out both; }
+.addon-overlay-layer .popcorn-pulse { animation: popcornPulse 1s linear infinite; }
+.addon-overlay-layer .popcorn-bob { animation: popcornBob 1.5s ease-in-out infinite; }
+.addon-overlay-layer .popcorn-buzz { animation: popcornBuzz 0.15s linear 6; }
+@media (prefers-reduced-motion: reduce) {
+  .addon-overlay-layer [class*="popcorn-"] { animation: none !important; }
+}
+
+/* ---- Upstream red-arrow hint ---- */
+.addon-overlay-layer .overlay-arrow {
+  background-color: rgba(34, 34, 40, 0.8);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  z-index: 100;
+  color: #fff;
+  transition: opacity 0.3s ease;
+}
+.addon-overlay-layer .overlay-arrow.off { opacity: 0; visibility: hidden; pointer-events: none; }
+.addon-overlay-layer .overlay-arrow .arrow-image {
+  width: 14.8%;
+  height: 25%;
+  position: absolute;
+  right: 45.8%;
+  bottom: 20%;
+}
+.addon-overlay-layer .overlay-arrow .container-hint {
+  font-family: Raleway, system-ui, sans-serif;
+  background: rgba(23, 23, 28, 0.86);
+  border: 1px solid #575773;
+  box-sizing: border-box;
+  border-radius: 12px;
+  width: 44%;
+  position: absolute;
+  right: 1.6%;
+  bottom: 2.7%;
+  padding: 3%;
+  text-align: left;
+}
+.addon-overlay-layer .overlay-arrow .container-hint h3 { font-weight: bold; font-size: 75%; margin: 0 0 7%; }
+.addon-overlay-layer .overlay-arrow .container-hint p { font-weight: 300; font-size: 60%; line-height: 1; margin: 0 0 3%; }
+.addon-overlay-layer .overlay-arrow .container-hint p:last-of-type { margin-bottom: 0; }
+.addon-overlay-layer .overlay-arrow .container-fill-out { display: flex; flex-wrap: wrap; line-height: 1.3; gap: 0.25em; }
+.addon-overlay-layer .overlay-arrow .container-hint span { font-weight: 700; }
+.addon-overlay-layer .overlay-arrow .fill-out { font-weight: 300 !important; margin-right: 0.2rem; }
+.addon-overlay-layer .overlay-arrow .element-field {
+  display: inline-block;
+  max-width: 80px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---- Interactive panel (upstream toolbar sections) ---- */
+.addon-panel__section + .addon-panel__section { margin-top: var(--sp-3, 12px); }
+.addon-panel__heading {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim, rgba(255, 255, 255, 0.45));
+}
+.addon-panel__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.addon-panel__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  background: var(--surface-2, rgba(255, 255, 255, 0.05));
+  color: var(--text, #fff);
+  font-size: 11px;
+  cursor: pointer;
+}
+.addon-panel__item:hover,
+.addon-panel__item:focus-visible { border-color: #eb5054; background: rgba(235, 80, 84, 0.12); outline: none; }
+.addon-panel__item.is-on { border-color: #eb5054; }
+.addon-panel__item img { width: 26px; height: 26px; filter: brightness(1.6); }
+.addon-panel__optin { margin-top: var(--sp-3, 12px); }
+.addon-panel__optin[hidden] { display: none; }
+
+/* ---- Schema-driven settings (addonEditor.js) ---- */
+.addon-tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.1)); flex-wrap: wrap; }
+.addon-tab.active { border-color: #eb5054; color: #fff; }
+.addon-field--toggle label { display: flex; align-items: center; gap: 6px; }
+.addon-field__range { display: flex; align-items: center; gap: 8px; }
+.addon-field__range input { flex: 1; }
+.addon-field__range output { min-width: 2.5em; text-align: right; font-variant-numeric: tabular-nums; font-size: 12px; }
+.addon-field__empty { font-size: 12px; color: var(--text-dim, rgba(255, 255, 255, 0.45)); }
+.addon-fieldlist__row { display: grid; grid-template-columns: 1fr auto auto auto auto; gap: 4px; align-items: center; margin-bottom: 4px; }
+.addon-fieldlist__req { font-size: 11px; display: flex; align-items: center; gap: 2px; }
+.addon-timing { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.addon-summary { font-size: 12px; color: var(--text-muted, rgba(255, 255, 255, 0.6)); margin: 0 0 10px; }
+
+/* ---- Editor preview card for behaviour-only addons (pause/loop/skip) ---- */
+.preview-addon-card {
+  align-self: center;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 26px;
+  border-radius: 14px;
+  background: rgba(23, 23, 28, 0.86);
+  border: 1px solid #575773;
+  color: #fff;
+  text-align: center;
+  max-width: 80%;
+}
+.preview-addon-card img { width: 40px; height: 40px; filter: brightness(1.6); }
+.preview-addon-card strong { font-size: 16px; }
+.preview-addon-card span { font-size: 12px; color: rgba(255, 255, 255, 0.7); }

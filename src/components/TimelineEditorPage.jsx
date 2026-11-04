@@ -19,12 +19,20 @@ import AIChatPanel from './timeline/AIChatPanel.js';
 import TIMELINE_DESIGN_SYSTEM, { enforceDesignSystem } from '../lib/designSystemEnforcer.js';
 import { createVideoPreview, addVideoErrorRecovery } from '../lib/videoPlayer.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import {
+  getAddon, isAddonType, createAddonClip, addonOptions, clipTimeRange, AddonRuntime,
+  INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
+  ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
+  defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
+  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor,
+} from '../lib/editor/addons/index.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
 // project-root path 404s in production because Vite never copies unreferenced
 // files into the build output.
 import '../../styles/timeline-tokens.css';
 import '../../styles/timeline-editor-page.css';
+import '../../styles/timeline-addons.css';
 // Import rendiv animation primitives
 import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } from '../lib/editor/animationControls.jsx';
 // Agent system integration
@@ -536,6 +544,11 @@ export function TimelineEditorPage() {
 
       <!-- Hidden editor panels (accessible from floating rail) -->
       <aside class="side-card" id="sceneDetectorPanel" hidden><div id="sceneDetectorContainer"></div></aside>
+      <aside class="side-card" id="interactivePanel" hidden data-tooltip="Interactive - Video controls and lead generation">
+        <div class="card-title">⚡ Interactive</div>
+        <div id="interactiveAddonList"></div>
+        <div id="listBuilderSettings" class="addon-panel__optin" hidden></div>
+      </aside>
       <aside class="side-card" id="cameraEffectsPanel" hidden>
         <div id="cameraEffectsContainer"></div>
         <div class="camera-effects-quick">
@@ -690,6 +703,7 @@ export function TimelineEditorPage() {
         ['＋', 'Media'],
         ['✨', 'Generate', true],
         ['⬆', 'Export'],
+        ['⚡', 'Interactive'],
         ['🎬', 'Scene Detector'],
         ['🎥', 'Camera FX'],
         ['📊', 'Color Scopes'],
@@ -903,6 +917,10 @@ export function TimelineEditorPage() {
         const projectData = JSON.parse(saved);
 
         const state = { ...createState(), ...projectData };
+        // The floating rail is UI configuration, not project data: a saved
+        // project must not pin an old button list (it would hide rail
+        // entries added since, such as Interactive).
+        state.railActions = createState().railActions;
         // Ensure tracks is always an array
         if (!Array.isArray(state.tracks)) {
           state.tracks = createState().tracks;
@@ -1147,6 +1165,10 @@ export function TimelineEditorPage() {
       progressFill: root.querySelector('#progressFill'),
       vfSubtitle: root.querySelector('#vfSubtitle'),
       previewStage: root.querySelector('#previewStage'),
+      viewerFrame: root.querySelector('#viewerFrame'),
+      interactivePanel: root.querySelector('#interactivePanel'),
+      interactiveAddonList: root.querySelector('#interactiveAddonList'),
+      listBuilderSettings: root.querySelector('#listBuilderSettings'),
       previewEmpty: root.querySelector('#previewEmpty'),
       playheadLine: root.querySelector('#playheadLine'),
       playheadKnob: root.querySelector('#playheadKnob'),
@@ -1542,6 +1564,24 @@ export function TimelineEditorPage() {
         return;
       }
 
+      // Behaviour-only addons (Skip / Pause / Loop) have nothing to draw on
+      // the video; in the editor they show a card naming what they do, like
+      // upstream's track-event label ("Pause forever", "Loop: 2", "Skip").
+      const schemaAddon = getAddon(selected.type);
+      if (schemaAddon && !schemaAddon.flatOptions) {
+        const opts = addonOptions(selected);
+        const card = document.createElement('div');
+        card.className = 'preview-addon-card';
+        card.dataset.clipId = selected.id;
+        card.innerHTML = `
+          ${schemaAddon.iconSrc ? `<img src="${escapeHtml(schemaAddon.iconSrc)}" alt="" />` : `<span aria-hidden="true">${schemaAddon.icon}</span>`}
+          <strong>${escapeHtml(schemaAddon.summary ? schemaAddon.summary(opts) : schemaAddon.label)}</strong>
+          <span>${escapeHtml(schemaAddon.description || '')}</span>
+        `;
+        els.previewStage.appendChild(card);
+        return;
+      }
+
       if (selected.type === 'lead-form') {
         const card = document.createElement('div');
         const fields = Array.isArray(selected.fields) && selected.fields.length
@@ -1609,7 +1649,8 @@ export function TimelineEditorPage() {
           card.style.backgroundSize = 'cover';
           card.style.backgroundPosition = 'center';
         } else if (style.backgroundColor) {
-          card.style.background = style.backgroundColor;
+          // Upstream form background: radial gradient of the chosen colour.
+          card.style.background = formBackground({ backgroundColor: style.backgroundColor });
         }
         if (style.fontFamily) {
           ensureGoogleFontLoaded(style.fontFamily);
@@ -1643,6 +1684,7 @@ export function TimelineEditorPage() {
             card.addEventListener('animationend', () => {
               card.style.display = 'none';
             }, { once: true });
+            selected._gating = false;
             if (!state.playing) togglePlayback();
           });
         }
@@ -1659,33 +1701,35 @@ export function TimelineEditorPage() {
             const downloadBtn = els.clipEditorContainer.querySelector('#lf-download-leads');
             if (downloadBtn) {
               downloadBtn.disabled = false;
-              downloadBtn.textContent = `Download leads (${selected._submittedLeads.length})`;
+              downloadBtn.textContent = `Download leads (${selected._submittedLeads.length} this session)`;
             }
           }
 
-          const webhookUrls = selected.webhookEnabled
-            ? [selected.webhookUrl, selected.webhookUrl2, selected.webhookUrl3].filter(Boolean)
-            : [];
-          if (webhookUrls.length) {
-            const results = await Promise.allSettled(webhookUrls.map((url) => fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(data),
-            })));
-            const failed = results.filter((r) => r.status === 'rejected').length;
-            showToast(
-              failed ? `Submitted, but ${failed}/${webhookUrls.length} webhook(s) failed` : 'Form submitted to webhook',
-              failed ? 'error' : 'success',
-            );
-          } else {
-            showToast('Form submitted (no webhook configured — this is a preview)', 'info');
-          }
+          // Stored via the lead-capture edge function (which forwards the
+          // webhooks server-side); falls back to browser-side webhook POSTs
+          // when the backend is unreachable.
+          const res = await captureLead({
+            clipId: selected.id,
+            kind: 'lead-form',
+            data,
+            config: selected,
+            notificationEmail: selected.emailNotificationEnabled ? selected.notificationEmail : '',
+          });
+          const lastLead = selected._submittedLeads[selected._submittedLeads.length - 1];
+          if (lastLead) lastLead._stored = !!res.stored;
+          showToast(
+            leadResultMessage(res, selected.emailNotificationEnabled && selected.notificationEmail),
+            res.failed ? 'error' : 'success',
+          );
 
-          if (selected.emailNotificationEnabled && selected.notificationEmail) {
-            // No backend mail service is wired into this fork — there is no
-            // client-side mechanism that can actually deliver an email, so
-            // this is surfaced honestly rather than faked as "sent".
-            showToast(`Email notification to ${selected.notificationEmail} configured, but no email service is connected yet`, 'info');
+          // Upstream form: once submitted it never shows again, and a form
+          // that paused the video resumes it.
+          selected._submitted = true;
+          addonRuntime.markSubmitted(selected.id);
+          if (selected._gating) {
+            selected._gating = false;
+            card.classList.add('preview-form-card--exit');
+            if (!state.playing) togglePlayback();
           }
 
           if (selected.fbPixelId) {
@@ -1712,11 +1756,18 @@ export function TimelineEditorPage() {
         const wrap = document.createElement('div');
         wrap.className = 'preview-click-to-call';
         wrap.dataset.clipId = selected.id;
-        const valid = isValidPhoneNumber(selected.phoneNumber);
-        const telHref = valid ? `tel:${(selected.phoneNumber || '').replace(/[^0-9+]/g, '')}` : '#';
+        // Upstream json-button's single "URL (Call-to-action)" accepted a
+        // phone number or a web link; here a valid phone number wins, else
+        // an http(s) link opens in a new tab.
+        const phoneValid = isValidPhoneNumber(selected.phoneNumber);
+        const linkValid = !phoneValid && isValidCtaLink(selected.linkUrl);
+        const valid = phoneValid || linkValid;
+        const telHref = phoneValid
+          ? `tel:${(selected.phoneNumber || '').replace(/[^0-9+]/g, '')}`
+          : linkValid ? escapeHtml(selected.linkUrl.trim()) : '#';
         wrap.innerHTML = `
-          <a class="preview-call-btn ${valid ? '' : 'preview-call-btn--invalid'}" href="${telHref}"${valid ? '' : ' aria-disabled="true" title="Enter a valid phone number in the clip settings"'}${ctcStyle.buttonColor ? ` style="background:${ctcStyle.buttonColor}"` : ''}>
-            📞 ${selected.buttonText || 'Call Now'}
+          <a class="preview-call-btn ${valid ? '' : 'preview-call-btn--invalid'}" href="${telHref}"${linkValid ? ' target="_blank" rel="noopener noreferrer"' : ''}${valid ? '' : ' aria-disabled="true" title="Enter a valid phone number or link in the clip settings"'}${ctcStyle.buttonColor ? ` style="background:${escapeHtml(ctcStyle.buttonColor)}"` : ''}>
+            ${linkValid ? '🔗' : '📞'} ${escapeHtml(selected.buttonText || 'Call Now')}
           </a>
         `;
         if (!valid) {
@@ -1805,6 +1856,16 @@ export function TimelineEditorPage() {
     // Shared with the click-to-call settings panel for live validation
     // feedback. Pattern matches upstream json-button.js's phoneRegex
     // (country-code prefix, optional parenthesized area code, 10-14 digits).
+    function isValidCtaLink(value) {
+      if (!value) return false;
+      try {
+        const url = new URL(String(value).trim());
+        return url.protocol === 'https:' || url.protocol === 'http:';
+      } catch {
+        return false;
+      }
+    }
+
     function isValidPhoneNumber(value) {
       if (!value) return false;
       return /^(\+[0-9\s]*-?)?(\([0-9\s]*\))?[0-9-.\s]{10,14}$/.test(value.trim());
@@ -2700,10 +2761,9 @@ export function TimelineEditorPage() {
           const needsStructure = !prevData || prevData.label !== label || prevData.type !== trackType;
           if (needsStructure) {
             const isAudio = trackType === 'audio';
-            const isText = trackType === 'text' || clip.type === 'lead-form' || clip.type === 'click-to-call';
+            const isText = trackType === 'text' || isAddonType(clip.type);
             const isFx = trackType === 'effects' || trackType === 'fx';
-            const icon = clip.type === 'lead-form' ? '📝'
-              : clip.type === 'click-to-call' ? '📞'
+            const icon = isAddonType(clip.type) ? getAddon(clip.type).icon
               : isAudio ? '🎙️' : (trackType === 'text') ? '🅣' : isFx ? '✨' : '🎥';
             const durSec = Math.max(0, (clip.end || 0) - (clip.start || 0)).toFixed(1);
             clipEl.setAttribute('aria-label', `Clip: ${label}, ${durSec}s`);
@@ -2850,7 +2910,12 @@ export function TimelineEditorPage() {
             _submittedLeads: clip._submittedLeads,
             style: clip.style,
             phoneNumber: clip.phoneNumber,
-            buttonText: clip.buttonText
+            linkUrl: clip.linkUrl,
+            buttonText: clip.buttonText,
+            // Schema-driven addons (Skip/Pause/Loop, ...) keep every option
+            // under clip.addon, forwarded wholesale so new options never
+            // need adding to this list.
+            addon: clip.addon
           }))
         })),
         selectedClipId: state.selectedClipId,
@@ -3414,7 +3479,7 @@ export function TimelineEditorPage() {
               <input id="lf-fb-pixel" type="text" value="${clip.fbPixelId || ''}" placeholder="1234567890" />
             </div>
             <div class="clip-editor__field">
-              <button id="lf-download-leads" class="mini-btn" style="width:100%" ${(clip._submittedLeads || []).length ? '' : 'disabled'}>Download leads (${(clip._submittedLeads || []).length})</button>
+              <button id="lf-download-leads" class="mini-btn" style="width:100%" >Download leads${(clip._submittedLeads || []).length ? ` (${(clip._submittedLeads || []).length} this session)` : ''}</button>
             </div>
           </div>
           </div>
@@ -3657,20 +3722,8 @@ export function TimelineEditorPage() {
         clip.fbPixelId = e.target.value;
       });
       els.clipEditorContainer.querySelector('#lf-download-leads').addEventListener('click', () => {
-        const leads = clip._submittedLeads || [];
-        if (!leads.length) return;
-        const headers = Array.from(new Set(leads.flatMap((l) => Object.keys(l))));
-        const csvRows = [
-          headers.join(','),
-          ...leads.map((lead) => headers.map((h) => `"${String(lead[h] ?? '').replace(/"/g, '""')}"`).join(',')),
-        ];
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${(clip.name || 'leads').replace(/[^a-z0-9]+/gi, '_')}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+        // Stored leads (lead-capture backend) merged with this session's.
+        downloadLeadsCsv({ clipId: clip.id, local: clip._submittedLeads || [], name: clip.name || 'leads' });
       });
     }
 
@@ -3686,6 +3739,10 @@ export function TimelineEditorPage() {
               <label for="ctc-phone">Phone Number</label>
               <input id="ctc-phone" type="tel" value="${clip.phoneNumber || ''}" placeholder="+1 555-123-4567" />
               <span id="ctc-phone-error" style="color:#f87171;font-size:11px;${valid || !clip.phoneNumber ? 'display:none' : ''}">Enter a valid phone number</span>
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-link">Link URL (used when no phone number is set)</label>
+              <input id="ctc-link" type="url" value="${escapeHtml(clip.linkUrl || '')}" placeholder="https://" />
             </div>
             <div class="clip-editor__field">
               <label for="ctc-btn-text">Button Text</label>
@@ -3728,6 +3785,11 @@ export function TimelineEditorPage() {
         </div>
       `;
 
+      els.clipEditorContainer.querySelector('#ctc-link').addEventListener('input', (e) => {
+        clip.linkUrl = e.target.value;
+        updatePreview(clip);
+        debouncedSave();
+      });
       els.clipEditorContainer.querySelector('#ctc-phone').addEventListener('input', (e) => {
         clip.phoneNumber = e.target.value;
         const errEl = els.clipEditorContainer.querySelector('#ctc-phone-error');
@@ -3770,6 +3832,279 @@ export function TimelineEditorPage() {
       });
     }
 
+    // Settings panel for schema-driven addons (Skip / Pause / Loop). Mirrors
+    // upstream's DefaultSettings "Basic" tab: Start (and End) time inputs
+    // plus each plugin's manifest options, rendered from the descriptor.
+    let activeAddonEditor = null;
+    function renderSchemaAddonEditor(clip) {
+      const addon = getAddon(clip.type);
+      clip.addon = addonOptions(clip);
+      const T = state.timelineSeconds || 60;
+      const { start, end } = clipTimeRange(clip, T);
+      const timing = addon.timing || ['start', 'end'];
+      els.clipEditorContainer.innerHTML = `
+        <div class="clip-editor addon-editor">
+          <p class="addon-summary"><span aria-hidden="true">${addon.icon}</span> <strong>${escapeHtml(addon.label)}</strong> — ${escapeHtml(addon.description || '')}</p>
+          <div class="clip-editor__section addon-timing">
+            ${timing.includes('start') ? `<div class="clip-editor__field"><label for="addon-start">Start (seconds)</label><input id="addon-start" type="number" min="0" max="${T}" step="0.01" value="${start.toFixed(2)}" /></div>` : ''}
+            ${timing.includes('end') ? `<div class="clip-editor__field"><label for="addon-end">End (seconds)</label><input id="addon-end" type="number" min="0" max="${T}" step="0.01" value="${end.toFixed(2)}" /></div>` : ''}
+          </div>
+          <div class="clip-editor__section" id="addonOptionsForm"></div>
+          <button type="button" class="mini-btn" id="addon-delete" style="width:100%;margin-top:8px">Remove ${escapeHtml(addon.label)}</button>
+        </div>
+      `;
+      const setTiming = (newStart, newEnd) => {
+        const s0 = Math.max(0, Math.min(T, newStart));
+        const e0 = Math.max(s0 + 0.1, Math.min(T, newEnd));
+        clip.left = (s0 / T) * 100;
+        clip.width = ((e0 - s0) / T) * 100;
+        renderTracks();
+        debouncedSave();
+      };
+      els.clipEditorContainer.querySelector('#addon-start')?.addEventListener('change', (e) => {
+        const cur = clipTimeRange(clip, T);
+        const v = Number(e.target.value) || 0;
+        // Pause is a point event: moving it keeps its length.
+        setTiming(v, timing.includes('end') ? cur.end : v + (cur.end - cur.start));
+      });
+      els.clipEditorContainer.querySelector('#addon-end')?.addEventListener('change', (e) => {
+        const cur = clipTimeRange(clip, T);
+        setTiming(cur.start, Number(e.target.value) || cur.end);
+      });
+      els.clipEditorContainer.querySelector('#addon-delete').addEventListener('click', () => {
+        state.tracks.forEach((t) => {
+          const items = t.items || t.clips || [];
+          const i = items.findIndex((c) => c.id === clip.id);
+          if (i >= 0) items.splice(i, 1);
+        });
+        state.selectedClipId = null;
+        els.clipEditorContainer.innerHTML = '';
+        renderTracks();
+        updatePreview(null);
+        debouncedSave();
+      });
+      activeAddonEditor?.destroy();
+      activeAddonEditor = renderAddonEditor(els.clipEditorContainer.querySelector('#addonOptionsForm'), {
+        fields: addon.fields,
+        options: clip.addon,
+        idPrefix: `addon-${clip.id}`,
+        onChange: (next) => {
+          clip.addon = next;
+          if (addon.summary) clip.name = addon.summary(next);
+          renderTracks();
+          updatePreview(clip);
+          debouncedSave();
+        },
+      });
+    }
+
+    // Interactive panel: upstream toolbar sections "Video Controls" and
+    // "Lead Generation" with upstream's icons and labels.
+    function renderInteractivePanel() {
+      if (!els.interactiveAddonList) return;
+      const lb = state.listBuilder;
+      const sections = {};
+      INTERACTIVE_ADDONS.forEach((a) => {
+        (sections[a.section] = sections[a.section] || []).push(
+          `<button type="button" class="addon-panel__item" data-add-addon="${a.type}" title="${escapeHtml(a.description)}">
+            ${a.iconSrc ? `<img src="${escapeHtml(a.iconSrc)}" alt="" />` : ''}<span>${escapeHtml(a.label)}</span>
+          </button>`,
+        );
+      });
+      PROJECT_FORMS.forEach((f) => {
+        const on = lb?.enabled && lb.kind === f.kind;
+        (sections[f.section] = sections[f.section] || []).push(
+          `<button type="button" class="addon-panel__item${on ? ' is-on' : ''}" data-project-form="${f.kind}" aria-pressed="${on ? 'true' : 'false'}" title="${escapeHtml(f.label)} — shown at the start of the video">
+            ${f.iconSrc ? `<img src="${escapeHtml(f.iconSrc)}" alt="" />` : ''}<span>${escapeHtml(f.label)}</span>
+          </button>`,
+        );
+      });
+      els.interactiveAddonList.innerHTML = ['Video Controls', 'Lead Generation']
+        .filter((name) => sections[name])
+        .map((name) => `<div class="addon-panel__section"><h4 class="addon-panel__heading">${name}</h4><div class="addon-panel__grid">${sections[name].join('')}</div></div>`)
+        .join('');
+    }
+
+    let listBuilderEditor = null;
+    function renderListBuilderSettings() {
+      const box = els.listBuilderSettings;
+      if (!box) return;
+      const lb = state.listBuilder;
+      if (!lb) {
+        box.hidden = true;
+        box.innerHTML = '';
+        return;
+      }
+      box.hidden = false;
+      box.innerHTML = `
+        <div class="addon-panel__heading" style="display:flex;justify-content:space-between;align-items:center">
+          <span>${lb.kind === 'personalizer' ? 'Personalizer' : 'List Builder'} settings</span>
+          <span>
+            <button type="button" class="mini-btn" id="lbPreview">Preview</button>
+            <button type="button" class="mini-btn" id="lbDownload">Leads</button>
+            <button type="button" class="mini-btn" id="lbRemove">Remove</button>
+          </span>
+        </div>
+        <div id="lbForm"></div>`;
+      listBuilderEditor?.destroy();
+      listBuilderEditor = renderAddonEditor(box.querySelector('#lbForm'), {
+        options: lb,
+        fieldsFor: (o) => listBuilderFields(o),
+        idPrefix: 'listbuilder',
+        onChange: (next) => {
+          const kindChanged = next.kind !== state.listBuilder.kind;
+          state.listBuilder = kindChanged ? switchListBuilderKind(next, next.kind) : next;
+          if (kindChanged) listBuilderEditor.setOptions(state.listBuilder);
+          renderInteractivePanel();
+          debouncedSave();
+        },
+      });
+      box.querySelector('#lbPreview').addEventListener('click', () => openListBuilderOverlay({ preview: true }));
+      box.querySelector('#lbRemove').addEventListener('click', () => {
+        state.listBuilder = null;
+        clearOverlay(addonOverlayLayer(), 'list-builder');
+        renderInteractivePanel();
+        renderListBuilderSettings();
+        debouncedSave();
+      });
+      box.querySelector('#lbDownload').addEventListener('click', () => downloadLeadsCsv({
+        clipId: 'list-builder', local: state.listBuilder?._localLeads || [], name: 'list_builder_leads',
+      }));
+    }
+
+    function bindInteractivePanel() {
+      if (!els.interactivePanel) return;
+      els.interactivePanel.addEventListener('click', (e) => {
+        const addBtn = e.target.closest('[data-add-addon]');
+        if (addBtn) {
+          addAddonAtPlayhead(addBtn.dataset.addAddon);
+          return;
+        }
+        const formBtn = e.target.closest('[data-project-form]');
+        if (formBtn) {
+          const kind = formBtn.dataset.projectForm;
+          // Upstream addRetargetForm: one form per project; picking the
+          // other kind switches it.
+          if (!state.listBuilder || state.listBuilder.kind !== kind) {
+            state.listBuilder = { ...defaultListBuilder(kind), enabled: true };
+          } else {
+            state.listBuilder.enabled = true;
+          }
+          renderInteractivePanel();
+          renderListBuilderSettings();
+          openListBuilderOverlay({ preview: true });
+          debouncedSave();
+        }
+      });
+      renderInteractivePanel();
+      renderListBuilderSettings();
+    }
+
+    // Add any registered addon as a clip starting at the playhead.
+    function addAddonAtPlayhead(type) {
+      const T = state.timelineSeconds || 60;
+      const startSec = (state.playheadPercent / 100) * T;
+      const clip = createAddonClip(type, { startSec, timelineSeconds: T });
+      const addon = getAddon(type);
+      if (addon.summary) clip.name = addon.summary(addonOptions(clip));
+      insertClipIntoTrack(clip, addon.track || 'Text');
+      showClipEditor(clip.id);
+      debouncedSave();
+      return clip;
+    }
+
+    function addonOverlayLayer() {
+      return ensureOverlayLayer(els.viewerFrame || els.previewStage.parentElement);
+    }
+
+    // Shared lead capture: stores via the lead-capture edge function, which
+    // also forwards webhooks server-side; falls back to posting webhooks from
+    // the browser if the backend is unreachable.
+    async function captureLead({ clipId, kind, data, config, notificationEmail }) {
+      const webhooks = webhookUrlsFor(config);
+      const result = await submitLead(supabase, {
+        projectId: state.projectId || currentTimelineId(state) || null,
+        clipId,
+        kind,
+        data,
+        webhooks,
+        notificationEmail,
+        preview: true,
+      });
+      if (result.error) {
+        const direct = webhooks.length ? await postWebhooksDirect(webhooks, data) : { forwarded: 0, failed: 0 };
+        return { stored: false, forwarded: direct.forwarded, failed: direct.failed, offline: true };
+      }
+      return result;
+    }
+
+    function leadResultMessage(res, emailConfigured) {
+      const parts = [res.stored ? 'Lead saved' : 'Lead captured (preview only, not saved — sign in to store leads)'];
+      if (res.forwarded || res.failed) {
+        parts.push(res.failed ? `${res.failed} webhook(s) failed` : `sent to ${res.forwarded} webhook(s)`);
+      }
+      if (emailConfigured) parts.push('email notifications need an email provider (not connected yet)');
+      return parts.join(' · ');
+    }
+
+    async function downloadLeadsCsv({ clipId, local = [], name = 'leads' }) {
+      const stored = await fetchLeads(supabase, { projectId: state.projectId || currentTimelineId(state) || null, clipId });
+      const leads = mergeLeads(local, stored);
+      if (!leads.length) {
+        showToast('No leads captured yet', 'info');
+        return;
+      }
+      const blob = new Blob([leadsToCsv(leads)], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${String(name).replace(/[^a-z0-9]+/gi, '_')}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function personalizationPrefill() {
+      const vars = getActivePersonalizationProfile()?.variables || {};
+      return {
+        EMAIL: vars.email,
+        'FIRST NAME': vars.firstName,
+        'LAST NAME': vars.lastName,
+        COMPANY: vars.company,
+      };
+    }
+
+    function openListBuilderOverlay({ preview = false } = {}) {
+      const lb = state.listBuilder;
+      if (!lb) return;
+      const resume = () => {
+        if (!preview && !state.playing) togglePlayback();
+      };
+      showListBuilderOverlay(addonOverlayLayer(), lb, {
+        prefill: personalizationPrefill(),
+        onSkip: resume,
+        onSubmit: async (data) => {
+          const res = await captureLead({
+            clipId: 'list-builder',
+            kind: lb.kind,
+            data,
+            config: lb.kind === 'personalizer' ? null : listBuilderWebhookConfig(lb),
+            notificationEmail: lb.emailEnabled ? lb.emailAddress : '',
+          });
+          lb._localLeads = [...(lb._localLeads || []), { ...data, submittedAt: new Date().toISOString(), _stored: !!res.stored }];
+          if (lb.kind === 'personalizer') {
+            savePersonalizerProfile(data);
+          }
+          if (lb.fbPixelId && typeof window.fbq === 'function') {
+            window.fbq('trackSingle', lb.fbPixelId, 'Lead', data);
+          }
+          if (!preview) lb._submitted = true;
+          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : leadResultMessage(res, lb.emailEnabled && lb.emailAddress), res.failed ? 'error' : 'success');
+          resume();
+          return '';
+        },
+      });
+    }
+
     function renderClipEditor(clipId) {
       const clip = state.tracks.flatMap(t => t.items || t.clips || []).find(c => c.id === clipId);
       if (!clip) {
@@ -3783,6 +4118,10 @@ export function TimelineEditorPage() {
       }
       if (clip.type === 'click-to-call') {
         renderClickToCallEditor(clip);
+        return;
+      }
+      if (isAddonType(clip.type) && !getAddon(clip.type).customEditor) {
+        renderSchemaAddonEditor(clip);
         return;
       }
 
@@ -4550,43 +4889,17 @@ export function TimelineEditorPage() {
     TLEditor.addContactImport = window.addContactImport;
 
     // Global function to add lead generation form
-    window.addLeadCapture = () => {
-      const leadClip = {
-        id: Date.now(),
-        name: 'Lead Capture Form',
-        left: state.playheadPercent * 10,
-        width: 6,
-        type: 'lead-form',
-        heading: 'Get Your Free Guide',
-        fields: [
-          { id: 'first_name', type: 'text', label: 'First Name' },
-          { id: 'email', type: 'email', label: 'Email' }
-        ],
-        ctaText: 'Download Now',
-        privacyText: 'We respect your privacy. Unsubscribe anytime.',
-        webhookEnabled: false,
-        webhookUrl: '',
-        style: { backgroundColor: '', buttonColor: '' }
-      };
-      insertClipIntoTrack(leadClip, 'Text');
-    };
+    window.addLeadCapture = () => addAddonAtPlayhead('lead-form');
     TLEditor.addLeadCapture = window.addLeadCapture;
 
     // Global function to add a click-to-call button
-    window.addClickToCall = () => {
-      const callClip = {
-        id: Date.now(),
-        name: 'Click to Call',
-        left: state.playheadPercent * 10,
-        width: 6,
-        type: 'click-to-call',
-        phoneNumber: '',
-        buttonText: 'Call Now',
-        style: { buttonColor: '' }
-      };
-      insertClipIntoTrack(callClip, 'Text');
-    };
+    window.addClickToCall = () => addAddonAtPlayhead('click-to-call');
     TLEditor.addClickToCall = window.addClickToCall;
+
+    // Any registered addon: 'addon-skip' | 'addon-pause' | 'addon-loop' |
+    // 'lead-form' | 'click-to-call'.
+    window.addTimelineAddon = (type) => addAddonAtPlayhead(type);
+    TLEditor.addAddon = window.addTimelineAddon;
 
     // Global function to apply dynamic personalization layer to current clip
     window.applyPersonalizationLayer = async (clipId, scanData) => {
@@ -4824,6 +5137,7 @@ export function TimelineEditorPage() {
 
     // Maps floating-rail labels to collapsed panel element ids.
     const RAIL_PANEL_MAP = {
+      'Interactive': 'interactivePanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
       'Color Scopes': 'colorScopesPanel',
@@ -4918,7 +5232,8 @@ export function TimelineEditorPage() {
         'Multi-Cam': 'Multi-camera editing, PIP, and split screen',
         'Clip Editor': 'Clip editor - Edit selected clip properties',
         'Transitions Panel': 'Transitions - Add effects between clips',
-        'CineGen Results': 'CineGen AI Tools results history'
+        'CineGen Results': 'CineGen AI Tools results history',
+        'Interactive': 'Interactive - Skip, Pause, Loop, Lead Generator, List Builder, Personalizer, CTA'
       };
       state.railActions.forEach(([icon, label, active]) => {
         const button = document.createElement('button');
@@ -5905,16 +6220,76 @@ export function TimelineEditorPage() {
        }
     }
 
+    // Interactive addon runtime (Skip / Pause / Loop / Lead Generator gate /
+    // List Builder). Replaces upstream's Popcorn start/end hooks: each
+    // playback tick reports the playhead move and applies the actions.
+    const addonRuntime = new AddonRuntime();
+    let addonResumeTimer = null;
+    function allClips() {
+      return state.tracks.flatMap((t) => t.items || t.clips || []);
+    }
+    function pausePlaybackForAddon() {
+      state.playing = false;
+      window.clearInterval(playbackTimer);
+    }
+    function runAddonTick(prevPercent, nowPercent) {
+      const T = state.timelineSeconds || 60;
+      const actions = addonRuntime.tick((prevPercent / 100) * T, (nowPercent / 100) * T, {
+        clips: allClips(),
+        timelineSeconds: T,
+        listBuilder: state.listBuilder,
+      });
+      for (const action of actions) {
+        if (action.type === 'seek') {
+          state.playheadPercent = Math.max(0, Math.min(100, (action.time / T) * 100));
+        } else if (action.type === 'pause') {
+          pausePlaybackForAddon();
+          if (action.resumeAfter) {
+            window.clearTimeout(addonResumeTimer);
+            addonResumeTimer = window.setTimeout(() => {
+              if (!state.playing) togglePlayback();
+            }, action.resumeAfter * 1000);
+          }
+        } else if (action.type === 'show') {
+          if (action.overlay === 'pause-continue') {
+            showPauseOverlay(addonOverlayLayer(), {
+              text: addonOptions(action.clip).continueText || 'Click to continue',
+              onContinue: () => { if (!state.playing) togglePlayback(); },
+            });
+          } else if (action.overlay === 'lead-form') {
+            // Show the Lead Generator's own preview (with its submit/skip
+            // handlers) and hold playback until it is completed.
+            state.selectedClipId = action.clip.id;
+            action.clip._gating = true;
+            updatePreview(action.clip);
+            renderTracks();
+          } else if (action.overlay === 'list-builder') {
+            openListBuilderOverlay();
+          }
+        }
+      }
+      return actions.length > 0;
+    }
+
     function togglePlayback() {
       state.playing = !state.playing;
       if (state.playing) {
+        window.clearTimeout(addonResumeTimer);
+        clearOverlay(addonOverlayLayer(), 'pause-continue');
+        // A List Builder at the very start gates before the first frame.
+        if (runAddonTick(state.playheadPercent, state.playheadPercent) && !state.playing) {
+          updatePlaybackUI();
+          return;
+        }
         playbackTimer = window.setInterval(() => {
+          const prevPercent = state.playheadPercent;
           state.playheadPercent += 0.6;
           if (state.playheadPercent >= 100) {
             state.playheadPercent = 100;
             state.playing = false;
             window.clearInterval(playbackTimer);
           }
+          runAddonTick(prevPercent, state.playheadPercent);
           updatePlaybackUI();
           // Apply keyframes during playback
           const selected = findSelectedClip();
@@ -5931,6 +6306,13 @@ export function TimelineEditorPage() {
     function stopPlayback() {
       state.playing = false;
       window.clearInterval(playbackTimer);
+      window.clearTimeout(addonResumeTimer);
+      clearOverlay(addonOverlayLayer());
+      // Stop = replay from the top: forms gate again, as a fresh viewer
+      // would see them.
+      addonRuntime.reset();
+      if (state.listBuilder) state.listBuilder._submitted = false;
+      allClips().forEach((c) => { if (c.type === 'lead-form') { c._submitted = false; c._gating = false; } });
       state.playheadPercent = 0;
       updatePlaybackUI();
       const media = els.previewStage.querySelector('video, audio');
@@ -6644,6 +7026,7 @@ export function TimelineEditorPage() {
 
       renderAll();
       bindEvents();
+      bindInteractivePanel();
       setupEnhancedTooltips();
       setupUploadSources({ state, showToast });
 
