@@ -422,6 +422,11 @@ function securityHeaders() {
                 if (url.startsWith('/ai-vfx')) {
                     return next();
                 }
+                // The Remotion export runner sets its own (stricter) CSP via
+                // <meta>; the app CSP below would block its WebAssembly encoder.
+                if (url.startsWith('/export-runner.html')) {
+                    return next();
+                }
                 // Content Security Policy
                 // NOTE: `script-src` must allow Vite's React Refresh preamble, which
                 // is injected as an INLINE <script> in dev. Without the preamble's
@@ -443,12 +448,15 @@ function securityHeaders() {
 
                 const csp = [
                   "default-src 'self'",
-                  `script-src 'self' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
+                  // 'wasm-unsafe-eval': Remotion's Player/media decoders compile WebAssembly.
+                  `script-src 'self' 'wasm-unsafe-eval' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
                   `worker-src 'self' blob:${clerkHostSrc} https://clerk.smartvid.app`,
                   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com${clerkHostSrc}`,
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
-                  `font-src 'self' data:${clerkHostSrc}`,
-                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
+                  `font-src 'self' data: https://fonts.gstatic.com${clerkHostSrc}`,
+                  // https: so the Remotion Player (@remotion/media) can fetch clip
+                  // media from stock/storage CDNs, as production (no CSP) allows.
+                  "connect-src 'self' https: ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
                   `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}`,
                   "media-src 'self' https: blob:",
                 ].join('; ');
@@ -1233,6 +1241,12 @@ export default defineConfig({
     server: {
         host: '127.0.0.1',
         port: 3000,
+        // The Remotion export runner (export-runner.html) runs in a sandboxed
+        // iframe with an opaque origin, so its module requests arrive with
+        // `Origin: null`. Allow that plus localhost only (Vite's default).
+        cors: {
+            origin: (origin, cb) => cb(null, !origin || origin === 'null' || /^https?:\/\/(?:[^:]+\.)?(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin)),
+        },
         // Ignore tool/test scratch dirs so their writes don't trigger dev-server
         // reloads/restarts mid module-graph load (which corrupts the browser
         // module registry during verification).
@@ -1363,6 +1377,11 @@ export default defineConfig({
             }
         },
         rollupOptions: {
+            // Second HTML entry: the sandboxed Remotion export runner.
+            input: {
+                main: path.resolve(__dirname, 'index.html'),
+                exportRunner: path.resolve(__dirname, 'export-runner.html'),
+            },
             output: {
                 // Group heavy, self-contained vendor libs into stable chunks so
                 // Rollup doesn't auto-merge them into the editor's chunk graph

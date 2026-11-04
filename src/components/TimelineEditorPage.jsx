@@ -31,6 +31,7 @@ import {
 } from '../lib/editor/addons/index.js';
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
+import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../lib/pexelsApi.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
@@ -428,6 +429,7 @@ export function TimelineEditorPage() {
           <div class="viewer">
             <div class="viewer-stage" id="viewerStage">
               <div class="viewer-frame" id="viewerFrame">
+                <div class="remotion-stage" id="remotionStage" aria-label="Video preview"></div>
                 <div class="preview-stage" id="previewStage"></div>
                 <div class="mask-overlay" id="maskOverlay" hidden></div>
                 <div class="vf-gradient"></div>
@@ -1183,6 +1185,7 @@ export function TimelineEditorPage() {
       vfSubtitle: root.querySelector('#vfSubtitle'),
       previewStage: root.querySelector('#previewStage'),
       viewerFrame: root.querySelector('#viewerFrame'),
+      remotionStage: root.querySelector('#remotionStage'),
       interactivePanel: root.querySelector('#interactivePanel'),
       interactiveAddonList: root.querySelector('#interactiveAddonList'),
       overlaysPanel: root.querySelector('#overlaysPanel'),
@@ -1485,6 +1488,16 @@ export function TimelineEditorPage() {
     }
 
     function renderPreviewAsset(selected) {
+      // Remotion engine: the Player shows the whole composition, so media,
+      // text and overlay clips need no separate single-clip preview.
+      // Interactive cards (Lead Generator, CTA, Pause/Loop/Skip) still render
+      // on top, since they are live UI rather than video pixels.
+      if (remotionEngine && (!selected || isComposited(selected))) {
+        clearPreviewStage();
+        els.previewEmpty.style.display = engineHasContent() ? 'none' : 'flex';
+        renderOverlayLayer();
+        return;
+      }
       if (!selected) {
         clearPreviewStage();
         els.previewEmpty.style.display = 'flex';
@@ -2093,6 +2106,8 @@ export function TimelineEditorPage() {
       const tbNow = root.querySelector('.time-readout .time-now');
       if (tbNow) tbNow.textContent = mm + ':' + ss;
       syncMediaPlayState();
+      // Scrubbing / stepping while paused moves the Player too.
+      if (remotionEngine && !state.playing) remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
       renderOverlayLayer();
     }
 
@@ -2981,6 +2996,7 @@ export function TimelineEditorPage() {
       renderTimecodeRuler(state.timelineSeconds || 60, state.playheadPercent, state.zoom);
       renderMiniMap();
       renderOverlayLayer();
+      scheduleEngineUpdate();
 
       // Add enhanced drag and drop handlers
       els.trackRows.querySelectorAll('.track-lane').forEach(lane => {
@@ -3888,6 +3904,108 @@ export function TimelineEditorPage() {
     }
 
     // ---------------------------------------------------------------
+    // Remotion engine (preview). The <Player> renders the timeline as a
+    // Remotion composition and is the playhead clock while playing. If it
+    // can't start, the editor keeps its previous DOM preview, so nothing is
+    // lost.
+    // ---------------------------------------------------------------
+    // `var` on purpose: functions that read these (renderPreviewAsset,
+    // updatePlaybackUI) can run during start-up before this line executes.
+    // eslint-disable-next-line no-var
+    var remotionEngine = null;
+    // eslint-disable-next-line no-var
+    var remotionModel = null;
+    // eslint-disable-next-line no-var
+    var engineUpdateTimer = null;
+    // eslint-disable-next-line no-var
+    var ENGINE_FPS = 30;
+
+    function isComposited(clip) {
+      const addon = getAddon(clip.type);
+      if (addon) return addon.category === 'overlay';
+      return ['video', 'image', 'audio', 'text', 'remotion-code'].includes(clip.type);
+    }
+    function engineHasContent() {
+      return !!remotionModel && (remotionModel.layers.length > 0 || remotionModel.audio.length > 0);
+    }
+    function buildEngineModel() {
+      return timelineToComposition(state, { fps: ENGINE_FPS, quality: '1080p', profile: getActivePersonalizationProfile() });
+    }
+    function percentToFrame(p) {
+      return Math.round(((p / 100) * (state.timelineSeconds || 60)) * ENGINE_FPS);
+    }
+    function frameToPercent(f) {
+      return Math.max(0, Math.min(100, ((f / ENGINE_FPS) / (state.timelineSeconds || 60)) * 100));
+    }
+
+    async function initRemotionEngine() {
+      if (remotionEngine || !els.remotionStage) return;
+      try {
+        const { createPreviewEngine } = await import('../lib/editor/remotion/previewEngine.jsx');
+        remotionModel = buildEngineModel();
+        remotionEngine = createPreviewEngine(els.remotionStage, {
+          model: remotionModel,
+          onFrame: handleEngineFrame,
+          onEnded: () => {
+            state.playing = false;
+            updatePlaybackUI();
+          },
+          onError: (err) => console.warn('[Remotion preview]', err),
+        });
+        root.classList.add('remotion-engine-on');
+        remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+        updatePreview();
+        renderOverlayLayer();
+      } catch (err) {
+        console.warn('[Remotion preview] unavailable, using the classic preview', err);
+        remotionEngine = null;
+      }
+    }
+
+    /** Rebuild the composition after timeline edits (debounced). */
+    function scheduleEngineUpdate() {
+      if (!remotionEngine) return;
+      window.clearTimeout(engineUpdateTimer);
+      engineUpdateTimer = window.setTimeout(() => {
+        remotionModel = buildEngineModel();
+        remotionEngine.update(remotionModel);
+      }, 60);
+    }
+
+    /** Player frame while playing → playhead, addon runtime, UI. */
+    function handleEngineFrame(frame) {
+      if (!state.playing) return;
+      const prevPercent = state.playheadPercent;
+      state.playheadPercent = frameToPercent(frame);
+      runAddonTick(prevPercent, state.playheadPercent);
+      if (!state.playing) {
+        remotionEngine.pause();
+        remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+      } else if (Math.abs(frameToPercent(frame) - state.playheadPercent) > 0.01) {
+        // A Skip/Loop moved the playhead.
+        remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+      }
+      updatePlaybackUI();
+    }
+
+    /** Fit the interaction layer to the Player's letterboxed picture. */
+    function fitOverlayLayerToPlayer(layer) {
+      if (!remotionEngine || !remotionModel || !els.remotionStage) {
+        layer.style.left = layer.style.top = layer.style.right = layer.style.bottom = '';
+        layer.style.width = layer.style.height = '';
+        return;
+      }
+      const W = els.remotionStage.clientWidth;
+      const H = els.remotionStage.clientHeight;
+      if (!W || !H) return;
+      const aspect = remotionModel.width / remotionModel.height;
+      let w = W;
+      let h = W / aspect;
+      if (h > H) { h = H; w = H * aspect; }
+      Object.assign(layer.style, { left: `${(W - w) / 2}px`, top: `${(H - h) / 2}px`, right: 'auto', bottom: 'auto', width: `${w}px`, height: `${h}px` });
+    }
+
+    // ---------------------------------------------------------------
     // Overlay compositor: every overlay clip active at the playhead is
     // drawn into the overlay layer above the video (upstream Popcorn showed
     // all track events at once; the old preview showed only the selection).
@@ -4023,6 +4141,10 @@ export function TimelineEditorPage() {
     function renderOverlayLayer() {
       if (!els.viewerFrame && !els.previewStage) return;
       const layer = addonOverlayLayer();
+      // With the Remotion engine the Player draws the overlays; this layer
+      // keeps invisible hit boxes + selection handles at the same geometry.
+      layer.classList.toggle('engine-on', !!remotionEngine);
+      fitOverlayLayerToPlayer(layer);
       // Pixel size for overlay font sizing (see .addon-overlay-layer CSS).
       if (layer.clientWidth) {
         layer.style.setProperty('--ovl-w', `${layer.clientWidth}px`);
@@ -4074,11 +4196,12 @@ export function TimelineEditorPage() {
         if (ref !== el) layer.insertBefore(el, ref);
         previous = el;
         if (isNew) {
-          finishOverlayElement(el, { playing: state.playing });
+          if (!remotionEngine) finishOverlayElement(el, { playing: state.playing });
           if (state.playing) playInAnimation(el, clip.addon?.animation);
           if (clip.id === state.selectedClipId) attachOverlayHandles(el, clip);
         }
       });
+      if (remotionEngine) return;
       setOverlayPlaying(layer, state.playing);
       // Lower thirds follow the playhead frame-by-frame (scrubbing included).
       syncOverlayTime(layer, t, new Map(active.map((c) => {
@@ -5817,10 +5940,12 @@ export function TimelineEditorPage() {
     }
 
     function openExportModal(state, showToast) {
+      // Remotion web renderer (in-browser, sandboxed runner). The previous
+      // ExportPipeline stays available as "Basic export".
       const content = `
         <div class="export-modal">
           <div class="form-group">
-            <label>Format</label>
+            <label for="exportFormat">Format</label>
             <select id="exportFormat">
               <option value="mp4">MP4 (H.264)</option>
               <option value="webm">WebM (VP9)</option>
@@ -5828,15 +5953,17 @@ export function TimelineEditorPage() {
             </select>
           </div>
           <div class="form-group">
-            <label>Quality</label>
+            <label for="exportQuality">Quality</label>
             <select id="exportQuality">
               <option value="1080p">1080p (Full HD)</option>
               <option value="720p">720p (HD)</option>
-              <option value="4k">4K (Ultra HD)</option>
+              <option value="4k">4K (Ultra HD) — slower</option>
             </select>
           </div>
+          <ul id="exportWarnings" class="export-warnings"></ul>
           <button class="primary-btn" id="startExportBtn">Start Export</button>
           <button class="secondary-btn" id="cancelExportBtn">Cancel</button>
+          <button class="secondary-btn" id="basicExportBtn" title="The previous exporter">Basic export</button>
           <div id="exportProgress" style="margin-top:12px;display:none;">
             <div class="progress-bar"><div class="progress-fill" id="exportProgressFill" style="width:0%"></div></div>
             <div id="exportProgressText">Preparing export...</div>
@@ -5845,41 +5972,107 @@ export function TimelineEditorPage() {
       `;
       openAdvancedModal(content, 'Export Project');
 
-      const startBtn = els.modalBody.querySelector('#startExportBtn');
-      const cancelBtn = els.modalBody.querySelector('#cancelExportBtn');
-      const progress = els.modalBody.querySelector('#exportProgress');
-      const progressFill = els.modalBody.querySelector('#exportProgressFill');
-      const progressText = els.modalBody.querySelector('#exportProgressText');
+      const q = (sel) => els.modalBody.querySelector(sel);
+      const startBtn = q('#startExportBtn');
+      const cancelBtn = q('#cancelExportBtn');
+      const basicBtn = q('#basicExportBtn');
+      const progress = q('#exportProgress');
+      const progressFill = q('#exportProgressFill');
+      const progressText = q('#exportProgressText');
+      const warningsList = q('#exportWarnings');
+      let abort = null;
+
+      const setProgress = (pct, text) => {
+        progressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+        progressText.textContent = text;
+      };
+
+      const buildModel = async (quality) => {
+        const { timelineToComposition } = await import('../lib/editor/remotion/timelineToComposition.js');
+        return timelineToComposition(state, { quality, profile: getActivePersonalizationProfile() });
+      };
+
+      const refreshWarnings = async () => {
+        try {
+          const { exportWarnings, canExportInBrowser } = await import('../lib/editor/remotion/exportWarnings.js');
+          const quality = q('#exportQuality')?.value || '1080p';
+          const list = exportWarnings(await buildModel(quality), { quality });
+          if (!canExportInBrowser()) list.unshift("This browser can't encode video. Use Chrome or Edge 94+, Firefox 130+ or Safari 26+, or use Basic export.");
+          warningsList.innerHTML = list.map((w) => `<li>${escapeHtml(w)}</li>`).join('');
+        } catch (err) {
+          warningsList.innerHTML = '';
+          console.warn('[Export] warnings unavailable', err);
+        }
+      };
+      q('#exportQuality')?.addEventListener('change', refreshWarnings);
+      refreshWarnings();
 
       const doExport = async () => {
         if (!startBtn) return;
         startBtn.disabled = true;
+        basicBtn.disabled = true;
         progress.style.display = 'block';
-        progressText.textContent = 'Exporting...';
-
+        setProgress(0, 'Preparing export...');
+        abort = new AbortController();
+        const container = q('#exportFormat')?.value || 'mp4';
+        const quality = q('#exportQuality')?.value || '1080p';
         try {
-          const { ExportPipeline } = await import('../lib/editor/exportPipeline.js');
-          const pipeline = new ExportPipeline(els.timelineBody, state);
-
-          pipeline.onProgress = (pct) => {
-            progressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
-            progressText.textContent = `Exporting... ${Math.round(pct)}%`;
-          };
-
-          await pipeline.startExport();
-          progressText.textContent = 'Export complete!';
-          showToast('Export complete', 'success');
+          const { exportModel, downloadBlob, EXTENSIONS } = await import('../lib/editor/remotion/exportClient.js');
+          const model = await buildModel(quality);
+          const blob = await exportModel(model, {
+            container,
+            quality,
+            signal: abort.signal,
+            onProgress: (p) => setProgress(p * 100, `Rendering... ${Math.round(p * 100)}%`),
+          });
+          const name = String(state.projectTitle || 'timeline').replace(/[^a-z0-9 _-]+/gi, '').trim() || 'timeline';
+          downloadBlob(blob, `${name}.${EXTENSIONS[container] || 'mp4'}`);
+          setProgress(100, `Export complete (${(blob.size / 1048576).toFixed(1)} MB)`);
+          showToast('Export complete — your video is downloading', 'success');
           setTimeout(closeModal, 1500);
         } catch (err) {
-          progressText.textContent = `Export error: ${err.message}`;
+          setProgress(0, `Export error: ${err.message}`);
           showToast(`Export error: ${err.message}`, 'error');
         } finally {
           startBtn.disabled = false;
+          basicBtn.disabled = false;
+          abort = null;
+        }
+      };
+
+      // The previous exporter, kept so nothing is removed.
+      const doBasicExport = async () => {
+        startBtn.disabled = true;
+        basicBtn.disabled = true;
+        progress.style.display = 'block';
+        setProgress(0, 'Exporting...');
+        try {
+          const { ExportPipeline } = await import('../lib/editor/exportPipeline.js');
+          const pipeline = new ExportPipeline(els.timelineBody, state);
+          pipeline.onProgress = (pct) => setProgress(pct, `Exporting... ${Math.round(pct)}%`);
+          await pipeline.startExport();
+          setProgress(100, 'Export complete!');
+          showToast('Export complete', 'success');
+          setTimeout(closeModal, 1500);
+        } catch (err) {
+          setProgress(0, `Export error: ${err.message}`);
+          showToast(`Export error: ${err.message}`, 'error');
+        } finally {
+          startBtn.disabled = false;
+          basicBtn.disabled = false;
         }
       };
 
       startBtn?.addEventListener('click', doExport);
-      cancelBtn?.addEventListener('click', closeModal);
+      basicBtn?.addEventListener('click', doBasicExport);
+      cancelBtn?.addEventListener('click', () => {
+        if (abort) {
+          abort.abort();
+          setProgress(0, 'Cancelling...');
+        } else {
+          closeModal();
+        }
+      });
     }
 
     function closeModal() {
@@ -6629,6 +6822,7 @@ export function TimelineEditorPage() {
     function pausePlaybackForAddon() {
       state.playing = false;
       window.clearInterval(playbackTimer);
+      remotionEngine?.pause();
     }
     function runAddonTick(prevPercent, nowPercent) {
       const T = state.timelineSeconds || 60;
@@ -6679,6 +6873,14 @@ export function TimelineEditorPage() {
           updatePlaybackUI();
           return;
         }
+        if (remotionEngine) {
+          // The Player is the clock; handleEngineFrame follows it.
+          if (state.playheadPercent >= 100) state.playheadPercent = 0;
+          remotionEngine.seekToFrame(percentToFrame(state.playheadPercent));
+          remotionEngine.play();
+          updatePlaybackUI();
+          return;
+        }
         playbackTimer = window.setInterval(() => {
           const prevPercent = state.playheadPercent;
           state.playheadPercent += 0.6;
@@ -6697,6 +6899,7 @@ export function TimelineEditorPage() {
         }, 120);
       } else {
         window.clearInterval(playbackTimer);
+        remotionEngine?.pause();
       }
       updatePlaybackUI();
     }
@@ -6704,6 +6907,7 @@ export function TimelineEditorPage() {
     function stopPlayback() {
       state.playing = false;
       window.clearInterval(playbackTimer);
+      remotionEngine?.pause();
       window.clearTimeout(addonResumeTimer);
       clearOverlay(addonOverlayLayer());
       // Stop = replay from the top: forms gate again, as a fresh viewer
@@ -6720,6 +6924,7 @@ export function TimelineEditorPage() {
     function rewindPlayback() {
       state.playing = false;
       window.clearInterval(playbackTimer);
+      remotionEngine?.pause();
       state.playheadPercent = Math.max(0, state.playheadPercent - 10);
       updatePlaybackUI();
     }
@@ -6727,6 +6932,7 @@ export function TimelineEditorPage() {
     function jumpToEndPlayback() {
       state.playing = false;
       window.clearInterval(playbackTimer);
+      remotionEngine?.pause();
       state.playheadPercent = 100;
       updatePlaybackUI();
     }
@@ -7398,6 +7604,8 @@ export function TimelineEditorPage() {
       bindInteractivePanel();
       renderOverlaysPanel();
       bindOverlayPresets();
+      initRemotionEngine();
+      window.addEventListener('resize', () => renderOverlayLayer());
       setupEnhancedTooltips();
       setupUploadSources({ state, showToast });
 

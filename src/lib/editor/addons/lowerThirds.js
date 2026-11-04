@@ -353,3 +353,27 @@ export function lowerThirdFrame(elapsed, duration) {
   if (elapsed < outStart) return LT_HOLD_FRAME;
   return Math.min(LT_OP - 0.01, LT_OUT_START + (elapsed - outStart) * LT_FPS);
 }
+
+/**
+ * Stretch a generated lower third to `totalFrames` (at LT_FPS): the in
+ * animation keeps its length, the hold grows, and the out animation moves to
+ * the end. Used by the Remotion engine, which plays Lottie frame-for-frame.
+ */
+export function stretchLowerThird(anim, totalFrames) {
+  const total = Math.max(LT_IN_END + (LT_OP - LT_OUT_START) + 1, Math.round(totalFrames));
+  const delta = total - LT_OP;
+  if (delta <= 0) return anim;
+  const copy = JSON.parse(JSON.stringify(anim));
+  const shift = (node) => {
+    if (Array.isArray(node)) { node.forEach(shift); return; }
+    if (!node || typeof node !== 'object') return;
+    if (node.a === 1 && Array.isArray(node.k)) {
+      node.k.forEach((kf) => { if (typeof kf.t === 'number' && kf.t >= LT_OUT_START) kf.t += delta; });
+    }
+    Object.values(node).forEach(shift);
+  };
+  shift(copy.layers);
+  copy.op = total;
+  copy.layers.forEach((l) => { l.op = total; });
+  return copy;
+}

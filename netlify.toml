@@ -74,6 +74,13 @@
   [headers.values]
     Cache-Control = "public, max-age=604800"
 
+# Built JS/CSS are public; the Remotion export runner loads them from a
+# sandboxed iframe (opaque origin), which needs CORS for module scripts.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+
 # Security headers
 [[headers]]
   for = "/*"
