@@ -11,6 +11,7 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -261,12 +262,18 @@ const COMMERCIAL_MODELS = [
   }
   buildDynamicControls();
 
+  // Action row — unified Image Studio layout (Advanced)
+  const actionRow = createActionRow();
+  const advanced = createAdvancedPanel({ id: 'commercial-advanced-btn', elements: [dynamicControlsContainer] });
+  arrangeActionRow(actionRow, { advanced: advanced.button });
+
   const genBtn = document.createElement('button');
  genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Product Shot';
   genBtn.setAttribute('aria-label', 'Generate product shot');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
 
   // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
   const enhanceMenu = document.createElement('div');

@@ -10,6 +10,8 @@ import { normalizeSchema, type SmartField, type NormalizedSchema } from './svStu
 import { estimateCost } from './svStudio/costEstimator';
 import SmartFieldRenderer from './SmartFieldRenderer';
 import type { ModelMeta } from './svStudio/modelRegistry';
+// @ts-ignore — shared plain-JS studio styling
+import { ACTION_PILL_CLASS } from '../../studio/actionRow.js';
 
 interface FormState {
   [key: string]: unknown;
@@ -295,14 +297,21 @@ export default function DynamicModelForm({ modelId, onGenerate, onReset }: Dynam
 
       {/* Advanced Toggle */}
       {advancedFieldCount > 0 && (
-        <button
-          type="button"
-          onClick={toggleAdvanced}
-          className="smart-advanced-toggle"
-          aria-expanded={showAdvanced}
-        >
-          {showAdvanced ? 'Hide Advanced' : `Show Advanced (${advancedFieldCount})`}
-        </button>
+        <div className="flex flex-wrap items-center gap-1.5 md:gap-2.5">
+          <button
+            type="button"
+            onClick={toggleAdvanced}
+            className={ACTION_PILL_CLASS}
+            aria-expanded={showAdvanced}
+            data-tooltip="Show advanced options"
+          >
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="opacity-60 text-secondary"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" /></svg>
+            <span className="text-xs font-bold text-white group-hover:text-primary transition-colors">
+              {showAdvanced ? 'Less' : 'Advanced'}
+            </span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" className="opacity-20 group-hover:opacity-100 transition-opacity"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
+        </div>
       )}
 
       {/* Generating Status */}

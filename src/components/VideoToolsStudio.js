@@ -22,6 +22,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
@@ -312,7 +313,8 @@ const triggerBtn = document.createElement('button');
 
     promptGroup.appendChild(enhanceMenu);
     formCard.appendChild(promptGroup);
-    mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'video-tools' });
+    const actionRow = createActionRow();
+    const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => promptInput, appId: 'video-tools' });
 
   // Dynamic model-specific advanced controls
   dynamicControlsContainer = document.createElement('div');
@@ -362,7 +364,9 @@ const triggerBtn = document.createElement('button');
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
+  const advanced = createAdvancedPanel({ id: 'vt-advanced-btn', elements: [dynamicControlsContainer] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, personalize: personalizeHandle?.button });
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -370,7 +374,8 @@ genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all';
   genBtn.textContent = 'Process Video';
   genBtn.setAttribute('aria-label', 'Process video');
-   formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
 
    // Native audio toggle
    const nativeAudioRow = document.createElement('div');
