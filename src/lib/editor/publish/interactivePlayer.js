@@ -54,9 +54,10 @@ export function profileWithAnswers(profile, data) {
  *   profile        token profile from the link (?firstname=…)
  *   onLead({ clipId, kind, data }) → Promise<{ stored, error }>
  *   onChange({ playing, time, duration })
+ *   voiceFor(clip, profile) → Promise<url|null>   personalized Smart Speech audio
  *   fps
  */
-export function createInteractivePlayer({ project, stage, frame, createEngine, profile = null, onLead, onChange, fps = 30 }) {
+export function createInteractivePlayer({ project, stage, frame, createEngine, profile = null, onLead, onChange, voiceFor, fps = 30 }) {
   const T = Number(project.timelineSeconds) || 60;
   const clips = (project.tracks || []).flatMap((t) => t.items || t.clips || []);
   const listBuilder = project.listBuilder ? { ...project.listBuilder } : null;
@@ -64,7 +65,17 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   const layer = ensureOverlayLayer(frame);
   layer.classList.add('wf-layer');
   let currentProfile = profile;
-  let model = buildViewerModel(project, currentProfile, { fps });
+  const voices = new Map(); // clip id → personalized audio URL
+  // The project with personalized Smart Speech audio swapped in.
+  const voicedProject = () => (voices.size ? {
+    ...project,
+    tracks: (project.tracks || []).map((t) => ({
+      ...t,
+      ...(t.items ? { items: t.items.map((c) => (voices.has(String(c.id)) ? { ...c, src: voices.get(String(c.id)) } : c)) } : {}),
+      ...(t.clips ? { clips: t.clips.map((c) => (voices.has(String(c.id)) ? { ...c, src: voices.get(String(c.id)) } : c)) } : {}),
+    })),
+  } : project);
+  let model = buildViewerModel(voicedProject(), currentProfile, { fps });
   let playing = false;
   let time = 0;
   let gateOpen = false;
@@ -183,8 +194,9 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
         listBuilder._submitted = true;
         if (listBuilder.kind === 'personalizer') {
           currentProfile = profileWithAnswers(currentProfile, data);
-          model = buildViewerModel(project, currentProfile, { fps });
+          model = buildViewerModel(voicedProject(), currentProfile, { fps });
           engine.update(model);
+          loadVoices();
         }
         gateOpen = false;
         play();
@@ -211,6 +223,25 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     runtime.handleSeek(time, clips, T);
     emit();
   }
+
+  // Personalized Smart Speech: fetch each line for this viewer; until it
+  // arrives (or if it fails) the clip plays its fallback audio.
+  const requested = new Set();
+  function loadVoices() {
+    if (!voiceFor) return;
+    clips.filter((c) => c.tts?.personalized).forEach((clip) => {
+      const key = `${clip.id}|${JSON.stringify(currentProfile?.variables || {})}`;
+      if (requested.has(key)) return;
+      requested.add(key);
+      Promise.resolve(voiceFor(clip, currentProfile)).then((url) => {
+        if (!url || destroyed) return;
+        voices.set(String(clip.id), url);
+        model = buildViewerModel(voicedProject(), currentProfile, { fps });
+        engine.update(model);
+      }).catch(() => {});
+    });
+  }
+  loadVoices();
 
   updateInteractive(0);
   return {

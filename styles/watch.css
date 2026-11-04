@@ -50,3 +50,5 @@ html.watch-embed, html.watch-embed body { background: #000; }
 .wf-linkbox { position: absolute; display: block; cursor: pointer; }
 .wf-linkbox:focus-visible { outline: 2px dashed #fff; }
 @media (max-width: 520px) { .wf-card--fields-4 .wf-fields, .wf-card--fields-5 .wf-fields { grid-template-columns: 1fr; } }
+/* OpenAI's usage policy: tell viewers the voice is AI-generated. */
+.watch-ai-voice { position: absolute; top: 10px; right: 10px; z-index: 4; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.55); color: rgba(255,255,255,.85); font-size: 11px; pointer-events: none; }

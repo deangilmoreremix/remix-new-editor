@@ -30,9 +30,10 @@ import {
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
   OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT,
   BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
-  openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES,
+  openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES, resolveOverlayText,
 } from '../lib/editor/addons/index.js';
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
+import { renderSmartSpeech } from '../lib/editor/agent/smartSpeech.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../lib/pexelsApi.js';
@@ -569,6 +570,10 @@ export function TimelineEditorPage() {
         <div class="card-title">🌈 Blend Modes</div>
         <div id="blendLibrary"></div>
       </aside>
+      <aside class="side-card" id="speechPanel" hidden data-tooltip="Smart Speech - AI voice lines, personalized with each viewer's name">
+        <div class="card-title">🗣️ Smart Speech</div>
+        <div id="speechBody"></div>
+      </aside>
       <aside class="side-card" id="stockPanel" hidden data-tooltip="Stock media - Pixabay and Pexels videos and images">
         <div class="card-title">🎬 Stock Media</div>
         <div id="stockBrowser"></div>
@@ -740,6 +745,7 @@ export function TimelineEditorPage() {
         ['🌈', 'Blend Modes'],
         ['🏁', 'End Screens'],
         ['📇', 'Connect Form'],
+        ['🗣️', 'Smart Speech'],
         ['🎞️', 'Stock Media'],
         ['🤖', 'AI Agent'],
         ['🔗', 'Share'],
@@ -1211,6 +1217,8 @@ export function TimelineEditorPage() {
       overlaysPanel: root.querySelector('#overlaysPanel'),
       blendPanel: root.querySelector('#blendPanel'),
       blendLibrary: root.querySelector('#blendLibrary'),
+      speechPanel: root.querySelector('#speechPanel'),
+      speechBody: root.querySelector('#speechBody'),
       overlayAddonList: root.querySelector('#overlayAddonList'),
       overlayPresets: root.querySelector('#overlayPresets'),
       stockPanel: root.querySelector('#stockPanel'),
@@ -4486,6 +4494,46 @@ export function TimelineEditorPage() {
       });
     }
 
+    // Smart Speech (upstream toolbar): AI voice lines on the Voiceover track.
+    function renderSpeechPanel() {
+      if (!els.speechBody) return;
+      renderSmartSpeech(els.speechBody, {
+        tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
+        resolveTokens: (text) => resolveOverlayText(text, getActivePersonalizationProfile()),
+        toast: showToast,
+        async generate(request) {
+          const { generateAudio, persistAudio, probeDuration } = await import('../lib/editor/agent/audioGen.js');
+          const remote = await generateAudio('tts', request);
+          const url = await persistAudio(remote, { upload: uploadFileToStorage, name: 'speech' });
+          return { url, duration: (await probeDuration(url)) || 3 };
+        },
+        add({ url, duration, tts, name }) {
+          const T = state.timelineSeconds || 60;
+          const start = Math.min((state.playheadPercent / 100) * T, Math.max(0, T - 0.5));
+          const len = Math.max(0.5, Number(duration) || 3);
+          if (start + len > T) {
+            const next = Math.ceil(start + len + 1);
+            state.tracks.forEach((t) => (t.items || []).forEach((c) => {
+              if (typeof c.left === 'number') { c.left = (c.left * T) / next; c.width = (c.width * T) / next; }
+            }));
+            state.playheadPercent = ((state.playheadPercent || 0) * T) / next;
+            state.timelineSeconds = next;
+            drawRuler();
+          }
+          if (!state.tracks.some((t) => t.name === 'Voiceover')) {
+            state.tracks.push({ id: `track-voiceover-${Date.now().toString(36)}`, type: 'audio', name: 'Voiceover', muted: false, solo: false, locked: false, items: [] });
+          }
+          saveStateSnapshot(state);
+          const clip = { id: `speech-${Date.now().toString(36)}`, type: 'audio', role: 'voiceover', name, src: url, volume: 1, tts, start, end: start + len };
+          insertClipIntoTrack(clip, 'Voiceover');
+          scheduleEngineUpdate();
+          debouncedSave();
+          showToast(tts.personalized ? 'Speech added — viewers with personal links hear their own line' : 'Speech added to the Voiceover track', 'success');
+          return clip;
+        },
+      });
+    }
+
     // Blend Modes (upstream toolbar): full-frame looks on their own layer,
     // like upstream's blend tracks. Each is an editable Image/Wrapper clip.
     function renderBlendPanel() {
@@ -6414,6 +6462,7 @@ export function TimelineEditorPage() {
       'Interactive': 'interactivePanel',
       'Overlays': 'overlaysPanel',
       'Blend Modes': 'blendPanel',
+      'Smart Speech': 'speechPanel',
       'Stock Media': 'stockPanel',
       'AI Agent': 'aiAgentPanel',
       'Share': 'sharePanel',
@@ -6446,7 +6495,7 @@ export function TimelineEditorPage() {
       subtitleEditor: () => generateSubtitles(),
       imageCrop: () => showToast('Image cropper coming soon', 'info'),
       imageEdit: () => showToast('Image editor coming soon', 'info'),
-      voice: () => showToast('Voice/TTS coming soon', 'info')
+      voice: () => openPanel('speechPanel')
     };
 
     // Populate the preview filmstrip (prototype-style clip thumbnails).
@@ -8376,6 +8425,7 @@ export function TimelineEditorPage() {
       bindInteractivePanel();
       renderOverlaysPanel();
       renderBlendPanel();
+      renderSpeechPanel();
       bindOverlayPresets();
       initRemotionEngine();
       window.addEventListener('resize', () => renderOverlayLayer());

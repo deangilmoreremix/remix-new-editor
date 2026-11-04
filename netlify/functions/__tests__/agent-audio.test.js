@@ -34,3 +34,32 @@ describe('agent-audio function', () => {
     expect((await handle({ action: 'submit', kind: 'tts', text: 'x' }, 'u')).statusCode).toBe(503);
   });
 });
+
+describe('agent-audio OpenAI speech', () => {
+  const env = { ...process.env };
+  afterEach(() => { process.env = { ...env }; });
+
+  it('builds an OpenAI request with clamped speed and instructions', () => {
+    expect(buildRequest({ kind: 'tts', provider: 'openai', text: 'Hi', voice: 'cedar', speed: 9, instructions: 'warm' })).toMatchObject({
+      provider: 'openai', payload: { model: 'gpt-4o-mini-tts', input: 'Hi', voice: 'cedar', speed: 4, instructions: 'warm', response_format: 'mp3' },
+    });
+    expect(buildRequest({ kind: 'tts', provider: 'openai', text: 'Hi', voice: 'bogus' }).payload.voice).toBe('marin');
+    expect(buildRequest({ kind: 'tts', provider: 'openai', text: 'x'.repeat(1501) }).error).toMatch(/too long/);
+    expect(buildRequest({ kind: 'tts', text: 'Hi', pitch: 40 }).payload.pitch).toBe(12);
+  });
+
+  it('returns the speech as a data URL, and needs its own key', async () => {
+    delete process.env.MUAPI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+    expect((await handle({ action: 'submit', kind: 'tts', provider: 'openai', text: 'x' }, 'u')).statusCode).toBe(503);
+    process.env.OPENAI_API_KEY = 'sk-test';
+    const fetchImpl = vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), { status: 200 }));
+    const res = await handle({ action: 'submit', kind: 'tts', provider: 'openai', text: 'Hello', voice: 'marin' }, 'u-openai', { fetchImpl });
+    const body = JSON.parse(res.body);
+    expect(body).toEqual({ ok: true, status: 'done', url: 'data:audio/mpeg;base64,AQID' });
+    const [url, init] = fetchImpl.mock.calls[0];
+    expect(url).toBe('https://api.openai.com/v1/audio/speech');
+    expect(init.headers.Authorization).toBe('Bearer sk-test');
+    expect(JSON.parse(init.body)).toMatchObject({ input: 'Hello', voice: 'marin' });
+  });
+});

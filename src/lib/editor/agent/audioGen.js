@@ -12,6 +12,18 @@ export const VOICES = [
   ['Patient_Man', 'Patient male'], ['Young_Knight', 'Young energetic male'], ['Imposing_Manner', 'Dramatic male'],
 ];
 
+// OpenAI text-to-speech voices (gpt-4o-mini-tts). marin and cedar are OpenAI's recommended voices.
+export const OPENAI_VOICES = [
+  ['marin', 'Marin — natural, warm'], ['cedar', 'Cedar — natural, grounded'], ['alloy', 'Alloy — neutral'], ['ash', 'Ash — clear male'],
+  ['ballad', 'Ballad — soft, expressive'], ['coral', 'Coral — bright female'], ['echo', 'Echo — calm male'], ['fable', 'Fable — storyteller'],
+  ['nova', 'Nova — upbeat female'], ['onyx', 'Onyx — deep male'], ['sage', 'Sage — gentle'], ['shimmer', 'Shimmer — light female'], ['verse', 'Verse — dynamic'],
+];
+
+export const TTS_PROVIDERS = [
+  ['minimax', 'MiniMax Speech HD'],
+  ['openai', 'OpenAI (gpt-4o-mini-tts)'],
+];
+
 const sleep = (ms, signal) => new Promise((resolve, reject) => {
   const t = setTimeout(resolve, ms);
   signal?.addEventListener('abort', () => { clearTimeout(t); reject(Object.assign(new Error('Cancelled'), { name: 'AbortError' })); }, { once: true });
@@ -36,7 +48,7 @@ async function call(body, { fetchImpl = fetch, signal } = {}) {
 
 /**
  * @param {'tts'|'music'} kind
- * @param {object} params   tts: { text, voice, speed } · music: { prompt, genre, mood, duration }
+ * @param {object} params   tts: { text, voice, speed, provider?, pitch?, instructions? } · music: { prompt, genre, mood, duration }
  * @returns {Promise<string>} audio URL from the provider
  */
 export async function generateAudio(kind, params, { fetchImpl, signal, pollMs = 3000, timeoutMs = 6 * 60_000, onProgress } = {}) {

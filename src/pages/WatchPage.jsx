@@ -9,6 +9,7 @@
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
 import { fetchPublishedVideo, countView, submitViewerLead, profileFromQuery } from '../lib/editor/publish/publishClient.js';
+import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 
 const FPS = 30;
@@ -55,6 +56,7 @@ export async function mountWatchPage(container, id, deps = {}) {
         <div class="watch-frame" data-frame>
           <div class="watch-stage" data-stage></div>
           <button type="button" class="watch-bigplay" data-bigplay aria-label="Play video"><span aria-hidden="true">▶</span></button>
+          ${usesAiVoice(video.project) ? '<span class="watch-ai-voice" title="The voice in this video is AI-generated">AI-generated voice</span>' : ''}
         </div>
         <div class="watch-controls">
           <button type="button" class="watch-btn" data-play aria-label="Play">▶</button>
@@ -82,6 +84,7 @@ export async function mountWatchPage(container, id, deps = {}) {
     createEngine,
     profile: profileFromQuery(),
     fps: FPS,
+    voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
     onLead: ({ clipId, kind, data }) => (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data }),
     onChange: ({ playing, time, duration }) => {
       $('[data-play]').textContent = playing ? '❚❚' : '▶';

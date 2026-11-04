@@ -991,3 +991,25 @@
 .tpl-win__use { padding: 10px 18px; border: 0; border-radius: var(--r-sm, 8px); background: var(--cyan, #22d3ee); color: #07090d; font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .tpl-win__use:hover, .tpl-win__use:focus-visible { box-shadow: 0 0 0 3px var(--cyan-soft, rgba(34,211,238,.22)); outline: none; }
 @media (max-width: 720px) { .tpl-win__body { grid-template-columns: 1fr; } .tpl-win__list { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border-soft, rgba(255,255,255,.06)); } .tpl-win__item { min-width: 180px; } }
+
+/* Smart Speech panel */
+.speech { display: flex; flex-direction: column; gap: 10px; }
+.speech__row { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted, rgba(255,255,255,.6)); }
+.speech__row > span { display: flex; justify-content: space-between; }
+.speech__row output { color: var(--text, rgba(255,255,255,.86)); font-variant-numeric: tabular-nums; }
+.speech__row output.is-over { color: var(--danger, #ef4444); }
+.speech select, .speech input[type="text"], .speech textarea { width: 100%; box-sizing: border-box; padding: 7px 9px; border-radius: var(--r-sm, 8px); border: 1px solid var(--border, rgba(255,255,255,.1)); background: var(--surface-sunken, rgba(0,0,0,.2)); color: var(--text, rgba(255,255,255,.86)); font: inherit; font-size: 13px; }
+.speech textarea { resize: vertical; }
+.speech select:focus, .speech input:focus, .speech textarea:focus { outline: none; border-color: var(--cyan, #22d3ee); }
+.speech input[type="range"] { accent-color: var(--cyan, #22d3ee); }
+.speech__tokens { align-self: flex-start; width: auto !important; }
+.speech__note, .speech__disclosure { margin: 0; font-size: 11px; color: var(--text-dim, rgba(255,255,255,.45)); }
+.speech__errors { margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--danger, #ef4444); }
+.speech__errors .speech__busy { color: var(--cyan, #22d3ee); }
+.speech__actions { display: flex; gap: 8px; }
+.speech__btn { flex: 1; padding: 8px 10px; border-radius: var(--r-sm, 8px); border: 1px solid var(--border, rgba(255,255,255,.1)); background: var(--surface-2, rgba(255,255,255,.05)); color: var(--text-strong, #fff); font: inherit; font-size: 13px; cursor: pointer; }
+.speech__btn--primary { background: var(--cyan, #22d3ee); border-color: var(--cyan, #22d3ee); color: #07090d; font-weight: 700; }
+.speech__btn:disabled { opacity: .55; cursor: wait; }
+.speech__btn:not(:disabled):hover, .speech__btn:focus-visible { box-shadow: 0 0 0 3px var(--cyan-soft, rgba(34,211,238,.22)); outline: none; }
+.speech__audio { width: 100%; }
+.speech__save { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--cyan, #22d3ee); font: inherit; font-size: 12px; cursor: pointer; }
