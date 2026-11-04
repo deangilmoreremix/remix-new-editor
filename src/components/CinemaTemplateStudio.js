@@ -121,6 +121,19 @@ export function CinemaTemplateStudio() {
   let videoTools = null;
   // After-generation tools (Video Studio): history strip, Regenerate, Extend.
   let currentResultEntry = null;
+  // Plain-data copy of the settings that produced a result, kept on its
+  // history entry so Regenerate re-runs THAT result (not the newest run).
+  // Drops the per-run AbortSignal and callbacks; history is saved as JSON.
+  const regenSnapshot = (p) => {
+    if (!p) return null;
+    try {
+      return JSON.parse(JSON.stringify(p, (key, val) => (
+        key === 'signal' || typeof val === 'function' ? undefined : val
+      )));
+    } catch {
+      return null;
+    }
+  };
   let lastRequestId = null;
   const resultHistory = createResultHistory({
     storageKey: 'cinema_template_history',
@@ -2880,6 +2893,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           model: params.model,
           type: isVideo ? 'video' : 'image',
           templateId: currentTemplate.id,
+          regenParams: regenSnapshot(params),
         };
         resultHistory.add(currentResultEntry);
         retryCount = 0;
@@ -3053,8 +3067,11 @@ const firstChild = storyboardRoot.firstElementChild;
       : (resultHistory.find(generationResult) || { url: generationResult, type: isVideoOutput ? 'video' : 'image' });
     const resultActions = createResultActions({
       onRegenerate: () => {
-        if (lastGenerationParams) {
-          runGeneration(lastGenerationParams);
+        // Re-run the settings of the result on screen. An entry without them
+        // (older saved history, an Extend result) goes back to the form
+        // rather than silently re-running a different, newer generation.
+        if (entry.regenParams) {
+          runGeneration({ ...entry.regenParams });
         } else {
           view = 'create';
           render();

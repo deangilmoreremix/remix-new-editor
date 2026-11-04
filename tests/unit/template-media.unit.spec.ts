@@ -8,10 +8,18 @@ vi.mock('../../src/components/UploadPicker.js', () => ({
     trigger.className = 'mt-1.5';
     const panel = document.createElement('div');
     panel.className = 'upload-panel';
-    const entry = { opts, trigger, panel, reset: vi.fn(), uploadFile: vi.fn(async () => {}), clicks: 0 };
+    const entry: any = { opts, trigger, panel, reset: vi.fn(), uploadFile: vi.fn(async () => {}), clicks: 0, frames: { start: null, end: null } };
+    // Mirrors UploadPicker: frame-mode onSelect reports only its own slots.
+    entry.reset.mockImplementation(() => { entry.frames = { start: null, end: null }; });
+    entry.setFrames = vi.fn((start, end) => { entry.frames = { start, end }; });
+    entry.pickEnd = (url) => {
+      entry.frames.end = url;
+      const urls = [entry.frames.start, entry.frames.end].filter(Boolean);
+      opts.onSelect({ startUrl: entry.frames.start, endUrl: entry.frames.end, urls });
+    };
     trigger.onclick = () => { entry.clicks += 1; };
     pickerState.pickers.push(entry);
-    return { trigger, panel, reset: entry.reset, uploadFile: entry.uploadFile };
+    return { trigger, panel, reset: entry.reset, uploadFile: entry.uploadFile, setFrames: entry.setFrames };
   }),
 }));
 
@@ -109,6 +117,32 @@ describe('templateMedia: createTemplateMediaField', () => {
     pexelsState.last.opts.onSelect({ video_files: [{ quality: 'sd', link: 'sd.mp4' }, { quality: 'hd', link: 'hd.mp4' }] });
     expect(onChange).toHaveBeenLastCalledWith('hd.mp4', expect.anything());
     expect(field.element.textContent).toContain('Video from stock library');
+  });
+
+  it('a stock start frame is kept when the end frame is then picked from the picker', async () => {
+    const onChange = vi.fn();
+    const field = createTemplateMediaField({ kind: 'frame', anchorContainer: anchor, onChange });
+    const p = pickerState.pickers[0];
+    (field.element.querySelector('button[aria-label="Browse stock photos"]') as HTMLButtonElement).click();
+    await new Promise(r => setTimeout(r, 0));
+    await new Promise(r => setTimeout(r, 0));
+    pexelsState.last.opts.onSelect({ src: { large2x: 'https://stock/start.jpg' } });
+    expect(onChange).toHaveBeenLastCalledWith(
+      { startUrl: 'https://stock/start.jpg', endUrl: null, urls: ['https://stock/start.jpg'] }, expect.anything());
+    p.pickEnd('https://a/end.png');
+    expect(onChange).toHaveBeenLastCalledWith(
+      { startUrl: 'https://stock/start.jpg', endUrl: 'https://a/end.png', urls: ['https://stock/start.jpg', 'https://a/end.png'] },
+      expect.anything());
+  });
+
+  it('restored frames are kept when another frame is then picked from the picker', () => {
+    const onChange = vi.fn();
+    createTemplateMediaField({ kind: 'frame', anchorContainer: anchor, onChange,
+      initialValue: { startUrl: 'https://a/start.png', endUrl: null, urls: ['https://a/start.png'] } });
+    pickerState.pickers[0].pickEnd('https://a/end.png');
+    expect(onChange).toHaveBeenLastCalledWith(
+      { startUrl: 'https://a/start.png', endUrl: 'https://a/end.png', urls: ['https://a/start.png', 'https://a/end.png'] },
+      expect.anything());
   });
 
   it('restores an already-attached value after a re-render', () => {

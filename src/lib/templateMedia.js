@@ -171,7 +171,11 @@ export function createTemplateMediaField({ kind = 'image', anchorContainer, stud
         onSelect: (asset) => {
           const url = isVideo ? pexelsVideoUrl(asset) : pexelsImageUrl(asset);
           if (!url) return;
-          picker.reset();
+          // Frame fields: put the stock image in the picker's start slot, so a
+          // later end-frame pick from the picker keeps it (the picker reports
+          // only its own slots). Other fields: nothing to keep.
+          if (isFrame && typeof picker.setFrames === 'function') picker.setFrames(url, null);
+          else picker.reset();
           if (isFrame) {
             emit({ startUrl: url, endUrl: null, urls: [url] }, { source: 'pexels', asset });
             setStatus('Start frame from stock library', 'stock');
@@ -241,6 +245,11 @@ export function createTemplateMediaField({ kind = 'image', anchorContainer, stud
   row.appendChild(status);
   row.appendChild(clearBtn);
   if (value) {
+    // Re-render with frames already attached: seed the picker's slots so the
+    // next pick from the picker keeps the other frame.
+    if (isFrame && typeof value === 'object' && typeof picker.setFrames === 'function') {
+      picker.setFrames(value.startUrl || null, value.endUrl || null);
+    }
     const hasEnd = isFrame && typeof value === 'object' && value.endUrl;
     setStatus(isVideo ? 'Video ready' : isFrame ? (hasEnd ? 'Start & end frames set' : 'Start frame set') : 'Image ready', 'done');
   } else {

@@ -293,4 +293,54 @@ describe('Cinema Template Studio: every input reaches the generation prompt', ()
     expect(muapi.generateI2V.mock.calls.at(-1)[0].model).toBe(params.model);
     el.remove();
   });
+
+  it('Regenerate re-runs the result selected in history, not the newest run', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const el = CinemaTemplateStudio();
+    container.appendChild(el);
+    await wait(50);
+    container.querySelector('.group.rounded-xl.p-4.cursor-pointer').click();
+    await wait(150);
+
+    const attachFrame = () => {
+      const frame = pickers.list.filter(p => p.opts.frameMode).at(-1);
+      frame.opts.onSelect({ startUrl: 'https://cdn.test/s.png', endUrl: null, urls: ['https://cdn.test/s.png'] });
+    };
+
+    // Run 1: Anime style.
+    container.querySelector('[data-style="Anime"]').click();
+    attachFrame();
+    container.querySelector('#generate-btn').click();
+    await wait(200);
+    const first = muapi.generateI2V.mock.calls.at(-1)[0];
+    const firstUrl = container.querySelector('[data-result-history] [data-history-url]').getAttribute('data-history-url');
+
+    // Run 2: back to the form, a different style.
+    container.querySelector('#back-btn').click();
+    await wait(100);
+    container.querySelector('[data-style="Anime"]').click();
+    const other = Array.from(container.querySelectorAll('[data-style]')).find(b => b.getAttribute('data-style') !== 'Anime');
+    other.click();
+    attachFrame();
+    container.querySelector('#generate-btn').click();
+    await wait(200);
+    const second = muapi.generateI2V.mock.calls.at(-1)[0];
+    expect(second.prompt).not.toBe(first.prompt);
+
+    // Select run 1 in the history strip, then Regenerate.
+    container.querySelector(`[data-result-history] [data-history-url="${firstUrl}"]`).click();
+    await wait(100);
+    const before = muapi.generateI2V.mock.calls.length;
+    container.querySelector('[data-action="regenerate"]').click();
+    await wait(200);
+    expect(muapi.generateI2V.mock.calls.length).toBe(before + 1);
+    const regen = muapi.generateI2V.mock.calls.at(-1)[0];
+    expect(regen.prompt).toBe(first.prompt);
+    expect(regen.model).toBe(first.model);
+    expect(regen.image_url).toBe(first.image_url);
+    // Per-run fields are not carried over from the stored run.
+    expect(regen.signal).not.toBe(first.signal);
+    expect(typeof regen.onRequestId).toBe('function');
+    el.remove();
+  });
 });
