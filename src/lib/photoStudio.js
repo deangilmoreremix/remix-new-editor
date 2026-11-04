@@ -24,11 +24,11 @@ export const PHOTO_STYLES = [
   { id: 'macro', label: 'Macro', prompt: 'extreme close-up macro detail, texture focus, shallow depth of field' },
 ];
 
-export async function generateProductPhoto({ productImageUrl, logoUrl, category, style }) {
+export async function generateProductPhoto({ productImageUrl, logoUrl, category, style, direction = '', resolution = '2k' }) {
   const categoryMeta = PHOTO_CATEGORIES.find(c => c.id === category) || PHOTO_CATEGORIES[0];
   const styleMeta = PHOTO_STYLES.find(s => s.id === style) || PHOTO_STYLES[0];
 
-  const prompt = `${categoryMeta.prompt}, ${styleMeta.prompt}, brand-aware, high resolution, commercial quality`;
+  const prompt = `${categoryMeta.prompt}, ${styleMeta.prompt}${direction ? `, ${direction}` : ''}, brand-aware, high resolution, commercial quality`;
 
   const imagesList = [productImageUrl];
   if (logoUrl) imagesList.push(logoUrl);
@@ -36,7 +36,7 @@ export async function generateProductPhoto({ productImageUrl, logoUrl, category,
   // Use nano-banana-2-edit for brand-aware product photography
   const imageUrl = await muapi.imageEdit2(prompt, imagesList, {
     aspectRatio: '1:1',
-    resolution: '2k',
+    resolution: ['1k', '2k', '4k'].includes(resolution) ? resolution : '2k',
     outputFormat: 'png',
   });
 
@@ -51,7 +51,7 @@ export async function generateProductPhoto({ productImageUrl, logoUrl, category,
     prompt,
     imageUrl,
     aspect: '1:1',
-    resolution: '2k',
+    resolution,
     createdAt: new Date().toISOString(),
   };
 }

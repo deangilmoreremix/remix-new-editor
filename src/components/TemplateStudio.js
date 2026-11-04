@@ -15,9 +15,9 @@ import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
-import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { createActionRow, createAdvancedButton, setActionPillLabel, styleThumbnailButton, arrangeActionRow } from './studio/actionRow.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
@@ -116,41 +116,6 @@ export function TemplateStudio(templateId) {
   const main = document.createElement('main');
   main.className = 'flex-1';
 
-  // Top nav row
-  const navHeader = document.createElement('div');
-  navHeader.className = 'border-b border-white/5 px-6 py-4';
-  navHeader.innerHTML = `
-    <div class="flex items-center gap-3">
-      <div id="studio-menu-slot"></div>
-      <div class="flex items-center gap-8 overflow-x-auto text-sm text-zinc-400">
-        <button class="hover:text-white transition" data-nav="explore">Explore</button>
-        <button class="hover:text-white transition" data-nav="image">Image</button>
-        <button class="hover:text-white transition" data-nav="video">Video</button>
-        <button class="hover:text-white transition" data-nav="tools">Storyboard</button>
-        <button class="hover:text-white transition" data-nav="edit">Edit</button>
-        <button class="hover:text-white transition" data-nav="character">Character</button>
-        <button class="hover:text-white transition" data-nav="effects">Vibe Motion</button>
-        <button class="hover:text-white transition" data-nav="cinema">Cinema Studio</button>
-        <button class="hover:text-white transition" data-nav="influencer">AI Influencer</button>
-        <button class="hover:text-white transition" data-nav="apps">Apps</button>
-        <button class="text-white font-semibold" data-nav="templates">Templates</button>
-        <button class="hover:text-white transition" data-nav="assist">Assist</button>
-        <button class="hover:text-white transition" data-nav="community">Community</button>
-      </div>
-    </div>
-  `;
-  main.appendChild(navHeader);
-
-  // All-studios side menu (drawer) — opened via the menu icon
-  const drawer = mountStudioDrawer(document.body, { currentRoute: 'templates' });
-  const menuSlot = navHeader.querySelector('#studio-menu-slot');
-  if (menuSlot) menuSlot.appendChild(createStudioMenuButton(drawer.toggle));
-
-  // Add nav click handlers
-  navHeader.querySelectorAll('[data-nav]').forEach(btn => {
-    btn.onclick = () => navigate(btn.dataset.nav);
-  });
-
   // Content area with padding
   const contentArea = document.createElement('div');
   contentArea.className = 'px-8 py-10';
@@ -158,7 +123,7 @@ export function TemplateStudio(templateId) {
   // Back button
   const backBtn = document.createElement('button');
   backBtn.className = 'mb-10 text-sm text-zinc-400 transition hover:text-white';
-  backBtn.innerHTML = '&larr; Back to Apps';
+  backBtn.innerHTML = '&larr; Back to Templates';
   backBtn.onclick = () => navigate('templates');
   contentArea.appendChild(backBtn);
 
@@ -197,19 +162,14 @@ export function TemplateStudio(templateId) {
 
   // Thumbnail action button — matches .gtm-boost-btn styling so it is
   // discoverable alongside the GTM Boost control in the hero section.
-  const thumbAction = document.createElement('button');
-  thumbAction.className = 'mb-5 btn-action-secondary shrink-0';
-  thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
-  thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
-  thumbAction.style.color = '#022c22';
-  thumbAction.textContent = '🖼 Thumbnail';
+  const thumbAction = styleThumbnailButton(document.createElement('button'));
   thumbAction.onclick = () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'template-studio',
       template,
       layout: 'panel',
       onApply: ({ imageUrl, revisedPrompt }) => {
-        img.src = imageUrl + '?v=' + Date.now();
+        img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache(template.id, imageUrl);
         if (revisedPrompt && primaryPromptField) {
@@ -229,7 +189,6 @@ export function TemplateStudio(templateId) {
     mountThumbnailModal(modal);
     modal.open();
   };
-  heroSection.appendChild(thumbAction);
 
   // Title
   const title = document.createElement('h1');
@@ -771,9 +730,6 @@ export function TemplateStudio(templateId) {
         <span class="absolute top-1 h-5 w-5 rounded-full bg-black transition left-6" id="enhancerToggleKnob"></span>
       </button>
     </div>
-    <button id="advancedToggle" class="mt-4 text-sm font-medium text-emerald-200 transition hover:text-emerald-100">
-      Show Advanced Controls
-    </button>
     <div id="advancedControls" class="mt-5 grid gap-4 md:grid-cols-2 hidden"></div>
   `;
   leftPanel.appendChild(enhancerSection);
@@ -841,10 +797,15 @@ export function TemplateStudio(templateId) {
   genBtn.setAttribute('aria-label', 'Generate template');
   const errorContainer = document.createElement('div');
   errorContainer.className = 'ts-error-container';
+  // Unified action row (matches Image Studio): Thumbnail · Advanced · Personalize
+  const actionRow = createActionRow('mt-6');
+  const advancedToggleBtn = createAdvancedButton({ id: 'advancedToggle', tooltip: 'Show advanced controls' });
+  arrangeActionRow(actionRow, { thumbnail: thumbAction, advanced: advancedToggleBtn });
+  leftPanel.appendChild(actionRow);
   leftPanel.appendChild(errorContainer);
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({
-    controlsContainer: leftPanel,
+    controlsContainer: actionRow,
     appId: 'template-studio',
     studioId: 'template',
     studioName: 'Template Studio',
@@ -1075,7 +1036,8 @@ export function TemplateStudio(templateId) {
     if (advancedBtn && advControls) {
       advancedBtn.onclick = () => {
         showAdvanced = !showAdvanced;
-        advancedBtn.textContent = showAdvanced ? 'Hide Advanced Controls' : 'Show Advanced Controls';
+        setActionPillLabel(advancedBtn, showAdvanced ? 'Less' : 'Advanced');
+        advancedBtn.setAttribute('aria-expanded', String(showAdvanced));
         advControls.className = showAdvanced ? 'mt-5 grid gap-4 md:grid-cols-2' : 'mt-5 grid gap-4 md:grid-cols-2 hidden';
       };
     }

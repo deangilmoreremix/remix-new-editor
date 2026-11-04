@@ -3,16 +3,24 @@
 // Hosts the Motion Workbench port (apps/shotcraft/workbench, built to
 // public/workbench-app/ by `npm run build:workbench`) in a same-origin iframe and
 // talks to it over postMessage (protocol in apps/shotcraft/workbench/src/host/bridge.ts):
-//   → sv:auth           Clerk session token, refreshed, for AI chat editing
+//   → sv:auth           Clerk session token + the user's own OpenAI key (BYOK) for AI chat
 //   → sv:import-assets  generations handed off by "Edit in Workbench" / the picker
 //   ← sv:ready
 //   ← sv:exported       in-browser rendered MP4 → uploaded and saved to the library
+//   ← sv:upload         user's own file → uploaded to storage → sv:uploaded / sv:upload-failed
 import { mountStudioChrome } from '../../../lib/studioChrome.js';
+import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { WORKBENCH_APP_PATH, consumeWorkbenchHandoff, isWorkbenchEligible, toWorkbenchAsset } from '../../../lib/workbench.js';
 import { loadGenerationHistory, saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
 
-const TOKEN_REFRESH_MS = 45_000;
+// BYOK: the user's own OpenAI key (API key modal) is re-sent on this timer and when the
+// window regains focus, so a key added or changed in Settings reaches the editor quickly.
+const TOKEN_REFRESH_MS = 15_000;
+
+function getUserOpenAIKey() {
+  try { return apiKeyManager.getOpenAIKey() || null; } catch { return null; }
+}
 
 async function getClerkToken() {
   try {
@@ -70,7 +78,7 @@ export function WorkbenchStudio() {
   const post = (msg) => {
     if (ready && iframe.contentWindow) iframe.contentWindow.postMessage(msg, window.location.origin);
   };
-  const sendToken = async () => post({ type: 'sv:auth', token: await getClerkToken() });
+  const sendToken = async () => post({ type: 'sv:auth', token: await getClerkToken(), openaiKey: getUserOpenAIKey() });
   const sendAssets = (assets, mode = 'append', name = null) => {
     if (!assets.length) return;
     if (!ready) { pending = { assets, mode, name }; return; }
@@ -91,6 +99,23 @@ export function WorkbenchStudio() {
     }
   }
 
+  // The user's own files (Upload button / drag from desktop): store them so the clip
+  // keeps working after a reload, then hand the permanent URL back to the Workbench.
+  async function uploadUserFile(id, blob, kind) {
+    const category = ['video', 'image', 'audio'].includes(kind) ? kind : undefined;
+    const file = blob instanceof File ? blob : new File([blob], `upload-${Date.now()}`, { type: blob.type });
+    setStatus(`Uploading ${file.name}…`);
+    try {
+      const userId = window.Clerk?.user?.id;
+      const { url } = await uploadFileToSupabase(file, { category, ...(userId ? { userId } : {}) });
+      post({ type: 'sv:uploaded', id, url });
+      setStatus(`${file.name} saved`);
+    } catch (e) {
+      post({ type: 'sv:upload-failed', id, error: e?.message || 'upload failed' });
+      setStatus(`Couldn't save ${file.name} — ${e?.message || 'upload failed'}`);
+    }
+  }
+
   const onMessage = (e) => {
     if (e.origin !== window.location.origin || e.source !== iframe.contentWindow) return;
     const d = e.data;
@@ -100,11 +125,14 @@ export function WorkbenchStudio() {
       sendToken();
       clearInterval(tokenTimer);
       tokenTimer = setInterval(sendToken, TOKEN_REFRESH_MS);
+      window.addEventListener('focus', sendToken);
       if (pending) {
         const p = pending;
         pending = null;
         sendAssets(p.assets, p.mode || 'new', p.name);
       }
+    } else if (d.type === 'sv:upload' && typeof d.id === 'string' && d.file instanceof Blob) {
+      uploadUserFile(d.id, d.file, d.kind);
     } else if (d.type === 'sv:exported' && d.blob instanceof Blob) {
       saveExport(d.blob, typeof d.name === 'string' ? d.name : 'workbench.mp4');
     }
@@ -144,22 +172,30 @@ export function WorkbenchStudio() {
     const selected = new Map();
     let items = [];
     try {
-      items = (await loadGenerationHistory()).filter((h) => h?.url && isWorkbenchEligible(h.studio) && h.type !== 'audio');
+      items = (await loadGenerationHistory()).filter((h) => h?.url && isWorkbenchEligible(h.studio));
     } catch { items = []; }
     grid.innerHTML = '';
     if (!items.length) {
-      grid.append(el('div', 'col-span-full text-secondary text-sm', 'No generations yet. Create something in Image, Video or another studio first.'));
+      grid.append(el('div', 'col-span-full text-secondary text-sm', 'No generations yet. Create something in any AI studio (Image, Video, Cinema, Audio…) first.'));
       return;
     }
     items.slice(0, 120).forEach((h) => {
       const cell = el('button', 'relative aspect-video rounded-xl overflow-hidden border-2 border-transparent bg-black');
       cell.type = 'button';
       cell.title = h.prompt || h.studio || '';
-      const thumb = h.type === 'video' ? el('video', 'w-full h-full object-cover') : el('img', 'w-full h-full object-cover');
-      thumb.src = h.type === 'video' ? h.url : (h.thumbnail_url || h.url);
-      if (h.type === 'video') { thumb.muted = true; thumb.preload = 'metadata'; }
-      else thumb.alt = h.prompt || 'Generation';
-      const badge = el('span', 'absolute top-1 left-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/70 text-white', h.type === 'video' ? 'VIDEO' : 'IMAGE');
+      let thumb;
+      if (h.type === 'audio') {
+        // Audio has no picture: show a music tile with its title.
+        thumb = el('div', 'w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-[#1b1530] to-[#0d1b2a] text-white/80 p-2');
+        thumb.append(el('span', 'text-2xl', '♪'), el('span', 'text-[10px] leading-tight line-clamp-2 text-center', h.prompt || h.name || 'Audio'));
+      } else if (h.type === 'video') {
+        thumb = el('video', 'w-full h-full object-cover');
+        thumb.src = h.url; thumb.muted = true; thumb.preload = 'metadata';
+      } else {
+        thumb = el('img', 'w-full h-full object-cover');
+        thumb.src = h.thumbnail_url || h.url; thumb.alt = h.prompt || 'Generation';
+      }
+      const badge = el('span', 'absolute top-1 left-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/70 text-white', (h.type || 'image').toUpperCase());
       cell.append(thumb, badge);
       cell.onclick = () => {
         if (selected.has(h.url)) { selected.delete(h.url); cell.classList.remove('border-primary'); }
@@ -180,6 +216,7 @@ export function WorkbenchStudio() {
     clearInterval(tokenTimer);
     window.removeEventListener('message', onMessage);
     window.removeEventListener('resize', fit);
+    window.removeEventListener('focus', sendToken);
   };
   return container;
 }

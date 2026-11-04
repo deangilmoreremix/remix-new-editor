@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { T } from './tables'
 
 export interface AdminNotificationRow {
   id: string
@@ -15,7 +16,7 @@ export interface NotificationDraft {
 
 export async function adminListNotifications(): Promise<AdminNotificationRow[]> {
   const { data, error } = await supabase
-    .from('notifications')
+    .from(T.notifications)
     .select('id,text,time_label,is_active,created_at')
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
@@ -42,13 +43,13 @@ export async function adminSendNotification(draft: NotificationDraft): Promise<v
 
 export async function adminSetNotificationActive(id: string, isActive: boolean): Promise<void> {
   const { error } = await supabase
-    .from('notifications')
+    .from(T.notifications)
     .update({ is_active: isActive })
     .eq('id', id)
   if (error) throw new Error(error.message)
 }
 
 export async function adminDeleteNotification(id: string): Promise<void> {
-  const { error } = await supabase.from('notifications').delete().eq('id', id)
+  const { error } = await supabase.from(T.notifications).delete().eq('id', id)
   if (error) throw new Error(error.message)
 }

@@ -5,7 +5,10 @@ import './components/modals/modal-styles.css';
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
 // real error surfaces in the dev-tools console if any step fails.
 import { initPopcorn } from './lib/popcornInit.js';
-initPopcorn().then(() => {
+const IS_WATCH_PAGE = /^\/watch\//.test(window.location.pathname) || /^#\/watch\//.test(window.location.hash);
+// The public video player (/watch/<id>) doesn't use Popcorn.
+(IS_WATCH_PAGE ? Promise.resolve(null) : initPopcorn()).then(() => {
+  if (IS_WATCH_PAGE) return;
   console.log('[popcorn]', typeof window.Popcorn, Object.keys(window.Popcorn.registryByName || {}).length);
 }).catch((e) => {
   console.error('[popcorn] init failed', e);
@@ -146,6 +149,14 @@ try {
     return;
   }
 
+  // Public interactive video player (/watch/<id>): no app shell, no sign-in.
+  if (initialPage.startsWith('watch/')) {
+    const { mountWatchPage } = await import('./pages/WatchPage.jsx');
+    await mountWatchPage(app, decodeURIComponent(initialPage.slice('watch/'.length).split(/[/?#]/)[0]));
+    console.log('[App] Watch page rendered');
+    return;
+  }
+
   // Auth + account pages are owned by Clerk (Option A: replaces Supabase
   // sign-in). Custom app-styled pages handle sign-in, sign-up, forgot-password
   // and reset-password (built on Clerk's reset_password_email_code flow).
@@ -177,7 +188,10 @@ try {
   mountGenerationNotifications((page) => navigate(page));
 
   const body = document.createElement('div');
-  body.className = 'flex flex-1';
+  // min-h-0 keeps the row inside the viewport: without it the (long) sidebar
+  // stretches every studio to the sidebar's height and centred layouts drift
+  // off-screen. Each column scrolls on its own.
+  body.className = 'flex flex-1 min-h-0 overflow-hidden';
 
   const { sidebar, toggleBtn } = Sidebar((page) => navigate(page));
   body.appendChild(sidebar);
@@ -185,7 +199,7 @@ try {
 
   const contentArea = document.createElement('main');
   contentArea.id = 'content-area';
-  contentArea.className = 'flex-1 relative w-full flex flex-col bg-app-bg';
+  contentArea.className = 'flex-1 min-w-0 min-h-0 relative w-full flex flex-col bg-app-bg overflow-y-auto';
   body.appendChild(contentArea);
 
   app.appendChild(body);
@@ -252,6 +266,10 @@ try {
   // skipped during local dev auth-bypass (a placeholder key is already seeded).
   if (isDevBypass) {
     console.info('[App] Dev auth bypass active — skipping setup popup.');
+  } else if (initialPage === 'website-builder') {
+    // Smart Website Builder manages its own provider keys inside the studio;
+    // nothing should pop up over it. The flag is left unset so the popup can
+    // still appear the next time the user lands on another studio.
   } else {
     showSetupModalOnce();
   }

@@ -236,7 +236,9 @@ export class MuapiClient {
         if (params.cfg_scale !== undefined && params.cfg_scale !== 0.5) finalPayload.cfg_scale = params.cfg_scale;
         if (params.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = params.thumbnail_url;
         if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Forward any tool-specific params defined in the model's input schema
@@ -460,7 +462,9 @@ export class MuapiClient {
         if (params.cfg_scale !== undefined && params.cfg_scale !== 0.5) finalPayload.cfg_scale = params.cfg_scale;
         if (params.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = params.thumbnail_url;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -566,7 +570,8 @@ export class MuapiClient {
         if (p.cfg_scale !== undefined && p.cfg_scale !== 0.5) finalPayload.cfg_scale = p.cfg_scale;
         if (p.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (p.thumbnail_url) finalPayload.thumbnail_url = p.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (p.thumbnail_url && !String(p.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = p.thumbnail_url;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -725,7 +730,8 @@ export class MuapiClient {
         if (p.cfg_scale !== undefined && p.cfg_scale !== 0.5) finalPayload.cfg_scale = p.cfg_scale;
         if (p.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (p.thumbnail_url) finalPayload.thumbnail_url = p.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (p.thumbnail_url && !String(p.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = p.thumbnail_url;
         if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Multimodal references (Phase 0)
@@ -883,7 +889,8 @@ export class MuapiClient {
         const videoField = modelInfo?.videoField || 'video_url';
         const finalPayload = { [videoField]: params.video_url };
 
-        if (params.thumbnail_url) {
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) {
             finalPayload.thumbnail_url = params.thumbnail_url;
         }
 
@@ -969,7 +976,8 @@ export class MuapiClient {
         if (params.video_url) finalPayload.video_url = params.video_url;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
-        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = params.thumbnail_url;
 
         // Multimodal references (Phase 0)
         if (params.reference_images?.length) finalPayload.reference_images = params.reference_images;
@@ -1305,6 +1313,98 @@ export class MuapiClient {
         }
     }
 
+    // ─── Open-Pomelli helpers (Brand Studio) ─────────────────────────────
+    // Port of Open-Pomelli's src/lib/muapi.ts: submit through the proxy, poll
+    // the prediction, and pull text or a media URL out of the result. The
+    // brand libs (brandAnalyzer, campaignGenerator, photoStudio) call these.
+
+    async _runPrediction(endpoint, params, signal) {
+        this._requireMuapiKey();
+        await acquireRateLimitToken();
+        const submit = await this.makeRequest(endpoint, params, signal);
+        const requestId = submit?.request_id || submit?.id;
+        if (!requestId) return submit;
+        return this.pollForResult(requestId, 120, 2500, signal);
+    }
+
+    static extractText(r) {
+        if (!r) return '';
+        if (typeof r === 'string') return r;
+        for (const k of ['result', 'text', 'output', 'content']) {
+            if (typeof r[k] === 'string') return r[k];
+        }
+        if (Array.isArray(r.outputs) && typeof r.outputs[0] === 'string') return r.outputs[0];
+        if (r.output && typeof r.output.text === 'string') return r.output.text;
+        return JSON.stringify(r);
+    }
+
+    static extractMediaUrl(r) {
+        if (!r) return null;
+        for (const list of [r.images, r.outputs]) {
+            if (Array.isArray(list) && typeof list[0] === 'string') return list[0];
+        }
+        for (const k of ['url', 'image_url', 'video_url', 'output_url']) {
+            if (typeof r[k] === 'string') return r[k];
+        }
+        if (r.output?.url) return r.output.url;
+        if (r.video?.url) return r.video.url;
+        if (typeof r.result === 'string' && r.result.startsWith('http')) return r.result;
+        return null;
+    }
+
+    async text(prompt, model = 'gpt-5-nano', signal) {
+        return MuapiClient.extractText(await this._runPrediction(model, { prompt }, signal));
+    }
+
+    async vision(prompt, imageUrl, model = 'gpt-5-nano', signal) {
+        return MuapiClient.extractText(await this._runPrediction(model, { prompt, image_url: imageUrl }, signal));
+    }
+
+    async imageEdit2(prompt, imagesList, opts = {}, signal) {
+        const r = await this._runPrediction('nano-banana-2-edit', {
+            prompt,
+            images_list: imagesList,
+            aspect_ratio: opts.aspectRatio ?? 'Auto',
+            resolution: opts.resolution ?? '2k',
+            output_format: opts.outputFormat ?? 'png',
+        }, signal);
+        return MuapiClient.extractMediaUrl(r);
+    }
+
+    async image2(prompt, opts = {}, signal) {
+        const r = await this._runPrediction('nano-banana-2', {
+            prompt,
+            aspect_ratio: opts.aspectRatio ?? '1:1',
+            resolution: opts.resolution ?? '2k',
+            output_format: opts.outputFormat ?? 'png',
+        }, signal);
+        return MuapiClient.extractMediaUrl(r);
+    }
+
+    async videoI2V(prompt, imageUrl, opts = {}, signal) {
+        const r = await this._runPrediction('seedance-lite-i2v', {
+            prompt,
+            image_url: imageUrl,
+            resolution: opts.resolution ?? '480p',
+            duration: opts.duration ?? 5,
+        }, signal);
+        return MuapiClient.extractMediaUrl(r);
+    }
+
+    /** Upload a base64/data-URL or Blob (e.g. a site screenshot) and return its URL. */
+    async uploadBrandAsset(data, filename = 'asset.png', contentType = 'image/png') {
+        let blob = data;
+        if (typeof data === 'string') {
+            const b64 = data.includes(',') ? data.split(',')[1] : data;
+            const bin = atob(b64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            blob = new Blob([bytes], { type: contentType });
+        }
+        const file = typeof File !== 'undefined' ? new File([blob], filename, { type: contentType }) : blob;
+        return this.uploadFile(file);
+    }
+
     async makeRequest(endpoint, params, signal) {
         if (!endpoint || typeof endpoint !== 'string') {
             throw new Error('Endpoint is required for makeRequest');
@@ -1611,7 +1711,8 @@ export class MuapiClient {
         if (params.video_url) finalPayload.video_url = params.video_url;
         if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
-        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
+        // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
+        if (params.thumbnail_url && !String(params.thumbnail_url).startsWith('data:')) finalPayload.thumbnail_url = params.thumbnail_url;
         if (params.webhook_url) finalPayload.webhook_url = params.webhook_url;
 
         // Native audio

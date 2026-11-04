@@ -13,6 +13,7 @@ import { BGM_LIB, MEDIA_ITEMS } from "../mediaManifest";
 import { PROJ_DIR, PROJ_HAS_MANIFEST, PROJ_LINKED } from "../projMeta";
 import { setDragPayload } from "../dnd";
 import { ThemePanel } from './ThemePanel';
+import { ACCEPT, addFiles } from "../host/uploads";
 import { cardName, cardSummary, useT, useTx } from "../i18n";
 
 const TABS = [
@@ -151,11 +152,38 @@ const groupBy = <T,>(items: T[], key: (t: T) => string) => {
   return [...m.entries()];
 };
 
+/** SmartVid: upload your own media from the Media tab (click or drop files here). */
+const UploadDrop: React.FC = () => {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div
+      className="upload-drop"
+      role="button"
+      tabIndex={0}
+      onClick={() => ref.current?.click()}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") ref.current?.click(); }}
+      onDragOver={(e) => { if (e.dataTransfer.types.includes("Files")) e.preventDefault(); }}
+      onDrop={(e) => {
+        if (!e.dataTransfer.files?.length) return;
+        e.preventDefault();
+        e.stopPropagation();
+        void addFiles(e.dataTransfer.files);
+      }}
+    >
+      <b>⬆ Upload from computer</b>
+      <div className="dim">Videos, images or audio — click, or drop files here or onto the timeline</div>
+      <input ref={ref} type="file" multiple accept={ACCEPT} style={{ display: "none" }} aria-label="Upload media"
+        onChange={(e) => { if (e.target.files?.length) void addFiles(e.target.files); e.target.value = ""; }} />
+    </div>
+  );
+};
+
 export const LibraryPanel: React.FC = () => {
   const t = useT();
   const tx = useTx();
   const setPreview = useStore((s) => s.setPreview);
-  const [tab, setTab] = useState<TabId>(PROJ_LINKED ? "media" : "cards");
+  // SmartVid: open on Media (upload + your files) so adding media is the first thing you see.
+  const [tab, setTab] = useState<TabId>("media");
   // 折叠分组默认收起，点击标题展开
   const [openCats, setOpenCats] = useState<Set<string>>(new Set());
   const toggleCat = (cat: string) =>
@@ -242,7 +270,9 @@ export const LibraryPanel: React.FC = () => {
   const projectCards = CARD_LIST.filter((c) => c.category === "成片单元");
   const usage = sfxUsage(MANIFEST);
   const projectAudio = MEDIA_ITEMS.filter((m) => m.kind === "audio");
-  const projectVisual = MEDIA_ITEMS.filter((m) => m.kind !== "audio");
+  // SmartVid: without a linked film project these are only the library's internal demo
+  // textures, not the user's media — don't list them.
+  const projectVisual = PROJ_LINKED ? MEDIA_ITEMS.filter((m) => m.kind !== "audio") : [];
 
   // 动效库：工作台原生卡靳前，然后按画廊分类
   const motionGroups = ["工作台", ...DEMO_CATEGORIES]
@@ -274,6 +304,7 @@ export const LibraryPanel: React.FC = () => {
         {tab === 'themes' && <ThemePanel />}
         {tab === "media" && (
           <>
+            <UploadDrop />
             {MANIFEST ? (
               <button
                 className="btn wide"
@@ -282,11 +313,11 @@ export const LibraryPanel: React.FC = () => {
               >
                 {t("lib.importFilm", { name: MANIFEST.name })}
               </button>
-            ) : (
+            ) : PROJ_LINKED ? (
               <div className="lib-cat" style={{ whiteSpace: "normal", lineHeight: 1.5 }}>
-                {PROJ_LINKED ? t("lib.linkedNoManifest", { dir: PROJ_DIR }) : t("lib.notLinked")}
+                {t("lib.linkedNoManifest", { dir: PROJ_DIR })}
               </div>
-            )}
+            ) : null /* SmartVid: no developer "link a project" hint for end users */}
 
             {projectCards.length > 0 && (
               <>

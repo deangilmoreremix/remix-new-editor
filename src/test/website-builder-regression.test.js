@@ -27,6 +27,18 @@ describe('Website Builder regression', () => {
     expect(iframe).not.toBeNull();
     expect(iframe.getAttribute('loading')).toBe('lazy');
     expect(iframe.getAttribute('sandbox')).toBeTruthy();
-    expect(iframe.getAttribute('title')).toBe('Website Builder');
+    expect(iframe.getAttribute('title')).toBe('Smart Website Builder');
+    // The builder must open on its Dashboard, never the upstream marketing landing.
+    expect(iframe.getAttribute('src')).toMatch(/\/dashboard$/);
+  });
+
+  it('builderAccess admits only signed-in paid accounts', async () => {
+    const { builderAccess } = await import('../components/OpenThornStudio.js');
+    const session = (paid) => ({ checkAuthorization: ({ feature }) => paid && feature === 'smartvideo_full_access' });
+    expect(builderAccess(null)).toBe('signed_out');
+    expect(builderAccess({ user: null, session: null })).toBe('signed_out');
+    expect(builderAccess({ user: { publicMetadata: {} }, session: session(false) })).toBe('unpaid');
+    expect(builderAccess({ user: { publicMetadata: {} }, session: session(true) })).toBe('paid');
+    expect(builderAccess({ user: { publicMetadata: { legacy_access: true } }, session: session(false) })).toBe('paid');
   });
 });

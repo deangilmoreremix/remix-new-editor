@@ -8,6 +8,7 @@ import { useHost } from "../host/bridge";
  *  netlify/functions/workbench-chat.js); they're validated by applyOps and applied
  *  as ONE undo step, so ⌘Z reverts a whole AI edit. */
 const ENDPOINT = "/.netlify/functions/workbench-chat";
+const NEED_KEY = "AI editing uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key), then try again.";
 
 interface Msg {
   role: "user" | "assistant";
@@ -24,6 +25,7 @@ const SUGGESTIONS = [
 
 export const ChatPanel: React.FC = () => {
   const token = useHost((s) => s.token);
+  const openaiKey = useHost((s) => s.openaiKey);
   const embedded = useHost((s) => s.embedded);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -38,6 +40,11 @@ export const ChatPanel: React.FC = () => {
   const send = async (text: string) => {
     const message = text.trim();
     if (!message || busy) return;
+    if (!openaiKey) {
+      setMsgs((m) => [...m, { role: "user", content: message }, { role: "assistant", content: NEED_KEY, note: "error" }]);
+      setInput("");
+      return;
+    }
     const history = msgs.map(({ role, content }) => ({ role, content }));
     setMsgs((m) => [...m, { role: "user", content: message }]);
     setInput("");
@@ -46,7 +53,12 @@ export const ChatPanel: React.FC = () => {
       const project = useStore.getState().project;
       const r = await fetch(ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: {
+          "Content-Type": "application/json",
+          // BYOK: the request runs on the user's own OpenAI key.
+          "X-OpenAI-Key": openaiKey,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ message, history, project: compactProject(project), cards: catalog.current }),
       });
       const j = await r.json().catch(() => ({}));
@@ -78,7 +90,11 @@ export const ChatPanel: React.FC = () => {
           <div className="chat-empty">
             <div className="chat-empty-title">Edit with AI</div>
             <div className="dim">Describe a change and it's applied to the timeline. Every AI edit can be undone.</div>
-            {!embedded && !token && <div className="dim chat-warn">Open the Workbench from SmartVid to use AI editing.</div>}
+            {!openaiKey && (
+              <div className="dim chat-warn">
+                {embedded ? NEED_KEY : "Open the Workbench from SmartVid to use AI editing."}
+              </div>
+            )}
             <div className="chat-suggestions">
               {SUGGESTIONS.map((s) => (
                 <button key={s} className="btn chat-suggestion" onClick={() => send(s)} disabled={busy}>{s}</button>

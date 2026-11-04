@@ -5,9 +5,10 @@ import {
   authorizeUrl, listProjects, pickProject, disconnectProject, createProject, type RemoteProject,
 } from '../../lib/backend-connection'
 import styles from './ConnectBackend.module.css'
+import { T } from '../../lib/tables'
 
 interface Props {
-  /** Current Smart Video project id. */
+  /** Current Smart Website Builder project id. */
   projectId: string
   /** Notified whenever the connected state is determined or changes. */
   onStatusChange?: (connected: boolean) => void
@@ -25,7 +26,7 @@ function statusLabel(status: string): string {
 
 /**
  * "Add a backend" panel. Lets the user authorize their Supabase account (OAuth),
- * pick (or create) a project, and connect it to this Smart Video project — adding a
+ * pick (or create) a project, and connect it to this Smart Website Builder project — adding a
  * database + auth to the generated app. Self-contained: reads the session from
  * useAuth and the connection status from the project_backends table.
  */
@@ -45,7 +46,7 @@ export function ConnectBackend({ projectId, onStatusChange }: Props) {
 
   const refreshStatus = useCallback(async () => {
     const { data } = await supabase
-      .from('project_backends')
+      .from(T.project_backends)
       .select('project_ref')
       .eq('project_id', projectId)
       .maybeSingle()

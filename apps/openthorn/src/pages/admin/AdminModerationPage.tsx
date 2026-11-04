@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import { adminSetPublishBanned } from '../../lib/admin'
 import styles from './AdminModerationPage.module.css'
+import { T } from '../../lib/tables'
 
 interface ModerationPost {
   id: string
@@ -25,7 +26,7 @@ export default function AdminModerationPage() {
 
   const load = useCallback(async () => {
     const { data, error: err } = await supabase
-      .from('community_posts')
+      .from(T.community_posts)
       .select('id, user_id, title, description, author_name, likes_count, published_at, hidden, featured')
       .order('featured', { ascending: false })
       .order('published_at', { ascending: false })
@@ -63,12 +64,12 @@ export default function AdminModerationPage() {
   }, [load])
 
   const setFlag = useCallback(async (id: string, patch: Partial<Pick<ModerationPost, 'hidden' | 'featured'>>) => {
-    const { error: err } = await supabase.from('community_posts').update(patch).eq('id', id)
+    const { error: err } = await supabase.from(T.community_posts).update(patch).eq('id', id)
     if (err) throw new Error(err.message)
   }, [])
 
   const deletePost = useCallback(async (id: string) => {
-    const { error: err } = await supabase.from('community_posts').delete().eq('id', id)
+    const { error: err } = await supabase.from(T.community_posts).delete().eq('id', id)
     if (err) throw new Error(err.message)
   }, [])
 

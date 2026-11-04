@@ -1,12 +1,14 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
+import { i2iModels as LOCAL_I2I_MODELS, t2iModels as LOCAL_T2I_MODELS } from '../lib/models.js';
 import { createMediaRemoveButton } from '../lib/studioHelpers.js';
 import { showToast } from '../lib/loading.js';
 
@@ -141,6 +143,10 @@ async function fetchDynamicModels() {
         const merged = new Map();
         (i2iData || []).forEach(m => merged.set(m.id, m));
         (t2iData || []).forEach(m => merged.set(m.id, m));
+        // The live catalog endpoint isn't available everywhere (local dev,
+        // static previews). Fall back to the bundled image-edit models so the
+        // studio always lists every edit model we support.
+        if (merged.size === 0) LOCAL_I2I_MODELS.forEach(m => merged.set(m.id, m));
         return Array.from(merged.values());
     } catch (e) {
         console.warn('[EditStudio] Failed to fetch dynamic model catalog:', e);
@@ -152,10 +158,24 @@ async function fetchModelSchema(modelId) {
     const schemaCache = getDynamicSchemaCache();
     if (schemaCache[modelId]) return schemaCache[modelId];
 
-    const schema = await muapi.getModelSchema(modelId);
+    // Prefer the bundled schema: browsers can't read api.muapi.ai/models
+    // directly (no CORS), so a live fetch per model only floods the console
+    // and leaves the grid empty. Unknown models still try the live API.
+    const schema = localModelSchema(modelId) || await muapi.getModelSchema(modelId);
     schemaCache[modelId] = schema;
     try { localStorage.setItem(DYNAMIC_SCHEMA_CACHE_KEY, JSON.stringify(schemaCache)); } catch {}
     return schema;
+}
+
+/** Build a live-API-shaped schema from the bundled model definition. */
+function localModelSchema(modelId) {
+    const m = LOCAL_I2I_MODELS.find(x => x.id === modelId) || LOCAL_T2I_MODELS.find(x => x.id === modelId);
+    if (!m || !m.inputs) return null;
+    return {
+        name: m.name || modelId,
+        description: m.description || '',
+        input_schema: { schemas: { input_data: { properties: m.inputs } } },
+    };
 }
 
 function getDynamicModelCache() {
@@ -308,7 +328,7 @@ export function EditStudio() {
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Edit Studio</h1><p class="text-secondary text-xs mb-5">13 AI-powered editing tools for images</p>';
+  topBar.appendChild(createStudioHeader('edit', 'Edit Studio', '13 AI editing tools: remove objects, backgrounds, reframe, relight and more', 'mb-4'));
 
   const toolGrid = document.createElement('div');
   toolGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2';
@@ -1250,6 +1270,9 @@ export function EditStudio() {
       updateProgress(null);
 
       if (result?.url) {
+        registerGeneration('edit', 'image', result.url, {
+          prompt: params[activeTool.promptKey || 'prompt'] || '', model: activeTool.id || '', parameters: { mode: activeTool.mode },
+        });
         renderResult(result.url);
       } else {
         showError('Edit completed, but no result image was returned. Please try again.');

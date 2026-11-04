@@ -61,6 +61,13 @@ vi.mock('../../src/lib/editor/captionActions.js', () => ({
 
 // Mock thumbnail modal dependencies
 vi.mock('../../src/lib/thumbnails.js', () => ({
+  createStudioHeader: vi.fn((_id, title = '', subtitle = '') => {
+    const el = document.createElement('div');
+    el.innerHTML = `<h1></h1><p></p>`;
+    el.querySelector('h1').textContent = title;
+    el.querySelector('p').textContent = subtitle;
+    return el;
+  }),
   getTemplateThumbnailCandidates: vi.fn((template) => ['/thumb.png']),
   saveCustomThumbnailToCache: vi.fn(),
   clearCustomThumbnailCache: vi.fn(),
@@ -384,7 +391,7 @@ describe('TemplateStudio feature tests', () => {
     advancedBtn.click();
     await new Promise(r => setTimeout(r, 50));
 
-    expect(advancedBtn.textContent).toBe('Hide Advanced Controls');
+    expect(advancedBtn.textContent.trim()).toBe('Less');
     expect(advControls.classList.contains('hidden')).toBe(false);
   });
 
@@ -447,12 +454,11 @@ describe('TemplateStudio feature tests', () => {
     expect(backBtn).not.toBeNull();
   });
 
-  it('renders nav header with studio links', async () => {
+  it('does not render its own studio links (side menu is the only menu)', async () => {
     mount();
     await new Promise(r => setTimeout(r, 50));
 
-    const navBtns = container.querySelectorAll('[data-nav]');
-    expect(navBtns.length).toBeGreaterThan(5);
+    expect(container.querySelectorAll('[data-nav]').length).toBe(0);
   });
 
   it('renders input fields for image upload templates', async () => {

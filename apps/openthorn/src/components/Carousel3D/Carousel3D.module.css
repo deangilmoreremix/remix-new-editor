@@ -56,8 +56,8 @@
 }
 
 .card:hover .cardFront {
-  border-color: rgba(94, 234, 212, 0.22);
-  box-shadow: 0 0 30px rgba(94, 234, 212, 0.1);
+  border-color: rgba(217, 255, 0, 0.22);
+  box-shadow: 0 0 30px rgba(217, 255, 0, 0.1);
 }
 
 .cardIcon {

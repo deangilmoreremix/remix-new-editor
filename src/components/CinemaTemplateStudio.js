@@ -3,10 +3,10 @@
  * UI Component for the Cinematic Template System
  */
 
-import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
+import { createActionRow, createAdvancedButton, setActionPillLabel, styleThumbnailButton, arrangeActionRow } from './studio/actionRow.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { navigate } from '../lib/router.js';
@@ -71,9 +71,6 @@ export function resolveGenerationAspectRatio(inputs, template) {
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
   container.className = 'cinema-template-studio w-full h-full flex flex-col bg-black overflow-hidden';
-
-  // All-studios side menu (drawer)
-  const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'cinema' });
 
   // State
   const registry = getTemplateRegistry();
@@ -149,14 +146,6 @@ export function CinemaTemplateStudio() {
         renderPreviewView();
         break;
     }
-
-    // Add an "all studios" menu button next to every back button in this view
-    container.querySelectorAll('[id="back-btn"]').forEach((backBtn) => {
-      if (backBtn.previousElementSibling && backBtn.previousElementSibling.dataset.studioMenu) return;
-      const menuBtn = createStudioMenuButton(studioDrawer.toggle);
-      menuBtn.dataset.studioMenu = '1';
-      backBtn.parentElement.insertBefore(menuBtn, backBtn);
-    });
   }
 
   function renderBrowseView() {
@@ -311,7 +300,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         template,
         layout: 'panel',
         onApply: ({ imageUrl }) => {
-          img.src = imageUrl + '?v=' + Date.now();
+          img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
           customThumbnailUrl = imageUrl;
           saveCustomThumbnailToCache(template.id, imageUrl);
         },
@@ -502,19 +491,14 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     heroSection.appendChild(thumbnailEl);
 
     // Thumbnail action button — matches TemplateStudio styling
-    const thumbAction = document.createElement('button');
-    thumbAction.className = 'mb-5 btn-action-secondary shrink-0';
-    thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
-    thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
-    thumbAction.style.color = '#022c22';
-    thumbAction.textContent = '🖼 Thumbnail';
+    const thumbAction = styleThumbnailButton(document.createElement('button'));
     thumbAction.onclick = () => {
       const modal = new TemplateThumbnailModal({
         appTheme: 'cinema-template-studio',
         template: currentTemplate,
         layout: 'panel',
         onApply: ({ imageUrl }) => {
-          img.src = imageUrl + '?v=' + Date.now();
+          img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
           customThumbnailUrl = imageUrl;
           saveCustomThumbnailToCache(currentTemplate.id, imageUrl);
         },
@@ -526,7 +510,6 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       mountThumbnailModal(modal);
       modal.open();
     };
-    heroSection.appendChild(thumbAction);
 
     // Title
     const title = document.createElement('h1');
@@ -629,13 +612,19 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     renderVideoUploadButton(formPanel);
     renderAiEnhancer(formPanel);
     renderGtmBoost(formPanel);
-    renderGenerateButton(formPanel);
 
-    // Personalize trigger — matches TemplateStudio (mounted on leftPanel after Generate, before Creative Intelligence)
-    const personalizeEl = document.createElement('div');
-    personalizeEl.id = 'personalize-trigger';
-    personalizeEl.className = 'mt-6';
-    formPanel.appendChild(personalizeEl);
+    // Unified action row (matches Image Studio): Thumbnail · Advanced · Personalize.
+    // Personalize is mounted into this row once the view is in the DOM.
+    // The rebuilt Advanced pill and #advancedControls start collapsed, so
+    // reset the flag to match (mode switches re-render this view).
+    showAdvanced = false;
+    const actionRow = createActionRow('mt-6');
+    actionRow.id = 'personalize-trigger';
+    const advancedToggleBtn = createAdvancedButton({ id: 'advancedToggle', tooltip: 'Show advanced controls' });
+    arrangeActionRow(actionRow, { thumbnail: thumbAction, advanced: advancedToggleBtn });
+    formPanel.appendChild(actionRow);
+
+    renderGenerateButton(formPanel);
 
     renderCreativeIntelligence(formPanel);
 
@@ -760,8 +749,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     // Personalize trigger wiring (element created in renderCreateView and appended to formPanel)
     const personalizeTriggerEl = container.querySelector('#personalize-trigger');
-    if (personalizeTriggerEl) {
-      personalizeTriggerEl.innerHTML = '';
+    if (personalizeTriggerEl && !personalizeTriggerEl.querySelector('#v-contact-btn')) {
       mountPersonalizeTrigger({ 
         controlsContainer: personalizeTriggerEl, 
         appId: 'cinema-template',
@@ -1994,9 +1982,6 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           <span class="absolute top-1 h-5 w-5 rounded-full bg-black transition ${isAiEnhancer ? 'left-6' : 'left-1'}" id="enhancerToggleKnob"></span>
         </button>
       </div>
-      <button id="advancedToggle" class="mt-4 text-sm font-medium text-emerald-200 transition hover:text-emerald-100">
-        ${showAdvanced ? 'Hide Advanced Controls' : 'Show Advanced Controls'}
-      </button>
       <div id="advancedControls" class="mt-5 grid gap-4 md:grid-cols-2 hidden"></div>
     `;
     formPanel.appendChild(enhancerSection);
@@ -2398,7 +2383,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       if (advancedBtn && advControls) {
         advancedBtn.onclick = () => {
           showAdvanced = !showAdvanced;
-          advancedBtn.textContent = showAdvanced ? 'Hide Advanced Controls' : 'Show Advanced Controls';
+          setActionPillLabel(advancedBtn, showAdvanced ? 'Less' : 'Advanced');
+          advancedBtn.setAttribute('aria-expanded', String(showAdvanced));
           advControls.className = showAdvanced ? 'mt-5 grid gap-4 md:grid-cols-2' : 'mt-5 grid gap-4 md:grid-cols-2 hidden';
         };
       }

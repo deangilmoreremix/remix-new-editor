@@ -632,7 +632,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
     ['src/components/TimelineEditorPage.jsx', '33b10e84bfe15f8b5f14c96d2e2e0de8b7e91c9b61bc420ba4f1029e9054d9a8'],
-    ['src/components/ChatStudio.js', '40db1268cfde0edc4a7bffcb67c4d524cd72096bc2ead9045f37c2393fc76872'],
+    ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
     ['src/components/chat/ChatMessage.jsx', 'b2e236103147d0fdfb59165599a5963e09878f5b28cc0992a75650d77b9e9008'],

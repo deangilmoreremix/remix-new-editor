@@ -3,6 +3,10 @@
 //   - createStudioBackButton(onBack)  -> [data-studio-back]
 //   - createStudioMenuButton(onToggle) -> [data-studio-menu]
 //   - mountStudioDrawer(root, opts)   -> overlay listing ALL routes ([data-studio-drawer])
+//   - mountStudioChrome(root, opts)   -> optional title bar + file drop (no menu)
+//
+// The menu/back/drawer helpers are no longer used by the app (the left side
+// menu is the only studio navigation); they stay exported for compatibility.
 //
 // Used by the vanilla *Studio.js components and the *Page studio routes.
 import { navigate } from './router.js';
@@ -46,35 +50,38 @@ export function createStudioNavCluster({ onBack, onMenu, drawer } = {}) {
   return cluster;
 }
 
-// Convenience: attach a consistent [menu][back] + title top bar and a drawer to a
-// studio root container. Works for every studio surface (vanilla DOM factories,
-// *Page routes, VideoAgent agents). The drawer is mounted on document.body so it is
-// never clipped by studio overflow containers.
-// Returns { topbar, drawer, fileDrop }.
-export function mountStudioChrome(rootContainer, { title, onBack, currentRoute } = {}) {
-  const drawer = mountStudioDrawer(document.body, { currentRoute });
+// Prepares a studio root. Studio switching lives only in the app's left side
+// menu (src/components/Sidebar.js), so studios no longer get their own
+// "all studios" grid button, back button or drawer.
+//
+// When a `title` is given, a slim title bar is added; a few studios (Video
+// Agent, Workbench) append their own status/actions to it. Without a title
+// nothing is inserted, so the studio opens straight onto its tool.
+// File drag-and-drop delegation is always enabled.
+// Returns { topbar, drawer, fileDrop } (`topbar` is null without a title;
+// `drawer` is always null and kept only for backward compatibility).
+export function mountStudioChrome(rootContainer, { title } = {}) {
   const fileDrop = enableStudioFileDropDelegation(rootContainer);
 
-  const topbar = document.createElement('div');
-  topbar.className = 'studio-topbar';
-  topbar.appendChild(createStudioMenuButton(drawer.toggle));
-  topbar.appendChild(createStudioBackButton(onBack));
-
+  let topbar = null;
   if (title) {
+    topbar = document.createElement('div');
+    topbar.className = 'studio-topbar';
+
     const titleEl = document.createElement('div');
     titleEl.className = 'studio-topbar__title';
     titleEl.textContent = title;
     topbar.appendChild(titleEl);
+
+    const spacer = document.createElement('div');
+    spacer.className = 'studio-topbar__spacer';
+    topbar.appendChild(spacer);
+
+    rootContainer.insertBefore(topbar, rootContainer.firstChild);
   }
 
-  const spacer = document.createElement('div');
-  spacer.className = 'studio-topbar__spacer';
-  topbar.appendChild(spacer);
-
   rootContainer.classList.add('studio-has-chrome');
-  rootContainer.insertBefore(topbar, rootContainer.firstChild);
-
-  return { topbar, drawer, fileDrop };
+  return { topbar, drawer: null, fileDrop };
 }
 
 // Mounts a slide-in drawer (overlay) listing ALL routes, grouped by category.

@@ -5,16 +5,13 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
-import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -46,12 +43,10 @@ export async function CommercialStudio() {
   let dynamicControlsContainer = null;
   let commercialPrompt = null;
   let _modelSelectorOutsideClickHandler = null;
-  let customThumbnailUrl = getCustomThumbnailFromCache('commercial-studio');
 
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">Commercial Studio</h1>';
+  header.appendChild(createStudioHeader('commercial', 'Product Shot Studio', 'Studio-quality product photos from a single image'));
   container.appendChild(header);
 
   const formCard = document.createElement('div');
@@ -147,22 +142,6 @@ const COMMERCIAL_MODELS = [
   modelWrapper.appendChild(dropdown);
   formCard.appendChild(modelWrapper);
 
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-      }
-    }).catch(() => {});
-  });
-  formCard.appendChild(modelPickerBtn);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -193,7 +172,7 @@ const COMMERCIAL_MODELS = [
     const { browsePexelsImages } = await import('../lib/studioPexels.js');
     browsePexelsImages({
       title: 'Select Reference Photo',
-      studioName: 'Commercial Studio',
+      studioName: 'Product Shot Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
         const attrContainer = document.getElementById('pexels-commercial-attribution');
@@ -283,40 +262,18 @@ const COMMERCIAL_MODELS = [
   }
   buildDynamicControls();
 
-  // Thumbnail studio button — next to creation controls, GTM Boost styling
-  const thumbBtn = document.createElement('button');
-  thumbBtn.type = 'button';
-  thumbBtn.textContent = '🖼 Thumbnail';
-  thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-action-secondary shrink-0';
-  thumbBtn.addEventListener('click', () => {
-    const modal = new TemplateThumbnailModal({
-      appTheme: 'commercial-studio',
-      layout: 'panel',
-      studioId: 'commercial-studio',
-      studioName: 'Commercial Studio',
-      aspectRatio: selectedFormat.ar || '1:1',
-      outputType: 'image',
-      onApply: ({ imageUrl }) => {
-        customThumbnailUrl = imageUrl;
-        saveCustomThumbnailToCache('commercial-studio', imageUrl);
-      },
-      onClear: () => {
-        customThumbnailUrl = null;
-        clearCustomThumbnailCache('commercial-studio');
-      },
-    });
-    mountThumbnailModal(modal);
-    modal.open();
-  });
-  formCard.appendChild(thumbBtn);
+  // Action row — unified Image Studio layout (Advanced)
+  const actionRow = createActionRow();
+  const advanced = createAdvancedPanel({ id: 'commercial-advanced-btn', elements: [dynamicControlsContainer] });
+  arrangeActionRow(actionRow, { advanced: advanced.button });
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Product Shot';
   genBtn.setAttribute('aria-label', 'Generate product shot');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
 
   // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
   const enhanceMenu = document.createElement('div');
@@ -381,25 +338,15 @@ const COMMERCIAL_MODELS = [
   inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
-  // "Create This Style" deep-link: apply the staged MiniMax example (model +
-  // a design-reference note) and show its example rail.
+  // Product Shot Studio is a focused tool: no template rails or example
+  // galleries — upload a product, pick a scene and format, generate.
   try {
-    const { consumeAndApply, renderExamplesRail, getMiniMaxDemosWithTargets } = await import('../lib/examplesRail.js');
+    const { consumeAndApply } = await import('../lib/examplesRail.js');
     consumeAndApply('commercial', (staged) => {
       if (staged.model) selectedModel = staged.model;
       if (staged.prompt) commercialPrompt = staged.prompt;
     });
-    const demos = getMiniMaxDemosWithTargets().filter((d) => d.__route === 'commercial');
-    const rail = renderExamplesRail({
-      title: 'MiniMax H3 Product & Commercial Styles',
-      subtitle: 'Click any clip to open it pre-filled in Commercial Studio',
-      ref: 'minimax-h3-commercial',
-      items: demos,
-    });
-    rail.classList.add('w-full', 'mt-8');
-    container.appendChild(rail);
-  } catch (e) {
-  }
+  } catch { /* deep links are optional */ }
 
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full mt-6 hidden';
@@ -425,7 +372,6 @@ const COMMERCIAL_MODELS = [
       const params = {
         model: selectedModel,
         image_url: uploadedUrl,
-        thumbnail_url: customThumbnailUrl || undefined,
         signal: controller.signal,
       };
       if (dynamicControls) {
@@ -471,12 +417,6 @@ const COMMERCIAL_MODELS = [
       genBtn.textContent = 'Generate Product Shot';
     }
   };
-
-    const galleryAssets = getAssetsForStudio('commercial');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'commercial', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
-    }
 
     return container;
 }

@@ -1,13 +1,15 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
@@ -19,6 +21,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -528,6 +531,9 @@ export function AudioStudio() {
   let toneValue = 'neutral';
   let emotionValue = 'none';
   let customThumbnailUrl = getCustomThumbnailFromCache('audio-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'audio-studio' });
   let schemaParams = {};
   let internalHistory = [];
   let activeResultUrl = null;
@@ -588,8 +594,7 @@ export function AudioStudio() {
   // Header with hero banner
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">Audio Studio</h1>';
+  header.appendChild(createStudioHeader('audio', 'Audio Studio', 'Generate music, speech and sound effects'));
   container.appendChild(header);
 
   // Model selector
@@ -725,7 +730,7 @@ export function AudioStudio() {
             promptInput.value = p;
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
-          });
+          }, { basePrompt: promptInput.value });
         }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
         openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
@@ -756,7 +761,8 @@ export function AudioStudio() {
   window.addEventListener('click', closeEnhanceMenu);
 
   promptGroup.appendChild(enhanceMenu);
-  mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'audio-studio' });
+  const actionRow = createActionRow();
+  const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => promptInput, appId: 'audio-studio' });
   formCard.appendChild(promptGroup);
 
   // Schema-driven controls (rendered dynamically from model.inputs)
@@ -935,12 +941,14 @@ export function AudioStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'audio-studio',
+      layout: 'panel',
       studioId: 'audio-studio',
       studioName: 'Audio Studio',
-      aspectRatio: '16:9',
-      outputType: 'image',
+      // Cover art for a track — square fits players and social posts.
+      aspectRatio: '1:1',
+      outputType: 'audio',
       onApply: ({ imageUrl }) => {
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache('audio-studio', imageUrl);
@@ -950,10 +958,13 @@ export function AudioStudio() {
         clearCustomThumbnailCache('audio-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  styleThumbnailButton(thumbBtn);
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
+  const advanced = createAdvancedPanel({ id: 'audio-advanced-btn', elements: [speedGroup, pitchGroup] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, personalize: personalizeHandle?.button });
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -961,7 +972,8 @@ export function AudioStudio() {
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Generate Audio';
   genBtn.setAttribute('aria-label', 'Generate audio');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
   container.appendChild(formCard);
 
   // Instructions
@@ -1295,6 +1307,10 @@ export function AudioStudio() {
 
   function addToHistory(entry) {
     internalHistory = [entry, ...internalHistory].slice(0, 30);
+    // Shared library + "Edit in Workbench" (fresh results and recovered jobs).
+    registerGeneration('audio', 'audio', entry.url, {
+      prompt: entry.prompt || entry.title || '', model: entry.model || '', name: entry.title || undefined,
+    });
     renderHistoryGrid();
     schedulePersist();
   }

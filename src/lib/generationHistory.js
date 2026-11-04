@@ -224,6 +224,39 @@ export function saveGeneration(data) {
 }
 
 /**
+ * Register a finished AI output from any studio. Wraps saveGeneration() with the
+ * checks studios otherwise each repeat:
+ * - skips empty and `blob:` URLs (page-local, gone after reload);
+ * - uploads `data:` URLs (e.g. base64 images) to storage first and registers the
+ *   durable public URL, or skips them if the upload fails — never writes megabytes
+ *   of base64 into localStorage.
+ * saveGeneration() then emits `generation:saved`, which offers "Edit in Workbench".
+ *
+ * @param {string} studio  raw studio id (e.g. 'cinema', 'upscale', 'audio')
+ * @param {'image'|'video'|'audio'} type
+ * @param {string} url
+ * @param {object} [meta]  { prompt, model, parameters, ... }
+ * @returns {Promise<object|null>} the saved entry, or null when skipped
+ */
+export async function registerGeneration(studio, type, url, meta = {}) {
+  if (typeof url !== 'string' || !url || url.startsWith('blob:')) return null;
+  let durableUrl = url;
+  if (url.startsWith('data:')) {
+    try {
+      const { uploadFileToSupabase } = await import('./uploadService.js');
+      const blob = await (await fetch(url)).blob();
+      const ext = (blob.type.split('/')[1] || 'bin').split('+')[0];
+      const file = new File([blob], `${studio}-${Date.now()}.${ext}`, { type: blob.type || 'application/octet-stream' });
+      durableUrl = (await uploadFileToSupabase(file, { category: type })).url;
+    } catch {
+      return null;
+    }
+    if (!durableUrl) return null;
+  }
+  return saveGeneration({ ...meta, studio, type, url: durableUrl });
+}
+
+/**
  * Delete a generation from localStorage (Supabase deletion is deferred
  * to a future cleanup pass; the Edge Function doesn't currently expose DELETE).
  *
@@ -279,7 +312,8 @@ export async function loadGenerationHistory() {
     const videoHistory = JSON.parse(localStorage.getItem('video_history') || '[]');
     localResults = [
       ...imageHistory.map((h) => ({ ...h, type: h.type || 'image', source: 'local' })),
-      ...videoHistory.map((h) => ({ ...h, type: 'video', source: 'local' })),
+      // video_history also holds audio entries — keep their real type.
+      ...videoHistory.map((h) => ({ ...h, type: h.type === 'audio' ? 'audio' : 'video', source: 'local' })),
     ];
   } catch (e) {
     // Ignore parse errors

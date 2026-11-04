@@ -16,7 +16,7 @@
   width: 720px;
   height: 720px;
   border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.16), rgba(94, 234, 212, 0.05) 45%, transparent 70%);
+  background: radial-gradient(circle at center, rgba(217, 255, 0, 0.16), rgba(217, 255, 0, 0.05) 45%, transparent 70%);
   filter: blur(40px);
   animation: glowDrift 14s ease-in-out infinite;
   pointer-events: none;
@@ -86,17 +86,17 @@
   padding: 10px 24px;
   font-size: 15px;
   font-weight: 600;
-  color: white;
+  color: var(--color-accent-contrast);
   background: linear-gradient(135deg, var(--color-accent), var(--color-accent-glow));
   border-radius: var(--radius-full);
   text-decoration: none;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: 0 2px 8px rgba(217, 255, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
   transition: transform 0.2s var(--ease-spring), box-shadow 0.2s ease-out;
 }
 
 .button:hover {
   transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 20px rgba(217, 255, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .button:active {

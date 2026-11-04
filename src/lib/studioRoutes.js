@@ -28,7 +28,7 @@ const ICONS = {
    director: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6l4-4h4l4 4"/><path d="M2 6h20v14a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>',
   timeline: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="2" y1="15" x2="22" y2="15"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/><circle cx="6" cy="12" r="1.5" fill="currentColor"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/></svg>',
   chat: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>',
-  commercial: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>',
+  commercial: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>',
   templates: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>',
   explore: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
   library: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>',
@@ -39,6 +39,8 @@ const ICONS = {
   academy: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 2.7 2.5 6 2.5s6-1.5 6-2.5v-5"/></svg>',
   viral: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    personalizer: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>',
+   leadfinder: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+   'find-my-brand': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.6z"/></svg>',
   'content-library': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
   'studios/product-photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
   'studios/fashion-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
@@ -53,37 +55,51 @@ const ICONS = {
    'asset-edit': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
    'photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
    'brand-photo-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+   'website-builder': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="2" y1="7" x2="22" y2="7"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
    animate: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
  };
 
 const FALLBACK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>';
 
 // All SPA route -> { label, category }. Icons resolved from ICONS above.
-// 'category' groups the drawer (mirrors the global sidebar grouping intent).
+// 'category' groups the drawer the same way the global sidebar is grouped.
+// Retired from the menus: Training, Chat, Assist, Stock Media, Community
+// (their routes redirect, see RETIRED_ROUTES in router.js).
 export const STUDIO_ROUTES = {
   apps: { label: 'Apps', category: 'Home' },
   explore: { label: 'Explore', category: 'Home' },
-  image: { label: 'Image Studio', category: 'Create' },
-  video: { label: 'Video Studio', category: 'Create' },
-  cinema: { label: 'Cinema Studio', category: 'Create' },
-  'cinema-template': { label: 'Cinema Template Studio', category: 'Create' },
-  storyboard: { label: 'Storyboard Studio', category: 'Create' },
-  effects: { label: 'Effects Studio', category: 'Create' },
-  edit: { label: 'Edit Studio', category: 'Create' },
-  upscale: { label: 'Upscale Suite', category: 'Create' },
-  character: { label: 'Character Studio', category: 'Create' },
-  commercial: { label: 'Commercial Studio', category: 'Create' },
-  audio: { label: 'Audio Studio', category: 'Create' },
-  avatar: { label: 'Avatar Studio', category: 'Create' },
-  training: { label: 'Training Studio', category: 'Create' },
-  academy: { label: 'Smart Video Academy', category: 'Tools' },
-  videotools: { label: 'Video Tools', category: 'Create' },
-  chat: { label: 'Chat Studio', category: 'Create' },
-  lipsync: { label: 'Lip Sync', category: 'Create' },
-  influencer: { label: 'AI Influencer', category: 'Create' },
   templates: { label: 'Templates', category: 'Home' },
-  community: { label: 'Community', category: 'Home' },
-  assist: { label: 'Assist', category: 'Tools' },
+  image: { label: 'Image Studio', category: 'Image' },
+  edit: { label: 'Edit Studio', category: 'Image' },
+  upscale: { label: 'Upscale Suite', category: 'Image' },
+  character: { label: 'Character Studio', category: 'Image' },
+  commercial: { label: 'Product Shot Studio', category: 'Image' },
+  brand: { label: 'Brand Studio', category: 'Image' },
+  influencer: { label: 'AI Influencer', category: 'Image' },
+  video: { label: 'Video Studio', category: 'Video' },
+  cinema: { label: 'Cinema Studio', category: 'Video' },
+  'cinema-template': { label: 'Cinema Template Studio', category: 'Video' },
+  storyboard: { label: 'Storyboard Studio', category: 'Video' },
+  effects: { label: 'Effects Studio', category: 'Video' },
+  'ai-vfx': { label: 'AI VFX Studio', category: 'Video' },
+  animate: { label: 'Animate Studio', category: 'Video' },
+  lipsync: { label: 'Lip Sync Studio', category: 'Video' },
+  videotools: { label: 'Video Tools', category: 'Video' },
+  avatar: { label: 'Avatar Studio', category: 'Video' },
+  audio: { label: 'Audio Studio', category: 'Video' },
+  'video-agent': { label: 'Video Agent', category: 'Agents' },
+  director: { label: 'Director', category: 'Agents' },
+  timeline: { label: 'Timeline Editor', category: 'Agents' },
+  workbench: { label: 'Workbench', category: 'Agents' },
+  viral: { label: 'Smart Video Viral', category: 'Agents' },
+  personalizer: { label: 'Personalizer', category: 'Agents' },
+  leadfinder: { label: 'Lead Finder', category: 'Agents' },
+  'find-my-brand': { label: 'Find My Brand', category: 'Agents' },
+  'website-builder': { label: 'Website Builder', category: 'Agents' },
+  render: { label: 'Video Render', category: 'Agents' },
+  academy: { label: 'Smart Video Academy', category: 'Agents' },
+  library: { label: 'Library', category: 'My Work' },
+  'content-library': { label: 'Content', category: 'My Work' },
   'text-to-image': { label: 'Text to Image', category: 'Generate' },
   'image-to-image': { label: 'Image to Image', category: 'Generate' },
   'text-to-video': { label: 'Text to Video', category: 'Generate' },
@@ -91,39 +107,27 @@ export const STUDIO_ROUTES = {
   'video-to-video': { label: 'Video to Video', category: 'Generate' },
   'video-watermark': { label: 'Watermark Remover', category: 'Generate' },
   'character-page': { label: 'Character', category: 'Pages' },
-  'effects-page': { label: 'Vibe Motion', category: 'Pages' },
+  'effects-page': { label: 'Effects Studio', category: 'Pages' },
   'storyboard-page': { label: 'Storyboard', category: 'Pages' },
   'influencer-page': { label: 'AI Influencer', category: 'Pages' },
-  'commercial-page': { label: 'Commercial', category: 'Pages' },
+  'commercial-page': { label: 'Product Shot', category: 'Pages' },
   'upscale-page': { label: 'Upscale', category: 'Pages' },
   'cinema-page': { label: 'Cinema', category: 'Pages' },
-  director: { label: 'Director', category: 'Tools' },
-  'ai-vfx': { label: 'AI VFX', category: 'Tools' },
-  render: { label: 'Video Render', category: 'Tools' },
-  timeline: { label: 'Timeline', category: 'Tools' },
-  library: { label: 'Library', category: 'Home' },
-  'content-library': { label: 'Content Library', category: 'Home' },
-  viral: { label: 'Smart Video Viral', category: 'Tools' },
-  personalizer: { label: 'Personalizer', category: 'Create' },
-  'video-agent': { label: 'Video Agent', category: 'Tools' },
-  brand: { label: 'Brand Studio', category: 'Create' },
-  'brand-dna': { label: 'Brand DNA', category: 'Create' },
-  campaign: { label: 'Campaign', category: 'Create' },
+  'brand-dna': { label: 'Brand DNA', category: 'Brand' },
+  campaign: { label: 'Campaign', category: 'Brand' },
   'campaign-page': { label: 'Campaign Page', category: 'Pages' },
-  'asset-edit': { label: 'Asset Edit', category: 'Create' },
-  'photo-studio': { label: 'Photo Studio', category: 'Create' },
-  'brand-photo-studio': { label: 'Brand Photo Studio', category: 'Create' },
-  animate: { label: 'Animate', category: 'Create' },
-  'studios/product-photo-studio': { label: 'Product Photo Studio', category: 'Create' },
-  'studios/fashion-studio': { label: 'Fashion Studio', category: 'Create' },
-  openthorn: { label: 'OpenThorn', category: 'Tools' },
-  workbench: { label: 'Workbench', category: 'Create' },
+  'asset-edit': { label: 'Asset Edit', category: 'Brand' },
+  'photo-studio': { label: 'Photo Studio', category: 'Brand' },
+  'brand-photo-studio': { label: 'Brand Photo Studio', category: 'Brand' },
+  'studios/product-photo-studio': { label: 'Product Photo Studio', category: 'Pages' },
+  'studios/fashion-studio': { label: 'Fashion Studio', category: 'Pages' },
+  openthorn: { label: 'Smart Website Builder', category: 'Pages' },
 };
 
-// Ordered category groups for the drawer. 'Generate' and 'Pages' routes are
-// marketing landing pages; they stay routable for SEO links but the in-app
+// Ordered category groups for the drawer. 'Generate', 'Pages' and 'Brand'
+// routes stay routable (SEO links, Brand Studio sub-tools) but the in-app
 // drawer only lists the applications themselves.
-export const STUDIO_CATEGORIES = ['Home', 'Create', 'Tools'];
+export const STUDIO_CATEGORIES = ['Home', 'Image', 'Video', 'Agents', 'My Work'];
 
 export function getStudioIcon(route) {
   return ICONS[route] || FALLBACK_ICON;
@@ -138,12 +142,84 @@ export function getGroupedStudioRoutes() {
   const groups = {};
   STUDIO_CATEGORIES.forEach((c) => { groups[c] = []; });
   Object.entries(STUDIO_ROUTES).forEach(([route, meta]) => {
-    const cat = meta.category || 'Tools';
+    const cat = meta.category || 'Agents';
     (groups[cat] = groups[cat] || []).push({ route, label: meta.label, icon: getStudioIcon(route) });
   });
   return STUDIO_CATEGORIES
     .filter((c) => groups[c] && groups[c].length)
     .map((c) => ({ category: c, items: groups[c] }));
+}
+
+// The app's one studio menu (the left side menu). Edit this list to add,
+// rename, reorder or retire a studio in the navigation; the top bar and the
+// studio pages no longer carry their own menus.
+export const NAV_GROUPS = [
+  { title: '', items: [
+    { id: 'apps', label: 'Apps' },
+    { id: 'explore', label: 'Explore' },
+    { id: 'templates', label: 'Templates' },
+  ] },
+  { title: 'Image', items: [
+    { id: 'image', label: 'Image' },
+    { id: 'edit', label: 'Edit' },
+    { id: 'upscale', label: 'Upscale' },
+    { id: 'character', label: 'Character' },
+    { id: 'commercial', label: 'Product Shot' },
+    { id: 'brand', label: 'Brand' },
+  ] },
+  { title: 'Video', items: [
+    { id: 'video', label: 'Video' },
+    { id: 'cinema', label: 'Cinema' },
+    { id: 'cinema-template', label: 'Cinema Templates' },
+    { id: 'storyboard', label: 'Storyboard' },
+    { id: 'effects', label: 'Effects' },
+    { id: 'ai-vfx', label: 'AI VFX' },
+    { id: 'animate', label: 'Animate' },
+    { id: 'lipsync', label: 'Lip Sync' },
+    { id: 'videotools', label: 'Video Tools' },
+    { id: 'avatar', label: 'Avatar' },
+    { id: 'audio', label: 'Audio' },
+  ] },
+  { title: 'Agents', items: [
+    { id: 'video-agent', label: 'Video Agent' },
+    { id: 'director', label: 'Director' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'workbench', label: 'Workbench' },
+    { id: 'viral', label: 'Viral' },
+    { id: 'personalizer', label: 'Personalizer' },
+    { id: 'website-builder', label: 'Website' },
+  ] },
+  { title: 'My Work', items: [
+    { id: 'library', label: 'Library' },
+    { id: 'content-library', label: 'Content' },
+  ] },
+];
+
+// Routes that are part of a menu entry without being one themselves.
+const NAV_ALIASES = {
+  cinegen: 'workbench',
+  'video-agent-studio': 'video-agent',
+  'brand-dna': 'brand',
+  campaign: 'brand',
+  'campaign-page': 'brand',
+  'asset-edit': 'brand',
+  'photo-studio': 'brand',
+  'brand-photo-studio': 'brand',
+  'text-to-image': 'image',
+  'image-to-image': 'image',
+  'text-to-video': 'video',
+  'image-to-video': 'video',
+  'video-to-video': 'video',
+  'video-watermark': 'video',
+};
+
+// Which side-menu entry to highlight for a route (null when none applies).
+export function getNavItemForRoute(route) {
+  if (!route) return null;
+  const page = String(route).replace(/^#?\/?/, '').split('?')[0];
+  if (page.startsWith('template/')) return 'templates';
+  const id = NAV_ALIASES[page] || page;
+  return NAV_GROUPS.some((g) => g.items.some((it) => it.id === id)) ? id : null;
 }
 
 export default STUDIO_ROUTES;

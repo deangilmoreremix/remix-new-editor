@@ -1,9 +1,10 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
@@ -23,6 +24,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
+import { createActionRow, arrangeActionRow } from './studio/actionRow.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
@@ -208,7 +210,7 @@ export async function StoryboardStudio(options = {}) {
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
   if (!embedded) {
-    topBar.innerHTML = `<h1 class="${CINEMATIC_THEME.text.title} text-white mb-1">Storyboard Studio</h1><p class="${CINEMATIC_THEME.text.eyebrow} text-secondary mb-4">Plan your scenes with AI-generated storyboard frames</p>`;
+    topBar.appendChild(createStudioHeader('storyboard', 'Storyboard Studio', 'Plan scenes as AI storyboard frames, then turn them into video', 'mb-4'));
   }
   const inlineInstructions = createInlineInstructions('storyboard');
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
@@ -425,6 +427,9 @@ export async function StoryboardStudio(options = {}) {
     try {
       const result = await generateStoryboardFromIntent(intent, { generateImages: true });
       generatedStoryboard = result;
+      for (const f of result.frames || []) {
+        if (f.imageUrl) registerGeneration('storyboard', 'image', f.imageUrl, { prompt: f.prompt || '', model: intent.model || '', parameters: { shot: f.shot } });
+      }
       frames.length = 0;
       frames.push(...result.frames.map(f => ({ ...f, imageUrl: f.imageUrl || null })));
       frameDurations = frames.map(() => Math.max(2, Math.round(intent.duration / frames.length)));
@@ -692,6 +697,9 @@ genAllBtn.type = 'button';
           openGTMPromptModal('storyboard-studio', (prompt) => {
             enhancedConcept = prompt;
             renderFrames();
+          }, {
+            // Seed with the current concept, or the frames written so far.
+            basePrompt: enhancedConcept || frames.map((f) => f.prompt).filter(Boolean).join(' → '),
           });
         }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
@@ -726,7 +734,10 @@ genAllBtn.type = 'button';
   window.addEventListener('click', closeEnhanceMenu);
   controlBar.appendChild(enhanceMenu);
 
-  const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard', getTextarea: () => null });
+  // Unified action row (matches Image Studio): Thumbnail · Personalize
+  const actionRow = createActionRow();
+  controlBar.appendChild(actionRow);
+  const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: actionRow, appId: 'storyboard', getTextarea: () => null });
   // Live reference to the active personalization profile so generateFrame can
   // resolve {{tokens}} at generation time without mutating the textarea.
   const activeProfileRef = { value: null };
@@ -795,13 +806,13 @@ genAllBtn.type = 'button';
       mountThumbnailModal(modal);
       modal.open();
     });
-  controlBar.appendChild(thumbBtn);
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, personalize: personalizeTrigger?.button });
 
   subscribeToGtmThumbnails(({ imageUrl }) => {
     customThumbnailUrl = imageUrl;
     saveCustomThumbnailToCache('storyboard-studio', imageUrl);
     renderFrames();
-  });
+  }, { studioId: 'storyboard-studio' });
 
   const exportBtn = document.createElement('button');
   exportBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all ml-auto';
@@ -1332,11 +1343,12 @@ const compareBtn = document.createElement('button');
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard-studio', (prompt) => {
+          // A single frame renders as a still image, so boost it as an image prompt.
+          openGTMPromptModal('storyboard-frame', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');
-          });
+          }, { basePrompt: frame.enhancedPrompt || frame.prompt });
         }).catch((err) => console.error('[StoryboardStudio] Frame GTM Boost failed:', err));
       });
       const enhanceRow = document.createElement('div');
@@ -1588,6 +1600,7 @@ const compareBtn = document.createElement('button');
       const url = await engineGenerateFrameImage(prompt, selectedAr, selectedModel, selectedStyle, selectedLighting, selectedColor, customThumbnailUrl);
       if (url) {
         frame.imageUrl = url;
+        registerGeneration('storyboard', 'image', url, { prompt, model: selectedModel || '', parameters: { shot: frame.shot, aspect_ratio: selectedAr } });
         imageArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
       }
     } catch (err) {
