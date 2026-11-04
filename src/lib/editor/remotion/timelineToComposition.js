@@ -17,6 +17,27 @@ import { resolveOverlayText, safeImageUrl, sanitizeWrapperStyles } from '../addo
 import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
+import { buildCtaLottie } from '../addons/ctaLottie.js';
+
+function ctaOptions(clip, profile) {
+  const style = clip.style || {};
+  const buttonText = resolveOverlayText(clip.buttonText || 'Call Now', profile);
+  const animation = clip.animation || 'none';
+  return {
+    buttonText,
+    animation,
+    fontFamily: clip.fontFamily || 'Montserrat',
+    textColor: clip.textColor || '#ffffff',
+    buttonColor: style.buttonColor || '#eb5054',
+    posLeft: style.posLeft ?? 50,
+    posTop: style.posTop ?? 50,
+    posWidth: style.posWidth ?? 40,
+    opacity: style.opacity ?? 100,
+    blendMode: style.blendMode || 'normal',
+    resolvedSrc: animation === 'custom' ? safeImageUrl(clip.lottieSrc) : null,
+    lottie: animation !== 'custom' ? buildCtaLottie({ ...clip, animation, buttonText, buttonColor: style.buttonColor }) : null,
+  };
+}
 
 export const QUALITY_PRESETS = {
   '720p': { width: 1280, height: 720 },
@@ -109,6 +130,12 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
       };
       const addon = getAddon(clip.type);
 
+      // CTA buttons are drawn in the video (animated or plain); clicking them
+      // works in the interactive player only.
+      if (clip.type === 'click-to-call') {
+        layers.push({ ...base, kind: 'overlay', type: 'cta-button', options: ctaOptions(clip, profile) });
+        return;
+      }
       if (addon && addon.category !== 'overlay') {
         skipped.push({ id: base.id, type: clip.type, label: addon.label });
         return;

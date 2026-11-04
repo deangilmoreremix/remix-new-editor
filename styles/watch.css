@@ -44,7 +44,8 @@ html.watch-embed, html.watch-embed body { background: #000; }
 .wf-submit { flex: 1; padding: 11px; border: 0; border-radius: 8px; background: #eb5054; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; }
 .wf-submit:disabled { opacity: .6; cursor: wait; }
 .wf-skip { padding: 11px 14px; font: inherit; font-size: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,.3); background: transparent; color: #fff; cursor: pointer; }
-.wf-cta { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; padding: 12px 16px; border-radius: 999px; background: #eb5054; color: #fff; font-weight: 700; text-decoration: none; box-shadow: 0 8px 24px rgba(0,0,0,.35); box-sizing: border-box; text-align: center; font-size: clamp(13px, 1.8vw, 18px); }
+/* The video draws the CTA; this is the invisible tap target over it. */
+.wf-cta { position: absolute; display: block; border-radius: 999px; cursor: pointer; }
 .wf-cta:focus-visible { outline: 3px solid #fff; }
 .wf-linkbox { position: absolute; display: block; cursor: pointer; }
 .wf-linkbox:focus-visible { outline: 2px dashed #fff; }

@@ -85,7 +85,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       const on = sec >= start && sec < end;
       const id = String(clip.id);
       if (on && !live.has(id)) {
-        const el = clip.type === 'click-to-call' ? ctaElement(clip, { onCall }) : linkBoxElement(clip, { onCall });
+        const el = clip.type === 'click-to-call' ? ctaElement(clip, { onCall, frameAspect: model.width / model.height }) : linkBoxElement(clip, { onCall });
         if (el) { layer.appendChild(el); live.set(id, el); }
       } else if (!on && live.has(id)) {
         live.get(id).remove();

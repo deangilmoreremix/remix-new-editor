@@ -9,6 +9,7 @@ import { formBackground, ensureFormFont } from '../addons/addonOverlay.js';
 import { resolveOverlayText } from '../addons/overlayRender.js';
 import { getAddon, addonOptions } from '../addons/registry.js';
 import { ctaTarget } from '../addons/ctaLink.js';
+import { ctaBox } from '../addons/ctaLottie.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -116,8 +117,12 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip } = {}) {
   return card;
 }
 
-/** CTA button (click-to-call clip): a real tel: or https link at its position. */
-export function ctaElement(clip, { onCall } = {}) {
+/**
+ * CTA button (click-to-call clip). The video already draws the button
+ * (animated or plain), so this is a transparent, accessible tap target over
+ * it: a tel: or https link.
+ */
+export function ctaElement(clip, { onCall, frameAspect = 16 / 9 } = {}) {
   const style = clip.style || {};
   const phone = isValidPhoneNumber(clip.phoneNumber);
   const link = !phone && isSafeLink(clip.linkUrl);
@@ -128,12 +133,9 @@ export function ctaElement(clip, { onCall } = {}) {
   if (link) { a.target = '_blank'; a.rel = 'noopener noreferrer'; } else {
     a.addEventListener('click', () => onCall?.({ clip, phone: String(clip.phoneNumber).replace(/[^0-9+]/g, ''), notify: clip.callNotifyAddress || '' }));
   }
-  a.textContent = `${link ? '🔗' : '📞'} ${clip.buttonText || 'Call Now'}`;
-  if (style.buttonColor) a.style.background = style.buttonColor;
-  Object.assign(a.style, {
-    left: `${style.posLeft ?? 50}%`, top: `${style.posTop ?? 50}%`, width: `${style.posWidth ?? 40}%`,
-    opacity: String((style.opacity ?? 100) / 100),
-  });
+  a.setAttribute('aria-label', `${clip.buttonText || 'Call Now'}${phone ? ` — call ${clip.phoneNumber}` : ''}`);
+  const box = ctaBox(style, frameAspect);
+  Object.assign(a.style, { left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%` });
   a.dataset.clipId = String(clip.id);
   return a;
 }

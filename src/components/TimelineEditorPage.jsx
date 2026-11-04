@@ -28,6 +28,7 @@ import {
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
+  OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT,
 } from '../lib/editor/addons/index.js';
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
@@ -1815,14 +1816,9 @@ export function TimelineEditorPage() {
       }
 
       if (selected.type === 'click-to-call') {
-        // Intentionally a plain <a href="tel:..."> styled with CSS, not a
-        // Lottie animation like upstream's json-button plugin. Decided
-        // against porting Lottie support: upstream's animated button has
-        // no real href at all (a decorative click-away overlay), while a
-        // native tel: link is a strictly more functional call-to-action,
-        // and this avoids an ongoing per-clip Lottie-asset authoring
-        // burden for a general-purpose clip type. This is the permanent
-        // design, not a placeholder pending a future upgrade.
+        // A real <a href="tel:…"> / https link. The button itself is either
+        // the plain CSS pill or an animated Lottie (upstream json-button):
+        // generated styles from ctaLottie.js, or the user's own Lottie file.
         const ctcStyle = selected.style || {};
         const wrap = document.createElement('div');
         wrap.className = 'preview-click-to-call';
@@ -1843,6 +1839,22 @@ export function TimelineEditorPage() {
         `;
         if (!valid) {
           wrap.querySelector('a').addEventListener('click', (e) => e.preventDefault());
+        }
+        const ctaAnim = selected.animation || 'none';
+        if (ctaAnim !== 'none') {
+          const a = wrap.querySelector('a');
+          a.classList.add('preview-call-btn--lottie');
+          a.innerHTML = `<span class="cta-lottie" aria-label="${escapeHtml(selected.buttonText || 'Call Now')}"></span>`;
+          wrap.style.aspectRatio = String(CTA_ASPECT);
+          const host = a.firstElementChild;
+          (async () => {
+            const lottie = (await import('lottie-web')).default;
+            let data = ctaAnim === 'custom' ? null : buildCtaLottie({ ...selected, buttonColor: ctcStyle.buttonColor });
+            if (ctaAnim === 'custom' && selected.lottieSrc) {
+              try { data = await (await fetch(selected.lottieSrc)).json(); } catch { data = null; }
+            }
+            if (data && host.isConnected) lottie.loadAnimation({ container: host, renderer: 'svg', loop: true, autoplay: true, animationData: data });
+          })();
         }
 
         // Positioning within the frame (% of the preview stage), matching
@@ -3863,14 +3875,38 @@ export function TimelineEditorPage() {
             </div>
             <div class="clip-editor__field">
               <label for="ctc-btn-text">Button Text</label>
-              <input id="ctc-btn-text" type="text" value="${clip.buttonText || 'Call Now'}" />
+              <input id="ctc-btn-text" type="text" maxlength="40" value="${escapeHtml(clip.buttonText || 'Call Now')}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-notify">Email to notify about call attempt</label>
+              <input id="ctc-notify" type="email" value="${escapeHtml(clip.callNotifyAddress || '')}" placeholder="you@example.com" />
+            </div>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Animation</h3>
+            <div class="cta-anim-grid" role="radiogroup" aria-label="Button animation">
+              ${CTA_ANIMATIONS.map(([id, label]) => `<button type="button" class="cta-anim${(clip.animation || 'none') === id ? ' is-on' : ''}" data-cta-anim="${id}" role="radio" aria-checked="${(clip.animation || 'none') === id}" title="${escapeHtml(label)}"><span class="cta-anim__preview" data-cta-preview="${id}"></span><span class="cta-anim__label">${escapeHtml(label)}</span></button>`).join('')}
+              <button type="button" class="cta-anim${clip.animation === 'custom' ? ' is-on' : ''}" data-cta-anim="custom" role="radio" aria-checked="${clip.animation === 'custom'}"><span class="cta-anim__preview cta-anim__preview--custom">{ }</span><span class="cta-anim__label">Your Lottie file</span></button>
+            </div>
+            <div class="clip-editor__field" data-cta-custom ${clip.animation === 'custom' ? '' : 'hidden'}>
+              <label for="ctc-lottie">Lottie JSON (URL or upload)</label>
+              <input id="ctc-lottie" type="url" value="${escapeHtml(clip.lottieSrc || '')}" placeholder="https://…/button.json" />
+              <label class="mini-btn addon-upload-btn" style="margin-top:6px">Upload .json<input type="file" accept=".json,application/json" id="ctc-lottie-file" hidden /></label>
             </div>
           </div>
           <div class="clip-editor__section">
             <h3>Style</h3>
             <div class="clip-editor__field">
               <label for="ctc-btn-color">Button Color</label>
-              <input id="ctc-btn-color" type="color" value="${clip.style.buttonColor || '#22d3ee'}" />
+              <input id="ctc-btn-color" type="color" value="${clip.style.buttonColor || '#eb5054'}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-text-color">Text Color</label>
+              <input id="ctc-text-color" type="color" value="${clip.textColor || '#ffffff'}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-font">Font</label>
+              <select id="ctc-font">${OVERLAY_FONTS.map((f) => `<option ${f === (clip.fontFamily || 'Montserrat') ? 'selected' : ''}>${escapeHtml(f)}</option>`).join('')}</select>
             </div>
           </div>
           <div class="clip-editor__section">
@@ -3915,13 +3951,84 @@ export function TimelineEditorPage() {
         renderTracks();
         updatePreview(clip);
       });
+      const ctaChanged = () => {
+        updatePreview(clip);
+        scheduleEngineUpdate();
+        debouncedSave();
+        drawCtaPreviews();
+      };
       els.clipEditorContainer.querySelector('#ctc-btn-text').addEventListener('input', (e) => {
         clip.buttonText = e.target.value;
-        updatePreview(clip);
+        ctaChanged();
       });
+      els.clipEditorContainer.querySelector('#ctc-notify').addEventListener('input', (e) => {
+        clip.callNotifyAddress = e.target.value.trim();
+        debouncedSave();
+      });
+      els.clipEditorContainer.querySelector('#ctc-text-color').addEventListener('input', (e) => {
+        clip.textColor = e.target.value;
+        ctaChanged();
+      });
+      els.clipEditorContainer.querySelector('#ctc-font').addEventListener('change', (e) => {
+        clip.fontFamily = e.target.value;
+        ensureGoogleFontLoaded(clip.fontFamily);
+        ctaChanged();
+      });
+      els.clipEditorContainer.querySelectorAll('[data-cta-anim]').forEach((btn) => btn.addEventListener('click', () => {
+        clip.animation = btn.dataset.ctaAnim;
+        els.clipEditorContainer.querySelectorAll('[data-cta-anim]').forEach((b) => {
+          b.classList.toggle('is-on', b === btn);
+          b.setAttribute('aria-checked', String(b === btn));
+        });
+        els.clipEditorContainer.querySelector('[data-cta-custom]').hidden = clip.animation !== 'custom';
+        updatePreview(clip);
+        scheduleEngineUpdate();
+        debouncedSave();
+      }));
+      els.clipEditorContainer.querySelector('#ctc-lottie').addEventListener('change', (e) => {
+        clip.lottieSrc = e.target.value.trim();
+        ctaChanged();
+      });
+      els.clipEditorContainer.querySelector('#ctc-lottie-file').addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const json = JSON.parse(await file.text());
+          if (!json || !Array.isArray(json.layers)) throw new Error('not a Lottie file');
+          let url = null;
+          try { url = await uploadFileToStorage(file); } catch { url = null; }
+          if (!url) {
+            const { localMediaUrl } = await import('../lib/editor/remotion/localMedia.js');
+            url = localMediaUrl(new Blob([JSON.stringify(json)], { type: 'application/json' }));
+          }
+          clip.lottieSrc = typeof url === 'string' ? url : url.url;
+          els.clipEditorContainer.querySelector('#ctc-lottie').value = clip.lottieSrc;
+          ctaChanged();
+        } catch (err) {
+          showToast(`That file isn't a Lottie animation (${err.message})`, 'error');
+        }
+      });
+      // Live previews of each animation style, in the clip's own text and colours.
+      let ctaPreviewAnims = [];
+      async function drawCtaPreviews() {
+        const lottie = (await import('lottie-web')).default;
+        ctaPreviewAnims.forEach((a) => a.destroy());
+        ctaPreviewAnims = [];
+        els.clipEditorContainer.querySelectorAll('[data-cta-preview]').forEach((host) => {
+          const id = host.dataset.ctaPreview;
+          host.innerHTML = '';
+          if (id === 'none') {
+            host.innerHTML = `<span class="cta-plain" style="background:${escapeHtml(clip.style.buttonColor || '#eb5054')};color:${escapeHtml(clip.textColor || '#fff')}">${escapeHtml(clip.buttonText || 'Call Now')}</span>`;
+            return;
+          }
+          const data = buildCtaLottie({ ...clip, animation: id, buttonColor: clip.style.buttonColor });
+          if (data) ctaPreviewAnims.push(lottie.loadAnimation({ container: host, renderer: 'svg', loop: true, autoplay: true, animationData: data }));
+        });
+      }
+      drawCtaPreviews();
       els.clipEditorContainer.querySelector('#ctc-btn-color').addEventListener('input', (e) => {
         clip.style.buttonColor = e.target.value;
-        updatePreview(clip);
+        ctaChanged();
       });
       els.clipEditorContainer.querySelector('#ctc-pos-left').addEventListener('input', (e) => {
         clip.style.posLeft = parseInt(e.target.value, 10);

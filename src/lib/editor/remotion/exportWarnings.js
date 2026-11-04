@@ -10,6 +10,9 @@ export function exportWarnings(model, { quality } = {}) {
     const names = [...new Set(model.skipped.map((s) => s.label))].join(', ');
     warnings.push(`Interactive elements (${names}) stay in the editor and interactive player, but a video file can't pause, loop or take input, so they're not in the export.`);
   }
+  if ((model.layers || []).some((l) => l.type === 'cta-button')) {
+    warnings.push('CTA buttons appear in the exported video, but only the interactive player (Share link) makes them clickable.');
+  }
   (model.transitions || []).forEach((tr) => {
     const used = tr.gpu ? tr.fallback : tr.presentation;
     if (!tr.exact || tr.gpu) {

@@ -24,3 +24,5 @@ export {
 export { renderStockBrowser, STOCK_SUGGESTIONS } from './stockBrowser.js';
 export { capturePreset, presetToClips, loadPresets, savePresets, PRESETS_STORAGE_KEY } from './overlayPresets.js';
 export { loadGlTransitions, createTransitionRenderer, fragmentFor } from './glTransitionRenderer.js';
+export { CTA_ANIMATIONS, buildCtaLottie, ctaBox, CTA_ASPECT } from './ctaLottie.js';
+export { ctaTarget, COUNTRY_CODES } from './ctaLink.js';

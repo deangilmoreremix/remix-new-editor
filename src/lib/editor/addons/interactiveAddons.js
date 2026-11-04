@@ -130,7 +130,8 @@ export const CTA_BUTTON = registerAddon({
   flatOptions: true,
   customEditor: true,
   defaultDuration: 4,
-  defaults: () => ({ phoneNumber: '', linkUrl: '', buttonText: 'Call Now', style: { buttonColor: '#eb5054' } }),
+  // animation: one of CTA_ANIMATIONS (ctaLottie.js); 'none' = the plain button.
+  defaults: () => ({ phoneNumber: '', linkUrl: '', buttonText: 'Call Now', animation: 'pulse', fontFamily: 'Montserrat', textColor: '#ffffff', lottieSrc: '', callNotifyAddress: '', style: { buttonColor: '#eb5054' } }),
 });
 
 // Upstream order within each toolbar section.

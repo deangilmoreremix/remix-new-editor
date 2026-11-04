@@ -33,6 +33,7 @@ import { stretchLowerThird } from '../addons/lowerThirds.js';
 import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './keyframes.js';
 import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
+import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
 
 // ------------------------------------------------------------------ fonts
 
@@ -299,7 +300,38 @@ function TitleCard({ layer }) {
   );
 }
 
+/** CTA button (click-to-call clip): animated Lottie, custom Lottie, or a plain pill. */
+function CtaButton({ o }) {
+  const { width: W, height: H, fps } = useVideoConfig();
+  const fontsReady = React.useContext(FontsReady);
+  const custom = useJson(o.animation === 'custom' ? o.resolvedSrc : null);
+  const box = ctaBox(o, W / H);
+  const style = {
+    position: 'absolute', left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%`,
+    opacity: (o.opacity ?? 100) / 100, mixBlendMode: o.blendMode && o.blendMode !== 'normal' ? o.blendMode : undefined,
+  };
+  if (!fontsReady) return null;
+  const data = o.lottie || custom;
+  if (data) {
+    return <div style={style}><Lottie animationData={data} loop playbackRate={(data.fr || CTA_FPS) / fps} style={{ width: '100%', height: '100%' }} /></div>;
+  }
+  if (o.animation === 'custom') return null; // still loading / invalid
+  const h = (box.height / 100) * H;
+  return (
+    <div style={{ ...style, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{
+        width: '90%', height: '60%', borderRadius: 999, background: o.buttonColor, color: o.textColor, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: `"${o.fontFamily}", system-ui, sans-serif`, fontWeight: 700, fontSize: h * 0.26, boxShadow: '0 6px 20px rgba(0,0,0,0.35)', whiteSpace: 'nowrap', overflow: 'hidden',
+      }}
+      >
+        {o.buttonText}
+      </div>
+    </div>
+  );
+}
+
 const OVERLAYS = {
+  'cta-button': CtaButton,
   'overlay-text': SmartText,
   'overlay-image': (p) => <ImageOverlay {...p} />,
   'overlay-personalized-image': (p) => <ImageOverlay {...p} personalized />,
