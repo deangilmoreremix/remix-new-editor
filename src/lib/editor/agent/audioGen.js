@@ -3,6 +3,8 @@
  * poll until it's done, copy the audio into the user's storage (provider
  * links can expire) and read its duration.
  */
+import { apiKeyManager } from '../../apiKeyManager.js';
+
 export const AUDIO_ENDPOINT = '/api/agent-audio';
 
 export const VOICES = [
@@ -38,10 +40,32 @@ async function authHeader() {
   }
 }
 
-async function call(body, { fetchImpl = fetch, signal } = {}) {
-  const res = await fetchImpl(AUDIO_ENDPOINT, { method: 'POST', signal, headers: { 'Content-Type': 'application/json', ...(await authHeader()) }, body: JSON.stringify(body) });
+/**
+ * BYOK: requests run on the user's own keys from Settings → API keys, sent as
+ * X-MuAPI-Key (MiniMax voices, music) and X-OpenAI-Key (OpenAI voices).
+ */
+export function byokHeaders(manager = apiKeyManager) {
+  const h = {};
+  const muapi = manager?.getMuapiKey?.();
+  const openai = manager?.getOpenAIKey?.();
+  if (muapi && muapi !== 'dev') h['X-MuAPI-Key'] = muapi;
+  if (openai) h['X-OpenAI-Key'] = openai;
+  return h;
+}
+
+/** Which key a request needs, and whether the user has added it. */
+export function missingKeyMessage(kind, params = {}, manager = apiKeyManager) {
+  if (kind === 'tts' && params.provider === 'openai') {
+    return manager?.getOpenAIKey?.() ? null : 'OpenAI voices use your own OpenAI key. Add it in Settings → API keys (OpenAI API Key).';
+  }
+  const muapi = manager?.getMuapiKey?.();
+  return muapi && muapi !== 'dev' ? null : `${kind === 'music' ? 'Music' : 'MiniMax voices'} use your own MuAPI key. Add it in Settings → API keys (MuAPI API Key).`;
+}
+
+async function call(body, { fetchImpl = fetch, signal, keyManager = apiKeyManager } = {}) {
+  const res = await fetchImpl(AUDIO_ENDPOINT, { method: 'POST', signal, headers: { 'Content-Type': 'application/json', ...(await authHeader()), ...byokHeaders(keyManager) }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => null);
-  if (res.status === 401) throw new Error('Sign in to generate voiceovers and music.');
+  if (res.status === 401) throw new Error(data?.error?.message || 'Sign in to generate voiceovers and music.');
   if (!res.ok || !data?.ok) throw new Error(data?.error?.message || `The audio service is unavailable (HTTP ${res.status}).`);
   return data;
 }
@@ -51,15 +75,17 @@ async function call(body, { fetchImpl = fetch, signal } = {}) {
  * @param {object} params   tts: { text, voice, speed, provider?, pitch?, instructions? } · music: { prompt, genre, mood, duration }
  * @returns {Promise<string>} audio URL from the provider
  */
-export async function generateAudio(kind, params, { fetchImpl, signal, pollMs = 3000, timeoutMs = 6 * 60_000, onProgress } = {}) {
-  const first = await call({ action: 'submit', kind, ...params }, { fetchImpl, signal });
+export async function generateAudio(kind, params, { fetchImpl, signal, pollMs = 3000, timeoutMs = 6 * 60_000, onProgress, keyManager = apiKeyManager } = {}) {
+  const missing = missingKeyMessage(kind, params, keyManager);
+  if (missing) throw new Error(missing);
+  const first = await call({ action: 'submit', kind, ...params }, { fetchImpl, signal, keyManager });
   if (first.status === 'done' && first.url) return first.url;
   const started = Date.now();
   for (;;) {
     if (Date.now() - started > timeoutMs) throw new Error('Audio generation timed out — try again');
     await sleep(pollMs, signal);
     onProgress?.({ elapsedSec: Math.round((Date.now() - started) / 1000) });
-    const res = await call({ action: 'status', requestId: first.requestId }, { fetchImpl, signal });
+    const res = await call({ action: 'status', requestId: first.requestId }, { fetchImpl, signal, keyManager });
     if (res.status === 'done' && res.url) return res.url;
     if (res.status === 'failed') throw new Error(res.error || 'Audio generation failed');
   }

@@ -26,16 +26,17 @@ function isStaticPlaceholderUrl(url) {
   return KNOWN_STATIC_PLACEHOLDER_PATTERNS.some(pattern => lower.includes(pattern));
 }
 
-function getApiKey() {
-  const key = process.env.MUAPI_API_KEY;
+function getApiKey(userKey) {
+  const key = userKey || process.env.MUAPI_API_KEY;
   if (!key) {
     throw new Error('MUAPI_API_KEY is not configured');
   }
   return key;
 }
 
-export async function muapiPost(path, payload, signal) {
-  const key = getApiKey();
+export async function muapiPost(path, payload, signal, userKey) {
+  // userKey: the caller's own MuAPI key (BYOK). Older callers still use the env key.
+  const key = getApiKey(userKey);
   const response = await fetch(`${MUAPI_BASE_URL}${path}`, {
     method: 'POST',
     headers: {
@@ -48,7 +49,7 @@ export async function muapiPost(path, payload, signal) {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`MuAPI ${path} failed: ${response.status} ${response.statusText} - ${text.slice(0, 200)}`);
+    throw Object.assign(new Error(`MuAPI ${path} failed: ${response.status} ${response.statusText} - ${text.slice(0, 200)}`), { status: response.status });
   }
 
   return response.json();

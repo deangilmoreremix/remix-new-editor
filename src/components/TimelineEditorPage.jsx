@@ -5192,7 +5192,9 @@ export function TimelineEditorPage() {
           const token = await window.Clerk?.session?.getToken?.();
           const res = await fetch('/api/video-agent', { headers: token ? { Authorization: `Bearer ${token}` } : {} });
           const data = await res.json();
-          return data?.providers || null;
+          // OpenAI runs on the user's own key (BYOK), checked when they send;
+          // a key added in Settings later works without reloading.
+          return data?.providers ? { ...data.providers, openai: true } : null;
         } catch {
           return null;
         }

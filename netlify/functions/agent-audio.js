@@ -2,9 +2,10 @@
  * Netlify function: agent-audio
  *
  * Voiceover (text-to-speech) and background music for the timeline
- * editor (AI Agent and Smart Speech), generated on server keys:
- *   - MiniMax Speech HD through MuAPI (MUAPI_API_KEY): narration, default
- *   - OpenAI text-to-speech (OPENAI_API_KEY): gpt-4o-mini-tts, optional
+ * editor (AI Agent and Smart Speech), on the user's own keys (BYOK, sent as
+ * X-MuAPI-Key / X-OpenAI-Key from Settings → API keys):
+ *   - MiniMax Speech HD through MuAPI: narration, default
+ *   - OpenAI text-to-speech: gpt-4o-mini-tts, optional
  *   - Suno through MuAPI: music
  * MuAPI generation can take minutes, longer than a function may run, so
  * the browser submits a job and then polls for its result. OpenAI speech
@@ -20,6 +21,7 @@
  */
 import { withClerkAuth } from './_shared/clerkAuth.js';
 import { muapiPost, extractRealUrl, musicPayload } from './cinegenProviders.js';
+import { userMuapiKey, userOpenAIKey, NEED_MUAPI_KEY, NEED_OPENAI_KEY, BAD_OPENAI_KEY, BAD_MUAPI_KEY, OPENAI_NO_CREDIT } from './_shared/byok.js';
 
 export const VOICES = [
   'Wise_Woman', 'Friendly_Person', 'Inspirational_girl', 'Deep_Voice_Man', 'Calm_Woman', 'Casual_Guy',
@@ -88,7 +90,7 @@ export function buildRequest(body) {
 }
 
 /** OpenAI speech → data: URL (mp3). */
-export async function openaiSpeech(payload, { fetchImpl = fetch, apiKey = process.env.OPENAI_API_KEY } = {}) {
+export async function openaiSpeech(payload, { fetchImpl = fetch, apiKey } = {}) {
   const res = await fetchImpl('https://api.openai.com/v1/audio/speech', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -96,36 +98,39 @@ export async function openaiSpeech(payload, { fetchImpl = fetch, apiKey = proces
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
-    throw new Error(`OpenAI speech HTTP ${res.status} ${detail.slice(0, 200)}`);
+    throw Object.assign(new Error(`OpenAI speech HTTP ${res.status} ${detail.slice(0, 200)}`), { status: res.status });
   }
   const buf = Buffer.from(await res.arrayBuffer());
   return `data:audio/mpeg;base64,${buf.toString('base64')}`;
 }
 
-export async function handle(body, userId, { fetchImpl = fetch } = {}) {
+export async function handle(body, userId, { fetchImpl = fetch, keys = {} } = {}) {
   const openai = body.action === 'submit' && body.kind === 'tts' && body.provider === 'openai';
-  if (openai && !process.env.OPENAI_API_KEY) return fail(503, 'not_configured', 'OpenAI voices are not configured on the server (OPENAI_API_KEY).');
-  if (!openai && !process.env.MUAPI_API_KEY) return fail(503, 'not_configured', 'Voiceover and music are not configured on the server (MUAPI_API_KEY).');
+  if (openai && !keys.openai) return fail(401, 'need_key', NEED_OPENAI_KEY);
+  if (!openai && !keys.muapi) return fail(401, 'need_key', NEED_MUAPI_KEY);
   if (body.action === 'submit') {
     if (rateLimited(userId)) return fail(429, 'rate_limited', 'Too many audio requests — wait a few minutes.');
     const req = buildRequest(body);
     if (req.error) return fail(400, 'bad_request', req.error);
     if (req.provider === 'openai') {
       try {
-        return json(200, { ok: true, status: 'done', url: await openaiSpeech(req.payload, { fetchImpl }) });
+        return json(200, { ok: true, status: 'done', url: await openaiSpeech(req.payload, { fetchImpl, apiKey: keys.openai }) });
       } catch (err) {
-        console.error('[agent-audio] openai failed', err?.message);
+        if (err?.status === 401) return fail(401, 'bad_key', BAD_OPENAI_KEY);
+        if (err?.status === 429) return fail(429, 'no_credit', OPENAI_NO_CREDIT);
+        console.error('[agent-audio] openai failed', err?.status || 'error');
         return fail(502, 'provider_error', 'The OpenAI voice service returned an error.');
       }
     }
     try {
-      const res = await muapiPost(req.endpoint, req.payload);
+      const res = await muapiPost(req.endpoint, req.payload, undefined, keys.muapi);
       const requestId = res.request_id || res.id;
       if (requestId) return json(200, { ok: true, requestId: String(requestId) });
       const url = extractRealUrl(res);
       return url ? json(200, { ok: true, status: 'done', url }) : fail(502, 'provider_error', 'The audio service returned no result.');
     } catch (err) {
-      console.error('[agent-audio] submit failed', err?.message);
+      if ([401, 402, 403].includes(err?.status)) return fail(401, 'bad_key', BAD_MUAPI_KEY);
+      console.error('[agent-audio] submit failed', err?.status || 'error');
       return fail(502, 'provider_error', 'The audio service returned an error.');
     }
   }
@@ -133,7 +138,7 @@ export async function handle(body, userId, { fetchImpl = fetch } = {}) {
     const id = String(body.requestId || '');
     if (!/^[A-Za-z0-9_-]{4,128}$/.test(id)) return fail(400, 'bad_request', 'Invalid requestId');
     try {
-      const data = await muapiPost(`/predictions/${encodeURIComponent(id)}/result`, {});
+      const data = await muapiPost(`/predictions/${encodeURIComponent(id)}/result`, {}, undefined, keys.muapi);
       const status = String(data.status || '').toLowerCase();
       if (['completed', 'succeeded', 'success'].includes(status)) {
         const url = extractRealUrl(data);
@@ -154,5 +159,5 @@ export const handler = withClerkAuth(async (event) => {
   if ((event.body || '').length > 20_000) return fail(413, 'too_large', 'Request too large');
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch { return fail(400, 'bad_request', 'Body must be JSON'); }
-  return handle(body, event.auth.userId);
+  return handle(body, event.auth.userId, { keys: { muapi: userMuapiKey(event.headers), openai: userOpenAIKey(event.headers) } });
 });

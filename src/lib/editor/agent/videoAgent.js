@@ -1,6 +1,6 @@
 /**
  * Client side of the AI Video Agent: runs the tool loop in the browser.
- * Each model step goes through /api/video-agent (keys stay on the server);
+ * Each model step goes through /api/video-agent on the user's own OpenAI key (BYOK);
  * tool calls run locally against the timeline (tools.js).
  *
  * History is provider-neutral (see netlify/functions/video-agent.js). The
@@ -8,6 +8,8 @@
  * tool-call blocks round-trip correctly. Every tool call gets a result —
  * including after Stop — so the history stays valid.
  */
+import { apiKeyManager } from '../../apiKeyManager.js';
+
 export const MAX_STEPS = 25;
 export const AGENT_ENDPOINT = '/api/video-agent';
 
@@ -22,14 +24,17 @@ async function authHeader() {
 
 /** One model step on the server. */
 export async function fetchAgentStep({ provider, messages, tools, signal }) {
+  // BYOK: the agent runs on the user's own OpenAI key (Settings → API keys).
+  const openaiKey = provider === 'anthropic' ? null : apiKeyManager.getOpenAIKey?.();
+  if (provider !== 'anthropic' && !openaiKey) throw new Error('The AI Video agent uses your own OpenAI key. Add it in Settings → API keys (OpenAI API Key).');
   const res = await fetch(AGENT_ENDPOINT, {
     method: 'POST',
     signal,
-    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()), ...(openaiKey ? { 'X-OpenAI-Key': openaiKey } : {}) },
     body: JSON.stringify({ provider, messages, tools }),
   });
   const data = await res.json().catch(() => null);
-  if (res.status === 401) throw new Error('Sign in to use the AI Video agent.');
+  if (res.status === 401) throw new Error(data?.error?.message || 'Sign in to use the AI Video agent.');
   if (!res.ok || !data?.ok) throw new Error(data?.error?.message || `The AI service is unavailable (HTTP ${res.status}).`);
   return data;
 }

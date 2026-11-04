@@ -7,23 +7,39 @@ import '../../addons/index.js';
 
 const reply = (body, status = 200) => ({ ok: status < 400, status, json: async () => body });
 
+const KEYS = { getMuapiKey: () => 'mu_test_key_0123456789', getOpenAIKey: () => 'sk-test0123456789abcdefghijkl' };
+const KEYS_MUAPI_ONLY = { getMuapiKey: () => 'mu_test_key_0123456789', getOpenAIKey: () => null };
+const NO_KEYS = { getMuapiKey: () => null, getOpenAIKey: () => null };
+
 describe('audio generation client', () => {
   it('submits then polls until done', async () => {
     const fetchImpl = vi.fn()
       .mockResolvedValueOnce(reply({ ok: true, requestId: 'req1' }))
       .mockResolvedValueOnce(reply({ ok: true, status: 'pending' }))
       .mockResolvedValueOnce(reply({ ok: true, status: 'done', url: 'https://cdn/a.mp3' }));
-    const url = await generateAudio('tts', { text: 'Hi' }, { fetchImpl, pollMs: 1 });
+    const url = await generateAudio('tts', { text: 'Hi' }, { fetchImpl, pollMs: 1, keyManager: KEYS });
     expect(url).toBe('https://cdn/a.mp3');
     expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toEqual({ action: 'submit', kind: 'tts', text: 'Hi' });
     expect(JSON.parse(fetchImpl.mock.calls[2][1].body)).toEqual({ action: 'status', requestId: 'req1' });
   });
 
   it('reports failures and missing config', async () => {
-    await expect(generateAudio('music', { mood: 'calm' }, { fetchImpl: async () => reply({ ok: true, requestId: 'r' }), pollMs: 1, timeoutMs: 0 })).rejects.toThrow(/timed out/);
+    await expect(generateAudio('music', { mood: 'calm' }, { fetchImpl: async () => reply({ ok: true, requestId: 'r' }), pollMs: 1, timeoutMs: 0, keyManager: KEYS })).rejects.toThrow(/timed out/);
     const failed = vi.fn().mockResolvedValueOnce(reply({ ok: true, requestId: 'r' })).mockResolvedValueOnce(reply({ ok: true, status: 'failed', error: 'nope' }));
-    await expect(generateAudio('music', { mood: 'calm' }, { fetchImpl: failed, pollMs: 1 })).rejects.toThrow('nope');
-    await expect(generateAudio('tts', { text: 'x' }, { fetchImpl: async () => reply({ ok: false, error: { message: 'not configured (MUAPI_API_KEY)' } }, 503) })).rejects.toThrow(/MUAPI_API_KEY/);
+    await expect(generateAudio('music', { mood: 'calm' }, { fetchImpl: failed, pollMs: 1, keyManager: KEYS })).rejects.toThrow('nope');
+    // BYOK: without the user's key nothing is sent, and the message says where to add it.
+    const never = vi.fn();
+    await expect(generateAudio('tts', { text: 'x' }, { fetchImpl: never, keyManager: NO_KEYS })).rejects.toThrow(/Settings → API keys \(MuAPI/);
+    await expect(generateAudio('tts', { text: 'x', provider: 'openai' }, { fetchImpl: never, keyManager: KEYS_MUAPI_ONLY })).rejects.toThrow(/OpenAI API Key/);
+    expect(never).not.toHaveBeenCalled();
+    // The server's own message (e.g. a rejected key) is shown as-is.
+    await expect(generateAudio('tts', { text: 'x' }, { fetchImpl: async () => reply({ ok: false, error: { message: 'MuAPI rejected your API key' } }, 401), keyManager: KEYS })).rejects.toThrow(/rejected your API key/);
+  });
+
+  it('sends the user\'s keys as BYOK headers', async () => {
+    const fetchImpl = vi.fn(async () => reply({ ok: true, status: 'done', url: 'https://x/a.mp3' }));
+    await generateAudio('tts', { text: 'Hi' }, { fetchImpl, keyManager: KEYS });
+    expect(fetchImpl.mock.calls[0][1].headers).toMatchObject({ 'X-MuAPI-Key': 'mu_test_key_0123456789', 'X-OpenAI-Key': 'sk-test0123456789abcdefghijkl' });
   });
 
   it('copies audio to storage, falling back to the provider URL', async () => {
