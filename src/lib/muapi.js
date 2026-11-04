@@ -697,9 +697,14 @@ export class MuapiClient {
             }
         }
 
-        if (p.aspect_ratio) finalPayload.aspect_ratio = p.aspect_ratio;
+        // Opt-in (template studios): send only the settings this model
+        // declares — the validator fills aspect_ratio / resolution defaults
+        // that models such as Kling v2.6 I2V do not accept.
+        const declaresInput = (key) => !params.onlyDeclaredInputs || !modelInfo?.inputs
+            || Object.prototype.hasOwnProperty.call(modelInfo.inputs, key);
+        if (p.aspect_ratio && declaresInput('aspect_ratio')) finalPayload.aspect_ratio = p.aspect_ratio;
         if (p.duration) finalPayload.duration = p.duration;
-        if (p.resolution) finalPayload.resolution = p.resolution;
+        if (p.resolution && declaresInput('resolution')) finalPayload.resolution = p.resolution;
         if (p.quality) finalPayload.quality = p.quality;
         // First/last-frame control (start + end image). Forwarded from the raw
         // params (not the sanitized object, which strips unknown keys) so

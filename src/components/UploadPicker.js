@@ -1585,5 +1585,14 @@ export function createUploadPicker({
     // video) through the same pipeline as a picked file.
     const uploadFile = (file) => (file ? uploadFiles([file]) : undefined);
 
-    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage, selectAsset, uploadFile };
+    // Fill the frame slots with media attached elsewhere, without saving an
+    // upload-history entry or firing onSelect, so the next pick keeps them.
+    const setFrames = (startUrl, endUrl) => {
+        if (!frameMode) return;
+        const asEntry = (url, slot) => (url ? { id: `attached-${slot}`, name: slot, uploadedUrl: url, thumbnail: url, type: 'image' } : null);
+        frameEntries = { start: asEntry(startUrl, 'start'), end: asEntry(endUrl, 'end') };
+        updateTrigger();
+    };
+
+    return { trigger, panel, reset, setMaxImages, getSelectedUrls, setImage, selectAsset, uploadFile, setFrames };
 }

@@ -126,3 +126,23 @@ describe('Creative Intelligence defaults', () => {
     expect(detectTemplateNiche({ template: { name: 'Steakhouse promo', description: 'restaurant film' } })).toBe('restaurant');
   });
 });
+
+describe('composeTemplatePrompt / appendMissingInputs: review fixes', () => {
+  it('keeps decimals, versions and domains intact', () => {
+    const { prompt } = composeTemplatePrompt({ template: thumbnail, userPrompt: 'shot on v2.6 at 2.5x speed for example.com' });
+    expect(prompt).toContain('v2.6');
+    expect(prompt).toContain('2.5x');
+    expect(prompt).toContain('example.com');
+  });
+
+  it('adds a niche the user typed that has no enrichment terms', () => {
+    const { prompt } = composeTemplatePrompt({ template: thumbnail, userPrompt: 'x', tiles: { niche: 'pottery studio' } });
+    expect(prompt).toContain('Niche: pottery studio');
+  });
+
+  it('matches whole values only', async () => {
+    const { appendMissingInputs } = await import('../../src/lib/templatePromptComposer.js');
+    expect(appendMissingInputs('Anamorphic lens aesthetic', [{ label: 'Character', value: 'Ana' }])).toContain('Character: Ana');
+    expect(appendMissingInputs('Starring Ana in Lisbon', [{ label: 'Character', value: 'Ana' }])).toBe('Starring Ana in Lisbon');
+  });
+});

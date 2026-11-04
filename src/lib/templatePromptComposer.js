@@ -127,6 +127,13 @@ export function composeTemplatePrompt({
   const chosenNiche = clean(advanced.niche) && advanced.niche !== 'auto-detect' ? clean(advanced.niche) : '';
   const niche = chosenNiche || clean(tiles.niche) || detectTemplateNiche({ template, advanced, fields, userPrompt: main });
   const nicheTerms = NICHE_ENRICHMENT[niche] || getNicheTerms(niche) || [];
+  // A niche the user typed that has no enrichment terms of its own (the
+  // lookup falls back to generic terms) is added as written.
+  const userNiche = chosenNiche || clean(tiles.niche);
+  const fallbackTerms = getNicheTerms('__unknown-niche__') || [];
+  const knownNiche = !!NICHE_ENRICHMENT[niche]
+    || (nicheTerms.length > 0 && JSON.stringify(nicheTerms) !== JSON.stringify(fallbackTerms));
+  if (userNiche && !knownNiche) push('nicheText', `Niche: ${humanize(userNiche)}`);
   if (nicheTerms.length) push('niche', nicheTerms.slice(0, 5).join(', '));
 
   // 4. Creative direction (cards win over template defaults).
@@ -164,7 +171,8 @@ export function composeTemplatePrompt({
   const seen = new Set();
   let prompt = parts
     .join('. ')
-    .replace(/\s*\.\s*/g, '. ')
+    // Only sentence-ending periods (keeps 2.5, example.com, v2.6 intact).
+    .replace(/\s*\.(?:\s+|$)/g, '. ')
     .replace(/\.{2,}/g, '.')
     .split('. ')
     .filter((s) => {
@@ -212,7 +220,10 @@ export function appendMissingInputs(prompt, entries = []) {
     const v = clean(Array.isArray(e.value) ? e.value.filter(Boolean).join(', ') : e.value);
     if (!v) continue;
     const key = v.toLowerCase();
-    if (lower.includes(key) || seen.has(key)) continue;
+    // Whole-value match ("Ana" is not present in "Anamorphic").
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const present = new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`, 'i').test(lower);
+    if (present || seen.has(key)) continue;
     seen.add(key);
     added.push(e.label ? `${clean(e.label)}: ${v}` : v);
   }

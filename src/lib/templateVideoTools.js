@@ -218,13 +218,18 @@ export function createTemplateVideoTools({
     }
     import('./studioControls.js').then(({ createAdvancedControls }) => {
       if (advancedModelId !== model.id) return;
-      advanced = createAdvancedControls({
+      const handle = createAdvancedControls({
         model: { ...model, inputs },
         state: {},
         container: controlsHost,
         exclude: new Set(['aspect_ratio', 'duration', 'resolution', 'quality']),
       }) || null;
-    }).catch((err) => console.warn(`[${studioName}] advanced controls unavailable:`, err));
+      advanced = handle ? { ...handle, modelId: model.id } : null;
+    }).catch((err) => {
+      console.warn(`[${studioName}] advanced controls unavailable:`, err);
+      // Let the next open retry for this model.
+      if (advancedModelId === model.id) advancedModelId = null;
+    });
   }
 
   /** Re-read the selected model and update what is offered. */
@@ -247,7 +252,7 @@ export function createTemplateVideoTools({
     if (!supportsCharacter && state.characterLock) { state.characterLock = false; paintLock(); }
     motionPanel.querySelector('[data-row="guidance"]').classList.toggle('opacity-50', !guidance);
     if (!advPanel.classList.contains('hidden')) buildAdvancedControls(m);
-    else if (m && m.id !== advancedModelId) { advancedModelId = null; }
+    else if (m && m.id !== advancedModelId) { advancedModelId = null; advanced = null; }
   }
 
   /** Attachment toolbar on the prompt field (same as the Video Studio). */
@@ -295,7 +300,8 @@ export function createTemplateVideoTools({
 
   /** Advanced / Character Lock / guidance / aspect ratio → request params. */
   async function applyToParams(params) {
-    const payload = advanced?.getPayload ? advanced.getPayload() : {};
+    // Only the Advanced values built for the model being sent.
+    const payload = (advanced?.getPayload && advanced.modelId === current.model) ? advanced.getPayload() : {};
     if (payload.negative_prompt) params.negative_prompt = payload.negative_prompt;
     if (payload.seed !== undefined && payload.seed !== null && payload.seed !== '' && payload.seed !== -1) params.seed = payload.seed;
     if (current.guidance && state.guidance !== DEFAULT_GUIDANCE) params.guidance_scale = state.guidance;

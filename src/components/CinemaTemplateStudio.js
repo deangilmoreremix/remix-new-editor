@@ -11,7 +11,7 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel, dropUndeclaredSettings } from '../lib/templateMedia.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -113,6 +113,10 @@ export function CinemaTemplateStudio() {
   // Advanced Controls so the Niche card never overwrites the Niche select).
   let currentTiles = {};
   let tileEdited = {};
+  // Fields the user actually typed / picked (template fields + Advanced
+  // Controls) — the Video Intent panel never overwrites these.
+  let userEditedFields = new Set();
+  const VISUAL_STYLE_OPTIONS = ['luxury', 'dramatic', 'documentary', 'commercial'];
   // Duration / resolution / native-audio controls (video templates).
   let videoSettings = null;
   // Video Studio prompt-bar tools (ratio, Advanced, Motion & Style,
@@ -172,8 +176,9 @@ export function CinemaTemplateStudio() {
       poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
       onResult: (url, job) => {
         const meta = job?.historyMeta || {};
-        saveToHistory(url, meta.prompt || '', meta.model || '', meta.templateId || '');
-        resultHistory.add({ id: job?.requestId || null, url, prompt: meta.prompt || '', model: meta.model || '', type: 'video', templateId: meta.templateId || '' });
+        const type = meta.outputType === 'image' ? 'image' : 'video';
+        saveToHistory(url, meta.prompt || '', meta.model || '', meta.templateId || '', type);
+        resultHistory.add({ id: job?.requestId || null, url, prompt: meta.prompt || '', model: meta.model || '', type, templateId: meta.templateId || '' });
         showToast('Recovered a generation that finished while you were away', 'success');
       },
     });
@@ -420,6 +425,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     pickedMode = null;
     currentTiles = {};
     tileEdited = {};
+    userEditedFields = new Set();
     currentMode = 'quick';
     currentInputs = new TemplateInputBuilder(template, currentMode).getDefaults();
     // Select appropriate default model based on modelType
@@ -529,7 +535,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     // Left: Form inputs
     const formPanel = document.createElement('div');
     // Any change to the inputs makes Generate rebuild the prompt from them.
-    ['input', 'change'].forEach((evt) => formPanel.addEventListener(evt, () => { promptManuallyEdited = false; }));
+    ['input', 'change'].forEach((evt) => formPanel.addEventListener(evt, (e) => {
+      promptManuallyEdited = false;
+      const t = e.target;
+      const name = t?.dataset?.advancedField || t?.name;
+      if (name) userEditedFields.add(name);
+    }));
     formPanel.className = 'min-w-0 rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
 
     // Hero thumbnail section (matches TemplateStudio editor view)
@@ -1132,13 +1143,14 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       colorGrade: 'colorPalette',
       cta: 'cta',
     };
-    // Never overwrite a value the user typed into the template's own field
-    // (both reach the prompt: the intent values are added at Generate).
-    const ownFields = new Set(new TemplateInputBuilder(currentTemplate, currentMode).inputs?.map(f => f && f.name) || []);
-    // Advanced Controls text fields typed by the user also win.
-    ['subject', 'cta', 'audience', 'setting', 'businessType', 'extraInstructions'].forEach(k => ownFields.add(k));
-    const typedOwn = (key) => ownFields.has(key) && currentInputs[key] != null && currentInputs[key] !== '';
+    // Never overwrite a value the user typed or picked in the form (template
+    // fields or Advanced Controls); values only copied from an earlier intent
+    // keep following the intent. Intent values reach the prompt at Generate.
+    const typedOwn = (key) => userEditedFields.has(key) && currentInputs[key] != null && currentInputs[key] !== '';
     Object.entries(mapping).forEach(([intentKey, inputKey]) => {
+      // The intent style goes to Visual Style only when that select offers it
+      // (otherwise it is added to the prompt as "Style preset").
+      if (intentKey === 'stylePreset' && !VISUAL_STYLE_OPTIONS.includes(String(intent[intentKey]).toLowerCase())) return;
       if (intent[intentKey] !== undefined && intent[intentKey] !== null && intent[intentKey] !== '' && !typedOwn(inputKey)) {
         currentInputs[inputKey] = intent[intentKey];
       }
@@ -1611,6 +1623,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           initialValue: currentInputs[input.name] || null,
           onChange: (value) => {
             currentInputs[input.name] = value;
+            clearStaleRetry();
             refreshMediaRoute();
           },
         });
@@ -1840,6 +1853,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
               routeModelPicks[pickerRoute] = model.id;
               updateTrigger();
               if (videoSettings) videoSettings.refresh();
+              if (videoTools) videoTools.refresh();
               closeDropdown();
             },
           });
@@ -1857,8 +1871,11 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           ]);
         };
 
-        withTimeout(getEnrichedModels(pickerRoute))
+        const requestedRoute = pickerRoute;
+        withTimeout(getEnrichedModels(requestedRoute))
           .then(enriched => {
+            // The route changed while loading: this list is for the old route.
+            if (requestedRoute !== pickerRoute) return;
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
             renderModelPanel(models);
@@ -1866,6 +1883,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             modelLoadingStatus.className = 'text-[10px] text-emerald-400/70';
           })
           .catch(err => {
+            if (requestedRoute !== pickerRoute) return;
             console.warn('[CinemaTemplateStudio] Failed to load enriched model catalog, using fallback:', err);
             loadedModels = fallbackList;
             if (!fallbackList.find(x => x.id === selectedModel)) {
@@ -2002,7 +2020,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         anchorContainer: container,
         studioName: 'Cinema Template Studio',
         initialValue: currentInputs['image_url'] || null,
-        onChange: (value) => { currentInputs['image_url'] = value; refreshMediaRoute(); },
+        onChange: (value) => { currentInputs['image_url'] = value; clearStaleRetry(); refreshMediaRoute(); },
       });
       fieldsHost.appendChild(imageField.element);
       mediaFields.frame.push(imageField);
@@ -2013,7 +2031,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         anchorContainer: container,
         studioName: 'Cinema Template Studio',
         initialValue: currentInputs['video_url'] || null,
-        onChange: (value) => { currentInputs['video_url'] = value; refreshMediaRoute(); },
+        onChange: (value) => { currentInputs['video_url'] = value; clearStaleRetry(); refreshMediaRoute(); },
       });
       fieldsHost.appendChild(videoField.element);
       mediaFields.video.push(videoField);
@@ -2044,6 +2062,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         ...media,
       }),
     };
+  }
+
+  /** Media changed: an old Retry would resubmit the previous media. */
+  function clearStaleRetry() {
+    lastGenerationParams = null;
+    container.querySelectorAll('[data-generation-error]').forEach(el => el.remove());
   }
 
   function refreshMediaRoute() {
@@ -2137,8 +2161,12 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           const fieldName = el.dataset.advancedField;
           if (!fieldName) return;
           // Keep the shown value and the value Generate uses in sync.
-          if (currentInputs[fieldName] != null && currentInputs[fieldName] !== '') el.value = currentInputs[fieldName];
-          else if (el.tagName === 'SELECT') currentInputs[fieldName] = el.value;
+          const stored = currentInputs[fieldName];
+          const isOption = el.tagName !== 'SELECT' || Array.from(el.options).some(o => o.value === String(stored));
+          if (stored != null && stored !== '' && isOption) el.value = stored;
+          // Template Type only counts once the user picks it (its default
+          // would add a competing "Format:" to the prompt).
+          else if (el.tagName === 'SELECT' && fieldName !== 'templateType') currentInputs[fieldName] = el.value;
           if (el.tagName === 'SELECT') {
             el.onchange = () => {
               currentInputs[fieldName] = el.value;
@@ -2451,6 +2479,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
               input.dispatchEvent(new Event('input', { bubbles: true }));
               input.dispatchEvent(new Event('change', { bubbles: true }));
               currentInputs[fieldName] = enhancedValue;
+              userEditedFields.add(fieldName);
+              // Rebuild the prompt with the enhanced field.
+              promptManuallyEdited = false;
               btn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
               btn.textContent = 'Enhanced ✓';
               setTimeout(() => {
@@ -2768,6 +2799,13 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       { label: 'Target audience', value: i.targetAudience || intent.targetAudience },
       { label: 'Call to action', value: intent.cta },
       { label: 'Tone', value: intent.tone },
+      { label: 'Video type', value: intent.videoType ? humanize(intent.videoType) : '' },
+      { label: 'Lighting', value: intent.lightingPreset && intent.lightingPreset !== 'None' ? intent.lightingPreset : '' },
+      { label: 'Color grade', value: intent.colorGrade && intent.colorGrade !== 'None' ? intent.colorGrade : '' },
+      { label: 'Style preset', value: intent.stylePreset && intent.stylePreset !== 'None' ? intent.stylePreset : '' },
+      // Brand Context (when the template includes it).
+      { label: 'Brand', value: currentTemplate?.includeBrandContext ? i.brandName : '' },
+      { label: 'Brand voice', value: currentTemplate?.includeBrandContext && i.brandVoice ? humanize(i.brandVoice) : '' },
       { label: 'Format', value: currentTemplate?.outputType === 'image' ? '' : humanize(i.templateType) },
       { label: 'Niche', value: i.niche && i.niche !== 'auto-detect' ? humanize(i.niche) : (tileEdited.niche ? currentTiles.niche : '') },
       { label: 'Business', value: i.businessType },
@@ -2811,6 +2849,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       const isV2V = getV2VModelById(params.model);
       const { route: runRoute } = currentMediaRoute(params.model);
       if (params.aspect_ratio) params.aspect_ratio = snapAspectRatioForModel(runRoute, params.model, params.aspect_ratio);
+      // Only settings this model declares (Kling v2.6 I2V: no ratio / resolution).
+      dropUndeclaredSettings(params, runRoute);
 
       if (genBtn) {
         cancelHandle = createAbortAwareGenerateButton(genBtn);
@@ -2818,7 +2858,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         params.signal = cancelHandle.controller.signal;
         progressHandle = startGenerationProgress({ parent: genBtn.parentElement, type: isVideo ? 'video' : 'image' });
       }
-      pendingJob = createPendingJobTracker('cinema-template', { prompt: params.prompt || '', model: params.model, templateId: currentTemplate.id });
+      pendingJob = createPendingJobTracker('cinema-template', { prompt: params.prompt || '', model: params.model, templateId: currentTemplate.id, outputType: isVideo ? 'video' : 'image' });
       lastRequestId = null;
       params.onRequestId = (rid) => { lastRequestId = rid; pendingJob.onRequestId(rid); };
 
@@ -2870,6 +2910,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       const { userMessage } = cancelled ? { userMessage: 'Generation cancelled.' } : formatGenerationError(err, retryCount, MAX_RETRIES);
       const errEl = document.createElement('div');
       errEl.className = 'mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
+      errEl.dataset.generationError = '';
       errEl.textContent = userMessage;
 
       if (!cancelled && retryCount < MAX_RETRIES && lastGenerationParams) {
@@ -2908,10 +2949,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     }
   }
 
-  function saveToHistory(url, prompt, model, templateId) {
+  function saveToHistory(url, prompt, model, templateId, type) {
     saveGeneration({
       studio: 'cinema',
-      type: currentTemplate?.outputType === 'video' ? 'video' : 'image',
+      type: type || (currentTemplate?.outputType === 'video' ? 'video' : 'image'),
       url,
       prompt,
       model: model || selectedModel,

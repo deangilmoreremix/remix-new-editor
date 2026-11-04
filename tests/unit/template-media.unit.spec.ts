@@ -144,7 +144,8 @@ describe('templateMedia: extract / route / apply', () => {
 
     const v2v: any = { image_url: 'x.png' };
     applyTemplateMediaToParams(v2v, { imageUrl: 'x.png', endImageUrl: null, videoUrl: 'v.mp4' }, 'v2v');
-    expect(v2v).toEqual({ video_url: 'v.mp4' });
+    // Reference image kept for v2v models that take one (face swap, motion control).
+    expect(v2v).toEqual({ video_url: 'v.mp4', image_url: 'x.png' });
   });
 });
 
@@ -241,5 +242,47 @@ describe('templateMedia: aspect ratio snapping', () => {
     expect(snapAspectRatioForModel('i2v', 'ai-video-effects', '21:9')).toBe('16:9');
     expect(snapAspectRatioForModel('i2v', 'kling-i2v', '4:3')).toBe('4:3');
     expect(snapAspectRatioForModel('i2v', 'ai-video-effects', undefined)).toBeUndefined();
+  });
+});
+
+describe('templateMedia: review fixes', () => {
+  it('a cleared start frame does not promote the end frame', () => {
+    const media = extractTemplateMedia({ ref: { startUrl: null, endUrl: 'e.png', urls: ['e.png'] } }, [{ name: 'ref', type: 'frame' }]);
+    expect(media.imageUrl).toBeNull();
+    expect(media.endImageUrl).toBe('e.png');
+  });
+
+  it('image-to-video templates stay on i2v when only a video is attached', () => {
+    expect(templateMediaRoute({ outputType: 'video', modelType: 'i2v', videoUrl: 'v.mp4' })).toBe('i2v');
+    expect(templateMediaRoute({ outputType: 'video', modelType: 'i2v', videoUrl: 'v.mp4', preferV2V: true })).toBe('v2v');
+  });
+
+  it('retries never keep an old end frame', () => {
+    const params: any = { lastFrameUrl: 'old.png', last_image_url: 'old.png' };
+    applyTemplateMediaToParams(params, { imageUrl: 'a.png', endImageUrl: null, videoUrl: null }, 'i2v');
+    expect(params.lastFrameUrl).toBeUndefined();
+    expect(params.last_image_url).toBeUndefined();
+  });
+
+  it('drops settings the model does not declare and asks generateI2V to do the same', async () => {
+    const { dropUndeclaredSettings } = await import('../../src/lib/templateMedia.js');
+    const p: any = { model: 'veo-i2v', aspect_ratio: '16:9', resolution: '720p', duration: 6 };
+    dropUndeclaredSettings(p, 'i2v');
+    expect(p).toEqual({ model: 'veo-i2v', duration: 6, onlyDeclaredInputs: true });
+  });
+
+  it('keeps the template effect preset across model switches and explains long template durations', () => {
+    let target = { route: 'i2v', model: 'ai-video-effects' };
+    const s = createVideoSettingsControls({ getTarget: () => target, preferred: { effect: 'Lego', duration: 45 } });
+    s.refresh();
+    expect(s.getSettings().name).toBe('Lego');
+    target = { route: 'i2v', model: 'kling-i2v' };
+    s.refresh();
+    const hint = s.element.querySelector('[data-duration-hint]');
+    expect(hint.classList.contains('hidden')).toBe(false);
+    expect(hint.textContent).toMatch(/45s/);
+    target = { route: 'i2v', model: 'ai-video-effects' };
+    s.refresh();
+    expect(s.getSettings().name).toBe('Lego');
   });
 });

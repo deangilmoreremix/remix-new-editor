@@ -11,7 +11,7 @@ import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel, dropUndeclaredSettings, modelTakesAspectRatio } from '../lib/templateMedia.js';
 import { navigate } from '../lib/router.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
@@ -74,6 +74,7 @@ export function TemplateStudio(templateId) {
   let isGenerating = false;
   let lastGeneratedUrl = '';
   let mediaRouteBadge = null;
+  let aspectRatioNote = null;
   // Set by the model picker: switches its model list when the route changes.
   let syncModelPickerToRoute = null;
   // Mode of the variant picked in the Video / Image Studio model picker
@@ -95,8 +96,21 @@ export function TemplateStudio(templateId) {
     return { media, ...routeTemplateGeneration({ outputType: template.outputType, modelType: template.modelType, model: selectedModel, pickedMode, ...media }) };
   }
   function refreshMediaRoute() {
-    const { route } = currentMediaRoute();
-    if (mediaRouteBadge) mediaRouteBadge.textContent = TEMPLATE_ROUTE_LABELS[route] || route;
+    const { route, model } = currentMediaRoute();
+    if (mediaRouteBadge) {
+      // Some video-to-video models (e.g. watermark remover) take no prompt:
+      // say so instead of silently dropping the template prompt.
+      const m = findTemplateModel(model);
+      const noPrompt = route === 'v2v' && m && m.hasPrompt === false;
+      mediaRouteBadge.textContent = `${TEMPLATE_ROUTE_LABELS[route] || route}${noPrompt ? ' · prompt not used by this model' : ''}`;
+      mediaRouteBadge.title = noPrompt ? `${m.name} does not take a prompt. Pick a different video-to-video model in the model dropdown to use your template prompt.` : '';
+    }
+    if (aspectRatioNote) {
+      const takesRatio = modelTakesAspectRatio(route, model);
+      const mm = findTemplateModel(model);
+      aspectRatioNote.textContent = takesRatio ? '' : `${mm?.name || 'This model'} has no aspect-ratio setting, so this choice isn't sent. Pick another model in the model dropdown to control the ratio.`;
+      aspectRatioNote.classList.toggle('hidden', takesRatio);
+    }
     // Like the Video Studio: attaching an image / video swaps the model
     // picker to models that accept it.
     if (syncModelPickerToRoute) syncModelPickerToRoute(route);
@@ -390,6 +404,12 @@ export function TemplateStudio(templateId) {
       }
       select.onchange = () => { formState[input.name] = select.value; };
       fieldWrapper.appendChild(select);
+      if (input.name === 'aspect_ratio') {
+        // Shown when the selected model has no aspect-ratio setting.
+        aspectRatioNote = document.createElement('div');
+        aspectRatioNote.className = 'mt-2 hidden text-[11px] text-amber-300/80';
+        fieldWrapper.appendChild(aspectRatioNote);
+      }
     }
 
     leftPanel.appendChild(fieldWrapper);
@@ -585,6 +605,7 @@ export function TemplateStudio(templateId) {
               routeModelPicks[pickerRoute] = model.id;
               updateTrigger();
               if (videoSettings) videoSettings.refresh();
+              if (videoTools) videoTools.refresh();
               closeDropdown();
             },
           });
@@ -603,8 +624,11 @@ export function TemplateStudio(templateId) {
           ]);
         };
 
-        withTimeout(getEnrichedModels(pickerRoute))
+        const requestedRoute = pickerRoute;
+        withTimeout(getEnrichedModels(requestedRoute))
           .then(enriched => {
+            // The route changed while loading: this list is for the old route.
+            if (requestedRoute !== pickerRoute) return;
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
             // Keep the selection valid even if the enriched catalog differs
@@ -621,6 +645,7 @@ export function TemplateStudio(templateId) {
             modelLoadingStatus.className = 'text-[10px] text-emerald-400/70';
           })
           .catch(err => {
+            if (requestedRoute !== pickerRoute) return;
             console.warn('[TemplateStudio] Failed to load enriched model catalog, using fallback:', err);
             loadedModels = fallbackList;
             renderModelPanel(fallbackList);
@@ -878,7 +903,9 @@ export function TemplateStudio(templateId) {
   // start with their shown value).
   advancedControls.querySelectorAll('[data-advanced-field]').forEach((el) => {
     const name = el.dataset.advancedField;
-    if (el.tagName === 'SELECT') formState[name] = el.value;
+    // Template Type only counts once the user picks one (its default would
+    // add a competing "Format:" to TikTok / ad base prompts).
+    if (el.tagName === 'SELECT' && name !== 'templateType') formState[name] = el.value;
     const sync = () => { formState[name] = el.value; };
     el.addEventListener('input', sync);
     el.addEventListener('change', sync);
@@ -1182,6 +1209,8 @@ export function TemplateStudio(templateId) {
           const enhancedValue = `${input.value}, cinematic style, professional quality, premium aesthetic`;
           input.value = enhancedValue;
           formState[fieldName] = enhancedValue;
+          // Rebuild the prompt with the enhanced field.
+          promptManuallyEdited = false;
           btn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
           btn.textContent = 'Enhanced ✓';
           setTimeout(() => {
@@ -1289,7 +1318,7 @@ export function TemplateStudio(templateId) {
 
     // Client-side validation before muapi call
     let validationError = null;
-    if ((template.modelType === 'i2v' || template.modelType === 'i2i') && !media.imageUrl) {
+    if ((template.modelType === 'i2v' || template.modelType === 'i2i' || route === 'i2v' || route === 'i2i') && !media.imageUrl) {
       validationError = 'Please upload an image before generating.';
     } else if (route === 'v2v' && !media.videoUrl) {
       validationError = 'Please upload a video before generating.';
@@ -1350,6 +1379,9 @@ export function TemplateStudio(templateId) {
 
       // Re-route with the media attached now (retries pick up new uploads).
       const { media, route, model: routedModel } = currentMediaRoute();
+      // Same required-media checks as Generate (a Retry after clearing media).
+      if ((route === 'i2v' || route === 'i2i') && !media.imageUrl) throw new Error('Please upload an image before generating.');
+      if (route === 'v2v' && !media.videoUrl) throw new Error('Please upload a video before generating.');
       params.model = routedModel;
       applyTemplateMediaToParams(params, media, route);
       if (videoSettings) Object.assign(params, videoSettings.getSettings());
@@ -1363,6 +1395,8 @@ export function TemplateStudio(templateId) {
       // Advanced (negative prompt / seed), Character Lock, guidance, ratio.
       if (videoTools) await videoTools.applyToParams(params);
       if (params.aspect_ratio) params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
+      // Only settings this model declares (Kling v2.6 I2V: no ratio / resolution).
+      dropUndeclaredSettings(params, route);
 
       const isVideoRun = route === 't2v' || route === 'i2v' || route === 'v2v';
       cancelHandle = createAbortAwareGenerateButton(genBtn);

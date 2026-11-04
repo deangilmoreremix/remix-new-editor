@@ -121,6 +121,15 @@ export function createTemplateMediaField({ kind = 'image', anchorContainer, stud
         emit(next, { source: 'upload', selection: sel });
         setStatus(next.endUrl ? 'Start & end frames set' : 'Start frame set — add an end frame (optional)', 'done');
       } else {
+        // Only the media type this field takes (an image picked from history
+        // in the video field — or the reverse — would go in the wrong slot).
+        const t = sel.type || '';
+        if ((isVideo && t && t !== 'video') || (!isVideo && t && t !== 'image')) {
+          picker.reset();
+          import('./loading.js').then(m => m.showToast?.(isVideo ? 'Please choose a video for this field.' : 'Please choose an image for this field.', 'error')).catch(() => {});
+          if (!value) setStatus(EMPTY_TEXT[kind]);
+          return;
+        }
         emit(sel.url || null, { source: 'upload', selection: sel });
         setStatus(isVideo ? 'Video ready' : 'Image ready', 'done');
       }
@@ -211,8 +220,11 @@ export function createTemplateMediaField({ kind = 'image', anchorContainer, stud
       try {
         const { extractLastFrameFile } = await import('./videoFrames.js');
         const frame = await extractLastFrameFile(file);
-        setStatus('Uploading last frame…');
+        const before = value;
+        if (!before) setStatus('Uploading last frame…');
         await picker.uploadFile(frame);
+        // Upload stopped without selecting (no key, size cap, failure).
+        if (value === before && !before) setStatus(EMPTY_TEXT[kind]);
       } catch (err) {
         console.error(`[${studioName}] last-frame extraction failed:`, err);
         import('./loading.js').then(m => m.showToast?.(`Failed to extract last frame: ${err.message}`, 'error')).catch(() => {});
@@ -259,7 +271,8 @@ export function createTemplateMediaField({ kind = 'image', anchorContainer, stud
         const end = typeof next === 'string' ? (prev.endUrl ?? null) : (next.endUrl ?? prev.endUrl ?? null);
         v = { startUrl: start, endUrl: end, urls: [start, end].filter(Boolean) };
       }
-      picker.reset();
+      if (isFrame && typeof picker.setFrames === 'function') picker.setFrames(v.startUrl, v.endUrl);
+      else picker.reset();
       emit(v, { source: 'attachment' });
       const hasEnd = isFrame && v.endUrl;
       setStatus(label || (isVideo ? 'Video ready' : isFrame ? (hasEnd ? (v.startUrl ? 'Start & end frames set' : 'End frame set — add a start frame') : 'Start frame set') : 'Image ready'), 'done');
@@ -280,7 +293,8 @@ export function extractTemplateMedia(state = {}, inputs = []) {
     if (!val) return;
     if (typeof val === 'string') { if (!imageUrl) imageUrl = val; return; }
     if (typeof val === 'object') {
-      if (!imageUrl) imageUrl = val.startUrl || val.url || (Array.isArray(val.urls) ? val.urls[0] : null) || null;
+      // A frame object with a startUrl key never promotes its end frame.
+      if (!imageUrl) imageUrl = ('startUrl' in val) ? (val.startUrl || null) : (val.url || (Array.isArray(val.urls) ? val.urls[0] : null) || null);
       if (!endImageUrl && val.endUrl) endImageUrl = val.endUrl;
     }
   };
@@ -330,6 +344,9 @@ export function routeTemplateGeneration({ outputType, modelType, model, imageUrl
 export function templateMediaRoute({ outputType, modelType, imageUrl, videoUrl, preferV2V = false }) {
   const isVideo = outputType === 'video' || ['t2v', 'i2v', 'v2v'].includes(modelType);
   if (!isVideo) return imageUrl || modelType === 'i2i' ? 'i2i' : 't2i';
+  // An image-to-video template keeps asking for its image when only a video
+  // is attached (unless a video-to-video model was picked).
+  if (modelType === 'i2v' && !imageUrl && !preferV2V) return 'i2v';
   if (videoUrl && (modelType === 'v2v' || preferV2V || !imageUrl)) return 'v2v';
   if (imageUrl || modelType === 'i2v') return 'i2v';
   // A v2v template with no video yet stays on v2v so Generate asks for the
@@ -432,10 +449,14 @@ export function applyTemplateMediaToParams(params, { imageUrl, endImageUrl, vide
   });
   delete params.image_url;
   delete params.last_image_url;
+  delete params.lastFrameUrl;
   delete params.video_url;
 
   if (route === 'v2v') {
     if (videoUrl) params.video_url = videoUrl;
+    // Video-to-video models such as face swap / motion control also take a
+    // reference image (processV2V forwards only inputs the model declares).
+    if (imageUrl) params.image_url = imageUrl;
   } else if (route === 'i2v' || route === 'i2i') {
     if (imageUrl) params.image_url = imageUrl;
     if (route === 'i2v' && endImageUrl) {
@@ -496,6 +517,9 @@ function nearest(options, wanted) {
  */
 export function createVideoSettingsControls({ getTarget, preferred = {}, offerEffects = true } = {}) {
   const state = { duration: preferred.duration ?? null, resolution: preferred.resolution ?? null, nativeAudio: false, effect: preferred.effect ?? null };
+  // The user's own effect pick, kept across model switches.
+  let pickedEffect = null;
+  const wantedDuration = Number(preferred.duration) || null;
   let current = { durations: [], resolutions: [], audio: false, video: false, effects: [] };
 
   const el = document.createElement('div');
@@ -539,12 +563,19 @@ export function createVideoSettingsControls({ getTarget, preferred = {}, offerEf
 
   dur.sel.onchange = () => { state.duration = Number(dur.sel.value); };
   res.sel.onchange = () => { state.resolution = res.sel.value; };
-  fx.sel.onchange = () => { state.effect = fx.sel.value; };
+  fx.sel.onchange = () => { state.effect = fx.sel.value; pickedEffect = fx.sel.value; };
+
+  // Explains when the template's suggested length is longer than the model
+  // can make in one clip (the value is snapped to the longest it supports).
+  const durHint = document.createElement('div');
+  durHint.dataset.durationHint = '';
+  durHint.className = 'hidden w-full text-[11px] text-amber-300/80';
 
   el.appendChild(fx.wrap);
   el.appendChild(dur.wrap);
   el.appendChild(res.wrap);
   el.appendChild(audioBtn);
+  el.appendChild(durHint);
 
   const fill = (sel, options, value, fmt) => {
     sel.innerHTML = '';
@@ -566,10 +597,22 @@ export function createVideoSettingsControls({ getTarget, preferred = {}, offerEf
     const audio = !!(m?.inputs?.native_audio) && route !== 'v2v';
     // Effect endpoints (AI Video Effects, Motion Controls) need a preset name.
     const effects = offerEffects && Array.isArray(m?.inputs?.name?.enum) ? m.inputs.name.enum.map(String) : [];
-    if (effects.length && !effects.includes(String(state.effect))) state.effect = effects[0];
+    if (effects.length) {
+      // User pick, then the template's preset, then the first effect.
+      if (pickedEffect && effects.includes(pickedEffect)) state.effect = pickedEffect;
+      else if (preferred.effect && effects.includes(String(preferred.effect))) state.effect = String(preferred.effect);
+      else if (!effects.includes(String(state.effect))) state.effect = effects[0];
+    }
 
     if (durations.length) {
       if (!durations.some(d => String(d) === String(state.duration))) state.duration = nearest(durations, state.duration ?? m?.inputs?.duration?.default);
+    }
+    const maxDur = durations.length ? Math.max(...durations) : null;
+    if (wantedDuration && maxDur && wantedDuration > maxDur) {
+      durHint.textContent = `This template is designed for about ${wantedDuration}s; ${m?.name || 'this model'} makes clips of up to ${maxDur}s, so ${maxDur}s is used. Pick a longer-clip model in the dropdown or extend the result.`;
+      durHint.classList.remove('hidden');
+    } else {
+      durHint.classList.add('hidden');
     }
     if (resolutions.length) {
       if (!resolutions.includes(String(state.resolution))) {
@@ -632,4 +675,26 @@ export function snapAspectRatioForModel(route, modelId, aspectRatio) {
   const pool = sameOrient.length ? sameOrient : valued;
   if (!pool.length) return allowed[0];
   return pool.reduce((best, x) => (Math.abs(Math.log(x.v / want)) < Math.abs(Math.log(best.v / want)) ? x : best), pool[0]).ar;
+}
+
+/**
+ * Drop generation settings the selected model does not declare (e.g. Kling
+ * v2.6 I2V has no aspect_ratio / resolution input), and ask generateI2V to do
+ * the same for the defaults its validator adds. Models without an input
+ * schema are left untouched.
+ */
+export function dropUndeclaredSettings(params, route) {
+  const m = findRouteModel(route, params.model);
+  params.onlyDeclaredInputs = true;
+  if (!m || !m.inputs) return params;
+  ['aspect_ratio', 'resolution', 'quality'].forEach((key) => {
+    if (params[key] !== undefined && !Object.prototype.hasOwnProperty.call(m.inputs, key)) delete params[key];
+  });
+  return params;
+}
+
+/** True when the model takes an aspect ratio (or publishes no schema). */
+export function modelTakesAspectRatio(route, modelId) {
+  const m = findRouteModel(route, modelId);
+  return !m || !m.inputs || Object.prototype.hasOwnProperty.call(m.inputs, 'aspect_ratio');
 }
