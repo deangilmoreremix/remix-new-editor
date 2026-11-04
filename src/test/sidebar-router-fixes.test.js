@@ -1,34 +1,39 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
+// The side menu is the app's only studio menu; its list lives in
+// src/lib/studioRoutes.js (NAV_GROUPS) and Sidebar.js renders from it.
+const navIds = async () => {
+  const { NAV_GROUPS } = await import('../lib/studioRoutes.js');
+  return NAV_GROUPS.flatMap((g) => g.items.map((it) => it.id));
+};
+
 describe('Sidebar fixes', () => {
+  it('renders its items from the shared NAV_GROUPS list', async () => {
+    const fs = await import('node:fs');
+    const content = fs.readFileSync('src/components/Sidebar.js', 'utf-8');
+    expect(content).toContain('NAV_GROUPS');
+    expect(content).not.toMatch(/id:\s*'image'/);
+  });
+
   describe('duplicate ai-vfx entry', () => {
     it('should not have duplicate ai-vfx sidebar entries', async () => {
-      const sidebarSource = await import('../components/Sidebar.js?raw');
-      const source = sidebarSource.default || await import('../components/Sidebar.js?raw').then(m => m.default);
-      // Count occurrences of id: 'ai-vfx'
-      const match = source ? source.match(/id:\s*'ai-vfx'/g) || source.match(/id: "ai-vfx"/g) : null;
-      // Fallback: check the file directly
-      const fs = await import('node:fs');
-      const content = fs.readFileSync('src/components/Sidebar.js', 'utf-8');
-      const count = (content.match(/id: 'ai-vfx'/g) || []).length;
-      expect(count).toBe(1);
+      const ids = await navIds();
+      expect(ids.filter((id) => id === 'ai-vfx')).toHaveLength(1);
+      expect(new Set(ids).size).toBe(ids.length);
     });
   });
 
   it('should not have dead commits entry', async () => {
-    const fs = await import('node:fs');
-    const content = fs.readFileSync('src/components/Sidebar.js', 'utf-8');
-    const hasCommits = content.includes("id: 'commits'");
-    expect(hasCommits).toBe(false);
+    expect(await navIds()).not.toContain('commits');
   });
 
   it('should not list retired studios (Training, Chat, Assist, Stock Media, Community)', async () => {
-    const fs = await import('node:fs');
-    const content = fs.readFileSync('src/components/Sidebar.js', 'utf-8');
+    const ids = await navIds();
     for (const id of ['training', 'chat', 'assist', 'pexels-media', 'community']) {
-      expect(content).not.toContain(`id: '${id}'`);
+      expect(ids).not.toContain(id);
     }
-    expect(content).not.toContain('browseStockMedia');
+    const fs = await import('node:fs');
+    expect(fs.readFileSync('src/components/Sidebar.js', 'utf-8')).not.toContain('browseStockMedia');
   });
 
   it('should redirect retired routes instead of loading them', async () => {
@@ -37,17 +42,26 @@ describe('Sidebar fixes', () => {
   });
 
   it('should map brand sub-routes to brand for active state', async () => {
-    const fs = await import('node:fs');
-    const content = fs.readFileSync('src/components/Sidebar.js', 'utf-8');
-    expect(content).toContain("['brand-dna', 'campaign', 'campaign-page', 'asset-edit', 'photo-studio', 'brand-photo-studio'].includes(page)");
+    const { getNavItemForRoute } = await import('../lib/studioRoutes.js');
+    for (const page of ['brand-dna', 'campaign', 'campaign-page', 'asset-edit', 'photo-studio', 'brand-photo-studio']) {
+      expect(getNavItemForRoute(page)).toBe('brand');
+    }
+  });
+
+  it('highlights the right entry for aliases and template pages', async () => {
+    const { getNavItemForRoute } = await import('../lib/studioRoutes.js');
+    expect(getNavItemForRoute('image')).toBe('image');
+    expect(getNavItemForRoute('cinegen')).toBe('workbench');
+    expect(getNavItemForRoute('video-agent-studio')).toBe('video-agent');
+    expect(getNavItemForRoute('template/anime-converter')).toBe('templates');
+    expect(getNavItemForRoute('settings')).toBeNull();
   });
 
   it('should not have separate brand-dna, brand-photo-studio navItems', async () => {
-    const fs = await import('node:fs');
-    const content = fs.readFileSync('src/components/Sidebar.js', 'utf-8');
-    expect(content).not.toContain("id: 'brand-dna'");
-    expect(content).not.toContain("id: 'brand-photo-studio'");
-    expect(content).not.toContain("id: 'asset-edit'");
+    const ids = await navIds();
+    expect(ids).not.toContain('brand-dna');
+    expect(ids).not.toContain('brand-photo-studio');
+    expect(ids).not.toContain('asset-edit');
   });
 });
 

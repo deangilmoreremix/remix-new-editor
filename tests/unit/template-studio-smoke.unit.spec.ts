@@ -350,12 +350,11 @@ describe('TemplateStudio smoke tests with feature assertions', () => {
     expect(resultArea.getAttribute('role')).toBe('status');
   });
 
-  it('renders navigation header with studio links', async () => {
+  it('does not render its own studio links (side menu is the only menu)', async () => {
     mount();
     await new Promise(r => setTimeout(r, 50));
 
-    const navLinks = container.querySelectorAll('[data-nav]');
-    expect(navLinks.length).toBeGreaterThan(5);
+    expect(container.querySelectorAll('[data-nav]').length).toBe(0);
   });
 
   it('renders back button with navigation', async () => {
@@ -366,14 +365,12 @@ describe('TemplateStudio smoke tests with feature assertions', () => {
     expect(backBtn).not.toBeNull();
   });
 
-  it('renders studio menu button', async () => {
+  it('does not render an all-studios menu button', async () => {
     mount();
     await new Promise(r => setTimeout(r, 50));
 
-    const menuSlot = container.querySelector('#studio-menu-slot');
-    expect(menuSlot).not.toBeNull();
-    const menuBtn = menuSlot.querySelector('button');
-    expect(menuBtn).not.toBeNull();
+    expect(container.querySelector('#studio-menu-slot')).toBeNull();
+    expect(container.querySelector('[data-studio-menu]')).toBeNull();
   });
 
   it('renders output pills with template metadata', async () => {
