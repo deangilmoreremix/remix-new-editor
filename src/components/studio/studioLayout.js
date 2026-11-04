@@ -106,8 +106,7 @@ export function mountStudioResults({ container, hero, before, kind = 'image', hi
   const sync = () => {
     const has = !gallery.isEmpty();
     emptyState.classList.toggle('hidden', has);
-    // Pages that still pass a picture banner (.hero-banner) get it shrunk once there are
-    // results; the studios' own title (createStudioHeader) is already a single line.
+    // Once there are results the AI header shrinks to a slim strip so the grid gets the space.
     if (banner) banner.style.height = has ? '96px' : '';
   };
   gallery.onChange(sync);
