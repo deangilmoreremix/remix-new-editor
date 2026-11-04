@@ -45,6 +45,43 @@
   status = 200
   force = true
 
+# Stock media proxies (Pixabay / Pexels) as Netlify functions, so the
+# editor's Stock Media, image search and overlay transitions work without a
+# separate backend server. Keys: PIXABAY_API_KEY and PEXELS_API_KEY in the
+# Netlify environment. Same routes as backend/services/*ProxyService.js.
+[[redirects]]
+  from = "/api/pixabay/*"
+  to = "/.netlify/functions/pixabay/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/pexels/*"
+  to = "/.netlify/functions/pexels/:splat"
+  status = 200
+  force = true
+
+# AI Video Agent (timeline editor): one model step per call. Keys stay
+# server-side: OPENAI_API_KEY (default), ANTHROPIC_API_KEY (optional Claude).
+[[redirects]]
+  from = "/api/video-agent"
+  to = "/.netlify/functions/video-agent"
+  status = 200
+  force = true
+
+# AI Agent voiceover + music (MuAPI, MUAPI_API_KEY).
+[[redirects]]
+  from = "/api/agent-audio"
+  to = "/.netlify/functions/agent-audio"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/watch-voice"
+  to = "/.netlify/functions/watch-voice"
+  status = 200
+  force = true
+
 # Restored thumbnails are WebP-encoded but keep their historical `.webp.png`
 # filenames so every existing reference resolves; declare the real type.
 [[headers]]
@@ -57,6 +94,17 @@
   for = "/thumbnails/*"
   [headers.values]
     Cache-Control = "public, max-age=604800"
+
+# Built JS/CSS are public; the Remotion export runner loads them from a
+# sandboxed iframe (opaque origin), which needs CORS for module scripts.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+
+# The public video player (/watch/<id>) can be embedded anywhere: its
+# framing headers are rewritten by netlify/edge-functions/watch-embed.js
+# (header rules below are merged, not overridden, so a rule can't do it).
 
 # Security headers
 [[headers]]

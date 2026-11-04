@@ -5,14 +5,20 @@
  * SmartVid Video Agent = port of Remotion's prompt-to-motion-graphics template.
  * The template's Next.js API route lives in apps/motion-agent/server/generate-route.ts
  * and is bundled (with its skill guides) into ./_shared/videoAgentGenerate.generated.mjs.
- * This wrapper only adds Clerk session auth and request limits; generation, prompt
+ * This wrapper only checks the user's key and request limits; generation, prompt
  * validation, skill detection, targeted edits and the SSE stream are the template's.
  *
- * POST /.netlify/functions/video-agent-generate   (Authorization: Bearer <Clerk token>)
- * Env: OPENAI_API_KEY (required), VIDEO_AGENT_MODEL, VIDEO_AGENT_CLASSIFIER_MODEL (optional).
+ * BYOK: the request runs on the user's own OpenAI key (SmartVid's API key modal),
+ * sent as X-OpenAI-Key. No platform key fallback. The key is only forwarded to OpenAI:
+ * never logged, stored or echoed back.
+ *
+ * POST /.netlify/functions/video-agent-generate   (X-OpenAI-Key: sk-...)
+ * Env (optional): VIDEO_AGENT_MODEL, VIDEO_AGENT_CLASSIFIER_MODEL.
  */
-import { verifyClerkToken } from './_shared/clerkAuth.js';
 import { POST } from './_shared/videoAgentGenerate.generated.mjs';
+
+export const NEED_KEY_MESSAGE = 'The Video Agent uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).';
+const KEY_RE = /^sk-[A-Za-z0-9_-]{20,}$/;
 
 const MAX_BODY_BYTES = 6 * 1024 * 1024; // attached reference frames are base64 data URLs
 
@@ -22,11 +28,8 @@ const json = (status, body) =>
 export default async (req) => {
   if (req.method !== 'POST') return json(405, { error: 'Method not allowed' });
 
-  const auth = req.headers.get('authorization') || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (!token || !(await verifyClerkToken(token))) {
-    return json(401, { error: 'Please sign in to SmartVid to use the Video Agent.' });
-  }
+  const apiKey = (req.headers.get('x-openai-key') || '').trim();
+  if (!KEY_RE.test(apiKey)) return json(401, { error: NEED_KEY_MESSAGE });
 
   const raw = await req.text();
   if (raw.length > MAX_BODY_BYTES) return json(413, { error: 'Request too large. Attach fewer or smaller images.' });
@@ -39,5 +42,5 @@ export default async (req) => {
   }
   if (typeof body.prompt !== 'string' || !body.prompt.trim()) return json(400, { error: 'Missing prompt' });
 
-  return POST(new Request(req.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: raw }));
+  return POST(new Request(req.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-OpenAI-Key': apiKey }, body: raw }));
 };

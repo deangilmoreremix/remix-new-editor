@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { applyOps, sanitizeProps } from '../../apps/shotcraft/workbench/src/ai/ops.ts';
 import { projectFromAssets, appendAssets, isHostAsset } from '../../apps/shotcraft/workbench/src/host/importAssets.ts';
 import {
@@ -6,7 +6,7 @@ import {
 } from '../lib/workbench.js';
 import { mountGenerationNotifications, notifyGeneration, __resetGenerationNotifications } from '../components/studio/generationNotifications.js';
 import { saveGeneration, registerGeneration } from '../lib/generationHistory.js';
-import { parseModelAnswer, extractText } from '../../netlify/functions/workbench-chat.js';
+import { parseModelAnswer, extractText, handler as workbenchChat, userOpenAIKey } from '../../netlify/functions/workbench-chat.js';
 
 // src/test/setup.js replaces sessionStorage with no-op mocks; the handoff needs a real store.
 const memoryStorage = () => {
@@ -217,5 +217,47 @@ describe('Workbench uploads from the computer', () => {
     expect(checkFile(big).error).toMatch(/too large \(max 10 MB for image\)/);
     expect(checkFile({ name: 'ok.mp4', type: 'video/mp4', size: 1024 })).toEqual({ kind: 'video' });
     expect(checkFile({ name: 'x.txt', type: 'text/plain', size: 3 }).error).toMatch(/isn't a video, image or audio/);
+  });
+});
+
+describe('workbench-chat uses the user\'s own OpenAI key (BYOK)', () => {
+  const KEY = 'sk-proj-' + 'c'.repeat(40);
+  const ev = (headers = {}) => ({ httpMethod: 'POST', headers, body: JSON.stringify({ message: 'trim the first clip', project: { name: 'p', fps: 30, tracks: [] }, cards: [] }) });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('reads and validates the X-OpenAI-Key header', () => {
+    expect(userOpenAIKey({ 'x-openai-key': ` ${KEY} ` })).toBe(KEY);
+    expect(userOpenAIKey({ 'X-OpenAI-Key': KEY })).toBe(KEY);
+    expect(userOpenAIKey({ 'x-openai-key': 'hello' })).toBeNull();
+    expect(userOpenAIKey({})).toBeNull();
+  });
+
+  it('asks for a key instead of using a server key', async () => {
+    process.env.OPENAI_API_KEY = 'sk-server-' + 'd'.repeat(32);
+    try {
+      const r = await workbenchChat(ev());
+      expect(r.statusCode).toBe(401);
+      expect(JSON.parse(r.body).error).toMatch(/your own OpenAI key/);
+    } finally {
+      delete process.env.OPENAI_API_KEY;
+    }
+  });
+
+  it('sends the request on the user\'s key and returns the edit ops', async () => {
+    let auth = null;
+    vi.stubGlobal('fetch', async (url, init) => {
+      auth = init.headers.Authorization;
+      return new Response(JSON.stringify({ output_text: '{"reply":"Trimmed.","ops":[{"op":"update_clip","clipId":"c1","duration":60}]}' }), { status: 200 });
+    });
+    const r = await workbenchChat(ev({ 'X-OpenAI-Key': KEY }));
+    expect(auth).toBe(`Bearer ${KEY}`);
+    expect(JSON.parse(r.body)).toEqual({ ok: true, reply: 'Trimmed.', ops: [{ op: 'update_clip', clipId: 'c1', duration: 60 }] });
+  });
+
+  it('explains a rejected key or an empty OpenAI account', async () => {
+    vi.stubGlobal('fetch', async () => new Response('{}', { status: 401 }));
+    expect(JSON.parse((await workbenchChat(ev({ 'X-OpenAI-Key': KEY }))).body).error).toMatch(/OpenAI rejected your API key/);
+    vi.stubGlobal('fetch', async () => new Response('{}', { status: 429 }));
+    expect(JSON.parse((await workbenchChat(ev({ 'X-OpenAI-Key': KEY }))).body).error).toMatch(/out of credit/);
   });
 });
