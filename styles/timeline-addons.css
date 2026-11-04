@@ -898,3 +898,7 @@
 .kf-item input, .kf-item select { min-width: 0; font-size: 11px; padding: 3px 4px; }
 .kf-diamond { padding: 0; margin-left: -4.5px; background: #ffd84d; }
 .kf-diamond:focus-visible { outline: 2px solid #fff; }
+.clip-bg-removal { margin-top: var(--sp-3, 12px); }
+.bg-panel { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.bg-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); overflow: hidden; }
+.bg-bar > span { display: block; height: 100%; background: #eb5054; transition: width .2s; }

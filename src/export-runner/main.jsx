@@ -27,11 +27,25 @@ function post(msg) {
   parentWin.postMessage(msg, '*');
 }
 
+/** Blobs sent by the editor (local files) → object URLs in this frame. */
+function materializeBlobs(v, urls) {
+  if (v instanceof Blob) {
+    const url = URL.createObjectURL(v);
+    urls.push(url);
+    return url;
+  }
+  if (Array.isArray(v)) return v.map((x) => materializeBlobs(x, urls));
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, materializeBlobs(x, urls)]));
+  return v;
+}
+
 const BITRATE = { '720p': 'high', '1080p': 'high', '4k': 'very-high' };
 
-async function render(id, model, options = {}) {
+async function render(id, rawModel, options = {}) {
   const controller = new AbortController();
   jobs.set(id, controller);
+  const urls = [];
+  const model = materializeBlobs(rawModel, urls);
   try {
     if (typeof window.VideoEncoder !== 'function') {
       throw new Error('This browser cannot encode video. Use Chrome or Edge 94+, Firefox 130+ or Safari 26+.');
@@ -64,6 +78,7 @@ async function render(id, model, options = {}) {
     post({ type: 'error', id, message: controller.signal.aborted ? 'Export cancelled' : (err?.message || String(err)) });
   } finally {
     jobs.delete(id);
+    urls.forEach((u) => URL.revokeObjectURL(u));
   }
 }
 

@@ -3250,7 +3250,12 @@ export function TimelineEditorPage() {
     }
 
     function insertClipIntoTrack(clip, preferredTrackName) {
-      const targetTrack = state.tracks.find((track) => track.name === preferredTrackName) || state.tracks[0];
+      // Match the track by name, then by type ('Text' → the text track, which
+      // is named "Titles"), so overlays never land on the video track.
+      const wanted = String(preferredTrackName || '').toLowerCase();
+      const targetTrack = state.tracks.find((track) => track.name === preferredTrackName)
+        || state.tracks.find((track) => String(track.type || '').toLowerCase() === wanted)
+        || state.tracks[0];
 
       // Convert start/end format to left/width format used by this timeline
       if (clip.start !== undefined && clip.end !== undefined) {
@@ -4359,7 +4364,8 @@ export function TimelineEditorPage() {
           console.warn('[Overlays] upload failed, using a local preview URL', err);
         }
         showToast('Upload unavailable — using a local preview of the file (it will not be saved with the project)', 'info');
-        return URL.createObjectURL(file);
+        const { localMediaUrl } = await import('../lib/editor/remotion/localMedia.js');
+        return localMediaUrl(file);
       },
       onError: (err) => showToast(err?.message || 'Upload failed', 'error'),
     };
@@ -4664,6 +4670,83 @@ export function TimelineEditorPage() {
     var activeCaptionsPanel = null;
     // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
     var pendingAutoCaptions = null;
+    // eslint-disable-next-line no-var -- background-removal jobs outlive the clip editor
+    var bgJobs = new Map();
+    // eslint-disable-next-line no-var
+    var activeBgPanel = null;
+    // eslint-disable-next-line no-var
+    var editorClipId = null;
+    const BG_REMOVAL_TYPES = new Set(['video', 'image', 'overlay-image']);
+    const clipMediaSrc = (clip) => (clip.type === 'overlay-image' ? clip.addon?.src : clip.src);
+    function setClipMediaSrc(clip, src) {
+      if (clip.type === 'overlay-image') clip.addon = { ...(clip.addon || {}), src };
+      else clip.src = src;
+    }
+
+    /** Remove a clip's background in the browser, store the result and swap it in (undoable). */
+    function startBgRemoval(clip, settings) {
+      const controller = new AbortController();
+      const listeners = new Set();
+      const job = {
+        last: null,
+        cancel: () => controller.abort(),
+        subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
+      };
+      const onProgress = (p) => { job.last = p; listeners.forEach((fn) => fn(p)); };
+      job.done = (async () => {
+        const m = await import('../lib/editor/remotion/bgRemoval.js');
+        const src = clipMediaSrc(clip);
+        if (!src) throw new Error('This clip has no media yet');
+        const isVideo = clip.type === 'video';
+        const fromSec = Number(clip.trimIn ?? clip.sourceStart ?? 0) || 0;
+        const blob = isVideo
+          ? await m.removeVideoBackground(src, { fromSec, toSec: fromSec + clipDurationSec(clip), ...settings, onProgress, signal: controller.signal })
+          : await m.removeImageBackground(src, { edge: settings.edge, onProgress, signal: controller.signal });
+        const file = new File([blob], `${String(clip.name || 'clip').replace(/[^\w-]+/g, '_')}-no-background.${isVideo ? 'webm' : 'png'}`, { type: blob.type });
+        let url = null;
+        try {
+          const r = await uploadFileToStorage(file);
+          url = typeof r === 'string' ? r : r?.url || null;
+        } catch (err) {
+          console.warn('[Background removal] upload failed, keeping a local copy', err);
+        }
+        if (!url) {
+          const { localMediaUrl } = await import('../lib/editor/remotion/localMedia.js');
+          url = localMediaUrl(blob);
+          showToast('Background removed — kept for this session only (sign in to save the file with the project)', 'info');
+        } else {
+          showToast('Background removed', 'success');
+        }
+        saveStateSnapshot(state);
+        clip.bgRemoval = { originalSrc: src, originalTrimIn: clip.trimIn ?? null, at: new Date().toISOString() };
+        setClipMediaSrc(clip, url);
+        if (isVideo) clip.trimIn = 0; // the new file starts where the clip started
+        renderTracks();
+        scheduleEngineUpdate();
+        debouncedSave();
+        if (editorClipId === clip.id) renderClipEditor(clip.id);
+      })();
+      job.done.catch((err) => {
+        if (err?.name !== 'AbortError') showToast(`Background removal failed: ${err?.message || err}`, 'error');
+      }).finally(() => bgJobs.delete(clip.id));
+      bgJobs.set(clip.id, job);
+      return job;
+    }
+
+    function restoreBgRemoval(clip) {
+      const info = clip.bgRemoval;
+      if (!info) return;
+      saveStateSnapshot(state);
+      setClipMediaSrc(clip, info.originalSrc);
+      if (clip.type === 'video') {
+        if (info.originalTrimIn == null) delete clip.trimIn; else clip.trimIn = info.originalTrimIn;
+      }
+      delete clip.bgRemoval;
+      renderTracks();
+      scheduleEngineUpdate();
+      debouncedSave();
+      renderClipEditor(clip.id);
+    }
     const timelineSec = () => state.timelineSeconds || 60;
     const clipStartSec = (clip) => ((Number(clip.left) || 0) / 100) * timelineSec();
     const clipDurationSec = (clip) => ((Number(clip.width) || 0) / 100) * timelineSec();
@@ -4704,10 +4787,28 @@ export function TimelineEditorPage() {
 
     function renderClipEditor(clipId) {
       renderClipEditorBase(clipId);
-      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel].forEach((p) => p?.destroy());
-      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = null;
+      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel].forEach((p) => p?.destroy());
+      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = null;
+      editorClipId = clipId;
       const clip = allClips().find((c) => c.id === clipId);
       if (!clip) return;
+
+      if (BG_REMOVAL_TYPES.has(clip.type) && (clipMediaSrc(clip) || clip.bgRemoval)) {
+        const host = editorSection('clip-bg-removal', 'Remove background');
+        Promise.all([import('../lib/editor/remotion/bgRemovalPanel.js'), import('../lib/editor/remotion/bgRemoval.js')])
+          .then(async ([{ renderBgRemovalPanel }, { hasWebGpu }]) => {
+            const gpu = await hasWebGpu();
+            if (!host.isConnected) return;
+            activeBgPanel = renderBgRemovalPanel(host, {
+              kind: clip.type === 'video' ? 'video' : 'image',
+              removed: !!clip.bgRemoval,
+              gpu,
+              job: bgJobs.get(clip.id),
+              start: (settings) => startBgRemoval(clip, settings),
+              onRestore: () => restoreBgRemoval(clip),
+            });
+          });
+      }
 
       if (clip.type === 'captions') {
         const host = editorSection('clip-captions', 'Captions');

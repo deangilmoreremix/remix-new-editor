@@ -3,6 +3,8 @@
  * (export-runner.html, opaque origin) and talks to it over postMessage.
  */
 
+import { localMediaBlob } from './localMedia.js';
+
 export const RUNNER_URL = '/export-runner.html';
 
 let runner = null; // { iframe, ready: Promise }
@@ -35,11 +37,35 @@ function ensureRunner() {
 }
 
 /**
+ * Local files (blob: URLs — e.g. an upload that couldn't be stored, or a
+ * background-removed clip) belong to this page's origin and can't be read
+ * by the sandboxed runner, so they are sent along as Blobs.
+ */
+export async function inlineLocalMedia(model) {
+  const cache = new Map();
+  const walk = async (v) => {
+    if (typeof v === 'string' && v.startsWith('blob:')) {
+      if (!cache.has(v)) cache.set(v, localMediaBlob(v) ? Promise.resolve(localMediaBlob(v)) : fetch(v).then((r) => r.blob()).catch(() => v));
+      return cache.get(v);
+    }
+    if (Array.isArray(v)) return Promise.all(v.map(walk));
+    if (v && typeof v === 'object' && !(typeof Blob !== 'undefined' && v instanceof Blob)) {
+      const out = {};
+      await Promise.all(Object.entries(v).map(async ([k, x]) => { out[k] = await walk(x); }));
+      return out;
+    }
+    return v;
+  };
+  return walk(model);
+}
+
+/**
  * Render `model` to a video Blob.
  * @returns {Promise<Blob>}
  */
 export async function exportModel(model, { container = 'mp4', quality = '1080p', onProgress, signal } = {}) {
   const r = ensureRunner();
+  const payload = await inlineLocalMedia(model);
   await r.ready;
   const id = `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   return new Promise((resolve, reject) => {
@@ -57,7 +83,7 @@ export async function exportModel(model, { container = 'mp4', quality = '1080p',
     const onAbort = () => r.iframe.contentWindow?.postMessage({ type: 'cancel', id }, '*');
     window.addEventListener('message', onMsg);
     signal?.addEventListener('abort', onAbort, { once: true });
-    r.iframe.contentWindow.postMessage({ type: 'render', id, model, options: { container, quality } }, '*');
+    r.iframe.contentWindow.postMessage({ type: 'render', id, model: payload, options: { container, quality } }, '*');
   });
 }
 
