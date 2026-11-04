@@ -89,6 +89,10 @@
   [headers.values]
     Access-Control-Allow-Origin = "*"
 
+# The public video player (/watch/<id>) can be embedded anywhere: its
+# framing headers are rewritten by netlify/edge-functions/watch-embed.js
+# (header rules below are merged, not overridden, so a rule can't do it).
+
 # Security headers
 [[headers]]
   for = "/*"

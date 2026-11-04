@@ -566,6 +566,10 @@ export function TimelineEditorPage() {
         <div class="card-title">🎬 Stock Media</div>
         <div id="stockBrowser"></div>
       </aside>
+      <aside class="side-card" id="sharePanel" hidden data-tooltip="Share - publish an interactive video link and embed code">
+        <div class="card-title">🔗 Share</div>
+        <div id="shareBody"></div>
+      </aside>
       <aside class="side-card" id="aiAgentPanel" hidden data-tooltip="AI Agent - describe a video or animation and the agent builds it">
         <div class="card-title">🤖 AI Agent</div>
         <div id="aiAgentChat"></div>
@@ -728,6 +732,7 @@ export function TimelineEditorPage() {
         ['🧩', 'Overlays'],
         ['🎞️', 'Stock Media'],
         ['🤖', 'AI Agent'],
+        ['🔗', 'Share'],
         ['🎬', 'Scene Detector'],
         ['🎥', 'Camera FX'],
         ['📊', 'Color Scopes'],
@@ -4623,7 +4628,10 @@ export function TimelineEditorPage() {
 
     async function downloadLeadsCsv({ clipId, local = [], name = 'leads' }) {
       const stored = await fetchLeads(supabase, { projectId: state.projectId || currentTimelineId(state) || null, clipId });
-      const leads = mergeLeads(local, stored);
+      // Leads from the published video (/watch link) are filed under its id.
+      const publishedId = (state.publishedVideos || {})[String(currentTimelineId(state) || 'default')];
+      const viewers = publishedId ? await fetchLeads(supabase, { projectId: publishedId, clipId }) : [];
+      const leads = mergeLeads(local, [...stored, ...viewers]);
       if (!leads.length) {
         showToast('No leads captured yet', 'info');
         return;
@@ -4879,6 +4887,58 @@ export function TimelineEditorPage() {
       registerWebMcpTools(tools, {
         confirm: (message) => Promise.resolve(window.confirm(message)),
         onChange: () => saveStateSnapshot(state),
+      });
+    }
+
+    // ---------------------------------------------------------------
+    // Share: publish the timeline as an interactive video (/watch/<id>).
+    // eslint-disable-next-line no-var -- created on first open
+    var sharePanel = null;
+    async function publishOwnerClient() {
+      if (!window.Clerk?.user) throw new Error('Sign in to publish videos');
+      await supabase.refreshUserHeader?.();
+      if (!supabase.supabase) throw new Error('The video service is unavailable — check your connection');
+      return supabase.supabase;
+    }
+    const publishedKey = () => String(currentTimelineId(state) || 'default');
+    async function mountSharePanel() {
+      const host = root.querySelector('#shareBody');
+      if (sharePanel || !host) return;
+      const pub = await import('../lib/editor/publish/publishClient.js');
+      const { renderSharePanel } = await import('../lib/editor/publish/sharePanel.js');
+      const { localMediaBlob } = await import('../lib/editor/remotion/localMedia.js');
+      const videoId = () => (state.publishedVideos || {})[publishedKey()] || null;
+      sharePanel = renderSharePanel(host, {
+        defaultTitle: state.projectTitle || 'Untitled video',
+        async getInfo() {
+          const id = videoId();
+          if (!id || !window.Clerk?.user) return null;
+          return pub.getMyVideo(await publishOwnerClient(), id);
+        },
+        async publish({ title }) {
+          const client = await publishOwnerClient();
+          const uploaded = await pub.uploadLocalMedia(state, { getBlob: localMediaBlob, upload: uploadFileToStorage });
+          if (uploaded) {
+            renderTracks();
+            scheduleEngineUpdate();
+          }
+          const project = pub.preparePublishProject(state, { title });
+          const id = videoId() || pub.makeSlug();
+          const info = await pub.publishVideo(client, { id, project });
+          state.publishedVideos = { ...(state.publishedVideos || {}), [publishedKey()]: id };
+          debouncedSave();
+          showToast('Published — copy the link to share it', 'success');
+          return { ...info, published: true };
+        },
+        async setPublished(on) {
+          await pub.setPublished(await publishOwnerClient(), videoId(), on);
+          showToast(on ? 'Published' : 'Unpublished — the link no longer works', 'success');
+        },
+        async countLeads() {
+          const leads = await fetchLeads(supabase, { projectId: videoId() });
+          return Array.isArray(leads) ? leads.length : null;
+        },
+        copy: (text) => navigator.clipboard.writeText(text),
       });
     }
 
@@ -6112,6 +6172,7 @@ export function TimelineEditorPage() {
       if (!el) return;
       if (id === 'stockPanel') mountStockBrowser();
       if (id === 'aiAgentPanel') mountAgentPanel();
+      if (id === 'sharePanel') mountSharePanel();
       el.hidden = false;
       el.style.display = 'block';
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -6123,6 +6184,7 @@ export function TimelineEditorPage() {
       'Overlays': 'overlaysPanel',
       'Stock Media': 'stockPanel',
       'AI Agent': 'aiAgentPanel',
+      'Share': 'sharePanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
       'Color Scopes': 'colorScopesPanel',
@@ -6221,7 +6283,8 @@ export function TimelineEditorPage() {
         'Interactive': 'Interactive - Skip, Pause, Loop, Lead Generator, List Builder, Personalizer, CTA',
         'Overlays': 'Overlays - Smart Text, Text Mask, Personalized Image, Image, Stickers, Wrapper, Lower Thirds, Transitions, Presets',
         'Stock Media': 'Stock Media - Pixabay and Pexels videos and images for the timeline',
-        'AI Agent': 'AI Agent - describe a video or animation and the agent builds it on the timeline'
+        'AI Agent': 'AI Agent - describe a video or animation and the agent builds it on the timeline',
+        'Share': 'Share - publish an interactive video with a link and embed code'
       };
       state.railActions.forEach(([icon, label, active]) => {
         const button = document.createElement('button');
@@ -6431,6 +6494,7 @@ export function TimelineEditorPage() {
           <button class="primary-btn" id="startExportBtn">Start Export</button>
           <button class="secondary-btn" id="cancelExportBtn">Cancel</button>
           <button class="secondary-btn" id="basicExportBtn" title="The previous exporter">Basic export</button>
+          <button class="secondary-btn" id="publishInteractiveBtn" title="Share a link where viewers get the pauses, lead forms and CTA buttons">Publish interactive video…</button>
           <div id="exportProgress" style="margin-top:12px;display:none;">
             <div class="progress-bar"><div class="progress-fill" id="exportProgressFill" style="width:0%"></div></div>
             <div id="exportProgressText">Preparing export...</div>
@@ -6443,6 +6507,7 @@ export function TimelineEditorPage() {
       const startBtn = q('#startExportBtn');
       const cancelBtn = q('#cancelExportBtn');
       const basicBtn = q('#basicExportBtn');
+      q('#publishInteractiveBtn')?.addEventListener('click', () => { closeModal(); openPanel('sharePanel'); });
       const progress = q('#exportProgress');
       const progressFill = q('#exportProgressFill');
       const progressText = q('#exportProgressText');

@@ -12,11 +12,20 @@
 // Anonymous callers (no session) can't store rows — RLS needs an owner —
 // but their webhooks are still forwarded, matching what the editor preview
 // did before this function existed.
+//
+// Published videos (the public /watch/<id> player):
+// POST { publishedId, clipId, kind, data, source }
+//   -> the video is looked up with the service role; if it is published,
+//      the lead is stored for the video's OWNER (preview = false) and
+//      forwarded to the webhooks saved in the published project — webhook
+//      URLs and notification emails in the request body are ignored.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const PUBLISHED_ID = /^[A-Za-z0-9_-]{8,32}$/;
 const ALLOWED_ORIGINS = (Deno.env.get("LEAD_CAPTURE_ALLOWED_ORIGINS") ?? "*")
   .split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -93,6 +102,35 @@ function sanitizeData(input: unknown): Record<string, string> {
   return out;
 }
 
+type Json = Record<string, unknown>;
+
+/** Webhook URLs saved on a Lead Generator clip or the List Builder config. */
+export function savedWebhooks(config: Json | null | undefined, listBuilder = false): string[] {
+  if (!config) return [];
+  const pick = (v: unknown) => (v && typeof v === "object" ? (v as Json).value : v);
+  const enabled = listBuilder ? !!config.webhookEnabled : config.webhookEnabled !== false;
+  if (!enabled) return [];
+  const urls = listBuilder
+    ? [config.webhook, pick(config.webhook2), pick(config.webhook3)]
+    : [config.webhookUrl, config.webhookUrl2, config.webhookUrl3];
+  return urls.filter(isForwardableWebhook).slice(0, MAX_WEBHOOKS);
+}
+
+/** Find the lead config (clip or List Builder) in a published project. */
+export function leadConfigFor(project: Json, kind: string, clipId: string | null): { config: Json | null; listBuilder: boolean } {
+  if (kind === "list-builder" || kind === "personalizer") {
+    const lb = project.listBuilder && typeof project.listBuilder === "object" ? project.listBuilder as Json : null;
+    return { config: lb && lb.enabled ? lb : null, listBuilder: true };
+  }
+  const tracks = Array.isArray(project.tracks) ? project.tracks as Json[] : [];
+  for (const t of tracks) {
+    const items = (Array.isArray(t.items) ? t.items : Array.isArray(t.clips) ? t.clips : []) as Json[];
+    const clip = items.find((c) => String(c.id) === clipId && c.type === "lead-form");
+    if (clip) return { config: clip, listBuilder: false };
+  }
+  return { config: null, listBuilder: false };
+}
+
 async function forward(urls: string[], payload: unknown): Promise<{ forwarded: number; failed: number }> {
   const results = await Promise.allSettled(urls.map(async (url) => {
     const ctrl = new AbortController();
@@ -134,6 +172,41 @@ Deno.serve(async (req: Request) => {
 
   const projectId = typeof body.projectId === "string" ? body.projectId.slice(0, 128) : null;
   const clipId = typeof body.clipId === "string" ? body.clipId.slice(0, 128) : null;
+
+  if (body.publishedId !== undefined) {
+    const publishedId = String(body.publishedId);
+    if (!PUBLISHED_ID.test(publishedId)) return json(req, { ok: false, error: "Unknown video" }, 404);
+    if (!SUPABASE_SERVICE_ROLE_KEY) return json(req, { ok: false, error: "Lead backend not configured" }, 500);
+    const leadData = sanitizeData(body.data);
+    if (!Object.keys(leadData).length) return json(req, { ok: false, error: "Empty submission" }, 400);
+    const leadKind = typeof body.kind === "string" && KINDS.has(body.kind) ? body.kind : "lead-form";
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data: video, error: videoError } = await admin.from("published_videos")
+      .select("id, clerk_user_id, project").eq("id", publishedId).eq("published", true).maybeSingle();
+    if (videoError || !video) return json(req, { ok: false, error: "Unknown video" }, 404);
+    const { config, listBuilder } = leadConfigFor(video.project as Json, leadKind, clipId);
+    if (!config) return json(req, { ok: false, error: "This video has no such form" }, 400);
+    const src = body.source && typeof body.source === "object" ? body.source as Json : {};
+    const { error: insertError } = await admin.from("video_leads").insert({
+      clerk_user_id: video.clerk_user_id,
+      project_id: publishedId,
+      clip_id: leadKind === "lead-form" ? clipId : "list-builder",
+      kind: leadKind,
+      data: leadData,
+      source: {
+        page: typeof src.page === "string" ? src.page.slice(0, 512) : null,
+        userAgent: typeof src.userAgent === "string" ? src.userAgent.slice(0, 512) : null,
+        published: true,
+      },
+      preview: false,
+    });
+    if (insertError) console.warn("[lead-capture] published insert failed:", insertError.code);
+    const hooks = savedWebhooks(config, listBuilder);
+    const sent = hooks.length
+      ? await forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString() })
+      : { forwarded: 0, failed: 0 };
+    return json(req, { ok: true, stored: !insertError, ...sent, email: config.emailNotificationEnabled || config.emailEnabled ? "not_configured" : null });
+  }
 
   if (body.action === "list") {
     if (!hasSession) return json(req, { ok: true, leads: [] });

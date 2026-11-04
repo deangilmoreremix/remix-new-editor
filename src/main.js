@@ -5,7 +5,10 @@ import './components/modals/modal-styles.css';
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
 // real error surfaces in the dev-tools console if any step fails.
 import { initPopcorn } from './lib/popcornInit.js';
-initPopcorn().then(() => {
+const IS_WATCH_PAGE = /^\/watch\//.test(window.location.pathname) || /^#\/watch\//.test(window.location.hash);
+// The public video player (/watch/<id>) doesn't use Popcorn.
+(IS_WATCH_PAGE ? Promise.resolve(null) : initPopcorn()).then(() => {
+  if (IS_WATCH_PAGE) return;
   console.log('[popcorn]', typeof window.Popcorn, Object.keys(window.Popcorn.registryByName || {}).length);
 }).catch((e) => {
   console.error('[popcorn] init failed', e);
@@ -143,6 +146,14 @@ try {
     const landingPage = await LandingPage();
     app.appendChild(landingPage);
     console.log('[App] Landing page rendered');
+    return;
+  }
+
+  // Public interactive video player (/watch/<id>): no app shell, no sign-in.
+  if (initialPage.startsWith('watch/')) {
+    const { mountWatchPage } = await import('./pages/WatchPage.jsx');
+    await mountWatchPage(app, decodeURIComponent(initialPage.slice('watch/'.length).split(/[/?#]/)[0]));
+    console.log('[App] Watch page rendered');
     return;
   }
 
