@@ -121,7 +121,7 @@ export class ThumbnailExploreIdeas {
 
   render() {
     if (this.selectedTemplateId) {
-      const template = THUMBNAIL_TEMPLATES.find((t) => t.id === this.selectedTemplateId);
+      const template = getAllTemplates().find((t) => t.id === this.selectedTemplateId);
       if (template) {
         return `<div class="explore-ideas-container" style="--app-primary:${this.primary};--app-accent:${this.accent};--app-soft:${this.getSoft()};--app-soft-accent:${this.getSoftAccent()}">
           ${this.renderConfigurator(template)}

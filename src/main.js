@@ -1,5 +1,6 @@
 import './style.css';
 import './components/modals/modal-styles.css';
+import './styles/thumbnail-studio.css';
 
 // Popcorn.JS — initialize as early as possible (ESM init replicating
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the

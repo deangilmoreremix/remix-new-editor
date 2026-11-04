@@ -31,7 +31,7 @@ export const PANEL_STYLES = `
   top: 0;
   right: 0;
   bottom: 0;
-  width: 460px;
+  width: min(520px, 100vw);
   max-width: 100vw;
   background: var(--bg-app);
   border-left: 1px solid var(--border-color);
