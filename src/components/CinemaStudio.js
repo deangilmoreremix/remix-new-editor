@@ -1341,7 +1341,8 @@ export function CinemaStudio() {
             deleteBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
             deleteBtn.onclick = (e) => {
                 e.stopPropagation();
-                if (!confirmDeleteGeneration(entry.url, 'video')) return;
+                // Stills are stored in the image history, so delete from the matching bucket.
+                if (!confirmDeleteGeneration(entry.url, entry.kind === 'image' ? 'image' : 'video')) return;
                 generationHistory.splice(idx, 1);
                 try { localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50))); } catch { /* ignore */ }
                 renderHistory();

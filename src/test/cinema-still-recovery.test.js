@@ -31,3 +31,10 @@ describe('Cinema still request', () => {
     expect(src).not.toMatch(/generateI2I\(\{ \.\.\.stillParams/);
   });
 });
+
+describe('Cinema still deletion', () => {
+  it('deletes a still from the image history, not the video history', () => {
+    const src = fs.readFileSync('src/components/CinemaStudio.js', 'utf8');
+    expect(src).toContain("confirmDeleteGeneration(entry.url, entry.kind === 'image' ? 'image' : 'video')");
+  });
+});
