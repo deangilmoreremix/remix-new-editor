@@ -5700,6 +5700,12 @@ export function TimelineEditorPage() {
             localImages: personalLinkIssues(p, tokens),
           }));
         },
+        // Views / plays / finishes / CTA clicks / leads per contact.
+        fetchStats: async () => pub.fetchVideoStats(await publishOwnerClient(), videoId()),
+        contactLabel: (id) => {
+          const p = contactStore.getProfile?.(id);
+          return p ? contactName(p) : null;
+        },
         downloadCsv: (rows) => {
           const blob = new Blob([linksCsv(rows)], { type: 'text/csv' });
           const a = document.createElement('a');

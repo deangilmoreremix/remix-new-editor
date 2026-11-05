@@ -8,7 +8,7 @@
  */
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
-import { fetchPublishedVideo, countView, submitViewerLead, profileFromQuery } from '../lib/editor/publish/publishClient.js';
+import { fetchPublishedVideo, countView, submitViewerLead, profileFromQuery, recordVideoEvent } from '../lib/editor/publish/publishClient.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 
@@ -77,16 +77,27 @@ export async function mountWatchPage(container, id, deps = {}) {
 
   let codePreview = null;
   let scrubbing = false;
+  // Per-contact analytics (personal links carry ?c=<contactId>).
+  const viewerProfile = profileFromQuery();
+  const track = (kind, clipId = null) => (deps.recordEvent || recordVideoEvent)(video.id, { kind, contactId: viewerProfile?.id || null, clipId });
+  let playedOnce = false;
+  let completedOnce = false;
   const player = createInteractivePlayer({
     project: video.project,
     stage: $('[data-stage]'),
     frame,
     createEngine,
-    profile: profileFromQuery(),
+    profile: viewerProfile,
     fps: FPS,
     voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
-    onLead: ({ clipId, kind, data }) => (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data }),
+    onLead: async ({ clipId, kind, data }) => {
+      const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data });
+      if (kind !== 'call-attempt' && res?.stored !== false) track('lead', clipId);
+      return res;
+    },
     onChange: ({ playing, time, duration }) => {
+      if (playing && !playedOnce) { playedOnce = true; track('play'); }
+      if (!completedOnce && duration > 0 && time >= duration - 0.3) { completedOnce = true; track('complete'); }
       $('[data-play]').textContent = playing ? '❚❚' : '▶';
       $('[data-play]').setAttribute('aria-label', playing ? 'Pause' : 'Play');
       $('[data-bigplay]').hidden = playing || time > 0.05;
@@ -132,6 +143,14 @@ export async function mountWatchPage(container, id, deps = {}) {
     if (e.target === frame || e.target.closest('[data-stage]')) player.toggle();
   });
 
+  // CTA buttons and links in the video (click-to-call, Smart Text links…).
+  frame.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href]');
+    if (!a || !frame.contains(a)) return;
+    track('cta_click', a.closest('[data-clip-id]')?.dataset.clipId || null);
+  }, true);
+
   (deps.countView || countView)(video.id);
+  track('view');
   return player;
 }
