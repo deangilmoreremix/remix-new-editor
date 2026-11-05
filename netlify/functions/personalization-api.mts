@@ -50,6 +50,9 @@ import * as openaiEnhance from './_personalization/extra/openaiEnhance'
 import * as muapiProxy from './_personalization/app/api/api/v1/[[...path]]/route.js'
 import * as muapiUploadFile from './_personalization/app/api/v1/upload_file/route'
 import * as shotcraftMedia from './_personalization/app/api/media/shotcraft/[styleKey]/route'
+import * as motionDirector from './_personalization/app/api/motion-studio/director/route'
+import * as motionCapture from './_personalization/app/api/motion-studio/capture/route'
+import * as motionCaptureStatus from './_personalization/app/api/motion-studio/capture/status/route'
 
 type RouteParams = Record<string, string | string[]>
 type Handler = (req: NextRequest, ctx?: { params: Promise<RouteParams> }) => Promise<Response> | Response
@@ -71,6 +74,10 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/demo/discover': demoDiscover as RouteModule,
   '/api/proxy/openai-enhance': openaiEnhance as unknown as RouteModule,
   '/api/v1/upload_file': muapiUploadFile as unknown as RouteModule,
+  // Motion Director (ported from OpenHiggsBolt app/api/motion-studio).
+  '/api/motion-studio/director': motionDirector as unknown as RouteModule,
+  '/api/motion-studio/capture': motionCapture as unknown as RouteModule,
+  '/api/motion-studio/capture/status': motionCaptureStatus as unknown as RouteModule,
 }
 
 const videoRecord: RouteModule = {
@@ -156,5 +163,6 @@ export const config: Config = {
     '/api/api/v1/*',
     '/api/v1/upload_file',
     '/api/media/shotcraft/*',
+    '/api/motion-studio/*',
   ],
 }

@@ -173,12 +173,7 @@ export interface TemplateBrowserProps {
    */
   onSelect?: (template: MotionTemplate) => void
   onLaunch?: (template: MotionTemplate) => void
-  /**
-   * remix-new-editor: show the "Motion Studio" hand-off button. remix has no
-   * Motion Studio editor that opens a recipe (`#/animate` is image-to-video
-   * and ignores `?template=`), so it is hidden unless a caller supplies a
-   * destination. "Use this template" (the in-modal preview) is unaffected.
-   */
+  /** Show the "Motion Studio" hand-off button (opens the Motion Director's Workbench). Default: shown, as upstream. */
   showStudioLaunch?: boolean
 }
 
@@ -188,7 +183,7 @@ export interface TemplateBrowserProps {
  * "Use this template" (in-modal preview) and "Edit in Motion Studio"
  * (canonical studio handoff).
  */
-export function TemplateBrowser({ onSelect, onLaunch, showStudioLaunch = Boolean(onLaunch) }: TemplateBrowserProps): React.JSX.Element {
+export function TemplateBrowser({ onSelect, onLaunch, showStudioLaunch = true }: TemplateBrowserProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const [activeCategory, setActiveCategory] = useState<MotionCategoryKey | 'all'>('all')
   const [query, setQuery] = useState('')

@@ -1362,6 +1362,11 @@ export default defineConfig({
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
+            // Motion Director: director chat + page capture (netlify/functions/personalization-api.mts).
+            '/api/motion-studio/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             '/api/personalizer': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,

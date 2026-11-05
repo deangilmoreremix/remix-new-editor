@@ -23,7 +23,8 @@ describe('navigation shim', () => {
     expect(toRemixRoute('/studio/video')).toBe('#/video')
     expect(toRemixRoute('/studio/vfx-studio')).toBe('#/effects')
     expect(toRemixRoute('/studio/ai-influencer')).toBe('#/influencer')
-    expect(toRemixRoute('/studio/motion-studio?template=a%7Cb')).toBe('#/animate?template=a%7Cb')
+    expect(toRemixRoute('/studio/motion-studio?template=a%7Cb')).toBe('#/motion-director/workbench?template=a%7Cb')
+    expect(toRemixRoute('/studio/motion-director')).toBe('#/motion-director')
   })
 
   it('forwards the handoff prompt through prefill_prompt for prompt-only studios', () => {
@@ -44,8 +45,8 @@ describe('navigation shim', () => {
       router.initRouter(content, null)
       navigate('/studio/motion-studio?template=a%7Cb')
       // The router looks the page up by bare name and puts params in the query.
-      expect(router.getCurrentPage()).toBe('animate')
-      expect(pushState).toHaveBeenLastCalledWith({}, '', '/?template=a%7Cb#/animate')
+      expect(router.getCurrentPage()).toBe('motion-director/workbench')
+      expect(pushState).toHaveBeenLastCalledWith({}, '', '/?template=a%7Cb#/motion-director/workbench')
     } finally {
       pushState.mockRestore()
       content.remove()

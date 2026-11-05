@@ -1117,3 +1117,18 @@ drop policy if exists "brand-assets public read" on storage.objects;
 create policy "brand-assets public read"
   on storage.objects for select
   using (bucket_id = 'brand-assets');
+
+-- ════════════════════════════════════════════════════════════════════
+-- remix: Motion Director page capture (ported from OpenHiggsBolt
+-- 20261028000000_motion_capture_storage_bucket.sql)
+-- ════════════════════════════════════════════════════════════════════
+-- /api/motion-studio/capture and the motion-studio-capture-background
+-- function store page screenshots and background-job records here with the
+-- service role. Public read: the film references the pictures by URL; paths
+-- contain the user id and a random id. No client write policy: only the
+-- server writes.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('motion-capture', 'motion-capture', true, 20971520, array['image/jpeg','image/png','application/json'])
+on conflict (id) do update
+  set allowed_mime_types = excluded.allowed_mime_types,
+      file_size_limit = excluded.file_size_limit;

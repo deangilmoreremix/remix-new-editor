@@ -21,7 +21,9 @@ const STUDIO_ROUTE: Record<string, string> = {
   marketing: 'commercial',
   clipping: 'videotools',
   'vibe-motion': 'animate',
-  'motion-studio': 'animate',
+  // OpenHiggsBolt's Motion Studio editor is the Motion Director's Workbench here.
+  'motion-studio': 'motion-director/workbench',
+  'motion-director': 'motion-director',
   lipsync: 'lipsync',
   recast: 'character',
 }

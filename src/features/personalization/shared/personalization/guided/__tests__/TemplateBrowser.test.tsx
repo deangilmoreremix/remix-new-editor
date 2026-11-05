@@ -347,14 +347,14 @@ describe('TemplateBrowser (recipe-card grid)', () => {
     expect(called.preview).toBe(firstCard.preview)
   })
 
-  it('hides the "Motion Studio" hand-off by default (remix has no recipe editor)', () => {
-    renderBrowser()
+  it('can hide the "Motion Studio" hand-off', () => {
+    renderBrowser({ showStudioLaunch: false })
     expect(screen.queryAllByTestId('motion-template-launch')).toHaveLength(0)
     expect(screen.getAllByTestId('motion-template-use').length).toBeGreaterThan(0)
   })
 
   it('calls launchMotionTemplate with the representative shot on "Motion Studio"', () => {
-    renderBrowser({ showStudioLaunch: true })
+    renderBrowser()
     const firstButton = screen.getAllByTestId('motion-template-launch')[0]
     expect(firstButton).toBeTruthy()
     fireEvent.click(firstButton)

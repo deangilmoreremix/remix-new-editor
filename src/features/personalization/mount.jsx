@@ -8,8 +8,9 @@
  * rest of the session. Every studio's Personalize button and the Lead Finder
  * page go through `openPersonalization()`, which opens the same modal.
  */
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
+import { createPortal } from 'react-dom'
 import { DemoPersonalizeProvider, useDemoPersonalize } from './shared/personalization/DemoPersonalizeProvider'
 import { buildStudioPersonalizeSource } from './shared/personalization/studioEntry'
 import {
@@ -154,6 +155,41 @@ function Bridge() {
   return null
 }
 
+/**
+ * Pages that render inside this same React tree (through portals) share the
+ * personalization state with the modal. Motion Director uses it: its chat's
+ * "Use My Brand" opens this modal and reads the chosen client and assets.
+ */
+const slots = new Map()
+let nextSlotKey = 0
+let refreshSlots = null
+
+function Slots() {
+  const [, setVersion] = useState(0)
+  useEffect(() => {
+    refreshSlots = () => setVersion((v) => v + 1)
+    return () => { refreshSlots = null }
+  }, [])
+  return [...slots.entries()].map(([container, { key, element }]) => createPortal(element, container, key))
+}
+
+/** Render `element` into `container` inside the personalization tree. Returns an unmount function. */
+export function renderInPersonalizationTree(container, element) {
+  ensureMounted()
+  slots.set(container, { key: `slot-${nextSlotKey++}`, element })
+  refreshSlots?.()
+  return () => {
+    slots.delete(container)
+    refreshSlots?.()
+  }
+}
+
+/** Motion Director (chat at #/motion-director, Workbench at #/motion-director/workbench). */
+export async function mountMotionDirector(container) {
+  const { default: MotionStudio } = await import('./apps/motion-director/MotionStudio')
+  return renderInPersonalizationTree(container, <MotionStudio />)
+}
+
 function ensureMounted() {
   if (root) return
   installPersonalizationApiAuth()
@@ -166,6 +202,7 @@ function ensureMounted() {
     <SocialPublishContext.Provider value={SOCIAL_PUBLISH_VALUE}>
       <DemoPersonalizeProvider>
         <Bridge />
+        <Slots />
       </DemoPersonalizeProvider>
     </SocialPublishContext.Provider>,
   )

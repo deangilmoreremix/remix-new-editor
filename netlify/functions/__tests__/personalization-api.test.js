@@ -194,3 +194,30 @@ describe('OpenHiggsBolt MuAPI, upload and preview routes', () => {
     }
   })
 })
+
+describe('Motion Director routes (/api/motion-studio/*)', () => {
+  const signedIn = { authorization: 'Bearer good-token', 'content-type': 'application/json' }
+
+  it('requires a signed-in user for the director', async () => {
+    const res = await call('POST', '/api/motion-studio/director', { body: '{}' })
+    expect(res.status).toBe(401)
+    expect((await res.json()).error).toBe('UNAUTHENTICATED')
+  })
+
+  it('asks for the user\'s own OpenAI key (no site-key fallback)', async () => {
+    const res = await call('POST', '/api/motion-studio/director', { headers: signedIn, body: JSON.stringify({ mode: 'plan', prompt: 'x' }) })
+    expect(res.status).toBe(401)
+    expect((await res.json()).error).toBe('OPENAI_KEY_REQUIRED')
+  })
+
+  it('requires a signed-in user for page capture and its status', async () => {
+    expect((await call('POST', '/api/motion-studio/capture', { body: JSON.stringify({ url: 'https://example.com' }) })).status).toBe(401)
+    expect((await call('GET', '/api/motion-studio/capture/status?jobId=x')).status).toBe(401)
+  })
+
+  it('validates the capture URL before starting a browser', async () => {
+    const res = await call('POST', '/api/motion-studio/capture', { headers: signedIn, body: JSON.stringify({}) })
+    expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('BAD_REQUEST')
+  })
+})
