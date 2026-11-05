@@ -214,6 +214,12 @@ vi.mock('../../src/lib/supabase.js', () => ({
   },
 }));
 
+// Real loading helpers, with showToast wrapped so a test can see which toasts were shown.
+vi.mock('../../src/lib/loading.js', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return { ...actual, showToast: vi.fn((...args: any[]) => actual.showToast(...args)) };
+});
+
 // The Video Studio model picker needs the full upstream UI; capture its
 // options so a test can make a deliberate model pick through onPick.
 const modelPickerState = vi.hoisted(() => ({ lastOptions: null as any }));
@@ -919,6 +925,81 @@ describe('TemplateStudio feature tests', () => {
 
     expect(container.textContent).not.toContain('Please upload an image before generating.');
     expect(processV2VSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('Regenerate re-runs the selected history result, not the current form (review fix)', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const spy = vi.spyOn(muapi, 'generateVideo');
+    spy.mockClear();
+    const { showToast } = await import('../../src/lib/loading.js');
+
+    const template = buildTemplate({ modelType: 't2v', model: 'kling-v2.6-pro-t2v', outputType: 'video' });
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    vi.mocked(getTemplateById).mockReturnValue(template);
+    const element = TemplateStudio(template.id);
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+
+    const generate = async (text) => {
+      const promptInput = container.querySelector('textarea');
+      promptInput.value = text;
+      promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+      Array.from(container.querySelectorAll('button')).find(b => b.textContent?.includes('Generate')).click();
+      await new Promise(r => setTimeout(r, 300));
+    };
+
+    await generate('FIRST unique prompt');
+    const firstUrl = container.querySelector('video')?.getAttribute('src');
+    await new Promise(r => setTimeout(r, 20));
+    await generate('SECOND unique prompt');
+    expect(spy).toHaveBeenCalledTimes(2);
+    const first = spy.mock.calls[0][0];
+    const second = spy.mock.calls[1][0];
+    expect(first.prompt).toContain('FIRST unique prompt');
+    expect(second.prompt).toContain('SECOND unique prompt');
+
+    // Select the first result in the history strip, then Regenerate.
+    const thumb = container.querySelector(`[data-result-history] [data-history-url="${firstUrl}"]`);
+    expect(thumb).not.toBeNull();
+    thumb.click();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('#generateAgainBtn').click();
+    await new Promise(r => setTimeout(r, 300));
+
+    expect(spy).toHaveBeenCalledTimes(3);
+    const regen = spy.mock.calls[2][0];
+    expect(regen.prompt).toBe(first.prompt);
+    expect(regen.prompt).not.toContain('SECOND unique prompt');
+    expect(regen.model).toBe(first.model);
+    // Per-run fields are fresh, not carried over from the stored run.
+    expect(regen.signal).not.toBe(first.signal);
+
+    // A result whose settings were not saved is not re-run (and nothing is charged).
+    vi.mocked(showToast).mockClear();
+    localStorage.setItem('template_studio_history', JSON.stringify([
+      { url: 'https://cdn.test/legacy.mp4', type: 'video', templateId: template.id, prompt: 'legacy' },
+      { url: 'https://cdn.test/foreign.mp4', type: 'video', templateId: 'another-template', prompt: 'foreign' },
+    ]));
+    const el2 = TemplateStudio(template.id);
+    container.innerHTML = '';
+    container.appendChild(el2);
+    await new Promise(r => setTimeout(r, 50));
+    const before = spy.mock.calls.length;
+    container.querySelector('[data-history-url="https://cdn.test/legacy.mp4"]').click();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('#generateAgainBtn').click();
+    await new Promise(r => setTimeout(r, 100));
+    expect(spy.mock.calls.length).toBe(before);
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining("settings weren't saved"), 'warning');
+
+    container.querySelector('[data-history-url="https://cdn.test/foreign.mp4"]').click();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('#generateAgainBtn').click();
+    await new Promise(r => setTimeout(r, 100));
+    expect(spy.mock.calls.length).toBe(before);
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('another template'), 'warning');
+    localStorage.removeItem('template_studio_history');
   });
 
   it('Publish sends the shown result\'s own media type (review fix)', async () => {

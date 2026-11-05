@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, EXTEND_MODEL_ID,
-} from '../../src/lib/templateResultTools.js';
+  createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, EXTEND_MODEL_ID, snapshotGenerationParams } from '../../src/lib/templateResultTools.js';
 
 const flush = () => new Promise(r => setTimeout(r, 0));
 
@@ -78,5 +77,36 @@ describe('createFrameScrubber', () => {
     input.dispatchEvent(new Event('input'));
     expect(video.currentTime).toBe(5);
     expect(row.querySelector('[data-time]').textContent).toBe('0:05');
+  });
+});
+
+describe('snapshotGenerationParams', () => {
+  it('keeps plain request data and drops the signal, callbacks and inline data: URLs', () => {
+    const controller = new AbortController();
+    const snap = snapshotGenerationParams({
+      model: 'kling-v2.6-pro-i2v',
+      prompt: 'a cat',
+      image_url: 'https://cdn.test/a.png',
+      duration: 5,
+      thumbnail_url: 'data:image/png;base64,AAAA',
+      signal: controller.signal,
+      onRequestId: () => {},
+      nested: { keep: true, cb: () => {} },
+    });
+    expect(snap).toEqual({
+      model: 'kling-v2.6-pro-i2v',
+      prompt: 'a cat',
+      image_url: 'https://cdn.test/a.png',
+      duration: 5,
+      nested: { keep: true },
+    });
+    // JSON-safe (history is stored as JSON) and independent of the input.
+    expect(() => JSON.stringify(snap)).not.toThrow();
+  });
+
+  it('returns null for missing or unserializable input', () => {
+    expect(snapshotGenerationParams(null)).toBeNull();
+    const cyclic: any = {}; cyclic.self = cyclic;
+    expect(snapshotGenerationParams(cyclic)).toBeNull();
   });
 });

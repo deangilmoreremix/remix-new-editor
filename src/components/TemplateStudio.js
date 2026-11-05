@@ -26,7 +26,7 @@ import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { composeTemplatePrompt, defaultCreativeTiles, detectTemplateNiche } from '../lib/templatePromptComposer.js';
 import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
-import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend } from '../lib/templateResultTools.js';
+import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, snapshotGenerationParams } from '../lib/templateResultTools.js';
 import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
@@ -1023,7 +1023,7 @@ export function TemplateStudio(templateId) {
   rightPanel.appendChild(resultHistory.element);
   // Regenerate / Extend for the result shown (Video Studio).
   const resultActions = createResultActions({
-    onRegenerate: () => genBtn.click(),
+    onRegenerate: () => regenerateShown(),
     onExtend: (entry, opts) => extendResult(entry, opts),
   });
   let currentResultEntry = null;
@@ -1325,8 +1325,15 @@ export function TemplateStudio(templateId) {
     }
   };
 
-  async function runGeneration(params) {
+  /**
+   * @param {object} params
+   * @param {{ exact?: boolean, route?: string }} [opts] exact: params are the
+   *   stored final request of an earlier result (Regenerate) — send them as
+   *   they are instead of rebuilding prompt, media and model from the form.
+   */
+  async function runGeneration(params, { exact = false, route: exactRoute = null } = {}) {
     if (isGenerating) return;
+    const exactParams = exact ? { ...params } : null;
 
     isGenerating = true;
     genBtn.disabled = true;
@@ -1338,6 +1345,8 @@ export function TemplateStudio(templateId) {
     let pendingJob = null;
 
     try {
+      let route = exactRoute;
+      if (!exact) {
       // Merge template defaults with the params built by genBtn.onclick.
       // Always resolve to a validated model so a stale/invalid selection
       // can never reach the muapi call.
@@ -1356,7 +1365,8 @@ export function TemplateStudio(templateId) {
       applyFormStateToParams(params, formState, allInputs);
 
       // Re-route with the media attached now (retries pick up new uploads).
-      const { media, route, model: routedModel } = currentMediaRoute();
+      const { media, route: derivedRoute, model: routedModel } = currentMediaRoute();
+      route = derivedRoute;
       // Same required-media checks as Generate (a Retry after clearing media).
       if ((route === 'i2v' || route === 'i2i') && !media.imageUrl) throw new Error('Please upload an image before generating.');
       if (route === 'v2v' && !media.videoUrl) throw new Error('Please upload a video before generating.');
@@ -1375,8 +1385,12 @@ export function TemplateStudio(templateId) {
       if (params.aspect_ratio) params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
       // Only settings this model declares (Kling v2.6 I2V: no ratio / resolution).
       dropUndeclaredSettings(params, route);
+      }
 
       const isVideoRun = route === 't2v' || route === 'i2v' || route === 'v2v';
+      // The final request (before the per-run signal / callbacks), kept on the
+      // result so Regenerate can re-run exactly this one.
+      const regenParams = snapshotGenerationParams(params);
       cancelHandle = createAbortAwareGenerateButton(genBtn);
       cancelHandle.showCancel();
       params.signal = cancelHandle.controller.signal;
@@ -1407,6 +1421,8 @@ export function TemplateStudio(templateId) {
           model: params.model || selectedModel,
           type: isVideoRun ? 'video' : 'image',
           templateId: template.id,
+          regenParams,
+          regenRoute: route,
         };
         resultHistory.add(entry);
         showResult(result.url, entry);
@@ -1424,12 +1440,14 @@ export function TemplateStudio(templateId) {
       const { userMessage, retryHtml } = formatGenerationError(err, retryCount, MAX_RETRIES);
       showInlineError(container, `${userMessage}${retryHtml}`);
       const retryBtn = container.querySelector('#retry-btn');
-      if (retryBtn && lastGenerationParams) {
+      if (retryBtn && (exact || lastGenerationParams)) {
         retryBtn.onclick = () => {
           retryCount++;
           const errEl = container.querySelector('.ts-inline-error');
           if (errEl) errEl.remove();
-          runGeneration(lastGenerationParams);
+          // A failed Regenerate retries that same stored run, not the current form.
+          if (exact) runGeneration({ ...exactParams }, { exact: true, route: exactRoute });
+          else runGeneration(lastGenerationParams);
         };
       }
     } finally {
@@ -1504,6 +1522,26 @@ export function TemplateStudio(templateId) {
     return finalPrompt;
   }
 
+  /**
+   * Regenerate the result on screen: re-run exactly the request that made it.
+   * Results whose request was not saved (older history, an Extend result) or
+   * that belong to another template cannot be reproduced here, so nothing is
+   * submitted — the user is told instead of being charged for the form's
+   * current prompt.
+   */
+  function regenerateShown() {
+    const e = currentResultEntry;
+    if (e && e.templateId && e.templateId !== template.id) {
+      showToast('This result is from another template. Open that template to regenerate it.', 'warning');
+      return;
+    }
+    if (e?.regenParams && e.regenRoute) {
+      runGeneration({ ...e.regenParams }, { exact: true, route: e.regenRoute });
+      return;
+    }
+    showToast("This result's settings weren't saved, so it can't be re-run. Adjust the form and press Generate.", 'warning');
+  }
+
   function showResult(url, entry) {
     lastGeneratedUrl = url;
     currentResultEntry = entry || resultHistory.find(url) || { url, type: template.outputType === 'video' ? 'video' : 'image', templateId: template.id };
@@ -1549,7 +1587,7 @@ export function TemplateStudio(templateId) {
     setTimeout(() => {
       const againBtn = document.getElementById('generateAgainBtn');
       if (againBtn) {
-        againBtn.onclick = () => genBtn.click();
+        againBtn.onclick = () => regenerateShown();
       }
       const publishBtn = resultArea.querySelector('.publish-social-btn');
       if (publishBtn) {
