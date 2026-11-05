@@ -21,7 +21,9 @@ export async function thumbnailAuthHeaders() {
  * Returns null for any other error so callers keep their existing message.
  */
 export async function thumbnailAuthErrorMessage(error) {
-  const res = error?.context;
+  // supabase-js puts the Response on `error.context` (FunctionsHttpError);
+  // accept a bare status on the error too, in case that shape changes.
+  const res = error?.context ?? error;
   const status = res?.status;
   if (status !== 401 && status !== 403) return null;
   let body = null;
