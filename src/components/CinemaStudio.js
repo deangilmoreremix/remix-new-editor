@@ -1567,6 +1567,7 @@ export function CinemaStudio() {
                   ? await resolveMuapiMediaRef({ url: currentSettings.referenceUrl, assetId: currentSettings.referenceAssetId })
                   : null;
                 pendingJob = createPendingJobTracker('cinema', {
+                    kind: 'image', // so a still recovered after a reload is saved as an image
                     settings: { prompt: basePrompt, ...currentSettings, resolution: stillRes },
                 }, { maxAttempts: 120 });
                 const stillModel = startUrl ? 'nano-banana-pro-edit' : 'nano-banana-pro';
@@ -1776,7 +1777,7 @@ export function CinemaStudio() {
     resumePendingJobs('cinema', {
         poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
         onResult: (url, job) => {
-            addToHistory({ url, timestamp: Date.now(), settings: job.historyMeta.settings || {} });
+            addToHistory({ url, kind: job.historyMeta.kind, timestamp: Date.now(), settings: job.historyMeta.settings || {} });
             showToast('Recovered a generation that finished while you were away', 'success');
         },
     });
