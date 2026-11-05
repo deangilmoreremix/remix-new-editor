@@ -407,6 +407,15 @@
 .addon-upload-btn { cursor: pointer; }
 .addon-image-library { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-top: 6px; }
 .addon-image-thumb { aspect-ratio: 1; border: 1px solid var(--border, rgba(255, 255, 255, 0.1)); border-radius: 4px; background: center / cover no-repeat; cursor: pointer; }
+.addon-image-thumb.is-unsaved { border-style: dashed; }
+.addon-finder-label { margin: 8px 0 0; }
+/* Personalized Image: contact image tokens */
+.addon-image-token-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-bottom: 6px; }
+.addon-image-token { display: flex; align-items: center; gap: 6px; min-width: 0; text-align: left; }
+.addon-image-token > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.addon-image-token.is-on { border-color: var(--cyan, #22d3ee); background: var(--cyan-faint, rgba(34, 211, 238, .1)); }
+.addon-token-thumb { flex: none; width: 22px; height: 22px; border-radius: 4px; background: rgba(255, 255, 255, 0.06) center / contain no-repeat; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-dim, #9ca3af); }
+.addon-field--image-tokens textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
 .addon-anim-row { display: grid; grid-template-columns: 3em 1fr; gap: 6px; align-items: center; font-size: 12px; margin-top: 4px; }
 .addon-position-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .addon-sticker-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; max-height: 260px; overflow-y: auto; }

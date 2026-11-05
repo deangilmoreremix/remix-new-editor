@@ -239,8 +239,11 @@ function buildImage(opts, ctx, { personalized = false } = {}) {
   if (personalized) {
     const resolved = resolveOverlayText(opts.src, ctx.profile);
     const fromToken = /\{\{/.test(resolved) ? null : safeImageUrl(resolved);
-    const avatar = ctx.profile ? safeImageUrl(resolveToken(ctx.profile, 'avatarUrl')) : null;
-    src = fromToken || avatar || safeImageUrl(opts.fallbackSrc)
+    // Same order as the Remotion composition (timelineToComposition): the
+    // token, then the fallback image. ({{image}} itself resolves to the
+    // contact's photo through the token schema, so a logo slot no longer
+    // falls back to someone's face.)
+    src = fromToken || safeImageUrl(opts.fallbackSrc)
       || (opts.imageshape === 'circle' ? PERSONALIZED_PLACEHOLDER_CIRCLE : PERSONALIZED_PLACEHOLDER);
     link.style.borderRadius = `${Number(opts.cornerRadius) || 0}%`;
   } else {
@@ -249,7 +252,9 @@ function buildImage(opts, ctx, { personalized = false } = {}) {
   }
   if (src) img.style.backgroundImage = `url(${JSON.stringify(src)})`;
   else el.classList.add('is-empty');
-  img.style.backgroundSize = opts.fill ? 'cover' : 'contain';
+  // Matches the Remotion composition: personalized images fill their box
+  // unless set to fit inside it (logos).
+  img.style.backgroundSize = opts.fit === 'contain' ? 'contain' : (opts.fill || personalized ? 'cover' : 'contain');
   if (opts.title) el.title = opts.title;
   link.appendChild(img);
   el.appendChild(wrapLink(link, opts, ctx.editor));

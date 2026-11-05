@@ -631,7 +631,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // shortcut appeared to do nothing. Fixed by resolving the stored token
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', '33b10e84bfe15f8b5f14c96d2e2e0de8b7e91c9b61bc420ba4f1029e9054d9a8'],
+    ['src/components/TimelineEditorPage.jsx', '4a2f80ebdaff8ad763f29e7e6446b427e6286c5e979694d7a9478ef223320d87'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -905,6 +905,20 @@ describe('protected files — semantic integrity assertions', () => {
     // The keyboard tool shortcut must keep writing toolMap's value verbatim —
     // src/lib/editor/__tests__/timeline-editor-mask.test.js pins this line.
     expect(source).toContain('state.selectedTool = toolMap[toolKey]');
+  });
+
+  it('TimelineEditorPage.jsx keeps the image-finder personalization wiring', () => {
+    // Re-recorded for the approved image-finder → Personalized Image wiring.
+    // Image-finder images reach the editor only through the pure bridge
+    // module and the shared asset-discovery service (which goes through the
+    // /api/personalizer proxy) — never a new upload path or direct fetch.
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    expect(source).toContain("from '../lib/personalization/timelineAssets.js';");
+    expect(source).toContain("import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';");
+    expect(source).toContain('imageTokens: () => imageTokenChoices(getActivePersonalizationProfile())');
+    expect(source).toContain('function addBrandOverlays()');
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+    expect(source).not.toMatch(BROWSER_EXPOSED_KEY);
   });
 
   it('ChatStudio.js still routes generation through the shared muapi singleton', () => {
