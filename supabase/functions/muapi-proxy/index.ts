@@ -92,6 +92,15 @@ function extractOutputUrls(result: any): string[] {
   return urls.filter(Boolean);
 }
 
+function hasTextOutput(result: any): boolean {
+  if (!result || typeof result !== 'object') return false;
+  for (const key of ['text', 'result', 'output', 'content']) {
+    if (typeof result[key] === 'string' && result[key].trim() !== '') return true;
+  }
+  if (typeof result.output?.text === 'string' && result.output.text.trim() !== '') return true;
+  return false;
+}
+
 function validateOutputIntegrity(result: any, requestId: string): { ok: boolean; reason?: string; allowed: boolean } {
   if (ALLOW_PLACEHOLDER_URLS) {
     return { ok: true, allowed: true };
@@ -99,6 +108,11 @@ function validateOutputIntegrity(result: any, requestId: string): { ok: boolean;
   const urls = extractOutputUrls(result);
 
   if (urls.length === 0) {
+    // Text/LLM predictions (gpt-5-nano etc.) complete with a string payload and
+    // no media URLs. They are not placeholders; only reject empty results.
+    if (hasTextOutput(result)) {
+      return { ok: true, allowed: true };
+    }
     return { ok: false, reason: 'no_output_urls' };
   }
 
