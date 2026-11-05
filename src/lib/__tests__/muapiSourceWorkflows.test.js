@@ -33,6 +33,18 @@ describe('Source workflows reach the provider intact', () => {
     expect(submittedBody(global.fetch).params.prompt).toBe('make it snow');
   });
 
+  test('motion transfer sends the character image and the motion video', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
+    await client.processV2V({
+      model: 'wan2.2-animate',
+      video_url: 'https://cdn.muapi.ai/motion.mp4',
+      image_url: 'https://cdn.muapi.ai/character.jpg',
+    });
+    const { params } = submittedBody(global.fetch);
+    expect(params.video_url).toBe('https://cdn.muapi.ai/motion.mp4');
+    expect(params.image_url).toBe('https://cdn.muapi.ai/character.jpg');
+  });
+
   test('keyframes: start and end frame both go in images_list', async () => {
     global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
     await client.generateI2V({

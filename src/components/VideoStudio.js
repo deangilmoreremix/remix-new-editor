@@ -187,10 +187,13 @@ export function VideoStudio() {
     topRow.className = 'flex items-start gap-5 px-2';
 
     // --- Image Upload Picker (Image-to-Video) ---
+    // Video-to-video models that also take a character image (Motion transfer).
+    const v2vNeedsImage = () => v2vMode && !!v2vModels.find((m) => m.id === selectedModel)?.inputs?.image_url;
     const picker = createUploadPicker({
         anchorContainer: container,
         onSelect: ({ url }) => {
             uploadedImageUrl = url;
+            if (v2vNeedsImage()) return; // keep the motion video and its model
             // Clear video mode if active
             if (v2vMode) {
                 uploadedVideoUrl = null;
@@ -210,6 +213,7 @@ export function VideoStudio() {
         },
         onClear: () => {
             uploadedImageUrl = null;
+            if (v2vNeedsImage()) return;
             imageMode = false;
         selectedModel = t2vModels[0].id;
         selectedModelName = t2vModels[0].name;
@@ -471,6 +475,7 @@ export function VideoStudio() {
             v2vMode = true;
             if (keepChosenModel) {
                 refreshVideoCost(v2vModels.find((m) => m.id === selectedModel));
+                if (v2vNeedsImage() && !uploadedImageUrl) picker.trigger.click();
             } else {
                 selectedModel = v2vModels[0].id;
                 selectedModelName = v2vModels[0].name;
@@ -823,7 +828,8 @@ export function VideoStudio() {
         const model = list.find((m) => m.id === w.model) || list[0];
         if (!model) return;
         if (w.kind !== 'v2v' && uploadedVideoUrl) { uploadedVideoUrl = null; showVideoIcon(); }
-        if (w.kind !== 'i2v' && imageMode) { picker.reset(); uploadedImageUrl = null; }
+        const keepImage = w.kind === 'v2v' && !!model.inputs?.image_url;
+        if (w.kind !== 'i2v' && imageMode && !keepImage) { picker.reset(); uploadedImageUrl = null; }
         imageMode = w.kind === 'i2v';
         v2vMode = w.kind === 'v2v';
         selectedModel = model.id;
@@ -837,6 +843,7 @@ export function VideoStudio() {
         textarea.disabled = false;
         if (w.kind === 'i2v' && !uploadedImageUrl) picker.trigger.click();
         if (w.kind === 'v2v' && !uploadedVideoUrl) videoFileInput.click();
+        else if (keepImage && !uploadedImageUrl) picker.trigger.click();
     };
     let menuSpec = null; // items for the generic 'menu' dropdown
 
@@ -2059,6 +2066,10 @@ generateBtn.type = 'button';
                 showInlineError(container, 'Please upload a video first.');
                 return;
             }
+            if (v2vNeedsImage() && !uploadedImageUrl) {
+                showInlineError(container, 'Please add the character image to animate.');
+                return;
+            }
             if (v2vModels.find((m) => m.id === selectedModel)?.promptRequired && !prompt) {
                 showInlineError(container, 'Please describe the change you want.');
                 return;
@@ -2120,6 +2131,7 @@ generateBtn.type = 'button';
                 if (customThumbnailUrl) v2vParams.thumbnail_url = customThumbnailUrl;
                 if (nativeAudio) v2vParams.native_audio = true;
                 if (prompt) v2vParams.prompt = prompt;
+                if (v2vNeedsImage() && uploadedImageUrl) v2vParams.image_url = uploadedImageUrl;
                 const res = await muapi.processV2V(v2vParams);
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
