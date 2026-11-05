@@ -8,6 +8,8 @@
  * Clerk `sub`); public reads go straight to the REST API with the anon key.
  */
 
+import { isImageTokenKey, shareableImageValue } from '../../personalization/imageReadiness.js';
+
 export const PROJECT_VERSION = 1;
 export const SLUG_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
 
@@ -168,6 +170,43 @@ export async function countView(id, { url, key, fetchImpl = fetch } = env()) {
   } catch { /* counting is best-effort */ }
 }
 
+export const VIDEO_EVENT_KINDS = Object.freeze(['view', 'play', 'complete', 'cta_click', 'lead']);
+
+/**
+ * Record what a viewer did on /watch/<id> (best-effort). Personal links
+ * (?c=<contactId>) attribute it to that contact.
+ */
+export async function recordVideoEvent(id, { kind, contactId = null, clipId = null } = {}, { url, key, fetchImpl = fetch } = env()) {
+  if (!url || !key || !VIDEO_EVENT_KINDS.includes(kind)) return;
+  try {
+    await fetchImpl(`${url}/rest/v1/rpc/record_video_event`, {
+      method: 'POST',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        video_id: id,
+        kind,
+        contact_id: contactId && /^[A-Za-z0-9_-]{1,80}$/.test(String(contactId)) ? String(contactId) : null,
+        clip_id: clipId != null ? String(clipId).slice(0, 80) : null,
+      }),
+    });
+  } catch { /* analytics is best-effort */ }
+}
+
+/** Owner: totals per contact for one of their videos. */
+export async function fetchVideoStats(client, id) {
+  const { data, error } = await client.rpc('video_events_by_contact', { video_id: id });
+  if (error) throw error;
+  return (Array.isArray(data) ? data : []).map((r) => ({
+    contactId: r.contact_id || null,
+    views: Number(r.views) || 0,
+    plays: Number(r.plays) || 0,
+    completes: Number(r.completes) || 0,
+    ctaClicks: Number(r.cta_clicks) || 0,
+    leads: Number(r.leads) || 0,
+    lastSeen: r.last_seen || null,
+  }));
+}
+
 /** Submit a viewer's lead for a published video (stored for its owner). */
 export async function submitViewerLead({ publishedId, clipId, kind, data }, { url, key, fetchImpl = fetch } = env()) {
   if (!url || !key) return { stored: false, error: 'Lead service is not configured' };
@@ -191,7 +230,17 @@ export async function submitViewerLead({ publishedId, clipId, kind, data }, { ur
 export function profileFromQuery(search = globalThis.location?.search || '') {
   const params = new URLSearchParams(search);
   const variables = {};
-  params.forEach((v, k) => { if (!['embed', 'autoplay', 't', 'c'].includes(k) && k.length <= 40) variables[k] = String(v).slice(0, 200); });
+  params.forEach((v, k) => {
+    if (['embed', 'autoplay', 't', 'c'].includes(k) || k.length > 40) return;
+    // Image URLs from personal links ({{logoUrl}}, …) are kept whole — a cut
+    // URL is a broken image — but only http(s) ones of sane length.
+    if (isImageTokenKey(k)) {
+      const href = shareableImageValue(v);
+      if (href) variables[k] = href;
+      return;
+    }
+    variables[k] = String(v).slice(0, 200);
+  });
   // Personal links (?c=<contactId>) pick that contact's Smart Speech voice line.
   const id = params.get('c');
   const contactId = id && /^[A-Za-z0-9_-]{1,80}$/.test(id) ? id : null;

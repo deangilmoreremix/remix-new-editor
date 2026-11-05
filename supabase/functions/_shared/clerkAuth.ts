@@ -34,6 +34,9 @@ export const PAID_FEATURE = "smartvideo_full_access";
 const CLERK_API_BASE = "https://api.clerk.com/v1";
 const JWKS_TTL_MS = 10 * 60 * 1000; // Clerk rotates rarely; cache briefly.
 const CLOCK_SKEW_SEC = 60;
+// A slow Clerk endpoint must not hang every gated request; on timeout the
+// gate fails closed (denies), the same as any other lookup error.
+const CLERK_FETCH_TIMEOUT_MS = 5000;
 
 export interface ClerkIdentity {
   userId: string;
@@ -136,7 +139,9 @@ async function fetchJwks(issuer: string): Promise<Jwk[]> {
   const now = Date.now();
   const cached = jwksCache.get(issuer);
   if (cached && cached.expiresAt > now) return cached.keys;
-  const res = await fetch(`${issuer}/.well-known/jwks.json`);
+  const res = await fetch(`${issuer}/.well-known/jwks.json`, {
+    signal: AbortSignal.timeout(CLERK_FETCH_TIMEOUT_MS),
+  });
   if (!res.ok) throw new Error(`JWKS fetch failed with HTTP ${res.status}`);
   const body = (await res.json()) as { keys?: Jwk[] };
   const keys = Array.isArray(body.keys) ? body.keys : [];
@@ -159,10 +164,24 @@ function featureEntryMatches(entry: unknown): boolean {
 }
 
 /**
- * Clerk Billing surfaces the user's enabled features on the session token
- * (`features` claim) as an array of slugs or { slug } objects.
+ * Clerk Billing puts enabled features on the session token (v2) in the
+ * `fea` claim: a comma-separated string of `scope:slug` entries, e.g.
+ * "u:smartvideo_full_access,o:dashboard" (u = user, o = organization).
+ * https://clerk.com/docs/guides/sessions/session-tokens
+ * A custom `features` claim (array of slugs or { slug } objects) is also
+ * accepted for tokens built from a JWT template.
  */
+function feaClaimHasFeature(fea: unknown): boolean {
+  if (typeof fea !== "string" || !fea) return false;
+  return fea.split(",").some((entry) => {
+    const trimmed = entry.trim();
+    const slug = trimmed.includes(":") ? trimmed.slice(trimmed.indexOf(":") + 1) : trimmed;
+    return slug === PAID_FEATURE;
+  });
+}
+
 function hasFeatureClaim(claims: Record<string, unknown>): boolean {
+  if (feaClaimHasFeature(claims.fea)) return true;
   const features = claims.features;
   if (Array.isArray(features)) return features.some(featureEntryMatches);
   return featureEntryMatches(features);
@@ -192,6 +211,7 @@ async function fetchLegacyAccess(
   try {
     const res = await fetch(`${CLERK_API_BASE}/users/${encodeURIComponent(userId)}`, {
       headers: { Authorization: `Bearer ${secret}` },
+      signal: AbortSignal.timeout(CLERK_FETCH_TIMEOUT_MS),
     });
     if (!res.ok) {
       console.error(`[clerkAuth] Clerk user lookup failed: HTTP ${res.status} — denying (fail closed).`);

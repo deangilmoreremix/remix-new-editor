@@ -631,7 +631,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // shortcut appeared to do nothing. Fixed by resolving the stored token
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', '33b10e84bfe15f8b5f14c96d2e2e0de8b7e91c9b61bc420ba4f1029e9054d9a8'],
+    ['src/components/TimelineEditorPage.jsx', '1d2e713e134e8ed9f97a2b826d3a92a55fb7d3d868069bc66f55f54ae537bd0a'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -905,6 +905,35 @@ describe('protected files — semantic integrity assertions', () => {
     // The keyboard tool shortcut must keep writing toolMap's value verbatim —
     // src/lib/editor/__tests__/timeline-editor-mask.test.js pins this line.
     expect(source).toContain('state.selectedTool = toolMap[toolKey]');
+  });
+
+  it('TimelineEditorPage.jsx keeps the image-finder personalization wiring', () => {
+    // Re-recorded for the approved image-finder → Personalized Image wiring.
+    // Image-finder images reach the editor only through the pure bridge
+    // module and the shared asset-discovery service (which goes through the
+    // /api/personalizer proxy) — never a new upload path or direct fetch.
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    expect(source).toContain("from '../lib/personalization/timelineAssets.js';");
+    expect(source).toContain("import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';");
+    expect(source).toContain('imageTokens: () => imageTokenChoices(getActivePersonalizationProfile())');
+    expect(source).toContain('function addLayout(layoutId)');
+    // AI images for missing slots go through the shared BYOK image service
+    // and are stored through the same /api/personalizer import route.
+    expect(source).toContain("import { generateImage as generateAiImage } from '../lib/editor/aiImageService.js';");
+    expect(source).toContain('function fillMissingWithAi(jobs, onProgress)');
+    // AI clip per contact: generation through the shared muapi singleton,
+    // stored through the shared uploadFileToStorage entry point.
+    expect(source).toContain('const result = await muapi.generateI2V({');
+    expect(source).toContain('const stored = await uploadFileToStorage(new File([blob], `ai-clip-${job.contactId}.mp4`');
+    // Video Ready runs through the shared image-finder pipeline and stores
+    // through the shared /api/personalizer import route.
+    expect(source).toContain("import { makePersonalizationAssetVideoReady } from '../lib/personalization/videoReady.js';");
+    expect(source).toContain("import { persistPersonalizationAssetVersion } from '../lib/personalization/assetDiscoveryService.js';");
+    // Personalized-image readiness checks in Export and the share panel.
+    expect(source).toContain("from '../lib/personalization/imageReadiness.js';");
+    expect(source).toContain('describeImageGaps(contactImageGaps(state, contacts))');
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+    expect(source).not.toMatch(BROWSER_EXPOSED_KEY);
   });
 
   it('ChatStudio.js still routes generation through the shared muapi singleton', () => {

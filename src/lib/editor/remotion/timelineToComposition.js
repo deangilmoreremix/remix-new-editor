@@ -15,6 +15,8 @@
 import { getAddon, addonOptions } from '../addons/registry.js';
 import { resolveOverlayText, safeImageUrl, sanitizeWrapperStyles } from '../addons/overlayRender.js';
 import { voiceSrcFor } from '../personalize/perContact.js';
+import { personalizedImageLook } from '../../personalization/imageStyle.js';
+import { clipSrcFor } from '../../personalization/aiContactClips.js';
 import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
@@ -78,6 +80,8 @@ function overlayLayer(clip, opts, profile, base) {
     case 'overlay-personalized-image': {
       const resolved = resolveOverlayText(o.src, profile);
       o.resolvedSrc = (!/\{\{/.test(resolved) && safeImageUrl(resolved)) || safeImageUrl(o.fallbackSrc) || null;
+      // Per-contact crop focus and logo backing plate.
+      Object.assign(o, personalizedImageLook(o, o.resolvedSrc, profile));
       break;
     }
     case 'overlay-image':
@@ -162,7 +166,10 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
       }
 
       // Personalized Smart Speech: the rendered contact's own voice line.
-      const src = clip.tts?.variants ? voiceSrcFor(clip, profile) : clip.src ? String(clip.src) : '';
+      // AI video clip per contact: the rendered contact's own version.
+      const src = clip.tts?.variants ? voiceSrcFor(clip, profile)
+        : clip.aiPerContact ? clipSrcFor(clip, profile)
+          : clip.src ? String(clip.src) : '';
       const volume = Math.max(0, Math.min(1, clip.volume ?? 1));
       const trimBefore = toFrame(Number(clip.trimIn ?? clip.sourceStart ?? 0));
       if ((clip.type === 'audio' || isAudioTrack(track)) && clip.type !== 'video') {

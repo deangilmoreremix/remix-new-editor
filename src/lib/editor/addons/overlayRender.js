@@ -14,6 +14,7 @@
  * Builder) are never cleared by mistake.
  */
 import { resolveToken, TOKEN_PATTERN } from '../../../components/personalize/tokenSchema.js';
+import { personalizedImageLook } from '../../personalization/imageStyle.js';
 import { getAddon, addonOptions } from './registry.js';
 import { ensureFormFont } from './addonOverlay.js';
 import { buildLowerThirdLottie, lowerThirdFrame } from './lowerThirds.js';
@@ -239,8 +240,11 @@ function buildImage(opts, ctx, { personalized = false } = {}) {
   if (personalized) {
     const resolved = resolveOverlayText(opts.src, ctx.profile);
     const fromToken = /\{\{/.test(resolved) ? null : safeImageUrl(resolved);
-    const avatar = ctx.profile ? safeImageUrl(resolveToken(ctx.profile, 'avatarUrl')) : null;
-    src = fromToken || avatar || safeImageUrl(opts.fallbackSrc)
+    // Same order as the Remotion composition (timelineToComposition): the
+    // token, then the fallback image. ({{image}} itself resolves to the
+    // contact's photo through the token schema, so a logo slot no longer
+    // falls back to someone's face.)
+    src = fromToken || safeImageUrl(opts.fallbackSrc)
       || (opts.imageshape === 'circle' ? PERSONALIZED_PLACEHOLDER_CIRCLE : PERSONALIZED_PLACEHOLDER);
     link.style.borderRadius = `${Number(opts.cornerRadius) || 0}%`;
   } else {
@@ -249,7 +253,20 @@ function buildImage(opts, ctx, { personalized = false } = {}) {
   }
   if (src) img.style.backgroundImage = `url(${JSON.stringify(src)})`;
   else el.classList.add('is-empty');
-  img.style.backgroundSize = opts.fill ? 'cover' : 'contain';
+  // Matches the Remotion composition: personalized images fill their box
+  // unless set to fit inside it (logos).
+  img.style.backgroundSize = opts.fit === 'contain' ? 'contain' : (opts.fill || personalized ? 'cover' : 'contain');
+  if (personalized && src) {
+    // Per-contact crop focus and logo backing plate (same as the export).
+    const look = personalizedImageLook(opts, src, ctx.profile);
+    img.style.backgroundPosition = look.objectPosition;
+    if (look.plateColor) {
+      link.style.background = look.plateColor;
+      link.style.padding = '6%';
+      link.style.boxSizing = 'border-box';
+      if (!Number(opts.cornerRadius)) link.style.borderRadius = '10%';
+    }
+  }
   if (opts.title) el.title = opts.title;
   link.appendChild(img);
   el.appendChild(wrapLink(link, opts, ctx.editor));

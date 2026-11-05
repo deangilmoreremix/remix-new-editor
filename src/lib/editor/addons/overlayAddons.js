@@ -201,6 +201,8 @@ export const PERSONALIZED_IMAGE = registerAddon({
     { key: 'imageshape', label: 'Shape', type: 'select', options: [['portrait', 'Portrait'], ['circle', 'Circle']] },
     { key: 'src', label: 'Personalized Image token', type: 'tokens', tokenFilter: 'image' },
     { key: 'fallbackSrc', label: 'Fallback image', type: 'image' },
+    { key: 'fit', label: 'Fit', type: 'select', options: [['', 'Fill the box (crop)'], ['contain', 'Fit inside the box (logos)']] },
+    { key: 'plate', label: 'Backing', type: 'select', options: [['', 'None'], ['auto', 'Auto (light or dark, to suit each logo)'], ['light', 'Light'], ['dark', 'Dark']] },
     { key: 'title', label: 'Title', type: 'text' },
     ...LINK_FIELDS(),
     { key: 'cornerRadius', label: 'Corner Radius (%)', type: 'range', min: 0, max: 50 },

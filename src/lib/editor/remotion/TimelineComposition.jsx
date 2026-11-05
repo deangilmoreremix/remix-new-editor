@@ -185,10 +185,14 @@ function ImageOverlay({ o, durationInFrames, personalized, effects }) {
   const src = o.resolvedSrc;
   if (!src) return null;
   const radius = personalized ? `${Number(o.cornerRadius) || 0}%` : (o.cornerRadius ? '50%' : 0);
+  // Logo backing plate (personalized images): padded, rounded.
+  const plate = personalized && o.plateColor
+    ? { background: o.plateColor, padding: '6%', boxSizing: 'border-box', borderRadius: o.cornerRadius ? radius : '10%' }
+    : null;
   return (
     <Animated o={{ ...o, geometry: o.fill ? { left: 0, top: 0, width: 100, height: 100 } : o.geometry }} durationInFrames={durationInFrames}>
-      <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: radius }}>
-        <Img src={src} effects={effects} style={{ width: '100%', height: '100%', objectFit: o.fill || personalized ? 'cover' : 'contain' }} />
+      <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: radius, ...(plate || {}) }}>
+        <Img src={src} effects={effects} style={{ width: '100%', height: '100%', objectFit: o.fit === 'contain' ? 'contain' : (o.fill || personalized ? 'cover' : 'contain'), objectPosition: personalized && o.objectPosition ? o.objectPosition : undefined }} />
       </div>
     </Animated>
   );
