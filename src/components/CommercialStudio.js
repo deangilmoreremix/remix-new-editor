@@ -287,6 +287,8 @@ const COMMERCIAL_MODELS = [
     adMode.setActive(v === 'ad');
     picker.trigger.title = v === 'ad' ? 'Product image — shows up as @image1' : 'Upload product image or video';
     genBtn.textContent = v === 'ad' ? AD_LABEL : SHOT_LABEL;
+    genBtn.setAttribute('aria-label', v === 'ad' ? 'Generate ad video' : 'Generate product shot');
+    uploadHint.textContent = v === 'ad' ? 'Upload a product image' : 'Upload product image or video';
   });
   modeToggle.dataset.commercialMode = '';
   modeToggle.classList.add('self-start');

@@ -76,3 +76,12 @@ describe('ad mode controls', () => {
     expect(mode.state).toMatchObject({ ratio: '16:9', res: '720p', duration: 12 });
   });
 });
+
+describe('Commercial Studio Ad video mode labels', () => {
+  it('keeps the generate button name and the upload hint in step with the mode', async () => {
+    const fs = await import('node:fs');
+    const src = fs.readFileSync('src/components/CommercialStudio.js', 'utf8');
+    expect(src).toContain("genBtn.setAttribute('aria-label', v === 'ad' ? 'Generate ad video' : 'Generate product shot');");
+    expect(src).toContain("uploadHint.textContent = v === 'ad' ? 'Upload a product image' : 'Upload product image or video';");
+  });
+});
