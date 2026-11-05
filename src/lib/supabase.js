@@ -128,6 +128,15 @@ function decodeTokenExpiry(token, fallbackSeconds) {
   return fallback;
 }
 
+/**
+ * Current Clerk session token (RS256), or null when signed out. Edge
+ * functions that enforce the Clerk entitlement gate (e.g.
+ * ai-thumbnail-generator) must receive this as `Authorization: Bearer`.
+ */
+export async function getClerkSessionToken() {
+  return fetchClerkSessionToken();
+}
+
 async function fetchClerkSessionToken() {
   try {
     const session = window.Clerk?.session;
