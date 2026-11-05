@@ -45,3 +45,20 @@ describe("music track detection", () => {
     expect(isMusicTrack({ name: "SFX" })).toBe(false);
   });
 });
+
+describe("switching sessions", () => {
+  it("keeps edits to the outgoing session that autosave has not written yet", () => {
+    const base = useStore.getState().project;
+    const mk = (id: string, name: string) => ({
+      id, name, projectSnapshot: { ...base, name }, updatedAt: "", messageCount: 0, messages: [],
+    });
+    useStore.setState({ sessions: [], activeSessionId: null });
+    useStore.getState().addSession(mk("A", "A") as never);
+    useStore.getState().addSession(mk("B", "B") as never);
+    useStore.getState().applySession("A");
+    useStore.setState({ project: { ...useStore.getState().project, name: "A edited" } });
+    useStore.getState().applySession("B");
+    const a = useStore.getState().sessions.find((s) => s.id === "A")!;
+    expect(a.projectSnapshot.name).toBe("A edited");
+  });
+});

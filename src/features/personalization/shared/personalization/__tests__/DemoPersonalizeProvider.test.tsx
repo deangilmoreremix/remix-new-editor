@@ -2095,6 +2095,38 @@ describe('DemoPersonalizeProvider zero-key discovery', () => {
     expect(legacyPollCalls).toHaveLength(0)
   })
 
+  it('drops a discovery poll that finishes after the modal was closed', async () => {
+    const { latest } = await renderProvider()
+    // @ts-ignore
+    global.fetch = vi.fn(async (url: string) => {
+      if (url.includes('/discover-assets/status?jobId=')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            status: 'complete',
+            result: { discoveredAssets: [{ id: '1', sourceUrl: 'https://old.example/logo.png', previewUrl: 'https://old.example/logo.png', category: 'logo', confidence: 80, selected: true, recommended: true, rejected: false }] },
+          }),
+        }
+      }
+      return {
+        ok: true,
+        status: 202,
+        json: async () => ({ ok: true, status: 'processing', jobId: 'old-job', browserQueued: true, discoveredAssets: [], providerUsed: 'SMARTVIDEO_STATIC' }),
+      }
+    })
+
+    await act(async () => {
+      latest().discoverAssets('https://old.example')
+    })
+    await waitForDiscoveryState(latest, (ctx) => ctx.discoveryStatus === 'discovering')
+    await act(async () => { latest().closePersonalize() })
+    await act(async () => { await new Promise((r) => setTimeout(r, 2600)) })
+
+    expect(latest().discoveredAssets).toHaveLength(0)
+    expect(latest().discoveryStatus).not.toBe('reviewing')
+  })
+
   it('shows no-assets message only after background job completes with zero assets', async () => {
     const { latest } = await renderProvider()
 

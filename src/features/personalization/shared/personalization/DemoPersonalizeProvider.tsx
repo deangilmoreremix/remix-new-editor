@@ -3900,6 +3900,11 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setVisionStatus('idle')
     setDiscoveryStatus('discovering')
 
+    // A closed modal must not receive this website's results: the provider
+    // stays mounted across routes and the next business reuses its state.
+    const session = restoreSessionRef.current
+    const stale = () => restoreSessionRef.current !== session
+
     try {
       const res = await fetch('/api/personalization/discover-assets', {
         method: 'POST',
@@ -3908,6 +3913,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         credentials: 'same-origin',
       })
 
+      if (stale()) return
+
       if (!res.ok) {
         let data: Record<string, unknown>
         try {
@@ -3915,6 +3922,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         } catch {
           data = {}
         }
+        if (stale()) return
         const status = res.status
         if (status === 401) {
           throw new Error('Authentication required. Please sign in to continue.')
@@ -3926,6 +3934,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       }
 
       const data = await res.json()
+      if (stale()) return
       const discoveredAssets: DiscoveredAsset[] = Array.isArray(data?.discoveredAssets) ? data.discoveredAssets : []
       const providerUsed = typeof data?.providerUsed === 'string' ? data.providerUsed : 'UNKNOWN'
       const jobId = typeof data?.jobId === 'string' ? data.jobId : null
@@ -3951,12 +3960,14 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         const pollStatus = async (): Promise<void> => {
           while (pollCount < maxPolls) {
             await new Promise((resolve) => setTimeout(resolve, pollInterval))
+            if (stale()) return
             pollCount++
 
             try {
               const statusRes = await fetch(`/api/personalization/discover-assets/status?jobId=${encodeURIComponent(jobId)}`, {
                 credentials: 'same-origin',
               })
+              if (stale()) return
 
               if (!statusRes.ok) {
                 let statusData: Record<string, unknown>
@@ -3969,6 +3980,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
               }
 
               const statusData = await statusRes.json()
+              if (stale()) return
               const jobStatus = typeof statusData?.status === 'string' ? statusData.status : 'unknown'
 
               if (jobStatus === 'complete') {
@@ -4020,6 +4032,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
               // Still running; continue polling
             } catch {
+              if (stale()) return
               setDiscoveryError('Failed to check discovery status. Please try again.')
               setDiscoveryStatus('idle')
               return
@@ -4051,6 +4064,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       setDiscoveryStatus('reviewing')
       console.log(`[discovery] completed via ${providerUsed}: ${discoveredAssets.length} assets`)
     } catch (error) {
+      if (stale()) return
       setDiscoveryError(error instanceof Error ? error.message : 'Discovery failed')
       setDiscoveryStatus('idle')
     }

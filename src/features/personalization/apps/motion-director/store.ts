@@ -239,7 +239,17 @@ export const useStore = create<WorkbenchState>((set, get) => ({
     set((s) => {
       const session = s.sessions.find((ses) => ses.id === id);
       if (!session) return s;
+      // Keep edits made since the last autosave: snapshot the outgoing session first.
+      const sessions =
+        s.activeSessionId !== null && s.activeSessionId !== id
+          ? s.sessions.map((ses) =>
+              ses.id === s.activeSessionId
+                ? { ...ses, projectSnapshot: clone(s.project), updatedAt: new Date().toISOString() }
+                : ses,
+            )
+          : s.sessions;
       return {
+        sessions,
         project: session.projectSnapshot,
         activeSessionId: id,
         selectedClipId: null,
