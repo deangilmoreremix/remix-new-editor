@@ -4,25 +4,30 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
-import { createInlineInstructions } from './InlineInstructions.js';
-import { getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { getToolThumbnail, createThumbnailImg, createStudioHeader } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { i2iModels as LOCAL_I2I_MODELS, t2iModels as LOCAL_T2I_MODELS } from '../lib/models.js';
-import { createMediaRemoveButton } from '../lib/studioHelpers.js';
 import { showToast } from '../lib/loading.js';
+import { createMaskPainter } from './edit/maskPainter.js';
 
-const EDIT_TOOLS = [
+// Edit Studio: a gallery of 13 image tools. Clicking a tool opens its own
+// studio (inputs, settings, before/after preview) at /?tool=<slug>#/edit.
+
+export const EDIT_TOOLS = [
   {
     id: 'ai-object-eraser',
+    slug: 'remove-object',
+    howTo: 'Upload a photo, paint over what you want gone, then apply.',
+    secondary: { key: 'mask_image_url', label: 'Mask image (optional)', hint: 'Upload a mask instead of painting: white = remove, black = keep.', optional: true },
     name: 'Remove Object',
     description: 'Erase unwanted objects from images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>',
     hasPrompt: false,
-    requiresMask: true,
   },
   {
     id: 'ai-background-remover',
+    slug: 'remove-background',
+    howTo: 'Upload a photo and get a clean cut-out with a transparent background.',
     name: 'Remove Background',
     description: 'Clean background removal',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 3l18 18"/></svg>',
@@ -30,6 +35,8 @@ const EDIT_TOOLS = [
   },
   {
     id: 'ai-image-extension',
+    slug: 'extend-image',
+    howTo: 'Upload a photo and AI paints in more scene around its edges.',
     name: 'Extend Image',
     description: 'AI outpainting to expand images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
@@ -37,6 +44,9 @@ const EDIT_TOOLS = [
   },
   {
     id: 'seedream-5.0-edit',
+    slug: 'ai-edit',
+    howTo: 'Upload a photo and describe the change, e.g. "make it night time".',
+    promptRequired: true,
     name: 'AI Edit',
     description: 'Instruction-based image editing',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
@@ -49,6 +59,8 @@ const EDIT_TOOLS = [
   },
   {
     id: 'ideogram-v3-reframe',
+    slug: 'reframe',
+    howTo: 'Upload a photo and pick a new aspect ratio; AI fills the new space.',
     name: 'Reframe',
     description: 'Change aspect ratio intelligently',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>',
@@ -62,14 +74,18 @@ const EDIT_TOOLS = [
   },
   {
     id: 'ai-dress-change',
+    slug: 'change-dress',
+    howTo: 'Upload a photo of a person and a photo of the outfit to put on them.',
+    secondary: { key: 'garment_image_url', label: 'Outfit image', hint: 'A clear photo of the clothing item.' },
     name: 'Change Dress',
     description: 'AI outfit and clothing swap',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46a2 2 0 00-1.34 2.31l2.1 9.89A2 2 0 006.34 17H7l-2 5h14l-2-5h.66a2 2 0 001.96-1.34l2.1-9.89a2 2 0 00-1.34-2.31z"/></svg>',
     hasPrompt: false,
-    requiresGarment: true,
   },
   {
     id: 'ai-skin-enhancer',
+    slug: 'enhance-skin',
+    howTo: 'Upload a portrait for natural, professional skin retouching.',
     name: 'Enhance Skin',
     description: 'Professional skin retouching',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
@@ -77,6 +93,8 @@ const EDIT_TOOLS = [
   },
   {
     id: 'ai-color-photo',
+    slug: 'colorize',
+    howTo: 'Upload a black-and-white photo to bring it to life in color.',
     name: 'Colorize',
     description: 'Add color to B&W photos',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="7" cy="13" r="2.5"/><circle cx="13.5" cy="19.5" r="2.5"/></svg>',
@@ -84,6 +102,9 @@ const EDIT_TOOLS = [
   },
   {
     id: 'add-image-watermark',
+    slug: 'add-watermark',
+    howTo: 'Upload a photo and your logo, then choose where it sits.',
+    secondary: { key: 'watermark_image_url', label: 'Watermark / logo image', hint: 'A PNG with a transparent background works best.' },
     name: 'Add Watermark',
     description: 'Overlay watermark on images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
@@ -93,10 +114,11 @@ const EDIT_TOOLS = [
       { type: 'range', key: 'opacity', label: 'Opacity', min: 0, max: 100, step: 1, default: 70, unit: '%' },
       { type: 'range', key: 'scale', label: 'Size', min: 5, max: 100, step: 1, default: 20, unit: '%' },
     ],
-    requiresWatermarkImage: true,
   },
   {
     id: 'ai-image-upscaler',
+    slug: 'upscale',
+    howTo: 'Upload a photo to sharpen it and increase its resolution.',
     name: 'Upscale',
     description: 'AI image upscaling to higher resolution',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
@@ -104,6 +126,9 @@ const EDIT_TOOLS = [
   },
   {
     id: 'ai-image-face-swap',
+    slug: 'face-swap',
+    howTo: 'Upload the photo to change, then a clear photo of the new face.',
+    secondary: { key: 'swap_url', label: 'New face photo', hint: 'A front-facing, well-lit face works best.' },
     name: 'Face Swap',
     description: 'Swap faces in images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>',
@@ -111,10 +136,12 @@ const EDIT_TOOLS = [
     controls: [
       { type: 'number', key: 'target_index', label: 'Target Face Index', min: 0, max: 10, step: 1, default: 0 },
     ],
-    requiresSwapImage: true,
   },
   {
     id: 'ai-product-shot',
+    slug: 'product-shot',
+    howTo: 'Upload a product photo and describe the scene to place it in.',
+    promptRequired: true,
     name: 'Product Shot',
     description: 'Create professional product images',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>',
@@ -124,6 +151,8 @@ const EDIT_TOOLS = [
   },
   {
     id: 'ai-ghibli-style',
+    slug: 'ghibli-style',
+    howTo: 'Upload any photo to redraw it in a hand-painted anime style.',
     name: 'Ghibli Style',
     description: 'Transform into Studio Ghibli art style',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
@@ -131,178 +160,90 @@ const EDIT_TOOLS = [
   },
 ];
 
-const DYNAMIC_MODEL_CACHE_KEY = 'edit_studio_dynamic_models_v2';
-const DYNAMIC_SCHEMA_CACHE_KEY = 'edit_studio_dynamic_schema_v1';
-
-async function fetchDynamicModels() {
-    try {
-        const [i2iData, t2iData] = await Promise.all([
-            getEnrichedModels('i2i').catch(() => []),
-            getEnrichedModels('t2i').catch(() => []),
-        ]);
-        const merged = new Map();
-        (i2iData || []).forEach(m => merged.set(m.id, m));
-        (t2iData || []).forEach(m => merged.set(m.id, m));
-        // The live catalog endpoint isn't available everywhere (local dev,
-        // static previews). Fall back to the bundled image-edit models so the
-        // studio always lists every edit model we support.
-        if (merged.size === 0) LOCAL_I2I_MODELS.forEach(m => merged.set(m.id, m));
-        return Array.from(merged.values());
-    } catch (e) {
-        console.warn('[EditStudio] Failed to fetch dynamic model catalog:', e);
-        return [];
-    }
-}
-
-async function fetchModelSchema(modelId) {
-    const schemaCache = getDynamicSchemaCache();
-    if (schemaCache[modelId]) return schemaCache[modelId];
-
-    // Prefer the bundled schema: browsers can't read api.muapi.ai/models
-    // directly (no CORS), so a live fetch per model only floods the console
-    // and leaves the grid empty. Unknown models still try the live API.
-    const schema = localModelSchema(modelId) || await muapi.getModelSchema(modelId);
-    schemaCache[modelId] = schema;
-    try { localStorage.setItem(DYNAMIC_SCHEMA_CACHE_KEY, JSON.stringify(schemaCache)); } catch {}
-    return schema;
-}
-
-/** Build a live-API-shaped schema from the bundled model definition. */
+/** Bundled model definition for a tool, shaped like the live API schema. */
 function localModelSchema(modelId) {
-    const m = LOCAL_I2I_MODELS.find(x => x.id === modelId) || LOCAL_T2I_MODELS.find(x => x.id === modelId);
-    if (!m || !m.inputs) return null;
-    return {
-        name: m.name || modelId,
-        description: m.description || '',
-        input_schema: { schemas: { input_data: { properties: m.inputs } } },
-    };
+  const m = LOCAL_I2I_MODELS.find(x => x.id === modelId) || LOCAL_T2I_MODELS.find(x => x.id === modelId);
+  if (!m || !m.inputs) return null;
+  return {
+    name: m.name || modelId,
+    description: m.description || '',
+    input_schema: { schemas: { input_data: { properties: m.inputs } } },
+  };
 }
 
-function getDynamicModelCache() {
-    try {
-        const raw = localStorage.getItem(DYNAMIC_MODEL_CACHE_KEY);
-        if (!raw) return [];
-        const entry = JSON.parse(raw);
-        if (Date.now() - entry.ts > 5 * 60 * 1000) {
-            localStorage.removeItem(DYNAMIC_MODEL_CACHE_KEY);
-            return [];
-        }
-        return entry.data || [];
-    } catch {
-        return [];
+function isImageField(key, field) {
+  const name = String(field?.name || key || '').toLowerCase();
+  if (String(field?.field || '').toLowerCase() === 'image') return true;
+  return name.includes('url') || name.includes('image') || name === 'images_list';
+}
+
+const PROMPT_KEYS = new Set(['prompt', 'scene_description']);
+
+/** Controls for model inputs the tool's hand-written controls don't cover. */
+export function getSchemaControls(tool) {
+  const properties = localModelSchema(tool.id)?.input_schema?.schemas?.input_data?.properties || {};
+  const covered = new Set((tool.controls || []).map(c => c.key));
+  const controls = [];
+  for (const [key, field] of Object.entries(properties)) {
+    if (covered.has(key) || PROMPT_KEYS.has(key) || isImageField(key, field)) continue;
+    const label = field.title || key.replace(/_/g, ' ');
+    if (Array.isArray(field.enum)) {
+      controls.push({ type: 'select', key, label, options: field.enum, default: field.default ?? field.enum[0] });
+    } else if (field.type === 'boolean') {
+      controls.push({ type: 'toggle', key, label, default: !!field.default });
+    } else if (['number', 'integer', 'int'].includes(field.type)) {
+      const min = field.minValue ?? field.minimum ?? 0;
+      const max = field.maxValue ?? field.maximum ?? 100;
+      controls.push({ type: 'number', key, label, min, max, step: field.step || 1, default: field.default ?? min });
+    } else if (field.type === 'string') {
+      controls.push({ type: 'text', key, label, placeholder: field.description || '' });
     }
+  }
+  return controls;
 }
 
-function setDynamicModelCache(models) {
-    try { localStorage.setItem(DYNAMIC_MODEL_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: models })); } catch {}
+export function getEditToolBySlug(slug) {
+  return EDIT_TOOLS.find(tool => tool.slug === slug) || null;
 }
 
-function getDynamicSchemaCache() {
-    try {
-        const raw = localStorage.getItem(DYNAMIC_SCHEMA_CACHE_KEY);
-        if (!raw) return {};
-        const entry = JSON.parse(raw);
-        if (Date.now() - entry.ts > 5 * 60 * 1000) {
-            localStorage.removeItem(DYNAMIC_SCHEMA_CACHE_KEY);
-            return {};
-        }
-        return entry.data || {};
-    } catch {
-        return {};
+/** First missing input for a tool, or null when it can run. */
+export function validateEditInputs(tool, { sourceUrl, secondaryUrl, hasPaintedMask, prompt }) {
+  if (!sourceUrl) return 'Upload a source image first.';
+  if (tool.id === 'ai-object-eraser') {
+    if (!hasPaintedMask && !secondaryUrl) return 'Paint over the object you want removed (or upload a mask).';
+  } else if (tool.secondary && !tool.secondary.optional && !secondaryUrl) {
+    return `Upload the ${tool.secondary.label.toLowerCase()}.`;
+  }
+  if (tool.hasPrompt && tool.promptRequired && !String(prompt || '').trim()) {
+    return tool.promptKey === 'scene_description' ? 'Describe the product scene.' : 'Describe the edit you want.';
+  }
+  return null;
+}
+
+function readToolFromUrl() {
+  try {
+    return getEditToolBySlug(new URLSearchParams(window.location.search).get('tool'));
+  } catch {
+    return null;
+  }
+}
+
+function setToolInUrl(tool) {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (tool) params.set('tool', tool.slug);
+    else params.delete('tool');
+    const query = params.toString();
+    const next = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash || '#/edit'}`;
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.pushState({ editTool: tool?.slug || null }, '', next);
     }
+  } catch { /* ignore */ }
 }
 
-function isImageField(field) {
-    const name = (field.name || '').toLowerCase();
-    const title = (field.title || '').toLowerCase();
-    const fieldType = (field.field || '').toLowerCase();
-    if (fieldType === 'image') return true;
-    if (name.includes('url') && (name.includes('image') || name.includes('img') || name.includes('swap') || name.includes('mask') || name.includes('watermark') || name.includes('garment'))) return true;
-    if (title.includes('image') || title.includes('url')) return true;
-    if (field.type === 'string' && name.includes('url')) return true;
-    return false;
-}
-
-function buildControlsFromSchema(schema) {
-    const controls = [];
-    const properties = schema?.input_schema?.schemas?.input_data?.properties || {};
-    const required = schema?.input_schema?.schemas?.input_data?.required || [];
-
-    const entries = Object.entries(properties).filter(([key, field]) => {
-        if (key === 'image_url') return false;
-        if (key === 'images_list') return false;
-        if (isImageField(field)) return false;
-        return true;
-    });
-
-    entries.forEach(([key, field]) => {
-        const name = field.name || key;
-        const title = field.title || key;
-        const fieldType = (field.field || '').toLowerCase();
-        const type = field.type;
-
-        if (field.enum && Array.isArray(field.enum)) {
-            controls.push({ type: 'select', key, label: title, options: field.enum, default: field.default || field.enum[0] });
-        } else if (type === 'boolean') {
-            controls.push({ type: 'toggle', key, label: title, default: !!field.default });
-        } else if (type === 'number' || type === 'integer' || type === 'int') {
-            const min = typeof field.minValue === 'number' ? field.minValue : (typeof field.minimum === 'number' ? field.minimum : 0);
-            const max = typeof field.maxValue === 'number' ? field.maxValue : (typeof field.maximum === 'number' ? field.maximum : 100);
-            const step = typeof field.step === 'number' ? field.step : 1;
-            const defaultVal = typeof field.default === 'number' ? field.default : (Array.isArray(field.examples) && field.examples[0] ? Number(field.examples[0]) : min);
-            controls.push({ type: 'number', key, label: title, min, max, step, default: defaultVal });
-        } else if (type === 'string') {
-            if (fieldType === 'text' || fieldType === 'textarea' || fieldType === 'prompt') {
-                controls.push({ type: 'text', key, label: title, placeholder: field.description || '' });
-            } else {
-                controls.push({ type: 'text', key, label: title, placeholder: field.description || '' });
-            }
-        }
-    });
-
-    return controls;
-}
-
-function buildDynamicToolFromSchema(modelId, schema) {
-    const name = schema.name || modelId;
-    const description = schema.description || '';
-    const inputSchema = schema.input_schema?.schemas?.input_data || {};
-    const properties = inputSchema.properties || {};
-    const hasPrompt = !!properties.prompt || !!properties.scene_description;
-    const promptKey = properties.prompt ? 'prompt' : (properties.scene_description ? 'scene_description' : null);
-    const hasImagesList = !!properties.images_list;
-
-    const extraUploads = [];
-    Object.entries(properties).forEach(([key, field]) => {
-        if (key === 'image_url') return;
-        if (key === 'images_list') return;
-        if (isImageField(field)) {
-            const isSwap = key.toLowerCase().includes('swap');
-            const isMask = key.toLowerCase().includes('mask');
-            const isGarment = key.toLowerCase().includes('garment') || key.toLowerCase().includes('dress');
-            const isWatermark = key.toLowerCase().includes('watermark');
-            extraUploads.push({ key, isSwap, isMask, isGarment, isWatermark, label: field.title || key });
-        }
-    });
-
-    return {
-        id: modelId,
-        name,
-        description,
-        hasPrompt,
-        promptKey,
-        promptPlaceholder: 'Describe the edit...',
-        controls: buildControlsFromSchema(schema),
-        requiresSwapImage: extraUploads.some(u => u.isSwap),
-        requiresMask: extraUploads.some(u => u.isMask),
-        requiresGarment: extraUploads.some(u => u.isGarment),
-        requiresWatermarkImage: extraUploads.some(u => u.isWatermark),
-        requiresMultiImage: hasImagesList,
-        maxImages: properties.images_list?.maxItems || 10,
-        extraUploads,
-        isDynamic: true,
-    };
-}
+const BTN_GHOST = 'text-xs font-bold px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-colors';
+const PANEL = 'bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col gap-3';
+const LABEL = 'text-[11px] font-bold text-secondary uppercase tracking-wider';
 
 export function EditStudio() {
   const container = document.createElement('div');
@@ -310,553 +251,233 @@ export function EditStudio() {
   mountStudioChrome(container, { currentRoute: 'edit' });
 
   let activeTool = null;
-  let uploadedUrl = null;
-  let uploadedAssetId = null;
-  let maskUrl = null;
-  let maskAssetId = null;
-  let garmentUrl = null;
-  let garmentAssetId = null;
-  let swapUrl = null;
-  let swapAssetId = null;
-  let watermarkImageUrl = null;
-  let watermarkImageAssetId = null;
-  let multiImageUrls = [];
-  let multiImageAssetIds = [];
-  let dynamicSchema = null;
-  let dynamicModels = [];
-  let dynamicModelsLoading = false;
+  let source = null;     // { url, assetId }
+  let secondary = null;  // { url, assetId }
+  let resultUrl = null;
+  let inFlight = false;
+  const runs = [];
+  let runId = 0;
 
-  const topBar = document.createElement('div');
-  topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  topBar.appendChild(createStudioHeader('edit', 'Edit Studio', '13 AI editing tools: remove objects, backgrounds, reframe, relight and more', 'mb-4'));
+  // ── Gallery view ───────────────────────────────────────────────────────
+  const galleryView = document.createElement('div');
+  galleryView.className = 'px-4 md:px-8 pt-6 pb-10';
+  galleryView.dataset.editView = 'gallery';
+  galleryView.appendChild(createStudioHeader('edit', 'Edit Studio', '13 AI editing tools: remove objects, backgrounds, reframe, relight and more', 'mb-5'));
 
   const toolGrid = document.createElement('div');
-  toolGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2';
-
+  toolGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+  toolGrid.dataset.editToolGrid = 'true';
   EDIT_TOOLS.forEach(tool => {
-    const card = document.createElement('div');
-    card.className = 'bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.dataset.editTool = tool.slug;
+    card.setAttribute('aria-label', `Open ${tool.name}`);
+    card.className = 'text-left bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden hover:bg-white/[0.06] hover:border-primary/40 hover:-translate-y-0.5 transition-all group focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary';
+    const thumbWrapper = document.createElement('div');
+    thumbWrapper.className = 'thumb-hero relative aspect-video bg-white/5 overflow-hidden';
+    thumbWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
     const thumbSrc = getToolThumbnail(tool.id);
-    if (thumbSrc) {
-      const thumbWrapper = document.createElement('div');
-      thumbWrapper.className = 'thumb-hero h-20 relative';
-      thumbWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-      const img = createThumbnailImg(thumbSrc, tool.name, 'w-full h-full object-cover');
-      thumbWrapper.appendChild(img);
-      card.appendChild(thumbWrapper);
-    }
+    if (thumbSrc) thumbWrapper.appendChild(createThumbnailImg(thumbSrc, tool.name, 'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500'));
+    const openChip = document.createElement('span');
+    openChip.className = 'absolute bottom-2 right-2 text-[10px] font-black bg-primary text-black rounded-full px-2.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity';
+    openChip.textContent = 'Open studio →';
+    thumbWrapper.appendChild(openChip);
     const info = document.createElement('div');
     info.className = 'p-3';
-    info.innerHTML = `
-      <div class="text-xs font-bold text-white group-hover:text-primary transition-colors">${tool.name}</div>
-      <div class="text-[10px] text-muted mt-0.5">${tool.description}</div>
-    `;
-    card.appendChild(info);
-    card.onclick = () => selectTool(tool, card);
+    const name = document.createElement('div');
+    name.className = 'text-sm font-bold text-white group-hover:text-primary transition-colors';
+    name.textContent = tool.name;
+    const desc = document.createElement('div');
+    desc.className = 'text-[11px] text-muted mt-0.5';
+    desc.textContent = tool.description;
+    info.append(name, desc);
+    card.append(thumbWrapper, info);
+    card.onclick = () => openTool(tool);
     toolGrid.appendChild(card);
   });
+  galleryView.appendChild(toolGrid);
+  container.appendChild(galleryView);
 
-  topBar.appendChild(toolGrid);
+  // ── Tool studio view ───────────────────────────────────────────────────
+  const studioView = document.createElement('div');
+  studioView.className = 'hidden px-4 md:px-8 pt-6 pb-10 flex-col gap-5';
+  studioView.dataset.editView = 'studio';
 
-  // Browse All Models section
-  const browseSection = document.createElement('div');
-  browseSection.className = 'mt-6';
-  const browseHeader = document.createElement('div');
-  browseHeader.className = 'flex items-center justify-between mb-3';
-  browseHeader.innerHTML = `
-    <div>
-      <h2 class="text-sm font-black text-white">Browse All Models</h2>
-      <p class="text-[10px] text-muted mt-0.5">Dynamic controls powered by live API schemas</p>
-    </div>
-    <button type="button" id="refresh-dynamic-models" class="text-[10px] font-bold text-primary hover:text-white transition-colors">Refresh</button>
-  `;
-  browseSection.appendChild(browseHeader);
-
-  const dynamicGrid = document.createElement('div');
-  dynamicGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2';
-  browseSection.appendChild(dynamicGrid);
-
-  const dynamicStatus = document.createElement('div');
-  dynamicStatus.className = 'text-[10px] text-muted mt-2 hidden';
-  browseSection.appendChild(dynamicStatus);
-
-  topBar.appendChild(browseSection);
-
-  const inlineInstructions = createInlineInstructions('edit');
-  inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
-  topBar.appendChild(inlineInstructions);
-  container.appendChild(topBar);
-
-  const workArea = document.createElement('div');
-  workArea.className = 'flex-1 px-4 md:px-8 pb-8';
-
-  const workCard = document.createElement('div');
-  workCard.className = 'max-w-xl mx-auto bg-white/[0.03] border border-white/5 rounded-2xl p-6 hidden flex-col gap-4';
-
-  const toolTitle = document.createElement('div');
-  toolTitle.className = 'text-sm font-bold text-primary';
-  workCard.appendChild(toolTitle);
-
-  const previewImg = document.createElement('img');
-  previewImg.className = 'hidden w-full h-48 object-cover rounded-xl border border-white/10 cursor-zoom-in';
-
-  const previewWrapper = document.createElement('div');
-  previewWrapper.className = 'relative hidden';
-  previewWrapper.appendChild(previewImg);
-
-  const previewRemoveBtn = createMediaRemoveButton(() => {
-    picker.reset();
-    uploadedUrl = null;
-    uploadedAssetId = null;
-    previewImg.classList.add('hidden');
-    previewImg.src = '';
-    previewWrapper.classList.add('hidden');
-    previewRemoveBtn.classList.add('hidden');
-    uploadHint.textContent = 'Upload source image or video';
-    clearBtn.classList.add('hidden');
+  const studioTop = document.createElement('div');
+  studioTop.className = 'flex flex-col md:flex-row md:items-center gap-4';
+  const backBtn = document.createElement('button');
+  backBtn.type = 'button';
+  backBtn.className = `${BTN_GHOST} self-start`;
+  backBtn.textContent = '← All tools';
+  backBtn.onclick = () => closeTool();
+  const titleWrap = document.createElement('div');
+  titleWrap.className = 'flex items-center gap-3 min-w-0 flex-1';
+  const titleThumb = document.createElement('img');
+  titleThumb.alt = '';
+  titleThumb.className = 'hidden sm:block w-20 h-12 rounded-lg object-cover border border-white/10';
+  const titleText = document.createElement('div');
+  titleText.className = 'min-w-0';
+  const toolTitle = document.createElement('h1');
+  toolTitle.className = 'text-xl font-black text-white';
+  const toolHowTo = document.createElement('p');
+  toolHowTo.className = 'text-xs text-muted';
+  titleText.append(toolTitle, toolHowTo);
+  titleWrap.append(titleThumb, titleText);
+  const switchLabel = document.createElement('label');
+  switchLabel.className = 'flex items-center gap-2 text-xs text-muted';
+  switchLabel.innerHTML = '<span class="whitespace-nowrap">Switch tool</span>';
+  const toolSwitch = document.createElement('select');
+  toolSwitch.className = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50';
+  toolSwitch.setAttribute('aria-label', 'Switch tool');
+  EDIT_TOOLS.forEach(tool => {
+    const option = document.createElement('option');
+    option.value = tool.slug;
+    option.textContent = tool.name;
+    toolSwitch.appendChild(option);
   });
-  previewRemoveBtn.classList.add('hidden');
-  previewWrapper.appendChild(previewRemoveBtn);
+  toolSwitch.onchange = () => openTool(getEditToolBySlug(toolSwitch.value));
+  switchLabel.appendChild(toolSwitch);
+  studioTop.append(backBtn, titleWrap, switchLabel);
+  studioView.appendChild(studioTop);
 
-  const uploadHint = document.createElement('span');
-  uploadHint.className = 'text-sm text-muted';
-  uploadHint.textContent = 'Upload source image or video';
+  const studioGrid = document.createElement('div');
+  studioGrid.className = 'grid grid-cols-1 lg:grid-cols-[minmax(320px,420px)_1fr] gap-5 items-start';
+  const leftCol = document.createElement('div');
+  leftCol.className = 'flex flex-col gap-4';
+  const rightCol = document.createElement('div');
+  rightCol.className = 'flex flex-col gap-4 lg:sticky lg:top-4';
+  studioGrid.append(leftCol, rightCol);
+  studioView.appendChild(studioGrid);
+  container.appendChild(studioView);
 
-  const clearBtn = document.createElement('button');
-  clearBtn.type = 'button';
-  clearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  clearBtn.textContent = 'Remove';
-
-  const uploadSection = document.createElement('div');
-  uploadSection.className = 'flex flex-col gap-3';
-  const uploadRow = document.createElement('div');
-  uploadRow.className = 'flex items-center gap-4';
+  // Source image. Created and mounted before any other picker so "Use in
+  // studio" from the Library lands here (earliest mounted picker wins).
+  const sourcePanel = document.createElement('div');
+  sourcePanel.className = PANEL;
+  const sourceLabel = document.createElement('div');
+  sourceLabel.className = LABEL;
+  sourceLabel.textContent = 'Source image';
+  const sourceRow = document.createElement('div');
+  sourceRow.className = 'flex items-center gap-3';
+  const sourceHint = document.createElement('span');
+  sourceHint.className = 'text-sm text-muted';
+  sourceHint.textContent = 'Upload the image to edit';
+  sourcePanel.append(sourceLabel, sourceRow);
+  leftCol.appendChild(sourcePanel);
 
   const picker = createUploadPicker({
     anchorContainer: container,
     muapiStudio: true,
     studioId: 'edit-studio',
-    onSelect: ({ url, assetId }) => {
-      uploadedUrl = url;
-      uploadedAssetId = assetId || null;
-      previewImg.src = url;
-      previewImg.classList.remove('hidden');
-      previewWrapper.classList.remove('hidden');
-      previewRemoveBtn.classList.remove('hidden');
-      uploadHint.textContent = 'Media uploaded';
-      clearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      uploadedUrl = null;
-      uploadedAssetId = null;
-      previewImg.classList.add('hidden');
-      previewImg.src = '';
-      previewWrapper.classList.add('hidden');
-      previewRemoveBtn.classList.add('hidden');
-      uploadHint.textContent = 'Upload source image or video';
-      clearBtn.classList.add('hidden');
-    },
+    acceptVideo: false,
+    acceptDocuments: false,
+    onSelect: ({ url, assetId }) => setSource(url ? { url, assetId: assetId || null } : null),
+    onClear: () => setSource(null),
     onFilePreview: (file) => {
-      const blobUrl = URL.createObjectURL(file);
-      previewImg.src = blobUrl;
-      previewImg.classList.remove('hidden');
-      previewWrapper.classList.remove('hidden');
-      previewRemoveBtn.classList.remove('hidden');
-      uploadHint.textContent = file.name;
+      showBefore(URL.createObjectURL(file));
+      sourceHint.textContent = `Uploading ${file.name}…`;
     },
   });
-
-  clearBtn.onclick = (e) => {
-    e.stopPropagation();
-    picker.reset();
-    uploadedUrl = null;
-    previewImg.classList.add('hidden');
-    previewImg.src = '';
-    previewWrapper.classList.add('hidden');
-    previewRemoveBtn.classList.add('hidden');
-    uploadHint.textContent = 'Upload source image or video';
-    clearBtn.classList.add('hidden');
-  };
-
-  uploadRow.appendChild(picker.trigger);
+  sourceRow.appendChild(picker.trigger);
+  container.appendChild(picker.panel);
 
   const pexelsBtn = document.createElement('button');
   pexelsBtn.type = 'button';
   pexelsBtn.title = 'Browse stock photos from Pexels';
-  pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden';
-  pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
+  pexelsBtn.setAttribute('aria-label', 'Browse stock photos from Pexels');
+  pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group';
+  pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
   pexelsBtn.onclick = async () => {
     const { browsePexelsImages } = await import('../lib/studioPexels.js');
     browsePexelsImages({
       title: 'Select Photo to Edit',
       studioName: 'Edit Studio',
       onSelect: (asset) => {
-        uploadedUrl = asset.src?.large || asset.src?.original || asset.url;
-        previewImg.src = uploadedUrl;
-        previewImg.classList.remove('hidden');
-        uploadHint.textContent = 'Media from Pexels';
-        clearBtn.classList.remove('hidden');
+        const url = asset.src?.large || asset.src?.original || asset.url;
+        if (url) setSource({ url, assetId: null });
       },
     });
   };
-  uploadRow.appendChild(pexelsBtn);
+  const sourceClear = document.createElement('button');
+  sourceClear.type = 'button';
+  sourceClear.className = 'hidden ml-auto text-xs font-bold text-red-400 hover:text-red-300';
+  sourceClear.textContent = 'Remove';
+  sourceClear.onclick = () => { picker.reset(); setSource(null); };
+  sourceRow.append(pexelsBtn, sourceHint, sourceClear);
 
-  uploadRow.appendChild(uploadHint);
-  uploadRow.appendChild(clearBtn);
-  uploadSection.appendChild(uploadRow);
-  uploadSection.appendChild(previewWrapper);
-  workCard.appendChild(uploadSection);
-  container.appendChild(picker.panel);
+  // Remove Object: paint the mask on the source image.
+  const maskPanel = document.createElement('div');
+  maskPanel.className = `${PANEL} hidden`;
+  const maskLabel = document.createElement('div');
+  maskLabel.className = LABEL;
+  maskLabel.textContent = 'Select what to remove';
+  const maskEmpty = document.createElement('p');
+  maskEmpty.className = 'text-[11px] text-muted';
+  maskEmpty.textContent = 'Upload a source image, then paint over the object.';
+  const maskPainter = createMaskPainter({ onChange: () => {} });
+  maskPainter.element.classList.add('hidden');
+  maskPanel.append(maskLabel, maskEmpty, maskPainter.element);
+  leftCol.appendChild(maskPanel);
 
-  // Multi-image upload row for models with images_list
-  const multiImagePreviewGrid = document.createElement('div');
-  multiImagePreviewGrid.className = 'hidden grid grid-cols-4 gap-2 mt-2';
-  const multiImageHint = document.createElement('span');
-  multiImageHint.className = 'text-sm text-muted';
-  multiImageHint.textContent = 'Upload reference images';
-  const multiImageClearBtn = document.createElement('button');
-  multiImageClearBtn.type = 'button';
-  multiImageClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  multiImageClearBtn.textContent = 'Remove All';
-  const multiImageRow = document.createElement('div');
-  multiImageRow.className = 'hidden flex flex-col gap-2';
-  multiImageRow.appendChild(multiImageHint);
-  multiImageRow.appendChild(multiImagePreviewGrid);
-  multiImageRow.appendChild(multiImageClearBtn);
+  // The tool's second image (outfit, face, logo, or an uploaded mask).
+  const secondaryPanel = document.createElement('div');
+  secondaryPanel.className = `${PANEL} hidden`;
+  const secondaryLabel = document.createElement('div');
+  secondaryLabel.className = LABEL;
+  const secondaryHelp = document.createElement('p');
+  secondaryHelp.className = 'text-[11px] text-muted';
+  const secondaryRow = document.createElement('div');
+  secondaryRow.className = 'flex items-center gap-3';
+  const secondaryPreview = document.createElement('img');
+  secondaryPreview.alt = '';
+  secondaryPreview.className = 'hidden w-16 h-16 rounded-lg object-cover border border-white/10';
+  const secondaryHint = document.createElement('span');
+  secondaryHint.className = 'text-sm text-muted';
+  secondaryHint.textContent = 'Not uploaded yet';
+  const secondaryClear = document.createElement('button');
+  secondaryClear.type = 'button';
+  secondaryClear.className = 'hidden ml-auto text-xs font-bold text-red-400 hover:text-red-300';
+  secondaryClear.textContent = 'Remove';
+  secondaryPanel.append(secondaryLabel, secondaryHelp, secondaryRow);
+  leftCol.appendChild(secondaryPanel);
 
-  const multiImagePicker = createUploadPicker({
-    anchorContainer: container,
-    multiple: true,
-    muapiStudio: true,
-    studioId: 'edit-studio',
-    onSelect: ({ urls, assetIds }) => {
-      multiImageUrls = urls;
-      multiImageAssetIds = assetIds || [];
-      multiImagePreviewGrid.innerHTML = '';
-      urls.forEach((url, index) => {
-        const thumbWrapper = document.createElement('div');
-        thumbWrapper.className = 'relative';
-
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'w-full h-16 object-cover rounded-lg border border-white/10';
-        thumbWrapper.appendChild(img);
-
-        const removeBtn = createMediaRemoveButton(() => {
-          multiImageUrls = multiImageUrls.filter((_, i) => i !== index);
-          multiImageAssetIds = multiImageAssetIds.filter((_, i) => i !== index);
-          if (multiImageUrls.length === 0) {
-            multiImagePreviewGrid.classList.add('hidden');
-            multiImageHint.classList.add('hidden');
-            multiImageClearBtn.classList.add('hidden');
-            multiImageHint.textContent = 'Upload reference images';
-          } else {
-            multiImageHint.textContent = `${multiImageUrls.length} image(s) uploaded`;
-          }
-          thumbWrapper.remove();
-        });
-        thumbWrapper.appendChild(removeBtn);
-
-        multiImagePreviewGrid.appendChild(thumbWrapper);
-      });
-      multiImageHint.textContent = `${urls.length} image(s) uploaded`;
-      multiImageHint.classList.remove('hidden');
-      multiImagePreviewGrid.classList.remove('hidden');
-      multiImageClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      multiImageUrls = [];
-      multiImagePreviewGrid.innerHTML = '';
-      multiImageHint.textContent = 'Upload reference images';
-      multiImageHint.classList.add('hidden');
-      multiImagePreviewGrid.classList.add('hidden');
-      multiImageClearBtn.classList.add('hidden');
-    },
-  });
-  multiImageRow.appendChild(multiImagePicker.trigger);
-  multiImageClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    multiImagePicker.reset();
-    multiImageUrls = [];
-    multiImagePreviewGrid.innerHTML = '';
-    multiImageHint.textContent = 'Upload reference images';
-    multiImageHint.classList.add('hidden');
-    multiImagePreviewGrid.classList.add('hidden');
-    multiImageClearBtn.classList.add('hidden');
-  };
-  container.appendChild(multiImagePicker.panel);
-
-  // Mask upload for ai-object-eraser
-  const maskPicker = createUploadPicker({
+  const secondaryPicker = createUploadPicker({
     anchorContainer: container,
     muapiStudio: true,
     studioId: 'edit-studio',
-    onSelect: ({ url, assetId }) => {
-      maskUrl = url;
-      maskAssetId = assetId || null;
-      maskHint.textContent = 'Mask uploaded';
-      maskHint.classList.remove('hidden');
-      maskClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      maskUrl = null;
-      maskAssetId = null;
-      maskHint.textContent = 'Upload mask image';
-      maskHint.classList.add('hidden');
-      maskClearBtn.classList.add('hidden');
-    },
+    acceptVideo: false,
+    acceptDocuments: false,
+    onSelect: ({ url, assetId }) => setSecondary(url ? { url, assetId: assetId || null } : null),
+    onClear: () => setSecondary(null),
   });
-  const maskRow = document.createElement('div');
-  maskRow.className = 'hidden flex flex-col gap-2';
-  const maskHint = document.createElement('span');
-  maskHint.className = 'text-sm text-muted';
-  maskHint.textContent = 'Upload mask image';
-  const maskClearBtn = document.createElement('button');
-  maskClearBtn.type = 'button';
-  maskClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  maskClearBtn.textContent = 'Remove';
-  maskClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    maskPicker.reset();
-    maskUrl = null;
-    maskAssetId = null;
-    maskHint.textContent = 'Upload mask image';
-    maskHint.classList.add('hidden');
-    maskClearBtn.classList.add('hidden');
-  };
-  maskRow.appendChild(maskPicker.trigger);
-  maskRow.appendChild(maskHint);
-  maskRow.appendChild(maskClearBtn);
-  container.appendChild(maskPicker.panel);
+  secondaryRow.append(secondaryPicker.trigger, secondaryPreview, secondaryHint, secondaryClear);
+  container.appendChild(secondaryPicker.panel);
+  secondaryClear.onclick = () => { secondaryPicker.reset(); setSecondary(null); };
 
-  // Garment upload for ai-dress-change
-  const garmentPicker = createUploadPicker({
-    anchorContainer: container,
-    muapiStudio: true,
-    studioId: 'edit-studio',
-    onSelect: ({ url, assetId }) => {
-      garmentUrl = url;
-      garmentAssetId = assetId || null;
-      garmentHint.textContent = 'Garment uploaded';
-      garmentHint.classList.remove('hidden');
-      garmentClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      garmentUrl = null;
-      garmentAssetId = null;
-      garmentHint.textContent = 'Upload garment image';
-      garmentHint.classList.add('hidden');
-      garmentClearBtn.classList.add('hidden');
-    },
-  });
-  const garmentRow = document.createElement('div');
-  garmentRow.className = 'hidden flex flex-col gap-2';
-  const garmentHint = document.createElement('span');
-  garmentHint.className = 'text-sm text-muted';
-  garmentHint.textContent = 'Upload garment image';
-  const garmentClearBtn = document.createElement('button');
-  garmentClearBtn.type = 'button';
-  garmentClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  garmentClearBtn.textContent = 'Remove';
-  garmentClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    garmentPicker.reset();
-    garmentUrl = null;
-    garmentAssetId = null;
-    garmentHint.textContent = 'Upload garment image';
-    garmentHint.classList.add('hidden');
-    garmentClearBtn.classList.add('hidden');
-  };
-  garmentRow.appendChild(garmentPicker.trigger);
-  garmentRow.appendChild(garmentHint);
-  garmentRow.appendChild(garmentClearBtn);
-  container.appendChild(garmentPicker.panel);
-
-  // Swap image upload for ai-image-face-swap
-  const swapPicker = createUploadPicker({
-    anchorContainer: container,
-    muapiStudio: true,
-    studioId: 'edit-studio',
-    onSelect: ({ url, assetId }) => {
-      swapUrl = url;
-      swapAssetId = assetId || null;
-      swapHint.textContent = 'Swap image uploaded';
-      swapHint.classList.remove('hidden');
-      swapClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      swapUrl = null;
-      swapAssetId = null;
-      swapHint.textContent = 'Upload swap face image';
-      swapHint.classList.add('hidden');
-      swapClearBtn.classList.add('hidden');
-    },
-  });
-  const swapRow = document.createElement('div');
-  swapRow.className = 'hidden flex flex-col gap-2';
-  const swapHint = document.createElement('span');
-  swapHint.className = 'text-sm text-muted';
-  swapHint.textContent = 'Upload swap face image';
-  const swapClearBtn = document.createElement('button');
-  swapClearBtn.type = 'button';
-  swapClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  swapClearBtn.textContent = 'Remove';
-  swapClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    swapPicker.reset();
-    swapUrl = null;
-    swapAssetId = null;
-    swapHint.textContent = 'Upload swap face image';
-    swapHint.classList.add('hidden');
-    swapClearBtn.classList.add('hidden');
-  };
-  swapRow.appendChild(swapPicker.trigger);
-  swapRow.appendChild(swapHint);
-  swapRow.appendChild(swapClearBtn);
-  container.appendChild(swapPicker.panel);
-
-  // Watermark image upload for add-image-watermark
-  const watermarkImagePicker = createUploadPicker({
-    anchorContainer: container,
-    muapiStudio: true,
-    studioId: 'edit-studio',
-    onSelect: ({ url, assetId }) => {
-      watermarkImageUrl = url;
-      watermarkImageAssetId = assetId || null;
-      watermarkImageHint.textContent = 'Watermark image uploaded';
-      watermarkImageHint.classList.remove('hidden');
-      watermarkImageClearBtn.classList.remove('hidden');
-    },
-    onClear: () => {
-      watermarkImageUrl = null;
-      watermarkImageAssetId = null;
-      watermarkImageHint.textContent = 'Upload watermark image';
-      watermarkImageHint.classList.add('hidden');
-      watermarkImageClearBtn.classList.add('hidden');
-    },
-  });
-  const watermarkImageRow = document.createElement('div');
-  watermarkImageRow.className = 'hidden flex flex-col gap-2';
-  const watermarkImageHint = document.createElement('span');
-  watermarkImageHint.className = 'text-sm text-muted';
-  watermarkImageHint.textContent = 'Upload watermark image';
-  const watermarkImageClearBtn = document.createElement('button');
-  watermarkImageClearBtn.type = 'button';
-  watermarkImageClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-  watermarkImageClearBtn.textContent = 'Remove';
-  watermarkImageClearBtn.onclick = (e) => {
-    e.stopPropagation();
-    watermarkImagePicker.reset();
-    watermarkImageUrl = null;
-    watermarkImageAssetId = null;
-    watermarkImageHint.textContent = 'Upload watermark image';
-    watermarkImageHint.classList.add('hidden');
-    watermarkImageClearBtn.classList.add('hidden');
-  };
-  watermarkImageRow.appendChild(watermarkImagePicker.trigger);
-  watermarkImageRow.appendChild(watermarkImageHint);
-  watermarkImageRow.appendChild(watermarkImageClearBtn);
-  container.appendChild(watermarkImagePicker.panel);
-
-  const promptField = document.createElement('input');
-  promptField.type = 'text';
-  promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
+  // Prompt (AI Edit, Product Shot) + reference attachments.
+  const promptPanel = document.createElement('div');
+  promptPanel.className = `${PANEL} hidden`;
+  const promptLabel = document.createElement('label');
+  promptLabel.className = LABEL;
+  promptLabel.textContent = 'Prompt';
+  const promptField = document.createElement('textarea');
+  promptField.rows = 3;
+  promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-y';
   promptField.setAttribute('aria-label', 'Edit prompt');
+  promptPanel.append(promptLabel, promptField);
+  leftCol.appendChild(promptPanel);
 
-  const controlsContainer = document.createElement('div');
-  controlsContainer.className = 'w-full flex flex-col gap-3';
-
-  // Result area with before/after comparison
-  const resultArea = document.createElement('div');
-  resultArea.className = 'hidden mt-4';
-  const resultToggle = document.createElement('div');
-  resultToggle.className = 'flex items-center justify-between mb-2';
-  const resultLabel = document.createElement('span');
-  resultLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-  resultLabel.textContent = 'Result';
-  const resultViewToggle = document.createElement('div');
-  resultViewToggle.className = 'flex gap-1 bg-white/5 rounded-lg p-0.5';
-  const btnAfter = document.createElement('button');
-  btnAfter.type = 'button';
-  btnAfter.className = 'text-[10px] font-bold text-black bg-primary rounded-md px-2 py-1';
-  btnAfter.textContent = 'After';
-  const btnBefore = document.createElement('button');
-  btnBefore.type = 'button';
-  btnBefore.className = 'text-[10px] font-bold text-white hover:text-primary rounded-md px-2 py-1';
-  btnBefore.textContent = 'Before';
-  resultViewToggle.appendChild(btnBefore);
-  resultViewToggle.appendChild(btnAfter);
-  resultToggle.appendChild(resultLabel);
-  resultToggle.appendChild(resultViewToggle);
-
-  const resultContent = document.createElement('div');
-  resultContent.className = 'relative';
-  const resultImg = document.createElement('img');
-  resultImg.className = 'w-full rounded-xl mb-3 border border-white/10';
-  resultImg.alt = 'Result';
-  const originalImg = document.createElement('img');
-  originalImg.className = 'w-full rounded-xl mb-3 border border-white/10 hidden';
-  originalImg.alt = 'Original';
-  resultContent.appendChild(originalImg);
-  resultContent.appendChild(resultImg);
-
-  const resultActions = document.createElement('div');
-  resultActions.className = 'flex gap-3';
-  const downloadBtn = document.createElement('a');
-  downloadBtn.className = 'flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all';
-  downloadBtn.textContent = 'Download';
-  const regenBtn = document.createElement('button');
-  regenBtn.type = 'button';
-  regenBtn.className = 'flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all';
-  regenBtn.textContent = 'Generate Again';
-
-  resultActions.appendChild(downloadBtn);
-  resultActions.appendChild(regenBtn);
-  resultArea.appendChild(resultToggle);
-  resultArea.appendChild(resultContent);
-  resultArea.appendChild(resultActions);
-  workCard.appendChild(resultArea);
-
-  let showBefore = false;
-  btnBefore.onclick = () => {
-    showBefore = true;
-    btnBefore.classList.add('text-black', 'bg-primary');
-    btnBefore.classList.remove('text-white');
-    btnAfter.classList.remove('text-black', 'bg-primary');
-    btnAfter.classList.add('text-white');
-    originalImg.classList.remove('hidden');
-    resultImg.classList.add('hidden');
-  };
-  btnAfter.onclick = () => {
-    showBefore = false;
-    btnAfter.classList.add('text-black', 'bg-primary');
-    btnAfter.classList.remove('text-white');
-    btnBefore.classList.remove('text-black', 'bg-primary');
-    btnBefore.classList.add('text-white');
-    resultImg.classList.remove('hidden');
-    originalImg.classList.add('hidden');
-  };
-
-  const editBtn = document.createElement('button');
-  editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
-  editBtn.textContent = 'Apply Edit';
-
-  // Insert prompt + controls above the action buttons
-  workCard.appendChild(promptField);
-
-  // Attachment toolbar for edit references
   const editAttachmentState = { images: [], videos: [], audios: [] };
-  const attachmentToolbar = createAttachmentToolbar({
-    container: workCard,
+  createAttachmentToolbar({
+    container: promptPanel,
     getTextarea: () => promptField,
+    acceptVideo: false,
+    acceptAudio: false,
     acceptStartFrame: false,
     acceptEndFrame: false,
-    acceptAudio: false,
     onUpload: async (key, file) => {
       try {
-        // MuAPI-bound reference: validated by the shared adapter and stored in
-        // the permanent Asset Library; resolved at generation time.
-        const { ingestStudioUpload, describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
+        const { ingestStudioUpload } = await import('../lib/muapiStudioMedia.js');
         const stored = await ingestStudioUpload(file, { studioId: 'edit-studio', uploadToMuapi: false });
         editAttachmentState[key] = editAttachmentState[key] || [];
         editAttachmentState[key].push({ url: stored.url, assetId: stored.assetId });
@@ -868,9 +489,25 @@ export function EditStudio() {
     },
   });
 
-  workCard.appendChild(controlsContainer);
-  workCard.appendChild(editBtn);
+  // Settings.
+  const settingsPanel = document.createElement('div');
+  settingsPanel.className = `${PANEL} hidden`;
+  const settingsLabel = document.createElement('div');
+  settingsLabel.className = LABEL;
+  settingsLabel.textContent = 'Settings';
+  const controlsContainer = document.createElement('div');
+  controlsContainer.className = 'w-full flex flex-col gap-3';
+  settingsPanel.append(settingsLabel, controlsContainer);
+  leftCol.appendChild(settingsPanel);
 
+  // Apply + progress.
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all disabled:opacity-50';
+  editBtn.textContent = 'Apply Edit';
+  const formError = document.createElement('div');
+  formError.className = 'hidden text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3';
+  formError.setAttribute('role', 'alert');
   const progressContainer = document.createElement('div');
   progressContainer.className = 'hidden w-full flex-col gap-2';
   const progressBar = document.createElement('div');
@@ -880,458 +517,493 @@ export function EditStudio() {
   const progressText = document.createElement('span');
   progressText.className = 'text-xs text-muted text-center';
   progressBar.appendChild(progressFill);
-  progressContainer.appendChild(progressBar);
-  progressContainer.appendChild(progressText);
-  workCard.appendChild(progressContainer);
-
+  progressContainer.append(progressBar, progressText);
   const cancelBtn = document.createElement('button');
   cancelBtn.type = 'button';
   cancelBtn.className = 'hidden w-full bg-white/5 border border-white/10 text-red-400 font-bold py-2 rounded-xl hover:bg-white/10 transition-all';
   cancelBtn.textContent = 'Cancel';
-  workCard.appendChild(cancelBtn);
+  leftCol.append(formError, editBtn, progressContainer, cancelBtn);
 
-  workArea.appendChild(workCard);
-  container.appendChild(workArea);
+  // ── Preview ────────────────────────────────────────────────────────────
+  const previewPanel = document.createElement('div');
+  previewPanel.className = PANEL;
+  const previewHead = document.createElement('div');
+  previewHead.className = 'flex items-center justify-between gap-2';
+  const previewLabel = document.createElement('div');
+  previewLabel.className = LABEL;
+  previewLabel.textContent = 'Preview';
+  const viewToggle = document.createElement('div');
+  viewToggle.className = 'hidden flex gap-1 bg-white/5 rounded-lg p-0.5';
+  const viewButtons = {};
+  for (const [id, label] of [['compare', 'Compare'], ['before', 'Before'], ['after', 'After']]) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.view = id;
+    btn.textContent = label;
+    btn.onclick = () => setCompareMode(id);
+    viewButtons[id] = btn;
+    viewToggle.appendChild(btn);
+  }
+  previewHead.append(previewLabel, viewToggle);
 
-  let progressPoll = null;
+  const stage = document.createElement('div');
+  stage.className = 'relative w-full min-h-[320px] lg:min-h-[460px] rounded-xl bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center';
+  const emptyState = document.createElement('div');
+  emptyState.className = 'flex flex-col items-center gap-3 p-8 text-center';
+  const emptyThumb = document.createElement('img');
+  emptyThumb.alt = '';
+  emptyThumb.className = 'w-56 max-w-full rounded-xl border border-white/10 opacity-80';
+  const emptyText = document.createElement('p');
+  emptyText.className = 'text-sm text-muted';
+  emptyText.textContent = 'Upload an image to start. Your before/after preview appears here.';
+  emptyState.append(emptyThumb, emptyText);
+
+  const compareBox = document.createElement('div');
+  compareBox.className = 'hidden relative w-full select-none';
+  const beforeImg = document.createElement('img');
+  beforeImg.alt = 'Before';
+  beforeImg.className = 'block w-full max-h-[70vh] object-contain';
+  const afterLayer = document.createElement('div');
+  afterLayer.className = 'absolute inset-0';
+  const afterImg = document.createElement('img');
+  afterImg.alt = 'After';
+  afterImg.className = 'w-full h-full object-contain';
+  afterLayer.appendChild(afterImg);
+  const divider = document.createElement('div');
+  divider.className = 'absolute top-0 bottom-0 w-0.5 bg-primary shadow-[0_0_12px_rgba(34,211,238,0.9)] pointer-events-none';
+  const beforeTag = document.createElement('span');
+  beforeTag.className = 'absolute top-2 left-2 text-[10px] font-black bg-black/70 text-white rounded px-2 py-0.5';
+  beforeTag.textContent = 'BEFORE';
+  const afterTag = document.createElement('span');
+  afterTag.className = 'absolute top-2 right-2 text-[10px] font-black bg-primary text-black rounded px-2 py-0.5';
+  afterTag.textContent = 'AFTER';
+  const slider = document.createElement('input');
+  slider.type = 'range';
+  slider.min = '0';
+  slider.max = '100';
+  slider.value = '50';
+  slider.setAttribute('aria-label', 'Before/after slider');
+  slider.className = 'absolute inset-0 w-full h-full opacity-0 cursor-ew-resize';
+  slider.oninput = () => applySlider();
+  compareBox.append(beforeImg, afterLayer, divider, beforeTag, afterTag, slider);
+
+  const runningState = document.createElement('div');
+  runningState.className = 'hidden absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3';
+  runningState.innerHTML = '<div class="w-10 h-10 border-2 border-white/10 border-t-primary rounded-full animate-spin"></div><p class="text-sm font-bold text-white">Applying edit…</p>';
+  const errorState = document.createElement('div');
+  errorState.className = 'hidden absolute bottom-3 left-3 right-3 text-xs text-red-300 bg-red-500/15 border border-red-400/30 rounded-xl p-3';
+  stage.append(emptyState, compareBox, runningState, errorState);
+
+  const resultActions = document.createElement('div');
+  resultActions.className = 'hidden flex flex-wrap gap-2';
+  const downloadBtn = document.createElement('a');
+  downloadBtn.className = 'flex-1 min-w-[120px] bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all';
+  downloadBtn.textContent = 'Download';
+  downloadBtn.target = '_blank';
+  downloadBtn.rel = 'noopener';
+  downloadBtn.setAttribute('download', '');
+  const regenBtn = document.createElement('button');
+  regenBtn.type = 'button';
+  regenBtn.className = `flex-1 min-w-[120px] ${BTN_GHOST}`;
+  regenBtn.textContent = 'Generate Again';
+  regenBtn.onclick = () => editBtn.click();
+  const reuseBtn = document.createElement('button');
+  reuseBtn.type = 'button';
+  reuseBtn.className = `flex-1 min-w-[120px] ${BTN_GHOST}`;
+  reuseBtn.textContent = 'Use result as new source';
+  reuseBtn.onclick = () => {
+    if (!resultUrl) return;
+    picker.reset();
+    setSource({ url: resultUrl, assetId: null });
+    showToast('Result is now the source image', 'success');
+  };
+  resultActions.append(downloadBtn, regenBtn, reuseBtn);
+
+  const historyPanel = document.createElement('div');
+  historyPanel.className = 'hidden flex flex-col gap-2';
+  const historyLabel = document.createElement('div');
+  historyLabel.className = LABEL;
+  historyLabel.textContent = 'This session';
+  const historyStrip = document.createElement('div');
+  historyStrip.className = 'flex gap-2 overflow-x-auto pb-1';
+  historyPanel.append(historyLabel, historyStrip);
+
+  previewPanel.append(previewHead, stage, resultActions, historyPanel);
+  rightCol.appendChild(previewPanel);
+
+  // ── State updates ──────────────────────────────────────────────────────
+  function showBefore(url) {
+    beforeImg.src = url;
+    resultUrl = null;
+    emptyState.classList.add('hidden');
+    compareBox.classList.remove('hidden');
+    afterLayer.classList.add('hidden');
+    divider.classList.add('hidden');
+    afterTag.classList.add('hidden');
+    beforeTag.classList.remove('hidden');
+    slider.classList.add('hidden');
+    viewToggle.classList.add('hidden');
+    resultActions.classList.add('hidden');
+    errorState.classList.add('hidden');
+  }
+
+  function showEmpty() {
+    beforeImg.removeAttribute('src');
+    resultUrl = null;
+    emptyState.classList.remove('hidden');
+    compareBox.classList.add('hidden');
+    viewToggle.classList.add('hidden');
+    resultActions.classList.add('hidden');
+    errorState.classList.add('hidden');
+  }
+
+  function setSource(next) {
+    source = next;
+    formError.classList.add('hidden');
+    if (next?.url) {
+      sourceHint.textContent = 'Image ready';
+      sourceClear.classList.remove('hidden');
+      showBefore(next.url);
+    } else {
+      sourceHint.textContent = 'Upload the image to edit';
+      sourceClear.classList.add('hidden');
+      showEmpty();
+    }
+    if (activeTool?.id === 'ai-object-eraser') {
+      maskPainter.setImage(next?.url || null);
+      maskPainter.element.classList.toggle('hidden', !next?.url);
+      maskEmpty.classList.toggle('hidden', !!next?.url);
+    }
+  }
+
+  function setSecondary(next) {
+    secondary = next;
+    formError.classList.add('hidden');
+    if (next?.url) {
+      secondaryPreview.src = next.url;
+      secondaryPreview.classList.remove('hidden');
+      secondaryHint.textContent = 'Uploaded';
+      secondaryClear.classList.remove('hidden');
+    } else {
+      secondaryPreview.classList.add('hidden');
+      secondaryPreview.removeAttribute('src');
+      secondaryHint.textContent = 'Not uploaded yet';
+      secondaryClear.classList.add('hidden');
+    }
+  }
+
+  function applySlider() {
+    const pct = Number(slider.value);
+    afterLayer.style.clipPath = `inset(0 0 0 ${pct}%)`;
+    divider.style.left = `${pct}%`;
+  }
+
+  function setCompareMode(mode) {
+    for (const [id, btn] of Object.entries(viewButtons)) {
+      const active = id === mode;
+      btn.setAttribute('aria-pressed', String(active));
+      btn.className = `text-[10px] font-bold rounded-md px-2 py-1 ${active ? 'text-black bg-primary' : 'text-white hover:text-primary'}`;
+    }
+    if (!resultUrl) return;
+    const compare = mode === 'compare';
+    afterLayer.classList.toggle('hidden', mode === 'before');
+    afterLayer.style.clipPath = compare ? `inset(0 0 0 ${slider.value}%)` : 'none';
+    divider.classList.toggle('hidden', !compare);
+    slider.classList.toggle('hidden', !compare);
+    beforeTag.classList.toggle('hidden', mode === 'after');
+    afterTag.classList.toggle('hidden', mode === 'before');
+    if (compare) applySlider();
+  }
+
+  function showResult(url, beforeUrl) {
+    resultUrl = url;
+    beforeImg.src = beforeUrl || url;
+    afterImg.src = url;
+    emptyState.classList.add('hidden');
+    compareBox.classList.remove('hidden');
+    errorState.classList.add('hidden');
+    viewToggle.classList.remove('hidden');
+    resultActions.classList.remove('hidden');
+    downloadBtn.href = url;
+    previewLabel.textContent = 'Result';
+    slider.value = '50';
+    setCompareMode(beforeUrl ? 'compare' : 'after');
+  }
+
+  function addToHistory(url, beforeUrl) {
+    runs.unshift({ url, beforeUrl, tool: activeTool?.name });
+    historyPanel.classList.toggle('hidden', runs.length < 2);
+    historyStrip.innerHTML = '';
+    runs.forEach(item => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.title = item.tool || 'Result';
+      btn.className = 'w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-white/10 hover:border-primary';
+      const img = document.createElement('img');
+      img.src = item.url;
+      img.alt = '';
+      img.className = 'w-full h-full object-cover';
+      btn.appendChild(img);
+      btn.onclick = () => showResult(item.url, item.beforeUrl);
+      historyStrip.appendChild(btn);
+    });
+  }
+
+  function showError(message) {
+    formError.textContent = message;
+    formError.classList.remove('hidden');
+  }
 
   function updateProgress(percent, message) {
     if (percent === null) {
       progressContainer.classList.add('hidden');
-      if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
+      progressContainer.classList.remove('flex');
+      runningState.classList.add('hidden');
       return;
     }
     progressFill.style.width = `${percent}%`;
     progressText.textContent = message || `Processing... ${Math.round(percent)}%`;
     progressContainer.classList.remove('hidden');
+    progressContainer.classList.add('flex');
   }
 
-  function showError(message) {
-    resultContent.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">${message}</div>`;
-    resultArea.classList.remove('hidden');
-    resultLabel.textContent = 'Error';
-  }
-
-  function renderResult(resultUrl) {
-    resultArea.classList.remove('hidden');
-    resultLabel.textContent = 'Result';
-    resultImg.src = resultUrl;
-    originalImg.src = uploadedUrl || '';
-    showBefore = false;
-    btnAfter.classList.add('text-black', 'bg-primary');
-    btnAfter.classList.remove('text-white');
-    btnBefore.classList.remove('text-black', 'bg-primary');
-    btnBefore.classList.add('text-white');
-    resultImg.classList.remove('hidden');
-    originalImg.classList.add('hidden');
-    downloadBtn.href = resultUrl;
-  }
-
+  // ── Opening / closing tools ────────────────────────────────────────────
   function renderControls(tool) {
     controlsContainer.innerHTML = '';
-
-    if (tool.hasPrompt) {
-      promptField.classList.remove('hidden');
-      promptField.placeholder = tool.promptPlaceholder || 'Describe...';
-    } else {
-      promptField.classList.add('hidden');
-    }
-
-    if (tool.controls) {
-      tool.controls.forEach(ctrl => {
-        const factory = CONTROL_FACTORIES[ctrl.type];
-        if (factory) controlsContainer.appendChild(factory(ctrl));
-      });
-    }
-
-    if (tool.dynamicControls) {
-      tool.dynamicControls.forEach(ctrl => {
-        const factory = CONTROL_FACTORIES[ctrl.type];
-        if (factory) controlsContainer.appendChild(factory(ctrl));
-      });
-    }
+    const controls = [...(tool.controls || []), ...getSchemaControls(tool)];
+    controls.forEach(ctrl => {
+      const factory = CONTROL_FACTORIES[ctrl.type];
+      if (factory) controlsContainer.appendChild(factory(ctrl));
+    });
+    settingsPanel.classList.toggle('hidden', controls.length === 0);
   }
 
-  function updateUploadVisibility(tool) {
-    const isT2I = tool.mode === 't2i';
-    const isI2I = tool.mode === 'i2i';
-
-    uploadRow.classList.add('hidden');
-    previewImg.classList.add('hidden');
-    clearBtn.classList.add('hidden');
-    uploadHint.textContent = 'Upload source image or video';
-    picker.reset();
-    uploadedUrl = null;
-    uploadedAssetId = null;
-
-    multiImageRow.classList.add('hidden');
-    multiImagePreviewGrid.innerHTML = '';
-    multiImageHint.classList.add('hidden');
-    multiImagePreviewGrid.classList.add('hidden');
-    multiImageClearBtn.classList.add('hidden');
-    multiImageHint.textContent = 'Upload reference images';
-    multiImageUrls = [];
-    multiImageAssetIds = [];
-
-    if (isT2I) {
-      uploadRow.classList.add('hidden');
-      multiImageRow.classList.add('hidden');
-    } else if (isI2I) {
-      if (tool.requiresMultiImage) {
-        multiImageRow.classList.remove('hidden');
-      } else if (tool.requiresMask) {
-        maskRow.classList.remove('hidden');
-      } else if (tool.requiresGarment) {
-        garmentRow.classList.remove('hidden');
-      } else if (tool.requiresSwapImage) {
-        swapRow.classList.remove('hidden');
-      } else if (tool.requiresWatermarkImage) {
-        watermarkImageRow.classList.remove('hidden');
-      } else {
-        uploadRow.classList.remove('hidden');
-      }
-    } else {
-      uploadRow.classList.remove('hidden');
-    }
-  }
-
-  async function selectTool(tool, cardEl) {
+  function showTool(tool) {
     activeTool = tool;
-    dynamicSchema = null;
-
-    if (cardEl) {
-      toolGrid.querySelectorAll('.border-primary').forEach(el => {
-        el.classList.remove('border-primary');
-        el.classList.add('border-white/5');
-      });
-      cardEl.classList.remove('border-white/5');
-      cardEl.classList.add('border-primary');
-    }
-
-    workCard.classList.remove('hidden');
-    workCard.classList.add('flex');
+    toolSwitch.value = tool.slug;
     toolTitle.textContent = tool.name;
+    toolHowTo.textContent = tool.howTo || tool.description;
+    const thumb = getToolThumbnail(tool.id);
+    titleThumb.src = thumb || '';
+    emptyThumb.src = thumb || '';
+    titleThumb.classList.toggle('sm:block', !!thumb);
+    emptyThumb.classList.toggle('hidden', !thumb);
+    previewLabel.textContent = 'Preview';
 
-    updateUploadVisibility(tool);
+    // Prompt.
+    promptPanel.classList.toggle('hidden', !tool.hasPrompt);
+    promptField.placeholder = tool.promptPlaceholder || 'Describe the edit...';
+    promptLabel.textContent = tool.promptKey === 'scene_description' ? 'Scene description' : 'Prompt';
 
-    if (tool.isDynamic && tool.schema) {
-      dynamicSchema = tool.schema;
-      const enriched = buildDynamicToolFromSchema(tool.id, tool.schema);
-      activeTool = enriched;
-      renderControls(enriched);
-
-      const properties = tool.schema.input_schema?.schemas?.input_data?.properties || {};
-      Object.entries(properties).forEach(([key, field]) => {
-        if (key === 'image_url') return;
-        if (key === 'images_list') return;
-        if (!isImageField(field)) return;
-        const lowerKey = key.toLowerCase();
-        if (lowerKey.includes('swap')) { swapRow.classList.remove('hidden'); }
-        if (lowerKey.includes('mask')) { maskRow.classList.remove('hidden'); }
-        if (lowerKey.includes('garment') || lowerKey.includes('dress')) { garmentRow.classList.remove('hidden'); }
-        if (lowerKey.includes('watermark')) { watermarkImageRow.classList.remove('hidden'); }
-      });
-    } else {
-      renderControls(tool);
+    // Second image.
+    secondaryPicker.reset();
+    setSecondary(null);
+    secondaryPanel.classList.toggle('hidden', !tool.secondary);
+    if (tool.secondary) {
+      secondaryLabel.textContent = tool.secondary.label;
+      secondaryHelp.textContent = tool.secondary.hint || '';
     }
 
-    if (!tool.isDynamic) {
-      if (tool.requiresMask) maskRow.classList.remove('hidden');
-      if (tool.requiresGarment) garmentRow.classList.remove('hidden');
-      if (tool.requiresSwapImage) swapRow.classList.remove('hidden');
-      if (tool.requiresWatermarkImage) watermarkImageRow.classList.remove('hidden');
-      if (tool.requiresMultiImage) multiImageRow.classList.remove('hidden');
+    // Mask painting.
+    const isEraser = tool.id === 'ai-object-eraser';
+    maskPanel.classList.toggle('hidden', !isEraser);
+    if (isEraser) {
+      maskPainter.setImage(source?.url || null);
+      maskPainter.element.classList.toggle('hidden', !source?.url);
+      maskEmpty.classList.toggle('hidden', !!source?.url);
     }
 
-    resultArea.classList.add('hidden');
+    renderControls(tool);
+    formError.classList.add('hidden');
     updateProgress(null);
+    if (source?.url) showBefore(source.url); else showEmpty();
+
+    galleryView.classList.add('hidden');
+    studioView.classList.remove('hidden');
+    studioView.classList.add('flex');
+    container.scrollTop = 0;
   }
 
-  async function loadDynamicModels() {
-    if (dynamicModelsLoading) return;
-    dynamicModelsLoading = true;
-    dynamicStatus.classList.remove('hidden');
-    dynamicStatus.textContent = 'Loading models...';
-
-    try {
-      const cached = getDynamicModelCache();
-      if (cached.length > 0) {
-        dynamicModels = cached;
-        renderDynamicModels();
-        dynamicStatus.textContent = `${cached.length} models available`;
-        dynamicModelsLoading = false;
-        return;
-      }
-
-      const catalog = await fetchDynamicModels();
-      const i2iModels = catalog.filter(m => !EDIT_TOOLS.some(t => t.id === m.id));
-      dynamicModels = i2iModels;
-      setDynamicModelCache(dynamicModels);
-      renderDynamicModels();
-      dynamicStatus.textContent = `${dynamicModels.length} models available`;
-    } catch (e) {
-      dynamicStatus.textContent = 'Failed to load models';
-      console.error(e);
-    } finally {
-      dynamicModelsLoading = false;
-    }
+  function showGallery() {
+    activeTool = null;
+    studioView.classList.add('hidden');
+    studioView.classList.remove('flex');
+    galleryView.classList.remove('hidden');
+    container.scrollTop = 0;
   }
 
-  async function renderDynamicModels() {
-    dynamicGrid.innerHTML = '';
-    const loadingEl = document.createElement('div');
-    loadingEl.className = 'col-span-full text-[10px] text-muted';
-    loadingEl.textContent = 'Loading schemas...';
-    dynamicGrid.appendChild(loadingEl);
-
-    const existingIds = new Set(EDIT_TOOLS.map(t => t.id));
-    const toShow = dynamicModels.filter(m => !existingIds.has(m.id));
-
-    const fragment = document.createDocumentFragment();
-    const schemaPromises = toShow.map(async (model) => {
-      try {
-        const schema = await fetchModelSchema(model.id);
-        return { model, schema };
-      } catch {
-        return { model, schema: null };
-      }
-    });
-
-    const results = await Promise.all(schemaPromises);
-    dynamicGrid.innerHTML = '';
-
-    results.forEach(({ model, schema }) => {
-      if (!schema) return;
-      const card = document.createElement('div');
-      card.className = 'bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
-      const info = document.createElement('div');
-      info.className = 'p-3';
-      info.innerHTML = `
-        <div class="text-xs font-bold text-white group-hover:text-primary transition-colors">${model.name || model.id}</div>
-        <div class="text-[10px] text-muted mt-0.5">${model.description || 'Dynamic model'}</div>
-      `;
-      card.appendChild(info);
-      card.onclick = () => {
-        const enriched = buildDynamicToolFromSchema(model.id, schema);
-        selectTool(enriched, card);
-      };
-      dynamicGrid.appendChild(card);
-    });
-
-    if (dynamicGrid.children.length === 0) {
-      dynamicStatus.textContent = 'No additional models available';
-    }
+  function openTool(tool) {
+    if (!tool) return;
+    showTool(tool);
+    setToolInUrl(tool);
   }
+
+  function closeTool() {
+    showGallery();
+    setToolInUrl(null);
+  }
+
+  const onPopState = () => {
+    if (!container.isConnected) return;
+    const tool = readToolFromUrl();
+    if (tool) showTool(tool); else showGallery();
+  };
+  window.addEventListener('popstate', onPopState);
+  container.cleanup = () => window.removeEventListener('popstate', onPopState);
+
+  // ── Apply ──────────────────────────────────────────────────────────────
+  let progressPoll = null;
+  cancelBtn.onclick = () => {
+    runId++;
+    if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
+    updateProgress(null);
+    editBtn.disabled = false;
+    editBtn.textContent = 'Apply Edit';
+    cancelBtn.classList.add('hidden');
+    inFlight = false;
+  };
 
   editBtn.onclick = async () => {
-    if (!activeTool) return;
-    if (activeTool.mode === 't2i' && !promptField.value.trim()) { showError('Enter a prompt first'); return; }
-    if (activeTool.mode === 'i2i' && !uploadedUrl && multiImageUrls.length === 0) { showError('Upload a source image first'); return; }
-
-    // Validate required secondary uploads
-    if (activeTool.requiresMask && !maskUrl) { showError('Upload a mask image for Remove Object'); return; }
-    if (activeTool.requiresGarment && !garmentUrl) { showError('Upload a garment image for Change Dress'); return; }
-    if (activeTool.requiresSwapImage && !swapUrl) { showError('Upload a swap face image for Face Swap'); return; }
-    if (activeTool.requiresWatermarkImage && !watermarkImageUrl) { showError('Upload a watermark image'); return; }
-    if (activeTool.requiresMultiImage && multiImageUrls.length === 0) { showError('Upload reference images'); return; }
-
-    // Validate dynamic schema required fields
-    if (dynamicSchema) {
-      const inputData = dynamicSchema.input_schema?.schemas?.input_data || {};
-      const properties = inputData.properties || {};
-      const required = inputData.required || [];
-      const missing = required.filter(key => {
-        if (key === 'image_url') return !uploadedUrl;
-        if (key === 'images_list') return multiImageUrls.length === 0;
-        if (key === 'prompt') return !promptField.value.trim();
-        const field = properties[key];
-        if (!field) return false;
-        if (isImageField(field)) {
-          if (key.toLowerCase().includes('swap')) return !swapUrl;
-          if (key.toLowerCase().includes('mask')) return !maskUrl;
-          if (key.toLowerCase().includes('garment') || key.toLowerCase().includes('dress')) return !garmentUrl;
-          if (key.toLowerCase().includes('watermark')) return !watermarkImageUrl;
-          return false;
-        }
-        const el = controlsContainer.querySelector(`[data-control-key="${key}"]`);
-        if (!el) return true;
-        return !el.value;
-      });
-      if (missing.length > 0) {
-        showError(`Missing required fields: ${missing.join(', ')}`);
-        return;
-      }
-    }
+    if (!activeTool || inFlight) return;
+    const tool = activeTool;
+    const problem = validateEditInputs(tool, {
+      sourceUrl: source?.url,
+      secondaryUrl: secondary?.url,
+      hasPaintedMask: maskPainter.hasMask(),
+      prompt: promptField.value,
+    });
+    if (problem) { showError(problem); return; }
 
     const apiKey = localStorage.getItem('muapi_key');
     if (!apiKey) { AuthModal(() => editBtn.click()); return; }
 
+    inFlight = true;
+    const myRun = ++runId;
+    const cancelled = () => myRun !== runId;
+    formError.classList.add('hidden');
+    errorState.classList.add('hidden');
     editBtn.disabled = true;
     editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
+    runningState.classList.remove('hidden');
     updateProgress(0, 'Starting...');
-
     if (progressPoll) clearInterval(progressPoll);
     progressPoll = setInterval(() => {
       const current = parseFloat(progressFill.style.width) || 0;
       const next = Math.min(current + Math.random() * 8 + 2, 90);
       updateProgress(next, `Processing... ${Math.round(next)}%`);
     }, 500);
-
     cancelBtn.classList.remove('hidden');
-    cancelBtn.onclick = () => {
-      if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
-      updateProgress(null);
-      editBtn.disabled = false;
-      editBtn.textContent = 'Apply Edit';
-      cancelBtn.classList.add('hidden');
-    };
+    const beforeUrl = source.url;
 
     try {
-      const params = {
-        model: activeTool.id,
-      };
-
-      // Every uploaded reference resolves to a FRESH MuAPI URL through the
-      // shared adapter (permanent Asset Library references only).
+      const params = { model: tool.id };
       const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
-      const resolvedMainUrl = uploadedUrl
-        ? await resolveMuapiMediaRef({ url: uploadedUrl, assetId: uploadedAssetId })
-        : null;
-      const resolvedMultiUrls = multiImageUrls.length
-        ? await resolveMuapiMediaRefs(multiImageUrls.map((url, i) => ({ url, assetId: multiImageAssetIds[i] || null })))
-        : [];
-      const resolvedMaskUrl = maskUrl ? await resolveMuapiMediaRef({ url: maskUrl, assetId: maskAssetId }) : null;
-      const resolvedGarmentUrl = garmentUrl ? await resolveMuapiMediaRef({ url: garmentUrl, assetId: garmentAssetId }) : null;
-      const resolvedSwapUrl = swapUrl ? await resolveMuapiMediaRef({ url: swapUrl, assetId: swapAssetId }) : null;
-      const resolvedWatermarkUrl = watermarkImageUrl
-        ? await resolveMuapiMediaRef({ url: watermarkImageUrl, assetId: watermarkImageAssetId })
-        : null;
-      const resolvedEditImages = editAttachmentState.images?.length
-        ? await resolveMuapiMediaRefs(editAttachmentState.images)
-        : [];
-      const resolvedEditVideos = editAttachmentState.videos?.length
-        ? await resolveMuapiMediaRefs(editAttachmentState.videos)
-        : [];
-      const resolvedEditAudios = editAttachmentState.audios?.length
-        ? await resolveMuapiMediaRefs(editAttachmentState.audios)
-        : [];
+      params.image_url = await resolveMuapiMediaRef({ url: source.url, assetId: source.assetId });
 
-      if (activeTool.mode === 't2i') {
-        params.prompt = replaceTokensInPrompt(promptField.value.trim());
-      } else if (activeTool.mode === 'i2i') {
-        if (resolvedMultiUrls.length > 0) {
-          params.images_list = resolvedMultiUrls;
-        } else if (resolvedMainUrl) {
-          params.image_url = resolvedMainUrl;
-        }
-        if (promptField.value.trim()) {
-          const promptKey = activeTool.promptKey || 'prompt';
-          params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
-        }
-      } else {
-        if (resolvedMainUrl) params.image_url = resolvedMainUrl;
-        if (activeTool.hasPrompt && promptField.value.trim()) {
-          const promptKey = activeTool.promptKey || 'prompt';
-          params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
-        }
+      if (tool.secondary && secondary?.url) {
+        params[tool.secondary.key] = await resolveMuapiMediaRef({ url: secondary.url, assetId: secondary.assetId });
+      } else if (tool.id === 'ai-object-eraser' && maskPainter.hasMask()) {
+        const blob = await maskPainter.toBlob();
+        if (!blob) throw new Error('Could not read the painted mask. Try painting again.');
+        const { ingestStudioUpload } = await import('../lib/muapiStudioMedia.js');
+        const file = new File([blob], `edit-mask-${Date.now()}.png`, { type: 'image/png' });
+        const stored = await ingestStudioUpload(file, { studioId: 'edit-studio' });
+        params.mask_image_url = await resolveMuapiMediaRef({ url: stored.url, assetId: stored.assetId });
       }
 
-      if (resolvedMaskUrl) params.mask_image_url = resolvedMaskUrl;
-      if (resolvedGarmentUrl) params.garment_image_url = resolvedGarmentUrl;
-      if (resolvedSwapUrl) params.swap_url = resolvedSwapUrl;
-      if (resolvedWatermarkUrl) params.watermark_image_url = resolvedWatermarkUrl;
-
-      // Merge attachment URLs from the unified toolbar.
-      if (resolvedEditImages.length && !params.images_list) {
-        params.reference_images = resolvedEditImages;
+      if (tool.hasPrompt && promptField.value.trim()) {
+        params[tool.promptKey || 'prompt'] = replaceTokensInPrompt(promptField.value.trim());
       }
-      if (resolvedEditVideos.length) {
-        params.reference_videos = resolvedEditVideos;
-      }
-      if (resolvedEditAudios.length) {
-        params.reference_audios = resolvedEditAudios;
+      if (tool.hasPrompt && editAttachmentState.images?.length) {
+        params.reference_images = await resolveMuapiMediaRefs(editAttachmentState.images);
       }
 
-      // Collect control values from DOM
-      controlsContainer.querySelectorAll('select, input').forEach(el => {
-        const key = el.dataset.controlKey;
-        if (!key) return;
-        if (el.type === 'number') {
-          params[key] = parseFloat(el.value);
-        } else {
-          params[key] = el.value;
-        }
-      });
+      Object.assign(params, readControlValues());
 
-      const isT2I = activeTool.mode === 't2i';
-      const result = isT2I
-        ? await muapi.generateImage(params)
-        : await muapi.generateI2I(params);
+      const result = await muapi.generateI2I(params);
+      if (cancelled()) return;
       updateProgress(null);
-
       if (result?.url) {
         registerGeneration('edit', 'image', result.url, {
-          prompt: params[activeTool.promptKey || 'prompt'] || '', model: activeTool.id || '', parameters: { mode: activeTool.mode },
+          prompt: params[tool.promptKey || 'prompt'] || '', model: tool.id || '', parameters: { tool: tool.slug },
         });
-        renderResult(result.url);
+        addToHistory(result.url, beforeUrl);
+        if (activeTool === tool) showResult(result.url, beforeUrl);
       } else {
-        showError('Edit completed, but no result image was returned. Please try again.');
+        throw new Error('Edit completed, but no result image was returned. Please try again.');
       }
     } catch (err) {
+      if (cancelled()) return;
       updateProgress(null);
-      showError(err.message || 'An unexpected error occurred');
+      errorState.textContent = err.message || 'An unexpected error occurred';
+      errorState.classList.remove('hidden');
     } finally {
-      editBtn.disabled = false;
-      editBtn.textContent = 'Apply Edit';
-      cancelBtn.classList.add('hidden');
+      if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
+      if (!cancelled()) {
+        inFlight = false;
+        editBtn.disabled = false;
+        editBtn.textContent = 'Apply Edit';
+        cancelBtn.classList.add('hidden');
+        runningState.classList.add('hidden');
+      }
     }
   };
 
-  // Control factories
-  function createRangeControl(control) {
+  function readControlValues() {
+    const values = {};
+    controlsContainer.querySelectorAll('[data-control-key]').forEach(el => {
+      const key = el.dataset.controlKey;
+      if (el.tagName === 'BUTTON') {
+        values[key] = el.getAttribute('aria-pressed') === 'true';
+      } else if (el.type === 'number' || el.type === 'range') {
+        if (el.value !== '') values[key] = parseFloat(el.value);
+      } else if (String(el.value).trim() !== '') {
+        values[key] = el.value;
+      }
+    });
+    return values;
+  }
+
+  // ── Control factories ──────────────────────────────────────────────────
+  function fieldWrapper(control) {
     const wrapper = document.createElement('div');
     wrapper.className = 'flex flex-col gap-1.5';
     const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    label.className = LABEL;
     label.textContent = control.label;
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.min = control.min;
-    slider.max = control.max;
-    slider.step = control.step || 1;
-    slider.value = control.default;
-    slider.dataset.controlKey = control.key;
-    slider.className = 'flex-1 h-2 bg-white/5 rounded-full appearance-none';
-    const valueSpan = document.createElement('span');
-    valueSpan.className = 'text-xs font-bold text-white w-16 text-right';
-    const unitLabel = control.unitLabel || '';
-    const updateValueSpan = (val) => {
-      if (control.unit === 'deg') {
-        valueSpan.textContent = `${Math.round(val)} deg`;
-      } else {
-        valueSpan.textContent = `${Math.round(val)}${control.unit || ''} ${unitLabel}`.trim();
-      }
-    };
-    updateValueSpan(control.default);
-    slider.oninput = () => {
-      const val = parseFloat(slider.value);
-      updateValueSpan(val);
-    };
     wrapper.appendChild(label);
-    wrapper.appendChild(valueSpan);
-    wrapper.appendChild(slider);
+    return { wrapper, label };
+  }
+
+  function createRangeControl(control) {
+    const { wrapper } = fieldWrapper(control);
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-3';
+    const range = document.createElement('input');
+    range.type = 'range';
+    range.min = control.min;
+    range.max = control.max;
+    range.step = control.step || 1;
+    range.value = control.default;
+    range.dataset.controlKey = control.key;
+    range.setAttribute('aria-label', control.label);
+    range.className = 'flex-1 accent-[#22d3ee]';
+    const valueSpan = document.createElement('span');
+    valueSpan.className = 'text-xs font-bold text-white w-12 text-right';
+    const show = () => { valueSpan.textContent = `${Math.round(Number(range.value))}${control.unit || ''}`; };
+    show();
+    range.oninput = show;
+    row.append(range, valueSpan);
+    wrapper.appendChild(row);
     return wrapper;
   }
 
   function createSelectControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-1.5';
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-    label.textContent = control.label;
+    const { wrapper } = fieldWrapper(control);
     const select = document.createElement('select');
     select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
     select.dataset.controlKey = control.key;
+    select.setAttribute('aria-label', control.label);
     control.options.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt;
@@ -1339,26 +1011,21 @@ export function EditStudio() {
       if (opt === control.default) option.selected = true;
       select.appendChild(option);
     });
-    wrapper.appendChild(label);
     wrapper.appendChild(select);
     return wrapper;
   }
 
   function createNumberControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-1.5';
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-    label.textContent = control.label;
+    const { wrapper } = fieldWrapper(control);
     const numInput = document.createElement('input');
     numInput.type = 'number';
-    numInput.min = control.min || 0;
-    numInput.max = control.max || 999;
+    numInput.min = control.min ?? 0;
+    numInput.max = control.max ?? 999;
     numInput.step = control.step || 1;
     numInput.value = control.default;
     numInput.dataset.controlKey = control.key;
+    numInput.setAttribute('aria-label', control.label);
     numInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
-    wrapper.appendChild(label);
     wrapper.appendChild(numInput);
     return wrapper;
   }
@@ -1366,47 +1033,34 @@ export function EditStudio() {
   function createToggleControl(control) {
     const wrapper = document.createElement('div');
     wrapper.className = 'flex items-center justify-between';
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
+    const label = document.createElement('span');
+    label.className = LABEL;
     label.textContent = control.label;
     const toggle = document.createElement('button');
     toggle.type = 'button';
-    toggle.className = `relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${control.default ? 'bg-primary' : 'bg-white/10'}`;
     toggle.dataset.controlKey = control.key;
+    toggle.setAttribute('aria-label', control.label);
     const dot = document.createElement('span');
-    dot.className = `inline-block h-4 w-4 rounded-full bg-white transition-transform ${control.default ? 'translate-x-6' : 'translate-x-1'}`;
     toggle.appendChild(dot);
-    toggle.onclick = () => {
-      const isOn = toggle.classList.contains('bg-primary');
-      if (isOn) {
-        toggle.classList.remove('bg-primary');
-        toggle.classList.add('bg-white/10');
-        dot.classList.remove('translate-x-6');
-        dot.classList.add('translate-x-1');
-      } else {
-        toggle.classList.remove('bg-white/10');
-        toggle.classList.add('bg-primary');
-        dot.classList.remove('translate-x-1');
-        dot.classList.add('translate-x-6');
-      }
+    const paint = (on) => {
+      toggle.setAttribute('aria-pressed', String(on));
+      toggle.className = `relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${on ? 'bg-primary' : 'bg-white/10'}`;
+      dot.className = `inline-block h-4 w-4 rounded-full bg-white transition-transform ${on ? 'translate-x-6' : 'translate-x-1'}`;
     };
-    wrapper.appendChild(label);
-    wrapper.appendChild(toggle);
+    paint(!!control.default);
+    toggle.onclick = () => paint(toggle.getAttribute('aria-pressed') !== 'true');
+    wrapper.append(label, toggle);
     return wrapper;
   }
 
   function createTextControl(control) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex flex-col gap-1.5';
-    const label = document.createElement('label');
-    label.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
-    label.textContent = control.label;
+    const { wrapper } = fieldWrapper(control);
     const textarea = document.createElement('textarea');
     textarea.placeholder = control.placeholder || '';
     textarea.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors resize-y';
-    textarea.rows = 3;
+    textarea.rows = 2;
     textarea.dataset.controlKey = control.key;
-    wrapper.appendChild(label);
+    textarea.setAttribute('aria-label', control.label);
     wrapper.appendChild(textarea);
     return wrapper;
   }
@@ -1419,17 +1073,9 @@ export function EditStudio() {
     text: createTextControl,
   };
 
-  // Initialize dynamic models
-  loadDynamicModels();
-
-  if (browseHeader.querySelector('#refresh-dynamic-models')) {
-    browseHeader.querySelector('#refresh-dynamic-models').onclick = async () => {
-      localStorage.removeItem(DYNAMIC_MODEL_CACHE_KEY);
-      localStorage.removeItem(DYNAMIC_SCHEMA_CACHE_KEY);
-      dynamicModels = [];
-      await loadDynamicModels();
-    };
-  }
+  // Deep link: /?tool=<slug>#/edit opens that tool straight away.
+  const initialTool = readToolFromUrl();
+  if (initialTool) showTool(initialTool);
 
   return container;
 }
