@@ -277,6 +277,19 @@ export function ImageStudio() {
       }).catch(() => {});
     });
 
+    // Recipe Engine: seed it with the current prompt and surface failures
+    // instead of silently swallowing them.
+    function openImageRecipes() {
+      const ta = document.getElementById('i-prompt-textarea') || textarea;
+      openRecipeModal({
+        basePrompt: ta?.value?.trim() || '',
+        onRunRecipe: () => showToast('Recipe finished — open the result from the Recipe panel.', 'success'),
+      }).catch((err) => {
+        console.error('[Recipe] open failed:', err);
+        showToast('Could not open Recipes: ' + (err?.message || err), 'error');
+      });
+    }
+
     // Recipe Engine button
     const recipeBtn = document.createElement('button');
     recipeBtn.type = 'button';
@@ -284,9 +297,7 @@ export function ImageStudio() {
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
     recipeBtn.className = 'btn-ghost-modern';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal().catch(() => {});
-    });
+    recipeBtn.addEventListener('click', () => openImageRecipes());
 
 
     // Monetization Hub button
@@ -422,7 +433,7 @@ export function ImageStudio() {
             }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
-      openRecipeModal().catch(() => {});
+          openImageRecipes();
         } else if (action === 'monetize') {
       openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
