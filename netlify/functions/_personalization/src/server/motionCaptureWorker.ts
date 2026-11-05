@@ -20,6 +20,9 @@ import {
   type CaptureStorage,
 } from './motionCapture'
 
+/** Image types the motion-capture bucket accepts (supabase migration 20261102000000). */
+export const CAPTURE_UPLOAD_TYPES: ReadonlySet<string> = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])
+
 /**
  * The quick capture before the storyboard (pipeline stage 0, the product check): the home page at 2x with
  * its cards, bands, words, colours and logo, a few more routes, and the list of the site's pages. The pages
@@ -111,7 +114,12 @@ export async function runMotionCapture(job: MotionCaptureJobRequest, storage: Ca
       capture = await capturePageScreenshots(url, { ...captureOptions, hardMs, budgetMs: Math.min(captureOptions.budgetMs, hardMs - 20_000) })
     }
     if (captureIsEmpty(capture)) return fail('CAPTURE_FAILED', 'The page could not be captured: it showed no picture and no text')
-    const { assets: found, logo: crawledLogo } = await assetsRun
+    const { assets: allFound, logo: anyLogo } = await assetsRun
+    // remix-new-editor: only types the motion-capture bucket accepts. One
+    // rejected upload would fail the whole capture, so other types (SVG, …)
+    // are skipped rather than uploaded.
+    const found = allFound.filter((a) => CAPTURE_UPLOAD_TYPES.has(a.contentType))
+    const crawledLogo = anyLogo && CAPTURE_UPLOAD_TYPES.has(anyLogo.contentType) ? anyLogo : null
     // The browser could not cut the logo out of the page: use the one the crawl found.
     const extraImages = !capture.logo && crawledLogo ? [{ name: 'logo.png', body: crawledLogo.body, contentType: crawledLogo.contentType }] : []
     const assetImages = found.map((a, i) => ({ name: assetFileName(i, a.contentType), body: a.body, contentType: a.contentType }))

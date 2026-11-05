@@ -1128,7 +1128,10 @@ create policy "brand-assets public read"
 -- contain the user id and a random id. No client write policy: only the
 -- server writes.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('motion-capture', 'motion-capture', true, 20971520, array['image/jpeg','image/png','application/json'])
+-- Image types match motionCaptureWorker CAPTURE_UPLOAD_TYPES: the asset finder
+-- keeps the site's own format (WebP, GIF, AVIF are common).
+values ('motion-capture', 'motion-capture', true, 20971520,
+        array['image/jpeg','image/png','image/webp','image/gif','image/avif','application/json'])
 on conflict (id) do update
   set allowed_mime_types = excluded.allowed_mime_types,
       file_size_limit = excluded.file_size_limit;
