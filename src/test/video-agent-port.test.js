@@ -1,30 +1,45 @@
 // @vitest-environment node
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import handler from '../../netlify/functions/video-agent-generate.mjs';
 import { POST } from '../../netlify/functions/_shared/videoAgentGenerate.generated.mjs';
 import { stripMarkdownFences, extractComponentCode } from '../../apps/motion-agent/src/helpers/sanitize-response.ts';
 import { examples } from '../../apps/motion-agent/src/examples/code/index.ts';
 
-describe('video-agent-generate function (Remotion prompt-to-motion-graphics port)', () => {
-  it('requires a Clerk session and POST', async () => {
-    const noAuth = await handler(new Request('http://x/fn', { method: 'POST', body: JSON.stringify({ prompt: 'a ball' }) }));
-    expect(noAuth.status).toBe(401);
+describe('video-agent-generate function (BYOK: the user\'s own OpenAI key)', () => {
+  const KEY = 'sk-test-' + 'a'.repeat(32);
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('requires the user\'s OpenAI key and POST', async () => {
+    const noKey = await handler(new Request('http://x/fn', { method: 'POST', body: JSON.stringify({ prompt: 'a ball' }) }));
+    expect(noKey.status).toBe(401);
+    expect((await noKey.json()).error).toMatch(/your own OpenAI key/);
+    const badKey = await handler(new Request('http://x/fn', { method: 'POST', headers: { 'X-OpenAI-Key': 'not-a-key' }, body: JSON.stringify({ prompt: 'a ball' }) }));
+    expect(badKey.status).toBe(401);
     const get = await handler(new Request('http://x/fn', { method: 'GET' }));
     expect(get.status).toBe(405);
   });
 
-  it('template route reports a missing OpenAI key without leaking server details', async () => {
-    const saved = process.env.OPENAI_API_KEY;
-    delete process.env.OPENAI_API_KEY;
+  it('never falls back to a server key', async () => {
+    process.env.OPENAI_API_KEY = 'sk-server-' + 'b'.repeat(32);
     try {
       const r = await POST(new Request('http://x/fn', { method: 'POST', body: JSON.stringify({ prompt: 'a bouncing ball' }) }));
-      expect(r.status).toBe(400);
-      const body = await r.json();
-      expect(body.error).toMatch(/not configured/i);
-      expect(body.error).not.toMatch(/\.env/);
+      expect(r.status).toBe(401);
     } finally {
-      if (saved !== undefined) process.env.OPENAI_API_KEY = saved;
+      delete process.env.OPENAI_API_KEY;
     }
+  });
+
+  it('calls OpenAI with the user\'s key and explains a rejected key', async () => {
+    const seen = [];
+    vi.stubGlobal('fetch', async (url, init = {}) => {
+      seen.push(new Headers(init.headers).get('authorization'));
+      return new Response(JSON.stringify({ error: { message: 'Incorrect API key provided', type: 'invalid_request_error', code: 'invalid_api_key' } }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+    });
+    const r = await handler(new Request('http://x/fn', { method: 'POST', headers: { 'X-OpenAI-Key': KEY }, body: JSON.stringify({ prompt: 'a bouncing ball' }) }));
+    const text = await r.text();
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.every((h) => h === `Bearer ${KEY}`)).toBe(true);
+    expect(text).toMatch(/OpenAI rejected your API key/);
   });
 });
 

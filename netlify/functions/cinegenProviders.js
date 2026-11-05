@@ -26,16 +26,17 @@ function isStaticPlaceholderUrl(url) {
   return KNOWN_STATIC_PLACEHOLDER_PATTERNS.some(pattern => lower.includes(pattern));
 }
 
-function getApiKey() {
-  const key = process.env.MUAPI_API_KEY;
+function getApiKey(userKey) {
+  const key = userKey || process.env.MUAPI_API_KEY;
   if (!key) {
     throw new Error('MUAPI_API_KEY is not configured');
   }
   return key;
 }
 
-async function muapiPost(path, payload, signal) {
-  const key = getApiKey();
+export async function muapiPost(path, payload, signal, userKey) {
+  // userKey: the caller's own MuAPI key (BYOK). Older callers still use the env key.
+  const key = getApiKey(userKey);
   const response = await fetch(`${MUAPI_BASE_URL}${path}`, {
     method: 'POST',
     headers: {
@@ -48,7 +49,7 @@ async function muapiPost(path, payload, signal) {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`MuAPI ${path} failed: ${response.status} ${response.statusText} - ${text.slice(0, 200)}`);
+    throw Object.assign(new Error(`MuAPI ${path} failed: ${response.status} ${response.statusText} - ${text.slice(0, 200)}`), { status: response.status });
   }
 
   return response.json();
@@ -122,7 +123,7 @@ async function submitAndWait({ endpoint, payload, signal, timeoutMs = 120000 } =
   }
 }
 
-function extractRealUrl(result) {
+export function extractRealUrl(result) {
   if (!result || typeof result !== 'object') return null;
   const candidates = [
     result.outputs?.[0],
@@ -241,6 +242,25 @@ export async function providerExtend(params = {}) {
   };
 }
 
+/** Suno request body shared by music generation paths. */
+export function musicPayload({ prompt, genre, mood, style, duration = 30, instrumental = true } = {}) {
+  const musicPrompt = [
+    prompt,
+    genre ? `Genre: ${genre}` : null,
+    mood ? `Mood: ${mood}` : null,
+    style ? `Style: ${style}` : null,
+    instrumental ? 'Instrumental only' : null,
+  ].filter(Boolean).join('. ');
+  return {
+    prompt: musicPrompt,
+    genre: genre || 'ambient',
+    mood: mood || 'calm',
+    style: style || 'cinematic',
+    duration: Math.min(Math.max(Number(duration) || 30, 10), 180),
+    instrumental,
+  };
+}
+
 export async function providerMusicGeneration(params = {}) {
   const {
     prompt,
@@ -255,24 +275,9 @@ export async function providerMusicGeneration(params = {}) {
     return { success: false, code: 'PROVIDER_NOT_CONFIGURED', error: 'Music prompt or genre/mood is required' };
   }
 
-  const musicPrompt = [
-    prompt,
-    genre ? `Genre: ${genre}` : null,
-    mood ? `Mood: ${mood}` : null,
-    style ? `Style: ${style}` : null,
-    instrumental ? 'Instrumental only' : null,
-  ].filter(Boolean).join('. ');
-
   const result = await submitAndWait({
     endpoint: '/suno-create-music',
-    payload: {
-      prompt: musicPrompt,
-      genre: genre || 'ambient',
-      mood: mood || 'calm',
-      style: style || 'cinematic',
-      duration: Math.min(Math.max(duration, 10), 180),
-      instrumental,
-    },
+    payload: musicPayload({ prompt, genre, mood, style, duration, instrumental }),
     timeoutMs: 180000,
   });
 

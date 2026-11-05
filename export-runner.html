@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Remotion export runner. Loaded only inside a sandboxed iframe
+      (sandbox="allow-scripts", opaque origin) by the timeline editor, so the
+      composition — including any AI-generated scenes — can never reach the
+      app's cookies, storage or session.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' blob: 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https: data: blob:; worker-src blob: 'self';" />
+    <title>Export runner</title>
+    <style>html, body { margin: 0; background: #000; }</style>
+  </head>
+  <body>
+    <div id="runner"></div>
+    <script type="module" src="/src/export-runner/main.jsx"></script>
+  </body>
+</html>

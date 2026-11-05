@@ -89,7 +89,7 @@ Checked against `src/` (`import.meta.env.VITE_*`) and `netlify/functions/`
 | `VITE_MUAPI_URL` | src (2 sites) | client | YES | n/a | YES (line 161) | NOT SET |
 | `VITE_MUAPI_KEY` | `src/services/whisper-client.js:15` | client | optional (default key) | n/a | YES (line 160) | NOT SET | **see CRITICAL-1** |
 | `VITE_PEXELS_API_KEY` | `src/lib/editor/pexelsIntegration.js:41` | client | optional | n/a | commented only (line 190) | NOT SET | **see WARNING** |
-| `OPENAI_API_KEY` | functions (13 sites: personalizer-api, timeline-*) | server | YES (personalizer AI paths) | no | YES (line 216) | NOT SET |
+| `OPENAI_API_KEY` | not used by these functions any more — BYOK: each user's own OpenAI key is sent as `X-OpenAI-Key` (only `watch-voice` still reads it) | server | no | no | YES (line 216) | n/a |
 | `SUPABASE_URL` | functions (4 sites incl. personalization-discovery:85) | server | YES | no | YES (line 227) | NOT SET |
 | `SUPABASE_SERVICE_ROLE_KEY` | functions (4 sites incl. personalization-discovery:86, personalizer-api:5) | server | **YES** | no | **NO — `.env.example` has the WRONG name `SUPABASE_SERVICE_KEY` (line 229)** | NOT SET |
 | `PERSONALIZATION_DISCOVERY_SECRET` | `personalization-discovery.js:282` | server | optional (server-to-server alt auth; browser path uses Supabase token) | no | **NO — missing entirely** | NOT SET |
@@ -211,7 +211,7 @@ creates a preview, the expected results are:
    `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_MUAPI_URL`. Leave
    `VITE_MUAPI_KEY` and `VITE_PEXELS_API_KEY` **unset** in production.
 3. **Set server env vars** for functions: `SUPABASE_URL`,
-   `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`,
+   `SUPABASE_SERVICE_ROLE_KEY`,
    `CLERK_WEBHOOK_SIGNING_SECRET`, `MUAPI_API_KEY`, `PIXABAY_API_KEY`, and
    `PERSONALIZATION_DISCOVERY_SECRET` (only if a server-to-server caller
    needs it).

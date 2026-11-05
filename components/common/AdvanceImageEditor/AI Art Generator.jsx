@@ -223,7 +223,7 @@ const AIArtGenerator = observer(({
       headers: {
         'Content-type': 'application/json',
         Accept: 'application/json',
-        APIKEY: config.cutoutPro.apiKey,
+        APIKEY: config.cutoutPro?.apiKey || '',
       },
     })
       .then((data) =>
@@ -294,7 +294,7 @@ const AIArtGenerator = observer(({
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Accept: 'application/json',
-        APIKEY: config.cutoutPro.apiKey,
+        APIKEY: config.cutoutPro?.apiKey || '',
       },
     })
       .then((data) =>

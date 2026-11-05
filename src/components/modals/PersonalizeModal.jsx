@@ -22,6 +22,7 @@
 
 import { BaseModal } from './BaseModal.jsx';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
+import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 import {
   insertTokenAtCursor,
   replaceTokensInPrompt,
@@ -3813,7 +3814,7 @@ export class PersonalizeModal extends BaseModal {
 
       const res = await fetch('/api/personalizer/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, ...openaiKeyHeader() },
         body: JSON.stringify({ scanId: this.lastScanId }),
       });
 
@@ -4994,7 +4995,7 @@ export class PersonalizeModal extends BaseModal {
         try {
           const enrichRes = await fetch('/api/personalizer/generate', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, ...openaiKeyHeader() },
             body: JSON.stringify({
               appId: this.appId,
               mode: 'lead-summary',

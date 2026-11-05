@@ -20,7 +20,10 @@ import axios from 'axios';
 
 const router = express.Router();
 
-const PIXABAY_BASE_URL = 'https://pixabay.com/api';
+// Origin only: the request paths below already start with /api
+// ('/api' for images, '/api/videos/' for videos). A base ending in /api
+// produced https://pixabay.com/api/api/... and every search 404'd.
+const PIXABAY_BASE_URL = 'https://pixabay.com';
 
 // Server-side key. Empty string if not configured.
 const SERVER_KEY = () => (process.env.PIXABAY_API_KEY || '').trim();
