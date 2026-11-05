@@ -3,10 +3,10 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // muapi-proxy — forwards requests to api.muapi.ai on behalf of the client.
 //
-// SECURITY: ALLOWED_ORIGINS must be set in any non-development environment.
-// If unset, getCorsHeaders() throws instead of returning Access-Control-Allow-Origin: *.
-// The OPTIONS preflight handler (line 429) and the main handler catch block both
-// translate that throw into an HTTP 500 so misconfiguration is loud, not silent.
+// SECURITY: ALLOWED_ORIGINS should be set in any non-development environment.
+// If it is empty, the proxy falls back to a fixed list of first-party origins
+// (DEFAULT_ALLOWED_ORIGINS) instead of failing every request; a configured
+// ALLOWED_ORIGINS always replaces those defaults. CORS never falls back to *.
 //
 // Auth model (user-key-required, no server fallback):
 //   Every request MUST carry a Muapi API key supplied by the caller. Accepted
@@ -182,9 +182,40 @@ function getSizeLimitForRequest(contentType: string, declaredSize: number): numb
 
 // --- CORS helpers ---
 
-function getAllowedOrigins(): string[] {
+// First-party origins used ONLY while ALLOWED_ORIGINS is empty, so a missing or
+// empty secret does not take the proxy down for every site. A configured
+// ALLOWED_ORIGINS always replaces these defaults (and the preview pattern).
+const DEFAULT_ALLOWED_ORIGINS = [
+  'https://smartvid.app',
+  'https://www.smartvid.app',
+  'https://smartvideo2.netlify.app',
+  'https://ai-vfx.smartvid.app',
+  'https://video-agent.smartvid.app',
+];
+// Netlify deploy previews of this site: deploy-preview-<n>--smartvideo2.netlify.app
+const DEPLOY_PREVIEW_ORIGIN = /^https:\/\/deploy-preview-\d+--smartvideo2\.netlify\.app$/;
+let warnedDefaultOrigins = false;
+
+function getConfiguredOrigins(): string[] {
   const raw = Deno.env.get('ALLOWED_ORIGINS') || '';
   return raw.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+function getAllowedOrigins(): string[] {
+  const configured = getConfiguredOrigins();
+  if (configured.length > 0) return configured;
+  if (!warnedDefaultOrigins) {
+    warnedDefaultOrigins = true;
+    console.warn('[muapi-proxy] ALLOWED_ORIGINS is empty; using the built-in first-party origins. Set ALLOWED_ORIGINS to control this list.');
+  }
+  return DEFAULT_ALLOWED_ORIGINS;
+}
+
+function isOriginAllowed(origin: string): boolean {
+  if (!origin) return false;
+  if (getAllowedOrigins().includes(origin)) return true;
+  // Deploy previews are accepted only while falling back to the defaults.
+  return getConfiguredOrigins().length === 0 && DEPLOY_PREVIEW_ORIGIN.test(origin);
 }
 
 function getCorsHeaders(req: Request): Record<string, string> {
@@ -201,7 +232,7 @@ function getCorsHeaders(req: Request): Record<string, string> {
   }
 
   const originHeader: string =
-    requestOrigin && allowedOrigins.includes(requestOrigin)
+    requestOrigin && isOriginAllowed(requestOrigin)
       ? requestOrigin
       : allowedOrigins.length > 0
         ? allowedOrigins[0]
@@ -476,16 +507,25 @@ function verifyCsrfProtection(req: Request, auth: { reason: string }): { ok: boo
   if (auth.reason === 'service_role' || auth.reason === 'ALLOW_UNAUTHENTICATED') {
     return { ok: true };
   }
-  // Check Sec-Fetch-Site: reject cross-site requests
-  const secFetchSite = req.headers.get('sec-fetch-site');
-  if (secFetchSite && secFetchSite === 'cross-site') {
-    return { ok: false, reason: 'cross-site request blocked' };
-  }
-  // Check Origin against APP_ORIGIN env var
+  // This proxy is deliberately called cross-site: the app is served from its own
+  // domain while this function lives on <project>.supabase.co, so every legitimate
+  // browser call carries `Sec-Fetch-Site: cross-site`. Rejecting that header outright
+  // blocked every request (Brand Studio 403). The real CSRF defence is the Origin
+  // allow-list (ALLOWED_ORIGINS, or the built-in defaults, + APP_ORIGIN).
+  const appOrigin = (Deno.env.get('APP_ORIGIN') || '').trim();
+
   const origin = req.headers.get('origin');
-  const appOrigin = Deno.env.get('APP_ORIGIN');
-  if (origin && appOrigin && origin !== appOrigin) {
-    return { ok: false, reason: 'origin mismatch' };
+  const secFetchSite = req.headers.get('sec-fetch-site');
+
+  if (origin) {
+    if (!isOriginAllowed(origin) && !(appOrigin && origin === appOrigin)) {
+      return { ok: false, reason: 'origin mismatch' };
+    }
+    return { ok: true };
+  }
+  // No Origin header: a cross-site browser request without one is not trustworthy.
+  if (secFetchSite === 'cross-site') {
+    return { ok: false, reason: 'cross-site request blocked' };
   }
   return { ok: true };
 }
