@@ -1,3 +1,4 @@
+import { openaiKeyHeader } from '../openaiKeyHeader.js';
 async function getSession() {
   try {
     const { supabase } = await import('../supabase.js');
@@ -33,6 +34,7 @@ async function postVision(body) {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${session.access_token}`,
+      ...openaiKeyHeader(), // BYOK: Vision runs on the user's own OpenAI key
     },
     body: JSON.stringify(body),
   });

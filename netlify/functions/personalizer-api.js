@@ -8,6 +8,7 @@ import {
   researchBusinessWebsite,
 } from './_personalizationAssets.js';
 import { findNearbyBusinesses } from './_businessDiscovery.js';
+import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
 
 const supabaseService = createClient(
   process.env.SUPABASE_URL,
@@ -459,7 +460,7 @@ async function callOpenAIResponses(apiKey, requestBody) {
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = payload?.error?.message || payload?.error || `OpenAI Responses request failed (HTTP ${response.status})`;
+    const message = openAIKeyError(response.status) || payload?.error?.message || payload?.error || `OpenAI Responses request failed (HTTP ${response.status})`;
     const error = new Error(String(message));
     error.status = response.status;
     throw error;
@@ -475,10 +476,11 @@ function normalizeVisionStringList(value, maxItems = 20, maxLength = 240) {
     .slice(0, maxItems);
 }
 
-async function handlePersonalizationImageVision(body) {
-  if (!process.env.OPENAI_API_KEY) {
-    const error = new Error('OPENAI_KEY_REQUIRED');
-    error.status = 503;
+// BYOK: runs on the user's own OpenAI key (X-OpenAI-Key), checked by the route.
+async function handlePersonalizationImageVision(body, apiKey) {
+  if (!apiKey) {
+    const error = new Error(NEED_OPENAI_KEY);
+    error.status = 401;
     throw error;
   }
 
@@ -509,7 +511,7 @@ async function handlePersonalizationImageVision(body) {
       'Set passed=false only when there is a meaningful unintended change or the intended edit clearly failed.',
     ].filter(Boolean).join(' ');
 
-    const payload = await callOpenAIResponses(process.env.OPENAI_API_KEY, {
+    const payload = await callOpenAIResponses(apiKey, {
       model: VISION_MODEL,
       input: [{
         role: 'user',
@@ -604,7 +606,7 @@ async function handlePersonalizationImageVision(body) {
     });
   }
 
-  const payload = await callOpenAIResponses(process.env.OPENAI_API_KEY, {
+  const payload = await callOpenAIResponses(apiKey, {
     model: VISION_MODEL,
     input: [{ role: 'user', content }],
     text: {
@@ -677,7 +679,7 @@ export async function handler(event, context) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-OpenAI-Key',
     'Access-Control-Max-Age': '86400'
   };
 
@@ -906,12 +908,15 @@ export async function handler(event, context) {
         // OpenAI so the existing per-user project-window limiter actually
         // advances. If accounting fails, fail closed rather than incur
         // unmetered API cost.
+        // BYOK: no key → tell the user before anything is counted as billable.
+        const openaiKey = userOpenAIKey(event.headers);
+        if (!openaiKey) return { statusCode: 401, headers, body: JSON.stringify({ error: NEED_OPENAI_KEY }) };
         const usageMode = body.mode === 'validate'
           ? 'image-vision-validate'
           : 'image-vision-analyze';
         await recordBillablePersonalizationRequest(userId, usageMode);
 
-        const result = await handlePersonalizationImageVision(body);
+        const result = await handlePersonalizationImageVision(body, openaiKey);
         return { statusCode: 200, headers, body: JSON.stringify(result) };
       } catch (visionError) {
         const status = Number.isInteger(visionError?.status) && visionError.status >= 400
@@ -1051,9 +1056,10 @@ export async function handler(event, context) {
         let intelligence = null;
         let intelligenceSource = 'derived';
 
-        if (process.env.OPENAI_API_KEY) {
+        const openaiKey = userOpenAIKey(event.headers); // BYOK: the user's own key, if they added one
+        if (openaiKey) {
           try {
-            const raw = await callOpenAIStructured(process.env.OPENAI_API_KEY, systemPrompt, userPrompt);
+            const raw = await callOpenAIStructured(openaiKey, systemPrompt, userPrompt);
             intelligence = normalizeIntelligence(raw);
             intelligenceSource = 'openai';
           } catch (err) {
@@ -1100,9 +1106,10 @@ export async function handler(event, context) {
       // ─── Prose modes (scripts, emails, copy) ─────────────────────────────
       let generatedContent;
       try {
-        if (process.env.OPENAI_API_KEY) {
-          generatedContent = await callOpenAI(process.env.OPENAI_API_KEY, systemPrompt, userPrompt);
-        } else { throw new Error('OpenAI API key not configured'); }
+        const openaiKey = userOpenAIKey(event.headers); // BYOK: the user's own key
+        if (openaiKey) {
+          generatedContent = await callOpenAI(openaiKey, systemPrompt, userPrompt);
+        } else { throw new Error(NEED_OPENAI_KEY); }
       } catch (openaiError) {
         console.error('OpenAI failed:', openaiError.message);
         try {
@@ -1207,9 +1214,10 @@ export async function handler(event, context) {
       // Generate visual prompt via AI
       let generatedContent;
       try {
-        if (process.env.OPENAI_API_KEY) {
-          generatedContent = await callOpenAI(process.env.OPENAI_API_KEY, systemPrompt, userPrompt);
-        } else { throw new Error('OpenAI API key not configured'); }
+        const openaiKey = userOpenAIKey(event.headers); // BYOK: the user's own key
+        if (openaiKey) {
+          generatedContent = await callOpenAI(openaiKey, systemPrompt, userPrompt);
+        } else { throw new Error(NEED_OPENAI_KEY); }
       } catch (openaiError) {
         console.error('OpenAI failed:', openaiError.message);
         try {
@@ -1679,12 +1687,13 @@ Keep it concise. Do not invent information. If unsure, say "Unknown".`;
 
       let analysisSummary = '';
       try {
-        if (process.env.OPENAI_API_KEY) {
+        const openaiKey = userOpenAIKey(event.headers); // BYOK
+        if (openaiKey) {
           const res = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              'Authorization': `Bearer ${openaiKey}`,
             },
             body: JSON.stringify({
               model: 'gpt-4.1-mini',
@@ -1697,13 +1706,15 @@ Keep it concise. Do not invent information. If unsure, say "Unknown".`;
             }),
           });
           if (!res.ok) {
+            const keyProblem = openAIKeyError(res.status);
+            if (keyProblem) throw new Error(keyProblem);
             const text = await res.text();
             throw new Error(`OpenAI API error (${res.status}): ${text}`);
           }
           const data = await res.json();
           analysisSummary = data.choices?.[0]?.message?.content || 'No analysis generated.';
         } else {
-          throw new Error('OpenAI API key not configured');
+          throw new Error(NEED_OPENAI_KEY);
         }
       } catch (err) {
         console.error('AI analysis failed:', err.message);

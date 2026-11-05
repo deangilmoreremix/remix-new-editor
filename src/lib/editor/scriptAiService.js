@@ -12,6 +12,8 @@
  * returns a responseId.
  */
 
+import { openaiKeyHeader } from '../openaiKeyHeader.js';
+
 const SCRIPT_API_PATH = '/api/timeline-script';
 
 // Stateful chain — kept per-browser-session so sequential refinements
@@ -26,7 +28,7 @@ async function callScriptEndpoint(payload) {
   try {
     res = await fetch(SCRIPT_API_PATH, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...openaiKeyHeader() },
       body: JSON.stringify({ ...payload, previousResponseId: lastResponseId }),
     });
   } catch (e) {
