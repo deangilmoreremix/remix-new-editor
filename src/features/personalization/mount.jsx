@@ -8,7 +8,7 @@
  * rest of the session. Every studio's Personalize button and the Lead Finder
  * page go through `openPersonalization()`, which opens the same modal.
  */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createPortal } from 'react-dom'
 import { DemoPersonalizeProvider, useDemoPersonalize } from './shared/personalization/DemoPersonalizeProvider'
@@ -161,26 +161,41 @@ function Bridge() {
  * "Use My Brand" opens this modal and reads the chosen client and assets.
  */
 const slots = new Map()
+const slotListeners = new Set()
 let nextSlotKey = 0
-let refreshSlots = null
+let slotVersion = 0
+
+// An external store: a slot registered at any moment (even before the shared
+// root has committed) is picked up on the next render, with no effect timing.
+function publishSlots() {
+  slotVersion += 1
+  slotListeners.forEach((listener) => listener())
+}
+function subscribeSlots(listener) {
+  slotListeners.add(listener)
+  return () => slotListeners.delete(listener)
+}
+const getSlotVersion = () => slotVersion
 
 function Slots() {
-  const [, setVersion] = useState(0)
-  useEffect(() => {
-    refreshSlots = () => setVersion((v) => v + 1)
-    return () => { refreshSlots = null }
-  }, [])
+  useSyncExternalStore(subscribeSlots, getSlotVersion, getSlotVersion)
   return [...slots.entries()].map(([container, { key, element }]) => createPortal(element, container, key))
 }
 
-/** Render `element` into `container` inside the personalization tree. Returns an unmount function. */
+/**
+ * Render `element` into `container` (an Element) inside the personalization
+ * tree. Returns an unmount function.
+ */
 export function renderInPersonalizationTree(container, element) {
+  if (typeof Element === 'undefined' || !(container instanceof Element)) {
+    console.warn('[personalization] renderInPersonalizationTree needs a DOM element')
+    return () => {}
+  }
   ensureMounted()
   slots.set(container, { key: `slot-${nextSlotKey++}`, element })
-  refreshSlots?.()
+  publishSlots()
   return () => {
-    slots.delete(container)
-    refreshSlots?.()
+    if (slots.delete(container)) publishSlots()
   }
 }
 

@@ -39,7 +39,15 @@ const INTERNAL_FUNCTION_SECRET = process.env.INTERNAL_FUNCTION_SECRET || ''
  * capture runs in a background function (minutes) and the client polls for it. Anywhere else (local
  * development, tests) the capture runs inside the request as it always has.
  */
-const backgroundCaptureEnabled = () => (process.env.NETLIFY === 'true' || process.env.NODE_ENV === 'production') && Boolean(INTERNAL_FUNCTION_SECRET)
+/**
+ * remix-new-editor: Netlify does not guarantee NODE_ENV=production inside
+ * deployed functions, so "deployed" cannot be inferred from it. Local
+ * development is the explicit exception instead (netlify dev / vite /
+ * vitest), and everything else is treated as deployed.
+ */
+const isLocalDevelopment = () =>
+  process.env.NETLIFY_DEV === 'true' || process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+const backgroundCaptureEnabled = () => !isLocalDevelopment() && Boolean(INTERNAL_FUNCTION_SECRET)
 
 /** Starts the background capture; returns its job id, or null when it could not be started. */
 async function startBackgroundCapture(req: NextRequest, userId: string, url: string, targeted = false): Promise<string | null> {
@@ -117,7 +125,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     // Local development without storage: hand the images back inline so the
     // flow can be exercised. Production never falls back to inline images.
-    if (process.env.NODE_ENV === 'production') {
+    if (!isLocalDevelopment()) {
       console.warn('[motion-studio/capture] storage failed', err instanceof Error ? err.message : String(err))
       return NextResponse.json({ error: 'The capture could not be saved', code: 'STORAGE_FAILED' }, { status: 502 })
     }

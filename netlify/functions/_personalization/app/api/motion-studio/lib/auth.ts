@@ -7,8 +7,16 @@ import { ENTITLEMENTS } from '../../../../src/access/entitlements'
 /** Workspace id used for the dev-only e2e bypass (never in production). */
 export const E2E_LOCAL_USER = 'e2e-local'
 
+/**
+ * remix-new-editor: honoured only in explicit local development. Upstream
+ * checked `NODE_ENV !== 'production'`, but Netlify does not guarantee
+ * NODE_ENV=production in deployed functions, so that check could let anyone
+ * with the cookie skip sign-in on a live site.
+ */
+const isLocalDevelopment = () =>
+  process.env.NETLIFY_DEV === 'true' || process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
 const isDevBypass = (req: NextRequest) =>
-  process.env.NODE_ENV !== 'production' && req.cookies.get('__e2e_auth_bypass')?.value === '1'
+  isLocalDevelopment() && req.cookies.get('__e2e_auth_bypass')?.value === '1'
 
 /**
  * Motion Studio's paid server features (page capture, AI director) require a

@@ -215,6 +215,22 @@ describe('Motion Director routes (/api/motion-studio/*)', () => {
     expect((await call('GET', '/api/motion-studio/capture/status?jobId=x')).status).toBe(401)
   })
 
+  it('ignores the e2e bypass cookie outside local development (NODE_ENV unset, as on Netlify)', async () => {
+    const prev = process.env.NODE_ENV
+    delete process.env.NODE_ENV
+    try {
+      const res = await call('POST', '/api/motion-studio/director', {
+        headers: { cookie: '__e2e_auth_bypass=1', 'content-type': 'application/json' },
+        body: JSON.stringify({ mode: 'plan', prompt: 'x' }),
+      })
+      // With the bypass honoured this would be OPENAI_KEY_REQUIRED (signed in as the e2e user).
+      expect(res.status).toBe(401)
+      expect((await res.json()).error).toBe('UNAUTHENTICATED')
+    } finally {
+      process.env.NODE_ENV = prev
+    }
+  })
+
   it('validates the capture URL before starting a browser', async () => {
     const res = await call('POST', '/api/motion-studio/capture', { headers: signedIn, body: JSON.stringify({}) })
     expect(res.status).toBe(400)
