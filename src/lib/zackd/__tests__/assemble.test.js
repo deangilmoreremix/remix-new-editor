@@ -1,0 +1,54 @@
+import { describe, it, expect } from 'vitest';
+import { buildAssemblyPlan, buildSrt, TRANSITIONS } from '../assemble.js';
+
+describe('buildAssemblyPlan', () => {
+  const shots = [{ duration: 3, zoom: false }, { duration: 3, zoom: true }, { duration: 4, zoom: false }];
+
+  it('chains xfades with the right offsets and total', () => {
+    const p = buildAssemblyPlan(shots, { transition: 0.5 });
+    expect(p.total).toBeCloseTo(9, 5); // 3+3+4 - 2*0.5
+    expect(p.filterComplex).toContain(`xfade=transition=${TRANSITIONS[0]}:duration=0.5:offset=2.5[x1]`);
+    expect(p.filterComplex).toContain(`xfade=transition=${TRANSITIONS[1]}:duration=0.5:offset=5[vout]`);
+    expect(p.audioLabel).toBeNull();
+    expect(p.inputCount).toBe(3);
+  });
+
+  it('adds a zoom crop only on impact shots', () => {
+    const p = buildAssemblyPlan(shots);
+    expect(p.filterComplex.match(/flags=lanczos/g)).toHaveLength(1);
+    expect(p.filterComplex).toMatch(/\[1:v\][^;]*lanczos[^;]*\[v1\]/);
+  });
+
+  it('maps narration and ducked music inputs after the clips', () => {
+    const p = buildAssemblyPlan(shots, { hasNarration: true, hasMusic: true });
+    expect(p.inputCount).toBe(5);
+    expect(p.filterComplex).toContain('[3:a]highpass');
+    expect(p.filterComplex).toContain('[4:a]aresample=48000,volume=0.126');
+    expect(p.audioLabel).toBe('aout');
+    expect(buildAssemblyPlan(shots, { hasMusic: true }).filterComplex).toContain('[3:a]aresample');
+    expect(buildAssemblyPlan(shots, { hasMusic: true }).audioLabel).toBe('bgm');
+  });
+
+  it('supports hard cuts, single clips and validates input', () => {
+    const cut = buildAssemblyPlan(shots, { transition: 0 });
+    expect(cut.total).toBe(10);
+    expect(cut.filterComplex).toContain('concat=n=2');
+    expect(buildAssemblyPlan([shots[0]]).filterComplex).toContain('[v0]null[vout]');
+    expect(() => buildAssemblyPlan([])).toThrow();
+    expect(() => buildAssemblyPlan([{ duration: 0.2 }, { duration: 3 }], { transition: 0.35 })).toThrow(/too short/);
+  });
+});
+
+describe('buildSrt', () => {
+  it('places beat captions on the transition-adjusted timeline', () => {
+    const beats = [
+      { narration: 'one two three four five six seven eight', shots: [{ duration_sec: 3 }, { duration_sec: 3 }] },
+      { narration: 'next beat', shots: [{ duration_sec: 4 }] },
+    ];
+    const srt = buildSrt(beats, { transition: 0.5 });
+    // beat 1: 0 -> 5.5 ; beat 2 would start at 5.0 but waits for beat 1's captions to end
+    expect(srt).toContain('1\n00:00:00,000 --> 00:00:02,750\none two three four five six');
+    expect(srt).toContain('2\n00:00:02,750 --> 00:00:05,500\nseven eight');
+    expect(srt).toContain('3\n00:00:05,500 --> 00:00:09,000\nnext beat');
+  });
+});

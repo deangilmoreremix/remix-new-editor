@@ -83,6 +83,13 @@
   status = 200
   force = true
 
+# Zack D studio (curiosity-loop 3D shorts): script/trends (OpenAI) + media jobs (MuAPI), BYOK.
+[[redirects]]
+  from = "/api/zackd"
+  to = "/.netlify/functions/zackd"
+  status = 200
+  force = true
+
 # AI Agent voiceover + music (MuAPI, MUAPI_API_KEY).
 [[redirects]]
   from = "/api/agent-audio"
