@@ -75,14 +75,38 @@ function renderImageTokenField(field, value, id, label, services) {
     const token = `{{${t.key}}}`;
     const on = current === token;
     const thumb = t.preview
-      ? `<span class="addon-token-thumb" style="background-image:url(${esc(JSON.stringify(String(t.preview)))})"></span>`
-      : '<span class="addon-token-thumb is-empty" aria-hidden="true">—</span>';
-    return `<button type="button" class="mini-btn addon-image-token${on ? ' is-on' : ''}" data-image-pick="${esc(token)}" data-pick-key="${field.key}" aria-pressed="${on}" title="${esc(t.preview ? `${t.label} for ${contact || 'the selected contact'}` : `${contact || 'The selected contact'} has no ${t.label.toLowerCase()} yet — the fallback image shows instead`)}">${thumb}<span>${esc(t.label)}</span></button>`;
+      ? `<span class="pz-thumb pz-thumb-sm" style="background-image:url(${esc(JSON.stringify(String(t.preview)))})"></span>`
+      : '<span class="pz-thumb pz-thumb-sm is-empty" aria-hidden="true">—</span>';
+    return `<button type="button" class="pz-token${on ? ' is-active' : ''}${t.preview ? '' : ' is-empty'}" data-image-pick="${esc(token)}" data-pick-key="${field.key}" aria-pressed="${on}" title="${esc(t.preview ? `${t.label} for ${contact || 'the selected contact'}` : `${contact || 'The selected contact'} has no ${t.label.toLowerCase()} yet — the fallback image shows instead`)}">${thumb}<span>${esc(t.label)}</span></button>`;
   }).join('');
-  return `<div class="clip-editor__field addon-field addon-field--tokens addon-field--image-tokens">${label}
-    <div class="addon-image-token-grid" role="group" aria-label="Contact image">${buttons}</div>
-    <p class="addon-field__hint">${contact ? `Previewing ${esc(contact)}. ` : 'No contact selected. '}Each contact sees their own image. Add or edit images in the Personalize window's image finder.</p>
-    <textarea id="${id}" rows="1" data-key="${field.key}" data-kind="text" aria-label="${esc(field.label)} (token)">${esc(value)}</textarea>
+  return `<div class="clip-editor__field addon-field addon-field--tokens addon-field--image-tokens pz-ui">
+    <span class="pz-label">${esc(field.label)}</span>
+    <div class="pz-token-grid" role="group" aria-label="Contact image">${buttons}</div>
+    ${renderContactImageBox(current, services)}
+    <p class="pz-hint">${contact ? `Previewing <strong>${esc(contact)}</strong>. ` : 'No contact selected. '}Each contact sees their own image. Add or edit images in the Personalize window's image finder.</p>
+    <textarea id="${id}" class="pz-token-code" rows="1" data-key="${field.key}" data-kind="text" aria-label="${esc(field.label)} (token)">${esc(value)}</textarea>
+  </div>`;
+}
+
+// The selected contact's image behind the chosen token: click it to set the
+// crop focus (per contact), and make it Video Ready with one click.
+function renderContactImageBox(current, services) {
+  const info = services.contactImage?.(current);
+  if (!info?.url) return '';
+  const fx = Number.isFinite(info.focus?.x) ? info.focus.x : 50;
+  const fy = Number.isFinite(info.focus?.y) ? info.focus.y : 50;
+  const ready = info.videoReady
+    ? '<span class="pz-chip">✓ Video Ready</span>'
+    : `<button type="button" class="pz-btn pz-btn-primary" data-make-video-ready="1"${info.busy ? ' disabled' : ''}>${info.busy ? 'Preparing…' : '✨ Make Video Ready'}</button>`;
+  return `<div class="pz-card pz-contact-image">
+    <button type="button" class="pz-thumb pz-thumb-lg" data-focus-pick="1" title="Click where the image should stay in view when it's cropped" aria-label="Set crop focus" style="background-image:url(${esc(JSON.stringify(String(info.url)))})">
+      <span class="pz-focus-dot" style="left:${fx}%;top:${fy}%"></span>
+    </button>
+    <div class="pz-contact-image__meta">
+      <span class="pz-label" style="margin:0">${esc(info.contact || 'This contact')} · ${esc(info.label || 'image')}</span>
+      <span class="pz-hint" style="margin:0">Click the image to set what stays in view when it's cropped.</span>
+      ${ready}
+    </div>
   </div>`;
 }
 
@@ -91,8 +115,11 @@ function renderImageTokenField(field, value, id, label, services) {
 function renderFinderImages(field, services) {
   const images = (services.finderImages?.() || []).slice(0, 24);
   if (!images.length) return '';
-  return `<p class="addon-field__hint addon-finder-label">From the image finder${services.contactLabel?.() ? ` (${esc(services.contactLabel())})` : ''}</p>
-    <div class="addon-image-library addon-finder-library" role="list" aria-label="Image finder images">${images.map((m, i) => `<button type="button" role="listitem" class="addon-image-thumb${m.saved ? '' : ' is-unsaved'}" data-finder-pick="${i}" data-pick-key="${field.key}" title="${esc(m.name || '')}${m.saved ? '' : ' (from the website, saved to the contact when picked)'}" style="background-image:url(${esc(JSON.stringify(String(m.src)))})"></button>`).join('')}</div>`;
+  const contact = services.contactLabel?.() || '';
+  return `<div class="pz-ui" style="margin-top:10px">
+    <span class="pz-label">From the image finder${contact ? ` · ${esc(contact)}` : ''}</span>
+    <div class="pz-thumbs" role="list" aria-label="Image finder images">${images.map((m, i) => `<button type="button" role="listitem" class="pz-thumb" data-finder-pick="${i}" data-pick-key="${field.key}" title="${esc(m.name || '')}${m.saved ? '' : ' (from the website, saved to the contact when picked)'}" style="background-image:url(${esc(JSON.stringify(String(m.src)))})">${m.saved ? (m.videoReady ? '<span class="pz-badge">Ready</span>' : '') : '<span class="pz-badge">Web</span>'}</button>`).join('')}</div>
+  </div>`;
 }
 
 function renderField(field, options, idPrefix, ui = {}, services = {}) {
@@ -409,6 +436,21 @@ export function renderAddonEditor(container, {
       }
       if (btn?.dataset.imagePick) {
         setAndEmit(btn.dataset.pickKey, btn.dataset.imagePick);
+        return;
+      }
+      if (btn?.dataset.focusPick && typeof services.setImageFocus === 'function') {
+        const r = btn.getBoundingClientRect();
+        const x = Math.round(((e.clientX - r.left) / Math.max(1, r.width)) * 100);
+        const y = Math.round(((e.clientY - r.top) / Math.max(1, r.height)) * 100);
+        services.setImageFocus(String(getPath(current, 'src') || ''), x, y);
+        draw();
+        return;
+      }
+      if (btn?.dataset.makeVideoReady && typeof services.makeVideoReady === 'function') {
+        Promise.resolve(services.makeVideoReady(String(getPath(current, 'src') || ''), () => draw()))
+          .catch((err) => services.onError?.(err))
+          .finally(() => draw());
+        draw();
         return;
       }
       if (btn?.dataset.finderPick != null && typeof services.useFinderImage === 'function') {

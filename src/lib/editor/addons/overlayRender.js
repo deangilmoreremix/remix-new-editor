@@ -14,6 +14,7 @@
  * Builder) are never cleared by mistake.
  */
 import { resolveToken, TOKEN_PATTERN } from '../../../components/personalize/tokenSchema.js';
+import { personalizedImageLook } from '../../personalization/imageStyle.js';
 import { getAddon, addonOptions } from './registry.js';
 import { ensureFormFont } from './addonOverlay.js';
 import { buildLowerThirdLottie, lowerThirdFrame } from './lowerThirds.js';
@@ -255,6 +256,17 @@ function buildImage(opts, ctx, { personalized = false } = {}) {
   // Matches the Remotion composition: personalized images fill their box
   // unless set to fit inside it (logos).
   img.style.backgroundSize = opts.fit === 'contain' ? 'contain' : (opts.fill || personalized ? 'cover' : 'contain');
+  if (personalized && src) {
+    // Per-contact crop focus and logo backing plate (same as the export).
+    const look = personalizedImageLook(opts, src, ctx.profile);
+    img.style.backgroundPosition = look.objectPosition;
+    if (look.plateColor) {
+      link.style.background = look.plateColor;
+      link.style.padding = '6%';
+      link.style.boxSizing = 'border-box';
+      if (!Number(opts.cornerRadius)) link.style.borderRadius = '10%';
+    }
+  }
   if (opts.title) el.title = opts.title;
   link.appendChild(img);
   el.appendChild(wrapLink(link, opts, ctx.editor));
