@@ -8,6 +8,8 @@
  * Clerk `sub`); public reads go straight to the REST API with the anon key.
  */
 
+import { isImageTokenKey, shareableImageValue } from '../../personalization/imageReadiness.js';
+
 export const PROJECT_VERSION = 1;
 export const SLUG_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
 
@@ -191,7 +193,17 @@ export async function submitViewerLead({ publishedId, clipId, kind, data }, { ur
 export function profileFromQuery(search = globalThis.location?.search || '') {
   const params = new URLSearchParams(search);
   const variables = {};
-  params.forEach((v, k) => { if (!['embed', 'autoplay', 't', 'c'].includes(k) && k.length <= 40) variables[k] = String(v).slice(0, 200); });
+  params.forEach((v, k) => {
+    if (['embed', 'autoplay', 't', 'c'].includes(k) || k.length > 40) return;
+    // Image URLs from personal links ({{logoUrl}}, …) are kept whole — a cut
+    // URL is a broken image — but only http(s) ones of sane length.
+    if (isImageTokenKey(k)) {
+      const href = shareableImageValue(v);
+      if (href) variables[k] = href;
+      return;
+    }
+    variables[k] = String(v).slice(0, 200);
+  });
   // Personal links (?c=<contactId>) pick that contact's Smart Speech voice line.
   const id = params.get('c');
   const contactId = id && /^[A-Za-z0-9_-]{1,80}$/.test(id) ? id : null;

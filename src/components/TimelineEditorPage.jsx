@@ -37,9 +37,10 @@ import { openSmartSpeechModal } from '../lib/editor/agent/smartSpeechModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import * as contactStore from '../lib/contactStore.js';
 import { buildBrandOverlayPlan, imageTokenChoices, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
+import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
 import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
 import { addPersonalizationAsset, setDiscoveredPersonalizationAssets } from '../lib/personalization/personalizationProfile.js';
-import { listContactProfiles, contactName, contactEmail, personalLink, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
+import { listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../lib/pexelsApi.js';
@@ -5371,11 +5372,17 @@ export function TimelineEditorPage() {
         copy: (text) => navigator.clipboard.writeText(text),
         personalLinks: (link) => {
           const tokens = projectTokens(state.tracks);
-          return listContactProfiles(contactStore).map((p) => ({
+          const contacts = listContactProfiles(contactStore);
+          const gaps = new Map(contactImageGaps(state, contacts).map((g) => [g.id, g.missing]));
+          return contacts.map((p) => ({
             name: contactName(p),
             email: contactEmail(p),
             company: p?.contact?.company || p?.personalization?.business?.businessName || '',
             link: personalLink(link, p, tokens),
+            // Images this contact's link can't show: none in the slot, or
+            // stored only in this browser (data:/blob:).
+            missing: gaps.get(p.id) || [],
+            localImages: personalLinkIssues(p, tokens),
           }));
         },
         downloadCsv: (rows) => {
@@ -6988,19 +6995,34 @@ export function TimelineEditorPage() {
         return timelineToComposition(state, { quality, profile });
       };
 
+      // Contacts the export covers (one = the selected contact).
+      const exportContacts = () => (q('#exportFor')?.value === 'each'
+        ? listContactProfiles(contactStore)
+        : [getActivePersonalizationProfile()].filter(Boolean));
+      let warningsRun = 0;
       const refreshWarnings = async () => {
+        const run = ++warningsRun;
+        let list = [];
         try {
           const { exportWarnings, canExportInBrowser } = await import('../lib/editor/remotion/exportWarnings.js');
           const quality = q('#exportQuality')?.value || '1080p';
-          const list = exportWarnings(await buildModel(quality), { quality });
+          list = exportWarnings(await buildModel(quality), { quality });
           if (!canExportInBrowser()) list.unshift("This browser can't encode video. Use Chrome or Edge 94+, Firefox 130+ or Safari 26+, or use Basic export.");
-          warningsList.innerHTML = list.map((w) => `<li>${escapeHtml(w)}</li>`).join('');
         } catch (err) {
-          warningsList.innerHTML = '';
           console.warn('[Export] warnings unavailable', err);
         }
+        // Personalized images: contacts with nothing in a slot, then (async)
+        // images that no longer load.
+        const contacts = exportContacts();
+        list.push(...describeImageGaps(contactImageGaps(state, contacts)));
+        if (run !== warningsRun) return;
+        warningsList.innerHTML = list.map((w) => `<li>${escapeHtml(w)}</li>`).join('');
+        const broken = await findBrokenImages(state, contacts, { probe: browserImageProbe() }).catch(() => []);
+        if (run !== warningsRun || !broken.length) return;
+        warningsList.insertAdjacentHTML('beforeend', describeBrokenImages(broken).map((w) => `<li>${escapeHtml(w)}</li>`).join(''));
       };
       q('#exportQuality')?.addEventListener('change', refreshWarnings);
+      q('#exportFor')?.addEventListener('change', refreshWarnings);
       refreshWarnings();
 
       const doExport = async () => {

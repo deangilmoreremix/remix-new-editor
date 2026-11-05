@@ -21,6 +21,19 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
 export function renderSharePanel(container, opts) {
   const ui = { info: null, busy: false, error: '', leads: null, copied: '' };
 
+  // Personalized images a contact's link can't show.
+  const rowIssue = (r) => {
+    const parts = [
+      ...(r.missing || []).map((m) => `no ${m}`),
+      ...((r.localImages || []).length ? ['image saved only in this browser'] : []),
+    ];
+    return parts.length ? ` <span class="share-personal__issue" title="Add or re-save it in the Personalize window's image finder">⚠ ${esc(parts.join(', '))}</span>` : '';
+  };
+  const imageNote = (rows) => {
+    const n = rows.filter((r) => (r.missing || []).length || (r.localImages || []).length).length;
+    return n ? `<p class="addon-field__hint share-personal__warn">${n} contact${n === 1 ? "'s link is" : "s' links are"} missing a personalized image (marked ⚠). Add the image in the Personalize window's image finder, or set a fallback image on the Personalized Image.</p>` : '';
+  };
+
   // One link per Personalization Studio contact: their details fill the
   // video and their own Smart Speech line plays.
   const personalHtml = (link) => {
@@ -31,7 +44,8 @@ export function renderSharePanel(container, opts) {
     return `<div class="share-personal">
       <div class="share-personal__head"><strong>Personal links</strong><span>${rows.length} contact${rows.length === 1 ? '' : 's'}</span>
         <button type="button" class="mini-btn" data-share-csv>Download CSV</button></div>
-      <ul class="share-personal__list">${rows.slice(0, 100).map((r, i) => `<li><span title="${esc(r.email)}">${esc(r.name)}</span>
+      ${imageNote(rows)}
+      <ul class="share-personal__list">${rows.slice(0, 100).map((r, i) => `<li><span title="${esc(r.email)}">${esc(r.name)}${rowIssue(r)}</span>
         <button type="button" class="mini-btn" data-share-personal="${i}">${ui.copied === `p${i}` ? 'Copied ✓' : 'Copy link'}</button></li>`).join('')}</ul>
       ${rows.length > 100 ? `<p class="addon-field__hint">Showing 100 of ${rows.length}. The CSV has them all.</p>` : ''}
     </div>`;

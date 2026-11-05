@@ -14,6 +14,7 @@
  */
 import { resolveOverlayText } from '../addons/overlayRender.js';
 import { TOKEN_PATTERN, resolveToken, canonicalTokenKey } from '../../../components/personalize/tokenSchema.js';
+import { isImageTokenKey, shareableImageValue } from '../../personalization/imageReadiness.js';
 
 export const CONTACT_PARAM = 'c';
 const ID_RE = /^[A-Za-z0-9_-]{1,80}$/;
@@ -59,15 +60,35 @@ export function projectTokens(project) {
   return [...keys];
 }
 
-/** Personal share link for a contact. */
+/**
+ * Personal share link for a contact. Text values are cut at 200 characters;
+ * image URLs ({{logoUrl}}, …) are kept whole (a cut URL is a broken image)
+ * and only http(s) ones are added — data:/blob: images only exist in this
+ * browser, so they can't travel in a link (personalLinkIssues reports them).
+ */
 export function personalLink(baseUrl, profile, tokens = []) {
   const url = new URL(baseUrl);
   url.searchParams.set(CONTACT_PARAM, String(profile.id));
   tokens.forEach((key) => {
     const value = resolveToken(profile, key);
-    if (value != null && String(value).trim()) url.searchParams.set(key, String(value).slice(0, 200));
+    if (value == null || !String(value).trim()) return;
+    if (isImageTokenKey(key)) {
+      const href = shareableImageValue(value);
+      if (href) url.searchParams.set(key, href);
+      return;
+    }
+    url.searchParams.set(key, String(value).slice(0, 200));
   });
   return url.toString();
+}
+
+/** Image tokens whose value can't go in this contact's link (local or too long). */
+export function personalLinkIssues(profile, tokens = []) {
+  return tokens.filter((key) => {
+    if (!isImageTokenKey(key)) return false;
+    const value = resolveToken(profile, key);
+    return value != null && String(value).trim() && !shareableImageValue(value);
+  });
 }
 
 const csvCell = (v) => {
