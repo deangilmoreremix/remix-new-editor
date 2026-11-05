@@ -39,6 +39,7 @@ import * as contactStore from '../lib/contactStore.js';
 import { PERSONALIZED_LAYOUTS, assetForImageToken, buildLayoutPlan, imageTokenChoices, imageTokenOf, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
 import { measureImageLuminance } from '../lib/personalization/imageStyle.js';
 import { AI_FILLABLE, describeUnreviewed, markAiGenerated, planAiImages, unreviewedAiImages } from '../lib/personalization/aiContactImages.js';
+import { AI_CLIP_MODELS, CLIP_IMAGE_SLOTS, aiClipConfig, clipSrcFor, describeClipGaps, planClipJobs } from '../lib/personalization/aiContactClips.js';
 import { generateImage as generateAiImage } from '../lib/editor/aiImageService.js';
 import { makePersonalizationAssetVideoReady } from '../lib/personalization/videoReady.js';
 import { persistPersonalizationAssetVersion } from '../lib/personalization/assetDiscoveryService.js';
@@ -1585,7 +1586,11 @@ export function TimelineEditorPage() {
       // every field edit to reach the preview immediately.
       const existing = els.previewStage.firstElementChild;
       const isMediaType = selected.type === 'video' || selected.type === 'audio';
-      const alreadyShowingThisClip = isMediaType && existing?.dataset?.clipId === String(selected.id);
+      // AI video clip per contact: the previewed contact's own version.
+      const stateClip = selected.type === 'video' ? state.tracks.flatMap((t) => t.items || t.clips || []).find((c) => String(c.id) === String(selected.id)) : null;
+      const videoSrc = selected.type === 'video' ? (stateClip?.aiPerContact ? clipSrcFor(stateClip, getActivePersonalizationProfile()) : selected.src) : '';
+      const alreadyShowingThisClip = isMediaType && existing?.dataset?.clipId === String(selected.id)
+        && (selected.type !== 'video' || existing?.dataset?.src === String(videoSrc || ''));
 
       els.previewEmpty.style.display = 'none';
 
@@ -1608,11 +1613,12 @@ export function TimelineEditorPage() {
       if (alreadyShowingThisClip) return;
       clearPreviewStage();
 
-      if (selected.type === 'video' && selected.src) {
-        const video = createVideoPreview(selected.src, 'preview-media', {
+      if (selected.type === 'video' && videoSrc) {
+        const video = createVideoPreview(videoSrc, 'preview-media', {
           poster: selected.poster
         });
         video.dataset.clipId = selected.id;
+        video.dataset.src = String(videoSrc);
         addVideoErrorRecovery(video, {
           onError: (message) => showToast(`Preview playback error: ${message}`, 'error'),
         });
@@ -5757,6 +5763,136 @@ export function TimelineEditorPage() {
         .map((c) => ({ id: String(c.id), label: `${c.name || c.type} (${clipStartSec(c).toFixed(1)}s)` }));
     }
 
+    // ── AI video clip per contact ───────────────────────────────────────
+    // A video clip can be generated once per contact from one of their
+    // images and a prompt with {{tokens}}; each contact's version plays for
+    // them in the preview, exports and personal share links.
+    const aiClipJobs = new Map(); // clipId → { done, total, current, stop }
+    function renderAiClipSection(host, clip) {
+      const cfg = aiClipConfig(clip);
+      const contacts = listContactProfiles(contactStore);
+      const job = aiClipJobs.get(clip.id);
+      const made = contacts.filter((p) => cfg.variants[String(p.id)]?.url).length;
+      const { jobs, skipped } = planClipJobs(cfg, contacts);
+      const enabled = Boolean(clip.aiPerContact);
+      host.innerHTML = `
+        <span class="pz-label">Personalize with AI</span>
+        ${!enabled ? `
+          <p class="pz-hint" style="margin:0 0 8px">Make one version of this clip per contact, animated from their own image with a prompt that can use their details. Each contact sees their version in exports and on their personal link. Runs on your MuAPI key.</p>
+          <button type="button" class="pz-btn pz-btn-secondary" data-ai-clip-enable>✨ Set up AI clip per contact</button>
+        ` : `
+          <div class="pz-card">
+            <label class="pz-hint" style="margin:0">Animate each contact's
+              <select data-ai-clip="imageKey" class="pz-select" style="margin-left:6px">${CLIP_IMAGE_SLOTS.map((sl) => `<option value="${sl.key}"${sl.key === cfg.imageKey ? ' selected' : ''}>${escapeHtml(sl.label)}</option>`).join('')}</select>
+            </label>
+            <label class="pz-hint" style="margin:0">Prompt (use {{tokens}} like {{businessName}})
+              <textarea data-ai-clip="prompt" class="pz-token-code" rows="3" maxlength="600">${escapeHtml(cfg.prompt)}</textarea>
+            </label>
+            <div class="pz-actions">
+              <select data-ai-clip="model" class="pz-select" aria-label="Video model">${AI_CLIP_MODELS.map((m) => `<option value="${m.id}"${m.id === cfg.model ? ' selected' : ''}>${escapeHtml(m.label)}</option>`).join('')}</select>
+              <select data-ai-clip="duration" class="pz-select" aria-label="Length">${[5, 10].map((d) => `<option value="${d}"${d === cfg.duration ? ' selected' : ''}>${d}s</option>`).join('')}</select>
+            </div>
+            <span class="pz-hint" style="margin:0">${made} of ${contacts.length} contact${contacts.length === 1 ? ' has' : 's have'} their version.${skipped.length ? ` ${skipped.length} can't yet: ${escapeHtml(skipped.slice(0, 3).map((x) => `${x.contactName} (${x.reason})`).join(', '))}${skipped.length > 3 ? '…' : ''}.` : ''}</span>
+            ${job ? `<p class="pz-hint" style="margin:0">Generating ${job.done + 1} of ${job.total}${job.current ? ` · ${escapeHtml(job.current)}` : ''}… This can take a few minutes per clip.</p>
+              <button type="button" class="pz-btn pz-btn-secondary" data-ai-clip-stop>Stop</button>` : `
+              <div class="pz-actions">
+                <button type="button" class="pz-btn pz-btn-primary" data-ai-clip-go ${jobs.length ? '' : 'disabled'}>✨ Generate ${jobs.length} clip${jobs.length === 1 ? '' : 's'}</button>
+                ${made ? '<button type="button" class="pz-btn pz-btn-secondary" data-ai-clip-redo>Regenerate all</button>' : ''}
+                <button type="button" class="pz-btn pz-btn-secondary" data-ai-clip-disable>Turn off</button>
+              </div>`}
+          </div>`}
+      `;
+      const save = () => { scheduleEngineUpdate(); debouncedSave(); };
+      host.querySelector('[data-ai-clip-enable]')?.addEventListener('click', () => {
+        saveStateSnapshot(state);
+        clip.aiPerContact = { ...DEFAULT_CLIP_SETTINGS(), variants: {} };
+        save();
+        renderAiClipSection(host, clip);
+      });
+      host.querySelector('[data-ai-clip-disable]')?.addEventListener('click', () => {
+        saveStateSnapshot(state);
+        delete clip.aiPerContact;
+        save();
+        updatePreview();
+        renderAiClipSection(host, clip);
+      });
+      host.querySelectorAll('[data-ai-clip]').forEach((el) => el.addEventListener('change', () => {
+        const key = el.dataset.aiClip;
+        clip.aiPerContact = { ...aiClipConfig(clip), [key]: key === 'duration' ? Number(el.value) : el.value };
+        save();
+        renderAiClipSection(host, clip);
+      }));
+      host.querySelector('[data-ai-clip-stop]')?.addEventListener('click', () => { aiClipJobs.get(clip.id)?.stop?.(); });
+      const go = (redo) => generateClipsPerContact(clip, planClipJobs(aiClipConfig(clip), contacts, { redo }).jobs, () => {
+        if (host.isConnected) renderAiClipSection(host, clip);
+      });
+      host.querySelector('[data-ai-clip-go]')?.addEventListener('click', () => go(false));
+      host.querySelector('[data-ai-clip-redo]')?.addEventListener('click', () => go(true));
+    }
+    const DEFAULT_CLIP_SETTINGS = () => {
+      const cfg = aiClipConfig({});
+      delete cfg.variants;
+      return cfg;
+    };
+
+    async function generateClipsPerContact(clip, jobs, redraw) {
+      if (!jobs.length || aiClipJobs.has(clip.id)) return;
+      const controller = new AbortController();
+      const run = { done: 0, total: jobs.length, current: '', stop: () => controller.abort() };
+      aiClipJobs.set(clip.id, run);
+      redraw();
+      const { default: muapi } = await import('../lib/muapi.js');
+      let made = 0;
+      let failure = '';
+      for (const job of jobs) {
+        if (controller.signal.aborted) break;
+        run.current = job.contactName;
+        redraw();
+        try {
+          const cfg = aiClipConfig(clip);
+          const result = await muapi.generateI2V({
+            model: cfg.model,
+            prompt: job.prompt,
+            image_url: job.imageUrl,
+            aspect_ratio: cfg.aspectRatio,
+            duration: cfg.duration,
+            studioType: 'timeline-personalize',
+          }, controller.signal);
+          if (!result?.url) throw new Error('No video came back');
+          // Keep a copy in SmartVideo storage when possible (provider links expire).
+          let url = result.url;
+          try {
+            const res = await fetch(result.url);
+            if (res.ok) {
+              const blob = await res.blob();
+              const stored = await uploadFileToStorage(new File([blob], `ai-clip-${job.contactId}.mp4`, { type: blob.type || 'video/mp4' }));
+              const storedUrl = typeof stored === 'string' ? stored : stored?.url;
+              if (storedUrl && !String(storedUrl).startsWith('blob:')) url = storedUrl;
+            }
+          } catch { /* keep the provider link */ }
+          const fresh = aiClipConfig(clip);
+          clip.aiPerContact = {
+            ...fresh,
+            variants: { ...fresh.variants, [job.contactId]: { url, prompt: job.prompt, model: fresh.model, at: new Date().toISOString(), name: job.contactName } },
+          };
+          made += 1;
+          scheduleEngineUpdate();
+          debouncedSave();
+        } catch (err) {
+          const raw = String(err?.message || err);
+          if (/cancel/i.test(raw)) break;
+          failure = /key/i.test(raw) ? 'Add your MuAPI key in Settings → API keys' : `${job.contactName}: ${raw}`;
+          if (/key/i.test(raw)) break;
+        }
+        run.done += 1;
+        redraw();
+      }
+      aiClipJobs.delete(clip.id);
+      updatePreview();
+      redraw();
+      showToast(`Made ${made} of ${jobs.length} AI clips${failure ? `. ${failure}` : ''}`, failure && !made ? 'error' : 'success');
+    }
+
     function renderClipEditor(clipId) {
       renderClipEditorBase(clipId);
       [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel].forEach((p) => p?.destroy());
@@ -5780,6 +5916,10 @@ export function TimelineEditorPage() {
               onRestore: () => restoreBgRemoval(clip),
             });
           });
+      }
+
+      if (clip.type === 'video') {
+        renderAiClipSection(editorSection('clip-ai-per-contact pz-ui', 'Personalize with AI'), clip);
       }
 
       if (clip.type === 'remotion-code') {
@@ -7326,6 +7466,7 @@ export function TimelineEditorPage() {
         const imageWarnings = [
           ...describeImageGaps(contactImageGaps(state, contacts)),
           ...describeUnreviewed(unreviewedAiImages(projectImageKeys(), contacts)),
+          ...describeClipGaps(state, contacts),
         ];
         if (run !== warningsRun) return;
         // Personalized-image warnings look like the Personalize window's.
