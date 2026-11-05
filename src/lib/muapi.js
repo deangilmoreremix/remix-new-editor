@@ -923,6 +923,15 @@ export class MuapiClient {
         if (params.last_frame_url && modelInfo?.inputs && Object.prototype.hasOwnProperty.call(modelInfo.inputs, 'last_frame_url')) {
             finalPayload.last_frame_url = params.last_frame_url;
         }
+        // Models that name their own end-frame input (last_image, last_image_url,
+        // end_image_url, last_frame_url, …) get the end frame under that name,
+        // whichever alias the studio supplied it as. (images_list models take it
+        // inside the list, handled above.)
+        const endFrameAlias = params.lastFrameUrl || params.last_frame_url || params.last_image_url;
+        const declaredEndField = modelInfo?.lastImageField;
+        if (endFrameAlias && declaredEndField && declaredEndField !== 'images_list' && finalPayload[declaredEndField] === undefined) {
+            finalPayload[declaredEndField] = endFrameAlias;
+        }
         // Character Lock: only for models that declare it.
         if (params.character_consistency !== undefined && modelInfo?.inputs
             && Object.prototype.hasOwnProperty.call(modelInfo.inputs, 'character_consistency')) {

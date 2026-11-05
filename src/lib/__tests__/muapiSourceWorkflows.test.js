@@ -114,6 +114,23 @@ describe('Source workflows reach the provider intact', () => {
     })).rejects.toThrow();
   });
 
+  test.each([
+    ['gemini-omni-flash-1-1-image-to-video', 'last_frame_url'],
+    ['veo3.1-lite-image-to-video', 'last_image'],
+    ['minimax-h3-image-to-video', 'last_image_url'],
+    ['flux-3-start-end-to-video', 'end_image_url'],
+  ])('%s receives the end frame as %s, from the studio\'s lastFrameUrl', async (model, field) => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
+    await client.generateI2V({
+      model,
+      prompt: 'morph',
+      image_url: 'https://cdn.muapi.ai/start.jpg',
+      lastFrameUrl: 'https://cdn.muapi.ai/end.jpg',
+      last_image_url: 'https://cdn.muapi.ai/end.jpg',
+    });
+    expect(submittedBody(global.fetch).params[field]).toBe('https://cdn.muapi.ai/end.jpg');
+  });
+
   test('keyframes: start and end frame both go in images_list', async () => {
     global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
     await client.generateI2V({
