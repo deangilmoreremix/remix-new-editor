@@ -28,8 +28,8 @@ function schemaForModel(modelInfo) {
   // Duration bounds the model declares (a range, or an enum of seconds).
   const dur = modelInfo?.inputs?.duration;
   const declared = Array.isArray(dur?.enum)
-    ? dur.enum.map(Number).filter((n) => !Number.isNaN(n))
-    : [dur?.minValue ?? dur?.minimum, dur?.maxValue ?? dur?.maximum].filter((n) => typeof n === 'number');
+    ? dur.enum.map(Number).filter((n) => Number.isFinite(n))
+    : [dur?.minValue ?? dur?.minimum, dur?.maxValue ?? dur?.maximum].filter((n) => Number.isFinite(n));
   if (!ratios?.length && !resolutions?.length && !declared.length) return EFFECT_PARAM_SCHEMA;
   const base = EFFECT_PARAM_SCHEMA.duration;
   return {

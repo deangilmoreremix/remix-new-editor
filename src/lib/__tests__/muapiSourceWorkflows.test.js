@@ -86,6 +86,20 @@ describe('Source workflows reach the provider intact', () => {
     expect(submittedBody(global.fetch).params.duration).toBe(20);
   });
 
+  test('malformed duration bounds in the catalog do not reject every duration', async () => {
+    const { getI2VModelById } = await import('../models.js');
+    const model = getI2VModelById('seedance-2.5-image-to-video');
+    const saved = { ...model.inputs.duration };
+    Object.assign(model.inputs.duration, { minValue: NaN, maxValue: Infinity });
+    try {
+      global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
+      await client.generateI2V({ model: model.id, prompt: 'move', image_url: 'https://cdn.muapi.ai/start.jpg', duration: 5 });
+      expect(submittedBody(global.fetch).params.duration).toBe(5);
+    } finally {
+      Object.assign(model.inputs.duration, saved);
+    }
+  });
+
   test('a duration beyond what the model advertises is still rejected', async () => {
     global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
     await expect(client.generateI2V({
