@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
 import React, { act } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, beforeAll, afterAll } from 'vitest';
 import { createRoot } from 'react-dom/client';
 import { Thumbnail } from '@remotion/player';
 import { withDemoProps } from '../cards/demoProps';
+
+// These tests exercise adapted code, which is opt-in (lib/adaptedPolicy.ts).
+beforeAll(() => { vi.stubEnv('VITE_MOTION_ALLOW_ADAPTED_CODE', 'true'); });
+afterAll(() => { vi.unstubAllEnvs(); });
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

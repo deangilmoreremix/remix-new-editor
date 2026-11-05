@@ -3,6 +3,7 @@ import type { ClipData, ProjectData } from '../types';
 import { fetchRecipeCard, fetchRecipeSource, fetchReferenceFrames, requestAdapt, DirectorError, type AdaptRequest } from './directorClient';
 import { checkAdaptedSource } from './shotAdapter';
 import { prepareAdapted } from './adaptedRuntime';
+import { adaptedCodeEnabled } from './adaptedPolicy';
 import { rulesOf } from './shotRules';
 import { drawsSampleScreen, isProductTextureShot } from './productShots';
 
@@ -132,6 +133,8 @@ export async function adaptShot(project: ProjectData, clip: ClipData, ctx: Adapt
 
 /** Adapt the film's best shots within the time budget. Never throws except for a missing key / refusal on the first shot. */
 export async function adaptFilm(project: ProjectData, ctx: AdaptContext, deps: AdaptDeps, log: AdaptLog, outer?: AbortSignal): Promise<ProjectData> {
+  // Disabled by default (adaptedPolicy.ts): no model calls for code that would not run.
+  if (!adaptedCodeEnabled()) return project;
   const targets = adaptTargets(project);
   if (!targets.length) return project;
   const controller = new AbortController();

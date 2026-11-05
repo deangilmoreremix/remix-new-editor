@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeAll, afterAll } from 'vitest';
 import { MOTION_TEMPLATES } from '../../../data/motionRecipeCatalog';
 import { planToProject } from '../lib/buildFilm';
 import type { DirectorPlan } from '../lib/directorPlan';
 import type { AdaptRequest } from '../lib/directorClient';
 import { adaptFilm, adaptShot, adaptTargets, stillFrames, type AdaptDeps } from '../lib/adaptLoop';
+
+// These tests exercise adapted code, which is opt-in (lib/adaptedPolicy.ts).
+beforeAll(() => { vi.stubEnv('VITE_MOTION_ALLOW_ADAPTED_CODE', 'true'); });
+afterAll(() => { vi.unstubAllEnvs(); });
 
 const palette = { background: '#101018', text: '#ffffff', accent: '#8b6bff' };
 const id = (c: string) => MOTION_TEMPLATES.find((t) => t.componentName === c)!.id;
