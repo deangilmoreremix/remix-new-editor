@@ -141,11 +141,20 @@ async function submit(body, keys) {
   return fail(502, 'provider_error', 'The media service rejected the job. Try again in a moment.');
 }
 
-async function status(body, keys) {
+const MUAPI_BASE = 'https://api.muapi.ai/api/v1';
+
+/** MuAPI result lookup. The endpoint is GET-only (POST answers 405). */
+async function muapiGet(path, key, fetchImpl = fetch) {
+  const res = await fetchImpl(`${MUAPI_BASE}${path}`, { headers: { 'x-api-key': key } });
+  if (!res.ok) throw Object.assign(new Error(`MuAPI ${path} failed: ${res.status}`), { status: res.status });
+  return res.json();
+}
+
+async function status(body, keys, fetchImpl) {
   const id = String(body.requestId || '');
   if (!/^[A-Za-z0-9_-]{4,128}$/.test(id)) return fail(400, 'bad_request', 'Invalid requestId');
   try {
-    const data = await muapiPost(`/predictions/${encodeURIComponent(id)}/result`, {}, undefined, keys.muapi);
+    const data = await muapiGet(`/predictions/${encodeURIComponent(id)}/result`, keys.muapi, fetchImpl);
     const st = String(data.status || '').toLowerCase();
     if (['completed', 'succeeded', 'success'].includes(st)) {
       const url = extractRealUrl(data);
@@ -155,7 +164,8 @@ async function status(body, keys) {
     return json(200, { ok: true, status: 'pending' });
   } catch (err) {
     if ([401, 402, 403].includes(err?.status)) return fail(401, 'bad_key', BAD_MUAPI_KEY);
-    return json(200, { ok: true, status: 'pending' }); // transient: the client keeps polling until its own timeout
+    if (err?.status === 404) return json(200, { ok: true, status: 'failed', error: 'The job was not found.' });
+    return json(200, { ok: true, status: 'pending' }); // transient (5xx / network): the client keeps polling until its own timeout
   }
 }
 
@@ -185,7 +195,7 @@ export async function handle(body, userId, { fetchImpl = fetch, keys = {} } = {}
   } catch (err) {
     return fail(err?.status && err.status < 600 ? err.status : 502, 'provider_error', err?.message || 'Request failed.');
   }
-  return action === 'submit' ? submit(body, keys) : status(body, keys);
+  return action === 'submit' ? submit(body, keys) : status(body, keys, fetchImpl);
 }
 
 export const handler = withClerkAuth(async (event) => {

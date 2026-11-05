@@ -19,7 +19,8 @@ export const SHOT_TYPES = ['wide', 'macro', 'macro_cross_section', 'detail'];
 
 /** Models (MuAPI). Primary first, fallback second. */
 export const MODELS = {
-  image: ['nano-banana-2', 'flux-dev'],
+  // Upstream's fallback id 'flux-dev' 404s on MuAPI; the real endpoint is flux-dev-image.
+  image: ['nano-banana-2', 'flux-dev-image'],
   clip: ['veo3.1-fast-image-to-video', 'veo3.1-image-to-video'],
   tts: 'minimax-speech-2.6-turbo',
 };

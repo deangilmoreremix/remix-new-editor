@@ -5,6 +5,9 @@
 import { mountStudioChrome } from '../../../lib/studioChrome.js';
 import { saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
+import { showToast, createProgressBar } from '../../../lib/loading.js';
+import { createEmptyState } from '../../studio/emptyState.js';
+import { createSegmented } from '../../studio/promptComposer.js';
 import { call, runJob, pool, ZackDError } from '../../../lib/zackd/api.js';
 import { runAssembly, buildSrt, DEFAULT_TRANSITION_SEC } from '../../../lib/zackd/assemble.js';
 import {
@@ -34,13 +37,17 @@ const el = (tag, cls = '', text = '') => {
   if (text) n.textContent = text;
   return n;
 };
-const BTN = 'px-3 py-1.5 rounded-md border border-primary text-sm hover:bg-primary/10 disabled:opacity-50 disabled:cursor-not-allowed';
-const BTN_MAIN = 'px-3 py-1.5 rounded-md bg-primary text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed';
-const CARD = 'rounded-lg border border-primary p-3 bg-panel-bg';
+// Shared studio look: neutral white-alpha surfaces; `primary` (neon) only on the main CTA / active step, always with black text.
+const BTN = 'px-4 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed';
+const BTN_MAIN = 'bg-primary text-black px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 border border-primary/10 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
+const CARD = 'rounded-lg border border-white/10 bg-panel-bg p-3 shadow-xl hover:border-primary/50 transition-colors';
+const FIELD = 'rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-primary/45 transition-colors';
+const FIELD_SM = 'rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-white outline-none focus:border-primary/45 transition-colors';
+const HEADING = 'text-sm font-semibold text-white';
 
 export function ZackDStudio() {
   const container = document.createElement('div');
-  container.className = 'w-full flex flex-col bg-app-bg';
+  container.className = 'w-full flex flex-col bg-app-bg text-white animate-fade-in-up';
   const { topbar } = mountStudioChrome(container, { title: 'Zack D Studio' });
   const status = el('span', 'text-xs text-secondary mr-3');
   status.setAttribute('aria-live', 'polite');
@@ -52,6 +59,7 @@ export function ZackDStudio() {
   let trends = SEED_TOPICS;
   let error = '';
   let log = '';
+  let progress = 0;
 
   const save = () => {
     // `final` holds a Blob + object URL that die with the page; everything else survives a reload.
@@ -62,6 +70,7 @@ export function ZackDStudio() {
   const fail = (e) => {
     if (e?.name === 'AbortError') return;
     error = e instanceof ZackDError ? e.message : (e?.message || 'Something went wrong.');
+    showToast(error, 'error');
     render();
   };
 
@@ -69,16 +78,18 @@ export function ZackDStudio() {
   async function batch(label, items, fn, { confirmText } = {}) {
     if (busy || !items.length) return;
     if (confirmText && !window.confirm(confirmText)) return;
-    busy = true; error = ''; render();
+    busy = true; error = ''; progress = 0; log = `${label}: 0/${items.length}`; render();
     let done = 0;
     const results = await pool(items, CONCURRENCY, async (item, i) => {
-      try { return await fn(item, i); } finally { done += 1; log = `${label}: ${done}/${items.length}`; say(log); }
+      try { return await fn(item, i); } finally { done += 1; progress = (done / items.length) * 100; log = `${label}: ${done}/${items.length}`; say(log); }
     });
-    busy = false; log = ''; say('');
+    busy = false; log = ''; progress = 0; say('');
     const failed = results.filter((r) => !r.ok);
     const fatal = failed.find((r) => r.error?.code === 'need_key' || r.error?.code === 'bad_key');
     if (fatal) error = fatal.error.message;
     else if (failed.length) error = `${failed.length} of ${items.length} failed: ${failed[0].error?.message || 'error'}. Use Regenerate to retry them.`;
+    if (error) showToast(error, 'error');
+    else showToast(`${label} ready`, 'success', 2500);
     save(); render();
   }
 
@@ -175,8 +186,12 @@ export function ZackDStudio() {
 
   function viewTopic() {
     const box = el('div', 'flex flex-col gap-4');
-    box.appendChild(el('p', 'text-sm text-secondary', 'Give one curiosity-driven question. The studio turns it into a 9:16 stylized 3D explainer short.'));
-    const input = el('input', 'w-full rounded-md border border-primary bg-transparent px-3 py-2 text-sm');
+    box.appendChild(createEmptyState({
+      heading: 'Start creating with',
+      highlight: 'Zack D Studio',
+      subtitle: 'Give one curiosity-driven question. The studio turns it into a 9:16 stylized 3D explainer short.',
+    }));
+    const input = el('input', `w-full ${FIELD}`);
     input.type = 'text'; input.maxLength = 200; input.value = s.topic;
     input.placeholder = 'e.g. What happens when you swallow gum?';
     input.setAttribute('aria-label', 'Topic');
@@ -193,7 +208,7 @@ export function ZackDStudio() {
     const list = el('div', 'grid gap-2 sm:grid-cols-2');
     trends.forEach((t) => {
       const b = el('button', `${CARD} text-left hover:bg-primary/10`);
-      b.appendChild(el('div', 'text-sm font-medium', t.topic));
+      b.appendChild(el('div', HEADING, t.topic));
       b.appendChild(el('div', 'text-xs text-secondary mt-1', t.hook));
       b.onclick = () => { s.topic = t.topic; save(); render(); };
       list.appendChild(b);
@@ -208,14 +223,14 @@ export function ZackDStudio() {
     s.map.beats.forEach((b, bi) => {
       const card = el('div', `${CARD} flex flex-col gap-2`);
       card.appendChild(el('div', 'text-xs text-muted', `Beat ${bi + 1}${b.hook ? ' · Hook' : ''} · ${b.title_en}`));
-      const nar = el('textarea', 'w-full rounded-md border border-primary bg-transparent px-2 py-1 text-sm'); nar.rows = 2; nar.maxLength = 400; nar.value = b.narration;
+      const nar = el('textarea', `w-full ${FIELD}`); nar.rows = 2; nar.maxLength = 400; nar.value = b.narration;
       nar.setAttribute('aria-label', `Narration, beat ${bi + 1}`);
       nar.oninput = () => { b.narration = nar.value; save(); };
       card.appendChild(nar);
       b.shots.forEach((sh) => {
         const r = el('div', 'flex gap-2 items-start');
         r.appendChild(el('span', 'text-xs text-muted w-24 shrink-0 pt-1', `${sh.shot_id} · ${sh.duration_sec}s${sh.zoom_impact ? ' · zoom' : ''}`));
-        const d = el('textarea', 'flex-1 rounded-md border border-primary bg-transparent px-2 py-1 text-xs'); d.rows = 2; d.maxLength = 400; d.value = sh.scene_description;
+        const d = el('textarea', `flex-1 ${FIELD_SM}`); d.rows = 2; d.maxLength = 400; d.value = sh.scene_description;
         d.setAttribute('aria-label', `Scene, ${sh.shot_id}`);
         d.oninput = () => { sh.scene_description = d.value; save(); };
         r.appendChild(d); card.appendChild(r);
@@ -232,12 +247,10 @@ export function ZackDStudio() {
   function viewVisuals() {
     const box = el('div', 'flex flex-col gap-4');
     box.appendChild(el('p', 'text-sm text-secondary', 'Gate 2: pick a look, render character sheets (consistency anchors), then keyframes. Each image is a paid call on your MuAPI key.'));
-    const lookRow = el('div', 'flex gap-2 items-center');
-    lookRow.appendChild(el('label', 'text-sm', 'Look'));
-    const sel = el('select', 'rounded-md border border-primary bg-transparent px-2 py-1 text-sm'); sel.setAttribute('aria-label', 'Look');
-    Object.entries(LOOKS).forEach(([k, v]) => { const o = el('option', '', v.label); o.value = k; o.selected = k === s.look; sel.appendChild(o); });
-    sel.onchange = () => { s.look = sel.value; save(); };
-    lookRow.appendChild(sel); box.appendChild(lookRow);
+    const lookRow = el('div', 'flex gap-3 items-center flex-wrap');
+    lookRow.appendChild(el('span', HEADING, 'Look'));
+    lookRow.appendChild(createSegmented(Object.entries(LOOKS).map(([value, v]) => ({ value, label: v.label })), s.look, (value) => { s.look = value; save(); }));
+    box.appendChild(lookRow);
 
     const sheets = sheetList();
     const sheetBtn = el('button', BTN_MAIN, `Generate ${sheets.filter((x) => !s.sheets[x.id]).length || 'all'} character sheet(s)`);
@@ -250,7 +263,7 @@ export function ZackDStudio() {
     const sg = el('div', 'grid gap-3 sm:grid-cols-2');
     sheets.forEach((sh) => {
       const c = el('div', CARD);
-      c.appendChild(el('div', 'text-sm font-medium', sh.id.replace(/_/g, ' ')));
+      c.appendChild(el('div', HEADING, sh.id.replace(/_/g, ' ')));
       c.appendChild(el('div', 'text-xs text-secondary mb-2', sh.description));
       if (s.sheets[sh.id]?.url) c.appendChild(media('img', s.sheets[sh.id].url, 'w-full rounded-md'));
       const re = el('button', `${BTN} mt-2`, s.sheets[sh.id] ? 'Regenerate' : 'Generate'); re.disabled = busy;
@@ -293,7 +306,7 @@ export function ZackDStudio() {
     const g = el('div', 'grid gap-3 grid-cols-2 sm:grid-cols-4');
     shots.forEach((sh) => {
       const c = el('div', CARD);
-      c.appendChild(el('div', 'text-xs text-muted mb-1', `${sh.shot_id} · ${sh.camera_move.replace(/_/g, ' ')}`));
+      c.appendChild(el('div', 'text-xs text-white/40 mb-1', `${sh.shot_id} · ${sh.camera_move.replace(/_/g, ' ')}`));
       const e = s.shots[sh.shot_id];
       if (e?.clip) c.appendChild(media('video', e.clip, 'w-full rounded-md'));
       else if (e?.keyframe) c.appendChild(media('img', e.keyframe, 'w-full rounded-md opacity-60'));
@@ -313,10 +326,10 @@ export function ZackDStudio() {
     const box = el('div', 'flex flex-col gap-4');
     box.appendChild(el('p', 'text-sm text-secondary', 'Narration uses a preset MiniMax voice. Voice cloning from a sample is not supported yet. Music is optional.'));
     const nar = el('div', `${CARD} flex flex-col gap-2`);
-    nar.appendChild(el('div', 'text-sm font-medium', 'Narration'));
+    nar.appendChild(el('div', HEADING, 'Narration'));
     nar.appendChild(el('div', 'text-xs text-secondary', narrationText(s.map)));
     const vr = el('div', 'flex gap-2 items-center flex-wrap');
-    const sel = el('select', 'rounded-md border border-primary bg-transparent px-2 py-1 text-sm'); sel.setAttribute('aria-label', 'Voice');
+    const sel = el('select', FIELD); sel.setAttribute('aria-label', 'Voice');
     TTS_VOICES.forEach((v) => { const o = el('option', '', v.replace(/_/g, ' ')); o.value = v; o.selected = v === s.voice; sel.appendChild(o); });
     sel.onchange = () => { s.voice = sel.value; save(); };
     vr.appendChild(sel);
@@ -326,7 +339,7 @@ export function ZackDStudio() {
     if (s.narration) nar.appendChild(media('audio', s.narration, 'w-full'));
     box.appendChild(nar);
     const mus = el('div', `${CARD} flex flex-col gap-2`);
-    mus.appendChild(el('div', 'text-sm font-medium', 'Background music (optional)'));
+    mus.appendChild(el('div', HEADING, 'Background music (optional)'));
     const mb = el('button', BTN, s.music ? 'Regenerate music' : 'Generate music'); mb.disabled = busy;
     mb.onclick = () => batch('Music', [1], genMusic, { confirmText: 'Generate a music track?' });
     mus.appendChild(mb);
@@ -377,14 +390,18 @@ export function ZackDStudio() {
     const nav = el('nav', 'flex gap-1 flex-wrap'); nav.setAttribute('aria-label', 'Steps');
     const reach = { topic: true, script: !!s.map, visuals: !!s.map, clips: !!s.map, audio: !!s.map, final: !!s.map };
     STAGES.forEach(([id, label], i) => {
-      const b = el('button', `px-2 py-1 rounded-md text-xs ${id === s.stage ? 'bg-primary font-medium' : 'border border-primary text-secondary'}`, `${i + 1}. ${label}`);
+      const b = el('button', `px-3 py-1.5 rounded-full text-xs transition-all disabled:opacity-40 ${id === s.stage ? 'bg-primary text-black font-bold' : 'border border-white/10 text-white/60 hover:bg-white/5'}`, `${i + 1}. ${label}`);
       b.disabled = busy || !reach[id]; if (id === s.stage) b.setAttribute('aria-current', 'step');
       b.onclick = () => setStage(id);
       nav.appendChild(b);
     });
     inner.appendChild(nav);
-    if (busy && log) inner.appendChild(el('div', 'text-xs text-secondary', log));
-    if (error) { const e = el('div', 'rounded-md border border-red-500 text-red-400 px-3 py-2 text-sm', error); e.setAttribute('role', 'alert'); inner.appendChild(e); }
+    if (busy && log) {
+      const bar = createProgressBar(progress, 'w-full max-w-md');
+      const label = bar.querySelector('.progress-label'); if (label) label.textContent = log;
+      inner.appendChild(bar);
+    }
+    if (error) { const e = el('div', 'rounded-xl border border-red-500/30 bg-red-500/10 text-red-300 px-3 py-2 text-sm', error); e.setAttribute('role', 'alert'); inner.appendChild(e); }
     inner.appendChild((s.stage !== 'topic' && !s.map ? viewTopic : VIEWS[s.stage] || viewTopic)());
     main.appendChild(inner);
     main.scrollTop = y;

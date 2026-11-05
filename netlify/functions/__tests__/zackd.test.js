@@ -88,21 +88,28 @@ describe('zackd function', () => {
     expect(body(await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u2', { keys }))).toMatchObject({ ok: true, requestId: 'req_abc1', model: 'nano-banana-2', attempt: 0, hasFallback: true });
 
     muapiPost.mockRejectedValueOnce(Object.assign(new Error('boom'), { status: 500 })).mockResolvedValueOnce({ request_id: 'req_def2' });
-    expect(body(await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u2', { keys }))).toMatchObject({ requestId: 'req_def2', model: 'flux-dev', attempt: 1, hasFallback: false });
+    expect(body(await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u2', { keys }))).toMatchObject({ requestId: 'req_def2', model: 'flux-dev-image', attempt: 1, hasFallback: false });
     expect(muapiPost.mock.calls.at(-2)[0]).toBe('/nano-banana-2');
 
     muapiPost.mockRejectedValueOnce(Object.assign(new Error('no'), { status: 402 }));
     expect((await handle({ action: 'submit', kind: 'tts', text: 'hi' }, 'u2', { keys })).statusCode).toBe(401);
   });
 
-  it('reports status and rejects bad request ids', async () => {
+  it('reports status via GET and rejects bad request ids', async () => {
     expect(body(await handle({ action: 'status', requestId: '!!' }, 'u3', { keys })).error.code).toBe('bad_request');
-    muapiPost.mockResolvedValueOnce({ status: 'processing' });
-    expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys }))).toEqual({ ok: true, status: 'pending' });
-    muapiPost.mockResolvedValueOnce({ status: 'failed' });
-    expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys })).status).toBe('failed');
-    muapiPost.mockResolvedValueOnce({ status: 'completed', outputs: ['https://cdn.example.com/a.mp4'] });
-    expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys }))).toEqual({ ok: true, status: 'done', url: 'https://cdn.example.com/a.mp4' });
+    const reply = (data, status = 200) => vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => data });
+    let f = reply({ status: 'processing' });
+    expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: f }))).toEqual({ ok: true, status: 'pending' });
+    expect(f.mock.calls[0][0]).toBe('https://api.muapi.ai/api/v1/predictions/req_abc1/result');
+    expect(f.mock.calls[0][1]).toEqual({ headers: { 'x-api-key': keys.muapi } }); // GET: no method/body
+    expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: reply({ status: 'failed' }) })).status).toBe('failed');
+    expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: reply({ status: 'completed', outputs: ['https://cdn.example.com/a.mp4'] }) }))).toEqual({ ok: true, status: 'done', url: 'https://cdn.example.com/a.mp4' });
+    // sandbox/static placeholder assets are never reported as generated output
+    const stub = reply({ status: 'completed', outputs: ['https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/nano-banana-2.0.avif'] });
+    expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: stub })).status).toBe('failed');
+    expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: reply({}, 404) })).status).toBe('failed');
+    expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: reply({}, 503) })).status).toBe('pending');
+    expect((await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: reply({}, 401) })).statusCode).toBe(401);
   });
 
   it('script action normalizes the LLM answer', async () => {
