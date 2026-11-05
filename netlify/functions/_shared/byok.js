@@ -22,3 +22,10 @@ export const NEED_OPENAI_KEY = 'This uses your own OpenAI key. Add it in SmartVi
 export const BAD_OPENAI_KEY = 'OpenAI rejected your API key. Check it in SmartVid → Settings → API keys.';
 export const OPENAI_NO_CREDIT = 'Your OpenAI account is rate-limited or out of credit. Check your OpenAI billing, then try again.';
 export const BAD_MUAPI_KEY = 'MuAPI rejected your API key, or the account is out of credit. Check it in SmartVid → Settings → API keys.';
+
+/** A clear message for OpenAI failures caused by the user's own key/account, or null. */
+export function openAIKeyError(status) {
+  if (status === 401) return BAD_OPENAI_KEY;
+  if (status === 429) return OPENAI_NO_CREDIT;
+  return null;
+}

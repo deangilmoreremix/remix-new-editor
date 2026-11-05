@@ -7,6 +7,7 @@ vi.mock('../src/lib/supabase.js', () => ({
   },
   getSupabaseUrl: () => 'https://test.supabase.co',
   getSupabaseAnonKey: () => 'test-anon-key',
+  getClerkSessionToken: async () => null,
 }));
 
 vi.mock('../src/lib/apiKeyManager.js', () => ({

@@ -33,6 +33,7 @@
  *       or { ok: false, error: string }
  */
 
+import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
 const TIMEOUT_MS = 120_000;
 
 const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
@@ -152,9 +153,10 @@ export async function handler(event) {
     return jsonResponse(405, { ok: false, error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  // BYOK: the user's own OpenAI key (X-OpenAI-Key); no platform-key fallback.
+  const apiKey = userOpenAIKey(event.headers);
   if (!apiKey) {
-    return jsonResponse(503, { ok: false, error: 'OPENAI_API_KEY not configured on server' });
+    return jsonResponse(401, { ok: false, error: NEED_OPENAI_KEY });
   }
 
   let body;
@@ -225,6 +227,8 @@ export async function handler(event) {
       return jsonResponse(502, { ok: false, error: msg });
     }
     if (!respRefine.ok) {
+      const keyProblem = openAIKeyError(respRefine.status);
+      if (keyProblem) return jsonResponse(respRefine.status, { ok: false, error: keyProblem });
       let detail = '';
       try {
         const errJson = await respRefine.json();
@@ -276,6 +280,8 @@ export async function handler(event) {
   }
 
   if (!imageRes.ok) {
+    const keyProblem = openAIKeyError(imageRes.status);
+    if (keyProblem) return jsonResponse(imageRes.status, { ok: false, error: keyProblem });
     let detail = '';
     try {
       const errJson = await imageRes.json();
@@ -353,7 +359,7 @@ function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-OpenAI-Key',
   };
 }
 

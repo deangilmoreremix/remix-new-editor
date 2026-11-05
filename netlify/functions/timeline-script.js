@@ -26,8 +26,11 @@
  * (resolved via the same pattern as intelligence-api.js — gpt-5.6 family,
  * concretely `gpt-5.6-sol`; a bare `gpt-5.6` is not a documented model ID).
  *
- * Security: OPENAI_API_KEY is read from process.env only. Never echoed back.
+ * BYOK: runs on the user's own OpenAI key (X-OpenAI-Key header from the API key modal).
+ * No platform-key fallback; the key is never logged or echoed back.
  */
+
+import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
 
 const TIMEOUT_MS = 60_000;
 
@@ -153,9 +156,9 @@ export async function handler(event) {
     return jsonResponse(405, { ok: false, error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = userOpenAIKey(event.headers);
   if (!apiKey) {
-    return jsonResponse(503, { ok: false, error: 'OPENAI_API_KEY not configured on server' });
+    return jsonResponse(401, { ok: false, error: NEED_OPENAI_KEY });
   }
 
   let body;
@@ -197,6 +200,8 @@ export async function handler(event) {
   }
 
   if (!openaiRes.ok) {
+    const keyProblem = openAIKeyError(openaiRes.status);
+    if (keyProblem) return jsonResponse(openaiRes.status, { ok: false, error: keyProblem });
     let detail = '';
     try {
       const errJson = await openaiRes.json();
@@ -234,7 +239,7 @@ function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-OpenAI-Key',
   };
 }
 

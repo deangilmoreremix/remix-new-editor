@@ -24,7 +24,9 @@ export function embedCode(id, origin) {
   return `<iframe src="${src}" width="960" height="540" style="border:0;max-width:100%;aspect-ratio:16/9;height:auto" allow="autoplay; fullscreen" allowfullscreen title="Interactive video"></iframe>`;
 }
 
-const isLocal = (v) => typeof v === 'string' && v.startsWith('blob:');
+// blob: files, and inline audio (an OpenAI voice whose upload failed), are
+// uploaded before publishing so the published project stays small.
+const isLocal = (v) => typeof v === 'string' && (v.startsWith('blob:') || /^data:audio\//.test(v));
 
 /** Every blob: URL a project still uses (clip media, overlay images, posters). */
 export function localSources(tracks = []) {
@@ -189,6 +191,10 @@ export async function submitViewerLead({ publishedId, clipId, kind, data }, { ur
 export function profileFromQuery(search = globalThis.location?.search || '') {
   const params = new URLSearchParams(search);
   const variables = {};
-  params.forEach((v, k) => { if (!['embed', 'autoplay', 't'].includes(k) && k.length <= 40) variables[k] = String(v).slice(0, 200); });
-  return Object.keys(variables).length ? { variables } : null;
+  params.forEach((v, k) => { if (!['embed', 'autoplay', 't', 'c'].includes(k) && k.length <= 40) variables[k] = String(v).slice(0, 200); });
+  // Personal links (?c=<contactId>) pick that contact's Smart Speech voice line.
+  const id = params.get('c');
+  const contactId = id && /^[A-Za-z0-9_-]{1,80}$/.test(id) ? id : null;
+  if (!Object.keys(variables).length && !contactId) return null;
+  return contactId ? { id: contactId, variables } : { variables };
 }

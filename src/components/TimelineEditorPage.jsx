@@ -35,6 +35,11 @@ import {
 import { TOKEN_DEFS } from './personalize/tokenSchema.js';
 import { openSmartSpeechModal } from '../lib/editor/agent/smartSpeechModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import * as contactStore from '../lib/contactStore.js';
+import { buildBrandOverlayPlan, imageTokenChoices, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
+import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
+import { addPersonalizationAsset, setDiscoveredPersonalizationAssets } from '../lib/personalization/personalizationProfile.js';
+import { listContactProfiles, contactName, contactEmail, personalLink, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../lib/pexelsApi.js';
@@ -1093,6 +1098,11 @@ export function TimelineEditorPage() {
         );
         if (idx !== -1) this.documentListeners.splice(idx, 1);
       },
+      windowListeners: [],
+      addWindowListener(type, handler) {
+        window.addEventListener(type, handler);
+        this.windowListeners.push({ type, handler });
+      },
       addTimer(id) { this.timers.push(id); },
       addInterval(id) { this.intervals.push(id); },
       run() {
@@ -1100,6 +1110,8 @@ export function TimelineEditorPage() {
           document.removeEventListener(type, handler, options);
         });
         this.documentListeners.length = 0;
+        this.windowListeners.forEach(({ type, handler }) => window.removeEventListener(type, handler));
+        this.windowListeners.length = 0;
         this.timers.forEach(id => clearTimeout(id));
         this.timers.length = 0;
         this.intervals.forEach(id => clearInterval(id));
@@ -1165,6 +1177,18 @@ export function TimelineEditorPage() {
 
     // Add keyboard event listeners
     cleanup.addDocumentListener('keydown', handleKeyboardShortcuts);
+    // Picking another contact (Personalize window) re-renders the preview with
+    // their details and their own personalized voice line.
+    cleanup.addWindowListener('remix:contact-changed', () => {
+      try { scheduleEngineUpdate(); } catch { /* engine not ready */ }
+      // Overlays drawn in the page (no engine) and the open Personalized
+      // Image settings show the new contact's images too.
+      try { renderOverlayLayer(); } catch { /* not mounted yet */ }
+      try {
+        const selected = state.selectedClipId != null ? state.tracks.flatMap((t) => t.items || []).find((c) => c.id === state.selectedClipId) : null;
+        if (selected?.type === 'overlay-personalized-image') renderClipEditor(selected.id);
+      } catch { /* editor not ready */ }
+    });
     root.innerHTML = template;
 
     // Debounced project save: avoids blocking the main thread on every keystroke
@@ -4530,10 +4554,15 @@ export function TimelineEditorPage() {
       els.overlayAddonList.innerHTML = ['Basic', 'Creative']
         .filter((name) => sections[name])
         .map((name) => `<div class="addon-panel__section"><h4 class="addon-panel__heading">${name}</h4><div class="addon-panel__grid">${sections[name].join('')}</div></div>`)
-        .join('');
+        .join('')
+        + `<div class="addon-panel__section"><h4 class="addon-panel__heading">Personalize</h4><div class="addon-panel__grid">
+            <button type="button" class="addon-panel__item" data-brand-overlays="1" title="Each contact's logo in the corner and their CTA at the end, from the Personalize window's image finder">
+              <span aria-hidden="true">🏷️</span><span>Logo + CTA end card</span>
+            </button></div></div>`;
       els.overlaysPanel?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-add-addon]');
         if (btn) addAddonAtPlayhead(btn.dataset.addAddon);
+        if (e.target.closest('[data-brand-overlays]')) addBrandOverlays();
       });
     }
 
@@ -4546,6 +4575,8 @@ export function TimelineEditorPage() {
           return !!key && key !== 'dev';
         },
         listClips: () => state.tracks.flatMap((t) => t.items || t.clips || []).filter((c) => c.tts),
+        // Personalization Studio contacts (Personalize window + Find a Business details).
+        listContacts: () => listContactProfiles(contactStore),
         tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
         resolveTokens: (text) => resolveOverlayText(text, getActivePersonalizationProfile()),
         toast: showToast,
@@ -4576,7 +4607,8 @@ export function TimelineEditorPage() {
           insertClipIntoTrack(clip, 'Voiceover');
           scheduleEngineUpdate();
           debouncedSave();
-          showToast(tts.personalized ? 'Speech added (the fallback line plays on shared links)' : 'Speech added to the Voiceover track', 'success');
+          const voiced = Object.keys(tts.variants || {}).length;
+          showToast(voiced ? `Personalized speech added: ${voiced} contact${voiced === 1 ? '' : 's'} voiced. Use personal links or Export one video per contact.` : 'Speech added to the Voiceover track', 'success');
           return clip;
         },
       });
@@ -4706,7 +4738,76 @@ export function TimelineEditorPage() {
         return localMediaUrl(file);
       },
       onError: (err) => showToast(err?.message || 'Upload failed', 'error'),
+      // Personalized Image: the selected contact's images from the
+      // Personalize window's image finder.
+      imageTokens: () => imageTokenChoices(getActivePersonalizationProfile()),
+      contactLabel: () => {
+        const p = getActivePersonalizationProfile();
+        return p ? contactName(p) : '';
+      },
+      finderImages: () => listTimelineImageAssets(getActivePersonalizationProfile()),
+      useFinderImage: (index) => useImageFinderImage(listTimelineImageAssets(getActivePersonalizationProfile())[index]),
     };
+
+    // A picked image-finder image as a durable URL. Images found on the
+    // business's website but not saved yet are saved to the contact first;
+    // if that isn't possible (e.g. signed out) the website copy is used.
+    async function useImageFinderImage(image) {
+      if (!image) return null;
+      if (image.saved || !image.discovered) return image.src;
+      let profile = getActivePersonalizationProfile();
+      try {
+        const imported = await importDiscoveredAsset(image.discovered, {
+          name: image.discovered.altText || image.discovered.category,
+        });
+        profile = addPersonalizationAsset(profile, imported);
+        profile = setDiscoveredPersonalizationAssets(
+          profile,
+          (profile.personalization.discoveredAssets || []).map((candidate) => (
+            candidate.id === image.discovered.id
+              ? { ...candidate, importedAssetId: imported.id, selected: false, importError: null }
+              : candidate
+          )),
+        );
+        contactStore.saveProfile(profile);
+        showToast('Saved to the contact\'s images', 'success');
+        return imported.url;
+      } catch (err) {
+        showToast(`Using the website copy of this image (${err?.message || 'it could not be saved to the contact'})`, 'info');
+        return image.src;
+      }
+    }
+
+    // "Logo + CTA end card": the contact's exact logo in the corner for the
+    // whole video and their CTA at the end, as Personalized Image / Smart
+    // Text overlays, so every contact gets their own.
+    function addBrandOverlays() {
+      const profile = getActivePersonalizationProfile();
+      if (!profile) {
+        showToast('Select a contact in the Personalize window first', 'info');
+        return;
+      }
+      const T = state.timelineSeconds || 60;
+      const plan = buildBrandOverlayPlan(profile, { timelineSeconds: T });
+      if (!plan.length) {
+        showToast(`${contactName(profile)} has no logo, CTA graphic or CTA text yet. Add them in the Personalize window's image finder.`, 'info');
+        return;
+      }
+      saveStateSnapshot(state);
+      let last = null;
+      plan.forEach((item) => {
+        const clip = createAddonClip(item.type, { startSec: item.startSec, timelineSeconds: T });
+        clip.end = item.endSec;
+        clip.addon = { ...clip.addon, ...item.addon };
+        clip.name = item.name;
+        insertClipIntoTrack(clip, getAddon(item.type)?.track || 'Text');
+        last = clip;
+      });
+      if (last) showClipEditor(last.id);
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added ${plan.map((i) => i.name).join(' + ')}`, 'success');
+    }
 
     // Settings panel for schema-driven addons (Skip / Pause / Loop). Mirrors
     // upstream's DefaultSettings "Basic" tab: Start (and End) time inputs
@@ -5268,6 +5369,23 @@ export function TimelineEditorPage() {
           return Array.isArray(leads) ? leads.length : null;
         },
         copy: (text) => navigator.clipboard.writeText(text),
+        personalLinks: (link) => {
+          const tokens = projectTokens(state.tracks);
+          return listContactProfiles(contactStore).map((p) => ({
+            name: contactName(p),
+            email: contactEmail(p),
+            company: p?.contact?.company || p?.personalization?.business?.businessName || '',
+            link: personalLink(link, p, tokens),
+          }));
+        },
+        downloadCsv: (rows) => {
+          const blob = new Blob([linksCsv(rows)], { type: 'text/csv' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${String(state.projectTitle || 'video').replace(/[^\w-]+/g, '_')}-personal-links.csv`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        },
       });
     }
 
@@ -6829,6 +6947,13 @@ export function TimelineEditorPage() {
               <option value="4k">4K (Ultra HD) — slower</option>
             </select>
           </div>
+          <div class="form-group">
+            <label for="exportFor">Videos</label>
+            <select id="exportFor">
+              <option value="one">One video${getActivePersonalizationProfile() ? ` (for ${escapeHtml(contactName(getActivePersonalizationProfile()))})` : ''}</option>
+              <option value="each"${listContactProfiles(contactStore).length ? '' : ' disabled'}>One video per contact (${listContactProfiles(contactStore).length} in Personalization Studio)</option>
+            </select>
+          </div>
           <ul id="exportWarnings" class="export-warnings"></ul>
           <button class="primary-btn" id="startExportBtn">Start Export</button>
           <button class="secondary-btn" id="cancelExportBtn">Cancel</button>
@@ -6858,9 +6983,9 @@ export function TimelineEditorPage() {
         progressText.textContent = text;
       };
 
-      const buildModel = async (quality) => {
+      const buildModel = async (quality, profile = getActivePersonalizationProfile()) => {
         const { timelineToComposition } = await import('../lib/editor/remotion/timelineToComposition.js');
-        return timelineToComposition(state, { quality, profile: getActivePersonalizationProfile() });
+        return timelineToComposition(state, { quality, profile });
       };
 
       const refreshWarnings = async () => {
@@ -6889,6 +7014,26 @@ export function TimelineEditorPage() {
         const quality = q('#exportQuality')?.value || '1080p';
         try {
           const { exportModel, downloadBlob, EXTENSIONS } = await import('../lib/editor/remotion/exportClient.js');
+          const name = String(state.projectTitle || 'timeline').replace(/[^a-z0-9 _-]+/gi, '').trim() || 'timeline';
+          // One video per Personalization Studio contact: their details fill
+          // the text and their own Smart Speech line plays.
+          if (q('#exportFor')?.value === 'each') {
+            const contacts = listContactProfiles(contactStore);
+            for (let i = 0; i < contacts.length; i += 1) {
+              if (abort.signal.aborted) throw new Error('Cancelled');
+              const who = contactName(contacts[i]);
+              const part = await exportModel(await buildModel(quality, contacts[i]), {
+                container,
+                quality,
+                signal: abort.signal,
+                onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
+              });
+              downloadBlob(part, `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}.${EXTENSIONS[container] || 'mp4'}`);
+            }
+            setProgress(100, `Done: ${contacts.length} videos downloaded`);
+            showToast(`Exported ${contacts.length} personalized videos`, 'success');
+            return;
+          }
           const model = await buildModel(quality);
           const blob = await exportModel(model, {
             container,
@@ -6896,7 +7041,6 @@ export function TimelineEditorPage() {
             signal: abort.signal,
             onProgress: (p) => setProgress(p * 100, `Rendering... ${Math.round(p * 100)}%`),
           });
-          const name = String(state.projectTitle || 'timeline').replace(/[^a-z0-9 _-]+/gi, '').trim() || 'timeline';
           downloadBlob(blob, `${name}.${EXTENSIONS[container] || 'mp4'}`);
           setProgress(100, `Export complete (${(blob.size / 1048576).toFixed(1)} MB)`);
           showToast('Export complete — your video is downloading', 'success');

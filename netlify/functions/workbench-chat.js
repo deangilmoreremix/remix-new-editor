@@ -17,6 +17,8 @@
  * logged, stored or echoed back.
  */
 
+import { userOpenAIKey } from './_shared/byok.js';
+
 const TIMEOUT_MS = 60_000;
 const MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
 const MAX_BODY_CHARS = 200_000;
@@ -82,13 +84,7 @@ export function parseModelAnswer(text) {
 }
 
 export const NEED_KEY_MESSAGE = 'AI editing uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).';
-
-/** Read and sanity-check the user's OpenAI key (header names are case-insensitive). */
-export function userOpenAIKey(headers = {}) {
-  const raw = Object.entries(headers).find(([k]) => k.toLowerCase() === 'x-openai-key')?.[1];
-  const key = typeof raw === 'string' ? raw.trim() : '';
-  return /^sk-[A-Za-z0-9_-]{20,}$/.test(key) ? key : null;
-}
+export { userOpenAIKey };
 
 async function chat(event) {
   if (event.httpMethod !== 'POST') return json(405, { ok: false, error: 'Method not allowed' });

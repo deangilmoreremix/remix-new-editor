@@ -64,6 +64,37 @@ function renderImageStock(field, ui, services) {
   </div>`;
 }
 
+// Personalized Image source: one button per image token, showing what the
+// selected contact's image is ("Logo", "Presenter photo", …). The textarea
+// stays for anything custom ({{d logoUrl "https://…"}}).
+function renderImageTokenField(field, value, id, label, services) {
+  const tokens = services.imageTokens() || [];
+  const current = String(value || '').trim();
+  const contact = services.contactLabel?.() || '';
+  const buttons = tokens.map((t) => {
+    const token = `{{${t.key}}}`;
+    const on = current === token;
+    const thumb = t.preview
+      ? `<span class="addon-token-thumb" style="background-image:url(${esc(JSON.stringify(String(t.preview)))})"></span>`
+      : '<span class="addon-token-thumb is-empty" aria-hidden="true">—</span>';
+    return `<button type="button" class="mini-btn addon-image-token${on ? ' is-on' : ''}" data-image-pick="${esc(token)}" data-pick-key="${field.key}" aria-pressed="${on}" title="${esc(t.preview ? `${t.label} for ${contact || 'the selected contact'}` : `${contact || 'The selected contact'} has no ${t.label.toLowerCase()} yet — the fallback image shows instead`)}">${thumb}<span>${esc(t.label)}</span></button>`;
+  }).join('');
+  return `<div class="clip-editor__field addon-field addon-field--tokens addon-field--image-tokens">${label}
+    <div class="addon-image-token-grid" role="group" aria-label="Contact image">${buttons}</div>
+    <p class="addon-field__hint">${contact ? `Previewing ${esc(contact)}. ` : 'No contact selected. '}Each contact sees their own image. Add or edit images in the Personalize window's image finder.</p>
+    <textarea id="${id}" rows="1" data-key="${field.key}" data-kind="text" aria-label="${esc(field.label)} (token)">${esc(value)}</textarea>
+  </div>`;
+}
+
+// The selected contact's images from the image finder, as one-click picks
+// for any image field (fixed image, fallback image).
+function renderFinderImages(field, services) {
+  const images = (services.finderImages?.() || []).slice(0, 24);
+  if (!images.length) return '';
+  return `<p class="addon-field__hint addon-finder-label">From the image finder${services.contactLabel?.() ? ` (${esc(services.contactLabel())})` : ''}</p>
+    <div class="addon-image-library addon-finder-library" role="list" aria-label="Image finder images">${images.map((m, i) => `<button type="button" role="listitem" class="addon-image-thumb${m.saved ? '' : ' is-unsaved'}" data-finder-pick="${i}" data-pick-key="${field.key}" title="${esc(m.name || '')}${m.saved ? '' : ' (from the website, saved to the contact when picked)'}" style="background-image:url(${esc(JSON.stringify(String(m.src)))})"></button>`).join('')}</div>`;
+}
+
 function renderField(field, options, idPrefix, ui = {}, services = {}) {
   const value = getPath(options, field.key);
   const id = `${idPrefix}-${field.key.replace(/\./g, '-')}`;
@@ -100,6 +131,9 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
     case 'tokens': {
       // Text with personalization tokens; the select inserts {{token}} at
       // the cursor (upstream's Personalize button).
+      if (field.tokenFilter === 'image' && typeof services.imageTokens === 'function') {
+        return renderImageTokenField(field, value, id, label, services);
+      }
       const tokens = field.tokenFilter === 'image'
         ? [['image', 'Image'], ['d image "https://"', 'Image with fallback URL']]
         : (services.tokens || []);
@@ -116,6 +150,7 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
         <div class="addon-image-actions">
           <label class="mini-btn addon-upload-btn">Upload<input type="file" accept="image/*" data-image-upload="${field.key}" hidden /></label>
         </div>
+        ${renderFinderImages(field, services)}
         ${media.length ? `<div class="addon-image-library" role="list" aria-label="Media library images">${media.map((m) => `<button type="button" role="listitem" class="addon-image-thumb" data-image-pick="${esc(m.src)}" data-pick-key="${field.key}" title="${esc(m.name || '')}" style="background-image:url(${esc(JSON.stringify(String(m.src)))})"></button>`).join('')}</div>` : ''}
         ${typeof services.searchStock === 'function' ? renderImageStock(field, ui, services) : ''}
       </div>`;
@@ -374,6 +409,16 @@ export function renderAddonEditor(container, {
       }
       if (btn?.dataset.imagePick) {
         setAndEmit(btn.dataset.pickKey, btn.dataset.imagePick);
+        return;
+      }
+      if (btn?.dataset.finderPick != null && typeof services.useFinderImage === 'function') {
+        const key = btn.dataset.pickKey;
+        btn.classList.add('is-busy');
+        // Website images are saved to the contact first (durable URL).
+        Promise.resolve(services.useFinderImage(Number(btn.dataset.finderPick)))
+          .then((url) => { if (url) setAndEmit(key, url); })
+          .catch((err) => services.onError?.(err))
+          .finally(() => btn.classList.remove('is-busy'));
         return;
       }
       if (btn?.dataset.stickerSrc) {

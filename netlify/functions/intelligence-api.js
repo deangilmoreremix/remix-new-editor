@@ -1,5 +1,6 @@
 // netlify/functions/intelligence-api.js
 import { createClient } from '@supabase/supabase-js';
+import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
 
 const supabaseService = createClient(
   process.env.SUPABASE_URL,
@@ -58,7 +59,7 @@ function corsHeaders() {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-OpenAI-Key',
     'Access-Control-Max-Age': '86400',
   };
 }
@@ -222,7 +223,8 @@ export async function handler(event, context) {
 
       // Kick off async discovery (fire and forget for now; in production use a queue)
       const sources = body.sources || ['maigret', 'github', 'website'];
-      runDiscoveryPipeline(contactId, sources).catch((err) => {
+      // BYOK: the optional AI enrichment step runs on the user's own OpenAI key.
+      runDiscoveryPipeline(contactId, sources, userOpenAIKey(event.headers)).catch((err) => {
         console.error('[intelligence] discovery pipeline failed:', err);
         supabaseService.from('contact_profiles').update({ discovery_status: 'failed' }).eq('contact_id', contactId);
       });
@@ -355,9 +357,10 @@ export async function handler(event, context) {
       const contactId = validateInput(body.contactId, 'uuid');
       if (!contactId) return { statusCode: 400, headers, body: JSON.stringify({ error: 'contactId is required' }) };
 
-      const apiKey = process.env.OPENAI_API_KEY;
+      // BYOK: the user's own OpenAI key (X-OpenAI-Key); no platform-key fallback.
+      const apiKey = userOpenAIKey(event.headers);
       const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-      if (!apiKey) return { statusCode: 503, headers, body: JSON.stringify({ error: 'OPENAI_API_KEY not configured' }) };
+      if (!apiKey) return { statusCode: 401, headers, body: JSON.stringify({ error: NEED_OPENAI_KEY }) };
 
       // Verify ownership
       const { data: contact } = await supabaseService.from('contacts').select('id, name, company').eq('id', contactId).eq('user_id', userId).single();
@@ -452,6 +455,8 @@ export async function handler(event, context) {
       }, 20000);
 
       if (!openaiRes.ok) {
+        const keyProblem = openAIKeyError(openaiRes.status);
+        if (keyProblem) return { statusCode: openaiRes.status, headers, body: JSON.stringify({ error: keyProblem }) };
         const t = await openaiRes.text();
         return { statusCode: 502, headers, body: JSON.stringify({ error: 'OpenAI request failed', detail: t.slice(0, 500) }) };
       }
@@ -598,7 +603,7 @@ function recordDiscovery(contactId, profile, source, status, data = null, error 
     .catch((err) => console.error('[intelligence] recordDiscovery insert failed:', err.message));
 }
 
-async function runDiscoveryPipeline(contactId, sources) {
+async function runDiscoveryPipeline(contactId, sources, openaiKey = null) {
   // This is a simplified synchronous pipeline for the MVP.
   // In production, use a queue (BullMQ, etc.) and update status via webhook.
   const profile = await loadProfile(contactId);
@@ -731,9 +736,9 @@ async function runDiscoveryPipeline(contactId, sources) {
   // from the raw Maigret/GitHub/website data. This is a best-effort step —
   // if OpenAI is not configured or fails, the discovery still completes
   // with whatever raw fields were collected.
-  if (process.env.OPENAI_API_KEY) {
+  // BYOK: only with the user's own OpenAI key (passed from /discover); skipped otherwise.
+  if (openaiKey) {
     try {
-      const openaiKey = process.env.OPENAI_API_KEY;
       const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
       const rawParts = [
         profile.intelligence.summary,

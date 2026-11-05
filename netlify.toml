@@ -61,6 +61,20 @@
   status = 200
   force = true
 
+# Template Generator AI (script writing + image generation). These /api paths had no
+# rewrite, so production served index.html (404) and the AI buttons failed.
+[[redirects]]
+  from = "/api/timeline-script"
+  to = "/.netlify/functions/timeline-script"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/timeline-image-generate"
+  to = "/.netlify/functions/timeline-image-generate"
+  status = 200
+  force = true
+
 # AI Video Agent (timeline editor): one model step per call. Keys stay
 # server-side: OPENAI_API_KEY (default), ANTHROPIC_API_KEY (optional Claude).
 [[redirects]]

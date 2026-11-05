@@ -1321,6 +1321,17 @@ export default defineConfig({
             // rule so it isn't routed to the MuAPI backend. In dev, serve from the
             // Netlify functions CLI on :8888 if available; otherwise fall back to
             // a same-origin placeholder so the dev server doesn't crash.
+            // Template Generator AI functions (same Netlify functions server as below).
+            '/api/timeline-script': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+                rewrite: () => '/.netlify/functions/timeline-script',
+            },
+            '/api/timeline-image-generate': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+                rewrite: () => '/.netlify/functions/timeline-image-generate',
+            },
             '/api/intelligence': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,

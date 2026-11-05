@@ -17,6 +17,7 @@ import {
   LIMIT, PERSONAL_LIMIT, PROVIDER_SETTINGS, hasTokens, validateSpeech, speechRequest, previewLine, ttsMeta,
   loadSavedVoices, saveVoice,
 } from './smartSpeech.js';
+import { contactName, resolveLineFor, voiceForContacts } from '../personalize/perContact.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const PROVIDER_LABEL = { minimax: 'MiniMax', openai: 'OpenAI' };
@@ -40,6 +41,7 @@ const hue = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 
  *   resolveTokens(text) → string
  *   tokens: [[key, label]]
  *   listClips() → [{ id, name, src, tts }]
+ *   listContacts() → Personalization Studio contact profiles (per-contact voices)
  *   hasKey(provider) → boolean
  *   toast(message, kind)
  *   storage
@@ -48,7 +50,8 @@ const hue = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 
 export function openSmartSpeechModal(services = {}, { mount = document.body } = {}) {
   const storage = services.storage ?? globalThis.localStorage;
   const d = { provider: 'minimax', voice: PROVIDER_SETTINGS.minimax.defaultVoice, speed: 1, pitch: 0, instructions: '', text: '', fallback: '' };
-  const ui = { tab: 'create', libTab: 'voice', busy: false, errors: [], tokenMenu: false, caret: null };
+  const ui = { tab: 'create', libTab: 'voice', busy: false, errors: [], tokenMenu: false, caret: null,
+    view: 'form', selected: null, progress: null, controller: null };
   let last = null; // { key, url, duration }
   const player = typeof Audio !== 'undefined' ? new Audio() : null;
 
@@ -118,6 +121,69 @@ export function openSmartSpeechModal(services = {}, { mount = document.body } = 
       </footer>`;
   }
 
+  // Personalized line → one voice per Personalization Studio contact.
+  function contactsHtml() {
+    const contacts = services.listContacts?.() || [];
+    if (!ui.selected) ui.selected = new Set(contacts.filter((c) => resolveLineFor(d.text, c)).map((c) => String(c.id)));
+    const chosen = contacts.filter((c) => ui.selected.has(String(c.id)));
+    const lines = new Set(chosen.map((c) => resolveLineFor(d.text, c)).filter(Boolean));
+    const p = ui.progress;
+    return `
+      <div class="speech-modal__contacts">
+        <p class="speech-modal__lead">Each contact gets this line with their own details, voiced by <strong>${esc(voiceInfo(d.provider, d.voice).name)}</strong>. Everyone else hears the fallback: “${esc(d.fallback)}”.</p>
+        ${contacts.length ? `
+          <div class="speech-modal__contacts-bar">
+            <label><input type="checkbox" data-all ${chosen.length && chosen.length === contacts.filter((c) => resolveLineFor(d.text, c)).length ? 'checked' : ''}/> All contacts</label>
+            <span>${chosen.length} selected · ${lines.size} different line${lines.size === 1 ? '' : 's'} to voice (plus the fallback)</span>
+          </div>
+          <ul class="speech-modal__contact-list">${contacts.map((c) => {
+            const line = resolveLineFor(d.text, c);
+            const id = String(c.id);
+            return `<li class="speech-modal__contact${line ? '' : ' is-missing'}">
+              <input type="checkbox" data-contact="${esc(id)}" ${ui.selected.has(id) ? 'checked' : ''} ${line && !p ? '' : 'disabled'} aria-label="${esc(contactName(c))}"/>
+              <div><strong>${esc(contactName(c))}</strong><span>${line ? `“${esc(line)}”` : 'Missing a detail this line uses: hears the fallback'}</span></div>
+            </li>`;
+          }).join('')}</ul>` : `
+          <p class="speech-modal__empty">No contacts yet. Add them in the <strong>Personalize</strong> window (Personalization Studio); business details saved from its <strong>Find a Business</strong> search fill business tokens like {{businessName}}. You can still add this line now: everyone hears the fallback.</p>`}
+        <ul class="speech-modal__errors" role="alert">${p ? `<li class="is-busy">Voicing ${p.done} of ${p.total}${p.name ? ` · ${esc(p.name)}` : ''}…</li>` : ui.errors.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>
+      </div>
+      <footer class="speech-modal__foot">
+        <button type="button" class="speech-modal__btn" data-act="${p ? 'stop' : 'back'}">${p ? 'Stop' : '← Back'}</button>
+        <button type="button" class="speech-modal__btn speech-modal__btn--primary" data-act="voice-all"${p ? ' disabled' : ''}>${chosen.length ? `Voice ${chosen.length} contact${chosen.length === 1 ? '' : 's'} &amp; add to timeline` : 'Add with fallback only'}</button>
+      </footer>`;
+  }
+
+  async function voiceAllAndAdd() {
+    const contacts = (services.listContacts?.() || []).filter((c) => ui.selected?.has(String(c.id)));
+    const errors = validateSpeech(d);
+    if (errors.length) { ui.errors = errors; draw(); return; }
+    ui.controller = new AbortController();
+    ui.errors = [];
+    ui.progress = { done: 0, total: contacts.length + 1, name: 'fallback' };
+    draw();
+    try {
+      const fallback = await services.generate(speechRequest(d, String(d.fallback).trim()));
+      ui.progress = { done: 1, total: contacts.length + 1 };
+      draw();
+      const { variants } = await voiceForContacts({
+        text: d.text,
+        contacts,
+        signal: ui.controller.signal,
+        generate: (line) => services.generate(speechRequest(d, line)),
+        onProgress: ({ done, name }) => { ui.progress = { done: done + 1, total: contacts.length + 1, name }; draw(); },
+      });
+      const tts = { ...ttsMeta(d), variants };
+      const longest = Math.max(Number(fallback.duration) || 0, ...Object.values(variants).map((v) => Number(v.duration) || 0));
+      const n = Object.keys(variants).length;
+      services.add?.({ url: fallback.url, duration: longest || fallback.duration, tts, name: `Speech: ${String(d.fallback).slice(0, 30)}${n ? ` · ${n} personalized` : ''}` });
+      close();
+    } catch (err) {
+      ui.progress = null;
+      ui.errors = [err?.name === 'AbortError' ? 'Stopped. Nothing was added.' : (err?.message || 'Voice generation failed')];
+      draw();
+    }
+  }
+
   function libraryHtml() {
     const clips = (services.listClips?.() || []).filter((c) => c?.tts);
     const shown = clips.filter((c) => !!c.tts.personalized === (ui.libTab === 'personalized'));
@@ -132,7 +198,7 @@ export function openSmartSpeechModal(services = {}, { mount = document.body } = 
           return `<li class="speech-modal__row">
             <button type="button" class="speech-modal__play" data-play="${esc(c.src)}" aria-label="Play">▶</button>
             <div class="speech-modal__row-text"><strong>${esc(c.tts.text)}</strong>
-              <span>${esc(PROVIDER_LABEL[c.tts.provider] || c.tts.provider)} · ${esc(v.name)}${c.tts.personalized ? ` · fallback: “${esc(c.tts.fallback)}”` : ''}</span></div>
+              <span>${esc(PROVIDER_LABEL[c.tts.provider] || c.tts.provider)} · ${esc(v.name)}${c.tts.personalized ? ` · ${Object.keys(c.tts.variants || {}).length} contacts voiced · fallback: “${esc(c.tts.fallback)}”` : ''}</span></div>
             <button type="button" class="speech-modal__ghost" data-use="${esc(c.id)}">Use settings</button>
           </li>`;
         }).join('')}</ul>` : `<p class="speech-modal__empty">${ui.libTab === 'personalized' ? 'No personalized lines yet. Add a {{token}} to a line in Create.' : 'No speech lines yet. Create one and add it to the timeline.'}</p>`}
@@ -152,7 +218,7 @@ export function openSmartSpeechModal(services = {}, { mount = document.body } = 
           </div>
           <button type="button" class="speech-modal__close" aria-label="Close">✕</button>
         </header>
-        <div class="speech-modal__body">${ui.tab === 'create' ? createHtml() : libraryHtml()}</div>
+        <div class="speech-modal__body">${ui.tab === 'library' ? libraryHtml() : ui.view === 'contacts' ? contactsHtml() : createHtml()}</div>
       </div>`;
     if (focus) {
       const el = backdrop.querySelector(`[data-k="${focus}"]`);
@@ -186,6 +252,7 @@ export function openSmartSpeechModal(services = {}, { mount = document.body } = 
   }
 
   function close() {
+    ui.controller?.abort();
     player?.pause();
     backdrop.remove();
     document.removeEventListener('keydown', onKey);
@@ -216,13 +283,23 @@ export function openSmartSpeechModal(services = {}, { mount = document.body } = 
 
   backdrop.addEventListener('change', (e) => {
     if (e.target.dataset?.k === 'voice') { d.voice = e.target.value; draw(); }
+    if (e.target.dataset?.contact) {
+      const id = e.target.dataset.contact;
+      if (e.target.checked) ui.selected.add(id); else ui.selected.delete(id);
+      draw();
+    }
+    if (e.target.dataset?.all !== undefined) {
+      const contacts = services.listContacts?.() || [];
+      ui.selected = new Set(e.target.checked ? contacts.filter((c) => resolveLineFor(d.text, c)).map((c) => String(c.id)) : []);
+      draw();
+    }
   });
 
   backdrop.addEventListener('click', async (e) => {
     const t = e.target;
     if (t === backdrop || t.closest('.speech-modal__close')) { close(); return; }
     const tab = t.closest('[data-tab]')?.dataset.tab;
-    if (tab) { ui.tab = tab; draw(); return; }
+    if (tab) { if (ui.progress) return; ui.tab = tab; ui.view = 'form'; draw(); return; }
     const lib = t.closest('[data-lib]')?.dataset.lib;
     if (lib) { ui.libTab = lib; draw(); return; }
     const provider = t.closest('[data-provider]')?.dataset.provider;
@@ -283,6 +360,18 @@ export function openSmartSpeechModal(services = {}, { mount = document.body } = 
       saveVoice({ name, provider: d.provider, voice: d.voice, speed: d.speed, pitch: d.pitch, instructions: d.instructions }, storage);
       draw();
       services.toast?.(`Saved voice "${name}"`, 'success');
+      return;
+    }
+    if (act === 'back') { ui.view = 'form'; ui.errors = []; draw(); return; }
+    if (act === 'stop') { ui.controller?.abort(); return; }
+    if (act === 'voice-all') { voiceAllAndAdd(); return; }
+    if (act === 'add' && hasTokens(d.text)) {
+      const errors = validateSpeech(d);
+      if (errors.length) { setErrors(errors); return; }
+      ui.view = 'contacts';
+      ui.selected = null;
+      ui.errors = [];
+      draw();
       return;
     }
     if (act === 'preview' || act === 'add') {

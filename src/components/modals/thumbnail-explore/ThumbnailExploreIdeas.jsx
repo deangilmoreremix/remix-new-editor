@@ -6,6 +6,7 @@
  */
 
 import { ThumbnailTemplateCard } from './ThumbnailTemplateCard.jsx';
+import { thumbnailAuthHeaders } from '../../../lib/thumbnailAuth.js';
 import { ThumbnailTemplateGrid } from './ThumbnailTemplateGrid.jsx';
 import { ThumbnailCategoryFilter } from './ThumbnailCategoryFilter.jsx';
 import { ThumbnailSearch } from './ThumbnailSearch.jsx';
@@ -62,7 +63,7 @@ export class ThumbnailExploreIdeas {
           searchQuery: this.searchQuery,
         },
       };
-      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
       if (!error && data?.templates) {
         this.recommendedTemplates = data.templates.recommended || [];
         this.popularTemplates = data.templates.popular || [];
@@ -90,7 +91,7 @@ export class ThumbnailExploreIdeas {
           searchQuery: this.searchQuery,
         },
       };
-      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
       if (!error && data?.template) {
         return data.template;
       }
