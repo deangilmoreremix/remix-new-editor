@@ -407,26 +407,6 @@
 .addon-upload-btn { cursor: pointer; }
 .addon-image-library { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-top: 6px; }
 .addon-image-thumb { aspect-ratio: 1; border: 1px solid var(--border, rgba(255, 255, 255, 0.1)); border-radius: 4px; background: center / cover no-repeat; cursor: pointer; }
-.addon-image-thumb.is-unsaved { border-style: dashed; }
-.addon-finder-label { margin: 8px 0 0; }
-/* Personalized Image: contact image tokens */
-.addon-image-token-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-bottom: 6px; }
-.addon-image-token { display: flex; align-items: center; gap: 6px; min-width: 0; text-align: left; }
-.addon-image-token > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.addon-image-token.is-on { border-color: var(--cyan, #22d3ee); background: var(--cyan-faint, rgba(34, 211, 238, .1)); }
-.addon-token-thumb { flex: none; width: 22px; height: 22px; border-radius: 4px; background: rgba(255, 255, 255, 0.06) center / contain no-repeat; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-dim, #9ca3af); }
-.addon-contact-image { display: flex; gap: 8px; align-items: flex-start; margin: 2px 0 6px; }
-.addon-focus-pick { position: relative; flex: none; width: 84px; aspect-ratio: 1; padding: 0; border: 1px solid var(--border, rgba(255,255,255,.1)); border-radius: 6px; background: rgba(255,255,255,.04) center / contain no-repeat; cursor: crosshair; }
-.addon-focus-dot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; border: 2px solid #fff; background: var(--cyan, #22d3ee); box-shadow: 0 0 0 1px rgba(0,0,0,.5); pointer-events: none; }
-.addon-contact-image__meta { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.addon-ready-badge { font-size: 11px; color: var(--emerald, #34d399); }
-.contact-switcher { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted, rgba(255,255,255,.65)); }
-.contact-switcher select { max-width: 180px; }
-.contact-check { width: 100%; border-collapse: collapse; font-size: 12px; }
-.contact-check th, .contact-check td { padding: 6px; border-bottom: 1px solid var(--border-soft, rgba(255,255,255,.06)); text-align: left; vertical-align: middle; }
-.contact-check__img { width: 44px; height: 44px; border-radius: 4px; background: rgba(255,255,255,.04) center / contain no-repeat; display: inline-block; }
-.contact-check__none { color: var(--amber, #fbbf24); }
-.addon-field--image-tokens textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
 .addon-anim-row { display: grid; grid-template-columns: 3em 1fr; gap: 6px; align-items: center; font-size: 12px; margin-top: 4px; }
 .addon-position-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .addon-sticker-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; max-height: 260px; overflow-y: auto; }
@@ -1110,5 +1090,3 @@
 .share-personal__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow: auto; }
 .share-personal__list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text, rgba(255,255,255,.86)); }
 .share-personal__list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.share-personal__issue { color: var(--amber, #fbbf24); font-size: 11px; margin-left: 4px; }
-.share-personal__warn { color: var(--amber, #fbbf24); margin: 0; }

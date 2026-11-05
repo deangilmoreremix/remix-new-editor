@@ -27,11 +27,11 @@ export function renderSharePanel(container, opts) {
       ...(r.missing || []).map((m) => `no ${m}`),
       ...((r.localImages || []).length ? ['image saved only in this browser'] : []),
     ];
-    return parts.length ? ` <span class="share-personal__issue" title="Add or re-save it in the Personalize window's image finder">⚠ ${esc(parts.join(', '))}</span>` : '';
+    return parts.length ? ` <span class="pz-chip pz-chip-warn share-personal__issue" title="Add or re-save it in the Personalize window's image finder">⚠ ${esc(parts.join(', '))}</span>` : '';
   };
   const imageNote = (rows) => {
     const n = rows.filter((r) => (r.missing || []).length || (r.localImages || []).length).length;
-    return n ? `<p class="addon-field__hint share-personal__warn">${n} contact${n === 1 ? "'s link is" : "s' links are"} missing a personalized image (marked ⚠). Add the image in the Personalize window's image finder, or set a fallback image on the Personalized Image.</p>` : '';
+    return n ? `<p class="pz-warning">${n} contact${n === 1 ? "'s link is" : "s' links are"} missing a personalized image (marked ⚠). Add the image in the Personalize window's image finder, or set a fallback image on the Personalized Image.</p>` : '';
   };
 
   // One link per Personalization Studio contact: their details fill the
@@ -41,7 +41,7 @@ export function renderSharePanel(container, opts) {
     if (!opts.personalLinks) return '';
     if (!rows.length) return '<p class="addon-field__hint">Personal links: add contacts in the Personalize window to get one link per contact.</p>';
     ui.rows = rows;
-    return `<div class="share-personal">
+    return `<div class="share-personal pz-ui">
       <div class="share-personal__head"><strong>Personal links</strong><span>${rows.length} contact${rows.length === 1 ? '' : 's'}</span>
         <button type="button" class="mini-btn" data-share-csv>Download CSV</button></div>
       ${imageNote(rows)}

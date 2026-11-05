@@ -53,6 +53,7 @@ import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos 
 // files into the build output.
 import '../../styles/timeline-tokens.css';
 import '../../styles/timeline-editor-page.css';
+import '../../styles/personalize-ui.css';
 import '../../styles/timeline-addons.css';
 // Import rendiv animation primitives
 import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } from '../lib/editor/animationControls.jsx';
@@ -462,7 +463,7 @@ export function TimelineEditorPage() {
                    <button class="viewer-mode-btn" data-viewer="source" title="Source viewer">Source</button>
                    <button class="viewer-mode-btn" data-viewer="split" title="Split view">Split</button>
                  </div>
-                 <label class="contact-switcher" title="Preview the video as each contact sees it"><span aria-hidden="true">👤</span><select id="previewContactSelect" aria-label="Preview as contact"></select></label>
+                 <label class="pz-ui pz-switcher" title="Preview the video as each contact sees it"><select id="previewContactSelect" class="pz-select" aria-label="Preview as contact"></select></label>
                </div>
             </div>
             <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
@@ -4561,16 +4562,19 @@ export function TimelineEditorPage() {
         .filter((name) => sections[name])
         .map((name) => `<div class="addon-panel__section"><h4 class="addon-panel__heading">${name}</h4><div class="addon-panel__grid">${sections[name].join('')}</div></div>`)
         .join('')
-        + `<div class="addon-panel__section"><h4 class="addon-panel__heading">Personalize</h4><div class="addon-panel__grid">
-            ${PERSONALIZED_LAYOUTS.map((l) => `<button type="button" class="addon-panel__item" data-layout="${l.id}"${l.id === 'brand' ? ' data-brand-overlays="1"' : ''} title="${escapeHtml(l.description)}, from the Personalize window's image finder">
-              <span aria-hidden="true">${l.icon}</span><span>${escapeHtml(l.label)}</span>
-            </button>`).join('')}
-            <button type="button" class="addon-panel__item" data-check-contacts="1" title="See every contact's images for this video">
-              <span aria-hidden="true">🗂️</span><span>Check contacts</span>
-            </button>
-            <button type="button" class="addon-panel__item" data-all-video-ready="1" title="Clean up every contact image this video uses (background removal, fixes, Vision QA) on your OpenAI key">
-              <span aria-hidden="true">✨</span><span>Make images Video Ready</span>
-            </button></div></div>`;
+        + `<section class="pz-ui pz-panel" aria-label="Personalize">
+            <span class="pz-label" style="margin:0">Personalize</span>
+            <p class="pz-hint" style="margin:0">Layouts built from each contact's images in the Personalize window's image finder.</p>
+            <div class="pz-layouts">
+              ${PERSONALIZED_LAYOUTS.map((l) => `<button type="button" class="pz-layout" data-layout="${l.id}"${l.id === 'brand' ? ' data-brand-overlays="1"' : ''}>
+                <strong><span aria-hidden="true">${l.icon}</span> ${escapeHtml(l.label)}</strong><span>${escapeHtml(l.description)}</span>
+              </button>`).join('')}
+            </div>
+            <div class="pz-actions">
+              <button type="button" class="pz-btn pz-btn-secondary" data-check-contacts="1" title="See every contact's images for this video">🗂️ Check contacts</button>
+              <button type="button" class="pz-btn pz-btn-primary" data-all-video-ready="1" title="Clean up every contact image this video uses (background removal, fixes, Vision QA) on your OpenAI key">✨ Make images Video Ready</button>
+            </div>
+          </section>`;
       els.overlaysPanel?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-add-addon]');
         if (btn) addAddonAtPlayhead(btn.dataset.addAddon);
@@ -4898,7 +4902,7 @@ export function TimelineEditorPage() {
       if (!select) return;
       const contacts = listContactProfiles(contactStore);
       const current = getActivePersonalizationProfile()?.id || '';
-      select.innerHTML = `<option value="">${contacts.length ? 'No contact' : 'No contacts yet'}</option>${contacts.map((p) => `<option value="${escapeHtml(p.id)}"${p.id === current ? ' selected' : ''}>${escapeHtml(contactName(p))}</option>`).join('')}`;
+      select.innerHTML = `<option value="">${contacts.length ? '👤 Preview as: no contact' : '👤 No contacts yet'}</option>${contacts.map((p) => `<option value="${escapeHtml(p.id)}"${p.id === current ? ' selected' : ''}>👤 ${escapeHtml(contactName(p))}</option>`).join('')}`;
       select.disabled = !contacts.length;
       if (!select.dataset.wired) {
         select.dataset.wired = '1';
@@ -4916,14 +4920,18 @@ export function TimelineEditorPage() {
       }
       const cols = keys.length ? keys : ['logoUrl', 'avatarUrl', 'productImageUrl', 'ctaImageUrl'];
       const labels = Object.fromEntries(imageTokenChoices(null).map((c) => [c.key, c.label]));
-      const rows = contacts.map((p) => `<tr><td><button type="button" class="mini-btn" data-preview-contact="${escapeHtml(p.id)}" title="Preview the video as ${escapeHtml(contactName(p))}">${escapeHtml(contactName(p))}</button></td>${cols.map((key) => {
+      const rows = contacts.map((p) => `<tr><td><button type="button" class="pz-contact" data-preview-contact="${escapeHtml(p.id)}" title="Preview the video as ${escapeHtml(contactName(p))}">${escapeHtml(contactName(p))}</button></td>${cols.map((key) => {
         const asset = assetForImageToken(p, key);
         const url = asset?.url;
-        return `<td>${url ? `<span class="contact-check__img" style="background-image:url(${escapeHtml(JSON.stringify(String(url)))})" title="${asset?.videoReady ? 'Video Ready' : 'Not Video Ready yet'}"></span>${asset?.videoReady ? ' ✓' : ''}` : '<span class="contact-check__none">⚠ none</span>'}</td>`;
+        return `<td>${url
+          ? `<span class="pz-cell"><span class="pz-thumb" style="cursor:default;background-image:url(${escapeHtml(JSON.stringify(String(url)))})"></span>${asset?.videoReady ? '<span class="pz-chip">✓ Ready</span>' : ''}</span>`
+          : '<span class="pz-chip pz-chip-warn">⚠ Missing</span>'}</td>`;
       }).join('')}</tr>`).join('');
       openAdvancedModal(`
-        <p class="addon-field__hint">${keys.length ? 'The images this video uses, for every contact.' : 'No Personalized Images on the timeline yet: showing the main contact images.'} ✓ = Video Ready. Click a name to preview the video as that contact.</p>
-        <div style="max-height:60vh;overflow:auto"><table class="contact-check"><thead><tr><th>Contact</th>${cols.map((k) => `<th>${escapeHtml(labels[k] || k)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+        <div class="pz-ui">
+          <p class="pz-hint" style="margin:0 0 8px">${keys.length ? 'The images this video uses, for every contact.' : 'No Personalized Images on the timeline yet: showing the main contact images.'} Click a name to preview the video as that contact.</p>
+          <div style="max-height:60vh;overflow:auto"><table class="pz-table"><thead><tr><th>Contact</th>${cols.map((k) => `<th>${escapeHtml(labels[k] || k)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+        </div>
       `, 'Contact images');
       els.modalBody.querySelectorAll('[data-preview-contact]').forEach((b) => b.addEventListener('click', () => {
         contactStore.selectContact(b.dataset.previewContact);
@@ -7203,12 +7211,14 @@ export function TimelineEditorPage() {
         // Personalized images: contacts with nothing in a slot, then (async)
         // images that no longer load.
         const contacts = exportContacts();
-        list.push(...describeImageGaps(contactImageGaps(state, contacts)));
+        const imageWarnings = describeImageGaps(contactImageGaps(state, contacts));
         if (run !== warningsRun) return;
-        warningsList.innerHTML = list.map((w) => `<li>${escapeHtml(w)}</li>`).join('');
+        // Personalized-image warnings look like the Personalize window's.
+        const imageItem = (w) => `<li class="pz-warning">${escapeHtml(w)}</li>`;
+        warningsList.innerHTML = list.map((w) => `<li>${escapeHtml(w)}</li>`).join('') + imageWarnings.map(imageItem).join('');
         const broken = await findBrokenImages(state, contacts, { probe: browserImageProbe() }).catch(() => []);
         if (run !== warningsRun || !broken.length) return;
-        warningsList.insertAdjacentHTML('beforeend', describeBrokenImages(broken).map((w) => `<li>${escapeHtml(w)}</li>`).join(''));
+        warningsList.insertAdjacentHTML('beforeend', describeBrokenImages(broken).map(imageItem).join(''));
       };
       q('#exportQuality')?.addEventListener('change', refreshWarnings);
       q('#exportFor')?.addEventListener('change', refreshWarnings);
