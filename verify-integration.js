@@ -25,7 +25,6 @@ const requiredFiles = [
   
   // UI Components
   'components/AIVideoCreator.jsx',
-  'components/VideoPersonalizationHub.jsx',
   
   // Pages
   'pages/index.js',

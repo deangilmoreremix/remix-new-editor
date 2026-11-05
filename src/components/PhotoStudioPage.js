@@ -482,9 +482,29 @@ export function PhotoStudioPage() {
         </div>
         <div class="flex gap-2">
           <a href="${result.imageUrl}" download class="btn-secondary-modern text-xs">Download</a>
+          <button type="button" data-photo-personalize class="btn-secondary-modern text-xs" aria-haspopup="dialog">Personalize</button>
           <a href="/animate?sourceType=photoshoot&sourceId=${result.id}" class="btn-primary-modern text-xs">Animate →</a>
         </div>
       `;
+      // Personalize (OpenHiggsBolt photo-studio page): this photo, 1:1.
+      const personalizeBtn = meta.querySelector('[data-photo-personalize]');
+      if (personalizeBtn && result.imageUrl) {
+        personalizeBtn.addEventListener('click', async () => {
+          const { openPersonalization } = await import('../features/personalization/mount.jsx');
+          openPersonalization({
+            studioId: 'photo-studio',
+            studioName: 'Photo Studio',
+            mediaUrl: result.imageUrl,
+            mediaType: 'image',
+            aspectRatio: '1:1',
+            prompt: result.direction || state.direction || '',
+            title: result.styleLabel || 'Product photo',
+            trigger: personalizeBtn,
+          });
+        });
+      } else if (personalizeBtn) {
+        personalizeBtn.remove();
+      }
       card.appendChild(meta);
       resultSection.appendChild(card);
     });

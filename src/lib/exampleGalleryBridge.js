@@ -158,6 +158,44 @@ async function notify(message, type) {
   }
 }
 
+/* -------------------------------------------------------------- personalize */
+
+/**
+ * "Personalize This Demo" (OpenHiggsBolt DemoTemplateActions): open the
+ * personalization modal for a gallery example, with its full prompt loaded.
+ */
+export async function handlePersonalizeDemo(asset, { trigger = null } = {}) {
+  if (!asset) return;
+  const prompt = await resolveAssetPrompt(asset);
+  const { openDemoPersonalization, openPersonalization } = await import('../features/personalization/mount.jsx');
+  if (asset.videoSrc) {
+    openDemoPersonalization(
+      {
+        slug: asset.slug || asset.id,
+        title: asset.title || 'Example',
+        videoSrc: asset.videoSrc,
+        posterSrc: asset.thumbnail || asset.posterSrc || '',
+        prompt,
+        aspectRatio: asset.aspectRatio,
+        category: asset.category,
+        tags: asset.tags,
+        sourceUrl: asset.sourceUrl,
+      },
+      { access: 'authenticated', trigger },
+    );
+    return;
+  }
+  // Image examples open as an image source, like OpenHiggsBolt's image demos.
+  openPersonalization({
+    studioId: asset.studioId || asset.studio || 'image',
+    mediaUrl: asset.thumbnail || asset.posterSrc || '',
+    mediaType: 'image',
+    prompt,
+    title: asset.title,
+    trigger,
+  });
+}
+
 /* -------------------------------------------------------------- detail view */
 
 /**
@@ -192,6 +230,14 @@ export function openAssetDetail(asset, { focusPrompt = false } = {}) {
         id: 'view-prompt',
         label: 'View Prompt',
         onClick: () => detailView.revealPrompt(),
+      },
+      {
+        id: 'personalize',
+        label: 'Personalize This Demo',
+        onClick: () => {
+          MediaDetailView.closeActive();
+          handlePersonalizeDemo(asset);
+        },
       },
       {
         id: 'create-style',

@@ -781,7 +781,7 @@ export function CinemaStudio() {
         };
     }
 
-    // Personalize trigger (opens PersonalizeModal as a pop-up)
+    // Personalize trigger (opens the Personalization + Lead Finder modal)
     const personalizeHandle = mountPersonalizeTrigger({
         controlsContainer: settingsToolbar,
         getTextarea: () => textarea,

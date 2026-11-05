@@ -23,6 +23,7 @@ import {
   injectMinimaxStyles,
 } from '../landing/sections/minimax/ui.js';
 import { createThisStyle } from '../../lib/minimax/createThisStyle.js';
+import { personalizeDemoAsset } from './personalizeDemo.js';
 import {
   describeAsset,
   toMediaDemo,
@@ -217,6 +218,25 @@ export function DemoCard({
             {info.useCase}
           </p>
         ) : null}
+
+        {/* "Personalize This Demo" — same design as the "Create This Style"
+            CTA below (OpenHiggsBolt DemoTemplateActions). */}
+        <button
+          type="button"
+          data-mmx-cta="personalize"
+          aria-label={`Personalize this demo: ${info.title}`}
+          aria-haspopup="dialog"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            personalizeDemoAsset(asset, { source, trigger: event.currentTarget }).catch((error) =>
+              console.error('[DemoCard] "Personalize This Demo" failed', error),
+            );
+          }}
+          className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary py-2 text-xs font-bold text-black transition-all duration-300 hover:shadow-glow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 disabled:cursor-wait disabled:opacity-70"
+        >
+          Personalize This Demo
+        </button>
 
         {/* In-studio CTA uses the studio token (--color-primary via @theme), not
             the landing page's cyan. See roadmap §2.6. */}

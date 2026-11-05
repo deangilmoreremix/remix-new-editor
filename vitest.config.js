@@ -35,6 +35,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '../../lib/socialPublishHelpers': path.resolve(__dirname, 'src/lib/socialPublishHelpers.js'),
+      '@ohb': path.resolve(__dirname, 'src/features/personalization'),
       // tests/unit/timeline-*.unit.spec.ts import through the `@/` layout:
       // `@` is the PROJECT ROOT, so `@/src/components/Timeline` resolves to
       // src/components/Timeline.js and `@/components/base/Component` to

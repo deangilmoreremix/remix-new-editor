@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { consumeStudioPrefill } from '../lib/studioPrefill.js';
 import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -321,10 +322,31 @@ export function ImageStudio() {
         textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px';
     };
 
-    const prefill = localStorage.getItem('prefill_prompt');
+    let prefill = localStorage.getItem('prefill_prompt');
+    if (prefill) localStorage.removeItem('prefill_prompt');
+    // Staged hand-off (e.g. "Edit in Image Studio" from the personalization
+    // modal): the prompt plus an optional reference image, loaded into the
+    // upload picker so the studio opens in image-to-image mode.
+    const stagedPrefill = consumeStudioPrefill('image');
+    if (stagedPrefill) {
+        if (!prefill && stagedPrefill.prompt) prefill = stagedPrefill.prompt;
+        const referenceImageUrl = stagedPrefill.params?.referenceImageUrl;
+        if (typeof referenceImageUrl === 'string' && /^https?:\/\//i.test(referenceImageUrl)) {
+            // picker.setImage() fires onSelect, which updates the model button
+            // (#model-btn-label) — wait until the studio is in the document.
+            let tries = 0;
+            const applyReference = () => {
+                if (!document.getElementById('model-btn-label') && tries++ < 120) {
+                    requestAnimationFrame(applyReference);
+                    return;
+                }
+                try { picker.setImage(referenceImageUrl); } catch (err) { console.warn('[ImageStudio] hand-off image not applied:', err); }
+            };
+            requestAnimationFrame(applyReference);
+        }
+    }
     if (prefill) {
         textarea.value = prefill;
-        localStorage.removeItem('prefill_prompt');
         requestAnimationFrame(() => {
             textarea.style.height = 'auto';
             const maxHeight = window.innerWidth < 768 ? 150 : 250;

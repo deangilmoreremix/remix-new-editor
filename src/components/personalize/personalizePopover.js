@@ -2,22 +2,21 @@
 //
 // Trigger button + token utilities for the Personalize modal.
 //
-// The popover is now a proper themed `BaseModal` (see
-// `../modals/PersonalizeModal.jsx`). This module mounts the trigger button
+// The button opens the Personalization + Lead Finder modal ported from
+// OpenHiggsBolt (`src/features/personalization/mount.jsx`). This module mounts the trigger button
 // into a host app's controls container and exports the token-insertion /
 // token-replacement helpers the modal and host apps share.
 //
 // Responsibilities of this module:
 //   - Mount a "Personalize" button into any controls container
-//   - On click, open the PersonalizeModal (BaseModal subclass)
+//   - On click, open the Personalization + Lead Finder modal
 //   - Export `insertTokenAtCursor` for inline token insertion
 //   - Export `replaceTokensInPrompt` for host-app token replacement at
 //     generation time
 //   - Auto-open the modal when `remix_open_personalize === 'true'` is set
 //
-// The modal itself handles Maigret scan, GitHub lookup, website crawl,
-// OpenAI enrichment, localStorage persistence, profile display, and
-// token chip rendering. See `./modals/PersonalizeModal.jsx`.
+// The modal itself handles the lead finder (business search + saved leads),
+// brand asset discovery, the guided personalize wizard and generation.
 
 // The popover is self-contained: it reads/writes localStorage directly
 // using the same key shape as the rest of the personalizer code. The
@@ -128,7 +127,7 @@ export function inspectPromptTokens(prompt, profile) {
 
 /**
  * Mount a "Personalize" trigger button into `controlsContainer`. Clicking the
- * button opens the `PersonalizeModal` (BaseModal subclass) as a pop-up dialog.
+ * button opens the Personalization + Lead Finder modal (src/features/personalization).
  *
  * Available in every video/image creation module (VideoStudio, ImageStudio,
  * CinemaStudio, CharacterStudio, etc.).
@@ -154,7 +153,7 @@ export function inspectPromptTokens(prompt, profile) {
 
   /**
    * Backward-compatible alias: the old name `mountPersonalizePopover` now mounts
-   * a trigger button that opens the PersonalizeModal (no more inline popover).
+   * a trigger button that opens the Personalization + Lead Finder modal.
    *
    * @deprecated Use `mountPersonalizeTrigger` instead.
    */
@@ -206,46 +205,54 @@ export function inspectPromptTokens(prompt, profile) {
   button.appendChild(arrowSvg);
   controlsContainer.appendChild(button);
 
-  // Lazy-load the modal class so host apps that only need the trigger don't
-  // pay the cost of the full BaseModal/PersonalizeModal bundle.
-  let modal = null;
-  let modalPromise = null;
-  const ensureModal = async () => {
-    if (modal) return modal;
-    if (!modalPromise) {
-      modalPromise = import('../modals/PersonalizeModal.jsx').then((m) => {
-        // Forward the host app's callbacks. These used to be dropped here,
-        // which meant no studio could ever react to "Apply personalization".
-        modal = new m.PersonalizeModal({
-          appId,
-          appTheme,
-          getTextarea,
-          studioId,
-          studioName,
-          returnRoute,
-          getAsset,
-          getProject,
-          getPersonalizableFields,
-          getPreview,
-          onSendToPersonalizer,
-          onApply: (detail) => {
-            refresh();
-            if (typeof onApply === 'function') onApply(detail);
-          },
-          onClear: () => {
-            refresh();
-            if (typeof onClear === 'function') onClear();
-          },
-        });
-        return modal;
-      });
-    }
-    return modalPromise;
+  // Lazy-load the Personalization + Lead Finder modal (ported from
+  // OpenHiggsBolt, see src/features/personalization). It is a React island,
+  // so host apps that only need the trigger don't pay for the bundle until
+  // the button is clicked.
+  const readContext = () => {
+    const textarea = typeof getTextarea === 'function' ? getTextarea() : null;
+    let asset = null;
+    try { asset = typeof getAsset === 'function' ? getAsset() : null; } catch { asset = null; }
+    let mediaUrl = '';
+    try { mediaUrl = (typeof getPreview === 'function' ? getPreview() : '') || asset?.previewUrl || ''; } catch { mediaUrl = ''; }
+    // Blob/data URLs can't be fetched by the server-side discovery and
+    // generation routes; open prompt-only instead.
+    if (/^(blob:|data:)/i.test(mediaUrl)) mediaUrl = '';
+    const fields = Array.isArray(asset?.fields) ? asset.fields : [];
+    const fieldValue = (id) => fields.find((f) => f && f.id === id)?.value;
+    // The asset's type describes the studio's OUTPUT. It only says what the
+    // preview is when the preview is that output; a studio can preview a
+    // reference/first-frame image instead (Cinema Studio before a video
+    // exists), which mount.jsx then classifies from the URL itself.
+    const referenceUrls = [fieldValue('firstFrameUrl'), fieldValue('lastFrameUrl')]
+      .concat(Array.isArray(fieldValue('referenceImages')) ? fieldValue('referenceImages') : []);
+    const previewIsReferenceImage = Boolean(mediaUrl) && referenceUrls.includes(mediaUrl);
+    const typeHint = previewIsReferenceImage
+      ? 'image'
+      : asset?.type === 'video' ? 'video' : asset?.type === 'image' ? 'image' : undefined;
+    return {
+      studioId,
+      studioName,
+      appId,
+      mediaUrl,
+      mediaType: typeHint,
+      prompt: textarea?.value || fieldValue('prompt') || '',
+      model: fieldValue('model') || undefined,
+      aspectRatio: fieldValue('aspectRatio') || undefined,
+      title: asset?.title || undefined,
+    };
   };
 
   const open = async () => {
-    const m = await ensureModal();
-    m.open();
+    const { openPersonalization } = await import('../../features/personalization/mount.jsx');
+    openPersonalization({
+      ...readContext(),
+      trigger: button,
+      onComplete: (completion) => {
+        refresh();
+        if (typeof onApply === 'function') onApply({ completion, returnRoute, appId, appTheme, onSendToPersonalizer, onClear });
+      },
+    });
   };
 
   button.onclick = (e) => {
@@ -294,7 +301,7 @@ export function inspectPromptTokens(prompt, profile) {
     open,
     refresh,
     destroy,
-    getModal: () => modal,
+    getModal: () => null,
     getActiveProfile: () => {
       const id = getSelectedContactId();
       return id ? _getProfile(id) : null;

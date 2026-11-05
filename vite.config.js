@@ -1022,6 +1022,9 @@ export default defineConfig({
             '@higgsfield/style-templates': path.resolve(__dirname, 'packages/style-templates/src'),
             '@higgsfield/video-compiler': path.resolve(__dirname, 'packages/video-compiler/src'),
             '@higgsfield/ai-chat': path.resolve(__dirname, 'packages/ai-chat/src'),
+            // Personalization + Lead Finder system ported from OpenHiggsBolt.
+            // The copied files keep OpenHiggsBolt's folder layout under this root.
+            '@ohb': path.resolve(__dirname, 'src/features/personalization'),
         },
     },
     plugins: [
@@ -1336,6 +1339,44 @@ export default defineConfig({
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api\/intelligence/, '/.netlify/functions/intelligence-api'),
+            },
+            // Personalization + Lead Finder API (netlify/functions/personalization-api.mts).
+            // The function declares these paths itself (config.path), so
+            // `netlify dev` serves them as-is on :8888 — no rewrite.
+            '/api/personalization/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/demo/discover': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/video/record': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/proxy/openai-enhance': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // OpenHiggsBolt MuAPI proxy, upload route and template preview clips,
+            // served by the same personalization function.
+            '/api/api/v1/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/v1/upload_file': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/media/shotcraft/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // Motion Director: director chat + page capture (netlify/functions/personalization-api.mts).
+            '/api/motion-studio/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
             },
             '/api/personalizer': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
