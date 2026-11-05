@@ -631,7 +631,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // shortcut appeared to do nothing. Fixed by resolving the stored token
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', '084e7986325e72ed5a220a684e746912d8db50615cba8f06dfeeb8b1dbca4270'],
+    ['src/components/TimelineEditorPage.jsx', 'ea1e5ad4cfe98ee19ec0a1231f066f0dc1e75aadfae06da904eaea7cb6470ca7'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -916,7 +916,11 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain("from '../lib/personalization/timelineAssets.js';");
     expect(source).toContain("import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';");
     expect(source).toContain('imageTokens: () => imageTokenChoices(getActivePersonalizationProfile())');
-    expect(source).toContain('function addBrandOverlays()');
+    expect(source).toContain('function addLayout(layoutId)');
+    // Video Ready runs through the shared image-finder pipeline and stores
+    // through the shared /api/personalizer import route.
+    expect(source).toContain("import { makePersonalizationAssetVideoReady } from '../lib/personalization/videoReady.js';");
+    expect(source).toContain("import { persistPersonalizationAssetVersion } from '../lib/personalization/assetDiscoveryService.js';");
     // Personalized-image readiness checks in Export and the share panel.
     expect(source).toContain("from '../lib/personalization/imageReadiness.js';");
     expect(source).toContain('describeImageGaps(contactImageGaps(state, contacts))');

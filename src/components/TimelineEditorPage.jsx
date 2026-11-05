@@ -32,14 +32,17 @@ import {
   BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
   openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES, resolveOverlayText,
 } from '../lib/editor/addons/index.js';
-import { TOKEN_DEFS } from './personalize/tokenSchema.js';
+import { TOKEN_DEFS, resolveToken } from './personalize/tokenSchema.js';
 import { openSmartSpeechModal } from '../lib/editor/agent/smartSpeechModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import * as contactStore from '../lib/contactStore.js';
-import { buildBrandOverlayPlan, imageTokenChoices, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
+import { PERSONALIZED_LAYOUTS, assetForImageToken, buildLayoutPlan, imageTokenChoices, imageTokenOf, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
+import { measureImageLuminance } from '../lib/personalization/imageStyle.js';
+import { makePersonalizationAssetVideoReady } from '../lib/personalization/videoReady.js';
+import { persistPersonalizationAssetVersion } from '../lib/personalization/assetDiscoveryService.js';
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
 import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
-import { addPersonalizationAsset, setDiscoveredPersonalizationAssets } from '../lib/personalization/personalizationProfile.js';
+import { addPersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
 import { listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
@@ -459,6 +462,7 @@ export function TimelineEditorPage() {
                    <button class="viewer-mode-btn" data-viewer="source" title="Source viewer">Source</button>
                    <button class="viewer-mode-btn" data-viewer="split" title="Split view">Split</button>
                  </div>
+                 <label class="contact-switcher" title="Preview the video as each contact sees it"><span aria-hidden="true">👤</span><select id="previewContactSelect" aria-label="Preview as contact"></select></label>
                </div>
             </div>
             <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
@@ -1185,6 +1189,7 @@ export function TimelineEditorPage() {
       // Overlays drawn in the page (no engine) and the open Personalized
       // Image settings show the new contact's images too.
       try { renderOverlayLayer(); } catch { /* not mounted yet */ }
+      try { renderContactSwitcher(); } catch { /* not mounted yet */ }
       try {
         const selected = state.selectedClipId != null ? state.tracks.flatMap((t) => t.items || []).find((c) => c.id === state.selectedClipId) : null;
         if (selected?.type === 'overlay-personalized-image') renderClipEditor(selected.id);
@@ -4557,13 +4562,22 @@ export function TimelineEditorPage() {
         .map((name) => `<div class="addon-panel__section"><h4 class="addon-panel__heading">${name}</h4><div class="addon-panel__grid">${sections[name].join('')}</div></div>`)
         .join('')
         + `<div class="addon-panel__section"><h4 class="addon-panel__heading">Personalize</h4><div class="addon-panel__grid">
-            <button type="button" class="addon-panel__item" data-brand-overlays="1" title="Each contact's logo in the corner and their CTA at the end, from the Personalize window's image finder">
-              <span aria-hidden="true">🏷️</span><span>Logo + CTA end card</span>
+            ${PERSONALIZED_LAYOUTS.map((l) => `<button type="button" class="addon-panel__item" data-layout="${l.id}"${l.id === 'brand' ? ' data-brand-overlays="1"' : ''} title="${escapeHtml(l.description)}, from the Personalize window's image finder">
+              <span aria-hidden="true">${l.icon}</span><span>${escapeHtml(l.label)}</span>
+            </button>`).join('')}
+            <button type="button" class="addon-panel__item" data-check-contacts="1" title="See every contact's images for this video">
+              <span aria-hidden="true">🗂️</span><span>Check contacts</span>
+            </button>
+            <button type="button" class="addon-panel__item" data-all-video-ready="1" title="Clean up every contact image this video uses (background removal, fixes, Vision QA) on your OpenAI key">
+              <span aria-hidden="true">✨</span><span>Make images Video Ready</span>
             </button></div></div>`;
       els.overlaysPanel?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-add-addon]');
         if (btn) addAddonAtPlayhead(btn.dataset.addAddon);
-        if (e.target.closest('[data-brand-overlays]')) addBrandOverlays();
+        const layout = e.target.closest('[data-layout]');
+        if (layout) addLayout(layout.dataset.layout);
+        if (e.target.closest('[data-check-contacts]')) openContactImageCheck();
+        if (e.target.closest('[data-all-video-ready]')) makeAllVideoReady();
       });
     }
 
@@ -4748,7 +4762,174 @@ export function TimelineEditorPage() {
       },
       finderImages: () => listTimelineImageAssets(getActivePersonalizationProfile()),
       useFinderImage: (index) => useImageFinderImage(listTimelineImageAssets(getActivePersonalizationProfile())[index]),
+      // The selected contact's image behind a Personalized Image's token.
+      contactImage: (src) => {
+        const profile = getActivePersonalizationProfile();
+        const key = imageTokenOf(src);
+        const asset = key ? assetForImageToken(profile, key) : null;
+        if (!asset?.url) return null;
+        return {
+          url: asset.url,
+          focus: asset.focus || null,
+          videoReady: Boolean(asset.videoReady),
+          busy: videoReadyBusy.has(asset.id),
+          contact: contactName(profile),
+          label: imageTokenChoices(profile).find((c) => c.key === key)?.label?.toLowerCase() || 'image',
+        };
+      },
+      setImageFocus: (src, x, y) => {
+        const key = imageTokenOf(src);
+        const profile = getActivePersonalizationProfile();
+        const asset = key ? assetForImageToken(profile, key) : null;
+        if (!asset?.id) return;
+        saveContactAsset(profile, asset.id, (a) => ({ ...a, focus: { x, y } }));
+      },
+      makeVideoReady: (src, redraw) => makeContactImageVideoReady(getActivePersonalizationProfile(), imageTokenOf(src), redraw),
     };
+
+    // Update one saved image on a contact and refresh what shows it.
+    function saveContactAsset(profile, assetId, updater) {
+      if (!profile || !assetId) return null;
+      const next = updatePersonalizationAsset(profile, assetId, updater);
+      const saved = contactStore.saveProfile(next);
+      try { renderOverlayLayer(); } catch { /* not mounted */ }
+      scheduleEngineUpdate();
+      return saved;
+    }
+
+    // "Make Video Ready" (the image finder's cleanup: background removal,
+    // fixes, checked by Vision QA) for a contact's image, from the editor.
+    // Runs on the user's own OpenAI key like the Personalize window.
+    const videoReadyBusy = new Set();
+    async function makeContactImageVideoReady(profile, key, redraw) {
+      const asset = key ? assetForImageToken(profile, key) : null;
+      if (!profile || !asset?.url || asset.videoReady || videoReadyBusy.has(asset.id)) return false;
+      videoReadyBusy.add(asset.id);
+      redraw?.();
+      const business = profile.personalization?.business || {};
+      try {
+        const result = await makePersonalizationAssetVideoReady(asset, {
+          businessContext: {
+            businessName: business.businessName,
+            industry: business.industry,
+            productService: business.productService,
+            brandDescription: business.brandDescription,
+          },
+        });
+        const stored = await persistPersonalizationAssetVersion({
+          sourceUrl: result.url,
+          role: asset.role,
+          name: `${asset.name || asset.role} — Video Ready`,
+        });
+        const fresh = contactStore.getProfile?.(profile.id) || profile;
+        saveContactAsset(fresh, asset.id, (a) => ({
+          ...a,
+          ...result,
+          url: stored.url,
+          originalUrl: a.originalUrl || asset.url,
+          luminance: undefined,
+          versions: [...(Array.isArray(a.versions) ? a.versions : []), { id: `${a.id}:video-ready:${Date.now()}`, url: stored.url, type: 'video_ready', createdAt: new Date().toISOString() }],
+        }));
+        if (key === 'logoUrl') measureLogos([contactStore.getProfile?.(profile.id) || fresh]);
+        showToast(`${contactName(profile)}'s ${key === 'avatarUrl' ? 'photo' : 'image'} is Video Ready`, 'success');
+        return true;
+      } catch (err) {
+        const msg = err?.code === 'VISION_QA_REVIEW_REQUIRED'
+          ? `Video Ready needs a review for ${contactName(profile)}: open the Personalize window's image finder to check it`
+          : `Video Ready failed for ${contactName(profile)}: ${err?.message || err}`;
+        showToast(msg, 'error');
+        return false;
+      } finally {
+        videoReadyBusy.delete(asset.id);
+        redraw?.();
+      }
+    }
+
+    // Images the timeline's Personalized Images use, for every contact.
+    function projectImageKeys() {
+      return [...new Set(state.tracks.flatMap((t) => t.items || [])
+        .filter((c) => c.type === 'overlay-personalized-image')
+        .map((c) => imageTokenOf(c.addon?.src))
+        .filter(Boolean))];
+    }
+
+    async function makeAllVideoReady() {
+      const keys = projectImageKeys();
+      if (!keys.length) {
+        showToast('Add a Personalized Image (or a layout below) first', 'info');
+        return;
+      }
+      const jobs = [];
+      listContactProfiles(contactStore).forEach((p) => keys.forEach((key) => {
+        const asset = assetForImageToken(p, key);
+        if (asset?.url && !asset.videoReady) jobs.push([p, key]);
+      }));
+      if (!jobs.length) {
+        showToast('Every contact image this video uses is already Video Ready', 'success');
+        return;
+      }
+      let done = 0;
+      for (const [p, key] of jobs) {
+        showToast(`Making images Video Ready: ${done + 1} of ${jobs.length} (${contactName(p)})…`, 'info');
+        if (await makeContactImageVideoReady(contactStore.getProfile?.(p.id) || p, key)) done += 1;
+      }
+      showToast(`${done} of ${jobs.length} images are now Video Ready${done < jobs.length ? ' — the rest need a look in the image finder' : ''}`, done === jobs.length ? 'success' : 'info');
+    }
+
+    // Logo brightness for the "Auto" backing plate, measured once per logo
+    // and saved on the contact's image.
+    const measuring = new Set();
+    async function measureLogos(profiles = listContactProfiles(contactStore)) {
+      for (const p of profiles) {
+        const logo = assetForImageToken(p, 'logoUrl');
+        if (!logo?.url || logo.luminance != null || measuring.has(logo.url)) continue;
+        measuring.add(logo.url);
+        const lum = await measureImageLuminance(logo.url);
+        measuring.delete(logo.url);
+        if (lum == null) continue;
+        const fresh = contactStore.getProfile?.(p.id) || p;
+        saveContactAsset(fresh, logo.id, (a) => ({ ...a, luminance: lum }));
+      }
+    }
+
+    // Preview as: the contact whose details and images the preview shows.
+    function renderContactSwitcher() {
+      const select = root.querySelector('#previewContactSelect');
+      if (!select) return;
+      const contacts = listContactProfiles(contactStore);
+      const current = getActivePersonalizationProfile()?.id || '';
+      select.innerHTML = `<option value="">${contacts.length ? 'No contact' : 'No contacts yet'}</option>${contacts.map((p) => `<option value="${escapeHtml(p.id)}"${p.id === current ? ' selected' : ''}>${escapeHtml(contactName(p))}</option>`).join('')}`;
+      select.disabled = !contacts.length;
+      if (!select.dataset.wired) {
+        select.dataset.wired = '1';
+        select.addEventListener('change', () => contactStore.selectContact(select.value || null));
+      }
+    }
+
+    // A table of every contact's images for the slots this video uses.
+    function openContactImageCheck() {
+      const keys = projectImageKeys();
+      const contacts = listContactProfiles(contactStore);
+      if (!contacts.length) {
+        showToast('Add contacts in the Personalize window first', 'info');
+        return;
+      }
+      const cols = keys.length ? keys : ['logoUrl', 'avatarUrl', 'productImageUrl', 'ctaImageUrl'];
+      const labels = Object.fromEntries(imageTokenChoices(null).map((c) => [c.key, c.label]));
+      const rows = contacts.map((p) => `<tr><td><button type="button" class="mini-btn" data-preview-contact="${escapeHtml(p.id)}" title="Preview the video as ${escapeHtml(contactName(p))}">${escapeHtml(contactName(p))}</button></td>${cols.map((key) => {
+        const asset = assetForImageToken(p, key);
+        const url = asset?.url;
+        return `<td>${url ? `<span class="contact-check__img" style="background-image:url(${escapeHtml(JSON.stringify(String(url)))})" title="${asset?.videoReady ? 'Video Ready' : 'Not Video Ready yet'}"></span>${asset?.videoReady ? ' ✓' : ''}` : '<span class="contact-check__none">⚠ none</span>'}</td>`;
+      }).join('')}</tr>`).join('');
+      openAdvancedModal(`
+        <p class="addon-field__hint">${keys.length ? 'The images this video uses, for every contact.' : 'No Personalized Images on the timeline yet: showing the main contact images.'} ✓ = Video Ready. Click a name to preview the video as that contact.</p>
+        <div style="max-height:60vh;overflow:auto"><table class="contact-check"><thead><tr><th>Contact</th>${cols.map((k) => `<th>${escapeHtml(labels[k] || k)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+      `, 'Contact images');
+      els.modalBody.querySelectorAll('[data-preview-contact]').forEach((b) => b.addEventListener('click', () => {
+        contactStore.selectContact(b.dataset.previewContact);
+        closeModal();
+      }));
+    }
 
     // A picked image-finder image as a durable URL. Images found on the
     // business's website but not saved yet are saved to the contact first;
@@ -4779,17 +4960,19 @@ export function TimelineEditorPage() {
       }
     }
 
-    // "Logo + CTA end card": the contact's exact logo in the corner for the
-    // whole video and their CTA at the end, as Personalized Image / Smart
-    // Text overlays, so every contact gets their own.
-    function addBrandOverlays() {
+    // One-click personalized layouts (Overlays → Personalize): Logo + CTA
+    // end card, presenter intro, product spotlight, opening frame. All built
+    // from tokens, so every contact gets their own.
+    function addLayout(layoutId) {
       const profile = getActivePersonalizationProfile();
+      const layout = PERSONALIZED_LAYOUTS.find((l) => l.id === layoutId);
+      if (!layout) return;
       if (!profile) {
         showToast('Select a contact in the Personalize window first', 'info');
         return;
       }
       const T = state.timelineSeconds || 60;
-      const plan = buildBrandOverlayPlan(profile, { timelineSeconds: T });
+      const plan = buildLayoutPlan(layoutId, profile, { timelineSeconds: T, startSec: (state.playheadPercent / 100) * T });
       if (!plan.length) {
         showToast(`${contactName(profile)} has no logo, CTA graphic or CTA text yet. Add them in the Personalize window's image finder.`, 'info');
         return;
@@ -4798,6 +4981,7 @@ export function TimelineEditorPage() {
       let last = null;
       plan.forEach((item) => {
         const clip = createAddonClip(item.type, { startSec: item.startSec, timelineSeconds: T });
+        clip.start = item.startSec;
         clip.end = item.endSec;
         clip.addon = { ...clip.addon, ...item.addon };
         clip.name = item.name;
@@ -4805,9 +4989,14 @@ export function TimelineEditorPage() {
         last = clip;
       });
       if (last) showClipEditor(last.id);
+      if (plan.some((i) => i.addon?.plate === 'auto')) measureLogos();
       scheduleEngineUpdate();
       debouncedSave();
-      showToast(`Added ${plan.map((i) => i.name).join(' + ')}`, 'success');
+      const missing = listContactProfiles(contactStore).filter((p) => plan.some((i) => {
+        const key = imageTokenOf(i.addon?.src);
+        return key && !resolveToken(p, key);
+      })).length;
+      showToast(`Added ${layout.label}${missing ? ` — ${missing} contact${missing === 1 ? ' has' : 's have'} no image for it yet (Check contacts)` : ''}`, missing ? 'info' : 'success');
     }
 
     // Settings panel for schema-driven addons (Skip / Pause / Loop). Mirrors
@@ -8642,6 +8831,9 @@ export function TimelineEditorPage() {
       bindEvents();
       bindInteractivePanel();
       renderOverlaysPanel();
+      renderContactSwitcher();
+      // Logo brightness for "Auto" backing plates (once per logo, saved).
+      setTimeout(() => { measureLogos().catch(() => {}); }, 1500);
       renderBlendPanel();
       bindOverlayPresets();
       initRemotionEngine();
