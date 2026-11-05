@@ -4944,14 +4944,34 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
   // ── Result actions ─────────────────────────────────────────────────────────
 
-  const editInImageStudio = useCallback(() => {
+  const editInImageStudio = useCallback(async () => {
     if (!lastResultRef.current || !lastProjectRef.current || lastResultRef.current.type !== 'image') return
     const result = lastResultRef.current
     const project = lastProjectRef.current
     const prompt = result.prompt || project.personalizedPrompt || project.source.originalPrompt || ''
-    const safeUrl = result.url && !result.url.startsWith('blob:') ? result.url : (project.source.sourceMedia && !project.source.sourceMedia.startsWith('blob:') ? project.source.sourceMedia : null)
+    let safeUrl = result.url && !result.url.startsWith('blob:') ? result.url : (project.source.sourceMedia && !project.source.sourceMedia.startsWith('blob:') ? project.source.sourceMedia : null)
 
     if (!safeUrl) return
+
+    // A generated image can come back as a base64 data URL. The studios only
+    // accept http(s) references, so store the bytes and hand off that URL.
+    if (safeUrl.startsWith('data:')) {
+      try {
+        const match = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(safeUrl)
+        if (!match) return
+        const type = match[1] || 'image/png'
+        const raw = match[2] ? atob(match[3]) : decodeURIComponent(match[3])
+        const bytes = new Uint8Array(raw.length)
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i)
+        const ext = type === 'image/jpeg' ? 'jpg' : type === 'image/webp' ? 'webp' : 'png'
+        const file = new File([bytes], `personalized-image.${ext}`, { type })
+        const { url } = await uploadPersonalizationAsset(apiKey, { file })
+        if (!url) return
+        safeUrl = url
+      } catch {
+        return
+      }
+    }
 
     const handoff = {
       version: 1 as const,
@@ -4977,7 +4997,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
     closePersonalize()
     router.push('/studio/image')
-  }, [closePersonalize, router])
+  }, [apiKey, closePersonalize, router])
 
   const editInVideoStudio = useCallback(() => {
     if (!lastResultRef.current || !lastProjectRef.current || lastResultRef.current.type !== 'video') return
@@ -4988,7 +5008,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     const referenceImageUrl = getGenerationAssetUrl(project.assets.primaryIdentity)
     const firstFrameUrl = getGenerationAssetUrl(project.assets.firstFrame)
 
-    if (!videoUrl || !referenceImageUrl) return
+    // A replacement identity is optional (Recreate mode has none), so only the
+    // finished video is required; the studio opens with whichever reference exists.
+    if (!videoUrl) return
 
     const handoff = {
       version: 1 as const,
@@ -4998,7 +5020,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       aspectRatio: (project.source.aspectRatio as '16:9' | '9:16' | '1:1' | null) || '16:9',
       episodeDuration: project.source.duration || 0,
       videoUrl,
-      referenceImageUrl,
+      referenceImageUrl: referenceImageUrl || firstFrameUrl || null,
       characterNames: project.assets.identities.map((i) => i.name).filter(Boolean),
       shots: prompt
         ? [{ scene: project.source.title || 'Personalized', prompt, duration: project.source.duration || 0, characterNames: [] }]
