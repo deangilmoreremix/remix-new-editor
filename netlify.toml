@@ -1,6 +1,10 @@
 # Netlify build configuration
+#
+# Netlify is the only CI/CD for this project (GitHub Actions workflows were
+# removed). Every deploy — production, branch deploys and deploy previews —
+# runs ESLint first, so a lint error fails the deploy instead of shipping.
 [build]
-  command = "npm install --include=optional && npm run build"
+  command = "npm install --include=optional && npm run lint && npm run build"
   publish = "dist"
 
 [build.environment]
