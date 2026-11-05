@@ -28,6 +28,25 @@
 
 import { resolveSocialToken } from '../../lib/socialIdentity.js';
 
+function personalizationAssets(profile) {
+  const assets = profile?.personalization?.assets;
+  return assets && typeof assets === 'object' ? assets : {};
+}
+
+function assetUrl(asset) {
+  if (!asset) return null;
+  if (typeof asset === 'string') return asset;
+  return asset.url || asset.originalUrl || null;
+}
+
+/** The primary asset of a list (by id), else the first one. */
+function primaryAssetUrl(profile, listKey, primaryKey) {
+  const assets = personalizationAssets(profile);
+  const list = Array.isArray(assets[listKey]) ? assets[listKey].filter(Boolean) : [];
+  if (!list.length) return null;
+  return assetUrl(list.find((a) => a?.id && a.id === assets[primaryKey]) || list[0]);
+}
+
 /**
  * Canonical token definitions.
  *
@@ -36,6 +55,9 @@ import { resolveSocialToken } from '../../lib/socialIdentity.js';
  * - `paths`  — ordered fallback lookups into the nested profile object,
  *              used when `profile.variables[key]` is absent/empty
  * - `aliases`— extra spellings that should resolve to this key
+ * - `resolve`— optional live lookup tried before `variables` and `paths`
+ *              (image tokens: the saved `variables` map can be stale)
+ * - `kind`   — 'image' for tokens that resolve to an image URL
  */
 export const TOKEN_DEFS = [
   { key: 'firstName', label: 'First Name', paths: ['contact.firstName'] },
@@ -61,17 +83,37 @@ export const TOKEN_DEFS = [
     aliases: ['summary'],
   },
   { key: 'brandColor', label: 'Brand Color', paths: ['brand.colors.primary'], aliases: ['primaryColor'] },
-  { key: 'logoUrl', label: 'Logo', paths: ['assets.logos.0'], aliases: ['logo'] },
+  // Image tokens. `resolve` reads the images saved by the Personalize
+  // window's image finder (profile.personalization.assets) live, so a logo
+  // replaced or edited there shows up immediately; `paths` keep older
+  // profiles (profile.assets.*) working. `kind: 'image'` lists the token in
+  // image pickers (e.g. the timeline's Personalized Image).
+  {
+    key: 'logoUrl',
+    label: 'Logo',
+    kind: 'image',
+    resolve: (p) => primaryAssetUrl(p, 'logos', 'primaryLogoId'),
+    paths: ['assets.logos.0'],
+    aliases: ['logo'],
+  },
   {
     key: 'avatarUrl',
     label: 'Avatar',
+    kind: 'image',
+    resolve: (p) => primaryAssetUrl(p, 'identities', 'primaryIdentityId'),
     paths: ['assets.avatar.0', 'assets.avatars.0', 'contact.avatarUrl'],
-    aliases: ['avatar'],
+    // `image` is the original editor's Personalized Image default token.
+    aliases: ['avatar', 'presenterPhoto', 'photo', 'image'],
   },
+  { key: 'productImageUrl', label: 'Product Image', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).products?.[0]), aliases: ['productImage'] },
+  { key: 'brandImageUrl', label: 'Brand Image', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).brandReferences?.[0]), aliases: ['brandImage'] },
+  { key: 'ctaImageUrl', label: 'CTA Graphic', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).ctaGraphic), aliases: ['ctaImage', 'ctaGraphic'] },
+  { key: 'firstFrameUrl', label: 'Opening Frame', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).firstFrame), aliases: ['firstFrame'] },
+  { key: 'lastFrameUrl', label: 'Closing Frame', kind: 'image', resolve: (p) => assetUrl(personalizationAssets(p).lastFrame), aliases: ['lastFrame'] },
   { key: 'github', label: 'GitHub', paths: ['social.github'] },
   { key: 'linkedin', label: 'LinkedIn', paths: ['social.linkedin'] },
   { key: 'twitter', label: 'X / Twitter', paths: ['social.twitter'], aliases: ['x'] },
-  { key: 'website', label: 'Website', paths: ['social.website', 'website.url'], aliases: ['site', 'url'] },
+  { key: 'website', label: 'Website', paths: ['social.website', 'website.url', 'personalization.business.website'], aliases: ['site', 'url'] },
   { key: 'businessName', label: 'Business Name', paths: ['personalization.business.businessName', 'company.name', 'contact.company'] },
   { key: 'businessPhone', label: 'Business Phone', paths: ['personalization.business.phone', 'contact.phone', 'contact.email', 'website.url', 'social.website'], aliases: ['phone'] },
   { key: 'productService', label: 'Product / Service', paths: ['personalization.business.productService', 'intelligence.products.0', 'intelligence.services.0'] },
@@ -86,6 +128,9 @@ export const TOKEN_LABELS = TOKEN_DEFS.reduce((acc, def) => {
   acc[def.key] = def.label;
   return acc;
 }, {});
+
+/** Tokens that resolve to an image URL, for image pickers. */
+export const IMAGE_TOKEN_DEFS = TOKEN_DEFS.filter((d) => d.kind === 'image');
 
 /** Ordered list of canonical token keys. */
 export const TOKEN_KEYS = TOKEN_DEFS.map((d) => d.key);
@@ -170,6 +215,10 @@ export function resolveToken(profile, rawName) {
   if (!profile) return null;
   const key = canonicalTokenKey(rawName);
   const vars = profile.variables || {};
+
+  // 0) Live lookup (image tokens read the image finder's saved assets).
+  const live = key ? KEY_TO_DEF[key]?.resolve?.(profile) : null;
+  if (isUsable(live)) return String(live);
 
   // 1) Canonical key in the variables map.
   if (key && isUsable(vars[key])) return String(vars[key]);
