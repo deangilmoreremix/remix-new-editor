@@ -631,7 +631,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // shortcut appeared to do nothing. Fixed by resolving the stored token
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', 'e1cd7320b1215a4958e9da402dffb7c0ec85110513ad67294e3ab028f615b475'],
+    ['src/components/TimelineEditorPage.jsx', '12827715d56e98be734dbbba4798dc39e7288d3ec2c94997e9100a722473caa2'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -921,6 +921,10 @@ describe('protected files — semantic integrity assertions', () => {
     // and are stored through the same /api/personalizer import route.
     expect(source).toContain("import { generateImage as generateAiImage } from '../lib/editor/aiImageService.js';");
     expect(source).toContain('function fillMissingWithAi(jobs, onProgress)');
+    // AI clip per contact: generation through the shared muapi singleton,
+    // stored through the shared uploadFileToStorage entry point.
+    expect(source).toContain('const result = await muapi.generateI2V({');
+    expect(source).toContain('const stored = await uploadFileToStorage(new File([blob], `ai-clip-${job.contactId}.mp4`');
     // Video Ready runs through the shared image-finder pipeline and stores
     // through the shared /api/personalizer import route.
     expect(source).toContain("import { makePersonalizationAssetVideoReady } from '../lib/personalization/videoReady.js';");
