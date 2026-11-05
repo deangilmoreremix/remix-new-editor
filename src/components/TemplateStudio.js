@@ -1,4 +1,5 @@
 import { getTemplateById } from '../lib/templates.js';
+import { showToast } from '../lib/loading.js';
 import { normalizeTemplate } from '../lib/templateAdapter.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
@@ -11,7 +12,7 @@ import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel, dropUndeclaredSettings, modelTakesAspectRatio } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel, promptlessV2VBlock, endFrameSupport, dropUndeclaredSettings, modelTakesAspectRatio } from '../lib/templateMedia.js';
 import { navigate } from '../lib/router.js';
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
@@ -77,6 +78,9 @@ export function TemplateStudio(templateId) {
   let aspectRatioNote = null;
   // Set by the model picker: switches its model list when the route changes.
   let syncModelPickerToRoute = null;
+  // The model the user chose themselves (model picker or list), as opposed
+  // to one switched in automatically when media changes the route.
+  let explicitModelPick = null;
   // Mode of the variant picked in the Video / Image Studio model picker
   // (t2v / i2v / v2v / t2i / i2i); null until the user picks one.
   let pickedMode = null;
@@ -561,6 +565,7 @@ export function TemplateStudio(templateId) {
             loadingMessage: 'Loading models...',
             onSelectModel: (model) => {
               selectedModel = model.id;
+              explicitModelPick = model.id;
               routeModelPicks[pickerRoute] = model.id;
               updateTrigger();
               if (videoSettings) videoSettings.refresh();
@@ -639,6 +644,7 @@ export function TemplateStudio(templateId) {
         currentMode: pickerRoute,
         onPick: (modelId, mode) => {
           selectedModel = modelId;
+          explicitModelPick = modelId;
           pickedMode = mode || null;
           if (pickedMode) routeModelPicks[pickedMode] = modelId;
           refreshMediaRoute();
@@ -1274,16 +1280,26 @@ export function TemplateStudio(templateId) {
     const { media, route, model: routedModel } = currentMediaRoute();
     params.model = routedModel;
     applyTemplateMediaToParams(params, media, route);
+    if (route === 'i2v' && media.endImageUrl && endFrameSupport(route, params.model) === 'none') {
+      const mm = findTemplateModel(params.model);
+      showToast(`${mm?.name || params.model} has no end-frame input, so your end frame isn't used. Pick a model with start & end frames (e.g. Seedance 2.5) to use it.`, 'warning');
+    }
     if (videoSettings) Object.assign(params, videoSettings.getSettings());
     params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
     if (!params.aspect_ratio) delete params.aspect_ratio;
 
     // Client-side validation before muapi call
     let validationError = null;
-    if ((template.modelType === 'i2v' || template.modelType === 'i2i' || route === 'i2v' || route === 'i2i') && !media.imageUrl) {
+    // Image-driven route, or image-driven template unless the video-to-video
+    // route is active (that one only needs the source video).
+    const needsImage = route === 'i2v' || route === 'i2i'
+      || ((template.modelType === 'i2v' || template.modelType === 'i2i') && route !== 'v2v');
+    if (needsImage && !media.imageUrl) {
       validationError = 'Please upload an image before generating.';
     } else if (route === 'v2v' && !media.videoUrl) {
       validationError = 'Please upload a video before generating.';
+    } else if (promptlessV2VBlock(route, routedModel, explicitModelPick)) {
+      validationError = promptlessV2VBlock(route, routedModel, explicitModelPick);
     } else {
       // Media checks are done above; this keeps the shared effect-model
       // ("name" required) check.
@@ -1537,7 +1553,8 @@ export function TemplateStudio(templateId) {
       }
       const publishBtn = resultArea.querySelector('.publish-social-btn');
       if (publishBtn) {
-        const mediaType = template.outputType === 'video' ? 'video' : 'image';
+        // The shown result's own type (history can hold another template's result).
+        const mediaType = isVideoResult ? 'video' : 'image';
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
       }
     }, 0);

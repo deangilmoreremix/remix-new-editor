@@ -364,6 +364,20 @@ export function templateMediaRoute({ outputType, modelType, imageUrl, videoUrl, 
   return 't2v';
 }
 
+/**
+ * Attaching a source video to a template switches to video-to-video and the
+ * route's default model, which may take no prompt (e.g. the watermark
+ * remover). Running it would silently drop the template prompt, so it only
+ * runs when the user picked that model themselves.
+ * @returns {string|null} a message to show instead of generating, or null.
+ */
+export function promptlessV2VBlock(route, modelId, explicitPickId) {
+  if (route !== 'v2v') return null;
+  const m = findTemplateModel(modelId);
+  if (!m || m.hasPrompt !== false || explicitPickId === modelId) return null;
+  return `${m.name || modelId} doesn't use your prompt. Pick a video-to-video model in the model dropdown (or pick ${m.name || 'this model'} there to run it without the prompt).`;
+}
+
 /** Look a model up in every route list. */
 export function findTemplateModel(modelId) {
   for (const list of Object.values(LISTS)) {
@@ -459,6 +473,7 @@ export function applyTemplateMediaToParams(params, { imageUrl, endImageUrl, vide
   delete params.image_url;
   delete params.last_image_url;
   delete params.lastFrameUrl;
+  delete params.last_frame_url;
   delete params.video_url;
 
   if (route === 'v2v') {
@@ -469,11 +484,31 @@ export function applyTemplateMediaToParams(params, { imageUrl, endImageUrl, vide
   } else if (route === 'i2v' || route === 'i2i') {
     if (imageUrl) params.image_url = imageUrl;
     if (route === 'i2v' && endImageUrl) {
-      params.last_image_url = endImageUrl;
-      params.lastFrameUrl = endImageUrl;
+      const support = endFrameSupport(route, params.model);
+      if (support === 'declared') {
+        params.last_frame_url = endImageUrl;
+        params.lastFrameUrl = endImageUrl;
+      } else if (support === 'unknown') {
+        // No input schema for this model: keep the legacy keys.
+        params.last_image_url = endImageUrl;
+        params.lastFrameUrl = endImageUrl;
+      }
+      // 'none': the model has no end-frame input, so it is not sent
+      // (callers can tell the user with endFrameSupport()).
     }
   }
   return params;
+}
+
+/**
+ * Whether a model takes an end frame: 'declared' (its inputs list
+ * last_frame_url), 'none' (it has an input schema without one) or
+ * 'unknown' (no schema to check).
+ */
+export function endFrameSupport(route, modelId) {
+  const m = findRouteModel(route, modelId) || findTemplateModel(modelId);
+  if (!m || !m.inputs) return 'unknown';
+  return Object.prototype.hasOwnProperty.call(m.inputs, 'last_frame_url') ? 'declared' : 'none';
 }
 
 // ── Video settings (duration / resolution / native audio) ──────────────────

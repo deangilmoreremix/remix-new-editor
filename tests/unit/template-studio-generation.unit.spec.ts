@@ -214,6 +214,15 @@ vi.mock('../../src/lib/supabase.js', () => ({
   },
 }));
 
+// The Video Studio model picker needs the full upstream UI; capture its
+// options so a test can make a deliberate model pick through onPick.
+const modelPickerState = vi.hoisted(() => ({ lastOptions: null as any }));
+vi.mock('../../src/lib/templateMedia.js', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  // Real picker by default; a test can capture the next call instead.
+  return { ...actual, openStudioModelPicker: vi.fn((opts) => actual.openStudioModelPicker(opts)) };
+});
+
 // Captures the options passed to createUploadPicker so tests can invoke the
 // selection callback directly (the real picker needs a browser file dialog).
 const uploadPickerState = vi.hoisted(() => ({ lastOptions: null, pickers: [] }));
@@ -867,6 +876,69 @@ describe('TemplateStudio feature tests', () => {
     await new Promise(r => setTimeout(r, 300));
 
     expect(processV2VSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('an i2v template on the video-to-video route needs only the source video (review fix)', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const processV2VSpy = vi.spyOn(muapi, 'processV2V');
+
+    const template = buildTemplate({
+      modelType: 'i2v',
+      model: 'kling-v2v',
+      inputs: [
+        { name: 'prompt', type: 'textarea', label: 'Prompt' },
+        { name: 'image_url', type: 'image', label: 'Image' },
+        { name: 'video_url', type: 'video', label: 'Video' },
+      ],
+    });
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    vi.mocked(getTemplateById).mockReturnValue(template);
+    const element = TemplateStudio(template.id);
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+    const promptInput = container.querySelector('textarea');
+    promptInput.value = 'test prompt';
+    promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // The user picks a video-to-video model in the model picker.
+    const media = await import('../../src/lib/templateMedia.js');
+    vi.mocked(media.openStudioModelPicker).mockImplementationOnce(async (opts: any) => {
+      modelPickerState.lastOptions = opts;
+      return { close() {} } as any;
+    });
+    container.querySelector('#templateModelTrigger').click();
+    await new Promise(r => setTimeout(r, 20));
+    expect(modelPickerState.lastOptions).not.toBeNull();
+    modelPickerState.lastOptions.onPick('kling-v2v', 'v2v');
+    await supplyUpload('video', 'https://cdn.muapi.ai/input/v2v-src.mp4');
+
+    const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
+    genBtn.click();
+    await new Promise(r => setTimeout(r, 300));
+
+    expect(container.textContent).not.toContain('Please upload an image before generating.');
+    expect(processV2VSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('Publish sends the shown result\'s own media type (review fix)', async () => {
+    const { openSocialPublish } = await import('../../src/lib/socialPublishHelpers.js');
+    vi.mocked(openSocialPublish).mockClear();
+    localStorage.setItem('template_studio_history', JSON.stringify([
+      { url: 'https://cdn.test/old-image.png', type: 'image', templateId: 'other-template', prompt: 'old' },
+    ]));
+    const template = buildTemplate({ modelType: 't2v', model: 'kling-v2.6-pro-t2v', outputType: 'video' });
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    vi.mocked(getTemplateById).mockReturnValue(template);
+    const element = TemplateStudio(template.id);
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+
+    container.querySelector('[data-history-url="https://cdn.test/old-image.png"]').click();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('.publish-social-btn').click();
+    expect(openSocialPublish).toHaveBeenCalledWith({ mediaUrl: 'https://cdn.test/old-image.png', mediaType: 'image' });
   });
 
   it('routes t2i modelType to muapi.generateImage', async () => {

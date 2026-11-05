@@ -36,9 +36,13 @@ vi.mock('../../src/lib/models.js', () => ({
     { id: 'kling-i2v', inputs: { duration: { enum: [5, 10], default: 5 }, resolution: { enum: ['720p', '1080p'], default: '1080p' } } },
     { id: 'veo-i2v', inputs: { duration: { minValue: 4, maxValue: 8, step: 2 }, native_audio: { type: 'boolean' } } },
     { id: 'ai-video-effects', inputs: { name: { enum: ['Cakeify', 'Lego'] }, aspect_ratio: { enum: ['16:9', '9:16', '1:1'] } } },
+    { id: 'seedance-25-i2v', inputs: { last_frame_url: { type: 'string' }, character_consistency: { type: 'boolean' } } },
   ],
   t2vModels: [{ id: 'kling-t2v', inputs: { duration: { enum: ['5', '10'] }, native_audio: { type: 'boolean' } } }],
-  v2vModels: [{ id: 'kling-v2v', inputs: { resolution: { enum: ['720p'] } } }],
+  v2vModels: [
+    { id: 'kling-v2v', inputs: { resolution: { enum: ['720p'] } } },
+    { id: 'watermark-remover', name: 'Watermark Remover', hasPrompt: false, inputs: { video_url: { type: 'string' } } },
+  ],
 }));
 
 vi.mock('../../src/lib/videoFrames.js', () => ({
@@ -55,6 +59,8 @@ import {
   createVideoSettingsControls,
   durationsForModel,
   snapAspectRatioForModel,
+  endFrameSupport,
+  promptlessV2VBlock,
 } from '../../src/lib/templateMedia.js';
 
 describe('templateMedia: createTemplateMediaField', () => {
@@ -190,7 +196,7 @@ describe('templateMedia: route follows media only', () => {
     expect(routeTemplateGeneration({ outputType: 'video', modelType: 't2v', model: 'kling-v2v' })).toEqual({ route: 't2v', model: 'kling-t2v' });
     expect(templateMediaRoute({ outputType: 'video', modelType: 't2v', imageUrl: 'a', videoUrl: 'v', preferV2V: true })).toBe('v2v');
     expect(templateMediaRoute({ outputType: 'video', modelType: 't2v', imageUrl: 'a', videoUrl: 'v' })).toBe('i2v');
-    expect(modelsForRoute('v2v').map(m => m.id)).toEqual(['kling-v2v']);
+    expect(modelsForRoute('v2v').map(m => m.id)).toEqual(['kling-v2v', 'watermark-remover']);
   });
 });
 
@@ -318,5 +324,43 @@ describe('templateMedia: review fixes', () => {
     target = { route: 'i2v', model: 'ai-video-effects' };
     s.refresh();
     expect(s.getSettings().name).toBe('Lego');
+  });
+});
+
+describe('templateMedia: review fixes (end frame, prompt-less v2v, durations)', () => {
+  it('sends the end frame as last_frame_url only to models that declare it', () => {
+    const declared: any = { model: 'seedance-25-i2v' };
+    applyTemplateMediaToParams(declared, { imageUrl: 'a.png', endImageUrl: 'b.png', videoUrl: null }, 'i2v');
+    expect(declared.last_frame_url).toBe('b.png');
+    expect(declared.last_image_url).toBeUndefined();
+    expect(endFrameSupport('i2v', 'seedance-25-i2v')).toBe('declared');
+
+    const none: any = { model: 'kling-i2v' };
+    applyTemplateMediaToParams(none, { imageUrl: 'a.png', endImageUrl: 'b.png', videoUrl: null }, 'i2v');
+    expect(none.image_url).toBe('a.png');
+    expect(none.last_frame_url).toBeUndefined();
+    expect(none.last_image_url).toBeUndefined();
+    expect(none.lastFrameUrl).toBeUndefined();
+    expect(endFrameSupport('i2v', 'kling-i2v')).toBe('none');
+
+    // A model with no input schema keeps the legacy keys.
+    const unknown: any = { model: 'no-schema-model' };
+    applyTemplateMediaToParams(unknown, { imageUrl: 'a.png', endImageUrl: 'b.png', videoUrl: null }, 'i2v');
+    expect(unknown.last_image_url).toBe('b.png');
+    expect(endFrameSupport('i2v', 'no-schema-model')).toBe('unknown');
+  });
+
+  it('a prompt-less v2v model only runs when the user picked it', () => {
+    expect(promptlessV2VBlock('v2v', 'watermark-remover', null)).toMatch(/doesn't use your prompt/);
+    expect(promptlessV2VBlock('v2v', 'watermark-remover', 'watermark-remover')).toBeNull();
+    expect(promptlessV2VBlock('v2v', 'kling-v2v', null)).toBeNull();
+    expect(promptlessV2VBlock('i2v', 'watermark-remover', null)).toBeNull();
+  });
+
+  it('offers a min/max duration range (Seedance Lite T2V: 3-12 s)', async () => {
+    const actual: any = await vi.importActual('../../src/lib/models.js');
+    const lite = actual.t2vModels.find((m: any) => m.id === 'seedance-lite-t2v');
+    expect(durationsForModel(lite)).toEqual([3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    expect(lite.inputs.duration.default).toBe(5);
   });
 });

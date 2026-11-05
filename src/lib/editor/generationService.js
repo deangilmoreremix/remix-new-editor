@@ -344,9 +344,20 @@ class MuAPIProvider {
     try {
       const { endpoint, payload, generationType, studioType } = this.buildRequest(request);
       const { requestId, submitData } = await submitOnly(endpoint, payload, null, generationType, studioType);
-      this.requestIds.set(generationId, requestId);
       circuitBreaker.recordSuccess(serviceName);
 
+      // Some MuAPI endpoints answer synchronously with the output and no
+      // request id. Keep that result so poll() returns it instead of
+      // failing with "No requestId".
+      const directUrl = submitData?.outputs?.[0] || submitData?.url || submitData?.output?.url || null;
+      if (directUrl) {
+        const completed = { generationId, status: 'completed', url: directUrl, progress: 100 };
+        this.results.set(generationId, completed);
+        if (requestId) this.requestIds.set(generationId, requestId);
+        return { ...completed, requestId, previewUrl: directUrl, assetIds: [], metadata: submitData };
+      }
+
+      this.requestIds.set(generationId, requestId);
       return {
         generationId,
         status: 'queued',
@@ -371,13 +382,14 @@ class MuAPIProvider {
    * Poll for generation status. Returns cached result on subsequent calls.
    */
   async poll(generationId) {
+    // Finished results (including direct outputs from submit) first.
+    if (this.results.has(generationId)) {
+      return this.results.get(generationId);
+    }
+
     const requestId = this.requestIds.get(generationId);
     if (!requestId) {
       return { generationId, status: 'failed', error: 'No requestId for this generationId' };
-    }
-
-    if (this.results.has(generationId)) {
-      return this.results.get(generationId);
     }
 
     const result = await checkStatus(requestId, null);
@@ -403,11 +415,8 @@ class MuAPIProvider {
    * complete or fail on its own.
    */
   async cancel(generationId) {
-    const requestId = this.requestIds.get(generationId);
-    if (requestId) {
-      this.requestIds.delete(generationId);
-      this.results.delete(generationId);
-    }
+    this.requestIds.delete(generationId);
+    this.results.delete(generationId);
     return { generationId, status: 'locally_cancelled' };
   }
 
@@ -563,7 +572,15 @@ class GenerationService {
     } else if (name === 'fal') {
       this.providers.fal = new FalProvider(config);
     } else if (name === 'muapi') {
-      this.providers.muapi = new MuAPIProvider(config);
+      // Keep jobs that are still in flight: their next poll() must find
+      // their request ids and cached results on the new instance.
+      const previous = this.providers.muapi;
+      const next = new MuAPIProvider(config);
+      if (previous) {
+        if (previous.requestIds) next.requestIds = previous.requestIds;
+        if (previous.results) next.results = previous.results;
+      }
+      this.providers.muapi = next;
     }
     this._lastProvider = name;
   }
@@ -654,21 +671,29 @@ class GenerationService {
    */
   startPolling(generationId, onUpdate, interval = 2000) {
     let timeoutId;
+    // Set by the returned stop function. A status request that is already
+    // in flight when stop() runs must neither report nor schedule again.
+    let cancelled = false;
     const poll = async () => {
+      if (cancelled) return;
       try {
         const result = await this.poll(generationId);
+        if (cancelled) return;
         onUpdate(result);
 
-        if (result.status === 'processing' || result.status === 'queued') {
+        if (!cancelled && (result.status === 'processing' || result.status === 'queued')) {
           timeoutId = setTimeout(poll, interval);
         }
       } catch (error) {
-        onUpdate({ error: error.message });
+        if (!cancelled) onUpdate({ error: error.message });
       }
     };
 
     timeoutId = setTimeout(poll, interval);
-    return () => clearTimeout(timeoutId);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }
 
   /**

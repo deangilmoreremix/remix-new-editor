@@ -375,6 +375,8 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Character description', placeholder: 'e.g. friendly adventurer' },
+      // The choices the old effect preset offered; now wording in the prompt.
+      { name: 'character_style', type: 'select', label: 'Style', options: ['Pixar', 'Disney Princess It', 'Snow White It'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],
@@ -394,6 +396,8 @@ export const templates = [
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Hero style', placeholder: 'e.g. powerful energy burst' },
+      // The choices the old effect preset offered; now wording in the prompt.
+      { name: 'transformation', type: 'select', label: 'Transformation', options: ['Hulk Transformation', 'Super Saiyan Transformation', 'Kamehameha'] },
       { name: 'aspect_ratio', type: 'select', label: 'Aspect Ratio', options: ['16:9', '9:16', '1:1'] },
       { name: 'duration', type: 'select', label: 'Duration', options: ['5', '8', '10'] },
     ],

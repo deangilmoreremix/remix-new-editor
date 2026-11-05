@@ -11,7 +11,7 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
-import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel, dropUndeclaredSettings } from '../lib/templateMedia.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel, promptlessV2VBlock, endFrameSupport, dropUndeclaredSettings } from '../lib/templateMedia.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -102,6 +102,9 @@ export function CinemaTemplateStudio() {
   const MEDIA_ROUTE_LABELS = TEMPLATE_ROUTE_LABELS;
   // Set by the model picker: switches its model list when the route changes.
   let syncModelPickerToRoute = null;
+  // The model the user chose themselves (model picker or list), as opposed
+  // to one switched in automatically when media changes the route.
+  let explicitModelPick = null;
   // Pending (debounced) Video Intent save; Generate runs it first.
   let flushVideoIntentSync = null;
   // Mode of the variant picked in the Video Studio model picker; reset per template.
@@ -138,6 +141,13 @@ export function CinemaTemplateStudio() {
   const resultHistory = createResultHistory({
     storageKey: 'cinema_template_history',
     onSelect: (entry) => {
+      // History is shared across Cinema templates: restore the template that
+      // made this result, so the preview and Regenerate use its output type
+      // (e.g. a video picked while Movie Poster is open).
+      if (entry.templateId && entry.templateId !== currentTemplate?.id) {
+        const owner = registry.get(entry.templateId);
+        if (owner) currentTemplate = owner;
+      }
       generationResult = entry.url;
       currentResultEntry = entry;
       view = 'preview';
@@ -1851,6 +1861,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             loadingMessage: 'Loading models...',
             onSelectModel: (model) => {
               selectedModel = model.id;
+              explicitModelPick = model.id;
               routeModelPicks[pickerRoute] = model.id;
               updateTrigger();
               if (videoSettings) videoSettings.refresh();
@@ -1919,6 +1930,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         currentMode: pickerRoute,
         onPick: (modelId, mode) => {
           selectedModel = modelId;
+          explicitModelPick = modelId;
           pickedMode = mode || null;
           if (pickedMode) routeModelPicks[pickedMode] = modelId;
           refreshMediaRoute();
@@ -2192,7 +2204,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-blue-400/20 transition cursor-pointer">
           <div class="mb-3 text-3xl">🏷️</div>
           <h3 class="text-lg font-bold text-white mb-2">Auto-Detected Niche</h3>
-          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${currentTiles.niche || (currentInputs.niche && currentInputs.niche !== 'auto-detect' ? currentInputs.niche : detectTemplateNiche({ template: currentTemplate, advanced: currentInputs }))}</textarea>
+          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${escapeHtml(currentTiles.niche || (currentInputs.niche && currentInputs.niche !== 'auto-detect' ? currentInputs.niche : detectTemplateNiche({ template: currentTemplate, advanced: currentInputs })) || '')}</textarea>
         </div>
         <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-violet-400/20 transition cursor-pointer">
           <div class="mb-3 text-3xl">🎬</div>
@@ -2586,12 +2598,22 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     const { media, route, model: routedModel } = currentMediaRoute(selectedModel);
     const imageUrl = media.imageUrl;
 
-    if ((currentTemplate.modelType === 'i2v' || currentTemplate.modelType === 'i2i') && !imageUrl) {
+    // Needs an image when the resolved route is image-driven (e.g. Movie
+    // Poster switched to an image-to-image model) or the template is,
+    // except on video-to-video, which only needs the source video.
+    const needsImage = route === 'i2v' || route === 'i2i'
+      || ((currentTemplate.modelType === 'i2v' || currentTemplate.modelType === 'i2i') && route !== 'v2v');
+    if (needsImage && !imageUrl) {
       showToast('Please upload an image before generating.', 'error');
       return;
     }
     if (route === 'v2v' && !media.videoUrl) {
       showToast('Please upload a video before generating.', 'error');
+      return;
+    }
+    const v2vBlock = promptlessV2VBlock(route, routedModel, explicitModelPick);
+    if (v2vBlock) {
+      showToast(v2vBlock, 'error');
       return;
     }
 
@@ -2711,6 +2733,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     }
 
     applyTemplateMediaToParams(params, media, route);
+    if (route === 'i2v' && media.endImageUrl && endFrameSupport(route, params.model) === 'none') {
+      const mm = findTemplateModel(params.model);
+      showToast(`${mm?.name || params.model} has no end-frame input, so your end frame isn't used. Pick a model with start & end frames (e.g. Seedance 2.5) to use it.`, 'warning');
+    }
     // Per-model duration / resolution / native audio (only values the
     // selected model accepts) override the generic 5/10s clamp above.
     if (isVideo && videoSettings) Object.assign(params, videoSettings.getSettings());
@@ -3001,7 +3027,9 @@ const firstChild = storyboardRoot.firstElementChild;
     const preview = document.createElement('div');
     preview.className = 'flex-1 flex flex-col items-center justify-center p-8';
 
-    const isVideoOutput = currentTemplate?.outputType === 'video';
+    // The selected result's own type wins over the open template's.
+    const shownEntry = currentResultEntry && currentResultEntry.url === generationResult ? currentResultEntry : null;
+    const isVideoOutput = shownEntry?.type ? shownEntry.type === 'video' : currentTemplate?.outputType === 'video';
     const resultMedia = document.createElement(isVideoOutput ? 'video' : 'img');
     resultMedia.src = generationResult || '';
     resultMedia.className = 'max-w-full max-h-[60vh] rounded-xl border border-white/10';
@@ -3070,12 +3098,13 @@ const firstChild = storyboardRoot.firstElementChild;
         // Re-run the settings of the result on screen. An entry without them
         // (older saved history, an Extend result) goes back to the form
         // rather than silently re-running a different, newer generation.
-        if (entry.regenParams) {
+        const templateType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
+        if (entry.regenParams && (!entry.type || entry.type === templateType)) {
           runGeneration({ ...entry.regenParams });
         } else {
+          // Only open the form; the user starts the new generation.
           view = 'create';
           render();
-          container.querySelector('#generate-btn')?.click();
         }
       },
       onExtend: (e, opts) => extendResult(e, opts),

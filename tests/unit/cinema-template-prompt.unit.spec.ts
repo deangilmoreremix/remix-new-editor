@@ -277,7 +277,13 @@ describe('Cinema Template Studio: every input reaches the generation prompt', ()
     const params = muapi.generateI2V.mock.calls.at(-1)[0];
     expect(params.prompt).toContain('anime style');
     expect(params.image_url).toBe('https://cdn.test/s.png');
-    expect(params.last_image_url).toBe('https://cdn.test/e.png');
+    // The default model (Kling v2.6 Pro I2V) has no end-frame input: the end
+    // frame is not sent, and the user is told.
+    expect(params.model).toBe('kling-v2.6-pro-i2v');
+    expect(params.last_image_url).toBeUndefined();
+    expect(params.last_frame_url).toBeUndefined();
+    const { showToast } = await import('../../src/lib/loading.js');
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('no end-frame input'), 'warning');
     expect(params.signal).toBeDefined();
     expect(typeof params.onRequestId).toBe('function');
 
@@ -299,8 +305,19 @@ describe('Cinema Template Studio: every input reaches the generation prompt', ()
     const el = CinemaTemplateStudio();
     container.appendChild(el);
     await wait(50);
-    container.querySelector('.group.rounded-xl.p-4.cursor-pointer').click();
+    el.querySelector('.group.rounded-xl.p-4.cursor-pointer').click();
     await wait(150);
+
+    // Fill the template's required text fields so Generate is not stopped
+    // by "fill in required fields".
+    const fillRequired = () => {
+      el.querySelectorAll('textarea, input[type="text"]').forEach((f) => {
+        if (f.value) return;
+        f.value = 'Test value';
+        f.dispatchEvent(new Event('input', { bubbles: true }));
+        f.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    };
 
     const attachFrame = () => {
       const frame = pickers.list.filter(p => p.opts.frameMode).at(-1);
@@ -308,30 +325,32 @@ describe('Cinema Template Studio: every input reaches the generation prompt', ()
     };
 
     // Run 1: Anime style.
-    container.querySelector('[data-style="Anime"]').click();
+    el.querySelector('[data-style="Anime"]').click();
+    fillRequired();
     attachFrame();
-    container.querySelector('#generate-btn').click();
+    el.querySelector('#generate-btn').click();
     await wait(200);
     const first = muapi.generateI2V.mock.calls.at(-1)[0];
-    const firstUrl = container.querySelector('[data-result-history] [data-history-url]').getAttribute('data-history-url');
+    const firstUrl = el.querySelector('[data-result-history] [data-history-url]').getAttribute('data-history-url');
 
     // Run 2: back to the form, a different style.
-    container.querySelector('#back-btn').click();
+    el.querySelector('#back-btn').click();
     await wait(100);
-    container.querySelector('[data-style="Anime"]').click();
-    const other = Array.from(container.querySelectorAll('[data-style]')).find(b => b.getAttribute('data-style') !== 'Anime');
+    el.querySelector('[data-style="Anime"]').click();
+    const other = Array.from(el.querySelectorAll('[data-style]')).find(b => b.getAttribute('data-style') !== 'Anime');
     other.click();
+    fillRequired();
     attachFrame();
-    container.querySelector('#generate-btn').click();
+    el.querySelector('#generate-btn').click();
     await wait(200);
     const second = muapi.generateI2V.mock.calls.at(-1)[0];
     expect(second.prompt).not.toBe(first.prompt);
 
     // Select run 1 in the history strip, then Regenerate.
-    container.querySelector(`[data-result-history] [data-history-url="${firstUrl}"]`).click();
+    el.querySelector(`[data-result-history] [data-history-url="${firstUrl}"]`).click();
     await wait(100);
     const before = muapi.generateI2V.mock.calls.length;
-    container.querySelector('[data-action="regenerate"]').click();
+    el.querySelector('[data-action="regenerate"]').click();
     await wait(200);
     expect(muapi.generateI2V.mock.calls.length).toBe(before + 1);
     const regen = muapi.generateI2V.mock.calls.at(-1)[0];
@@ -343,4 +362,59 @@ describe('Cinema Template Studio: every input reaches the generation prompt', ()
     expect(typeof regen.onRequestId).toBe('function');
     el.remove();
   });
+
+  it('escapes a typed niche tile when the create view re-renders', async () => {
+    // This file mocks escapeHtml as a pass-through; use a real one here.
+    const security = await import('../../src/lib/security.js');
+    vi.mocked(security.escapeHtml).mockImplementation((v) => String(v ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+    const el = CinemaTemplateStudio();
+    container.appendChild(el);
+    await wait(50);
+    el.querySelector('.group.rounded-xl.p-4.cursor-pointer').click();
+    await wait(150);
+    const niche = el.querySelector('[data-tile="niche"]');
+    niche.value = '</textarea><img id="injected-by-tile" src="x">';
+    niche.dispatchEvent(new Event('input', { bubbles: true }));
+    el.querySelector('#advanced-mode-btn').click();
+    await wait(100);
+    expect(el.querySelector('#injected-by-tile')).toBeNull();
+    expect(el.querySelector('[data-tile="niche"]').value).toContain('<img id="injected-by-tile"');
+    vi.mocked(security.escapeHtml).mockImplementation((v) => v);
+    el.remove();
+  });
+
+  it('a history result from another template restores that template; Regenerate without saved settings only opens the form', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const video = CINEMATIC_TEMPLATES.find(t => t.outputType === 'video');
+    const image = CINEMATIC_TEMPLATES.find(t => t.outputType === 'image');
+    localStorage.setItem('cinema_template_history', JSON.stringify([
+      { url: 'https://cdn.test/old-video.mp4', type: 'video', templateId: video.id, prompt: 'old' },
+    ]));
+    const el = CinemaTemplateStudio();
+    container.appendChild(el);
+    await wait(50);
+    const card = Array.from(el.querySelectorAll('.group.rounded-xl.p-4.cursor-pointer'))
+      .find(c => (c.textContent || '').includes(image.name));
+    card.click();
+    await wait(150);
+
+    // Open the preview of the image template through the history strip.
+    el.querySelector('[data-history-url="https://cdn.test/old-video.mp4"]')?.click();
+    await wait(100);
+    // The selected result is a video, shown as a video, under its own template.
+    expect(el.querySelector('video')).not.toBeNull();
+
+    const before = muapi.generateI2V.mock.calls.length + muapi.generateImage.mock.calls.length + muapi.generateI2I.mock.calls.length;
+    el.querySelector('[data-action="regenerate"]').click();
+    await wait(150);
+    const after = muapi.generateI2V.mock.calls.length + muapi.generateImage.mock.calls.length + muapi.generateI2I.mock.calls.length;
+    expect(after).toBe(before);
+    expect(el.querySelector('#generate-btn')).not.toBeNull();
+    // The form is the restored (video) template, not the image one that was open.
+    expect(el.querySelector('h1')?.textContent).toBe(video.name);
+    localStorage.removeItem('cinema_template_history');
+    el.remove();
+  });
 });
+

@@ -718,6 +718,15 @@ export class MuapiClient {
         // conventions since different model endpoints expect different keys.
         if (params.firstFrameUrl || params.first_frame_url) finalPayload.firstFrameUrl = params.firstFrameUrl || params.first_frame_url;
         if (params.lastFrameUrl || params.last_frame_url) finalPayload.lastFrameUrl = params.lastFrameUrl || params.last_frame_url;
+        // Models that declare the snake_case input (e.g. Seedance 2.5 I2V) get it under that name too.
+        if (params.last_frame_url && modelInfo?.inputs && Object.prototype.hasOwnProperty.call(modelInfo.inputs, 'last_frame_url')) {
+            finalPayload.last_frame_url = params.last_frame_url;
+        }
+        // Character Lock: only for models that declare it.
+        if (params.character_consistency !== undefined && modelInfo?.inputs
+            && Object.prototype.hasOwnProperty.call(modelInfo.inputs, 'character_consistency')) {
+            finalPayload.character_consistency = params.character_consistency;
+        }
         if (p.startImageUrl) finalPayload.startImageUrl = p.startImageUrl;
         if (p.endImageUrl) finalPayload.endImageUrl = p.endImageUrl;
         // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.

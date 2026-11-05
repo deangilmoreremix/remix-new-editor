@@ -146,3 +146,27 @@ describe('composeTemplatePrompt / appendMissingInputs: review fixes', () => {
     expect(appendMissingInputs('Starring Ana in Lisbon', [{ label: 'Character', value: 'Ana' }])).toBe('Starring Ana in Lisbon');
   });
 });
+
+describe('Disney / Pixar and Superhero keep their named choices (review fix)', () => {
+  for (const [id, key, choice] of [
+    ['disney-pixar', 'character_style', 'Snow White It'],
+    ['superhero-transform', 'transformation', 'Kamehameha'],
+  ]) {
+    it(`${id}: the choice is a select input and reaches the prompt`, () => {
+      const t = normalizeTemplate(getTemplateById(id));
+      const input = t.inputs.find((i: any) => i.name === key);
+      expect(input?.type).toBe('select');
+      expect(input?.options).toContain(choice);
+      const { prompt } = composeTemplatePrompt({
+        template: t,
+        userPrompt: 'my photo',
+        templateInputs: t.inputs,
+        fields: { [key]: choice },
+        advanced: {},
+        tiles: {},
+        aiEnhancer: false,
+      });
+      expect(prompt).toContain(choice);
+    });
+  }
+});
