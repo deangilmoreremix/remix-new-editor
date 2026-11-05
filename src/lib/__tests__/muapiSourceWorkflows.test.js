@@ -45,6 +45,28 @@ describe('Source workflows reach the provider intact', () => {
     expect(params.image_url).toBe('https://cdn.muapi.ai/character.jpg');
   });
 
+  test('image-edit models get their reference as images_list, with a declared resolution', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.png'] });
+    await client.generateImage({
+      model: 'nano-banana-pro-edit',
+      prompt: 'recolour',
+      aspect_ratio: '16:9',
+      resolution: '2k',
+      image_url: 'https://cdn.muapi.ai/ref.jpg',
+      images_list: ['https://cdn.muapi.ai/ref.jpg'],
+    });
+    const { params } = submittedBody(global.fetch);
+    expect(params.images_list).toEqual(['https://cdn.muapi.ai/ref.jpg']);
+    expect(params.image_url).toBeUndefined();
+    expect(params.resolution).toBe('2k');
+  });
+
+  test('plain text-to-image models still send image_url unchanged', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.png'] });
+    await client.generateImage({ model: 'nano-banana-pro', prompt: 'x', image_url: 'https://cdn.muapi.ai/ref.jpg' });
+    expect(submittedBody(global.fetch).params.image_url).toBe('https://cdn.muapi.ai/ref.jpg');
+  });
+
   test('keyframes: start and end frame both go in images_list', async () => {
     global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
     await client.generateI2V({

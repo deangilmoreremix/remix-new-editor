@@ -23,3 +23,11 @@ describe('Cinema still recovery', () => {
     expect(src).toContain('addToHistory({ url, kind: job.historyMeta.kind');
   });
 });
+
+describe('Cinema still request', () => {
+  it('sends a lowercase resolution the still models declare, through generateImage', () => {
+    const src = fs.readFileSync('src/components/CinemaStudio.js', 'utf8');
+    expect(src).toContain('resolution: stillRes.toLowerCase()');
+    expect(src).not.toMatch(/generateI2I\(\{ \.\.\.stillParams/);
+  });
+});

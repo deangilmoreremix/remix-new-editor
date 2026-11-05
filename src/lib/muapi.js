@@ -385,7 +385,12 @@ export class MuapiClient {
         if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
         if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
 
-        if (params.image_url) {
+        // Edit-style models declare `imageField: 'images_list'`: they take their
+        // reference(s) as a list, not as image_url.
+        const referenceImages = params.images_list?.length ? params.images_list : (params.image_url ? [params.image_url] : null);
+        if (modelInfo?.imageField === 'images_list' && referenceImages) {
+            finalPayload.images_list = referenceImages;
+        } else if (params.image_url) {
             finalPayload.image_url = params.image_url;
             finalPayload.strength = params.strength || 0.6;
         }

@@ -32,10 +32,34 @@ export function normalizeServerHistory(payload) {
   return out;
 }
 
-/** Local items first; server items are added only when their URL isn't already present. */
-export function mergeServerHistory(localItems, serverItems) {
+const DELETED_KEY = 'library_deleted_urls';
+const DELETED_MAX = 500;
+
+/** URLs the user deleted from the Library, so MuAPI history doesn't bring them back. */
+export function loadDeletedUrls() {
+  try {
+    const list = JSON.parse(localStorage.getItem(DELETED_KEY) || '[]');
+    return new Set(Array.isArray(list) ? list : []);
+  } catch {
+    return new Set();
+  }
+}
+
+export function rememberDeletedUrl(url) {
+  if (!url) return;
+  try {
+    const list = [...loadDeletedUrls().add(url)];
+    localStorage.setItem(DELETED_KEY, JSON.stringify(list.slice(-DELETED_MAX)));
+  } catch { /* storage unavailable: the item may reappear, nothing else breaks */ }
+}
+
+/**
+ * Local items first; server items are added only when their URL isn't already
+ * present and the user hasn't deleted it.
+ */
+export function mergeServerHistory(localItems, serverItems, deleted = loadDeletedUrls()) {
   const seen = new Set(localItems.map((i) => i.url).filter(Boolean));
-  const extras = serverItems.filter((i) => !seen.has(i.url));
+  const extras = serverItems.filter((i) => !seen.has(i.url) && !deleted.has(i.url));
   return [...localItems, ...extras].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
 }
 

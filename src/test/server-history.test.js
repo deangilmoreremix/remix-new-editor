@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { normalizeServerHistory, mergeServerHistory, fetchServerHistory } from '../lib/serverHistory.js';
+import { normalizeServerHistory, mergeServerHistory, fetchServerHistory, rememberDeletedUrl, loadDeletedUrls } from '../lib/serverHistory.js';
 
 describe('server history', () => {
   it('normalizes the common response shapes and skips unusable rows', () => {
@@ -20,5 +20,14 @@ describe('server history', () => {
 
   it('returns nothing when the endpoint fails', async () => {
     expect(await fetchServerHistory({ getHistory: vi.fn().mockRejectedValue(new Error('404')) })).toEqual([]);
+  });
+
+  it('does not bring back a generation the user deleted', () => {
+    try { localStorage.removeItem('library_deleted_urls'); } catch { /* ignore */ }
+    const server = [{ url: 'https://cdn.example.com/gone.png', timestamp: 2 }, { url: 'https://cdn.example.com/keep.png', timestamp: 1 }];
+    rememberDeletedUrl('https://cdn.example.com/gone.png');
+    expect(loadDeletedUrls().has('https://cdn.example.com/gone.png')).toBe(true);
+    const merged = mergeServerHistory([], server);
+    expect(merged.map((i) => i.url)).toEqual(['https://cdn.example.com/keep.png']);
   });
 });

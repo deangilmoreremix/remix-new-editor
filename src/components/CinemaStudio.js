@@ -1571,17 +1571,17 @@ export function CinemaStudio() {
                     settings: { prompt: basePrompt, ...currentSettings, resolution: stillRes },
                 }, { maxAttempts: 120 });
                 const stillModel = startUrl ? 'nano-banana-pro-edit' : 'nano-banana-pro';
-                const stillParams = {
+                // The still models declare lowercase 1k/2k/4k; generateImage maps the
+                // reference onto the model's declared image field (images_list).
+                const editing = !!startUrl && !!getModelById(stillModel);
+                const still = await muapi.generateImage({
+                    model: editing ? stillModel : 'nano-banana-pro',
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
-                    resolution: stillRes,
+                    resolution: stillRes.toLowerCase(),
+                    ...(editing ? { image_url: startUrl, images_list: [startUrl] } : {}),
                     onRequestId: pendingJob.onRequestId,
-                };
-                // The edit model takes its reference through generateI2I, which maps
-                // the source onto the model's declared image field (images_list).
-                const still = startUrl && getModelById(stillModel)
-                    ? await muapi.generateI2I({ ...stillParams, model: stillModel, image_url: startUrl, images_list: [startUrl] })
-                    : await muapi.generateImage({ ...stillParams, model: 'nano-banana-pro' });
+                });
                 if (!still?.url) throw new Error('No Data');
                 addToHistory({ url: still.url, kind: 'image', timestamp: Date.now(), settings: { prompt: basePrompt, ...currentSettings, model: 'nano-banana-pro', resolution: stillRes } });
                 showCanvas(still.url);
