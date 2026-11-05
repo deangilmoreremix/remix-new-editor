@@ -82,7 +82,7 @@ describe('TemplateStudio real-component generation tests', () => {
     expect(inlineError.textContent).toContain('Please upload an image before generating.');
   }, 15000); // real-component mount is slow under parallel load
 
-  it('Niche T2V: prompt-only template renders without image upload', async () => {
+  it('Niche T2V: prompt-only template has no required image input, only optional media sources', async () => {
     mountTemplateStudio('midnight_table_film');
 
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -91,9 +91,11 @@ describe('TemplateStudio real-component generation tests', () => {
     const promptInput = container.querySelector('textarea, input[type="text"]');
     expect(promptInput).not.toBeNull();
 
-    // Verify no image upload input
-    const imageUpload = container.querySelector('input[type="file"]');
-    expect(imageUpload).toBeNull();
+    // No required image input in the template form…
+    expect(container.querySelector('.template-media-field[data-media-kind="image"]')).toBeNull();
+    // …but the optional Video Studio media sources (reference frame + source video) are offered.
+    expect(container.querySelector('.template-media-field[data-media-kind="frame"]')).not.toBeNull();
+    expect(container.querySelector('.template-media-field[data-media-kind="video"]')).not.toBeNull();
   });
 
   it('Standard T2I: prompt-only template renders without image upload', async () => {

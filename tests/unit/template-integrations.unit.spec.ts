@@ -142,7 +142,11 @@ describe('templateAdapter', () => {
     expect(normalized.modelType).toBe('i2v');
     expect(normalized.aspectRatio).toBe('9:16');
     expect(normalized.inputs).toBeInstanceOf(Array);
-    expect(normalized.inputs.length).toBe(1);
+    // The template's own input is kept; an i2v template also always gets a
+    // required source image (it cannot generate without one).
+    expect(normalized.inputs).toHaveLength(2);
+    expect(normalized.inputs.find(i => i.name === 'prompt')).toMatchObject({ type: 'text', label: 'Prompt' });
+    expect(normalized.inputs.find(i => i.name === 'image_url')).toMatchObject({ type: 'image', required: true });
     expect(normalized.basePrompt).toBe('{prompt}, test style');
     expect(normalized.defaultParams).toEqual({ resolution: '720p', duration: 5 });
     expect(normalized.icon).toBe('🎬');

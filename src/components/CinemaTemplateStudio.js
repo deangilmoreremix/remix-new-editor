@@ -11,7 +11,7 @@ import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { muapi } from '../lib/muapi.js';
 import { navigate } from '../lib/router.js';
 import { StoryboardStudio } from './StoryboardStudio.js';
-import { createUploadPicker } from './UploadPicker.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel, promptlessV2VBlock, endFrameSupport, dropUndeclaredSettings } from '../lib/templateMedia.js';
 import {
   getTemplateRegistry,
   SHOT_TYPES,
@@ -44,6 +44,11 @@ import { renderProviderLogoImg, mountModelSelector, PROVIDER_LOGOS, invertLogos,
 import { enrichPromptString } from '../lib/templateEngine.js';
 import { resolveModel, normalizeAspectRatio, normalizeDuration, attachThumbnail, buildNegativePrompt, formatGenerationError } from '../lib/templateGenerationOrchestrator.js';
 import { saveGeneration } from '../lib/generationHistory.js';
+import { appendMissingInputs, templateInputEntries, detectTemplateNiche } from '../lib/templatePromptComposer.js';
+import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
+import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend } from '../lib/templateResultTools.js';
+import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 
 /**
  * Resolve the `W:H` aspect ratio for a generation request.
@@ -93,6 +98,64 @@ export function CinemaTemplateStudio() {
   let _modelSelectorOutsideClickHandler = null;
 
   let selectedModel = undefined;
+  let mediaRouteBadge = null;
+  const MEDIA_ROUTE_LABELS = TEMPLATE_ROUTE_LABELS;
+  // Set by the model picker: switches its model list when the route changes.
+  let syncModelPickerToRoute = null;
+  // The model the user chose themselves (model picker or list), as opposed
+  // to one switched in automatically when media changes the route.
+  let explicitModelPick = null;
+  // Pending (debounced) Video Intent save; Generate runs it first.
+  let flushVideoIntentSync = null;
+  // Mode of the variant picked in the Video Studio model picker; reset per template.
+  let pickedMode = null;
+  // Creative Intelligence cards as shown / edited (kept apart from the
+  // Advanced Controls so the Niche card never overwrites the Niche select).
+  let currentTiles = {};
+  let tileEdited = {};
+  // Fields the user actually typed / picked (template fields + Advanced
+  // Controls) — the Video Intent panel never overwrites these.
+  let userEditedFields = new Set();
+  const VISUAL_STYLE_OPTIONS = ['luxury', 'dramatic', 'documentary', 'commercial'];
+  // Duration / resolution / native-audio controls (video templates).
+  let videoSettings = null;
+  // Video Studio prompt-bar tools (ratio, Advanced, Motion & Style,
+  // attachment toolbar) — rebuilt with the create view.
+  let videoTools = null;
+  // After-generation tools (Video Studio): history strip, Regenerate, Extend.
+  let currentResultEntry = null;
+  // Plain-data copy of the settings that produced a result, kept on its
+  // history entry so Regenerate re-runs THAT result (not the newest run).
+  // Drops the per-run AbortSignal and callbacks; history is saved as JSON.
+  const regenSnapshot = (p) => {
+    if (!p) return null;
+    try {
+      return JSON.parse(JSON.stringify(p, (key, val) => (
+        key === 'signal' || typeof val === 'function' ? undefined : val
+      )));
+    } catch {
+      return null;
+    }
+  };
+  let lastRequestId = null;
+  const resultHistory = createResultHistory({
+    storageKey: 'cinema_template_history',
+    onSelect: (entry) => {
+      // History is shared across Cinema templates: restore the template that
+      // made this result, so the preview and Regenerate use its output type
+      // (e.g. a video picked while Movie Poster is open).
+      if (entry.templateId && entry.templateId !== currentTemplate?.id) {
+        const owner = registry.get(entry.templateId);
+        if (owner) currentTemplate = owner;
+      }
+      generationResult = entry.url;
+      currentResultEntry = entry;
+      view = 'preview';
+      render();
+    },
+  });
+  // Media fields by kind (create view), for prompt-toolbar attachments.
+  const mediaFields = { image: [], frame: [], video: [] };
   let lastModelType = null;
   let isAiEnhancer = true;
   let customThumbnailUrl = null;
@@ -126,6 +189,20 @@ export function CinemaTemplateStudio() {
     }
     void restoredGtmContext;
   } catch { /* ignore */ }
+
+  // Recover generations that finished while the user was away.
+  try {
+    resumePendingJobs('cinema-template', {
+      poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+      onResult: (url, job) => {
+        const meta = job?.historyMeta || {};
+        const type = meta.outputType === 'image' ? 'image' : 'video';
+        saveToHistory(url, meta.prompt || '', meta.model || '', meta.templateId || '', type);
+        resultHistory.add({ id: job?.requestId || null, url, prompt: meta.prompt || '', model: meta.model || '', type, templateId: meta.templateId || '' });
+        showToast('Recovered a generation that finished while you were away', 'success');
+      },
+    });
+  } catch { /* storage unavailable */ }
 
   render();
 
@@ -357,6 +434,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
   function selectTemplate(template) {
     currentTemplate = template;
+    pickedMode = null;
+    currentTiles = {};
+    tileEdited = {};
+    userEditedFields = new Set();
     currentMode = 'quick';
     currentInputs = new TemplateInputBuilder(template, currentMode).getDefaults();
     // Select appropriate default model based on modelType
@@ -405,6 +486,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   // CREATE VIEW
   // ================================
   function renderCreateView() {
+    // Fresh media-field registry for this render.
+    mediaFields.image.length = 0;
+    mediaFields.frame.length = 0;
+    mediaFields.video.length = 0;
     if (!currentTemplate) return;
 
     retryCount = 0;
@@ -461,6 +546,13 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     // Left: Form inputs
     const formPanel = document.createElement('div');
+    // Any change to the inputs makes Generate rebuild the prompt from them.
+    ['input', 'change'].forEach((evt) => formPanel.addEventListener(evt, (e) => {
+      promptManuallyEdited = false;
+      const t = e.target;
+      const name = t?.dataset?.advancedField || t?.name;
+      if (name) userEditedFields.add(name);
+    }));
     formPanel.className = 'min-w-0 rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
 
     // Hero thumbnail section (matches TemplateStudio editor view)
@@ -610,6 +702,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     renderModelSelector(formPanel);
     renderVideoUploadButton(formPanel);
+
     renderAiEnhancer(formPanel);
     renderGtmBoost(formPanel);
 
@@ -662,6 +755,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     grid.appendChild(outputPanel);
 
     renderOutputTabs(outputPanel);
+    outputPanel.appendChild(resultHistory.element);
     updateOutputContent();
 
     container.appendChild(content);
@@ -911,6 +1005,13 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         });
       }
     }
+
+    // Prompt attachment toolbar (Video Studio) on the template's main text field.
+    const mainPromptField = (primaryPromptFieldName && formContainer.querySelector(`[name="${primaryPromptFieldName}"]`))
+      || formContainer.querySelector('textarea, input[type="text"]');
+    if (videoTools && mainPromptField && !mainPromptField.parentElement?.querySelector('.studio-attachment-toolbar')) {
+      videoTools.attachToPrompt(mainPromptField);
+    }
   }
 
   function renderVideoIntentForm() {
@@ -1003,7 +1104,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       };
     };
 
-    const syncIntent = debounce(() => {
+    const syncIntentNow = () => {
+      flushVideoIntentSync = null;
       setVideoIntent({
         videoType: section.querySelector('#vi-videoType')?.value || intent.videoType,
         duration: parseInt(section.querySelector('#vi-duration')?.value || intent.duration, 10),
@@ -1017,7 +1119,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         subject: section.querySelector('#vi-subject')?.value || intent.subject,
         premise: section.querySelector('#vi-premise')?.value || intent.premise,
       });
-    }, 300);
+    };
+    const syncIntentDebounced = debounce(syncIntentNow, 300);
+    // Generate flushes a pending sync so the last keystrokes are not lost.
+    const syncIntent = () => { flushVideoIntentSync = syncIntentNow; syncIntentDebounced(); };
 
     section.querySelectorAll('input, select, textarea').forEach(el => {
       el.addEventListener('input', syncIntent);
@@ -1049,12 +1154,19 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       colorGrade: 'colorPalette',
       cta: 'cta',
     };
+    // Never overwrite a value the user typed or picked in the form (template
+    // fields or Advanced Controls); values only copied from an earlier intent
+    // keep following the intent. Intent values reach the prompt at Generate.
+    const typedOwn = (key) => userEditedFields.has(key) && currentInputs[key] != null && currentInputs[key] !== '';
     Object.entries(mapping).forEach(([intentKey, inputKey]) => {
-      if (intent[intentKey] !== undefined && intent[intentKey] !== null && intent[intentKey] !== '') {
+      // The intent style goes to Visual Style only when that select offers it
+      // (otherwise it is added to the prompt as "Style preset").
+      if (intentKey === 'stylePreset' && !VISUAL_STYLE_OPTIONS.includes(String(intent[intentKey]).toLowerCase())) return;
+      if (intent[intentKey] !== undefined && intent[intentKey] !== null && intent[intentKey] !== '' && !typedOwn(inputKey)) {
         currentInputs[inputKey] = intent[intentKey];
       }
     });
-    if (intent.premise) {
+    if (intent.premise && !typedOwn('premise')) {
       currentInputs.premise = intent.premise;
     }
   }
@@ -1511,139 +1623,23 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       }
 
       case 'image':
-      case 'frame': {
-        const isFrame = input.type === 'frame';
-        const uploadTrigger = document.createElement('button');
-        uploadTrigger.type = 'button';
-         uploadTrigger.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-           uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>`;
-
-        const setDone = (label) => {
-          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
-        };
-        const setReset = () => {
-          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>`;
-        };
-
-        uploadTrigger.onclick = (e) => {
-          e.stopPropagation();
-          const picker = createUploadPicker({
-            anchorContainer: container,
-            frameMode: isFrame,
-            acceptVideo: false,
-            onSelect: (sel) => {
-              if (isFrame) {
-                currentInputs[input.name] = { startUrl: sel.startUrl, endUrl: sel.endUrl, urls: sel.urls };
-                setDone(sel.endUrl ? 'Start & end frames set' : 'Start frame set');
-              } else {
-                currentInputs[input.name] = sel.url;
-                setDone('Image uploaded');
-              }
-            },
-            onClear: () => {
-              currentInputs[input.name] = null;
-              setReset();
-            }
-          });
-          container.appendChild(picker.panel);
-        };
-
-        const pexelsBtn = document.createElement('button');
-        pexelsBtn.type = 'button';
-        pexelsBtn.title = 'Browse stock photos from Pexels';
-        pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
-        pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
-        pexelsBtn.onclick = async (e) => {
-          e.stopPropagation();
-          try {
-            const { browsePexelsImages } = await import('../lib/studioPexels.js');
-            await browsePexelsImages({
-              title: isFrame ? 'Select Reference Frames' : 'Select Image',
-              studioName: 'Cinema Template Studio',
-              onSelect: (asset) => {
-                const url = asset.src?.large || asset.src?.original || asset.url;
-                if (isFrame) {
-                  currentInputs[input.name] = { startUrl: url, endUrl: null, urls: [url] };
-                  uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Start frame from Pexels</span>`;
-                } else {
-                  currentInputs[input.name] = url;
-                  uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">📷</div><span class="text-sm text-primary">Image from Pexels</span>`;
-                }
-              },
-            });
-          } catch (err) {
-            console.error('[CinemaTemplateStudio] Pexels image browse failed:', err);
-            showToast('Failed to load stock images', 'error');
-          }
-        };
-
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2';
-        row.appendChild(uploadTrigger);
-        row.appendChild(pexelsBtn);
-        field.appendChild(row);
-        break;
-      }
-
+      case 'frame':
       case 'video': {
-        const uploadTrigger = document.createElement('button');
-        uploadTrigger.type = 'button';
-        uploadTrigger.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-        uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">Click to upload a video</span>`;
-
-        const setDone = (label) => {
-          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
-        };
-        const setReset = () => {
-          uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div><span class="text-sm">Click to upload a video</span>`;
-        };
-
-        uploadTrigger.onclick = (e) => {
-          e.stopPropagation();
-          const picker = createUploadPicker({
-            anchorContainer: container,
-            acceptVideo: true,
-            onSelect: (sel) => {
-              currentInputs[input.name] = sel.url;
-              setDone('Video uploaded');
-            },
-            onClear: () => {
-              currentInputs[input.name] = null;
-              setReset();
-            }
-          });
-          container.appendChild(picker.panel);
-        };
-
-        const pexelsBtn = document.createElement('button');
-        pexelsBtn.type = 'button';
-        pexelsBtn.title = 'Browse stock videos from Pexels';
-        pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
-        pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
-        pexelsBtn.onclick = async (e) => {
-          e.stopPropagation();
-          try {
-            const { browsePexelsVideos } = await import('../lib/studioPexels.js');
-            await browsePexelsVideos({
-              title: 'Select Video',
-              studioName: 'Cinema Template Studio',
-              onSelect: (asset) => {
-                const url = (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url;
-                currentInputs[input.name] = url;
-                uploadTrigger.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-lg">🎬</div><span class="text-sm text-primary">Video from Pexels</span>`;
-              },
-            });
-          } catch (err) {
-            console.error('[CinemaTemplateStudio] Pexels video browse failed:', err);
-            showToast('Failed to load stock videos', 'error');
-          }
-        };
-
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2';
-        row.appendChild(uploadTrigger);
-        row.appendChild(pexelsBtn);
-        field.appendChild(row);
+        // Same upload picker + stock browser as the Video Studio.
+        const mediaField = createTemplateMediaField({
+          kind: input.type,
+          required: input.type !== 'video' && (!!input.required || currentTemplate.modelType === 'i2v' || currentTemplate.modelType === 'i2i'),
+          anchorContainer: container,
+          studioName: 'Cinema Template Studio',
+          initialValue: currentInputs[input.name] || null,
+          onChange: (value) => {
+            currentInputs[input.name] = value;
+            clearStaleRetry();
+            refreshMediaRoute();
+          },
+        });
+        field.appendChild(mediaField.element);
+        mediaFields[input.type]?.push(mediaField);
         break;
       }
 
@@ -1787,13 +1783,17 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
      else if (currentTemplate.modelType === 't2v') fallbackList = t2vModels;
      else if (currentTemplate.modelType === 'v2v') fallbackList = v2vModels;
      else fallbackList = i2vModels;
+    // The picker lists models for the current route (Text / Image / Video →
+    // Video), starting from the template's own type.
+    let pickerRoute = ['i2i', 't2i', 't2v', 'v2v'].includes(currentTemplate.modelType) ? currentTemplate.modelType : 'i2v';
+    const routeModelPicks = {};
 
     let loadedModels = fallbackList;
     const getModelName = (id) => {
-      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id) || findTemplateModel(id);
       return m ? m.name : id;
     };
-    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id) || findTemplateModel(id);
 
     const triggerBtn = document.createElement('button');
     triggerBtn.type = 'button';
@@ -1861,7 +1861,11 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             loadingMessage: 'Loading models...',
             onSelectModel: (model) => {
               selectedModel = model.id;
+              explicitModelPick = model.id;
+              routeModelPicks[pickerRoute] = model.id;
               updateTrigger();
+              if (videoSettings) videoSettings.refresh();
+              if (videoTools) videoTools.refresh();
               closeDropdown();
             },
           });
@@ -1879,8 +1883,11 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           ]);
         };
 
-        withTimeout(getEnrichedModels(currentTemplate.modelType))
+        const requestedRoute = pickerRoute;
+        withTimeout(getEnrichedModels(requestedRoute))
           .then(enriched => {
+            // The route changed while loading: this list is for the old route.
+            if (requestedRoute !== pickerRoute) return;
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
             renderModelPanel(models);
@@ -1888,6 +1895,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
             modelLoadingStatus.className = 'text-[10px] text-emerald-400/70';
           })
           .catch(err => {
+            if (requestedRoute !== pickerRoute) return;
             console.warn('[CinemaTemplateStudio] Failed to load enriched model catalog, using fallback:', err);
             loadedModels = fallbackList;
             if (!fallbackList.find(x => x.id === selectedModel)) {
@@ -1900,13 +1908,41 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       }
     };
 
+    // The same model picker as the Video Studio (video templates) / Image
+    // Studio (image templates): provider sidebar, families, T2V / I2V / V2V.
+    let studioPickerController = null;
     triggerBtn.onclick = (e) => {
       e.stopPropagation();
+      // Fallback list picker open (Video Studio picker failed to load): toggle it.
       if (dropdown.classList.contains('opacity-100')) {
         closeDropdown();
-      } else {
-        openDropdown();
+        return;
       }
+      if (studioPickerController) {
+        studioPickerController.close();
+        studioPickerController = null;
+        return;
+      }
+      openStudioModelPicker({
+        kind: outputType === 'video' ? 'video' : 'image',
+        anchor: triggerBtn,
+        selectedModelId: selectedModel,
+        currentMode: pickerRoute,
+        onPick: (modelId, mode) => {
+          selectedModel = modelId;
+          explicitModelPick = modelId;
+          pickedMode = mode || null;
+          if (pickedMode) routeModelPicks[pickedMode] = modelId;
+          refreshMediaRoute();
+          updateTrigger();
+          if (videoSettings) videoSettings.refresh();
+        },
+        onClose: () => { studioPickerController = null; },
+      }).then((c) => { studioPickerController = c; })
+        .catch((err) => {
+          console.warn('[CinemaTemplateStudio] Video Studio model picker unavailable, using list picker:', err);
+          openDropdown();
+        });
     };
 
     const headerRow = document.createElement('div');
@@ -1914,10 +1950,55 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     const label = document.createElement('div');
     label.className = 'text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 mb-2';
     label.textContent = 'Model';
+
+    syncModelPickerToRoute = (route) => {
+      if (!route || route === pickerRoute) return;
+      // Remember the old route's model (only if it belongs to that route).
+      if (modelsForRoute(pickerRoute).some(m => m && m.id === selectedModel)) routeModelPicks[pickerRoute] = selectedModel;
+      pickerRoute = route;
+      fallbackList = modelsForRoute(route);
+      loadedModels = fallbackList;
+      selectedModel = routeModelPicks[route] || modelForRoute(route, selectedModel);
+      delete dropdown.dataset.populated;
+      closeDropdown();
+      updateTrigger();
+      label.textContent = `Model · ${MEDIA_ROUTE_LABELS[route] || route}`;
+      modelLoadingStatus.textContent = `${fallbackList.length} models`;
+      modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+    };
     headerRow.appendChild(label);
     headerRow.appendChild(triggerBtn);
     headerRow.appendChild(modelLoadingStatus);
     modelWrapper.appendChild(headerRow);
+    videoSettings = null;
+    if (outputType === 'video') {
+      // Same per-model controls as the Video Studio prompt bar.
+      videoSettings = createVideoSettingsControls({
+        getTarget: () => {
+          const { route, model } = currentMediaRoute();
+          return { route, model };
+        },
+        preferred: { duration: currentInputs.duration || normalizeDuration(currentTemplate), effect: currentTemplate.defaultParams?.name },
+        offerEffects: !getTemplateMediaInputs().some(i => i && i.name === 'name'),
+      });
+      modelWrapper.appendChild(videoSettings.element);
+      videoSettings.refresh();
+    }
+    // Same prompt-bar tools as the Video Studio.
+    const templateInputsNow = getTemplateMediaInputs();
+    videoTools = createTemplateVideoTools({
+      studioName: 'Cinema Template Studio',
+      kind: outputType === 'video' ? 'video' : 'image',
+      hasOwnAspectRatio: templateInputsNow.some(i => i && (i.name === 'aspect_ratio' || i.name === 'aspectRatio')),
+      defaultAspectRatio: resolveGenerationAspectRatio(currentInputs, currentTemplate) || '',
+      getTarget: () => {
+        const { route, model, media } = currentMediaRoute();
+        return { route, model, imageUrl: media.imageUrl };
+      },
+      onAttach: (key, url) => attachFromToolbar(key, url),
+    });
+    modelWrapper.appendChild(videoTools.element);
+    videoTools.refresh();
     modelWrapper.appendChild(dropdown);
     formPanel.appendChild(modelWrapper);
    }
@@ -1926,41 +2007,90 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   // VIDEO UPLOAD BUTTON
   // ================================
   function renderVideoUploadButton(formPanel) {
-    // Video upload for v2v models — appears for video templates so users
-    // can upload a source video for video-to-video generation.
+    // Media sources for video templates — the same pickers the Video Studio
+    // uses. A reference image (when the template has no image input of its
+    // own) turns the run into image-to-video; a source video turns it into
+    // video-to-video. The route badge shows which path Generate will take.
     if (currentTemplate.outputType !== 'video') return;
+    const inputs = getTemplateMediaInputs();
 
     const wrapper = document.createElement('div');
     wrapper.className = 'mt-4';
     wrapper.innerHTML = `
-      <div class="flex items-center justify-between gap-3">
-        <label class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Video Source (V2V)</label>
-        <button id="videoUploadBtn" type="button" class="text-[10px] font-semibold uppercase tracking-[0.18em] rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white transition px-3 py-1">Upload video</button>
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <label class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Media Sources</label>
+        <span data-media-route class="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400"></span>
       </div>
+      <div data-media-fields class="flex flex-col gap-2"></div>
     `;
-    formPanel.appendChild(wrapper);
+    const fieldsHost = wrapper.querySelector('[data-media-fields]');
+    mediaRouteBadge = wrapper.querySelector('[data-media-route]');
 
-    const videoBtn = wrapper.querySelector('#videoUploadBtn');
-    const setVideoDone = (label) => {
-      videoBtn.innerHTML = `<span class="text-emerald-200">✓ ${label}</span>`;
-    };
-
-    videoBtn.onclick = (e) => {
-      e.stopPropagation();
-      const picker = createUploadPicker({
+    if (!inputs.some(i => i && (i.type === 'image' || i.type === 'frame'))) {
+      const imageField = createTemplateMediaField({
+        kind: 'frame',
+        required: currentTemplate.modelType === 'i2v',
         anchorContainer: container,
-        acceptVideo: true,
-        onSelect: (sel) => {
-          currentInputs['video_url'] = sel.url;
-          setVideoDone('Video uploaded');
-        },
-        onClear: () => {
-          currentInputs['video_url'] = null;
-          videoBtn.textContent = 'Upload video';
-        }
+        studioName: 'Cinema Template Studio',
+        initialValue: currentInputs['image_url'] || null,
+        onChange: (value) => { currentInputs['image_url'] = value; clearStaleRetry(); refreshMediaRoute(); },
       });
-      container.appendChild(picker.panel);
+      fieldsHost.appendChild(imageField.element);
+      mediaFields.frame.push(imageField);
+    }
+    if (!inputs.some(i => i && i.type === 'video')) {
+      const videoField = createTemplateMediaField({
+        kind: 'video',
+        anchorContainer: container,
+        studioName: 'Cinema Template Studio',
+        initialValue: currentInputs['video_url'] || null,
+        onChange: (value) => { currentInputs['video_url'] = value; clearStaleRetry(); refreshMediaRoute(); },
+      });
+      fieldsHost.appendChild(videoField.element);
+      mediaFields.video.push(videoField);
+    }
+    formPanel.appendChild(wrapper);
+    refreshMediaRoute();
+  }
+
+  function getTemplateMediaInputs() {
+    if (!currentTemplate) return [];
+    return [
+      ...(currentTemplate.inputs || []),
+      ...(currentTemplate.quickInputs || []),
+      ...(currentTemplate.advancedInputs || []),
+    ];
+  }
+
+  // Which MuAPI path Generate will take with the media currently attached.
+  function currentMediaRoute(modelOverride) {
+    const media = extractTemplateMedia(currentInputs, getTemplateMediaInputs());
+    return {
+      media,
+      ...routeTemplateGeneration({
+        outputType: currentTemplate?.outputType,
+        modelType: currentTemplate?.modelType,
+        model: modelOverride || selectedModel,
+        pickedMode,
+        ...media,
+      }),
     };
+  }
+
+  /** Media changed: an old Retry would resubmit the previous media. */
+  function clearStaleRetry() {
+    lastGenerationParams = null;
+    container.querySelectorAll('[data-generation-error]').forEach(el => el.remove());
+  }
+
+  function refreshMediaRoute() {
+    const { route } = currentMediaRoute();
+    if (mediaRouteBadge) mediaRouteBadge.textContent = MEDIA_ROUTE_LABELS[route] || route;
+    // Like the Video Studio: attaching an image / video swaps the model
+    // picker to models that accept it.
+    if (syncModelPickerToRoute) syncModelPickerToRoute(route);
+    if (videoSettings) videoSettings.refresh();
+    if (videoTools) videoTools.refresh();
   }
 
 
@@ -2040,6 +2170,13 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         advControls.querySelectorAll('select[data-advanced-field], input[data-advanced-field], textarea[data-advanced-field]').forEach(el => {
           const fieldName = el.dataset.advancedField;
           if (!fieldName) return;
+          // Keep the shown value and the value Generate uses in sync.
+          const stored = currentInputs[fieldName];
+          const isOption = el.tagName !== 'SELECT' || Array.from(el.options).some(o => o.value === String(stored));
+          if (stored != null && stored !== '' && isOption) el.value = stored;
+          // Template Type only counts once the user picks it (its default
+          // would add a competing "Format:" to the prompt).
+          else if (el.tagName === 'SELECT' && fieldName !== 'templateType') currentInputs[fieldName] = el.value;
           if (el.tagName === 'SELECT') {
             el.onchange = () => {
               currentInputs[fieldName] = el.value;
@@ -2067,7 +2204,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-blue-400/20 transition cursor-pointer">
           <div class="mb-3 text-3xl">🏷️</div>
           <h3 class="text-lg font-bold text-white mb-2">Auto-Detected Niche</h3>
-          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${currentInputs.niche || 'general-business'}</textarea>
+          <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${escapeHtml(currentTiles.niche || (currentInputs.niche && currentInputs.niche !== 'auto-detect' ? currentInputs.niche : detectTemplateNiche({ template: currentTemplate, advanced: currentInputs })) || '')}</textarea>
         </div>
         <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-violet-400/20 transition cursor-pointer">
           <div class="mb-3 text-3xl">🎬</div>
@@ -2095,11 +2232,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     setTimeout(() => {
       intelligenceSection.querySelectorAll('textarea[data-tile]').forEach(ta => {
+        const tileName = ta.dataset.tile;
+        if (!tileName) return;
+        // Generate uses the cards exactly as shown (and as edited).
+        if (tileEdited[tileName] && currentTiles[tileName] != null) ta.value = currentTiles[tileName];
+        else currentTiles[tileName] = ta.value;
         ta.oninput = () => {
-          const tileName = ta.dataset.tile;
-          if (tileName) {
-            currentInputs[tileName] = ta.value;
-          }
+          currentTiles[tileName] = ta.value;
+          tileEdited[tileName] = true;
+          promptManuallyEdited = false;
         };
       });
     }, 0);
@@ -2178,8 +2319,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         wandBtn.onclick = () => {
           const textarea = document.getElementById('outputTextarea');
           if (!textarea) return;
-          const current = lastBuiltPrompt || textarea.value || '';
-          const enhanced = `${current}, cinematic quality, professional lighting, high detail, 4K resolution`.trim();
+          const current = (lastBuiltPrompt || textarea.value || '').replace(/[\s.,]+$/, '');
+          const extra = 'cinematic quality, professional lighting, high detail, 4K resolution';
+          const enhanced = current.toLowerCase().includes('cinematic quality, professional lighting') ? `${current}.` : `${current}, ${extra}.`;
           lastBuiltPrompt = enhanced;
           outputTabValues['Enhanced Prompt'] = enhanced;
           textarea.value = enhanced;
@@ -2189,17 +2331,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
           updatePromptLengthCounter(enhanced);
           updateResetButtonVisibility();
-          // Sync to primary prompt field in the form panel
+          // Sent as-is until an input changes (the form fields keep the
+          // user's own text, so nothing is enriched twice).
           promptManuallyEdited = true;
-          const formPanel = container.querySelector('.rounded-[34px]');
-          if (formPanel) {
-            const primaryPromptField = formPanel.querySelector('textarea[name], input[name]') || formPanel.querySelector('#inputs-form textarea, #inputs-form input');
-            if (primaryPromptField) {
-              primaryPromptField.value = enhanced;
-              primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
-              primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-          }
         };
       }
       const resetBtn = document.getElementById('resetPromptBtn');
@@ -2355,6 +2489,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
               input.dispatchEvent(new Event('input', { bubbles: true }));
               input.dispatchEvent(new Event('change', { bubbles: true }));
               currentInputs[fieldName] = enhancedValue;
+              userEditedFields.add(fieldName);
+              // Rebuild the prompt with the enhanced field.
+              promptManuallyEdited = false;
               btn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
               btn.textContent = 'Enhanced ✓';
               setTimeout(() => {
@@ -2395,6 +2532,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   // GENERATE VIDEO
   // ================================
   function generateVideo() {
+    if (flushVideoIntentSync) flushVideoIntentSync();
     if (isGenerating) return;
 
     const apiKey = apiKeyManager.getMuapiKey();
@@ -2441,28 +2579,45 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     }
 
     const isVideo = currentTemplate.outputType === 'video';
-    const imageUrl = currentInputs.image_url || currentInputs.referenceImage || null;
-
-    // V2V models need a video_url instead of image_url
-    const isV2V = getV2VModelById(selectedModel);
-
-    if (isV2V && !currentInputs.video_url) {
-      showToast('Please upload a video before generating.', 'error');
-      return;
-    }
 
     // Validate selected model matches template modelType
     const candidates = currentTemplate.modelType === 'i2i' ? i2iModels
       : currentTemplate.modelType === 't2i' ? t2iModels
       : currentTemplate.modelType === 't2v' ? t2vModels
+      : currentTemplate.modelType === 'v2v' ? v2vModels
       : i2vModels;
 
-    const validModel = candidates.find(m => m.id === selectedModel);
+    const validModel = candidates.find(m => m.id === selectedModel)
+      || modelsForRoute(currentMediaRoute(selectedModel).route).find(m => m.id === selectedModel);
     if (!validModel) {
       selectedModel = resolveModel(currentTemplate, selectedModel, { i2i: i2iModels, t2i: t2iModels, i2v: i2vModels, t2v: t2vModels, v2v: v2vModels });
     }
 
-    let model = selectedModel;
+    // Route by attached media exactly like the Video Studio: a source video
+    // goes to v2v, an image to i2v / i2i, otherwise text-to-video / image.
+    const { media, route, model: routedModel } = currentMediaRoute(selectedModel);
+    const imageUrl = media.imageUrl;
+
+    // Needs an image when the resolved route is image-driven (e.g. Movie
+    // Poster switched to an image-to-image model) or the template is,
+    // except on video-to-video, which only needs the source video.
+    const needsImage = route === 'i2v' || route === 'i2i'
+      || ((currentTemplate.modelType === 'i2v' || currentTemplate.modelType === 'i2i') && route !== 'v2v');
+    if (needsImage && !imageUrl) {
+      showToast('Please upload an image before generating.', 'error');
+      return;
+    }
+    if (route === 'v2v' && !media.videoUrl) {
+      showToast('Please upload a video before generating.', 'error');
+      return;
+    }
+    const v2vBlock = promptlessV2VBlock(route, routedModel, explicitModelPick);
+    if (v2vBlock) {
+      showToast(v2vBlock, 'error');
+      return;
+    }
+
+    let model = routedModel;
     if (!model) {
       if (imageUrl && isVideo) {
         model = 'kling-v2.6-pro-i2v';
@@ -2514,12 +2669,18 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       } catch {
         prompt = currentInputs.prompt || '';
       }
+      // Make sure every input the user set is in the prompt — the assembly
+      // engine only knows some field names.
+      prompt = appendMissingInputs(prompt, collectCinemaPromptEntries());
+      // Motion & Style (Video Studio) modifiers.
+      if (videoTools) prompt = videoTools.applyToPrompt(prompt, currentMediaRoute(selectedModel).route);
       lastBuiltPrompt = prompt;
     }
 
     const negNiche = (currentInputs.niche && currentInputs.niche !== 'auto-detect') ? currentInputs.niche : (currentTemplate.niche || '');
 
-    if (isAiEnhancer) {
+    // A prompt the user edited by hand is sent as-is (no extra enrichment).
+    if (isAiEnhancer && !promptManuallyEdited) {
       try {
         prompt = enrichPromptString(prompt, {
           niche: negNiche,
@@ -2571,13 +2732,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       }
     }
 
-     if (imageUrl) {
-       params.image_url = imageUrl;
-     }
-
-     if (isVideo && currentInputs.video_url) {
-       params.video_url = currentInputs.video_url;
-     }
+    applyTemplateMediaToParams(params, media, route);
+    if (route === 'i2v' && media.endImageUrl && endFrameSupport(route, params.model) === 'none') {
+      const mm = findTemplateModel(params.model);
+      showToast(`${mm?.name || params.model} has no end-frame input, so your end frame isn't used. Pick a model with start & end frames (e.g. Seedance 2.5) to use it.`, 'warning');
+    }
+    // Per-model duration / resolution / native audio (only values the
+    // selected model accepts) override the generic 5/10s clamp above.
+    if (isVideo && videoSettings) Object.assign(params, videoSettings.getSettings());
+    if (params.aspect_ratio) params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
 
      if (negativePrompt) {
       params.negative_prompt = negativePrompt;
@@ -2617,6 +2780,74 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     runGeneration(params);
   }
 
+  /**
+   * Media dropped / picked in the prompt attachment toolbar goes into the
+   * matching media field (same as attaching it there directly).
+   */
+  function attachFromToolbar(key, url) {
+    const frame = mediaFields.frame.find(f => f.element.isConnected) || mediaFields.frame[0];
+    const image = mediaFields.image.find(f => f.element.isConnected) || mediaFields.image[0];
+    const video = mediaFields.video.find(f => f.element.isConnected) || mediaFields.video[0];
+    if (key === 'video') {
+      if (video) video.setValue(url);
+      else { currentInputs.video_url = url; refreshMediaRoute(); }
+    } else if (key === 'endFrame') {
+      if (frame) frame.setValue({ endUrl: url });
+      else { currentInputs.last_image_url = url; refreshMediaRoute(); }
+    } else if (frame) {
+      frame.setValue({ startUrl: url });
+    } else if (image) {
+      image.setValue(url);
+    } else {
+      currentInputs.image_url = url;
+      refreshMediaRoute();
+    }
+    promptManuallyEdited = false;
+  }
+
+  /**
+   * Every value the user can see in the form, as prompt entries: the
+   * template's own fields (current Quick / Advanced mode), Advanced Controls,
+   * the edited Scene Beats tab and the Creative Intelligence cards.
+   */
+  function collectCinemaPromptEntries() {
+    const i = currentInputs || {};
+    const shown = new TemplateInputBuilder(currentTemplate, currentMode).inputs || [];
+    const humanize = (v) => String(v || '').replace(/[-_]+/g, ' ');
+    let intent = {};
+    try { intent = getVideoIntent() || {}; } catch { /* no intent yet */ }
+    const entries = [
+      ...templateInputEntries(shown, i),
+      // Video Intent panel.
+      { label: 'Subject', value: intent.subject },
+      { label: 'Core narrative', value: intent.premise },
+      { label: 'Target audience', value: i.targetAudience || intent.targetAudience },
+      { label: 'Call to action', value: intent.cta },
+      { label: 'Tone', value: intent.tone },
+      { label: 'Video type', value: intent.videoType ? humanize(intent.videoType) : '' },
+      { label: 'Lighting', value: intent.lightingPreset && intent.lightingPreset !== 'None' ? intent.lightingPreset : '' },
+      { label: 'Color grade', value: intent.colorGrade && intent.colorGrade !== 'None' ? intent.colorGrade : '' },
+      { label: 'Style preset', value: intent.stylePreset && intent.stylePreset !== 'None' ? intent.stylePreset : '' },
+      // Brand Context (when the template includes it).
+      { label: 'Brand', value: currentTemplate?.includeBrandContext ? i.brandName : '' },
+      { label: 'Brand voice', value: currentTemplate?.includeBrandContext && i.brandVoice ? humanize(i.brandVoice) : '' },
+      { label: 'Format', value: currentTemplate?.outputType === 'image' ? '' : humanize(i.templateType) },
+      { label: 'Niche', value: i.niche && i.niche !== 'auto-detect' ? humanize(i.niche) : (tileEdited.niche ? currentTiles.niche : '') },
+      { label: 'Business', value: i.businessType },
+      { label: 'Target audience', value: i.audience },
+      { label: 'Subject', value: i.subject },
+      { label: 'Setting', value: i.setting },
+      { label: 'Visual style', value: i.visualStyle },
+      { label: 'Call to action', value: i.cta },
+      { label: 'Creative direction', value: i.extraInstructions },
+      { label: 'Scene structure', value: i._customSceneBlueprint || currentTiles.scene },
+      { label: '', value: currentTiles.cinematic },
+      { label: 'Style direction', value: currentTiles.style },
+    ];
+    if (isAiEnhancer) entries.push({ label: '', value: currentTiles.keywords });
+    return entries;
+  }
+
   async function runGeneration(params) {
     if (isGenerating) return;
 
@@ -2627,21 +2858,51 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
     }
 
+    // Same as the Video Studio: Cancel button, progress timer, and a pending
+    // job record so a generation that finishes after a reload is recovered.
+    let cancelHandle = null;
+    let progressHandle = null;
+    let pendingJob = null;
+
     try {
       let result;
       const isVideo = currentTemplate.outputType === 'video';
+      params = { ...params };
+      // Advanced (negative prompt / seed), Character Lock, guidance, ratio.
+      if (videoTools) await videoTools.applyToParams(params);
       const hasImageUrl = !!params.image_url;
       const isV2V = getV2VModelById(params.model);
+      const { route: runRoute } = currentMediaRoute(params.model);
+      if (params.aspect_ratio) params.aspect_ratio = snapAspectRatioForModel(runRoute, params.model, params.aspect_ratio);
+      // Only settings this model declares (Kling v2.6 I2V: no ratio / resolution).
+      dropUndeclaredSettings(params, runRoute);
 
-      if (isV2V) {
-        result = await muapi.processV2V(params);
-      } else if (isVideo && hasImageUrl) {
-        result = await muapi.generateI2V(params);
-      } else if (isVideo) {
-        result = await muapi.generateVideo(params);
-      } else {
-        result = await muapi.generateImage(params);
+      if (genBtn) {
+        cancelHandle = createAbortAwareGenerateButton(genBtn);
+        cancelHandle.showCancel();
+        params.signal = cancelHandle.controller.signal;
+        progressHandle = startGenerationProgress({ parent: genBtn.parentElement, type: isVideo ? 'video' : 'image' });
       }
+      pendingJob = createPendingJobTracker('cinema-template', { prompt: params.prompt || '', model: params.model, templateId: currentTemplate.id, outputType: isVideo ? 'video' : 'image' });
+      lastRequestId = null;
+      params.onRequestId = (rid) => { lastRequestId = rid; pendingJob.onRequestId(rid); };
+
+      // Same MuAPI calls the Video Studio makes for each route.
+      if (isV2V && params.video_url) {
+        result = await muapi.processV2V(params, params.signal);
+      } else if (isVideo && hasImageUrl) {
+        result = await muapi.generateI2V(params, params.signal);
+      } else if (isVideo) {
+        result = await muapi.generateVideo(params, params.signal);
+      } else if (hasImageUrl) {
+        result = await muapi.generateI2I(params, params.signal);
+      } else {
+        result = await muapi.generateImage(params, params.signal);
+      }
+      progressHandle?.stop();
+      pendingJob.finish();
+      // On success the view switches to the preview, which removes the
+      // Cancel button with the old form.
 
       if (result && result.url) {
         generationResult = result.url;
@@ -2651,6 +2912,16 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           console.warn('[CinemaTemplateStudio] Failed to store generation result in sessionStorage:', error);
         }
         saveToHistory(result.url, params.prompt, params.model, currentTemplate.id);
+        currentResultEntry = {
+          id: result.id || result.request_id || lastRequestId || null,
+          url: result.url,
+          prompt: params.prompt || '',
+          model: params.model,
+          type: isVideo ? 'video' : 'image',
+          templateId: currentTemplate.id,
+          regenParams: regenSnapshot(params),
+        };
+        resultHistory.add(currentResultEntry);
         retryCount = 0;
         view = 'preview';
         render();
@@ -2658,12 +2929,17 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         throw new Error('No output URL returned');
       }
     } catch (err) {
-      const { userMessage } = formatGenerationError(err, retryCount, MAX_RETRIES);
+      progressHandle?.stop();
+      pendingJob?.finish();
+      const cancelled = cancelHandle?.isCancelled?.() || err?.name === 'AbortError';
+      cancelHandle?.reset();
+      const { userMessage } = cancelled ? { userMessage: 'Generation cancelled.' } : formatGenerationError(err, retryCount, MAX_RETRIES);
       const errEl = document.createElement('div');
       errEl.className = 'mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
+      errEl.dataset.generationError = '';
       errEl.textContent = userMessage;
 
-      if (retryCount < MAX_RETRIES && lastGenerationParams) {
+      if (!cancelled && retryCount < MAX_RETRIES && lastGenerationParams) {
         const retryBtn = document.createElement('button');
         retryBtn.id = 'retry-btn';
         retryBtn.className = 'ml-2 underline text-emerald-200 hover:text-white';
@@ -2699,10 +2975,10 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     }
   }
 
-  function saveToHistory(url, prompt, model, templateId) {
+  function saveToHistory(url, prompt, model, templateId, type) {
     saveGeneration({
       studio: 'cinema',
-      type: currentTemplate?.outputType === 'video' ? 'video' : 'image',
+      type: type || (currentTemplate?.outputType === 'video' ? 'video' : 'image'),
       url,
       prompt,
       model: model || selectedModel,
@@ -2751,7 +3027,9 @@ const firstChild = storyboardRoot.firstElementChild;
     const preview = document.createElement('div');
     preview.className = 'flex-1 flex flex-col items-center justify-center p-8';
 
-    const isVideoOutput = currentTemplate?.outputType === 'video';
+    // The selected result's own type wins over the open template's.
+    const shownEntry = currentResultEntry && currentResultEntry.url === generationResult ? currentResultEntry : null;
+    const isVideoOutput = shownEntry?.type ? shownEntry.type === 'video' : currentTemplate?.outputType === 'video';
     const resultMedia = document.createElement(isVideoOutput ? 'video' : 'img');
     resultMedia.src = generationResult || '';
     resultMedia.className = 'max-w-full max-h-[60vh] rounded-xl border border-white/10';
@@ -2802,8 +3080,75 @@ const firstChild = storyboardRoot.firstElementChild;
     actions.appendChild(publishBtn);
 
     preview.appendChild(resultMedia);
+    // Frame scrubber (Video Studio).
+    if (isVideoOutput) {
+      const scrubberWrap = document.createElement('div');
+      scrubberWrap.className = 'w-full max-w-3xl';
+      scrubberWrap.appendChild(createFrameScrubber(resultMedia));
+      preview.appendChild(scrubberWrap);
+    }
     preview.appendChild(actions);
+
+    // Regenerate / Extend (Video Studio) — same model as the last run.
+    const entry = (currentResultEntry && currentResultEntry.url === generationResult)
+      ? currentResultEntry
+      : (resultHistory.find(generationResult) || { url: generationResult, type: isVideoOutput ? 'video' : 'image' });
+    const resultActions = createResultActions({
+      onRegenerate: () => {
+        // Re-run the settings of the result on screen. An entry without them
+        // (older saved history, an Extend result) goes back to the form
+        // rather than silently re-running a different, newer generation.
+        const templateType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
+        if (entry.regenParams && (!entry.type || entry.type === templateType)) {
+          runGeneration({ ...entry.regenParams });
+        } else {
+          // Only open the form; the user starts the new generation.
+          view = 'create';
+          render();
+        }
+      },
+      onExtend: (e, opts) => extendResult(e, opts),
+    });
+    resultActions.setEntry(entry);
+    const actionsWrap = document.createElement('div');
+    actionsWrap.className = 'w-full max-w-3xl';
+    actionsWrap.appendChild(resultActions.element);
+    preview.appendChild(actionsWrap);
+
+    // History strip.
+    const historyWrap = document.createElement('div');
+    historyWrap.className = 'w-full max-w-3xl';
+    resultHistory.setActive(generationResult);
+    historyWrap.appendChild(resultHistory.element);
+    preview.appendChild(historyWrap);
     container.appendChild(preview);
+  }
+
+  /**
+   * Extend a Seedance 2.0 result (Video Studio "Extend"): runs the
+   * seedance-v2.0-extend model from the video model catalog with the
+   * original request id.
+   */
+  async function extendResult(entry, { prompt, duration }) {
+    if (!canExtend(entry)) throw new Error('Only Seedance 2.0 videos can be extended.');
+    const params = buildExtendParams(entry, { prompt, duration });
+    let rid = null;
+    params.onRequestId = (id) => { rid = id; };
+    const result = await muapi.generateVideo(params);
+    if (!result || !result.url) throw new Error('No output URL returned');
+    generationResult = result.url;
+    currentResultEntry = {
+      id: result.id || result.request_id || rid || null,
+      url: result.url,
+      prompt: params.prompt || entry.prompt || '',
+      model: params.model,
+      type: 'video',
+      templateId: entry.templateId || currentTemplate?.id || '',
+    };
+    resultHistory.add(currentResultEntry);
+    saveToHistory(result.url, currentResultEntry.prompt, params.model, currentResultEntry.templateId);
+    view = 'preview';
+    render();
   }
 
   return container;
