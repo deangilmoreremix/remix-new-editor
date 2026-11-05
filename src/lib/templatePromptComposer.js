@@ -26,6 +26,30 @@ export const NON_PROMPT_FIELDS = new Set([
 
 const MEDIA_TYPES = new Set(['image', 'frame', 'video', 'audio', 'file']);
 
+// Niche templates store a display label ("Restaurant & Cafe"); the niche
+// enrichment terms are keyed by id ("restaurant").
+const NICHE_LABEL_TO_KEY = {
+  'restaurant & cafe': 'restaurant',
+  'med spa & beauty': 'med-spa',
+  'salon & barbershop': 'salon',
+  'gym & fitness': 'fitness',
+  'real estate': 'real-estate',
+  'dental office': 'dental',
+  'chiropractic & wellness': 'chiropractic',
+  'legal & attorney': 'legal',
+  'automotive & car': 'automotive',
+  'fashion & style': 'fashion',
+  'events & celebrations': 'event',
+  'luxury & premium': 'luxury-brand',
+};
+
+/** Niche id for a niche id or display label (unknown values unchanged). */
+export function toNicheKey(niche) {
+  const v = typeof niche === 'string' ? niche.trim() : '';
+  if (!v) return v;
+  return NICHE_LABEL_TO_KEY[v.toLowerCase()] || v;
+}
+
 /** Card defaults shown in Creative Intelligence (by output type). */
 export function defaultCreativeTiles(outputType, specs = {}) {
   const image = outputType === 'image';
@@ -49,7 +73,7 @@ const humanize = (v) => clean(v).replace(/[-_]+/g, ' ');
  * template fields) and the template itself.
  */
 export function detectTemplateNiche({ template = {}, advanced = {}, fields = {}, userPrompt = '' } = {}) {
-  if (template.niche) return template.niche;
+  if (template.niche) return toNicheKey(template.niche);
   const detected = detectNiche({
     businessType: [advanced.businessType, advanced.subject].filter(Boolean).join(' '),
     niche: '',
@@ -125,7 +149,7 @@ export function composeTemplatePrompt({
 
   // Niche: explicit choice > edited card > detection.
   const chosenNiche = clean(advanced.niche) && advanced.niche !== 'auto-detect' ? clean(advanced.niche) : '';
-  const niche = chosenNiche || clean(tiles.niche) || detectTemplateNiche({ template, advanced, fields, userPrompt: main });
+  const niche = toNicheKey(chosenNiche || clean(tiles.niche) || detectTemplateNiche({ template, advanced, fields, userPrompt: main }));
   const nicheTerms = NICHE_ENRICHMENT[niche] || getNicheTerms(niche) || [];
   // A niche the user typed that has no enrichment terms of its own (the
   // lookup falls back to generic terms) is added as written.

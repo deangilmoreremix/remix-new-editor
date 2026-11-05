@@ -382,12 +382,17 @@ export class MuapiClient {
                   try {
                     checkOutputIntegrity(data);
                   } catch (integrityError) {
-                    throw new Error(
+                    const placeholderError = new Error(
                       `Received a placeholder or demo result instead of a unique generation. ` +
                       `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
                       `Please check your key at https://muapi.ai/access-keys. ` +
                       `(detected URL: ${integrityError.url})`
                     );
+                    // A completed job will not change: report it now instead of
+                    // re-polling until the attempt limit.
+                    placeholderError.terminal = true;
+                    placeholderError.requestId = requestId;
+                    throw placeholderError;
                   }
                 }
 

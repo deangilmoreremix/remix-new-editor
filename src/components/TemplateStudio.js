@@ -53,12 +53,20 @@ export function TemplateStudio(templateId) {
   const specs = getTemplateSpecs(templateId) || {};
   const hasSpecs = hasEnhancedSpecs(templateId);
 
-  // Support both input structures
+  // Support both input structures. normalizeTemplate already merges a niche
+  // template's quick + advanced inputs into `inputs`, so keep each field once
+  // (otherwise every field is rendered twice).
+  const seenInputNames = new Set();
   const allInputs = [
     ...(template.inputs || []),
     ...(template.quickInputs || []),
     ...(template.advancedInputs || [])
-  ];
+  ].filter((input) => {
+    if (!input || !input.name) return true;
+    if (seenInputNames.has(input.name)) return false;
+    seenInputNames.add(input.name);
+    return true;
+  });
 
   // State management
   const formState = {};
