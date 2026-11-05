@@ -465,14 +465,21 @@ export function VideoStudio() {
                 uploadedImageUrl = null;
                 imageMode = false;
             }
+            // A workflow picked from the Source menu already chose its model (and
+            // needs the prompt); only fall back to watermark removal otherwise.
+            const keepChosenModel = v2vMode && v2vModels.some((m) => m.id === selectedModel);
             v2vMode = true;
-            selectedModel = v2vModels[0].id;
-            selectedModelName = v2vModels[0].name;
-            document.getElementById('v-model-btn-label').textContent = selectedModelName;
-            updateModelBtnIcon();
-            updateControlsForModel(selectedModel);
-            textarea.placeholder = 'Video ready — click Generate to remove watermark';
-            textarea.disabled = true;
+            if (keepChosenModel) {
+                refreshVideoCost(v2vModels.find((m) => m.id === selectedModel));
+            } else {
+                selectedModel = v2vModels[0].id;
+                selectedModelName = v2vModels[0].name;
+                document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                updateModelBtnIcon();
+                updateControlsForModel(selectedModel);
+                textarea.placeholder = 'Video ready — click Generate to remove watermark';
+                textarea.disabled = true;
+            }
         } catch (err) {
             showVideoIcon();
             if (err.message === 'Please sign in and add api credits.') {

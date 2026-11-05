@@ -615,7 +615,9 @@ export function ImageStudio() {
         onDone: async (file, { destination } = {}) => {
             try {
                 const { uploadFileToStorage } = await import('../lib/uploadService.js');
-                const url = await uploadFileToStorage(file);
+                const uploaded = await uploadFileToStorage(file);
+                const url = typeof uploaded === 'string' ? uploaded : uploaded?.url;
+                if (!url) throw new Error('upload returned no URL');
                 if (destination === 'video') {
                     try { localStorage.setItem('video_prefill_start_frame', url); } catch { /* ignore */ }
                     const { navigate } = await import('../lib/router.js');
