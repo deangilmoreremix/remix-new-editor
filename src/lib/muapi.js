@@ -14,6 +14,25 @@ import {
   EffectParamError,
 } from './effectParamValidator.js';
 
+/**
+ * The effect-param schema, widened with the aspect ratios and resolutions a
+ * model itself declares (e.g. Seedance 2.5's `adaptive`, still models' `2k`),
+ * so settings the studios offer for that model aren't rejected before submit.
+ */
+function schemaForModel(modelInfo) {
+  const widen = (rule, extra) => (extra?.length
+    ? { ...rule, values: [...new Set([...rule.values, ...extra.map(String)])] }
+    : rule);
+  const ratios = modelInfo?.inputs?.aspect_ratio?.enum;
+  const resolutions = modelInfo?.inputs?.resolution?.enum;
+  if (!ratios?.length && !resolutions?.length) return EFFECT_PARAM_SCHEMA;
+  return {
+    ...EFFECT_PARAM_SCHEMA,
+    aspect_ratio: widen(EFFECT_PARAM_SCHEMA.aspect_ratio, ratios),
+    resolution: widen(EFFECT_PARAM_SCHEMA.resolution, resolutions),
+  };
+}
+
 async function acquireRateLimitToken() {
     try {
         await rateLimiter.acquire(1, 10000);
@@ -700,7 +719,7 @@ export class MuapiClient {
         analytics.trackGeneration(params.model, 'i2i', { endpoint, studioType: params.studioType });
 
         // ─── Validate & sanitize ─────────────────────────────────────────
-        const validation = validateEffectParams(params, EFFECT_PARAM_SCHEMA);
+        const validation = validateEffectParams(params, schemaForModel(modelInfo));
         if (!validation.valid) {
             const firstError = validation.errors[0];
             throw new EffectParamError(firstError.message, firstError.field, firstError.code);
@@ -853,7 +872,7 @@ export class MuapiClient {
         analytics.trackGeneration(params.model, 'i2v', { endpoint, studioType: params.studioType });
 
         // ─── Validate & sanitize ─────────────────────────────────────────
-        const validation = validateEffectParams(params, EFFECT_PARAM_SCHEMA);
+        const validation = validateEffectParams(params, schemaForModel(modelInfo));
         if (!validation.valid) {
             const firstError = validation.errors[0];
             throw new EffectParamError(firstError.message, firstError.field, firstError.code);

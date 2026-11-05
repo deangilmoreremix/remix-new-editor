@@ -67,6 +67,24 @@ describe('Source workflows reach the provider intact', () => {
     expect(submittedBody(global.fetch).params.image_url).toBe('https://cdn.muapi.ai/ref.jpg');
   });
 
+  test('image-to-video accepts the aspect ratios a model advertises (Seedance 2.5 "adaptive")', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
+    await client.generateI2V({
+      model: 'seedance-2.5-image-to-video',
+      prompt: 'move',
+      image_url: 'https://cdn.muapi.ai/start.jpg',
+      aspect_ratio: 'adaptive',
+    });
+    expect(submittedBody(global.fetch).params.aspect_ratio).toBe('adaptive');
+  });
+
+  test('a ratio no model advertises is still rejected', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
+    await expect(client.generateI2V({
+      model: 'seedance-2.5-image-to-video', prompt: 'move', image_url: 'https://cdn.muapi.ai/start.jpg', aspect_ratio: '7:5',
+    })).rejects.toThrow();
+  });
+
   test('keyframes: start and end frame both go in images_list', async () => {
     global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
     await client.generateI2V({

@@ -455,7 +455,7 @@ class MuAPIProvider {
 
     // Image generation
     if (mode === 'generate-image') {
-      const endpoint = modelInfo?.endpoint || 'generate';
+      const endpoint = modelInfo?.endpoint || model || 'generate';
       const payload = {
         prompt: request.prompt,
         negative_prompt: request.negativePrompt || '',
@@ -473,7 +473,7 @@ class MuAPIProvider {
 
     // Video generation
     if (mode === 'text-to-video' || mode === 'broll') {
-      const endpoint = modelInfo?.endpoint || 'generate';
+      const endpoint = modelInfo?.endpoint || model || 'generate';
       const payload = {
         prompt: request.prompt,
         negative_prompt: request.negativePrompt || '',
