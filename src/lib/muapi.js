@@ -15,8 +15,8 @@ import {
 } from './effectParamValidator.js';
 
 /**
- * The effect-param schema, widened with the aspect ratios and resolutions a
- * model itself declares (e.g. Seedance 2.5's `adaptive`, still models' `2k`),
+ * The effect-param schema, widened with the aspect ratios, resolutions and
+ * durations a model itself declares (e.g. Seedance 2.5's `adaptive`, still models' `2k`),
  * so settings the studios offer for that model aren't rejected before submit.
  */
 function schemaForModel(modelInfo) {
@@ -25,11 +25,20 @@ function schemaForModel(modelInfo) {
     : rule);
   const ratios = modelInfo?.inputs?.aspect_ratio?.enum;
   const resolutions = modelInfo?.inputs?.resolution?.enum;
-  if (!ratios?.length && !resolutions?.length) return EFFECT_PARAM_SCHEMA;
+  // Duration bounds the model declares (a range, or an enum of seconds).
+  const dur = modelInfo?.inputs?.duration;
+  const declared = Array.isArray(dur?.enum)
+    ? dur.enum.map(Number).filter((n) => !Number.isNaN(n))
+    : [dur?.minValue ?? dur?.minimum, dur?.maxValue ?? dur?.maximum].filter((n) => typeof n === 'number');
+  if (!ratios?.length && !resolutions?.length && !declared.length) return EFFECT_PARAM_SCHEMA;
+  const base = EFFECT_PARAM_SCHEMA.duration;
   return {
     ...EFFECT_PARAM_SCHEMA,
     aspect_ratio: widen(EFFECT_PARAM_SCHEMA.aspect_ratio, ratios),
     resolution: widen(EFFECT_PARAM_SCHEMA.resolution, resolutions),
+    duration: declared.length
+      ? { ...base, min: Math.min(base.min, ...declared), max: Math.max(base.max, ...declared) }
+      : base,
   };
 }
 

@@ -488,6 +488,10 @@ export function applyTemplateMediaToParams(params, { imageUrl, endImageUrl, vide
       if (support === 'declared') {
         params.last_frame_url = endImageUrl;
         params.lastFrameUrl = endImageUrl;
+      } else if (support === 'list') {
+        // Keyframe models take [start, end] in images_list; generateI2V builds
+        // that list from lastFrameUrl.
+        params.lastFrameUrl = endImageUrl;
       } else if (support === 'unknown') {
         // No input schema for this model: keep the legacy keys.
         params.last_image_url = endImageUrl;
@@ -502,13 +506,16 @@ export function applyTemplateMediaToParams(params, { imageUrl, endImageUrl, vide
 
 /**
  * Whether a model takes an end frame: 'declared' (its inputs list
- * last_frame_url), 'none' (it has an input schema without one) or
- * 'unknown' (no schema to check).
+ * last_frame_url), 'list' (a keyframe model: start and end both go in
+ * images_list), 'none' (it has an input schema without one) or 'unknown'
+ * (no schema to check).
  */
 export function endFrameSupport(route, modelId) {
   const m = findRouteModel(route, modelId) || findTemplateModel(modelId);
   if (!m || !m.inputs) return 'unknown';
-  return Object.prototype.hasOwnProperty.call(m.inputs, 'last_frame_url') ? 'declared' : 'none';
+  if (Object.prototype.hasOwnProperty.call(m.inputs, 'last_frame_url')) return 'declared';
+  if (m.imageField === 'images_list' && Object.prototype.hasOwnProperty.call(m.inputs, 'images_list')) return 'list';
+  return 'none';
 }
 
 // ── Video settings (duration / resolution / native audio) ──────────────────

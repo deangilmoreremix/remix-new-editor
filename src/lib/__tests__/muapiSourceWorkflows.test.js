@@ -78,6 +78,21 @@ describe('Source workflows reach the provider intact', () => {
     expect(submittedBody(global.fetch).params.aspect_ratio).toBe('adaptive');
   });
 
+  test('image-to-video accepts the durations a model advertises (Seedance 2.5 up to 30s)', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
+    await client.generateI2V({
+      model: 'seedance-2.5-image-to-video', prompt: 'move', image_url: 'https://cdn.muapi.ai/start.jpg', duration: 20,
+    });
+    expect(submittedBody(global.fetch).params.duration).toBe(20);
+  });
+
+  test('a duration beyond what the model advertises is still rejected', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
+    await expect(client.generateI2V({
+      model: 'seedance-2.5-image-to-video', prompt: 'move', image_url: 'https://cdn.muapi.ai/start.jpg', duration: 45,
+    })).rejects.toThrow();
+  });
+
   test('a ratio no model advertises is still rejected', async () => {
     global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
     await expect(client.generateI2V({

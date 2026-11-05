@@ -41,7 +41,8 @@ describe('CinemaTemplateStudio image upload + model selection regression', () =>
   it('muapi.generateI2V maps image_url to images_list when required by model', () => {
     expect(muapiSrc).toContain('const imageField = modelInfo?.imageField || \'image_url\';');
     expect(muapiSrc).toContain("if (imageField === 'images_list') {");
-    expect(muapiSrc).toContain('finalPayload.images_list = [p.image_url];');
+    // Start frame alone, or [start, end] when an end frame is given (keyframe models).
+    expect(muapiSrc).toContain('finalPayload.images_list = endFrame ? [p.image_url, endFrame] : [p.image_url];');
   });
 
   it('muapi.generateI2V sends single image_url for non-list models', () => {
