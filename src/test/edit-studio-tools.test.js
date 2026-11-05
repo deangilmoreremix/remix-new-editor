@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// Edit Studio: gallery of 13 tools, each opening its own studio view.
+// Edit Studio: gallery of 16 tools, each opening its own studio view.
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../lib/muapi.js', () => ({
@@ -43,12 +43,17 @@ vi.mock('../lib/muapiStudioMedia.js', () => ({
 }));
 
 import { EditStudio, EDIT_TOOLS, getEditToolBySlug, validateEditInputs, getSchemaControls } from '../components/EditStudio.js';
+import {
+  AI_EDIT_MODEL_IDS, UPSCALE_MODEL_IDS, PRODUCT_MODEL_IDS, EFFECT_MODEL_IDS, ANGLE_MODEL_IDS,
+  CHARACTER_MODEL_IDS, getModelSpec,
+} from '../components/edit/editModels.js';
 import { strokesToMaskPixels, MASK_SELECTED, MASK_KEPT } from '../components/edit/maskPainter.js';
 import { muapi } from '../lib/muapi.js';
 
 const REQUESTED = [
   'Remove Object', 'Remove Background', 'Extend Image', 'AI Edit', 'Reframe', 'Change Dress',
   'Enhance Skin', 'Colorize', 'Add Watermark', 'Upscale', 'Face Swap', 'Product Shot', 'Ghibli Style',
+  'Photo Effects', 'Change Angle', 'Character & Reference',
 ];
 
 function mount() {
@@ -65,14 +70,14 @@ const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 describe('Edit Studio gallery', () => {
   beforeEach(() => window.history.replaceState(null, '', '/#/edit'));
 
-  test('has exactly the 13 requested tools, each with a unique link name', () => {
+  test('has the 13 requested tools plus 3 model-based ones, each with a unique link name', () => {
     expect(EDIT_TOOLS.map((tool) => tool.name)).toEqual(REQUESTED);
-    expect(new Set(EDIT_TOOLS.map((tool) => tool.slug)).size).toBe(13);
+    expect(new Set(EDIT_TOOLS.map((tool) => tool.slug)).size).toBe(16);
   });
 
-  test('shows only the 13 tool cards — no Browse All Models section', () => {
+  test('shows only the 16 tool cards — no Browse All Models section', () => {
     const el = mount();
-    expect(el.querySelectorAll('[data-edit-tool]').length).toBe(13);
+    expect(el.querySelectorAll('[data-edit-tool]').length).toBe(16);
     expect(el.textContent).not.toContain('Browse All Models');
     expect(isHidden(view(el, 'gallery'))).toBe(false);
     expect(isHidden(view(el, 'studio'))).toBe(true);
@@ -137,7 +142,8 @@ describe('Edit Studio running a tool', () => {
 
   test('sends the source and face images, then shows a before/after preview', async () => {
     const el = mount();
-    const [sourcePicker, facePicker] = pickers;
+    // Pickers are created in order: source, extra references, second image.
+    const [sourcePicker, , facePicker] = pickers;
     sourcePicker.opts.onSelect({ url: 'https://x/source.png', assetId: 'a1' });
     facePicker.opts.onSelect({ url: 'https://x/face.png', assetId: 'a2' });
     [...el.querySelectorAll('button')].find((b) => b.textContent === 'Apply Edit').click();
@@ -182,5 +188,191 @@ describe('Edit Studio helpers', () => {
       MASK_SELECTED, MASK_SELECTED, MASK_SELECTED, 255,
       MASK_KEPT, MASK_KEPT, MASK_KEPT, 255,
     ]);
+  });
+});
+
+const clickApply = (el) => [...el.querySelectorAll('button')].find((b) => b.textContent === 'Apply Edit').click();
+const chooseModel = (el, id) => {
+  const select = el.querySelector('#edit-model-select');
+  select.value = id;
+  select.dispatchEvent(new Event('change'));
+};
+const lastCall = () => muapi.generateI2I.mock.calls.at(-1)[0];
+
+describe('Edit Studio models inside the studios', () => {
+  beforeEach(() => {
+    localStorage.setItem('muapi_key', 'test-key');
+    muapi.generateI2I.mockClear();
+  });
+
+  test('every model the studios offer exists in the model list', () => {
+    for (const ids of [AI_EDIT_MODEL_IDS, UPSCALE_MODEL_IDS, PRODUCT_MODEL_IDS, EFFECT_MODEL_IDS, ANGLE_MODEL_IDS, CHARACTER_MODEL_IDS]) {
+      for (const id of ids) expect(getModelSpec(id), id).not.toBeNull();
+    }
+    expect(AI_EDIT_MODEL_IDS.length).toBe(30);
+    for (const tool of EDIT_TOOLS.filter((t) => t.models)) expect(tool.models).toContain(tool.id);
+  });
+
+  test('AI Edit offers every general editor in a Model dropdown', () => {
+    window.history.replaceState(null, '', '/?tool=ai-edit#/edit');
+    const el = mount();
+    const options = [...el.querySelectorAll('#edit-model-select option')].map((o) => o.value);
+    expect(options).toEqual(expect.arrayContaining(['seedream-5.0-edit', 'nano-banana-2-edit', 'gpt-image-1.5-edit', 'flux-kontext-max-i2i', 'midjourney-v7-image-to-image']));
+    expect(options.length).toBe(30);
+    expect(isHidden(el.querySelector('#edit-model-select').closest('div'))).toBe(false);
+  });
+
+  test('tools with a single model show no Model dropdown', () => {
+    window.history.replaceState(null, '', '/?tool=face-swap#/edit');
+    const el = mount();
+    expect(isHidden(el.querySelector('#edit-model-select').closest('div'))).toBe(true);
+  });
+
+  test('switching model swaps the settings and the image limit', () => {
+    window.history.replaceState(null, '', '/?tool=ai-edit#/edit');
+    const el = mount();
+    expect(el.querySelector('[data-control-key="stylization"]')).toBeNull();
+    chooseModel(el, 'midjourney-v7-image-to-image');
+    expect(el.querySelector('[data-control-key="stylization"]')).not.toBeNull();
+    expect(el.querySelector('[data-control-key="weirdness"]')).not.toBeNull();
+
+    const extrasPicker = pickers[1];
+    chooseModel(el, 'nano-banana-2-edit');
+    expect(extrasPicker.setMaxImages).toHaveBeenLastCalledWith(13);
+    expect(el.textContent).toContain('More reference images (up to 13)');
+    expect(el.querySelector('[data-control-key="google_search"]')).not.toBeNull();
+    chooseModel(el, 'nano-banana-edit');
+    expect(el.textContent).toContain('More reference images (up to 9)');
+  });
+
+  test('a multi-image model gets the source plus the extra references as images_list', async () => {
+    window.history.replaceState(null, '', '/?tool=ai-edit#/edit');
+    const el = mount();
+    chooseModel(el, 'nano-banana-2-edit');
+    pickers[0].opts.onSelect({ url: 'https://x/a.png', assetId: null });
+    pickers[1].opts.onSelect({ assets: [{ url: 'https://x/b.png', assetId: null }, { url: 'https://x/c.png', assetId: null }] });
+    el.querySelector('[aria-label="Edit prompt"]').value = 'merge these';
+    clickApply(el);
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalled());
+    expect(lastCall()).toMatchObject({
+      model: 'nano-banana-2-edit',
+      images_list: ['https://x/a.png', 'https://x/b.png', 'https://x/c.png'],
+      prompt: 'merge these',
+    });
+    expect(lastCall().image_url).toBeUndefined();
+  });
+
+  test('a single-image model sends only the source as image_url, even with extras picked earlier', async () => {
+    window.history.replaceState(null, '', '/?tool=ai-edit#/edit');
+    const el = mount();
+    pickers[0].opts.onSelect({ url: 'https://x/a.png', assetId: null });
+    chooseModel(el, 'nano-banana-2-edit');
+    pickers[1].opts.onSelect({ assets: [{ url: 'https://x/b.png', assetId: null }] });
+    chooseModel(el, 'gpt4o-edit');
+    el.querySelector('[aria-label="Edit prompt"]').value = 'make it blue';
+    clickApply(el);
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalled());
+    expect(lastCall()).toMatchObject({ model: 'gpt4o-edit', image_url: 'https://x/a.png', prompt: 'make it blue' });
+    expect(lastCall().images_list).toBeUndefined();
+  });
+
+  test('Grok 2 sends its images as reference_images', async () => {
+    window.history.replaceState(null, '', '/?tool=ai-edit#/edit');
+    const el = mount();
+    chooseModel(el, 'grok-imagine-image-2');
+    pickers[0].opts.onSelect({ url: 'https://x/a.png', assetId: null });
+    el.querySelector('[aria-label="Edit prompt"]').value = 'cartoon';
+    clickApply(el);
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalled());
+    expect(lastCall().reference_images).toEqual(['https://x/a.png']);
+    expect(lastCall().image_url).toBeUndefined();
+  });
+
+  test('Upscale: Topaz sends its factor as a number; SeedVR2 sends a resolution', async () => {
+    window.history.replaceState(null, '', '/?tool=upscale#/edit');
+    const el = mount();
+    pickers[0].opts.onSelect({ url: 'https://x/a.png', assetId: null });
+    chooseModel(el, 'topaz-image-upscale');
+    el.querySelector('[data-control-key="upscale_factor"]').value = '4';
+    clickApply(el);
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalledTimes(1));
+    expect(lastCall()).toMatchObject({ model: 'topaz-image-upscale', image_url: 'https://x/a.png', upscale_factor: 4 });
+
+    chooseModel(el, 'seedvr2-image-upscale');
+    clickApply(el);
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalledTimes(2));
+    expect(lastCall()).toMatchObject({ model: 'seedvr2-image-upscale', resolution: '4k' });
+  });
+
+  test('Product Shot: AI Product Photography sends prompt, the default sends scene_description', async () => {
+    window.history.replaceState(null, '', '/?tool=product-shot#/edit');
+    const el = mount();
+    pickers[0].opts.onSelect({ url: 'https://x/p.png', assetId: null });
+    const prompt = el.querySelector('[aria-label="Edit prompt"]');
+    prompt.value = 'on marble';
+    clickApply(el);
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalledTimes(1));
+    expect(lastCall()).toMatchObject({ model: 'ai-product-shot', scene_description: 'on marble' });
+    expect(lastCall().prompt).toBeUndefined();
+
+    chooseModel(el, 'ai-product-photography');
+    prompt.value = 'luxury studio';
+    clickApply(el);
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalledTimes(2));
+    expect(lastCall()).toMatchObject({ model: 'ai-product-photography', prompt: 'luxury studio' });
+    expect(lastCall().scene_description).toBeUndefined();
+  });
+
+  test('Photo Effects shows a preset grid and sends the chosen preset as name', async () => {
+    window.history.replaceState(null, '', '/?tool=photo-effects#/edit');
+    const el = mount();
+    expect(el.querySelectorAll('[data-preset]').length).toBe(18);
+    chooseModel(el, 'nano-banana-effects');
+    expect(el.querySelectorAll('[data-preset]').length).toBe(17);
+    el.querySelector('[data-preset="3D Figurine"]').click();
+    pickers[0].opts.onSelect({ url: 'https://x/a.png', assetId: null });
+    clickApply(el);
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalled());
+    expect(lastCall()).toMatchObject({ model: 'nano-banana-effects', name: '3D Figurine', image_url: 'https://x/a.png' });
+  });
+
+  test('Change Angle sends the slider values', async () => {
+    window.history.replaceState(null, '', '/?tool=change-angle#/edit');
+    const el = mount();
+    expect(el.querySelector('[aria-label="Edit prompt"]').closest('.hidden')).not.toBeNull();
+    const rotate = el.querySelector('[data-control-key="rotate_right_left"]');
+    expect(rotate.type).toBe('range');
+    rotate.value = '-30';
+    el.querySelector('[data-control-key="move_forward"]').value = '2';
+    pickers[0].opts.onSelect({ url: 'https://x/a.png', assetId: null });
+    clickApply(el);
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalled());
+    expect(lastCall()).toMatchObject({
+      model: 'qwen-image-edit-plus-lora',
+      images_list: ['https://x/a.png'],
+      rotate_right_left: -30,
+      move_forward: 2,
+    });
+  });
+
+  test('Character & Reference needs a prompt and offers its five models', () => {
+    window.history.replaceState(null, '', '/?tool=character-reference#/edit');
+    const el = mount();
+    expect([...el.querySelectorAll('#edit-model-select option')].length).toBe(5);
+    expect(el.textContent).toContain('Reference image');
+    pickers[0].opts.onSelect({ url: 'https://x/a.png', assetId: null });
+    clickApply(el);
+    expect(el.querySelector('[role="alert"]').textContent).toMatch(/scene/i);
+    expect(muapi.generateI2I).not.toHaveBeenCalled();
+  });
+
+  test('Flux 3 strength is a 0 to 1 slider and native_audio is hidden', () => {
+    window.history.replaceState(null, '', '/?tool=ai-edit#/edit');
+    const el = mount();
+    chooseModel(el, 'flux-3-i2i');
+    const strength = el.querySelector('[data-control-key="strength"]');
+    expect(strength.type).toBe('range');
+    expect([strength.min, strength.max]).toEqual(['0', '1']);
+    expect(el.querySelector('[data-control-key="native_audio"]')).toBeNull();
   });
 });

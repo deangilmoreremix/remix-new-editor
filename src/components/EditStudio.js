@@ -3,15 +3,21 @@ import { registerGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { getToolThumbnail, createThumbnailImg, createStudioHeader } from '../lib/thumbnails.js';
 import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
-import { i2iModels as LOCAL_I2I_MODELS, t2iModels as LOCAL_T2I_MODELS } from '../lib/models.js';
+import {
+  AI_EDIT_MODEL_IDS, UPSCALE_MODEL_IDS, PRODUCT_MODEL_IDS,
+  EFFECT_MODEL_IDS, ANGLE_MODEL_IDS, CHARACTER_MODEL_IDS,
+  getModelSpec, getModelInfo,
+} from './edit/editModels.js';
 import { showToast } from '../lib/loading.js';
+import { createMediaRemoveButton } from '../lib/studioHelpers.js';
 import { createMaskPainter } from './edit/maskPainter.js';
 
-// Edit Studio: a gallery of 13 image tools. Clicking a tool opens its own
+// Edit Studio: a gallery of 16 image tools. Clicking a tool opens its own
 // studio (inputs, settings, before/after preview) at /?tool=<slug>#/edit.
+// Tools with several models (AI Edit, Upscale, Product Shot, Photo Effects,
+// Character & Reference) show a Model picker; the studio adapts to the model.
 
 export const EDIT_TOOLS = [
   {
@@ -45,6 +51,7 @@ export const EDIT_TOOLS = [
   {
     id: 'seedream-5.0-edit',
     slug: 'ai-edit',
+    models: AI_EDIT_MODEL_IDS,
     howTo: 'Upload a photo and describe the change, e.g. "make it night time".',
     promptRequired: true,
     name: 'AI Edit',
@@ -118,6 +125,7 @@ export const EDIT_TOOLS = [
   {
     id: 'ai-image-upscaler',
     slug: 'upscale',
+    models: UPSCALE_MODEL_IDS,
     howTo: 'Upload a photo to sharpen it and increase its resolution.',
     name: 'Upscale',
     description: 'AI image upscaling to higher resolution',
@@ -140,6 +148,7 @@ export const EDIT_TOOLS = [
   {
     id: 'ai-product-shot',
     slug: 'product-shot',
+    models: PRODUCT_MODEL_IDS,
     howTo: 'Upload a product photo and describe the scene to place it in.',
     promptRequired: true,
     name: 'Product Shot',
@@ -158,43 +167,81 @@ export const EDIT_TOOLS = [
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
     hasPrompt: false,
   },
+  {
+    id: 'image-effects',
+    slug: 'photo-effects',
+    models: EFFECT_MODEL_IDS,
+    presetKey: 'name',
+    howTo: 'Upload a photo and pick a one-click look: 3D figurine, cyberpunk, 1980s, cartoon and more.',
+    name: 'Photo Effects',
+    description: 'One-click looks and styles for any photo',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>',
+    hasPrompt: false,
+  },
+  {
+    id: 'qwen-image-edit-plus-lora',
+    slug: 'change-angle',
+    models: ANGLE_MODEL_IDS,
+    howTo: 'Upload a photo and re-shoot it from a new angle: rotate, move closer, look up or down.',
+    name: 'Change Angle',
+    description: 'Re-shoot a photo from a different camera angle',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+    hasPrompt: false,
+  },
+  {
+    id: 'ideogram-character',
+    slug: 'character-reference',
+    models: CHARACTER_MODEL_IDS,
+    sourceLabel: 'Reference image',
+    howTo: 'Upload a person, product or style, then describe a new scene to put it in.',
+    name: 'Character & Reference',
+    description: 'Keep the same person, product or style in new scenes',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    hasPrompt: true,
+    promptRequired: true,
+    promptPlaceholder: 'Describe the new scene, e.g. "standing on a beach at sunset"...',
+    promptMessage: 'Describe the scene you want the reference placed in.',
+  },
 ];
 
 /** Bundled model definition for a tool, shaped like the live API schema. */
-function localModelSchema(modelId) {
-  const m = LOCAL_I2I_MODELS.find(x => x.id === modelId) || LOCAL_T2I_MODELS.find(x => x.id === modelId);
-  if (!m || !m.inputs) return null;
-  return {
-    name: m.name || modelId,
-    description: m.description || '',
-    input_schema: { schemas: { input_data: { properties: m.inputs } } },
-  };
-}
-
+/** Request fields that carry images (not user settings). */
 function isImageField(key, field) {
-  const name = String(field?.name || key || '').toLowerCase();
   if (String(field?.field || '').toLowerCase() === 'image') return true;
-  return name.includes('url') || name.includes('image') || name === 'images_list';
+  return /_url$|_urls$|^images?_list$|^reference_images$|^image$/.test(String(key || '').toLowerCase());
 }
 
 const PROMPT_KEYS = new Set(['prompt', 'scene_description']);
+// native_audio is a video-only switch that some shared schemas carry along.
+const HIDDEN_KEYS = new Set(['native_audio']);
+const SIZE_KEYS = new Set(['width', 'height']);
 
-/** Controls for model inputs the tool's hand-written controls don't cover. */
-export function getSchemaControls(tool) {
-  const properties = localModelSchema(tool.id)?.input_schema?.schemas?.input_data?.properties || {};
-  const covered = new Set((tool.controls || []).map(c => c.key));
+/**
+ * Settings for a model, from its definition in src/lib/models.js. A tool's
+ * hand-written controls win for the tool's own model; other models use the
+ * schema alone.
+ */
+export function getSchemaControls(tool, modelId = tool.id) {
+  const properties = getModelSpec(modelId)?.inputs || {};
+  const covered = modelId === tool.id ? new Set((tool.controls || []).map(c => c.key)) : new Set();
   const controls = [];
   for (const [key, field] of Object.entries(properties)) {
-    if (covered.has(key) || PROMPT_KEYS.has(key) || isImageField(key, field)) continue;
+    if (covered.has(key) || PROMPT_KEYS.has(key) || HIDDEN_KEYS.has(key) || isImageField(key, field)) continue;
     const label = field.title || key.replace(/_/g, ' ');
     if (Array.isArray(field.enum)) {
-      controls.push({ type: 'select', key, label, options: field.enum, default: field.default ?? field.enum[0] });
+      const type = key === tool.presetKey ? 'preset' : 'select';
+      controls.push({ type, key, label, options: field.enum, default: field.default ?? field.enum[0] });
     } else if (field.type === 'boolean') {
       controls.push({ type: 'toggle', key, label, default: !!field.default });
     } else if (['number', 'integer', 'int'].includes(field.type)) {
-      const min = field.minValue ?? field.minimum ?? 0;
-      const max = field.maxValue ?? field.maximum ?? 100;
-      controls.push({ type: 'number', key, label, min, max, step: field.step || 1, default: field.default ?? min });
+      const min = field.minValue ?? field.minimum;
+      const max = field.maxValue ?? field.maximum;
+      const bounded = Number.isFinite(min) && Number.isFinite(max);
+      if (bounded && !SIZE_KEYS.has(key)) {
+        controls.push({ type: 'range', key, label, min, max, step: field.step || 1, default: field.default ?? min });
+      } else {
+        controls.push({ type: 'number', key, label, min: min ?? 0, max: max ?? 4096, step: field.step || 1, default: field.default ?? min ?? 0 });
+      }
     } else if (field.type === 'string') {
       controls.push({ type: 'text', key, label, placeholder: field.description || '' });
     }
@@ -207,15 +254,16 @@ export function getEditToolBySlug(slug) {
 }
 
 /** First missing input for a tool, or null when it can run. */
-export function validateEditInputs(tool, { sourceUrl, secondaryUrl, hasPaintedMask, prompt }) {
+export function validateEditInputs(tool, { sourceUrl, secondaryUrl, hasPaintedMask, prompt, modelId }) {
   if (!sourceUrl) return 'Upload a source image first.';
   if (tool.id === 'ai-object-eraser') {
     if (!hasPaintedMask && !secondaryUrl) return 'Paint over the object you want removed (or upload a mask).';
   } else if (tool.secondary && !tool.secondary.optional && !secondaryUrl) {
     return `Upload the ${tool.secondary.label.toLowerCase()}.`;
   }
-  if (tool.hasPrompt && tool.promptRequired && !String(prompt || '').trim()) {
-    return tool.promptKey === 'scene_description' ? 'Describe the product scene.' : 'Describe the edit you want.';
+  const promptKey = getModelSpec(modelId || tool.id)?.promptKey;
+  if (promptKey && tool.promptRequired && !String(prompt || '').trim()) {
+    return promptKey === 'scene_description' ? 'Describe the product scene.' : (tool.promptMessage || 'Describe the edit you want.');
   }
   return null;
 }
@@ -252,6 +300,8 @@ export function EditStudio() {
 
   let activeTool = null;
   let source = null;     // { url, assetId }
+  let extras = [];       // more reference images: [{ url, assetId }]
+  let activeModelId = null;
   let secondary = null;  // { url, assetId }
   let resultUrl = null;
   let inFlight = false;
@@ -262,7 +312,7 @@ export function EditStudio() {
   const galleryView = document.createElement('div');
   galleryView.className = 'px-4 md:px-8 pt-6 pb-10';
   galleryView.dataset.editView = 'gallery';
-  galleryView.appendChild(createStudioHeader('edit', 'Edit Studio', '13 AI editing tools: remove objects, backgrounds, reframe, relight and more', 'mb-5'));
+  galleryView.appendChild(createStudioHeader('edit', 'Edit Studio', '16 AI editing tools: remove objects, backgrounds, reframe, effects and more', 'mb-5'));
 
   const toolGrid = document.createElement('div');
   toolGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
@@ -350,6 +400,22 @@ export function EditStudio() {
   studioView.appendChild(studioGrid);
   container.appendChild(studioView);
 
+  // Model picker (tools that offer more than one model).
+  const modelPanel = document.createElement('div');
+  modelPanel.className = `${PANEL} hidden`;
+  const modelLabel = document.createElement('label');
+  modelLabel.className = LABEL;
+  modelLabel.textContent = 'Model';
+  modelLabel.htmlFor = 'edit-model-select';
+  const modelSelect = document.createElement('select');
+  modelSelect.id = 'edit-model-select';
+  modelSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
+  const modelNote = document.createElement('p');
+  modelNote.className = 'text-[11px] leading-relaxed text-muted';
+  modelPanel.append(modelLabel, modelSelect, modelNote);
+  modelSelect.onchange = () => applyModel(modelSelect.value);
+  leftCol.appendChild(modelPanel);
+
   // Source image. Created and mounted before any other picker so "Use in
   // studio" from the Library lands here (earliest mounted picker wins).
   const sourcePanel = document.createElement('div');
@@ -362,6 +428,7 @@ export function EditStudio() {
   const sourceHint = document.createElement('span');
   sourceHint.className = 'text-sm text-muted';
   sourceHint.textContent = 'Upload the image to edit';
+  const sourcePrompt = () => (activeTool?.sourceLabel ? 'Upload the reference image' : 'Upload the image to edit');
   sourcePanel.append(sourceLabel, sourceRow);
   leftCol.appendChild(sourcePanel);
 
@@ -404,6 +471,57 @@ export function EditStudio() {
   sourceClear.textContent = 'Remove';
   sourceClear.onclick = () => { picker.reset(); setSource(null); };
   sourceRow.append(pexelsBtn, sourceHint, sourceClear);
+
+  // More reference images, for models that accept several (Nano Banana 2 takes 14).
+  const extrasPanel = document.createElement('div');
+  extrasPanel.className = `${PANEL} hidden`;
+  const extrasLabel = document.createElement('div');
+  extrasLabel.className = LABEL;
+  const extrasRow = document.createElement('div');
+  extrasRow.className = 'flex items-center gap-3';
+  const extrasHint = document.createElement('span');
+  extrasHint.className = 'text-sm text-muted';
+  extrasHint.textContent = 'Optional';
+  const extrasGrid = document.createElement('div');
+  extrasGrid.className = 'hidden grid grid-cols-4 gap-2';
+  extrasPanel.append(extrasLabel, extrasRow, extrasGrid);
+  leftCol.appendChild(extrasPanel);
+
+  function renderExtras() {
+    extrasGrid.innerHTML = '';
+    extrasGrid.classList.toggle('hidden', extras.length === 0);
+    extrasHint.textContent = extras.length ? `${extras.length} added` : 'Optional';
+    extras.forEach((item, index) => {
+      const cell = document.createElement('div');
+      cell.className = 'relative';
+      const img = document.createElement('img');
+      img.src = item.url;
+      img.alt = '';
+      img.className = 'w-full h-16 object-cover rounded-lg border border-white/10';
+      cell.appendChild(img);
+      cell.appendChild(createMediaRemoveButton(() => {
+        extras = extras.filter((_, i) => i !== index);
+        renderExtras();
+      }));
+      extrasGrid.appendChild(cell);
+    });
+  }
+
+  const extrasPicker = createUploadPicker({
+    anchorContainer: container,
+    muapiStudio: true,
+    studioId: 'edit-studio',
+    acceptVideo: false,
+    acceptDocuments: false,
+    maxImages: 2,
+    onSelect: ({ assets }) => {
+      extras = (assets || []).map(a => ({ url: a.url, assetId: a.assetId || null }));
+      renderExtras();
+    },
+    onClear: () => { extras = []; renderExtras(); },
+  });
+  extrasRow.append(extrasPicker.trigger, extrasHint);
+  container.appendChild(extrasPicker.panel);
 
   // Remove Object: paint the mask on the source image.
   const maskPanel = document.createElement('div');
@@ -454,7 +572,7 @@ export function EditStudio() {
   container.appendChild(secondaryPicker.panel);
   secondaryClear.onclick = () => { secondaryPicker.reset(); setSecondary(null); };
 
-  // Prompt (AI Edit, Product Shot) + reference attachments.
+  // Prompt (shown for models that take one).
   const promptPanel = document.createElement('div');
   promptPanel.className = `${PANEL} hidden`;
   const promptLabel = document.createElement('label');
@@ -466,28 +584,6 @@ export function EditStudio() {
   promptField.setAttribute('aria-label', 'Edit prompt');
   promptPanel.append(promptLabel, promptField);
   leftCol.appendChild(promptPanel);
-
-  const editAttachmentState = { images: [], videos: [], audios: [] };
-  createAttachmentToolbar({
-    container: promptPanel,
-    getTextarea: () => promptField,
-    acceptVideo: false,
-    acceptAudio: false,
-    acceptStartFrame: false,
-    acceptEndFrame: false,
-    onUpload: async (key, file) => {
-      try {
-        const { ingestStudioUpload } = await import('../lib/muapiStudioMedia.js');
-        const stored = await ingestStudioUpload(file, { studioId: 'edit-studio', uploadToMuapi: false });
-        editAttachmentState[key] = editAttachmentState[key] || [];
-        editAttachmentState[key].push({ url: stored.url, assetId: stored.assetId });
-        showToast('Reference uploaded', 'success');
-      } catch (err) {
-        const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
-        showToast(await describeMuapiUploadError(err), 'error');
-      }
-    },
-  });
 
   // Settings.
   const settingsPanel = document.createElement('div');
@@ -665,7 +761,7 @@ export function EditStudio() {
       sourceClear.classList.remove('hidden');
       showBefore(next.url);
     } else {
-      sourceHint.textContent = 'Upload the image to edit';
+      sourceHint.textContent = sourcePrompt();
       sourceClear.classList.add('hidden');
       showEmpty();
     }
@@ -768,14 +864,67 @@ export function EditStudio() {
   }
 
   // ── Opening / closing tools ────────────────────────────────────────────
-  function renderControls(tool) {
+  function renderControls(tool, modelId = tool.id) {
     controlsContainer.innerHTML = '';
-    const controls = [...(tool.controls || []), ...getSchemaControls(tool)];
+    const handWritten = modelId === tool.id ? (tool.controls || []) : [];
+    const controls = [...handWritten, ...getSchemaControls(tool, modelId)];
     controls.forEach(ctrl => {
       const factory = CONTROL_FACTORIES[ctrl.type];
       if (factory) controlsContainer.appendChild(factory(ctrl));
     });
     settingsPanel.classList.toggle('hidden', controls.length === 0);
+  }
+
+  // Fill the Model dropdown (grouped by maker) for tools that offer several.
+  function buildModelSelect(tool) {
+    const ids = tool.models || [];
+    modelPanel.classList.toggle('hidden', ids.length < 2);
+    modelSelect.innerHTML = '';
+    if (ids.length < 2) return;
+    const groups = new Map();
+    ids.forEach(id => {
+      const info = getModelInfo(id);
+      if (!groups.has(info.group)) groups.set(info.group, []);
+      groups.get(info.group).push(info);
+    });
+    groups.forEach((items, group) => {
+      const parent = groups.size > 1 ? Object.assign(document.createElement('optgroup'), { label: group }) : modelSelect;
+      items.forEach(info => {
+        const option = document.createElement('option');
+        option.value = info.id;
+        option.textContent = info.label;
+        parent.appendChild(option);
+      });
+      if (parent !== modelSelect) modelSelect.appendChild(parent);
+    });
+  }
+
+  // The studio adapts to the chosen model: prompt, how many images, settings.
+  function applyModel(modelId) {
+    const tool = activeTool;
+    if (!tool) return;
+    activeModelId = modelId;
+    const spec = getModelSpec(modelId);
+    const info = getModelInfo(modelId);
+    if (modelSelect.value !== modelId) modelSelect.value = modelId;
+    modelNote.textContent = info.note;
+
+    const promptKey = spec?.promptKey || null;
+    promptPanel.classList.toggle('hidden', !promptKey);
+    promptField.placeholder = tool.promptPlaceholder || 'Describe the edit...';
+    promptLabel.textContent = promptKey === 'scene_description' ? 'Scene description' : 'Prompt';
+
+    const moreImages = Math.max(0, (spec?.maxImages || 1) - 1);
+    extrasPanel.classList.toggle('hidden', moreImages < 1);
+    if (moreImages >= 1) {
+      extrasLabel.textContent = `More reference images (up to ${moreImages})`;
+      extrasPicker.setMaxImages(Math.max(1, moreImages));
+      if (extras.length > moreImages) {
+        extras = extras.slice(0, moreImages);
+        renderExtras();
+      }
+    }
+    renderControls(tool, modelId);
   }
 
   function showTool(tool) {
@@ -790,10 +939,13 @@ export function EditStudio() {
     emptyThumb.classList.toggle('hidden', !thumb);
     previewLabel.textContent = 'Preview';
 
-    // Prompt.
-    promptPanel.classList.toggle('hidden', !tool.hasPrompt);
-    promptField.placeholder = tool.promptPlaceholder || 'Describe the edit...';
-    promptLabel.textContent = tool.promptKey === 'scene_description' ? 'Scene description' : 'Prompt';
+    sourceLabel.textContent = tool.sourceLabel || 'Source image';
+    if (!source?.url) sourceHint.textContent = sourcePrompt();
+
+    // Extra reference images start empty for each tool.
+    extrasPicker.reset();
+    extras = [];
+    renderExtras();
 
     // Second image.
     secondaryPicker.reset();
@@ -813,7 +965,8 @@ export function EditStudio() {
       maskEmpty.classList.toggle('hidden', !!source?.url);
     }
 
-    renderControls(tool);
+    buildModelSelect(tool);
+    applyModel(tool.id);
     formError.classList.add('hidden');
     updateProgress(null);
     if (source?.url) showBefore(source.url); else showEmpty();
@@ -871,6 +1024,7 @@ export function EditStudio() {
       secondaryUrl: secondary?.url,
       hasPaintedMask: maskPainter.hasMask(),
       prompt: promptField.value,
+      modelId: activeModelId,
     });
     if (problem) { showError(problem); return; }
 
@@ -894,11 +1048,20 @@ export function EditStudio() {
     }, 500);
     cancelBtn.classList.remove('hidden');
     const beforeUrl = source.url;
+    const modelId = activeModelId || tool.id;
+    const spec = getModelSpec(modelId);
 
     try {
-      const params = { model: tool.id };
+      const params = { model: modelId };
       const { resolveMuapiMediaRef, resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
-      params.image_url = await resolveMuapiMediaRef({ url: source.url, assetId: source.assetId });
+
+      // The first image is the source; the rest are extra references. Each
+      // model takes them in its own request field (see getModelSpec).
+      const imageRefs = [source, ...extras].filter(Boolean).slice(0, spec?.maxImages || 1);
+      const images = await resolveMuapiMediaRefs(imageRefs.map(ref => ({ url: ref.url, assetId: ref.assetId })));
+      if (spec?.sourceKey === 'images_list') params.images_list = images;
+      else if (spec?.sourceKey === 'reference_images') params.reference_images = images;
+      else params.image_url = images[0];
 
       if (tool.secondary && secondary?.url) {
         params[tool.secondary.key] = await resolveMuapiMediaRef({ url: secondary.url, assetId: secondary.assetId });
@@ -911,11 +1074,9 @@ export function EditStudio() {
         params.mask_image_url = await resolveMuapiMediaRef({ url: stored.url, assetId: stored.assetId });
       }
 
-      if (tool.hasPrompt && promptField.value.trim()) {
-        params[tool.promptKey || 'prompt'] = replaceTokensInPrompt(promptField.value.trim());
-      }
-      if (tool.hasPrompt && editAttachmentState.images?.length) {
-        params.reference_images = await resolveMuapiMediaRefs(editAttachmentState.images);
+      const promptKey = spec?.promptKey || null;
+      if (promptKey && promptField.value.trim()) {
+        params[promptKey] = replaceTokensInPrompt(promptField.value.trim());
       }
 
       Object.assign(params, readControlValues());
@@ -925,7 +1086,7 @@ export function EditStudio() {
       updateProgress(null);
       if (result?.url) {
         registerGeneration('edit', 'image', result.url, {
-          prompt: params[tool.promptKey || 'prompt'] || '', model: tool.id || '', parameters: { tool: tool.slug },
+          prompt: params[promptKey || 'prompt'] || '', model: modelId, parameters: { tool: tool.slug },
         });
         addToHistory(result.url, beforeUrl);
         if (activeTool === tool) showResult(result.url, beforeUrl);
@@ -955,7 +1116,7 @@ export function EditStudio() {
       const key = el.dataset.controlKey;
       if (el.tagName === 'BUTTON') {
         values[key] = el.getAttribute('aria-pressed') === 'true';
-      } else if (el.type === 'number' || el.type === 'range') {
+      } else if (el.type === 'number' || el.type === 'range' || el.dataset.numeric) {
         if (el.value !== '') values[key] = parseFloat(el.value);
       } else if (String(el.value).trim() !== '') {
         values[key] = el.value;
@@ -990,7 +1151,8 @@ export function EditStudio() {
     range.className = 'flex-1 accent-[#22d3ee]';
     const valueSpan = document.createElement('span');
     valueSpan.className = 'text-xs font-bold text-white w-12 text-right';
-    const show = () => { valueSpan.textContent = `${Math.round(Number(range.value))}${control.unit || ''}`; };
+    const decimals = control.step && control.step < 1 ? (String(control.step).split('.')[1] || '').length : 0;
+    const show = () => { valueSpan.textContent = `${Number(range.value).toFixed(decimals)}${control.unit || ''}`; };
     show();
     range.oninput = show;
     row.append(range, valueSpan);
@@ -1004,6 +1166,8 @@ export function EditStudio() {
     select.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors';
     select.dataset.controlKey = control.key;
     select.setAttribute('aria-label', control.label);
+    // A list of numbers (e.g. upscale factor 2, 4, 8) is sent as a number.
+    if (control.options.every(opt => typeof opt === 'number')) select.dataset.numeric = '1';
     control.options.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt;
@@ -1065,7 +1229,45 @@ export function EditStudio() {
     return wrapper;
   }
 
+  // A grid of clickable presets (Photo Effects). The value lives in a hidden
+  // input so it is read like any other setting.
+  function createPresetControl(control) {
+    const { wrapper } = fieldWrapper(control);
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.dataset.controlKey = control.key;
+    hidden.value = control.default;
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1';
+    grid.setAttribute('role', 'listbox');
+    grid.setAttribute('aria-label', control.label);
+    const buttons = control.options.map(option => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.dataset.preset = option;
+      btn.textContent = option;
+      btn.setAttribute('role', 'option');
+      btn.onclick = () => select(option);
+      grid.appendChild(btn);
+      return btn;
+    });
+    function select(option) {
+      hidden.value = option;
+      buttons.forEach(btn => {
+        const active = btn.dataset.preset === option;
+        btn.setAttribute('aria-selected', String(active));
+        btn.className = `text-left text-xs font-bold rounded-xl border px-3 py-2 transition-colors ${
+          active ? 'border-primary bg-primary/15 text-primary' : 'border-white/10 bg-white/5 text-white/80 hover:text-white hover:border-white/20'
+        }`;
+      });
+    }
+    select(control.default);
+    wrapper.append(hidden, grid);
+    return wrapper;
+  }
+
   const CONTROL_FACTORIES = {
+    preset: createPresetControl,
     range: createRangeControl,
     select: createSelectControl,
     number: createNumberControl,
