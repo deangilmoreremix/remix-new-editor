@@ -6,6 +6,7 @@ import {
   downloadPersonalizationImage,
   mirrorPersonalizationAsset,
   researchBusinessWebsite,
+  scrapeBrandSite,
 } from './_personalizationAssets.js';
 import { findNearbyBusinesses } from './_businessDiscovery.js';
 import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
@@ -831,6 +832,24 @@ export async function handler(event, context) {
         const message = businessError?.message || 'Business research failed.';
         const status = /required|allowed|private|resolve/i.test(message) ? 400 : 502;
         return { statusCode: status, headers, body: JSON.stringify({ error: message }) };
+      }
+    }
+
+    // POST /api/personalizer/brand-scrape
+    // Brand Studio scraper (title/description/text/logo/fonts/colors, optional
+    // Firecrawl screenshot). Same SSRF guards as research-business.
+    if (path === '/brand-scrape' && event.httpMethod === 'POST') {
+      const websiteUrl = validateInput(String(body.url || body.websiteUrl || ''), 'text', 2000);
+      if (!websiteUrl) {
+        return { statusCode: 400, headers, body: JSON.stringify({ ok: false, error: 'url is required' }) };
+      }
+      try {
+        const data = await scrapeBrandSite(websiteUrl);
+        return { statusCode: 200, headers, body: JSON.stringify({ ok: true, data }) };
+      } catch (scrapeError) {
+        const message = scrapeError?.message || 'Brand scrape failed.';
+        const status = /required|allowed|private|resolve/i.test(message) ? 400 : 502;
+        return { statusCode: status, headers, body: JSON.stringify({ ok: false, error: message }) };
       }
     }
 

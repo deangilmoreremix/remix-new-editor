@@ -89,6 +89,9 @@ export class MuapiClient {
     constructor() {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         if (!supabaseUrl) {
+            if (import.meta.env.PROD) {
+                console.error('[muapi] VITE_SUPABASE_URL is not set in this build; requests will go to the relative path /functions/v1/muapi-proxy, which does not exist on static hosting and fails with "Failed to fetch". Set VITE_SUPABASE_URL and redeploy.');
+            }
             this.proxyUrl = '/functions/v1/muapi-proxy';
         } else {
             this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;

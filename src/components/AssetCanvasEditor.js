@@ -8,6 +8,8 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { getBrand, saveAsset, listAssets } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast } from '../lib/loading.js';
+import { muapi } from '../lib/muapi.js';
+import { buildImagePrompt } from '../lib/campaignGenerator.js';
 
 export function AssetCanvasEditor(params = {}) {
   const container = document.createElement('div');
@@ -44,6 +46,15 @@ export function AssetCanvasEditor(params = {}) {
     loading: false,
     error: null,
   };
+
+  // Load a previously saved asset when opened with an id (parity with upstream's /asset/[id]/edit).
+  const savedAsset = assetId ? listAssets(brand.id).find(a => a.id === assetId) : null;
+  if (savedAsset) {
+    state.headline = savedAsset.headline || state.headline;
+    state.body = savedAsset.body || state.body;
+    state.cta = savedAsset.cta || state.cta;
+    state.imageUrl = savedAsset.imageUrl || null;
+  }
 
   const root = document.createElement('div');
   root.className = 'w-full h-full flex flex-col md:flex-row';
@@ -138,6 +149,56 @@ export function AssetCanvasEditor(params = {}) {
     input.click();
   };
   uploadRow.appendChild(uploadBtn);
+
+  // Regenerate background (upstream: "Swap image" / "Clean background")
+  const regenerate = async (noText, btn, busyLabel) => {
+    if (state.loading) return;
+    const original = btn.textContent;
+    state.loading = true;
+    btn.disabled = true;
+    btn.textContent = busyLabel;
+    try {
+      const platformId = savedAsset?.platform && savedAsset.platform !== 'canvas' ? savedAsset.platform : undefined;
+      const concept = {
+        visual_direction: [
+          brand.imageryStyle ? `${brand.imageryStyle} imagery` : '',
+          brand.brandName ? `for ${brand.brandName}` : '',
+          state.body,
+        ].filter(Boolean).join(', '),
+      };
+      const prompt = buildImagePrompt(brand, concept, { platform: platformId }, state.headline, { noText });
+      const refs = [prompt];
+      if (brand.logoUrl) refs.push(brand.logoUrl);
+      const url = await muapi.imageEdit2(prompt, refs, { aspectRatio: '16:9', resolution: '2k', outputFormat: 'png' });
+      if (!url) throw new Error('Image generation returned no URL');
+      state.imageUrl = url;
+      renderCanvas();
+      showToast('Background updated', 'success');
+    } catch (e) {
+      state.error = e?.message || String(e);
+      showToast(`Image generation failed: ${state.error}`, 'error');
+    } finally {
+      state.loading = false;
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  };
+
+  const swapBtn = document.createElement('button');
+  swapBtn.type = 'button';
+  swapBtn.className = 'btn-secondary-modern w-full';
+  swapBtn.textContent = 'Swap Image';
+  swapBtn.onclick = () => regenerate(false, swapBtn, 'Generating…');
+  uploadRow.appendChild(swapBtn);
+
+  const cleanBtn = document.createElement('button');
+  cleanBtn.type = 'button';
+  cleanBtn.className = 'btn-secondary-modern w-full';
+  cleanBtn.title = 'Generate a clean background with no baked-in text';
+  cleanBtn.textContent = 'Clean Background';
+  cleanBtn.onclick = () => regenerate(true, cleanBtn, 'Generating…');
+  uploadRow.appendChild(cleanBtn);
+
   controls.appendChild(uploadRow);
 
   // Save button
@@ -147,10 +208,10 @@ export function AssetCanvasEditor(params = {}) {
   saveBtn.onclick = () => {
     if (!brand.id) return;
     saveAsset({
-      id: `${brand.id}_${Date.now()}`,
+      id: savedAsset?.id || `${brand.id}_${Date.now()}`,
       campaignId: brand.id,
-      platform: 'canvas',
-      format: 'Custom',
+      platform: savedAsset?.platform || 'canvas',
+      format: savedAsset?.format || 'Custom',
       imageUrl: state.imageUrl,
       headline: state.headline,
       body: state.body,

@@ -971,3 +971,137 @@ export async function mirrorPersonalizationAsset({
     name: String(name || '').trim() || role.replace(/_/g, ' '),
   };
 }
+
+// --- Brand Studio scraper -------------------------------------------------
+// Powers POST /api/personalizer/brand-scrape. Reuses the same SSRF-guarded
+// fetch helpers as the business asset finder. Returns the shape expected by
+// src/lib/brandAnalyzer.js#scrapeSite (a port of Open-Pomelli's scraper).
+
+const BRAND_BODY_TEXT_MAX = 6000;
+const BRAND_CSS_MAX_FILES = 3;
+const BRAND_CSS_MAX_BYTES = 512 * 1024;
+const BRAND_COLOR_RE = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}[^)]*\)/g;
+const GENERIC_FONTS = new Set([
+  'inherit', 'initial', 'unset', 'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy',
+  'system-ui', 'ui-sans-serif', 'ui-serif', 'ui-monospace', '-apple-system', 'blinkmacsystemfont',
+  'segoe ui', 'arial', 'helvetica', 'helvetica neue', 'times new roman', 'times',
+]);
+
+function extractBrandFonts(css) {
+  const fonts = new Map();
+  for (const match of css.matchAll(/font-family\s*:\s*([^;}{]+)/gi)) {
+    for (const part of match[1].split(',')) {
+      const name = part.replace(/!important/i, '').replace(/["']/g, '').trim();
+      if (!name || name.startsWith('var(') || GENERIC_FONTS.has(name.toLowerCase())) continue;
+      fonts.set(name, (fonts.get(name) || 0) + 1);
+    }
+  }
+  return [...fonts.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n).slice(0, 6);
+}
+
+async function fetchFirecrawlScreenshotBase64(websiteUrl) {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) return null;
+  const endpoint = process.env.FIRECRAWL_API_URL || 'https://api.firecrawl.dev/v2/scrape';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: websiteUrl, formats: ['screenshot'], onlyMainContent: false }),
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+    const payload = await response.json().catch(() => ({}));
+    const shot = payload?.data?.screenshot || payload?.screenshot;
+    if (!shot || typeof shot !== 'string') return null;
+    if (shot.startsWith('data:image/')) return shot;
+    const imgUrl = await sanitizePublicHttpUrl(shot);
+    const img = await fetch(imgUrl, { signal: controller.signal });
+    if (!img.ok) return null;
+    const buf = Buffer.from(await img.arrayBuffer());
+    if (!buf.length || buf.length > MAX_IMAGE_BYTES) return null;
+    return `data:image/png;base64,${buf.toString('base64')}`;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function scrapeBrandSite(websiteUrl) {
+  const rootUrl = await sanitizePublicHttpUrl(websiteUrl);
+  const page = await fetchHtml(rootUrl);
+  if (!page) throw new Error('Website could not be fetched.');
+
+  const { html, finalUrl } = page;
+  const metaContent = (names) => {
+    for (const name of names) {
+      const re1 = new RegExp(`<meta[^>]+(?:name|property)=["']${name}["'][^>]+content=["']([^"']*)["']`, 'i');
+      const re2 = new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+(?:name|property)=["']${name}["']`, 'i');
+      const hit = html.match(re1)?.[1] ?? html.match(re2)?.[1];
+      if (hit) return decodeHtml(hit).trim();
+    }
+    return '';
+  };
+
+  const title = decodeHtml(html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || metaContent(['og:title'])).trim();
+  const description = metaContent(['description', 'og:description']);
+  const ogImage = absoluteUrl(metaContent(['og:image', 'og:image:url', 'twitter:image']), finalUrl) || null;
+
+  const iconMatch = html.match(/<link[^>]+rel=["'][^"']*icon[^"']*["'][^>]*href=["']([^"']+)["']/i)
+    || html.match(/<link[^>]+href=["']([^"']+)["'][^>]*rel=["'][^"']*icon[^"']*["']/i);
+  const favicon = absoluteUrl(iconMatch?.[1] || '/favicon.ico', finalUrl) || null;
+
+  // Logo candidates: images whose url/alt/class mention "logo", then JSON-LD logo.
+  const logoCandidates = [];
+  for (const c of extractImageCandidates(html, finalUrl)) {
+    const hay = `${c.url} ${c.altText || ''} ${c.context || ''}`.toLowerCase();
+    if (hay.includes('logo') || hay.includes('brand')) logoCandidates.push(c.url);
+  }
+  for (const m of html.matchAll(/["']logo["']\s*:\s*["']([^"']+)["']/gi)) {
+    const u = absoluteUrl(m[1], finalUrl);
+    if (u) logoCandidates.unshift(u);
+  }
+
+  // Colors + fonts from inline CSS and a few linked stylesheets (bounded).
+  const cssParts = [];
+  for (const m of html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)) cssParts.push(m[1]);
+  for (const m of html.matchAll(/\sstyle=["']([^"']+)["']/gi)) cssParts.push(m[1]);
+  const sheetUrls = [];
+  for (const m of html.matchAll(/<link[^>]+rel=["']stylesheet["'][^>]*>/gi)) {
+    const href = m[0].match(/href=["']([^"']+)["']/i)?.[1];
+    const abs = absoluteUrl(href || '', finalUrl);
+    if (abs) sheetUrls.push(abs);
+  }
+  const sheets = await Promise.all(
+    sheetUrls.slice(0, BRAND_CSS_MAX_FILES).map((u) => fetchTextResource(u, BRAND_CSS_MAX_BYTES)),
+  );
+  for (const sheet of sheets) if (sheet?.text) cssParts.push(sheet.text);
+  const css = cssParts.join('\n');
+  const themeColor = metaContent(['theme-color']);
+  const rawColors = [...(themeColor ? [themeColor] : []), ...(css.match(BRAND_COLOR_RE) || [])].slice(0, 2000);
+
+  const bodyText = decodeHtml(
+    html
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' '),
+  ).replace(/\s+/g, ' ').trim().slice(0, BRAND_BODY_TEXT_MAX);
+
+  const screenshot = await fetchFirecrawlScreenshotBase64(finalUrl);
+
+  return {
+    url: finalUrl,
+    title: title.slice(0, 300),
+    description: description.slice(0, 1200),
+    bodyText,
+    ogImage,
+    favicon,
+    logoCandidates: Array.from(new Set(logoCandidates)).slice(0, 8),
+    fonts: extractBrandFonts(css),
+    rawColors,
+    screenshot,
+  };
+}

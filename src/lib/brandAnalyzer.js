@@ -63,16 +63,32 @@ function dedupHex(...lists) {
 
 export { dedupHex };
 
-// Production scraper — calls the backend /api/scrape endpoint.
-// Falls back to a minimal stub if the backend is unreachable.
-export async function scrapeSite(url) {
-  const backendBase = (import.meta.env?.VITE_BACKEND_URL || '').replace(/\/$/, '');
-  const scrapeUrl = backendBase ? `${backendBase}/api/scrape` : '/api/scrape';
+// Production scraper — uses the same Netlify function as the personalization
+// modal / business asset finder (/api/personalizer/brand-scrape, Supabase auth).
+// Falls back to a minimal stub if the scraper is unreachable.
+const SCRAPE_URL = '/api/personalizer/brand-scrape';
 
+async function getAccessToken() {
   try {
-    const res = await fetch(scrapeUrl, {
+    const { supabase } = await import('./supabase.js');
+    const { data } = await supabase.auth.getSession();
+    return data?.session?.access_token || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function scrapeSite(url) {
+  try {
+    const token = await getAccessToken();
+    if (!token) throw new Error('Sign in required for website scraping');
+
+    const res = await fetch(SCRAPE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ url }),
     });
 
@@ -99,7 +115,7 @@ export async function scrapeSite(url) {
       screenshot: d.screenshot || null,
     };
   } catch (e) {
-    console.warn('[brandAnalyzer] scrape failed, falling back to minimal:', e.message);
+    console.warn(`[brandAnalyzer] scrape via ${SCRAPE_URL} failed, falling back to minimal:`, e.message);
     return {
       url,
       title: '',
