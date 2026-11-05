@@ -973,13 +973,17 @@ export async function mirrorPersonalizationAsset({
 }
 
 // --- Brand Studio scraper -------------------------------------------------
-// Powers POST /api/personalizer/brand-scrape. Reuses the same SSRF-guarded
-// fetch helpers as the business asset finder. Returns the shape expected by
-// src/lib/brandAnalyzer.js#scrapeSite (a port of Open-Pomelli's scraper).
+// Powers POST /api/personalizer/brand-scrape. Follows the business asset
+// finder's free path: static fetch first, then the rendered Playwright worker
+// (PERSONALIZATION_RENDERED_DISCOVERY_URL / SCREENSHOT_API_URL) for JS-heavy
+// sites and the screenshot. It never calls Firecrawl. Returns the shape expected
+// by src/lib/brandAnalyzer.js#scrapeSite (a port of Open-Pomelli's scraper).
 
 const BRAND_BODY_TEXT_MAX = 6000;
+const BRAND_THIN_TEXT_MIN = 200;
 const BRAND_CSS_MAX_FILES = 3;
 const BRAND_CSS_MAX_BYTES = 512 * 1024;
+const BRAND_SCREENSHOT_MAX_CHARS = 8 * 1024 * 1024;
 const BRAND_COLOR_RE = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}[^)]*\)/g;
 const GENERIC_FONTS = new Set([
   'inherit', 'initial', 'unset', 'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy',
@@ -999,30 +1003,75 @@ function extractBrandFonts(css) {
   return [...fonts.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n).slice(0, 6);
 }
 
-async function fetchFirecrawlScreenshotBase64(websiteUrl) {
-  const apiKey = process.env.FIRECRAWL_API_KEY;
-  if (!apiKey) return null;
-  const endpoint = process.env.FIRECRAWL_API_URL || 'https://api.firecrawl.dev/v2/scrape';
+function htmlToBrandText(html) {
+  return decodeHtml(
+    html
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' '),
+  ).replace(/\s+/g, ' ').trim().slice(0, BRAND_BODY_TEXT_MAX);
+}
+
+// Same endpoint, auth and request contract as discoverRenderedAssetsFallback.
+// Returns { html, screenshot } (either may be empty) or null when the worker is
+// not configured or fails. `screenshot` is a data URI.
+async function fetchRenderedBrandSnapshot(websiteUrl) {
+  const apiUrl = process.env.PERSONALIZATION_RENDERED_DISCOVERY_URL || process.env.SCREENSHOT_API_URL;
+  if (!apiUrl) return null;
+  const key = process.env.PERSONALIZATION_RENDERED_DISCOVERY_KEY || process.env.SCREENSHOT_API_KEY;
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: websiteUrl, formats: ['screenshot'], onlyMainContent: false }),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(key ? { Authorization: `Bearer ${key}` } : {}),
+      },
+      body: JSON.stringify({
+        url: websiteUrl,
+        mode: 'asset-discovery',
+        renderer: 'playwright',
+        includeImages: true,
+        includeHtml: true,
+        includeSocial: false,
+        width: 1280,
+        height: 720,
+      }),
       signal: controller.signal,
     });
     if (!response.ok) return null;
     const payload = await response.json().catch(() => ({}));
-    const shot = payload?.data?.screenshot || payload?.screenshot;
-    if (!shot || typeof shot !== 'string') return null;
-    if (shot.startsWith('data:image/')) return shot;
-    const imgUrl = await sanitizePublicHttpUrl(shot);
-    const img = await fetch(imgUrl, { signal: controller.signal });
-    if (!img.ok) return null;
-    const buf = Buffer.from(await img.arrayBuffer());
-    if (!buf.length || buf.length > MAX_IMAGE_BYTES) return null;
-    return `data:image/png;base64,${buf.toString('base64')}`;
+
+    const html =
+      (typeof payload?.html === 'string' && payload.html) ||
+      (typeof payload?.rawHtml === 'string' && payload.rawHtml) ||
+      (typeof payload?.data?.html === 'string' && payload.data.html) ||
+      (typeof payload?.data?.rawHtml === 'string' && payload.data.rawHtml) ||
+      '';
+
+    const shot = payload?.screenshot || payload?.data?.screenshot || payload?.image || payload?.url || payload?.data?.url || '';
+    let screenshot = null;
+    if (typeof shot === 'string' && shot) {
+      if (shot.startsWith('data:image/')) {
+        screenshot = shot.length <= BRAND_SCREENSHOT_MAX_CHARS ? shot : null;
+      } else if (/^https?:\/\//i.test(shot)) {
+        try {
+          const { response: img } = await fetchWithRedirectGuards(shot, { method: 'GET' }, MAX_IMAGE_BYTES);
+          const type = String(img.headers.get('content-type') || '').toLowerCase();
+          if (img.ok && type.startsWith('image/')) {
+            const buf = Buffer.from(await img.arrayBuffer());
+            if (buf.length && buf.length <= MAX_IMAGE_BYTES) {
+              screenshot = `data:${type.split(';')[0]};base64,${buf.toString('base64')}`;
+            }
+          }
+        } catch {
+          screenshot = null;
+        }
+      }
+    }
+    return { html, screenshot };
   } catch {
     return null;
   } finally {
@@ -1032,10 +1081,20 @@ async function fetchFirecrawlScreenshotBase64(websiteUrl) {
 
 export async function scrapeBrandSite(websiteUrl) {
   const rootUrl = await sanitizePublicHttpUrl(websiteUrl);
-  const page = await fetchHtml(rootUrl);
-  if (!page) throw new Error('Website could not be fetched.');
 
-  const { html, finalUrl } = page;
+  // 1) Free static fetch (same helper as the asset finder).
+  const staticPage = await fetchHtml(rootUrl);
+  let html = staticPage?.html || '';
+  let finalUrl = staticPage?.finalUrl || rootUrl;
+
+  // 2) Rendered Playwright worker: screenshot always, DOM when the static page is thin.
+  const rendered = await fetchRenderedBrandSnapshot(finalUrl);
+  const staticText = html ? htmlToBrandText(html) : '';
+  if (rendered?.html && staticText.length < BRAND_THIN_TEXT_MIN) {
+    html = rendered.html;
+  }
+  if (!html) throw new Error('Website could not be fetched.');
+
   const metaContent = (names) => {
     for (const name of names) {
       const re1 = new RegExp(`<meta[^>]+(?:name|property)=["']${name}["'][^>]+content=["']([^"']*)["']`, 'i');
@@ -1054,15 +1113,14 @@ export async function scrapeBrandSite(websiteUrl) {
     || html.match(/<link[^>]+href=["']([^"']+)["'][^>]*rel=["'][^"']*icon[^"']*["']/i);
   const favicon = absoluteUrl(iconMatch?.[1] || '/favicon.ico', finalUrl) || null;
 
-  // Logo candidates: images whose url/alt/class mention "logo", then JSON-LD logo.
+  // Logo candidates: the asset finder's own classifier (category 'logo'), plus JSON-LD logo.
   const logoCandidates = [];
-  for (const c of extractImageCandidates(html, finalUrl)) {
-    const hay = `${c.url} ${c.altText || ''} ${c.context || ''}`.toLowerCase();
-    if (hay.includes('logo') || hay.includes('brand')) logoCandidates.push(c.url);
-  }
   for (const m of html.matchAll(/["']logo["']\s*:\s*["']([^"']+)["']/gi)) {
     const u = absoluteUrl(m[1], finalUrl);
-    if (u) logoCandidates.unshift(u);
+    if (u) logoCandidates.push(u);
+  }
+  for (const c of extractImageCandidates(html, finalUrl)) {
+    if (heuristicClassification(c).category === 'logo') logoCandidates.push(c.url);
   }
 
   // Colors + fonts from inline CSS and a few linked stylesheets (bounded).
@@ -1083,25 +1141,16 @@ export async function scrapeBrandSite(websiteUrl) {
   const themeColor = metaContent(['theme-color']);
   const rawColors = [...(themeColor ? [themeColor] : []), ...(css.match(BRAND_COLOR_RE) || [])].slice(0, 2000);
 
-  const bodyText = decodeHtml(
-    html
-      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
-      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
-      .replace(/<[^>]+>/g, ' '),
-  ).replace(/\s+/g, ' ').trim().slice(0, BRAND_BODY_TEXT_MAX);
-
-  const screenshot = await fetchFirecrawlScreenshotBase64(finalUrl);
-
   return {
     url: finalUrl,
     title: title.slice(0, 300),
     description: description.slice(0, 1200),
-    bodyText,
+    bodyText: htmlToBrandText(html),
     ogImage,
     favicon,
     logoCandidates: Array.from(new Set(logoCandidates)).slice(0, 8),
     fonts: extractBrandFonts(css),
     rawColors,
-    screenshot,
+    screenshot: rendered?.screenshot || null,
   };
 }
