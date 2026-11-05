@@ -32,3 +32,16 @@ describe("attaching media", () => {
     vi.useRealTimers();
   });
 });
+
+import { isMusicTrack } from "../i18n";
+
+describe("music track detection", () => {
+  it("does not depend on the current UI language", () => {
+    expect(isMusicTrack({ name: "音乐", role: "music" })).toBe(true);
+    expect(isMusicTrack({ name: "Whatever", role: "music" })).toBe(true);
+    // saved before roles existed, written in another language
+    expect(isMusicTrack({ name: "音乐" })).toBe(true);
+    expect(isMusicTrack({ name: "Music" })).toBe(true);
+    expect(isMusicTrack({ name: "SFX" })).toBe(false);
+  });
+});

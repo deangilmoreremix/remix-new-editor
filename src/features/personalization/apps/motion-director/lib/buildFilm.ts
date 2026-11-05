@@ -449,6 +449,7 @@ const INSET_PAGE_H = 1200;
     tracks.push({
       id: uid('track'),
       name: t('track.music'),
+      role: 'music',
       // Music sits under the SFX at about a third of full volume, with a 1 s fade in and a 1.7 s fade out (sound-design 3).
       clips: [clip('audio-clip', 0, total, { file: opts.music.url, volume: 0.34, fadeInFrames: 30, fadeOutFrames: 50, durationFrames: total }, { label: opts.music.name.slice(0, 32) })],
     });

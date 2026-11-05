@@ -12,7 +12,7 @@ import { MainComposition } from '../preview/Composition';
 import { projectDuration, projectEndFrame, type ProjectData } from '../types';
 import { specMarkdown } from '../lib/designSpec';
 import { createDownloadUrl, exportMp4, formatEta, guardTabWhileRendering, isChromiumBrowser, supportsHtmlInCanvas } from '../webRenderer';
-import { t } from '../i18n';
+import { t, isMusicTrack } from '../i18n';
 import { estimateExportSec } from '../lib/exportCost';
 import { drawsSampleScreen, isProductTextureShot } from '../lib/productShots';
 import { RecipePreview } from './RecipePreview';
@@ -83,7 +83,7 @@ export const FilmResultCard: React.FC<{ project: ProjectData; onOpenWorkbench?: 
     try {
       const result = await exportMp4({
         // Without music: the film keeps its sound effects (a second version for the person's own music).
-        project: withoutMusic ? { ...project, tracks: project.tracks.filter((track) => track.name !== t('track.music')) } : project,
+        project: withoutMusic ? { ...project, tracks: project.tracks.filter((track) => !isMusicTrack(track)) } : project,
         scale: draft ? 2 / 3 : 1,
         signal: abort.current.signal,
         onProgress: (progress, info) => setRender((r) => (r.status === 'running' ? { ...r, progress, etaMs: info?.etaMs ?? null } : r)),
@@ -100,7 +100,7 @@ export const FilmResultCard: React.FC<{ project: ProjectData; onOpenWorkbench?: 
   };
 
   const fileName = `${(project.name || 'motion-studio-film').replace(/[^\w-]+/g, '-').slice(0, 60)}${render.draft ? '-draft-720p' : ''}${render.noMusic ? '-nobgm' : ''}.mp4`;
-  const hasMusic = project.tracks.some((track) => track.name === t('track.music') && track.clips.length > 0);
+  const hasMusic = project.tracks.some((track) => isMusicTrack(track) && track.clips.length > 0);
   const filmSec = projectEndFrame(project) / project.fps;
   const draftSize = `${Math.round((project.width * 2) / 3)}×${Math.round((project.height * 2) / 3)}`;
 
