@@ -26,6 +26,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { createActionPill, arrangeActionRow, ADVANCED_ICON } from './studio/actionRow.js';
+import { createSegmented } from './studio/promptComposer.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
@@ -505,6 +506,27 @@ export function CinemaStudio() {
       },
     });
     uploadRow.appendChild(uploadPicker.trigger);
+    // Drop an image straight onto the start-frame button (upstream behaviour).
+    {
+        const tile = uploadPicker.trigger;
+        const setDrag = (on) => { tile.classList.toggle('border-primary', on); tile.classList.toggle('bg-primary/10', on); };
+        tile.addEventListener('dragover', (e) => { e.preventDefault(); setDrag(true); });
+        tile.addEventListener('dragleave', () => setDrag(false));
+        tile.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDrag(false);
+            const file = Array.from(e.dataTransfer?.files || []).find((f) => f.type.startsWith('image/'));
+            if (!file) { showToast('Drop an image to use as the start frame.', 'error'); return; }
+            try {
+                const { uploadMediaFile } = await import('../lib/editor/upload.js');
+                const url = await uploadMediaFile(file, { kind: 'image' });
+                uploadPicker.setImage(url);
+            } catch (err) {
+                showToast(`Upload failed: ${err.message || 'try again'}`, 'error');
+            }
+        });
+    }
     uploadPicker.panel.classList.add('mb-2');
     uploadRow.appendChild(uploadPicker.panel);
 
@@ -745,6 +767,21 @@ export function CinemaStudio() {
         createDropdown(['1K', '2K', '4K'], resBtn.dataset.value, (val) => { updateResBtn(val); resBtn.dataset.touched = '1'; }, resBtn);
     };
     settingsToolbar.appendChild(resBtn);
+
+    // Upstream Cinema renders stills; ours renders video. Keep both: a mode
+    // toggle sends the same camera-built prompt to generateImage for stills.
+    let outputMode = 'video';
+    try { if (localStorage.getItem('cinema_output_mode') === 'image') outputMode = 'image'; } catch { /* ignore */ }
+    const modeSeg = createSegmented(
+        [{ value: 'video', label: 'Video' }, { value: 'image', label: 'Image' }],
+        outputMode,
+        (value) => {
+            outputMode = value;
+            try { localStorage.setItem('cinema_output_mode', value); } catch { /* ignore */ }
+        },
+    );
+    modeSeg.dataset.cinemaMode = '';
+    settingsToolbar.insertBefore(modeSeg, settingsToolbar.firstChild);
 
     // Opens the Advanced Options panel (negative prompt, seed, duration, …).
     const advancedBtn = createActionPill({ icon: ADVANCED_ICON, label: 'Advanced', tooltip: 'Show advanced options' });
@@ -1321,10 +1358,13 @@ export function CinemaStudio() {
         generationHistory.unshift(entry);
         // Shared library + "Edit in Workbench" (covers fresh results and recovered jobs).
         const s = entry.settings || {};
-        registerGeneration('cinema', 'video', entry.url, {
+        const meta = {
             prompt: s.prompt || '', model: s.model || '',
             parameters: { aspect_ratio: s.aspect_ratio, duration: s.duration, resolution: s.resolution },
-        });
+        };
+        // Still renders (Image output mode) register as images.
+        if (entry.kind === 'image') registerGeneration('cinema', 'image', entry.url, meta);
+        else registerGeneration('cinema', 'video', entry.url, meta);
         try {
             localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50)));
         } catch (e) {
@@ -1518,6 +1558,31 @@ export function CinemaStudio() {
             // below but never defined, so every successful render threw.
             const dynamicPayload = dynamicControls ? dynamicControls.getPayload({}) : {};
             const resolution = (resBtn.dataset.value || '1k').toLowerCase();
+
+            if (outputMode === 'image') {
+                // Still-image render (upstream Cinema behaviour): 1K/2K/4K.
+                const stillRes = (resBtn.dataset.value || '2K').toUpperCase();
+                const { resolveMuapiMediaRef } = await import('../lib/muapiStudioMedia.js');
+                const startUrl = currentSettings.referenceUrl
+                  ? await resolveMuapiMediaRef({ url: currentSettings.referenceUrl, assetId: currentSettings.referenceAssetId })
+                  : null;
+                pendingJob = createPendingJobTracker('cinema', {
+                    settings: { prompt: basePrompt, ...currentSettings, resolution: stillRes },
+                }, { maxAttempts: 120 });
+                const stillModel = startUrl ? 'nano-banana-pro-edit' : 'nano-banana-pro';
+                const still = await muapi.generateImage({
+                    model: getModelById(stillModel) ? stillModel : 'nano-banana-pro',
+                    prompt: finalPrompt,
+                    aspect_ratio: currentSettings.aspect_ratio,
+                    resolution: stillRes,
+                    ...(startUrl && getModelById(stillModel) ? { image_url: startUrl, images_list: [startUrl] } : {}),
+                    onRequestId: pendingJob.onRequestId,
+                });
+                if (!still?.url) throw new Error('No Data');
+                addToHistory({ url: still.url, kind: 'image', timestamp: Date.now(), settings: { prompt: basePrompt, ...currentSettings, model: 'nano-banana-pro', resolution: stillRes } });
+                showCanvas(still.url);
+                return;
+            }
             const hasStartFrame = !!currentSettings.referenceUrl;
             const hasEndFrame = !!currentSettings.endFrameUrl;
             const isRef = hasStartFrame;

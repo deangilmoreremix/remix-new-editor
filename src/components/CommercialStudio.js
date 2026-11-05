@@ -12,6 +12,9 @@ import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, posi
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
+import { createSegmented } from './studio/promptComposer.js';
+import { createMarketingAdMode, validateAd, buildAdParams } from './studios/MarketingAdMode.js';
+import { createPendingJobTracker } from '../lib/pendingJobs.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -262,6 +265,33 @@ const COMMERCIAL_MODELS = [
   }
   buildDynamicControls();
 
+  // ── Mode: product shot | ad video (upstream Marketing Studio) ──────────
+  // Ad video sends the product (@image1), an optional avatar (@image2),
+  // references and a format preset to Seedance 2 omni-reference.
+  const adMode = createMarketingAdMode();
+  const adScript = document.createElement('textarea');
+  adScript.rows = 3;
+  adScript.placeholder = 'Describe your ad script... Use @image1 for product, @image2 for avatar.';
+  adScript.className = 'hidden w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary/50 resize-y';
+  adScript.setAttribute('aria-label', 'Ad script');
+  const shotOnly = [modelLabel, modelWrapper, sceneLabel, sceneGrid, formatLabel, formatRow];
+  let mode = 'shot';
+  const SHOT_LABEL = 'Generate Product Shot';
+  const AD_LABEL = 'Generate Ad Video';
+  const modeToggle = createSegmented([{ value: 'shot', label: 'Product shot' }, { value: 'ad', label: 'Ad video' }], 'shot', (v) => {
+    mode = v;
+    shotOnly.forEach((el) => el.classList.toggle('hidden', v === 'ad'));
+    adScript.classList.toggle('hidden', v !== 'ad');
+    adMode.setActive(v === 'ad');
+    picker.trigger.title = v === 'ad' ? 'Product image — shows up as @image1' : 'Upload product image or video';
+    genBtn.textContent = v === 'ad' ? AD_LABEL : SHOT_LABEL;
+  });
+  modeToggle.dataset.commercialMode = '';
+  modeToggle.classList.add('self-start');
+  formCard.insertBefore(modeToggle, formCard.firstChild);
+  formCard.appendChild(adScript);
+  formCard.appendChild(adMode.el);
+
   // Action row — unified Image Studio layout (Advanced)
   const actionRow = createActionRow();
   const advanced = createAdvancedPanel({ id: 'commercial-advanced-btn', elements: [dynamicControlsContainer] });
@@ -354,7 +384,52 @@ const COMMERCIAL_MODELS = [
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
+  // Ad video: product + avatar + references + a format preset → Seedance 2 omni-reference.
+  async function runAd() {
+    const script = adScript.value;
+    const problem = validateAd({ script, productUrl: uploadedUrl });
+    if (problem) { showToast(problem, 'error'); return; }
+    if (!(await requireEntitlement())) return;
+    if (!apiKeyManager.getMuapiKey()) { AuthModal(() => runAd()); return; }
+
+    genBtn.disabled = true;
+    genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Making your ad...';
+    const pendingJob = createPendingJobTracker('commercial', { prompt: script }, { maxAttempts: 900 });
+    try {
+      const params = buildAdParams(adMode.state, { script, productUrl: uploadedUrl });
+      const res = await muapi.generateMarketingStudioAd({ ...params, onRequestId: pendingJob.onRequestId });
+      if (!res?.url) throw new Error('No video URL returned by API');
+      resultArea.classList.remove('hidden');
+      resultArea.innerHTML = `
+        <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+          <video controls playsinline class="w-full rounded-xl mb-3"></video>
+          <div class="flex gap-3">
+            <a download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+            <button type="button" class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
+            <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+          </div>
+        </div>
+      `;
+      resultArea.querySelector('video').src = res.url;
+      resultArea.querySelector('a[download]').href = res.url;
+      resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
+      resultArea.querySelector('.publish-social-btn').onclick = () => openSocialPublish({ mediaUrl: res.url, mediaType: 'video' });
+      saveGeneration({
+        studio: 'commercial', type: 'video', url: res.url, prompt: script, model: 'seedance-2-vip-omni-reference',
+        parameters: { format: adMode.state.format.name, aspect_ratio: adMode.state.ratio, resolution: adMode.state.res, duration: adMode.state.duration },
+      });
+      showToast('Ad video generated successfully!', 'success');
+    } catch (err) {
+      showToast(err.message || 'Marketing generation failed', 'error', 5000);
+    } finally {
+      pendingJob.finish();
+      genBtn.disabled = false;
+      genBtn.textContent = AD_LABEL;
+    }
+  }
+
   genBtn.onclick = async () => {
+    if (mode === 'ad') return runAd();
     if (!(await requireEntitlement())) return;
     if (!uploadedUrl) {
       showToast('Upload a product image or video first', 'error');

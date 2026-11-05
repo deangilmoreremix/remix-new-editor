@@ -3,8 +3,8 @@
 Compares the studios that exist in this repo with their counterparts in
 [Anil-matcha/Open-Generative-AI](https://github.com/Anil-matcha/Open-Generative-AI)
 (`0e15dc3`, 2026-10-29). Scope is features and functions only — not visual
-design, not upstream-only studios (Layers, Recast, Motion Control, Clipping,
-Workflow, McpCli, Design Agent), and not Electron/local Wan2GP inference.
+design, not upstream-only studios (Layers, Clipping, Workflow, McpCli, Design Agent —
+unaudited; Recast and Motion Control were added in round 3), and not Electron/local Wan2GP inference.
 
 This replaces the August audit docs (`UPSTREAM_RECOVERY_*`, `UPSTREAM_CONTROL_INVENTORY.md`).
 
@@ -51,32 +51,46 @@ agent marketplace) are not comparable and are out of scope.
 - Audio: schema-driven fields, lyrics, uploads, history grid, prompt chips. Ours also has a voice selector and share.
 - Influencer: Face / Body / Style attribute builder (~128 options). Ours also has history delete.
 
-## Model catalog (Phase 1 — PLANNED)
+## Model catalog (synced)
 
-| | Upstream | Ours |
+`scripts/sync-upstream-models.py` (dry-run by default, `--write` to apply) added 355 upstream
+models across text/image-to-image/video, audio and lip sync, plus shared constants. The build
+catalog (`public/api/model-catalog.json`) now includes audio and lip-sync pools.
+
+## API layer
+
+| Upstream call | Ours | Status |
 |---|---|---|
-| Text to image | 84 | 48 |
-| Image to image | 88 | 55 |
-| Text to video | 108 | 43 |
-| Image to video | 176 | 60 |
-| Video to video | 75 | 7 |
-| Audio | 22 | 6 |
-| Lip sync | 15 | 9 |
+| motion-graphics, motion-graphics-edit | `runMotionGraphics`, `runMotionGraphicsEdit` | ADDED (live endpoint unverified) |
+| Marketing Studio ad (Seedance 2 omni-reference) | `generateMarketingStudioAd` | ADDED (live endpoint unverified) |
+| history, delete media | `getHistory`, `deleteMedia` | ADDED (not yet merged into Library UI) |
+| calculate_dynamic_cost, estimate-cost | `calculateDynamicCost`, `estimateV2VCost` | ADDED (no UI cost line yet) |
+| app/interest(s) | `registerAppInterest`, `getAppInterests` | ADDED — needs `muapi-proxy` redeploy |
 
-Upstream counts include resolution variants. Notable missing families:
-Ideogram 4, Nano Banana 2.1, GPT Image 2/2.5, Midjourney v7/v8, Seedream 5,
-Seedance 2.5, Vidu Q4, Veo 4 / 3.1 lite·4K·extend, Kling 3.0 Omni/Turbo,
-MiniMax H3, Wan 3.0, LTX 2.5, PixVerse v6, Runway Aleph / Act-Two,
-ElevenLabs v4, Fish S2.1, Lyria 3, Gemini TTS, OmniHuman 1.5.
+## Per-studio status
 
-## Per-studio gaps (Phase 3 — PLANNED)
-
-| Studio | Gap |
+| Studio | Added from upstream |
 |---|---|
-| Image | Draw / sketch reference; face-swap input slot |
-| Video | References, edit-video, extend-uploaded-video and motion-transfer modes; extend for every compatible model (not just Seedance); audio input slot; draw reference |
-| Effects | Motion-graphics generate, edit-previous-result, "Remix this" (depends on MuAPI motion-graphics endpoints being available) |
-| Commercial | Ad-video mode (product + avatar + script), avatar presets, duration / resolution |
-| Apps | GitHub / demo links; "request this app" |
-| Lip Sync | OmniHuman 1.5 and Volcengine models (via Phase 1) |
-| Influencer | Confirm Shuffle |
+| Image | Face-swap slot, batch stepper in every mode, effect-type picker, attachment strip, Draw / sketch modal (pencil, eraser, rectangle, arrow, text, undo/redo; reference image or hand-off to Video as a start frame), remembers model + aspect ratio |
+| Video | Attachment strip (start/end frame, references, audio), Extend / 4K from the result menu for every compatible model (Seedance, Veo 3.1, Grok), Source / workflow menu (text, animate image, keyframes, references, edit, extend, motion transfer), V2V cost estimate, sketch hand-off |
+| Cinema | Attachment strip, Image/Video output toggle (stills at 1K/2K/4K, persisted), drop an image on the start tile |
+| Lip Sync | Drag-drop onto upload buttons, in-slot audio play/pause, upload progress % |
+| Audio | Premium player (volume, mute), page-wide drop |
+| Effects | Motion graphics tab: Generate / Edit / Remix |
+| Commercial | Ad-video mode: avatars, formats, references |
+| Influencer | Builder Reset, "Generated · N characters" history column |
+| Apps | Template apps, GitHub/Demo links, interest modal |
+| Video Tools | Upstream Recast (3 models, character orientation, aspect ratio) and Motion Control (4 Seedance models, motion transfer / objects swap, duration, quality, bitrate, audio, seed) as extra tabs next to the existing tools (`?mode=recast` / `?mode=control`) |
+| Edit Studio | From upstream Layers Studio: Split into Layers (`bytedance-seedream-5.0-pro-layer`, downloadable layer strip) and a local Color Grade tool. Upscale, Remove Background and Extend Image already existed |
+| Library | Server history (`getHistory`) merged with local history |
+
+Best-effort, unverified against a real key: V2V cost line (`estimateV2VCost`) and server history merge —
+both hide themselves on any error. Upstream itself only calls `estimateV2VCost`; `calculateDynamicCost` is
+defined there but unused by any studio, so it stays an API-layer function.
+
+## Upstream studios with no counterpart here (SKIPPED by decision)
+
+Only studios that already exist in this repo are matched. Not added: AI Clipping, Workflows,
+Design Agent, MCP CLI, and Agents (our Video Agent / Assist / Chat are different products).
+Layers' remaining items (color grading presets beyond the sliders, angles, marker/shapes) were
+not ported; its upscale, remove-BG and expand/crop already exist in Edit Studio / Upscale Suite.

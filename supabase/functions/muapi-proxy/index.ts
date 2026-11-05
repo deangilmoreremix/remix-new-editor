@@ -902,7 +902,9 @@ Deno.serve(async (req: Request) => {
       delete (params as Record<string, unknown>).openai_api_key;
     }
 
-    const muapiUrl = `${MUAPI_BASE_URL}/api/v1/${normalizedEndpoint}`;
+    // MuAPI's app-interest routes live at /app/..., not under /api/v1.
+    const apiPrefix = /^app\/interests?$/.test(normalizedEndpoint) ? '' : '/api/v1';
+    const muapiUrl = `${MUAPI_BASE_URL}${apiPrefix}/${normalizedEndpoint}`;
 
     console.log(`[muapi-proxy] Forwarding ${generationType ?? 'request'} to ${endpoint} (normalized: ${normalizedEndpoint})`);
 
