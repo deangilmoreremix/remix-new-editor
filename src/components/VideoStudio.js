@@ -2059,6 +2059,10 @@ generateBtn.type = 'button';
                 showInlineError(container, 'Please upload a video first.');
                 return;
             }
+            if (v2vModels.find((m) => m.id === selectedModel)?.promptRequired && !prompt) {
+                showInlineError(container, 'Please describe the change you want.');
+                return;
+            }
         } else if (isExtendMode) {
             if (!lastGenerationId) {
                 showInlineError(container, 'No Seedance 2.0 generation found to extend. Generate a video first.');
@@ -2115,6 +2119,7 @@ generateBtn.type = 'button';
                 const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, signal: abortController.signal, onRequestId: pendingJob.onRequestId };
                 if (customThumbnailUrl) v2vParams.thumbnail_url = customThumbnailUrl;
                 if (nativeAudio) v2vParams.native_audio = true;
+                if (prompt) v2vParams.prompt = prompt;
                 const res = await muapi.processV2V(v2vParams);
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();

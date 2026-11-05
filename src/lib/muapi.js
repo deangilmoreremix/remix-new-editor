@@ -862,7 +862,9 @@ export class MuapiClient {
         const imageField = modelInfo?.imageField || 'image_url';
         if (p.image_url) {
             if (imageField === 'images_list') {
-                finalPayload.images_list = [p.image_url];
+                // Keyframe models take [start, end] in one list.
+                const endFrame = params.lastFrameUrl || params.last_frame_url || params.last_image_url;
+                finalPayload.images_list = endFrame ? [p.image_url, endFrame] : [p.image_url];
             } else {
                 finalPayload[imageField] = p.image_url;
             }
@@ -1096,9 +1098,12 @@ export class MuapiClient {
             'thumbnail_url',
             'webhook_url',
         ]);
+        // Models that require instructions (edit / extend) don't list `prompt` in
+        // `inputs`, but still need it forwarded.
+        const acceptsPrompt = modelInputKeys.has('prompt') || modelInfo?.promptRequired === true;
         for (const [key, value] of Object.entries(params)) {
             if (alreadyForwarded.has(key)) continue;
-            if (!modelInputKeys.has(key)) continue;
+            if (!modelInputKeys.has(key) && !(key === 'prompt' && acceptsPrompt)) continue;
             if (value === undefined || value === null || value === '') continue;
             finalPayload[key] = value;
         }
