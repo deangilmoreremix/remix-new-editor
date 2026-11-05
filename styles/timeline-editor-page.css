@@ -16,7 +16,7 @@ html, body {
 body { padding: var(--sp-5); }
 button, input, textarea, select { font: inherit; }
 #app { min-height: calc(100vh - 40px); }
-.app-shell { max-width: 1500px; margin: 0 auto; }
+.app-shell { max-width: 1500px; margin: 0 auto; padding-bottom: 120px; } /* room above the fixed bottom toolbar */
 .sr-only { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .header {
   display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
@@ -336,6 +336,17 @@ button, input, textarea, select { font: inherit; }
    intercept drops near the bottom of the timeline. Drop pointer-events so
    dragover/drop reach the .track-lane drop zone underneath. */
 body.is-dragging .floating-rail { pointer-events: none; }
+/* The rail scrolls sideways, which would clip a tooltip drawn inside it, so
+   its descriptions are one fixed-position tip (installRailTooltip). */
+.floating-rail .rail-btn[data-tooltip]::before,
+.floating-rail .rail-btn[data-tooltip]::after { display: none; }
+.rail-tip {
+  position: fixed; z-index: 10000; max-width: min(360px, calc(100vw - 16px)); padding: 8px 12px;
+  border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); background: #1a1a1a; color: #fff;
+  font-size: 12px; font-weight: 600; line-height: 1.4; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.6);
+  pointer-events: none;
+}
+.rail-tip[hidden] { display: none; }
 .rail-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 12px; border-radius: var(--r-md); font-size: 10px; font-weight: 700; border: 1px solid transparent; background: transparent; color: rgba(255,255,255,0.72); cursor: pointer; transition: all .15s ease; }
 .rail-btn .emoji { font-size: 16px; }
 .status-toast { position: fixed; right: 18px; bottom: 18px; max-width: 320px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(34,211,238,0.18); background: rgba(7,12,18,0.95); color: rgba(255,255,255,0.86); box-shadow: 0 18px 50px rgba(0,0,0,0.4); font-size: 12px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: all .2s ease; }

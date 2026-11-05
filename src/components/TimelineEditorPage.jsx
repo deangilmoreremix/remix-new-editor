@@ -531,7 +531,6 @@ export function TimelineEditorPage() {
             <div class="playhead-layer"><div class="playhead-line" id="playheadLine"></div><div class="playhead-knob" id="playheadKnob" role="slider" tabindex="0" aria-label="Playhead position" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="00:00.0"></div></div>
             <div id="trackRows"></div>
           </div>
-        </div>
       </section>
     </div>
     <div class="side-col">
@@ -7135,7 +7134,40 @@ export function TimelineEditorPage() {
       if (fs) fs.innerHTML = '';
     }
 
+    // Hover/focus description for the bottom toolbar. The bar scrolls
+    // sideways (overflow: auto), which clips a CSS tooltip drawn above a
+    // button, so one fixed-position tip is placed above the bar instead.
+    function installRailTooltip() {
+      if (els.floatingRail.dataset.tipReady) return;
+      els.floatingRail.dataset.tipReady = '1';
+      const tip = document.createElement('div');
+      tip.className = 'rail-tip';
+      tip.setAttribute('role', 'tooltip');
+      tip.hidden = true;
+      document.body.appendChild(tip);
+      const hide = () => { tip.hidden = true; };
+      const show = (btn) => {
+        const text = btn?.getAttribute('data-tooltip');
+        if (!text) return hide();
+        tip.textContent = text;
+        tip.hidden = false;
+        const b = btn.getBoundingClientRect();
+        const w = tip.offsetWidth;
+        const left = Math.max(8, Math.min(window.innerWidth - w - 8, b.left + b.width / 2 - w / 2));
+        tip.style.left = `${left}px`;
+        tip.style.bottom = `${Math.max(8, window.innerHeight - b.top + 10)}px`;
+      };
+      const target = (e) => e.target.closest?.('.rail-btn');
+      els.floatingRail.addEventListener('mouseover', (e) => { const b = target(e); if (b) show(b); });
+      els.floatingRail.addEventListener('mouseleave', hide);
+      els.floatingRail.addEventListener('focusin', (e) => { const b = target(e); if (b) show(b); });
+      els.floatingRail.addEventListener('focusout', hide);
+      els.floatingRail.addEventListener('click', hide);
+      els.floatingRail.addEventListener('scroll', hide);
+    }
+
     function renderRail() {
+      installRailTooltip();
       els.floatingRail.innerHTML = '';
       renderFilmstrip();
       const railTooltips = {
@@ -7201,7 +7233,6 @@ export function TimelineEditorPage() {
         button.className = `rail-btn ${active ? 'active' : ''}`;
         button.innerHTML = `<span class="emoji">${icon}</span><span>${label}</span>`;
         button.setAttribute('data-tooltip', railTooltips[label] || `${label} action`);
-        button.title = railTooltips[label] || `${label} action`;
         button.setAttribute('aria-label', `${label} action`);
 
         // Add specific functionality for each rail action
@@ -9708,6 +9739,7 @@ export function TimelineEditorPage() {
         }
         // Run all registered cleanups (document listeners, timers, intervals)
         cleanup.run();
+        document.querySelectorAll('.rail-tip').forEach((el) => el.remove());
         // Save final state
         saveProjectToStorage(state);
       }
