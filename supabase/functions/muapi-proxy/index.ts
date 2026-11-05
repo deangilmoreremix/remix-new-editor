@@ -476,16 +476,28 @@ function verifyCsrfProtection(req: Request, auth: { reason: string }): { ok: boo
   if (auth.reason === 'service_role' || auth.reason === 'ALLOW_UNAUTHENTICATED') {
     return { ok: true };
   }
-  // Check Sec-Fetch-Site: reject cross-site requests
-  const secFetchSite = req.headers.get('sec-fetch-site');
-  if (secFetchSite && secFetchSite === 'cross-site') {
-    return { ok: false, reason: 'cross-site request blocked' };
-  }
-  // Check Origin against APP_ORIGIN env var
-  const origin = req.headers.get('origin');
+  // This proxy is deliberately called cross-site: the app is served from its own
+  // domain while this function lives on <project>.supabase.co, so every legitimate
+  // browser call carries `Sec-Fetch-Site: cross-site`. Rejecting that header outright
+  // blocked every request (Brand Studio 403). The real CSRF defence is the Origin
+  // allow-list (ALLOWED_ORIGINS + APP_ORIGIN).
+  const allowed = new Set(getAllowedOrigins());
   const appOrigin = Deno.env.get('APP_ORIGIN');
-  if (origin && appOrigin && origin !== appOrigin) {
-    return { ok: false, reason: 'origin mismatch' };
+  if (appOrigin) allowed.add(appOrigin.trim());
+
+  const origin = req.headers.get('origin');
+  const secFetchSite = req.headers.get('sec-fetch-site');
+
+  if (origin) {
+    // When no allow-list is configured, defer to getCorsHeaders' own policy.
+    if (allowed.size > 0 && !allowed.has(origin)) {
+      return { ok: false, reason: 'origin mismatch' };
+    }
+    return { ok: true };
+  }
+  // No Origin header: a cross-site browser request without one is not trustworthy.
+  if (secFetchSite === 'cross-site') {
+    return { ok: false, reason: 'cross-site request blocked' };
   }
   return { ok: true };
 }
