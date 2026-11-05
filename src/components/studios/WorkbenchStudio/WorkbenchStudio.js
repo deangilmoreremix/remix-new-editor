@@ -39,19 +39,9 @@ function el(tag, className, text) {
 }
 
 export function WorkbenchStudio() {
-  const container = el('div', 'w-full flex flex-col overflow-hidden bg-app-bg');
-  // The app shell grows to the sidebar's height, so h-full would make the editor
-  // thousands of px tall. Pin it to the viewport below the header instead.
-  const fit = () => {
-    const header = document.querySelector('#app > header, header');
-    const top = header ? Math.round(header.getBoundingClientRect().height) : 56;
-    container.style.height = `calc(100dvh - ${top}px)`;
-    container.style.position = 'sticky';
-    container.style.top = `${top}px`;
-  };
-  fit();
-  requestAnimationFrame(fit);
-  window.addEventListener('resize', fit);
+  // The shell row (main.js) is min-h-0/overflow-hidden, so the container simply fills
+  // the content area: no viewport-height math needed.
+  const container = el('div', 'w-full flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden bg-app-bg');
   const { topbar } = mountStudioChrome(container, { currentRoute: 'workbench', title: 'Workbench' });
 
   const status = el('span', 'text-xs text-secondary mr-3');

@@ -146,8 +146,19 @@ const UploadButton: React.FC = () => {
   );
 };
 
+const useWindowSize = () => {
+  const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight });
+  useEffect(() => {
+    const on = () => setSize({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener("resize", on);
+    return () => window.removeEventListener("resize", on);
+  }, []);
+  return size;
+};
+
 export const App: React.FC = () => {
   const t = useT();
+  const win = useWindowSize();
   const locale = useLocale((s) => s.locale);
   const setLocale = useLocale((s) => s.setLocale);
   useEffect(() => applyLocaleToDocument(locale), [locale]);
@@ -162,6 +173,13 @@ export const App: React.FC = () => {
   const [libW, setLibW] = usePanelSize("wb-lib-w", 224);
   const [inspW, setInspW] = usePanelSize("wb-insp-w", 300);
   const [tlH, setTlH] = usePanelSize("wb-tl-h", 264);
+  // Stored sizes are kept, but what is rendered never exceeds a share of the window.
+  const libMax = Math.max(160, Math.min(440, Math.round(win.w * 0.25)));
+  const inspMax = Math.max(220, Math.min(500, Math.round(win.w * 0.3)));
+  const tlMax = Math.max(150, Math.min(600, Math.round(win.h * 0.45)));
+  const libShown = clamp(libW, 160, libMax);
+  const inspShown = clamp(inspW, 220, inspMax);
+  const tlShown = clamp(tlH, 150, tlMax);
   const [side, setSide] = useState<"inspector" | "ai">("inspector");
 
   useEffect(() => {
@@ -286,15 +304,15 @@ export const App: React.FC = () => {
       </header>
 
       <main className="main">
-        <div className="panel-wrap" style={{ width: libW }}>
+        <div className="panel-wrap" style={{ width: libShown }}>
           <LibraryPanel />
         </div>
         <div
           className="splitter v"
           title={t("split.library")}
           onPointerDown={(e) => {
-            const start = libW;
-            startSplit(e, (dx) => setLibW(clamp(start + dx, 160, 440)));
+            const start = libShown;
+            startSplit(e, (dx) => setLibW(clamp(start + dx, 160, libMax)));
           }}
         />
         <PreviewPanel />
@@ -302,11 +320,11 @@ export const App: React.FC = () => {
           className="splitter v"
           title={t("split.inspector")}
           onPointerDown={(e) => {
-            const start = inspW;
-            startSplit(e, (dx) => setInspW(clamp(start - dx, 220, 500)));
+            const start = inspShown;
+            startSplit(e, (dx) => setInspW(clamp(start - dx, 220, inspMax)));
           }}
         />
-        <div className="panel-wrap" style={{ width: inspW, display: "flex", flexDirection: "column" }}>
+        <div className="panel-wrap" style={{ width: inspShown, display: "flex", flexDirection: "column" }}>
           <div className="side-tabs" role="tablist">
             <button className={`side-tab${side === "inspector" ? " on" : ""}`} role="tab" aria-selected={side === "inspector"} onClick={() => setSide("inspector")}>Inspector</button>
             <button className={`side-tab${side === "ai" ? " on" : ""}`} role="tab" aria-selected={side === "ai"} onClick={() => setSide("ai")}>✦ AI Chat</button>
@@ -319,11 +337,11 @@ export const App: React.FC = () => {
         className="splitter h"
         title={t("split.timeline")}
         onPointerDown={(e) => {
-          const start = tlH;
-          startSplit(e, (_dx, dy) => setTlH(clamp(start - dy, 150, 600)));
+          const start = tlShown;
+          startSplit(e, (_dx, dy) => setTlH(clamp(start - dy, 150, tlMax)));
         }}
       />
-      <div className="panel-wrap" style={{ height: tlH }}>
+      <div className="panel-wrap" style={{ height: tlShown }}>
         <Timeline />
       </div>
     </div>

@@ -30,7 +30,7 @@ body {
   user-select: none;
 }
 
-.app { display: flex; flex-direction: column; height: 100%; }
+.app { display: flex; flex-direction: column; height: 100%; min-width: 0; min-height: 0; overflow: hidden; }
 .dim { color: var(--text-dim); }
 
 /* —— 顶栏 —— */
@@ -38,13 +38,15 @@ body {
   display: flex; align-items: center; gap: 8px;
   height: 50px; padding: 0 16px;
   background: var(--panel); border-bottom: 1px solid var(--line);
-  flex: none;
+  flex: none; min-width: 0; overflow-x: auto; scrollbar-width: none;
 }
+.topbar::-webkit-scrollbar { display: none; }
+.topbar > * { flex-shrink: 0; }
 .logo { font-size: 13px; letter-spacing: 0.2px; color: var(--text-dim); }
 .logo b { color: var(--text); font-weight: 600; }
 .project-name {
   background: transparent; border: 1px solid transparent; border-radius: var(--r-s);
-  color: var(--text); font-size: 13px; font-weight: 500; padding: 6px 10px; width: 190px;
+  color: var(--text); font-size: 13px; font-weight: 500; padding: 6px 10px; width: 190px; flex-shrink: 1 !important; min-width: 80px;
   font-family: inherit; transition: background 0.15s, border-color 0.15s;
 }
 .project-name:hover, .project-name:focus {
@@ -89,7 +91,7 @@ body {
 .mini.preset.on { color: var(--accent); background: rgba(10, 132, 255, 0.14); }
 
 /* —— 主区三栏 —— */
-.main { display: flex; flex: 1; min-height: 0; }
+.main { display: flex; flex: 1; min-height: 0; min-width: 0; }
 
 .panel-title {
   padding: 11px 14px; font-weight: 600; font-size: 13px; letter-spacing: 0.2px;
@@ -450,7 +452,7 @@ body {
 .chat-msg.error .chat-bubble { background: rgba(255,69,58,.18); }
 .chat-note { font-size: 11px; margin-top: 3px; }
 .chat-input { display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--line, #2a2a2e); align-items: flex-end; }
-.chat-input textarea { flex: 1; resize: none; background: rgba(255,255,255,.04); color: inherit; border: 1px solid var(--line, #2a2a2e); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 12px; }
+.chat-input textarea { flex: 1; min-width: 0; resize: none; background: rgba(255,255,255,.04); color: inherit; border: 1px solid var(--line, #2a2a2e); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 12px; }
 
 /* —— SmartVid: uploads —— */
 .upload-status { font-size: 11px; opacity: .8; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
