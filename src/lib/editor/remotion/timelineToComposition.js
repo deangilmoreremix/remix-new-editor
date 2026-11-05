@@ -15,6 +15,7 @@
 import { getAddon, addonOptions } from '../addons/registry.js';
 import { resolveOverlayText, safeImageUrl, sanitizeWrapperStyles } from '../addons/overlayRender.js';
 import { voiceSrcFor } from '../personalize/perContact.js';
+import { personalizedImageLook } from '../../personalization/imageStyle.js';
 import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
@@ -78,6 +79,8 @@ function overlayLayer(clip, opts, profile, base) {
     case 'overlay-personalized-image': {
       const resolved = resolveOverlayText(o.src, profile);
       o.resolvedSrc = (!/\{\{/.test(resolved) && safeImageUrl(resolved)) || safeImageUrl(o.fallbackSrc) || null;
+      // Per-contact crop focus and logo backing plate.
+      Object.assign(o, personalizedImageLook(o, o.resolvedSrc, profile));
       break;
     }
     case 'overlay-image':

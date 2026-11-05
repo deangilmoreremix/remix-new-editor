@@ -16,7 +16,7 @@
 
 import { ensurePersonalizationProfile } from './personalizationProfile.js';
 import { buildPersonalizationContext } from './studioContext.js';
-import { IMAGE_TOKEN_DEFS, resolveToken } from '../../components/personalize/tokenSchema.js';
+import { IMAGE_TOKEN_DEFS, canonicalTokenKey, resolveToken } from '../../components/personalize/tokenSchema.js';
 
 const ROLE_LABELS = {
   presenter_identity: 'Presenter',
@@ -150,6 +150,8 @@ export function buildBrandOverlayPlan(profile, { timelineSeconds = 60, endCardSe
           // than someone else's.
           fallbackSrc: '',
           fit: 'contain',
+          // Light or dark backing to suit each contact's logo.
+          plate: 'auto',
           title: 'Logo',
           geometry: { ...LOGO_OVERLAY_GEOMETRY },
         },
@@ -195,4 +197,131 @@ export function buildBrandOverlayPlan(profile, { timelineSeconds = 60, endCardSe
   });
 
   return out;
+}
+
+/**
+ * One-click personalized layouts for the Overlays panel. Each returns
+ * overlay clips (same shape as buildBrandOverlayPlan) built from image and
+ * text tokens, so every contact gets their own.
+ */
+export const PERSONALIZED_LAYOUTS = Object.freeze([
+  { id: 'brand', label: 'Logo + CTA end card', icon: '🏷️', description: "Each contact's logo in the corner and their CTA at the end" },
+  { id: 'presenterIntro', label: 'Presenter intro', icon: '👋', description: "The contact's photo in a circle with “Hi {first name}!”" },
+  { id: 'productSpotlight', label: 'Product spotlight', icon: '🛍️', description: "The contact's product image beside their business name and offer" },
+  { id: 'openingFrame', label: 'Opening frame', icon: '🎬', description: "The contact's opening frame full-screen for the first seconds" },
+]);
+
+export function buildLayoutPlan(layoutId, profile, { timelineSeconds = 60, startSec = 0, endCardSeconds = 4 } = {}) {
+  const T = Math.max(1, Number(timelineSeconds) || 60);
+  const len = (sec) => Math.min(T, sec);
+  const from = Math.max(0, Math.min(Number(startSec) || 0, T - 1));
+  switch (layoutId) {
+    case 'brand':
+      return buildBrandOverlayPlan(profile, { timelineSeconds: T, endCardSeconds });
+    case 'presenterIntro': {
+      const end = Math.min(T, from + len(5));
+      return [
+        {
+          type: 'overlay-personalized-image',
+          name: 'Presenter photo',
+          startSec: from,
+          endSec: end,
+          addon: {
+            src: '{{avatarUrl}}',
+            fallbackSrc: '',
+            imageshape: 'circle',
+            cornerRadius: 50,
+            title: 'Presenter',
+            geometry: { left: 6, top: 56, width: 16, height: 28 },
+          },
+        },
+        {
+          type: 'overlay-text',
+          name: 'Presenter greeting',
+          startSec: from,
+          endSec: end,
+          addon: {
+            text: 'Hi {{d firstName "there"}}!',
+            alignment: 'left',
+            fontSize: 7,
+            geometry: { left: 25, top: 62, width: 55, height: 14 },
+          },
+        },
+      ];
+    }
+    case 'productSpotlight': {
+      const end = Math.min(T, from + len(6));
+      return [
+        {
+          type: 'overlay-personalized-image',
+          name: 'Product image',
+          startSec: from,
+          endSec: end,
+          addon: {
+            src: '{{productImageUrl}}',
+            fallbackSrc: '',
+            fit: 'contain',
+            title: 'Product',
+            geometry: { left: 52, top: 16, width: 42, height: 66 },
+          },
+        },
+        {
+          type: 'overlay-text',
+          name: 'Product offer',
+          startSec: from,
+          endSec: end,
+          addon: {
+            text: '{{d businessName ""}}\n{{d offer ""}}',
+            alignment: 'left',
+            fontSize: 5,
+            background: true,
+            backgroundColor: '#000000',
+            geometry: { left: 6, top: 34, width: 42, height: 30 },
+          },
+        },
+      ];
+    }
+    case 'openingFrame':
+      return [{
+        type: 'overlay-personalized-image',
+        name: 'Opening frame',
+        startSec: 0,
+        endSec: len(3),
+        addon: {
+          src: '{{firstFrameUrl}}',
+          fallbackSrc: '',
+          title: 'Opening frame',
+          geometry: { left: 0, top: 0, width: 100, height: 100 },
+        },
+      }];
+    default:
+      return [];
+  }
+}
+
+/**
+ * The saved asset behind an image token for a contact (primary logo,
+ * presenter, first product, CTA graphic, …) — what "Make Video Ready",
+ * crop focus and logo brightness act on.
+ */
+export function assetForImageToken(profile, key) {
+  const a = profile?.personalization?.assets || {};
+  const primary = (list, id) => (Array.isArray(list) && list.length ? (list.find((x) => x?.id === id) || list[0]) : null);
+  switch (canonicalTokenKey(key) || key) {
+    case 'logoUrl': return primary(a.logos, a.primaryLogoId);
+    case 'avatarUrl': return primary(a.identities, a.primaryIdentityId);
+    case 'productImageUrl': return Array.isArray(a.products) ? a.products[0] || null : null;
+    case 'brandImageUrl': return Array.isArray(a.brandReferences) ? a.brandReferences[0] || null : null;
+    case 'ctaImageUrl': return a.ctaGraphic || null;
+    case 'firstFrameUrl': return a.firstFrame || null;
+    case 'lastFrameUrl': return a.lastFrame || null;
+    default: return null;
+  }
+}
+
+/** The image token in a Personalized Image's source ({{logoUrl}} → 'logoUrl'), or null. */
+export function imageTokenOf(src) {
+  const m = String(src || '').match(/\{\{\s*(?:d\s+)?([^\s{}"']+)/);
+  const key = m ? canonicalTokenKey(m[1]) : null;
+  return key && IMAGE_TOKEN_DEFS.some((d) => d.key === key) ? key : null;
 }
