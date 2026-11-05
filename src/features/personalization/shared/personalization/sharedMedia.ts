@@ -56,9 +56,34 @@ function readStorage(): SharedMediaEntry[] {
   }
 }
 
+/** Newest entries kept in the local history. */
+export const MAX_SHARED_MEDIA_ENTRIES = 50
+
+/**
+ * remix-new-editor: history is best-effort. It never throws (a full
+ * localStorage must not turn a successful, paid generation into an error),
+ * keeps the newest MAX_SHARED_MEDIA_ENTRIES, and stores no `data:` image bytes,
+ * only durable URLs.
+ */
 function writeStorage(data: SharedMediaEntry[]) {
   if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  const bounded = [...data]
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    .slice(0, MAX_SHARED_MEDIA_ENTRIES)
+    .map((entry) => ({
+      ...entry,
+      outputUrls: (entry.outputUrls || []).filter((url) => typeof url === 'string' && !/^data:/i.test(url)),
+    }))
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(bounded))
+  } catch {
+    try {
+      // Quota: keep the newest half and try once more.
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(bounded.slice(0, Math.ceil(bounded.length / 2))))
+    } catch {
+      /* history is optional */
+    }
+  }
 }
 
 export function getSharedMedia(): SharedMediaEntry[] {

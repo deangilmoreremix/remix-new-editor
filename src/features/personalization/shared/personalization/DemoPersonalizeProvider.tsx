@@ -2279,22 +2279,38 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       assets.ctaGraphic,
     ].filter(Boolean).find((a) => a?.id === assetId)
     if (jobAsset) releaseJobBlobUrls(jobAsset.id, jobAsset, { dropOriginal: true })
+    // Remove only that asset: every other collection, role and selection stays.
     setAssets((prev) => {
       const all = [
         ...prev.identities,
         ...prev.logos,
         ...prev.products,
         ...prev.brandReferences,
+        ...prev.audio,
+        ...(prev.savedReferences || []),
+        prev.primaryIdentity,
+        prev.primaryLogo,
+        prev.firstFrame,
+        prev.lastFrame,
+        prev.ctaGraphic,
       ].filter(Boolean) as PersonalizationAsset[]
-      const exists = all.some((a) => a.id === assetId)
-      if (!exists) return prev
-      const filtered = all.filter((a) => a.id !== assetId)
-      const rebuilt: AssetLibrary = { ...EMPTY_ASSET_LIBRARY }
-      for (const a of filtered) {
-        rebuilt.identities = [...rebuilt.identities, a]
-        if (rebuilt.primaryIdentity?.id === a.id) rebuilt.primaryIdentity = a
+      if (!all.some((a) => a.id === assetId)) return prev
+      const keep = (list: PersonalizationAsset[]) => list.filter((a) => a.id !== assetId)
+      const unlessRemoved = (a: PersonalizationAsset | null) => (a && a.id === assetId ? null : a)
+      return {
+        ...prev,
+        identities: keep(prev.identities),
+        logos: keep(prev.logos),
+        products: keep(prev.products),
+        brandReferences: keep(prev.brandReferences),
+        audio: keep(prev.audio),
+        savedReferences: keep(prev.savedReferences || []),
+        primaryIdentity: unlessRemoved(prev.primaryIdentity),
+        primaryLogo: unlessRemoved(prev.primaryLogo),
+        firstFrame: unlessRemoved(prev.firstFrame),
+        lastFrame: unlessRemoved(prev.lastFrame),
+        ctaGraphic: unlessRemoved(prev.ctaGraphic),
       }
-      return rebuilt
     })
   }, [selectedClientId, savedClientAssets, releaseSavedBlobUrls, releaseJobBlobUrls])
 
@@ -4239,8 +4255,14 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     router.push(`/studio/${TARGET_SLUG[target]}`)
   }, [closePersonalize, loadedProjectIdRef, router, source])
 
-  const generate = useCallback(async () => {
+  // remix-new-editor: `generateWith(override)` lets the approved-preview path pass
+  // the options it just computed (setGenOptions has not committed yet), and a
+  // generation started in one modal session never writes into the next one.
+  const generateWith = useCallback(async (optionsOverride?: GenerationOptions) => {
     if (!source) return
+    const opts = optionsOverride ?? genOptions
+    const session = restoreSessionRef.current
+    const stale = () => restoreSessionRef.current !== session
     // Image results come from OpenAI (generationRouter → getOpenAiKey());
     // MuAPI is only used afterwards for the optional logo overlay. Video
     // and prompt-only sources run through MuAPI. Gate on the key the
@@ -4303,16 +4325,17 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setResult(null)
 
     try {
-      const capabilityOptions = capabilityOptionsForMode(source, genOptions, mode)
+      const capabilityOptions = capabilityOptionsForMode(source, opts, mode)
       const capabilities = resolveModelCapabilities(source, capabilityOptions)
       let resolved = resolveAssetsForModel(source, assets, mode, capabilityOptions, capabilities)
 
       const finalPrompt = promptState.edited || promptState.personalized || promptState.original
 
       // Pre-generate CTA end card if exact end-card handling is requested
-      if (genOptions.exactCtaHandling === 'final-end-card' && source.mediaType !== 'prompt-only') {
+      if (opts.exactCtaHandling === 'final-end-card' && source.mediaType !== 'prompt-only') {
         setGeneration((prev) => ({ ...prev, progress: 3, progressMessage: 'Preparing branding assets...' }))
         const endCardUrl = await generateEndCardImage(clientForm as Record<string, unknown> | undefined, assets.primaryLogo?.file || assets.primaryLogo?.uploadedUrl || assets.primaryLogo?.url || null, apiKey)
+        if (stale()) return
         if (endCardUrl) {
           resolved = {
             ...resolved,
@@ -4340,12 +4363,14 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         resolved,
         prompt: finalPrompt,
         mode,
-        options: genOptions,
+        options: opts,
         apiKey,
         onProgress: (percent, message) => {
+          if (stale()) return
           setGeneration((prev) => ({ ...prev, progress: percent, progressMessage: message }))
         },
       })
+      if (stale()) return
 
       // Apply deterministic post-processing (logo overlay, CTA end card)
       setGeneration((prev) => ({ ...prev, progress: 90, progressMessage: 'Applying branding...' }))
@@ -4355,6 +4380,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         postProcessing: resolved.postProcessing,
         apiKey,
       })
+      if (stale()) return
 
       const finalUrl = postResult.finalUrl || genResult.url || ''
       const resultWithPostProcessing: GenerationResult = {
@@ -4426,6 +4452,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       // hand-off) and, when a return destination was requested, to that studio.
       completeRun(resultWithPostProcessing, finalPrompt)
     } catch (error) {
+      if (stale()) return
       setGeneration({
         ...EMPTY_GENERATION_STATE,
         status: 'error',
@@ -4434,6 +4461,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       })
     }
   }, [source, apiKey, openaiKey, assets, mode, genOptions, promptState, clientForm, selectedClientId, completeRun])
+
+  // Public generate() takes no arguments (it is used directly as an onClick handler).
+  const generate = useCallback(() => generateWith(), [generateWith])
 
   const retry = useCallback(async () => {
     await generate()
@@ -4613,14 +4643,17 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       )
       const hasCta = previewSettings.layers.some((layer) => layer.kind === 'cta' && layer.visible)
 
-      // Sync the approved preview into the existing generation options.
-      setGenOptions((prev) => ({
-        ...prev,
+      // Sync the approved preview into the existing generation options. The same
+      // object goes straight to generateWith(): setGenOptions has not committed
+      // yet, so generate() would still read the previous settings.
+      const approvedOptions: GenerationOptions = {
+        ...genOptions,
         aspectRatio: previewSettings.aspectRatio,
         duration: Math.max(1, Math.round(previewSettings.durationInFrames / previewSettings.fps)),
-        exactLogoHandling: hasLogo ? 'final-overlay' : prev.exactLogoHandling,
-        exactCtaHandling: hasCta ? 'final-end-card' : prev.exactCtaHandling,
-      }))
+        exactLogoHandling: hasLogo ? 'final-overlay' : genOptions.exactLogoHandling,
+        exactCtaHandling: hasCta ? 'final-end-card' : genOptions.exactCtaHandling,
+      }
+      setGenOptions(approvedOptions)
 
       // A selected preview video replaces the source media. The source update and
       // generate() cannot share a tick (generate would read the stale source), so
@@ -4640,7 +4673,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         return
       }
 
-      await generate()
+      await generateWith(approvedOptions)
       return
     }
 
@@ -4761,7 +4794,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         errorMessage: error instanceof Error ? error.message : 'Branded render failed',
       })
     }
-  }, [previewSettings, previewSeed, previewVideo, source, generate, mode, access, apiKey, clientForm, assets, previewApproved, promptState, completeRun])
+  }, [previewSettings, previewSeed, previewVideo, source, generate, generateWith, genOptions, mode, access, apiKey, clientForm, assets, previewApproved, promptState, completeRun])
 
   const cancelExport = useCallback(() => {
     cancelActiveExport()

@@ -2515,3 +2515,105 @@ describe('saved client library survives an empty job', () => {
     container.remove()
   })
 })
+
+describe('review fixes: approved options, stale sessions, saved-asset removal', () => {
+  const videoSource = (id: string) => ({ id, title: 'Test', mediaType: 'video', originalPrompt: 'test', sourceMedia: null, poster: null, fullPrompt: 'test', shortPrompt: 'test', sourceType: 'landing-demo', model: 'kling-o1-video-edit', sourceMetadata: {} })
+  const tick = (ms = 50) => act(async () => { await new Promise((r) => setTimeout(r, ms)) })
+  const ctx = () => (window as any).__personalizationCtx
+
+  let root: ReturnType<typeof createRoot> | null = null
+  let container: HTMLDivElement | null = null
+  const mount = async () => {
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    root = createRoot(container)
+    await act(async () => {
+      root!.render(
+        <DemoPersonalizeProvider>
+          <TestOpener />
+        </DemoPersonalizeProvider>,
+      )
+    })
+  }
+  const open = async (id: string, onComplete?: (...args: any[]) => void) => {
+    await act(async () => { ctx().openPersonalize({ source: videoSource(id), ...(onComplete ? { onComplete } : {}) }) })
+    await tick()
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+  })
+  afterEach(async () => {
+    if (root) await act(async () => root!.unmount())
+    container?.remove()
+    root = null
+    container = null
+  })
+
+  it('creates the final AI video with the approved preview aspect ratio and duration', async () => {
+    ;(runGeneration as any).mockResolvedValue({ type: 'video', url: 'https://example.com/v.mp4', metadata: {} })
+    ;(applyPostProcessing as any).mockResolvedValue({ finalUrl: 'https://example.com/v.mp4', originalUrl: 'https://example.com/v.mp4', applied: [] })
+    await mount()
+    await open('demo-a')
+    await act(async () => {
+      ctx().setMode('recreate')
+      ctx().updatePreviewComposition({ aspectRatio: '9:16', fps: 30, durationInFrames: 240 })
+    })
+    await tick()
+    await act(async () => { await ctx().createFinalVideo() })
+    await tick()
+    expect(runGeneration).toHaveBeenCalledTimes(1)
+    const options = (runGeneration as any).mock.calls[0][0].options
+    expect(options.aspectRatio).toBe('9:16')
+    expect(options.duration).toBe(8)
+  })
+
+  it('drops a generation that finishes after its modal session was closed', async () => {
+    let finish: (v: unknown) => void = () => {}
+    ;(runGeneration as any).mockImplementation(() => new Promise((resolve) => { finish = resolve }))
+    ;(applyPostProcessing as any).mockResolvedValue({ finalUrl: 'https://example.com/old.mp4', originalUrl: 'https://example.com/old.mp4', applied: [] })
+    await mount()
+    await open('demo-old')
+    await act(async () => { ctx().setMode('recreate') })
+    let pending: Promise<void> | null = null
+    await act(async () => { pending = ctx().generate() })
+    await tick()
+    expect(runGeneration).toHaveBeenCalledTimes(1)
+
+    const onComplete = vi.fn()
+    await act(async () => { ctx().closePersonalize() })
+    await open('demo-new', onComplete)
+    await act(async () => {
+      finish({ type: 'video', url: 'https://example.com/old.mp4', metadata: {} })
+      await pending
+    })
+    await tick()
+    expect(ctx().result).toBeNull()
+    expect(ctx().generation.status).not.toBe('complete')
+    expect(onComplete).not.toHaveBeenCalled()
+  })
+
+  it('removing a saved asset leaves the job\'s other assets, roles and primaries alone', async () => {
+    const asset = (id: string, role: string) => ({ id, role, name: `${id}.png`, url: `https://cdn.example/${id}.png`, uploadedUrl: `https://cdn.example/${id}.png`, isPrimary: true, mimeType: 'image/png', createdAt: new Date().toISOString(), uploadStatus: 'ready', uploadError: null })
+    await mount()
+    await open('demo-assets')
+    await act(async () => { await ctx().saveClient() })
+    await tick()
+    expect(ctx().selectedClientId).toBeTruthy()
+    await act(async () => {
+      ctx().selectSavedAsset(asset('person-1', 'presenter_identity'))
+      ctx().selectSavedAsset(asset('logo-1', 'logo'))
+    })
+    await tick()
+    expect(ctx().assets.logos.map((a: any) => a.id)).toEqual(['logo-1'])
+
+    await act(async () => { ctx().removeSavedAsset('person-1') })
+    await tick()
+    const assets = ctx().assets
+    expect(assets.identities).toEqual([])
+    expect(assets.primaryIdentity).toBeNull()
+    expect(assets.logos.map((a: any) => a.id)).toEqual(['logo-1'])
+    expect(assets.primaryLogo?.id).toBe('logo-1')
+  })
+})
