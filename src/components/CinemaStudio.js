@@ -1562,7 +1562,13 @@ export function CinemaStudio() {
 
             if (outputMode === 'image') {
                 // Still-image render (upstream Cinema behaviour): 1K/2K/4K.
-                const stillRes = (resBtn.dataset.value || '2K').toUpperCase();
+                // The resolution control is shared with video (e.g. 480p after a model
+                // switch), so map it onto what the still model actually declares.
+                const stillModelId = currentSettings.referenceUrl ? 'nano-banana-pro-edit' : 'nano-banana-pro';
+                const declaredRes = (getModelById(stillModelId)?.inputs?.resolution?.enum || ['1k', '2k', '4k']).map((r) => String(r).toLowerCase());
+                const wantedRes = String(resBtn.dataset.value || '2K').toLowerCase();
+                const stillRes = (declaredRes.includes(wantedRes) ? wantedRes : (declaredRes.includes('2k') ? '2k' : declaredRes[0])).toUpperCase();
+                if (stillRes.toLowerCase() !== wantedRes) updateResBtn(stillRes);
                 const { resolveMuapiMediaRef } = await import('../lib/muapiStudioMedia.js');
                 const startUrl = currentSettings.referenceUrl
                   ? await resolveMuapiMediaRef({ url: currentSettings.referenceUrl, assetId: currentSettings.referenceAssetId })

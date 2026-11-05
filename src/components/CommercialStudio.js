@@ -39,6 +39,7 @@ export async function CommercialStudio() {
   mountStudioChrome(container, { currentRoute: 'commercial' });
 
   let uploadedUrl = null;
+  let uploadedType = null; // 'image' | 'video' as reported by the upload picker
   let selectedScene = SCENE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = 'ai-product-shot';
@@ -155,8 +156,8 @@ const COMMERCIAL_MODELS = [
   uploadRow.className = 'flex items-center gap-4';
   const picker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => { uploadedUrl = url; },
-    onClear: () => { uploadedUrl = null; },
+    onSelect: ({ url, type }) => { uploadedUrl = url; uploadedType = type || null; },
+    onClear: () => { uploadedUrl = null; uploadedType = null; },
   });
   uploadRow.appendChild(picker.trigger);
   const uploadHint = document.createElement('span');
@@ -178,6 +179,7 @@ const COMMERCIAL_MODELS = [
       studioName: 'Product Shot Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
+        uploadedType = 'image';
         const attrContainer = document.getElementById('pexels-commercial-attribution');
         if (attrContainer) {
           attrContainer.innerHTML = '';
@@ -387,7 +389,7 @@ const COMMERCIAL_MODELS = [
   // Ad video: product + avatar + references + a format preset → Seedance 2 omni-reference.
   async function runAd() {
     const script = adScript.value;
-    const problem = validateAd({ script, productUrl: uploadedUrl });
+    const problem = validateAd({ script, productUrl: uploadedUrl, productType: uploadedType });
     if (problem) { showToast(problem, 'error'); return; }
     if (!(await requireEntitlement())) return;
     if (!apiKeyManager.getMuapiKey()) { AuthModal(() => runAd()); return; }

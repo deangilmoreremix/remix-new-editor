@@ -9,6 +9,10 @@ describe('ad validation and payload', () => {
     expect(validateAd({ script: '  ', productUrl: 'p.png' })).toBe('Please enter an ad script.');
     expect(validateAd({ script: 'hi', productUrl: null })).toBe('Please upload a product image.');
     expect(validateAd({ script: 'hi', productUrl: 'p.png' })).toBeNull();
+    // The product goes into images_list, so a video can't stand in for it.
+    expect(validateAd({ script: 'hi', productUrl: 'p.png', productType: 'video' })).toBe('Ad video needs a product image, not a video.');
+    expect(validateAd({ script: 'hi', productUrl: 'https://cdn.example.com/clip.mp4?x=1' })).toBe('Ad video needs a product image, not a video.');
+    expect(validateAd({ script: 'hi', productUrl: 'p.png', productType: 'image' })).toBeNull();
   });
 
   it('orders images product, avatar, references and sends the format video', () => {

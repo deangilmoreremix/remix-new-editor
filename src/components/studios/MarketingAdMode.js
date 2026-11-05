@@ -27,10 +27,14 @@ export const AD_DURATIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 const ICON_AVATAR = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 const ICON_REFS = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
 
-/** Validation shared with the handler (messages are upstream's). */
-export function validateAd({ script, productUrl }) {
+const VIDEO_URL_RE = /\.(mp4|webm|mov|m4v)(\?|$)/i;
+
+/** Validation shared with the handler (messages are upstream's, plus an image-only product). */
+export function validateAd({ script, productUrl, productType }) {
   if (!script?.trim()) return 'Please enter an ad script.';
   if (!productUrl) return 'Please upload a product image.';
+  // The product goes into images_list, so a video can't stand in for it.
+  if (productType === 'video' || VIDEO_URL_RE.test(String(productUrl))) return 'Ad video needs a product image, not a video.';
   return null;
 }
 

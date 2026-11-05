@@ -38,3 +38,11 @@ describe('Cinema still deletion', () => {
     expect(src).toContain("confirmDeleteGeneration(entry.url, entry.kind === 'image' ? 'image' : 'video')");
   });
 });
+
+describe('Cinema still resolution', () => {
+  it('maps the shared resolution control onto the still model before submitting', () => {
+    const src = fs.readFileSync('src/components/CinemaStudio.js', 'utf8');
+    expect(src).toContain("getModelById(stillModelId)?.inputs?.resolution?.enum");
+    expect(src).toContain('declaredRes.includes(wantedRes)');
+  });
+});
