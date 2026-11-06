@@ -868,7 +868,7 @@ export class TemplateGeneratorModal extends BaseModal {
   setProvider(id) {
     if (this.ui.provider === id) return;
     this.ui.provider = id;
-    this.ui.filter = 'videos';
+    this.ui.filter = 'all';
     this.ui.collectionId = null;
     this.ui.error = null;
     this.paint();
@@ -889,8 +889,10 @@ export class TemplateGeneratorModal extends BaseModal {
     if (res.error) u.error = res.error;
     if (res.collections) u.collections = res.collections;
     const seen = new Set(u.results.map((i) => i.id));
-    for (const it of res.items || []) if (!seen.has(it.id)) { u.results.push(it); this.itemsById.set(it.id, it); }
-    u.hasMore = !!res.hasMore;
+    let added = 0;
+    for (const it of res.items || []) if (!seen.has(it.id)) { u.results.push(it); this.itemsById.set(it.id, it); added += 1; }
+    // A page of nothing new means the provider has run out: stop (also stops auto-load looping).
+    u.hasMore = !!res.hasMore && (reset || added > 0);
     this.paintList();
   }
 
