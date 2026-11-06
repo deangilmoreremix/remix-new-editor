@@ -1142,3 +1142,11 @@
 .scopes-grid figure { margin: 0; display: grid; gap: 4px; }
 .scopes-grid canvas { width: 100%; height: auto; background: #05090f; border: 1px solid var(--border, rgba(255,255,255,.12)); border-radius: 8px; }
 .scopes-grid figcaption { font-size: 11px; color: var(--muted, #94a3b8); text-align: center; }
+
+/* Multi-Cam panel */
+.mc { display: grid; gap: 12px; }
+.mc-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.mc-mode { display: grid; gap: 4px; justify-items: center; padding: 8px 4px; font-size: 12px; border-radius: 10px; border: 1px solid var(--border, rgba(255,255,255,.14)); background: transparent; color: inherit; cursor: pointer; }
+.mc-mode.is-on { border-color: var(--cyan, #22d3ee); background: rgba(34, 211, 238, .12); }
+.mc-tracks, .mc-opts { display: grid; gap: 8px; }
+.mc-actions { display: grid; gap: 6px; }

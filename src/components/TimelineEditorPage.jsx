@@ -7,7 +7,7 @@ import { renderMediaGrid, addMediaToTimeline } from '../lib/editor/mediaLibrary.
 import { assetStore } from '../lib/assets/assetStore.js';
 import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, openGTMPromptModal } from '../lib/uiIntegration.js';
 import { integrateMediaIngest, GiphyIntegration, StickersLibrary, LowerThirds, VideoGallery, AnimationList } from '../lib/mediaIngest.js';
-import { renderMultiCameraToolbar, renderPipControls, renderSplitScreenControls } from '../lib/editor/multiCamera.js';
+import { renderMultiCamPanel } from '../lib/editor/panels/multiCamPanel.js';
 import { createTimelineState } from '../lib/editor/timelineEditorState.js';
 import { legacyToTimeline, getPreviewClipFromTimeline, syncTimelineFromState } from '../lib/editor/timeline-bridge.js';
 import { KeyframeSystem } from '../lib/editor/keyframeSystem.jsx';
@@ -51,6 +51,7 @@ import { renderPersonalizationPanel, renderPersonalizationEditor, renderTokenEdi
 import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
+import { setKeyframe } from '../lib/editor/remotion/keyframes.js';
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../lib/pexelsApi.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
@@ -600,6 +601,7 @@ export function TimelineEditorPage() {
         <div id="aiAgentChat"></div>
       </aside>
       <aside class="side-card" id="cameraEffectsPanel" hidden>
+        <div class="card-title">🎥 Camera FX</div>
         <div id="cameraEffectsContainer"></div>
         <div class="camera-effects-quick">
           <button class="mini-btn" data-camera-effect="shake">Shake</button>
@@ -6162,9 +6164,47 @@ export function TimelineEditorPage() {
     function initializeTransitionEditor() {
       if (!transitionEditor) {
         transitionEditor = new TransitionEditor(els.transitionEditorContainer, (transition, params, duration) => {
-          // Handle transition application from editor
-        });
+          if (duration === undefined) return; // a selection, not Apply
+          applyTransitionAtCut(transition, duration);
+        }, () => removeTransitionAtCut(), { toast: showToast });
       }
+    }
+
+    // The Transitions Panel's library names → the Video Transition the player and export use.
+    const PANEL_TRANSITION_MAP = {
+      dissolve: 'dissolve', wipeLeft: 'wipeLeft', wipeRight: 'wipeRight', wipeUp: 'wipeUp', wipeDown: 'wipeDown', wipeDiagonal: 'angular',
+      pushLeft: 'Directional', pushRight: 'splitSlideInHorizontal', pushUp: 'splitSlideInVertical', pushDown: 'TopBottom',
+      zoomIn: 'SimpleZoom', zoomOut: 'SimpleZoomOut', zoomPan: 'CrossZoom',
+      irisCircle: 'circleopen', irisDiamond: 'Rectangle', irisSquare: 'Rectangle', shapeStar: 'StarWipe', shapeHeart: 'heart', shapeCustom: 'circle',
+    };
+    function applyTransitionAtCut(transition, duration) {
+      const T = state.timelineSeconds || 60;
+      const playSec = (state.playheadPercent / 100) * T;
+      const cut = nearestCut(playSec);
+      if (cut == null) { showToast('Add two clips next to each other first, then move the playhead near the cut.', 'info'); return; }
+      const addon = getAddon('overlay-video-transition');
+      const seconds = Math.min(10, Math.max(0.3, Number(duration) || addon.defaultDuration || 1));
+      const startSec = Math.max(0, cut - seconds / 2);
+      const clip = createAddonClip('overlay-video-transition', { startSec, timelineSeconds: T });
+      clip.start = startSec;
+      clip.end = Math.min(T, startSec + seconds);
+      clip.addon = { ...clip.addon, transition: PANEL_TRANSITION_MAP[transition.key] || 'fade' };
+      if (addon.summary) clip.name = addon.summary(addonOptions(clip));
+      saveStateSnapshot(state);
+      insertClipIntoTrack(clip, addon.track || 'Text');
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`${transition.name} added at the cut near ${cut.toFixed(1)}s`, 'success');
+    }
+    function removeTransitionAtCut() {
+      const clip = findSelectedClip();
+      if (!clip || clip.type !== 'overlay-video-transition') { showToast('Select a transition on the timeline to remove it.', 'info'); return; }
+      saveStateSnapshot(state);
+      state.tracks.forEach((t) => { t.items = (t.items || []).filter((c) => c !== clip); });
+      state.selectedClipId = null;
+      renderTracks();
+      scheduleEngineUpdate();
+      debouncedSave();
     }
 
     function initializeTimelineTransitions() {
@@ -6194,17 +6234,23 @@ export function TimelineEditorPage() {
     function initializeCameraEffects() {
       if (!cameraEffects && els.cameraEffectsContainer) {
         cameraEffects = new CameraEffects(els.cameraEffectsContainer, {
-          keyframeSystem: state.keyframeSystem,
           timelineState: state,
-          onPreviewUpdate: (clipId, transform) => {
-            // Update preview with camera effect transform
-            renderPreview();
+          getClip: (id) => state.tracks.flatMap((t) => t.items || t.clips || []).find((c) => c.id === id),
+          clipDuration: (clip) => { const { start, end } = clipTimeRange(clip, state.timelineSeconds || 60); return Math.max(0.1, end - start); },
+          applyKeyframes: (clipId, byProp) => {
+            const clip = state.tracks.flatMap((t) => t.items || t.clips || []).find((c) => c.id === clipId);
+            if (!clip) return;
+            saveStateSnapshot(state);
+            let kf = { ...(clip.keyframes || {}) };
+            Object.entries(byProp).forEach(([prop, list]) => {
+              delete kf[prop];
+              list.forEach((k) => { kf = setKeyframe(kf, prop, k.t, k.v, k.easing); });
+            });
+            clip.keyframes = kf;
           },
-          onKeyframeUpdate: () => {
-            // Refresh timeline and keyframe displays
-            renderTimeline();
-            renderKeyframes();
-          }
+          onPreviewUpdate: () => {},
+          onKeyframeUpdate: () => { renderTracks(); scheduleEngineUpdate(); debouncedSave(); },
+          onMessage: (msg, kind) => showToast(msg, kind),
         });
       }
     }
@@ -7085,6 +7131,7 @@ export function TimelineEditorPage() {
       if (id === 'aiAgentPanel') mountAgentPanel();
       if (id === 'sharePanel') mountSharePanel();
       if (id === 'colorScopesPanel') mountColorScopesPanel();
+      if (id === 'multiCameraPanel') renderMultiCamera();
       el.hidden = false;
       el.style.display = 'block';
       if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -8547,17 +8594,13 @@ export function TimelineEditorPage() {
 
       root.querySelector('#openAiTools')?.addEventListener('click', () => openAiTools());
 
-      // 3D Camera Effects quick buttons
+      // Camera FX quick buttons: apply the effect, with its default settings, to the selected clip.
       root.querySelectorAll('[data-camera-effect]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const effect = btn.dataset.cameraEffect;
+          if (!cameraEffects) initializeCameraEffects();
           const selected = findSelectedClip();
-          if (!selected) {
-            
-            return;
-          }
-
-          applyCameraEffect(effect);
+          if (!selected) { showToast('Select a clip on the timeline first.', 'info'); return; }
+          cameraEffects?.applyQuick(btn.dataset.cameraEffect, selected.id);
         });
       });
     }
@@ -8586,9 +8629,31 @@ export function TimelineEditorPage() {
     }
 
     function renderMultiCamera() {
-      if (els.multiCameraToolbar) renderMultiCameraToolbar(state, els.multiCameraToolbar);
-      if (els.pipControls) renderPipControls(state, els.pipControls);
-      if (els.splitControls) renderSplitScreenControls(state, els.splitControls);
+      if (!els.multiCameraToolbar) return;
+      renderMultiCamPanel(els.multiCameraToolbar, state, {
+        changed: () => { scheduleEngineUpdate(); debouncedSave(); },
+        toast: showToast,
+        addVideoTrack: () => {
+          const n = state.tracks.filter((t) => String(t.type || '').toLowerCase() === 'video').length + 1;
+          const track = { id: `track-video-${Date.now().toString(36)}`, type: 'video', name: `Camera ${n}`, muted: false, solo: false, locked: false, items: [] };
+          const lastVideo = state.tracks.map((t) => String(t.type || '').toLowerCase()).lastIndexOf('video');
+          state.tracks.splice(lastVideo + 1, 0, track);
+          renderTracks();
+          return track;
+        },
+        moveSelectedTo: (trackId) => {
+          const from = state.tracks.find((t) => (t.items || []).some((c) => c.id === state.selectedClipId));
+          const to = state.tracks.find((t) => t.id === trackId);
+          if (!from || !to || from === to) return false;
+          const clip = from.items.find((c) => c.id === state.selectedClipId);
+          if (clip.type !== 'video' && clip.type !== 'image') return false;
+          saveStateSnapshot(state);
+          from.items.splice(from.items.indexOf(clip), 1);
+          (to.items = to.items || []).push(clip);
+          renderTracks();
+          return true;
+        },
+      });
     }
 
     function renderTimelineTabs() {

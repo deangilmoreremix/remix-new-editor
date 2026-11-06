@@ -7,10 +7,10 @@
  * sent as the `x-access-token` header.
  *
  * Where the request runs:
- *   - Preferred: through the app's Render backend proxy (`/api/videodb/proxy`).
+ *   - Preferred: through an optional backend proxy (`/api/videodb/proxy`) when one is
+ *     configured with VITE_BACKEND_URL. Netlify has none, so the direct call is used.
  *     The browser sends the user's key in the request body; the backend calls
- *     api.videodb.io server-side. This keeps VideoDB "running on the backend"
- *     (Render.com) and avoids any client/CORS edge cases.
+ *     api.videodb.io server-side, which avoids client/CORS edge cases.
  *   - Fallback: a direct browser to api.videodb.io call (CORS-verified) if the
  *     backend proxy is unreachable. The user's key is still sent only as the
  *     `x-access-token` header and is never persisted server-side.
@@ -29,7 +29,7 @@ import { apiKeyManager } from './apiKeyManager.js';
 const VIDEODB_BASE_URL = 'https://api.videodb.io';
 const DEFAULT_COLLECTION = 'default';
 
-// Locate the Render backend proxy. Mirrors how muapi/openai routes are built.
+// Locate the optional backend proxy. Mirrors how muapi/openai routes are built.
 function getProxyBaseUrl() {
     if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) {
         return import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '');
