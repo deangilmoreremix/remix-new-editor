@@ -73,6 +73,7 @@
 .pz-ui .pz-btn-secondary { background: var(--pz-panel); color: var(--pz-text); border-color: var(--pz-border); }
 .pz-ui .pz-btn-secondary:hover:not(:disabled) { border-color: var(--pz-primary); color: var(--pz-primary); }
 .pz-ui .pz-btn:disabled { opacity: 0.5; cursor: progress; }
+.pz-ui .pz-btn-xs { min-height: 24px; padding: 2px 8px; font-size: 10px; }
 .pz-ui .pz-btn:focus-visible,
 .pz-ui .pz-token:focus-visible,
 .pz-ui .pz-thumb:focus-visible { outline: 2px solid var(--pz-primary); outline-offset: 2px; }
@@ -250,3 +251,10 @@
 
 /* Share panel: personal links */
 .share-personal__issue.pz-chip-warn { margin-left: 4px; }
+
+/* Share panel: views by contact */
+.share-stats-table { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.share-stats-table .pz-table td,
+.share-stats-table .pz-table th { padding: 6px 8px; }
+.share-stats-table .pz-table td:not(:first-child),
+.share-stats-table .pz-table th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }

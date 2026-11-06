@@ -16,10 +16,40 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
  *   copy(text)     → Promise
  *   personalLinks(link) → [{ name, email, company, link }]   one link per contact
  *   downloadCsv(rows)
+ *   fetchStats()   → Promise<[{ contactId, views, plays, completes, ctaClicks, leads, lastSeen }]>
+ *   contactLabel(id) → display name for a contact id
  *   defaultTitle
  */
 export function renderSharePanel(container, opts) {
-  const ui = { info: null, busy: false, error: '', leads: null, copied: '' };
+  const ui = { info: null, busy: false, error: '', leads: null, copied: '', stats: null, statsError: '' };
+
+  // Views, plays, completions, CTA clicks and leads per contact (personal
+  // links carry ?c=<contactId>; plain links count as "Everyone else").
+  const statsHtml = () => {
+    if (!opts.fetchStats) return '';
+    if (ui.statsError) return `<div class="share-stats-table pz-ui"><p class="pz-warning">${esc(ui.statsError)}</p></div>`;
+    if (!ui.stats) return '<div class="share-stats-table pz-ui"><p class="pz-hint">Loading views by contact…</p></div>';
+    const rows = ui.stats;
+    const body = rows.length
+      ? rows.map((r) => `<tr><td>${esc(r.contactId ? (opts.contactLabel?.(r.contactId) || 'Removed contact') : 'Everyone else')}</td><td>${r.views}</td><td>${r.plays}</td><td>${r.completes}</td><td>${r.ctaClicks}</td><td>${r.leads}</td></tr>`).join('')
+      : '<tr><td colspan="6"><span class="pz-hint">No views yet. Send personal links to see who watched.</span></td></tr>';
+    return `<div class="share-stats-table pz-ui">
+      <div class="share-personal__head"><span class="pz-label" style="margin:0;flex:1">Views by contact</span><button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-share-stats-refresh>Refresh</button></div>
+      <div style="max-height:240px;overflow:auto"><table class="pz-table"><thead><tr><th>Contact</th><th>Opened</th><th>Played</th><th>Finished</th><th>Clicked</th><th>Leads</th></tr></thead><tbody>${body}</tbody></table></div>
+    </div>`;
+  };
+  const loadStats = async () => {
+    if (!opts.fetchStats || !ui.info?.published) return;
+    try {
+      ui.stats = await opts.fetchStats();
+      ui.statsError = '';
+    } catch (err) {
+      ui.statsError = /video_events_by_contact|does not exist|PGRST202/i.test(String(err?.message || err?.code || ''))
+        ? 'Views by contact will appear once the analytics update is installed on the database.'
+        : `Couldn't load views by contact: ${err?.message || err}`;
+    }
+    draw();
+  };
 
   // Personalized images a contact's link can't show.
   const rowIssue = (r) => {
@@ -72,6 +102,7 @@ export function renderSharePanel(container, opts) {
             <p class="addon-field__hint">Personalize a link with the viewer's details, e.g. <code>${esc(link)}?firstname=Ann&amp;company=Acme</code> — {{tokens}} in your text fill in automatically.</p>
             <div class="share-stats"><span>👁 ${Number(info.view_count) || 0} views</span><span>✉️ ${ui.leads == null ? '–' : ui.leads} leads</span><a href="${esc(link)}" target="_blank" rel="noopener">Open ↗</a></div>
             ${personalHtml(link)}
+            ${statsHtml()}
             <p class="addon-field__hint">Changes in the editor go live when you press “Update published video”.</p>
           </div>` : info ? '<p class="addon-field__hint">This video is unpublished — its link shows “not found”.</p>' : ''}
       </div>`;
@@ -85,6 +116,7 @@ export function renderSharePanel(container, opts) {
       ui.error = err?.message || '';
     }
     draw();
+    loadStats();
   };
 
   const onClick = async (e) => {
@@ -109,6 +141,10 @@ export function renderSharePanel(container, opts) {
         ui.error = err?.message || 'Could not unpublish';
       }
       draw();
+    } else if (d.shareStatsRefresh !== undefined) {
+      ui.stats = null;
+      draw();
+      loadStats();
     } else if (d.shareCsv !== undefined) {
       opts.downloadCsv?.(ui.rows || []);
     } else if (d.sharePersonal !== undefined) {
