@@ -40,7 +40,8 @@ const cssUrl = (u) => (/^(https?:|blob:|data:image|\/)/i.test(String(u || ''))
   ? `url('${String(u).replace(/['"()\\<>\n\r]/g, (c) => `%${c.charCodeAt(0).toString(16).padStart(2, '0')}`)}')`
   : 'none');
 const ICON = (name) => `/static/svgImages/template-generator/${name}.svg`;
-const STEP_ICONS = ['niche-templates-icon', 'niche-scripts-icon', 'overlays-icon', 'preview-icon'];
+const STEP_ICONS = ['niche-templates-icon', 'niche-scripts-icon', 'niche-script', 'niche-templates-icon', 'overlays-icon', 'niche-scripts-icon', 'niche-script', 'preview-icon', 'preview-icon'];
+const NICHE_ICON = { 'Restaurant & Cafe': '🍽️', 'Med Spa & Beauty': '💆', 'Salon & Barbershop': '💇', 'Gym & Fitness': '🏋️', 'Real Estate': '🏠', 'Dental Office': '🦷', 'Chiropractic & Wellness': '🧘', 'Legal & Attorney': '⚖️', 'Automotive & Car': '🚗', 'Fashion & Style': '👗', 'Events & Celebrations': '🎉', 'Luxury & Premium': '💎' };
 
 const PROVIDER_BLURB = {
   pixabay: 'Free videos, photos, illustrations and vectors from Pixabay.',
@@ -62,7 +63,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this.ui = {
       safariAccepted: false,
       provider: 'pixabay',
-      filter: 'videos',
+      filter: 'all',
       query: '',
       results: [],
       collections: null,
@@ -82,7 +83,6 @@ export class TemplateGeneratorModal extends BaseModal {
       aiError: '',
       aiResults: [],
       scriptQuery: '',
-      scriptNiche: 'all',
       scriptBusy: '',
       scriptError: '',
       overlayTab: 'transitions',
@@ -115,6 +115,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this._destroyPlayer();
     clearTimeout(this._searchTimer);
     clearTimeout(this._toastTimer);
+    this._moreObserver?.disconnect?.();
     super.destroy();
   }
 
@@ -177,6 +178,7 @@ export class TemplateGeneratorModal extends BaseModal {
         </div>
         <div class="generator-body">
           <div class="extra-container">
+            <span class="tg-stepcount" id="tg-stepcount">Step ${step + 1} of ${STEP_LABELS.length}</span>
             <button type="button" class="btn-add next-button${disabled ? ' disabled' : ''}" id="tg-next" data-act="next" ${disabled ? 'disabled' : ''}>${this.ui.busy ? 'Adding…' : nextLabel(step)}</button>
           </div>
           <div class="tg-step" id="tg-step">${this.renderStep()}</div>
@@ -188,9 +190,14 @@ export class TemplateGeneratorModal extends BaseModal {
 
   renderStep() {
     switch (this.s.step) {
+      case STEPS.NICHE: return this.renderNicheStep();
       case STEPS.SCRIPT: return this.renderScriptStep();
+      case STEPS.TEMPLATE: return this.renderTemplateStep();
       case STEPS.OVERLAY: return this.renderOverlayStep();
+      case STEPS.VOICE: return this.renderSimpleStep('Add voice narration', 'Optional. Generate AI narration of your script.', this.renderVoiceFields());
+      case STEPS.PERSONALIZE: return this.renderSimpleStep('Personalization', 'Optional. Make the video unique for each viewer.', this.renderPersonalizationFields());
       case STEPS.PREVIEW: return this.renderPreviewStep();
+      case STEPS.ADD: return this.renderAddStep();
       default: return this.renderVideoStep();
     }
   }
@@ -231,7 +238,7 @@ export class TemplateGeneratorModal extends BaseModal {
         ${u.filter === 'collections' ? '' : `
           <div class="library__search-box search-box tg-searchbox">
             <span aria-hidden="true">🔍</span>
-            <input type="search" id="tg-query" data-query="stock" placeholder="${u.filter === 'videos' ? 'Search free videos…' : 'Search free images…'}" value="${esc(u.query)}" autocomplete="off" aria-label="Search">
+            <input type="search" id="tg-query" data-query="stock" placeholder="${u.filter === 'videos' ? 'Search free videos…' : u.filter === 'all' ? 'Search free videos and images…' : 'Search free images…'}" value="${esc(u.query)}" autocomplete="off" aria-label="Search">
           </div>`}`;
     }
     if (u.provider === 'upload') {
@@ -332,45 +339,83 @@ export class TemplateGeneratorModal extends BaseModal {
 
   scriptCards() {
     const q = this.ui.scriptQuery.trim().toLowerCase();
-    return ALL_NICHE_TEMPLATES.filter((t) => (this.ui.scriptNiche === 'all' || t.niche === this.ui.scriptNiche)
+    return ALL_NICHE_TEMPLATES.filter((t) => (!this.s.niche || t.niche === this.s.niche)
       && (!q || `${t.name} ${t.description} ${t.niche}`.toLowerCase().includes(q)));
+  }
+
+  renderNicheStep() {
+    const cur = this.s.niche;
+    return `
+      <div class="tg-niche">
+        <div class="search"><h4 class="search-title">Choose your niche</h4>
+          <p class="tg-hint">Select the industry that best matches your content. It tailors your templates and AI script.</p></div>
+        <div class="generator-list niche-scripts-list"><div class="list-items">
+          ${this.niches.map((n) => `
+            <button type="button" class="niche-script${n === cur ? ' active' : ''}" data-act="niche-pick" data-id="${esc(n)}" aria-pressed="${n === cur}">
+              ${n === cur ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
+              <span class="tg-tr-icon">${NICHE_ICON[n] || '🎯'}</span>
+              <span class="niche-script__title"><span>${esc(n)}</span></span>
+            </button>`).join('')}
+        </div></div>
+      </div>`;
   }
 
   renderScriptStep() {
     const u = this.ui;
     const sc = this.s.script;
-    const sel = this.s.selectedScript;
     return `
-      <div class="tg-script">
-        <div class="tg-script-left">
-          <div class="search">
-            <h4 class="search-title">Choose your script</h4>
-            <div class="library__search-box search-box tg-searchbox"><span aria-hidden="true">🔍</span>
-              <input type="search" id="tg-script-query" data-query="script" placeholder="Search scripts…" value="${esc(u.scriptQuery)}" aria-label="Search scripts"></div>
-            <div class="tg-chips">
-              <button type="button" class="tg-chip${u.scriptNiche === 'all' ? ' is-active' : ''}" data-act="niche" data-id="all">All</button>
-              ${this.niches.map((n) => `<button type="button" class="tg-chip${u.scriptNiche === n ? ' is-active' : ''}" data-act="niche" data-id="${esc(n)}">${esc(n)}</button>`).join('')}
-            </div>
-          </div>
-          <div class="generator-list niche-scripts-list"><div class="list-items" id="tg-script-list">${this.renderScriptCards()}</div></div>
+      <div class="tg-script"><div class="tg-script-right tg-script-wide">
+        <h4>Your script ${this.s.niche ? `<span class="tg-meta">· ${esc(this.s.niche)}</span>` : ''}</h4>
+        <p class="tg-hint">Each line becomes a caption on its scene. Write your own or let AI help (uses your OpenAI key). You can also skip this and pick a template next.</p>
+        <textarea id="tg-script-text" class="tg-textarea" rows="10" data-bind="s.script.text" placeholder="Write or paste your script here…">${esc(sc.text)}</textarea>
+        <div class="tg-form-row">
+          <label>Tone
+            <select data-bind="s.script.tone">${['conversational', 'professional', 'energetic', 'warm', 'dramatic', 'tutorial', 'commercial'].map((t) => `<option value="${t}"${sc.tone === t ? ' selected' : ''}>${t[0].toUpperCase() + t.slice(1)}</option>`).join('')}</select></label>
+          <label>Audience
+            <select data-bind="s.script.audience">${['general', 'business', 'consumer', 'youth', 'professionals', 'creators'].map((a) => `<option value="${a}"${sc.audience === a ? ' selected' : ''}>${a[0].toUpperCase() + a.slice(1)}</option>`).join('')}</select></label>
         </div>
-        <aside class="tg-script-right">
-          <h4>Your script ${sel ? `<span class="tg-meta">· ${esc(sel.name)}</span>` : ''}</h4>
-          <p class="tg-hint">Optional. Each line becomes a caption on its scene. Write your own or let AI help (uses your OpenAI key).</p>
-          <textarea id="tg-script-text" class="tg-textarea" rows="8" data-bind="s.script.text" placeholder="Write or paste your script here…">${esc(sc.text)}</textarea>
-          <div class="tg-form-row">
-            <label>Tone
-              <select data-bind="s.script.tone">${['conversational', 'professional', 'energetic', 'warm', 'dramatic', 'tutorial', 'commercial'].map((t) => `<option value="${t}"${sc.tone === t ? ' selected' : ''}>${t[0].toUpperCase() + t.slice(1)}</option>`).join('')}</select></label>
-            <label>Audience
-              <select data-bind="s.script.audience">${['general', 'business', 'consumer', 'youth', 'professionals', 'creators'].map((a) => `<option value="${a}"${sc.audience === a ? ' selected' : ''}>${a[0].toUpperCase() + a.slice(1)}</option>`).join('')}</select></label>
-          </div>
-          <label class="tg-field">Call to action
-            <input type="text" data-bind="s.script.cta" placeholder="e.g. Book your free consultation today" value="${esc(sc.cta)}"></label>
-          <div class="tg-ai-tools">
-            ${[['generate', '✨ Write with AI'], ['rewrite', '🔄 Rewrite'], ['shorten', '📝 Shorten'], ['expand', '📖 Expand']].map(([k, label]) => `<button type="button" class="tg-chip" data-act="ai-script" data-kind="${k}" ${u.scriptBusy ? 'disabled' : ''}>${u.scriptBusy === k ? '⏳ Working…' : label}</button>`).join('')}
-          </div>
-          ${u.scriptError ? `<p class="tg-status tg-status--error">${esc(u.scriptError)}</p>` : ''}
-        </aside>
+        <label class="tg-field">Call to action
+          <input type="text" data-bind="s.script.cta" placeholder="e.g. Book your free consultation today" value="${esc(sc.cta)}"></label>
+        <div class="tg-ai-tools">
+          ${[['generate', '✨ Write with AI'], ['rewrite', '🔄 Rewrite'], ['shorten', '📝 Shorten'], ['expand', '📖 Expand']].map(([k, label]) => `<button type="button" class="tg-chip" data-act="ai-script" data-kind="${k}" ${u.scriptBusy ? 'disabled' : ''}>${u.scriptBusy === k ? '⏳ Working…' : label}</button>`).join('')}
+        </div>
+        ${u.scriptError ? `<p class="tg-status tg-status--error">${esc(u.scriptError)}</p>` : ''}
+      </div></div>`;
+  }
+
+  renderTemplateStep() {
+    const u = this.ui;
+    return `
+      <div class="tg-script"><div class="tg-script-left">
+        <div class="search">
+          <h4 class="search-title">Choose your template${this.s.niche ? ` <span class="tg-count">${esc(this.s.niche)}</span>` : ''}</h4>
+          <div class="library__search-box search-box tg-searchbox"><span aria-hidden="true">🔍</span>
+            <input type="search" id="tg-script-query" data-query="script" placeholder="Search templates…" value="${esc(u.scriptQuery)}" aria-label="Search templates"></div>
+        </div>
+        <div class="generator-list niche-scripts-list"><div class="list-items" id="tg-script-list">${this.renderScriptCards()}</div></div>
+      </div></div>`;
+  }
+
+  renderSimpleStep(title, hint, inner) {
+    return `<div class="tg-simple"><div class="search"><h4 class="search-title">${esc(title)}</h4><p class="tg-hint">${esc(hint)}</p></div><div class="tg-panel__body tg-simple__body">${inner}</div></div>`;
+  }
+
+  renderAddStep() {
+    const s = this.s;
+    const tr = this.transitions.find((t) => t.id === s.selectedTransition?.type);
+    const rows = [
+      ['Niche', s.niche || '—'],
+      ['Template', s.selectedScript?.name || 'Your own script'],
+      ['Clips', s.selectedVideos.map((v) => v.title).join(', ') || '—'],
+      ['Transition', tr ? tr.name : 'Plain cuts'],
+      ['Voice narration', s.voice.enabled ? 'On' : 'Off'],
+      ['Personalization', s.personalization.enabled ? 'On' : 'Off'],
+    ];
+    return `
+      <div class="tg-simple">
+        <div class="search"><h4 class="search-title">Add to Timeline</h4>
+          <p class="tg-hint">Everything below is added to your timeline as editable clips. One Undo removes it.</p></div>
+        <dl class="tg-summary">${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
       </div>`;
   }
 
@@ -466,8 +511,6 @@ export class TemplateGeneratorModal extends BaseModal {
     const playlist = preview ? playlistFromPreview(preview) : [];
     this._playlist = playlist;
     const hasOverlayTab = s.selectedVideos.length >= 2;
-    const voiceOpen = this.ui.openPanels.voice;
-    const persOpen = this.ui.openPanels.personalization;
     const tr = this.transitions.find((t) => t.id === s.selectedTransition?.type);
     return `
       <div class="tg-preview">
@@ -490,7 +533,7 @@ export class TemplateGeneratorModal extends BaseModal {
               </div>
             </div>
             <div class="preview-tab__content-scripts">
-              <div class="niche-script" role="button" tabindex="0" data-act="tab" data-step="${STEPS.SCRIPT}">
+              <div class="niche-script" role="button" tabindex="0" data-act="tab" data-step="${STEPS.TEMPLATE}">
                 <div class="niche-script__title"><img class="niche-script__title-icon" src="${ICON('niche-script')}" alt=""><span>${esc(s.selectedScript?.name || 'Your script')}</span></div>
                 <span class="tg-meta">${esc(sceneNames(s).length)} scenes</span>
               </div>
@@ -499,10 +542,6 @@ export class TemplateGeneratorModal extends BaseModal {
           <div class="preview-tab__content-watch">
             ${error ? `<div class="tg-player tg-player--empty">${esc(error)}</div>` : renderPlayerHTML(playlist)}
           </div>
-        </div>
-        <div class="tg-extras">
-          ${this.renderPanel('voice', '🎙️ Voice narration (optional)', voiceOpen, this.renderVoiceFields())}
-          ${this.renderPanel('personalization', '👤 Personalization (optional)', persOpen, this.renderPersonalizationFields())}
         </div>
       </div>`;
   }
@@ -659,7 +698,7 @@ export class TemplateGeneratorModal extends BaseModal {
   _act(act, el) {
     const id = el.dataset.id;
     switch (act) {
-      case 'start': this.s.started = true; this.paint(); this.runSearch(true); break;
+      case 'start': this.s.started = true; this.paint(); break;
       case 'decline': this.onCancel(); this.close(); break;
       case 'safari-accept': this.ui.safariAccepted = true; this.paint(); break;
       case 'tab': this.goTo(Number(el.dataset.step)); break;
@@ -678,7 +717,7 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'upload-click': this.overlay.querySelector('#tg-file')?.click(); break;
       case 'remote-add': this.addRemote(); break;
       case 'ai-generate': this.runAiImage(); break;
-      case 'niche': this.ui.scriptNiche = id; this.paint(); break;
+      case 'niche-pick': this.pickNiche(id); break;
       case 'script-pick': this.pickScript(id); break;
       case 'script-preview': this.setPopup({ kind: 'script', id }); break;
       case 'ai-script': this.runScriptAction(el.dataset.kind); break;
@@ -694,10 +733,15 @@ export class TemplateGeneratorModal extends BaseModal {
 
   goTo(target) {
     if (target === this.s.step) return;
-    if (target > this.s.step || target === STEPS.PREVIEW) {
+    if (target > this.s.step) {
+      // Walk forward only as far as the earlier steps allow.
       const warn = guardStep(this.s, target);
       if (warn) { this.toast(warn); return; }
     }
+    this._enter(target);
+  }
+
+  _enter(target) {
     this.s.step = target;
     this.paint();
     if (target === STEPS.VIDEO && !this.ui.results.length && !this.ui.loading) this.runSearch(true);
@@ -706,11 +750,16 @@ export class TemplateGeneratorModal extends BaseModal {
   async goNext() {
     const { step } = this.s;
     if (this.ui.busy || nextDisabled(this.s, step)) return;
-    if (step === STEPS.PREVIEW) { await this.addToTimeline(); return; }
+    if (step === STEPS.ADD) { await this.addToTimeline(); return; }
     const target = nextStepIndex(this.s, step);
     const warn = guardStep(this.s, target);
     if (warn) { this.toast(warn); return; }
-    this.s.step = target;
+    this._enter(target);
+  }
+
+  pickNiche(id) {
+    this.s.niche = this.s.niche === id ? null : id;
+    if (this.s.selectedScript && this.s.selectedScript.niche !== this.s.niche) this.s.selectedScript = null;
     this.paint();
   }
 
@@ -735,6 +784,7 @@ export class TemplateGeneratorModal extends BaseModal {
     const t = ALL_NICHE_TEMPLATES.find((x) => x.id === id);
     if (!t) return;
     this.s.selectedScript = this.s.selectedScript?.id === id ? null : t;
+    if (this.s.selectedScript && !this.s.niche) this.s.niche = t.niche;
     this.paint();
   }
 
@@ -754,6 +804,7 @@ export class TemplateGeneratorModal extends BaseModal {
 
   paintList() {
     this._setHTML('#tg-list', this.renderProviderList());
+    this._observeMore();
     const q = this.overlay?.querySelector('#tg-query');
     if (q && q !== document.activeElement) q.value = this.ui.query;
   }
@@ -776,6 +827,17 @@ export class TemplateGeneratorModal extends BaseModal {
     this._updateNext();
   }
 
+  /** Auto-load the next page when "Load more" scrolls into view. */
+  _observeMore() {
+    this._moreObserver?.disconnect?.();
+    const btn = this.overlay?.querySelector('.tg-more');
+    if (!btn || typeof IntersectionObserver === 'undefined') return;
+    this._moreObserver = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting) && !this.ui.loading) { this._moreObserver.disconnect(); btn.click(); }
+    }, { root: this.overlay.querySelector('.generator-list.video-list'), rootMargin: '200px' });
+    this._moreObserver.observe(btn);
+  }
+
   _updateNext() {
     const btn = this.overlay?.querySelector('#tg-next');
     if (!btn) return;
@@ -783,6 +845,8 @@ export class TemplateGeneratorModal extends BaseModal {
     btn.disabled = disabled;
     btn.classList.toggle('disabled', disabled);
     btn.textContent = this.ui.busy ? 'Adding…' : nextLabel(this.s.step);
+    const sc = this.overlay?.querySelector('#tg-stepcount');
+    if (sc) sc.textContent = `Step ${this.s.step + 1} of ${STEP_LABELS.length}`;
   }
 
   toast(message) {
@@ -927,7 +991,7 @@ export class TemplateGeneratorModal extends BaseModal {
     try {
       const sc = this.s.selectedScript;
       const result = await fn({
-        niche: sc?.niche || null,
+        niche: this.s.niche || sc?.niche || null,
         existingScript: this.s.script.text,
         tone: this.s.script.tone,
         audience: this.s.script.audience,
