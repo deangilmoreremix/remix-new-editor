@@ -105,7 +105,11 @@ function overlayLayer(clip, opts, profile, base) {
  * @param {object} state      editor state
  * @param {object} opts       { fps=30, quality='1080p', profile=null }
  */
-export function timelineToComposition(state, { fps = 30, quality = '1080p', profile = null } = {}) {
+/**
+ * options.proxies: Map(src → low-res proxy URL) used by the editor preview
+ * when proxy playback is on. Never pass it for export.
+ */
+export function timelineToComposition(state, { fps = 30, quality = '1080p', profile = null, proxies = null } = {}) {
   const { width, height } = QUALITY_PRESETS[quality] || QUALITY_PRESETS['1080p'];
   const T = Number(state?.timelineSeconds) || 60;
   const tracks = Array.isArray(state?.tracks) ? state.tracks : [];
@@ -167,9 +171,12 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
 
       // Personalized Smart Speech: the rendered contact's own voice line.
       // AI video clip per contact: the rendered contact's own version.
-      const src = clip.tts?.variants ? voiceSrcFor(clip, profile)
+      const fullSrc = clip.tts?.variants ? voiceSrcFor(clip, profile)
         : clip.aiPerContact ? clipSrcFor(clip, profile)
           : clip.src ? String(clip.src) : '';
+      const src = (clip.type === 'video' && proxies?.get?.(fullSrc)) || fullSrc;
+      // Mirror (flip) — omitted when off so models stay unchanged.
+      const flip = clip.flipH || clip.flipV ? { flip: { h: !!clip.flipH, v: !!clip.flipV } } : {};
       const volume = Math.max(0, Math.min(1, clip.volume ?? 1));
       const trimBefore = toFrame(Number(clip.trimIn ?? clip.sourceStart ?? 0));
       // Playback speed (0.25–4×); omitted at normal speed so models stay unchanged.
@@ -180,13 +187,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
         return;
       }
       if (clip.type === 'video' && src) {
-        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, fit: clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
+        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, ...flip, fit: clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
         layers.push(layer);
         if (isVideoTrack(track)) media.push(layer);
         return;
       }
       if (clip.type === 'image' && src) {
-        const layer = { ...base, kind: 'image', src, fit: clip.fit || 'cover' };
+        const layer = { ...base, kind: 'image', src, ...flip, fit: clip.fit || 'cover' };
         layers.push(layer);
         if (isVideoTrack(track)) media.push(layer);
         return;

@@ -111,7 +111,7 @@ const LOADERS = {
     return { tokenizer, text, processor, vision };
   }),
   detr: () => once('detr', async () => {
-    const { device, gpu, half, progress_callback } = await common('detr');
+    const { device, gpu, progress_callback } = await common('detr');
     return pipeline('object-detection', modelId('detr'), { device, dtype: gpu ? 'fp32' : 'q8', progress_callback });
   }),
   florence: () => once('florence', async () => {
@@ -124,7 +124,7 @@ const LOADERS = {
     return { model, processor };
   }),
   clap: () => once('clap', async () => {
-    const { device, gpu, half, progress_callback } = await common('clap');
+    const { device, gpu, progress_callback } = await common('clap');
     return pipeline('zero-shot-audio-classification', modelId('clap'), { device: gpu ? device : 'wasm', dtype: 'q8', progress_callback });
   }),
   diarize: () => once('diarize', async () => {
@@ -143,7 +143,7 @@ const LOADERS = {
     return pipeline('depth-estimation', modelId('depth'), { device, dtype: gpu ? half : 'q8', progress_callback });
   }),
   upscale: () => once('upscale', async () => {
-    const { device, gpu, half, progress_callback } = await common('upscale');
+    const { device, gpu, progress_callback } = await common('upscale');
     return pipeline('image-to-image', modelId('upscale'), { device, dtype: gpu ? 'fp32' : 'q8', progress_callback });
   }),
 };

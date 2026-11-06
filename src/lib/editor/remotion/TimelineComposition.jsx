@@ -424,12 +424,13 @@ function MediaLayer({ layer, seqFrom }) {
   const t = useLayerTime(layer, seqFrom);
   const fit = layer.fit === 'contain' ? 'contain' : 'cover';
   const fx = useLayerEffects(layer, t);
+  const mirror = layer.flip ? { transform: `scale(${layer.flip.h ? -1 : 1}, ${layer.flip.v ? -1 : 1})` } : {};
   if (layer.kind === 'video') {
     const kfVolume = layer.keyframes?.volume?.length ? valueAt(layer.keyframes.volume, t, 1) : 1;
     const volume = Math.max(0, Math.min(1, (layer.volume ?? 1) * kfVolume));
-    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%' }} />;
+    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%', ...mirror }} />;
   }
-  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit }} />;
+  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...mirror }} />;
 }
 
 function OverlayLayer({ layer, Comp }) {

@@ -86,8 +86,8 @@ export const runLocalTask = (task, input, opts) => mlWorker.run(task, input, opt
 export const runVoiceTask = (task, input, opts) => kokoroWorker.run(task, input, opts);
 
 /** Test hooks. */
-export const __mlWorker = mlWorker;
-export const __kokoroWorker = kokoroWorker;
+export const mlWorkerClient = mlWorker;
+export const kokoroWorkerClient = kokoroWorker;
 
 /** Stop every running local-AI job. */
 export function terminateLocalAI() {

@@ -64,6 +64,8 @@ import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } fro
 import { initTimelineAgentIntegration } from '../timelineAgentIntegration.js';
 import { ColorCorrectionSystem } from '../lib/editor/colorCorrectionSystem.jsx';
 import { runCineGenTool, CINEGEN_TOOLS } from '../lib/cinegenIntegration.js';
+import * as editTools from '../lib/editor/editTools.js';
+import { decorateClip, proxyMap, makeProxy, clearProxies } from '../lib/editor/clipVisuals.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 // CutAI integration loaded dynamically to avoid syntax issues in AIStoryboardStudio.jsx
@@ -503,7 +505,7 @@ export function TimelineEditorPage() {
             <button class="zoom-btn" data-action="zoom-in" data-tooltip="Zoom in - See timeline in more detail (Mouse wheel)" aria-label="Zoom in on the timeline">＋</button>
             <button class="zoom-btn" data-action="zoom-fit" aria-label="Fit to window" title="Fit" data-tooltip="Fit timeline to window">⤢</button>
           </div>
-          <div class="tool-group" id="toolGroup" hidden></div>
+          <div class="tool-group" id="toolGroup"></div>
           <div class="pill-row" id="pillRow" hidden></div>
         </div>
         <div class="timeline-shell">
@@ -2562,27 +2564,11 @@ export function TimelineEditorPage() {
 
     async function syncSelectedAudio() {
       const selectedClip = findSelectedClip();
-      if (!selectedClip || selectedClip.type !== 'video') {
-        showToast('Select a video clip to sync audio', 'info');
-        return;
-      }
-      const audioClip = state.tracks.find(t => t.type === 'audio')?.clips?.find(c => c.type === 'audio');
-      if (!audioClip) {
-        showToast('No audio clip found on audio track', 'info');
-        return;
-      }
+      const audioClip = selectedClip?.type === 'audio' ? selectedClip
+        : allClips().find((c) => c.type === 'audio' && c.src);
+      if (!audioClip) { showToast('Select an audio clip to sync', 'info'); return; }
       try {
-        const { computeAudioOffset } = await import('../lib/editor/audioSync.js');
-        showToast('Analyzing audio sync...', 'info');
-        const result = await computeAudioOffset(selectedClip.src, audioClip.src);
-        if (result && result.confidence > 0) {
-          showToast(`Audio sync offset: ${result.offsetSeconds.toFixed(2)}s (confidence: ${Math.round(result.confidence * 100)}%)`, 'success');
-          audioClip.start = (selectedClip.start || 0) + result.offsetSeconds;
-          renderAll();
-          debouncedSave(0);
-        } else {
-          showToast('Could not determine audio sync offset', 'error');
-        }
+        showToast(await syncAudioClip(audioClip), 'success');
       } catch (err) {
         showToast(`Audio sync failed: ${err.message}`, 'error');
       }
@@ -2931,6 +2917,9 @@ export function TimelineEditorPage() {
               showClipEditor(clip.id);
             });
 
+            // Edit tools: trim handles (Select/Ripple/Roll) and Slip/Slide/Blade on the body.
+            clipEl.addEventListener('pointerdown', (e) => startClipToolEdit(e, clip.id, clipEl));
+
             clipEl.addEventListener('dragstart', (e) => {
               // Trim handles initiate a separate drag for trimming — never
               // start a move-drag from one. data-handle is set on .l/.r in
@@ -2979,6 +2968,7 @@ export function TimelineEditorPage() {
           }
 
           renderKeyframeDiamonds(clipEl, clip, clip.start || 0, Math.max(0, (clip.end || 0) - (clip.start || 0)));
+          decorateClipVisuals(clipEl, clip.id, widthPercent);
 
           cached.clipData.set(clip.id, {
             leftPercent, widthPercent,
@@ -2998,7 +2988,18 @@ export function TimelineEditorPage() {
         });
 
         // Prototype ornaments: transitions + scene markers (cheap rebuild per pass)
-        cached.lane.querySelectorAll('.timeline-transition, .scene-marker').forEach(el => el.remove());
+        cached.lane.querySelectorAll('.timeline-transition, .scene-marker, .timeline-marker').forEach(el => el.remove());
+        (state.markers || []).forEach((m) => {
+          const el = document.createElement('div');
+          el.className = 'timeline-marker';
+          el.style.cssText = `position:absolute;top:0;bottom:0;left:${(m.t / tlSec()) * 100}%;width:2px;margin-left:-1px;background:#facc15;opacity:.85;z-index:3;cursor:pointer;`;
+          el.title = `${m.label || 'Marker'} · ${m.t.toFixed(2)}s — click to jump, double-click to remove`;
+          el.setAttribute('role', 'button');
+          el.setAttribute('aria-label', `Marker at ${m.t.toFixed(1)} seconds`);
+          el.addEventListener('click', (ev) => { ev.stopPropagation(); seekToSeconds(m.t); });
+          el.addEventListener('dblclick', (ev) => { ev.stopPropagation(); removeMarker(m.id); });
+          cached.lane.appendChild(el);
+        });
         (track.transitions || []).forEach(tr => {
           const el = document.createElement('div');
           el.className = 'timeline-transition';
@@ -4222,7 +4223,7 @@ export function TimelineEditorPage() {
       return !!remotionModel && (remotionModel.layers.length > 0 || remotionModel.audio.length > 0);
     }
     function buildEngineModel() {
-      return timelineToComposition(state, { fps: ENGINE_FPS, quality: '1080p', profile: getActivePersonalizationProfile() });
+      return timelineToComposition(state, { fps: ENGINE_FPS, quality: '1080p', profile: getActivePersonalizationProfile(), proxies: state.proxyEnabled ? proxyMap() : null });
     }
     function percentToFrame(p) {
       return Math.round(((p / 100) * (state.timelineSeconds || 60)) * ENGINE_FPS);
@@ -5443,6 +5444,8 @@ export function TimelineEditorPage() {
     var activeMuapiPanel = null;
     // eslint-disable-next-line no-var -- which MuAPI tool to open next ('fill' | 'extend' | ...)
     var pendingMuapiFocus = null;
+    // eslint-disable-next-line no-var -- clip editor "Edit" section (speed, flip, in/out, sync, proxies)
+    var activeEditPanel = null;
     // eslint-disable-next-line no-var
     var localAIPanel = null;
     // eslint-disable-next-line no-var
@@ -6021,8 +6024,8 @@ export function TimelineEditorPage() {
 
     function renderClipEditor(clipId) {
       renderClipEditorBase(clipId);
-      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel, activeLocalAIPanel, activeMuapiPanel].forEach((p) => p?.destroy());
-      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = activeLocalAIPanel = activeMuapiPanel = null;
+      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel, activeLocalAIPanel, activeMuapiPanel, activeEditPanel].forEach((p) => p?.destroy());
+      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = activeLocalAIPanel = activeMuapiPanel = activeEditPanel = null;
       editorClipId = clipId;
       const clip = allClips().find((c) => c.id === clipId);
       if (!clip) return;
@@ -6042,6 +6045,36 @@ export function TimelineEditorPage() {
               onRestore: () => restoreBgRemoval(clip),
             });
           });
+      }
+
+      // Edit tools for media clips: speed, flip, source In/Out, audio sync, proxies.
+      if (['video', 'audio', 'image', 'overlay-image'].includes(clip.type)) {
+        const host = editorSection('clip-edit-tools', 'Edit');
+        import('../lib/editor/editPanel.js').then(({ renderEditPanel }) => {
+          if (!host.isConnected) return;
+          activeEditPanel = renderEditPanel(host, {
+            clip,
+            durationSec: clipDurationSec(clip),
+            proxyOn: !!state.proxyEnabled,
+            ops: {
+              setSpeed: (rate) => setClipSpeed(clip, rate),
+              toggleFlip: (axis) => {
+                saveStateSnapshot(state);
+                const k = axis === 'v' ? 'flipV' : 'flipH';
+                if (clip[k]) delete clip[k]; else clip[k] = true;
+                commitEdit();
+              },
+              setInOut: (inSec, outSec) => {
+                saveStateSnapshot(state);
+                editTools.setInOut(clip, inSec, outSec, tlSec());
+                commitEdit();
+              },
+              syncAudio: () => syncAudioClip(clip),
+              setProxy: (on, onProgress) => setProxyPlayback(on, onProgress),
+              addMarker: () => addMarkerAtPlayhead(),
+            },
+          });
+        });
       }
 
       // Paid generation on MuAPI (Fill Gap, Extend, Layers, Remove watermark).
@@ -6611,42 +6644,165 @@ export function TimelineEditorPage() {
 
     function splitClipAtPlayhead() {
       const selectedClip = findSelectedClip();
-      if (!selectedClip) {
-        return;
-      }
+      if (!selectedClip) return;
+      splitClipAtPercent(selectedClip.id, state.playheadPercent || 0);
+    }
 
+    /** Blade: split a clip at a timeline position (%). The right half plays from the right source time. */
+    function splitClipAtPercent(clipId, atPct) {
+      const track = state.tracks.find((t) => (t.items || t.clips || []).some((c) => c.id === clipId));
+      if (!track) return false;
+      const items = track.items || track.clips;
+      const i = items.findIndex((c) => c.id === clipId);
+      const halves = editTools.splitClip(items[i], atPct, tlSec());
+      if (!halves) return false;
       saveStateSnapshot(state);
+      items.splice(i, 1, ...halves);
+      state.selectedClipId = halves[0].id;
+      commitEdit();
+      return true;
+    }
 
-      const track = state.tracks.find(t => t.clips.some(c => c.id === selectedClip.id));
-      if (!track) return;
+    // Hoisted helpers (safe to call from renderTracks at any time).
+    function tlSec() { return state.timelineSeconds || 60; }
+    function clipDurSec(c) { return ((Number(c.width) || 0) / 100) * tlSec(); }
+    function clipStartSecH(c) { return ((Number(c.left) || 0) / 100) * tlSec(); }
 
-      const clipIndex = track.clips.findIndex(c => c.id === selectedClip.id);
-      const splitPosition = (state.playheadPercent / 100) * 100; // Convert to clip width percentage
+    function commitEdit() {
+      renderTracks();
+      scheduleEngineUpdate();
+      debouncedSave();
+    }
 
-      if (splitPosition <= selectedClip.left || splitPosition >= selectedClip.left + selectedClip.width) {
+    /**
+     * Drag-to-edit on a timeline clip with the active tool:
+     *  - trim handles: Select = trim, Ripple = trim and close the gap, Roll = move the cut
+     *  - clip body: Slip = change the source range, Slide = move between neighbours,
+     *    Blade = split where you click. Other tools keep the normal move-drag.
+     */
+    function startClipToolEdit(e, clipId, clipEl) {
+      if (e.button !== 0) return;
+      const tool = (selectedToolLabel() || 'Select').toLowerCase();
+      const edge = e.target?.dataset?.handle || null;
+      const bodyTool = ['slip', 'slide', 'blade'].includes(tool);
+      if (!edge && !bodyTool) return;
+      const lane = clipEl.parentElement;
+      const laneWidth = lane?.getBoundingClientRect().width || 0;
+      if (!laneWidth) return;
+      const track = state.tracks.find((t) => (t.items || t.clips || []).some((c) => c.id === clipId));
+      const items = track ? (track.items || track.clips) : null;
+      const clip = items?.find((c) => c.id === clipId);
+      if (!clip || track.locked) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const T = tlSec();
+      if (!edge && tool === 'blade') {
+        const pct = ((e.clientX - lane.getBoundingClientRect().left) / laneWidth) * 100;
+        if (!splitClipAtPercent(clipId, pct)) showToast('Click inside the clip, away from its edges, to cut it', 'info');
         return;
       }
-
-      // Create two new clips from the split
-      const leftClip = {
-        ...selectedClip,
-        id: Date.now(),
-        width: splitPosition - selectedClip.left
+      saveStateSnapshot(state);
+      clipEl.draggable = false;
+      const x0 = e.clientX;
+      let applied = 0;
+      let frame = 0;
+      const apply = (ev) => {
+        const want = ((ev.clientX - x0) / laneWidth) * 100;
+        const delta = want - applied;
+        if (Math.abs(delta) < 1e-4) return;
+        let got = 0;
+        if (edge && tool === 'roll') got = editTools.rollEdit(items, clip, edge, delta, T);
+        else if (edge) got = editTools.trimEdge(items, clip, edge, delta, T, { ripple: tool === 'ripple' });
+        else if (tool === 'slip') { editTools.slipClip(clip, delta, T); got = delta; }
+        else if (tool === 'slide') got = editTools.slideClip(items, clip, delta, T);
+        applied += got;
+        if (!frame) frame = requestAnimationFrame(() => { frame = 0; renderTracks(); });
       };
-
-      const rightClip = {
-        ...selectedClip,
-        id: Date.now() + 1,
-        left: splitPosition,
-        width: (selectedClip.left + selectedClip.width) - splitPosition
+      const done = () => {
+        window.removeEventListener('pointermove', apply);
+        window.removeEventListener('pointerup', done);
+        window.removeEventListener('pointercancel', done);
+        clipEl.draggable = true;
+        if (frame) cancelAnimationFrame(frame);
+        commitEdit();
+        if (editorClipId === clipId) renderClipEditor(clipId);
       };
+      window.addEventListener('pointermove', apply);
+      window.addEventListener('pointerup', done);
+      window.addEventListener('pointercancel', done);
+    }
 
-      // Replace the original clip with the two new ones
-      track.clips.splice(clipIndex, 1, leftClip, rightClip);
-      state.selectedClipId = leftClip.id;
-
+    // ---------------------------------------------------------------- markers
+    function addMarkerAtPlayhead(label = '') {
+      saveStateSnapshot(state);
+      state.markers = editTools.addMarker(state.markers, playheadSec(), label);
       renderTracks();
-      updatePreview();
+      renderMiniMap();
+      debouncedSave();
+      showToast(`Marker at ${playheadSec().toFixed(1)}s`, 'success');
+    }
+    function removeMarker(id) {
+      saveStateSnapshot(state);
+      state.markers = (state.markers || []).filter((m) => m.id !== id);
+      renderTracks();
+      renderMiniMap();
+      debouncedSave();
+    }
+    function jumpToMarker(dir) {
+      const m = dir > 0 ? editTools.nextMarker(state.markers, playheadSec()) : editTools.prevMarker(state.markers, playheadSec());
+      if (m) seekToSeconds(m.t);
+    }
+
+    // ---------------------------------------------------------------- clip visuals
+    function decorateClipVisuals(clipEl, clipId, widthPercent) {
+      const real = allClips().find((c) => c.id === clipId);
+      if (!real?.src || !['video', 'audio'].includes(real.type)) return;
+      const laneW = clipEl.parentElement?.clientWidth || 0;
+      if (!laneW) return;
+      const rate = editTools.speedOf(real);
+      const fromSec = Number(real.trimIn ?? real.sourceStart ?? 0) || 0;
+      const toSec = fromSec + clipDurSec(real) * rate;
+      decorateClip(clipEl, { src: real.src, type: real.type, fromSec, toSec, widthPx: (laneW * widthPercent) / 100 });
+    }
+
+    // ---------------------------------------------------------------- audio sync
+    /** Move an audio clip so its sound lines up with the video it overlaps (or the first video). */
+    async function syncAudioClip(audioClip) {
+      const videos = allClips().filter((c) => c.type === 'video' && c.src);
+      const overlap = (c) => Math.min(clipStartSecH(c) + clipDurSec(c), clipStartSecH(audioClip) + clipDurSec(audioClip)) - Math.max(clipStartSecH(c), clipStartSecH(audioClip));
+      const video = videos.sort((a, b) => overlap(b) - overlap(a))[0];
+      if (!video) throw new Error('Add the video clip this audio belongs to first');
+      const [{ decodeAudioAt, syncOffset }] = await Promise.all([import('../lib/editor/ml/audio.js')]);
+      const vIn = Number(video.trimIn ?? video.sourceStart ?? 0) || 0;
+      const aIn = Number(audioClip.trimIn ?? audioClip.sourceStart ?? 0) || 0;
+      const rate = 4000;
+      const [vp, ap] = await Promise.all([
+        decodeAudioAt(video.src, { sampleRate: rate, fromSec: vIn, toSec: vIn + clipDurSec(video) }),
+        decodeAudioAt(audioClip.src, { sampleRate: rate, fromSec: aIn, toSec: aIn + clipDurSec(audioClip) }),
+      ]);
+      const { offsetSec, confidence } = syncOffset(vp, ap, rate);
+      if (confidence < 0.2) throw new Error("Couldn't find matching sound in the two clips");
+      saveStateSnapshot(state);
+      audioClip.left = Math.max(0, ((clipStartSecH(video) + offsetSec) / tlSec()) * 100);
+      commitEdit();
+      return `Synced: audio starts ${offsetSec >= 0 ? offsetSec.toFixed(2) + 's after' : (-offsetSec).toFixed(2) + 's before'} the video (match ${Math.round(confidence * 100)}%)`;
+    }
+
+    // ---------------------------------------------------------------- proxies
+    async function setProxyPlayback(on, onProgress) {
+      state.proxyEnabled = !!on;
+      if (on) {
+        const vids = [...new Set(allClips().filter((c) => c.type === 'video' && c.src).map((c) => c.src))];
+        let done = 0;
+        for (const src of vids) {
+          await makeProxy(src, { onProgress: (p) => onProgress?.((done + p) / vids.length) }).catch((err) => console.warn('[proxy]', err?.message));
+          done += 1;
+        }
+      } else {
+        clearProxies();
+      }
+      scheduleEngineUpdate();
+      showToast(on ? 'Proxy playback on (preview only)' : 'Proxy playback off', 'info');
     }
 
     async function detectScenes() {
@@ -6718,16 +6874,16 @@ export function TimelineEditorPage() {
 
     function adjustSpeed() {
       const selectedClip = findSelectedClip();
-      if (!selectedClip) {
-        return;
-      }
+      if (!selectedClip) return;
+      const newSpeed = prompt('Playback speed (0.25–4):', String(editTools.speedOf(selectedClip)));
+      if (newSpeed && !isNaN(parseFloat(newSpeed))) setClipSpeed(selectedClip, parseFloat(newSpeed));
+    }
 
-      // Simple speed adjustment (could be enhanced with UI)
-      const newSpeed = prompt('Enter speed multiplier (0.25-4.0):', '1.0');
-      if (newSpeed && !isNaN(parseFloat(newSpeed))) {
-        saveStateSnapshot(state);
-        selectedClip.speed = parseFloat(newSpeed);
-      }
+    function setClipSpeed(clip, rate) {
+      saveStateSnapshot(state);
+      editTools.setSpeed(clip, rate);
+      commitEdit();
+      if (editorClipId === clip.id) renderClipEditor(clip.id);
     }
 
     async function stabilizeFootage() {
@@ -8680,8 +8836,8 @@ export function TimelineEditorPage() {
         if (tag === 'input' || tag === 'textarea' || (ev.target && ev.target.isContentEditable)) return;
         const key = ev.key.toLowerCase();
         if (key === ' ' || key === 'spacebar') { ev.preventDefault(); togglePlayback(); }
-        else if (key === 'arrowleft') { ev.preventDefault(); state.playheadPercent = Math.max(0, (state.playheadPercent || 0) - 0.8); updatePlaybackUI(); }
-        else if (key === 'arrowright') { ev.preventDefault(); state.playheadPercent = Math.min(100, (state.playheadPercent || 0) + 0.8); updatePlaybackUI(); }
+        else if (key === 'arrowleft' && !ev.altKey) { ev.preventDefault(); state.playheadPercent = Math.max(0, (state.playheadPercent || 0) - 0.8); updatePlaybackUI(); }
+        else if (key === 'arrowright' && !ev.altKey) { ev.preventDefault(); state.playheadPercent = Math.min(100, (state.playheadPercent || 0) + 0.8); updatePlaybackUI(); }
         else if (key === 's' && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); splitClipAtPlayhead(); }
         else if (key === 'delete' || key === 'backspace') { ev.preventDefault(); deleteSelectedClip(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'z' && !ev.shiftKey) { ev.preventDefault(); undo(state); }
@@ -8689,6 +8845,8 @@ export function TimelineEditorPage() {
         else if ((ev.ctrlKey || ev.metaKey) && key === 'd') { ev.preventDefault(); duplicateSelectedClip(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'g') { ev.preventDefault(); groupSelectedClips(); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'shift' && ev.key.toLowerCase() === 'g') { ev.preventDefault(); ungroupSelectedClips(); }
+        else if (key === 'm' && ev.shiftKey && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); addMarkerAtPlayhead(); }
+        else if (ev.altKey && (key === 'arrowleft' || key === 'arrowright')) { ev.preventDefault(); jumpToMarker(key === 'arrowright' ? 1 : -1); }
         else if (key === '[') { nudgeSelectedClip(-0.5); }
         else if (key === ']') { nudgeSelectedClip(0.5); }
         else if ((ev.ctrlKey || ev.metaKey) && key === 'c') { ev.preventDefault(); copySelectedClip(); }
@@ -9201,6 +9359,17 @@ export function TimelineEditorPage() {
           }
           switchToTimeline(state, btn.dataset.timelineId);
           renderAll();
+        });
+        btn.title = `${btn.title} — double-click to rename`;
+        btn.addEventListener('dblclick', (e) => {
+          if (e.target.classList.contains('tab-close')) return;
+          const t = timelineList(state).find((x) => x.id === btn.dataset.timelineId);
+          const name = window.prompt('Timeline name', t?.projectTitle || 'Timeline');
+          if (!t || !name || !name.trim()) return;
+          t.projectTitle = name.trim().slice(0, 60);
+          if (currentTimelineId(state) === t.id) state.projectTitle = t.projectTitle;
+          renderTimelineTabs();
+          debouncedSave();
         });
       });
     }
@@ -9789,9 +9958,23 @@ export function TimelineEditorPage() {
           map.appendChild(el);
         });
       });
+      (state.markers || []).forEach((m) => {
+        const mk = document.createElement('div');
+        mk.style.cssText = `position:absolute;left:${(m.t / tlSec()) * 100}%;top:0;bottom:0;width:2px;background:#facc15;pointer-events:none;`;
+        map.appendChild(mk);
+      });
       const ph = document.createElement('div');
       ph.style.cssText = `position:absolute;left:${state.playheadPercent || 0}%;top:-2px;bottom:-2px;width:1px;background:#f87171;pointer-events:none;`;
       map.appendChild(ph);
+      if (!map.dataset.seek) {
+        map.dataset.seek = '1';
+        map.style.cursor = 'pointer';
+        map.title = 'Overview — click to jump';
+        map.addEventListener('click', (e) => {
+          const r = map.getBoundingClientRect();
+          if (r.width) seekToSeconds(((e.clientX - r.left) / r.width) * tlSec());
+        });
+      }
     }
 
     // --- track visibility controls ---

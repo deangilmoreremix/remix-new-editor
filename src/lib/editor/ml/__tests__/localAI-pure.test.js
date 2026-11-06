@@ -148,3 +148,24 @@ describe('caption helpers', () => {
     expect(sampleTimes(0, 10, 2)).toEqual([2.5, 7.5]);
   });
 });
+
+describe('audio sync', () => {
+  it('finds how far one recording is shifted from another', async () => {
+    const { syncOffset } = await import('../audio.js');
+    const rate = 2000;
+    const clicks = [0.3, 1.1, 1.5, 2.6, 3.0, 4.2];
+    const make = (len, shift) => {
+      const x = new Float32Array(Math.round(len * rate));
+      clicks.forEach((t) => {
+        const s = Math.round((t + shift) * rate);
+        for (let i = 0; i < 200 && s + i < x.length; i += 1) if (s + i >= 0) x[s + i] = Math.sin(i) * (1 - i / 200);
+      });
+      return x;
+    };
+    const camera = make(6, 1.25); // camera started recording 1.25 s before the mic
+    const mic = make(6, 0);
+    const { offsetSec, confidence } = syncOffset(camera, mic, rate, { maxOffsetSec: 3 });
+    expect(offsetSec).toBeCloseTo(1.25, 1);
+    expect(confidence).toBeGreaterThan(0.5);
+  });
+});

@@ -71,3 +71,55 @@ export function findSilences(pcm, sampleRate, { thresholdDb = -42, minSec = 0.6,
     .map(([a, b]) => ({ start: a * windowSec, end: Math.min(pcm.length / sampleRate, b * windowSec) }))
     .filter((r) => r.end - r.start >= minSec);
 }
+
+/** Onset strength (rises in loudness) at `hz` frames per second. */
+export function onsetEnvelope(pcm, sampleRate, hz = 100) {
+  const env = rmsWindows(pcm, sampleRate, 1 / hz);
+  const out = new Float32Array(env.length);
+  for (let i = 1; i < env.length; i += 1) out[i] = Math.max(0, env[i] - env[i - 1]);
+  return out;
+}
+
+/**
+ * Best alignment of `b` against `a` by normalized cross-correlation.
+ * Returns lag in frames: b[i] matches a[i + lag] (so b starts `lag` frames
+ * after a). score is the correlation (0–1).
+ */
+export function bestLag(a, b, maxLag) {
+  const mean = (x) => x.reduce((s, v) => s + v, 0) / Math.max(1, x.length);
+  const ma = mean(a);
+  const mb = mean(b);
+  const A = Float32Array.from(a, (v) => v - ma);
+  const B = Float32Array.from(b, (v) => v - mb);
+  let best = { lag: 0, score: -Infinity };
+  const lim = Math.min(maxLag, Math.max(A.length, B.length));
+  for (let lag = -lim; lag <= lim; lag += 1) {
+    let s = 0;
+    let ea = 0;
+    let eb = 0;
+    const i0 = Math.max(0, -lag);
+    const i1 = Math.min(B.length, A.length - lag);
+    if (i1 - i0 < 20) continue;
+    for (let i = i0; i < i1; i += 1) {
+      const x = A[i + lag];
+      const y = B[i];
+      s += x * y; ea += x * x; eb += y * y;
+    }
+    const score = s / (Math.sqrt(ea * eb) || 1);
+    if (score > best.score) best = { lag, score };
+  }
+  return { lag: best.lag, score: Math.max(0, best.score) };
+}
+
+/**
+ * How many seconds after `ref` starts the `other` recording starts, from
+ * their sound (e.g. a separately recorded mic vs. camera audio).
+ * @returns {{ offsetSec: number, confidence: number }}
+ */
+export function syncOffset(refPcm, otherPcm, sampleRate, { hz = 100, maxOffsetSec = 60, analyzeSec = 120 } = {}) {
+  const cut = (x) => x.subarray(0, Math.min(x.length, Math.round(analyzeSec * sampleRate)));
+  const a = onsetEnvelope(cut(refPcm), sampleRate, hz);
+  const b = onsetEnvelope(cut(otherPcm), sampleRate, hz);
+  const { lag, score } = bestLag(a, b, Math.round(maxOffsetSec * hz));
+  return { offsetSec: lag / hz, confidence: score };
+}

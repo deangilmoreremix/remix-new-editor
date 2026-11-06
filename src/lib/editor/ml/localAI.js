@@ -1,3 +1,4 @@
+/* global ImageData */
 /**
  * Free, in-browser AI for the Timeline Editor — the high-level API the editor
  * UI and the Video Agent call. Every function here runs on the viewer's own
@@ -295,7 +296,7 @@ export function captionLines(captions, { maxGapMs = 700, maxWords = 14 } = {}) {
       cur.words += 1;
     }
   }
-  return lines.map(({ words, ...l }) => l);
+  return lines.map((l) => { const out = { ...l }; delete out.words; return out; });
 }
 
 /**
