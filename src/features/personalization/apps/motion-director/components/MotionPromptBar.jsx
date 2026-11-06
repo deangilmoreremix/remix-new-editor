@@ -17,7 +17,7 @@ import {
   promptMediaButtonClassName,
   PROMPT_MEDIA_PREVIEW_CLASS,
 } from '../../../packages/studio/src/components/prompt/PromptComposer';
-import { prepareMedia, attachMediaAttachments } from '../lib/mediaUpload';
+import { prepareMedia, attachWhenReady } from '../lib/mediaUpload';
 
 const ASPECT_RATIOS = ['16:9', '9:16', '1:1'];
 const DURATIONS = [5, 6, 8, 10, 12, 15, 20, 25, 30];
@@ -87,7 +87,7 @@ export default function MotionPromptBar({
       if (!files.length) return;
       const prepared = prepareMedia(files);
       if (!prepared.length) return;
-      if (autoAttach) attachMediaAttachments(prepared);
+      if (autoAttach) void attachWhenReady(prepared);
       setMedia((prev) => [...prev, ...prepared]);
       onMediaChange?.(prepared);
     },

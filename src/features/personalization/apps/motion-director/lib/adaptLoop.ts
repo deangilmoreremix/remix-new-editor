@@ -1,8 +1,9 @@
 import { MOTION_TEMPLATES } from '../../../data/motionRecipeCatalog';
 import type { ClipData, ProjectData } from '../types';
 import { fetchRecipeCard, fetchRecipeSource, fetchReferenceFrames, requestAdapt, DirectorError, type AdaptRequest } from './directorClient';
-import { checkAdaptedSource, adaptedCodeIsEnabled } from './shotAdapter';
+import { checkAdaptedSource } from './shotAdapter';
 import { prepareAdapted } from './adaptedRuntime';
+import { adaptedCodeEnabled } from './adaptedPolicy';
 import { rulesOf } from './shotRules';
 import { drawsSampleScreen, isProductTextureShot } from './productShots';
 
@@ -72,8 +73,6 @@ export const stillFrames = (clip: ClipData): number[] => [Math.floor(clip.durati
 
 /** Adapt one shot; resolves to the props to add to the clip, or null when nothing clean came out. */
 export async function adaptShot(project: ProjectData, clip: ClipData, ctx: AdaptContext, deps: AdaptDeps, signal: AbortSignal): Promise<{ props: Record<string, unknown>; notes: string } | null> {
-  // Adapted code is off (see shotAdapter): don't spend a model call on code that can't run.
-  if (!adaptedCodeIsEnabled()) return null;
   const stem = stemOf(clip);
   const source = await (deps.source ?? fetchRecipeSource)(stem);
   if (!source) return null;
@@ -134,7 +133,8 @@ export async function adaptShot(project: ProjectData, clip: ClipData, ctx: Adapt
 
 /** Adapt the film's best shots within the time budget. Never throws except for a missing key / refusal on the first shot. */
 export async function adaptFilm(project: ProjectData, ctx: AdaptContext, deps: AdaptDeps, log: AdaptLog, outer?: AbortSignal): Promise<ProjectData> {
-  if (!adaptedCodeIsEnabled()) return project;
+  // Disabled by default (adaptedPolicy.ts): no model calls for code that would not run.
+  if (!adaptedCodeEnabled()) return project;
   const targets = adaptTargets(project);
   if (!targets.length) return project;
   const controller = new AbortController();

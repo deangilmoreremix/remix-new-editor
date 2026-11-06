@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useT } from './i18n';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useT, isMusicTrack } from './i18n';
 import { useStore } from './store';
 import { estimateExportSec } from './lib/exportCost';
 import { canRenderVideo, renderVideoOnWeb, createDownloadUrl, formatEta, guardTabWhileRendering } from './webRenderer';
@@ -90,7 +90,7 @@ const ExportButton: React.FC = () => {
     try {
       const result = await renderVideoOnWeb({
         // Only the music bed goes; sound effects and video sound stay.
-        project: withoutMusic ? { ...project, tracks: project.tracks.filter((track) => track.name !== t('track.music')) } : project,
+        project: withoutMusic ? { ...project, tracks: project.tracks.filter((track) => !isMusicTrack(track)) } : project,
         videoCodec: canRenderResult.videoCodec,
         audioCodec: canRenderResult.audioCodec,
         scale: draft ? 2 / 3 : 1,
@@ -144,12 +144,14 @@ const ExportButton: React.FC = () => {
     };
   }, []);
 
-  const downloadUrl = job?.blob ? createDownloadUrl(job.blob) : undefined;
+  // One object URL per rendered blob (not one per render of this component).
+  const downloadUrl = useMemo(() => (job?.blob ? createDownloadUrl(job.blob) : undefined), [job?.blob]);
 
-  // Clean up the object URL when the blob or component unmounts.
+  // Revoke the previous object URL when the blob changes or the component unmounts. This must NOT
+  // cancel rendering: when "Export again" clears the blob, this cleanup runs with the new export
+  // already queued, and stopping it here aborted that export. Cancelling on unmount is the effect above.
   useEffect(() => {
     return () => {
-      stopRendering();
       if (downloadUrl) URL.revokeObjectURL(downloadUrl);
     };
   }, [downloadUrl]);

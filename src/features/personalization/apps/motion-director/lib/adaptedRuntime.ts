@@ -7,6 +7,7 @@ import * as PageCam2D from '../demosrc/_fixtures/PageCam2D';
 import * as Polish from '../demosrc/_fixtures/Polish';
 import * as liveTexture from '../demosrc/_fixtures/liveTexture';
 import { compileAdapted, registerAdaptedFixtures, type AdaptedComponent } from './shotAdapter';
+import { adaptedCodeEnabled } from './adaptedPolicy';
 
 /**
  * Where adapted recipes are compiled and kept. A clip carries the adapted source (`adaptedCode`);
@@ -29,6 +30,8 @@ export const adaptedNow = (code: string): AdaptedComponent | null | undefined =>
 
 /** Compile once per source; failures are remembered so one bad shot never retries on every frame. */
 export const prepareAdapted = (code: string, stem: string): Promise<AdaptedComponent | null> => {
+  // Disabled by default (see adaptedPolicy.ts): the plain recipe plays, as when a compile fails.
+  if (!adaptedCodeEnabled()) return Promise.resolve(null);
   const key = hashCode(code);
   if (done.has(key)) return Promise.resolve(done.get(key) ?? null);
   let p = pending.get(key);

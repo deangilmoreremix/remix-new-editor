@@ -1509,23 +1509,53 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setPreviewApproved(false)
   }, [source?.id, source])
 
-  // Persist current reusable assets to saved client library whenever they change.
+  // Persist the job's reusable assets to the selected client's saved library.
   //
-  // remix-new-editor: merge the job's assets INTO the saved library instead of
-  // replacing it. `assets` starts empty on load and is reset whenever a new
-  // source opens, while the selected client is kept, so replacing would wipe
-  // the client's saved identities, logos and products. Saved entries are only
-  // dropped through the explicit actions (removeSavedAsset, deleteSavedClient).
+  // remix-new-editor: only what CHANGED in the job is written, and only for the
+  // client it changed under.
+  //  - `assets` starts empty on load and is reset when a new source opens while
+  //    the selected client is kept, so writing the whole job would wipe (or,
+  //    merged, rewrite) the client's library: changes are merged INTO it.
+  //  - Picking another saved client leaves the job's assets as they are; that
+  //    alone must never copy client A's assets (and primaries) into client B.
+  //    A client switch therefore only re-baselines; nothing is written.
+  // Saved entries are only dropped by the explicit actions (removeSavedAsset,
+  // deleteSavedClient).
+  const lastPersistedRef = useRef<{ clientId: string; assets: ClientAssetLibrary } | null>(null)
   useEffect(() => {
-    if (!selectedClientId) return
-    const library = mergeIntoClientLibrary(loadClientAssets(selectedClientId), {
+    if (!selectedClientId) {
+      lastPersistedRef.current = null
+      return
+    }
+    const current: ClientAssetLibrary = {
       identities: assets.identities,
       primaryIdentity: assets.primaryIdentity,
       logos: assets.logos,
       primaryLogo: assets.primaryLogo,
       products: assets.products,
       brandReferences: assets.brandReferences,
-    })
+    }
+    const last = lastPersistedRef.current
+    lastPersistedRef.current = { clientId: selectedClientId, assets: current }
+    if (!last || last.clientId !== selectedClientId) return
+
+    const changed = (now: PersonalizationAsset[], before: PersonalizationAsset[]) => {
+      const seen = new Set(before)
+      return now.filter((asset) => !seen.has(asset))
+    }
+    const delta: ClientAssetLibrary = {
+      identities: changed(current.identities, last.assets.identities),
+      primaryIdentity: current.primaryIdentity !== last.assets.primaryIdentity ? current.primaryIdentity : null,
+      logos: changed(current.logos, last.assets.logos),
+      primaryLogo: current.primaryLogo !== last.assets.primaryLogo ? current.primaryLogo : null,
+      products: changed(current.products, last.assets.products),
+      brandReferences: changed(current.brandReferences, last.assets.brandReferences),
+    }
+    const nothing =
+      !delta.identities.length && !delta.logos.length && !delta.products.length && !delta.brandReferences.length &&
+      !delta.primaryIdentity && !delta.primaryLogo
+    if (nothing) return
+    const library = mergeIntoClientLibrary(loadClientAssets(selectedClientId), delta)
     saveClientAssets(selectedClientId, library)
     setSavedClientAssets(library)
   }, [
@@ -2101,6 +2131,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   const closePersonalize = useCallback(() => {
     // Invalidate any restore still loading for the session being closed.
     restoreSessionRef.current += 1
+    // A branded render still running for the closing session stops too.
+    cancelActiveExport()
     // Reopening the same source must reset the form again: the personalizer
     // always opens empty, with the last project offered rather than kept.
     resetSourceIdRef.current = undefined
@@ -2153,6 +2185,18 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         saved = saveClientRecord({ ...partial, id: selectedClientId } as ClientProfile)
       } else {
         saved = createClient(partial)
+        // A brand-new client takes the assets already in the job; switching to
+        // an existing client never copies anything (see the persist effect).
+        const library = mergeIntoClientLibrary(loadClientAssets(saved.id), {
+          identities: assets.identities,
+          primaryIdentity: assets.primaryIdentity,
+          logos: assets.logos,
+          primaryLogo: assets.primaryLogo,
+          products: assets.products,
+          brandReferences: assets.brandReferences,
+        })
+        saveClientAssets(saved.id, library)
+        setSavedClientAssets(library)
       }
       setClients(loadClients())
       setSelectedClientId(saved.id)
@@ -2161,7 +2205,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     } catch {
       return null
     }
-  }, [clientForm, selectedClientId, clients])
+  }, [clientForm, selectedClientId, clients, assets])
 
   const updateClient = useCallback((client: ClientProfile) => {
     saveClientRecord(client)
@@ -3856,6 +3900,11 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setVisionStatus('idle')
     setDiscoveryStatus('discovering')
 
+    // A closed modal must not receive this website's results: the provider
+    // stays mounted across routes and the next business reuses its state.
+    const session = restoreSessionRef.current
+    const stale = () => restoreSessionRef.current !== session
+
     try {
       const res = await fetch('/api/personalization/discover-assets', {
         method: 'POST',
@@ -3864,6 +3913,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         credentials: 'same-origin',
       })
 
+      if (stale()) return
+
       if (!res.ok) {
         let data: Record<string, unknown>
         try {
@@ -3871,6 +3922,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         } catch {
           data = {}
         }
+        if (stale()) return
         const status = res.status
         if (status === 401) {
           throw new Error('Authentication required. Please sign in to continue.')
@@ -3882,6 +3934,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       }
 
       const data = await res.json()
+      if (stale()) return
       const discoveredAssets: DiscoveredAsset[] = Array.isArray(data?.discoveredAssets) ? data.discoveredAssets : []
       const providerUsed = typeof data?.providerUsed === 'string' ? data.providerUsed : 'UNKNOWN'
       const jobId = typeof data?.jobId === 'string' ? data.jobId : null
@@ -3907,12 +3960,14 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         const pollStatus = async (): Promise<void> => {
           while (pollCount < maxPolls) {
             await new Promise((resolve) => setTimeout(resolve, pollInterval))
+            if (stale()) return
             pollCount++
 
             try {
               const statusRes = await fetch(`/api/personalization/discover-assets/status?jobId=${encodeURIComponent(jobId)}`, {
                 credentials: 'same-origin',
               })
+              if (stale()) return
 
               if (!statusRes.ok) {
                 let statusData: Record<string, unknown>
@@ -3925,6 +3980,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
               }
 
               const statusData = await statusRes.json()
+              if (stale()) return
               const jobStatus = typeof statusData?.status === 'string' ? statusData.status : 'unknown'
 
               if (jobStatus === 'complete') {
@@ -3976,6 +4032,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
               // Still running; continue polling
             } catch {
+              if (stale()) return
               setDiscoveryError('Failed to check discovery status. Please try again.')
               setDiscoveryStatus('idle')
               return
@@ -4007,6 +4064,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       setDiscoveryStatus('reviewing')
       console.log(`[discovery] completed via ${providerUsed}: ${discoveredAssets.length} assets`)
     } catch (error) {
+      if (stale()) return
       setDiscoveryError(error instanceof Error ? error.message : 'Discovery failed')
       setDiscoveryStatus('idle')
     }
@@ -4716,13 +4774,20 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setResult(null)
     setResultTab('prompt')
 
+    // A render started in one modal session must never report into the next:
+    // closePersonalize() moves restoreSessionRef on (and cancels the export).
+    const session = restoreSessionRef.current
+    const stale = () => restoreSessionRef.current !== session
+
     try {
       // Loaded lazily so the renderer never lands in the main bundle.
       const { exportPersonalizedVideo, downloadWebExportBlob } = await import('./webExport')
+      if (stale()) return
 
       const exported = await exportPersonalizedVideo({
         inputProps,
         onProgress: (progress) => {
+          if (stale()) return
           // Real render progress from the web renderer, mapped into the
           // existing generation state (10..95%) so the UI stays a plain bar.
           const percent = Math.round(Math.min(1, Math.max(0, progress)) * 100)
@@ -4734,6 +4799,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
           }))
         },
       })
+
+      if (stale()) return
 
       if (!exported.ok) {
         if (exported.reason === 'cancelled') {
@@ -4788,6 +4855,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       // hand-off) and, when a return destination was requested, to that studio.
       completeRun(brandedResult, promptState.edited || promptState.personalized || promptState.original)
     } catch (error) {
+      if (stale()) return
       setGeneration({
         ...EMPTY_GENERATION_STATE,
         status: 'error',
@@ -4876,14 +4944,34 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
   // ── Result actions ─────────────────────────────────────────────────────────
 
-  const editInImageStudio = useCallback(() => {
+  const editInImageStudio = useCallback(async () => {
     if (!lastResultRef.current || !lastProjectRef.current || lastResultRef.current.type !== 'image') return
     const result = lastResultRef.current
     const project = lastProjectRef.current
     const prompt = result.prompt || project.personalizedPrompt || project.source.originalPrompt || ''
-    const safeUrl = result.url && !result.url.startsWith('blob:') ? result.url : (project.source.sourceMedia && !project.source.sourceMedia.startsWith('blob:') ? project.source.sourceMedia : null)
+    let safeUrl = result.url && !result.url.startsWith('blob:') ? result.url : (project.source.sourceMedia && !project.source.sourceMedia.startsWith('blob:') ? project.source.sourceMedia : null)
 
     if (!safeUrl) return
+
+    // A generated image can come back as a base64 data URL. The studios only
+    // accept http(s) references, so store the bytes and hand off that URL.
+    if (safeUrl.startsWith('data:')) {
+      try {
+        const match = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(safeUrl)
+        if (!match) return
+        const type = match[1] || 'image/png'
+        const raw = match[2] ? atob(match[3]) : decodeURIComponent(match[3])
+        const bytes = new Uint8Array(raw.length)
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i)
+        const ext = type === 'image/jpeg' ? 'jpg' : type === 'image/webp' ? 'webp' : 'png'
+        const file = new File([bytes], `personalized-image.${ext}`, { type })
+        const { url } = await uploadPersonalizationAsset(apiKey, { file })
+        if (!url) return
+        safeUrl = url
+      } catch {
+        return
+      }
+    }
 
     const handoff = {
       version: 1 as const,
@@ -4909,7 +4997,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
     closePersonalize()
     router.push('/studio/image')
-  }, [closePersonalize, router])
+  }, [apiKey, closePersonalize, router])
 
   const editInVideoStudio = useCallback(() => {
     if (!lastResultRef.current || !lastProjectRef.current || lastResultRef.current.type !== 'video') return
@@ -4920,7 +5008,9 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     const referenceImageUrl = getGenerationAssetUrl(project.assets.primaryIdentity)
     const firstFrameUrl = getGenerationAssetUrl(project.assets.firstFrame)
 
-    if (!videoUrl || !referenceImageUrl) return
+    // A replacement identity is optional (Recreate mode has none), so only the
+    // finished video is required; the studio opens with whichever reference exists.
+    if (!videoUrl) return
 
     const handoff = {
       version: 1 as const,
@@ -4930,7 +5020,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       aspectRatio: (project.source.aspectRatio as '16:9' | '9:16' | '1:1' | null) || '16:9',
       episodeDuration: project.source.duration || 0,
       videoUrl,
-      referenceImageUrl,
+      referenceImageUrl: referenceImageUrl || firstFrameUrl || null,
       characterNames: project.assets.identities.map((i) => i.name).filter(Boolean),
       shots: prompt
         ? [{ scene: project.source.title || 'Personalized', prompt, duration: project.source.duration || 0, characterNames: [] }]

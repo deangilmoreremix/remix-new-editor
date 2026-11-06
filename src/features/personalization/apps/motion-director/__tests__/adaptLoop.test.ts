@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { __setAdaptedCodeEnabledForTests } from '../lib/shotAdapter';
+import { describe, expect, it, vi, beforeAll, afterAll } from 'vitest';
 import { MOTION_TEMPLATES } from '../../../data/motionRecipeCatalog';
 import { planToProject } from '../lib/buildFilm';
 import type { DirectorPlan } from '../lib/directorPlan';
 import type { AdaptRequest } from '../lib/directorClient';
 import { adaptFilm, adaptShot, adaptTargets, stillFrames, type AdaptDeps } from '../lib/adaptLoop';
+
+// These tests exercise adapted code, which is opt-in (lib/adaptedPolicy.ts).
+beforeAll(() => { vi.stubEnv('VITE_MOTION_ALLOW_ADAPTED_CODE', 'true'); });
+afterAll(() => { vi.unstubAllEnvs(); });
 
 const palette = { background: '#101018', text: '#ffffff', accent: '#8b6bff' };
 const id = (c: string) => MOTION_TEMPLATES.find((t) => t.componentName === c)!.id;
@@ -30,10 +33,6 @@ const deps = (over: Partial<AdaptDeps> = {}): AdaptDeps => ({
   reference: vi.fn(async () => ['data:image/jpeg;base64,REF']),
   ...over,
 });
-
-// Adapted code is off in the app (see lib/shotAdapter); these tests exercise the machinery with it on.
-beforeAll(() => __setAdaptedCodeEnabledForTests(true));
-afterAll(() => __setAdaptedCodeEnabledForTests(false));
 
 describe('adapting shots', () => {
   it('targets shots that draw sample screens first and skips title cards', () => {

@@ -86,6 +86,8 @@ const probeDuration = (url: string, kind: MediaKind): Promise<number | null> =>
       done(Number.isFinite(d) && d > 0 ? d : null);
     };
     el.onerror = () => done(null);
+    // metadata 迟迟不来也不能卡住落轨
+    setTimeout(() => done(null), 4000);
     el.src = url;
   });
 
@@ -135,9 +137,11 @@ export const prepareMedia = (files: File[]): MediaAttachment[] => {
       size: file.size ?? 0,
     };
     out.push(attachment);
-    void probeDuration(attachment.url, kind).then((sec) => {
+    const probe = probeDuration(attachment.url, kind).then((sec) => {
       if (sec) attachment.durationSec = sec;
     });
+    // 不可枚举：避免被 JSON 序列化 / 展开
+    Object.defineProperty(attachment, "ready", { value: probe, enumerable: false });
   }
   return out;
 };
@@ -159,6 +163,17 @@ export const attachMediaFiles = (
     if (hit) at = hit.clip.start + hit.clip.duration;
   }
   return attachments;
+};
+
+/** 等所有素材的时长探测完成（失败也放行），再落进当前工程，避免视频/音频用兜底时长 */
+export const attachWhenReady = async (
+  attachments: MediaAttachment[],
+  opts?: { trackId?: string; at?: number },
+): Promise<void> => {
+  await Promise.all(
+    attachments.map((a) => (a as MediaAttachment & { ready?: Promise<void> }).ready ?? Promise.resolve()),
+  );
+  attachMediaAttachments(attachments, opts);
 };
 
 /** 已准备好的素材（object URL 就绪）落进当前工程 */

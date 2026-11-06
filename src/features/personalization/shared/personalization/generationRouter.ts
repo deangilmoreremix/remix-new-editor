@@ -21,6 +21,7 @@ import {
   getV2VModelById,
   getRecastModelById,
   getVideoModelById,
+  getI2VModelById,
   getI2IModelById,
 } from '@ohb/packages/studio/src/models.js'
 import {
@@ -375,10 +376,21 @@ async function handleVideoGeneration({
 
     onProgress?.(20, 'Submitting video generation...')
     const directInputs = resolved.directInputs
-    const imageUrl = directInputs.image_url as string | undefined
     const videoUrl = directInputs.video_url as string | undefined
+    // remix-new-editor: an image-to-video model (e.g. seedance-2-i2v) lives only in the I2V
+    // catalog, so generateVideo() would send its raw id as the endpoint and drop the start
+    // image. Such a model always goes through generateI2V, even when the source is a video
+    // (the resolver then supplies video_url): its start image is the supplied image, else the
+    // first frame, else the source's poster.
+    const i2vOnly = Boolean(getI2VModelById(videoModel)) && !getVideoModelById(videoModel) && !getV2VModelById(videoModel)
+    const imageUrl =
+      (directInputs.image_url as string | undefined) ||
+      (i2vOnly ? ((directInputs.first_image_url as string | undefined) || source.poster || undefined) : undefined)
+    if (i2vOnly && !imageUrl) {
+      throw new Error('This image-to-video model needs a start image. Add a first frame or choose a video model.')
+    }
 
-    if (imageUrl && !videoUrl) {
+    if (imageUrl && (!videoUrl || i2vOnly)) {
       try {
         const i2vResult = await generateI2V(apiKey, {
           model: videoModel,

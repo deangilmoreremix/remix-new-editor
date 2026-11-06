@@ -1170,6 +1170,50 @@ describe('DemoPersonalizeProvider generation flows', () => {
       expect(ctx.generation.status).toBe('complete')
     })
 
+    it('uploads a base64 result so Edit in Image Studio keeps the image', async () => {
+      authKeys.apiKey = ''
+      authKeys.openaiKey = 'sk-test-openai-key-1234567890'
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo='
+      ;(runGeneration as any).mockResolvedValue({ type: 'image', url: dataUrl, metadata: {} })
+      ;(applyPostProcessing as any).mockResolvedValue({ finalUrl: dataUrl, originalUrl: dataUrl, applied: [] })
+      ;(uploadPersonalizationAsset as any).mockResolvedValue({ url: 'https://cdn.example.com/personalized.png' })
+      localStorage.clear()
+
+      const ctx = await generateImage()
+      expect(ctx.generation.status).toBe('complete')
+      await act(async () => {
+        await ctx.editInImageStudio()
+      })
+
+      expect(uploadPersonalizationAsset).toHaveBeenCalled()
+      const { readHandoff } = await import('../../crossStudio')
+      expect(readHandoff('image')?.referenceImageUrl).toBe('https://cdn.example.com/personalized.png')
+    })
+
+    it('opens Video Studio after a recreate with no replacement identity', async () => {
+      authKeys.apiKey = 'test-key'
+      ;(runGeneration as any).mockResolvedValue({ type: 'video', url: 'https://example.com/v.mp4', metadata: {} })
+      ;(applyPostProcessing as any).mockResolvedValue({ finalUrl: 'https://example.com/v.mp4', originalUrl: 'https://example.com/v.mp4', applied: [] })
+      localStorage.clear()
+      await renderProvider()
+      const c = () => (window as any).__personalizationCtx
+      await act(async () => {
+        c().openPersonalize({ source: { ...imageSource, id: 'vid-1', mediaType: 'video', sourceMedia: 'https://example.com/src.mp4' } })
+      })
+      await act(async () => { await new Promise((r) => setTimeout(r, 50)) })
+      await act(async () => {
+        c().updateClientForm({ businessName: 'Test Co' })
+        c().setMode('recreate')
+      })
+      await act(async () => { await c().generate() })
+      await act(async () => { await new Promise((r) => setTimeout(r, 100)) })
+      expect(c().generation.status).toBe('complete')
+      await act(async () => { c().editInVideoStudio() })
+
+      const { readHandoff } = await import('../../crossStudio')
+      expect(readHandoff('video')?.videoUrl).toBe('https://example.com/v.mp4')
+    })
+
     it('says the OpenAI key is missing instead of doing nothing', async () => {
       authKeys.openaiKey = ''
       const ctx = await generateImage()
@@ -2093,6 +2137,38 @@ describe('DemoPersonalizeProvider zero-key discovery', () => {
 
     const legacyPollCalls = fetchCalls.filter((call) => call.url === '/api/personalization/discover-assets?jobId=test-job-123')
     expect(legacyPollCalls).toHaveLength(0)
+  })
+
+  it('drops a discovery poll that finishes after the modal was closed', async () => {
+    const { latest } = await renderProvider()
+    // @ts-ignore
+    global.fetch = vi.fn(async (url: string) => {
+      if (url.includes('/discover-assets/status?jobId=')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            status: 'complete',
+            result: { discoveredAssets: [{ id: '1', sourceUrl: 'https://old.example/logo.png', previewUrl: 'https://old.example/logo.png', category: 'logo', confidence: 80, selected: true, recommended: true, rejected: false }] },
+          }),
+        }
+      }
+      return {
+        ok: true,
+        status: 202,
+        json: async () => ({ ok: true, status: 'processing', jobId: 'old-job', browserQueued: true, discoveredAssets: [], providerUsed: 'SMARTVIDEO_STATIC' }),
+      }
+    })
+
+    await act(async () => {
+      latest().discoverAssets('https://old.example')
+    })
+    await waitForDiscoveryState(latest, (ctx) => ctx.discoveryStatus === 'discovering')
+    await act(async () => { latest().closePersonalize() })
+    await act(async () => { await new Promise((r) => setTimeout(r, 2600)) })
+
+    expect(latest().discoveredAssets).toHaveLength(0)
+    expect(latest().discoveryStatus).not.toBe('reviewing')
   })
 
   it('shows no-assets message only after background job completes with zero assets', async () => {

@@ -29,6 +29,8 @@ export interface ClipData {
 export interface TrackData {
   id: string;
   name: string;
+  /** Stable role, independent of the UI language the name was written in. */
+  role?: "music";
   hidden?: boolean;
   clips: ClipData[];
 }

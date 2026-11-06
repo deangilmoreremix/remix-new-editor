@@ -239,7 +239,17 @@ export const useStore = create<WorkbenchState>((set, get) => ({
     set((s) => {
       const session = s.sessions.find((ses) => ses.id === id);
       if (!session) return s;
+      // Keep edits made since the last autosave: snapshot the outgoing session first.
+      const sessions =
+        s.activeSessionId !== null && s.activeSessionId !== id
+          ? s.sessions.map((ses) =>
+              ses.id === s.activeSessionId
+                ? { ...ses, projectSnapshot: clone(s.project), updatedAt: new Date().toISOString() }
+                : ses,
+            )
+          : s.sessions;
       return {
+        sessions,
         project: session.projectSnapshot,
         activeSessionId: id,
         selectedClipId: null,
@@ -456,6 +466,10 @@ export const useStore = create<WorkbenchState>((set, get) => ({
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let snapshotDirty = false;
 
+/** `blob:` URL 只在当前页面存活，重载后即失效：落盘时清空（媒体卡对空 file 渲染为空） */
+export const dropBlobUrls = (key: string, value: unknown): unknown =>
+  typeof value === "string" && value.startsWith("blob:") ? "" : value;
+
 const flushSave = () => {
   saveTimer = undefined;
   const state = useStore.getState();
@@ -465,9 +479,9 @@ const flushSave = () => {
   }
   try {
     const current = useStore.getState();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(current.project));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(current.project, dropBlobUrls));
     // 会话连同 messages / recipeId 一起落盘
-    localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(current.sessions));
+    localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(current.sessions, dropBlobUrls));
   } catch {
     /* 存储满/隐私模式：忽略 */
   }

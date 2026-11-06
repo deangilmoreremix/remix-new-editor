@@ -589,6 +589,10 @@ const fill = (s: string, params?: Record<string, string | number>) =>
   params ? s.replace(/\{(\w+)\}/g, (m, k) => (k in params ? String(params[k]) : m)) : s;
 
 /** 界面文案（非组件代码也能用：读当前语言，不订阅） */
+/** The music bed: by role, or (older saved projects) by its name in any language. */
+export const isMusicTrack = (track: { name: string; role?: string }): boolean =>
+  track.role === "music" || Object.values(STRINGS).some((s) => s["track.music"] === track.name);
+
 export const t = (key: StringKey, params?: Record<string, string | number>): string =>
   fill(STRINGS[useLocale.getState().locale][key] ?? EN[key], params);
 
