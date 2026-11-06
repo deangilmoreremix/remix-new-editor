@@ -9,7 +9,7 @@ describe('cinegen function (AI Tools, BYOK)', () => {
   beforeEach(() => { post = vi.fn(); });
 
   it('keeps the four tools that work and rejects the rest', async () => {
-    expect(TOOLS).toEqual(['fill_gap', 'extend', 'element_create', 'shot_board']);
+    expect(TOOLS).toEqual(['fill_gap', 'extend', 'element_create', 'shot_board', 'generate']);
     for (const t of ['sam3_segment', 'layer_decompose', 'llm_chat', 'composition_plan', 'music_generation']) {
       expect((await submit(t, {}, post)).statusCode).toBe(400);
     }
@@ -34,6 +34,10 @@ describe('cinegen function (AI Tools, BYOK)', () => {
     expect(buildToolRequest('element_create', { prompt: ' ' }).error).toBeTruthy();
     expect(buildToolRequest('element_create', { prompt: 'a cup', aspect_ratio: '9:16' }).payload).toMatchObject({ model: 'flux-dev', aspect_ratio: '9:16' });
     expect(buildToolRequest('shot_board', { prompt: 'launch', count: 50, aspect_ratio: 'bogus' }).payload).toMatchObject({ n: 8, aspect_ratio: '16:9' });
+    const vid = buildToolRequest('generate', { kind: 'video', prompt: 'forest', model: 'nope', duration: 99, negative_prompt: 'blur' });
+    expect(vid).toMatchObject({ endpoint: '/seedance-lite-t2v', payload: { duration: 12, negative_prompt: 'blur' } });
+    expect(buildToolRequest('generate', { kind: 'image', prompt: 'forest' })).toMatchObject({ endpoint: '/generate-image' });
+    expect(buildToolRequest('generate', { kind: 'video' }).error).toMatch(/Describe/);
   });
 
   it('submits on the user\'s key and returns a request id to poll', async () => {

@@ -4,10 +4,10 @@
  * like Smart Speech (the .speech-modal styles) and works through services
  * the page provides, so it can be tested without a browser video stack.
  */
-import { AI_TOOL_INFO, TIMELINE_AI_TOOLS, NEED_KEY_MESSAGE } from '../aiToolsClient.js';
+import { AI_TOOL_INFO, TIMELINE_AI_TOOLS, NEED_KEY_MESSAGE, GENERATE_VIDEO_MODELS } from '../aiToolsClient.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const TOOL_ORDER = [TIMELINE_AI_TOOLS.FILL_GAP, TIMELINE_AI_TOOLS.EXTEND, TIMELINE_AI_TOOLS.ELEMENT_CREATE, TIMELINE_AI_TOOLS.SHOT_BOARD];
+const TOOL_ORDER = [TIMELINE_AI_TOOLS.FILL_GAP, TIMELINE_AI_TOOLS.EXTEND, TIMELINE_AI_TOOLS.ELEMENT_CREATE, TIMELINE_AI_TOOLS.SHOT_BOARD, TIMELINE_AI_TOOLS.GENERATE];
 const ASPECTS = ['16:9', '9:16', '1:1', '4:3', '3:4'];
 const STYLES = ['cinematic', 'photoreal', 'illustration', 'anime', 'minimal', 'documentary'];
 
@@ -16,6 +16,7 @@ export function summarizeResult(result) {
   if (!result) return '';
   if (result.success === false) return result.error || 'Failed';
   if (result.tool === 'shot_board') return `${result.count || result.urls?.length || 0} shot${(result.count || result.urls?.length) === 1 ? '' : 's'}`;
+  if (result.tool === 'generate') return result.kind === 'image' ? 'Generated image' : `${result.duration || 5}s generated clip`;
   if (result.tool === 'fill_gap') return `${result.duration || 5}s bridging clip`;
   if (result.tool === 'extend') return `${result.addedDuration || 5}s extension`;
   return result.element?.name || 'Image';
@@ -36,7 +37,7 @@ export function summarizeResult(result) {
 export function openAiToolsWindow(s, { tool = TIMELINE_AI_TOOLS.FILL_GAP, mount = document.body } = {}) {
   const ui = {
     tool: TOOL_ORDER.includes(tool) ? tool : TIMELINE_AI_TOOLS.FILL_GAP,
-    prompt: '', duration: 5, aspect: '16:9', style: 'cinematic', count: 4,
+    prompt: '', negative: '', kind: 'video', model: GENERATE_VIDEO_MODELS[0][0], duration: 5, aspect: '16:9', style: 'cinematic', count: 4,
     frames: { first: null, last: null, source: null }, // { url, note }
     busy: null, error: '', result: null, controller: null,
   };
@@ -73,6 +74,14 @@ export function openAiToolsWindow(s, { tool = TIMELINE_AI_TOOLS.FILL_GAP, mount 
     if (t === 'extend') return `<p class="speech-modal__hint">${esc(AI_TOOL_INFO.extend.description)}</p>
       <div class="aitool-frames">${frameSlot('source', 'Last frame of the clip', 'The frame the new footage continues from.', [['end-of-selected', 'Use the end of the selected clip', !sel]])}</div>
       ${prompt('What happens next, e.g. the person turns and smiles')}${range('duration', 'Added length', 1, 15)}`;
+    if (t === 'generate') return `<p class="speech-modal__hint">${esc(AI_TOOL_INFO.generate.description)}</p>${prompt('e.g. a drone shot over a misty forest at sunrise')}
+      <label class="speech-modal__field speech-modal__field--text"><span>Leave out (optional)</span><input type="text" data-k="negative" value="${esc(ui.negative)}" placeholder="blurry, text, watermark"/></label>
+      <div class="speech-modal__sliders">
+        <label class="speech-modal__field"><span>Make a</span><select data-k="kind"><option value="video"${ui.kind === 'video' ? ' selected' : ''}>Video clip</option><option value="image"${ui.kind === 'image' ? ' selected' : ''}>Image</option></select></label>
+        ${ui.kind === 'video' ? `<label class="speech-modal__field"><span>Model</span><select data-k="model">${GENERATE_VIDEO_MODELS.map(([id, name]) => `<option value="${id}"${id === ui.model ? ' selected' : ''}>${esc(name)}</option>`).join('')}</select></label>` : ''}
+        <label class="speech-modal__field"><span>Shape</span><select data-k="aspect">${ASPECTS.map((a) => `<option${a === ui.aspect ? ' selected' : ''}>${a}</option>`).join('')}</select></label>
+        <label class="speech-modal__field"><span>Style</span><select data-k="style">${STYLES.map((a) => `<option${a === ui.style ? ' selected' : ''}>${a}</option>`).join('')}</select></label>
+      </div>${ui.kind === 'video' ? range('duration', 'Length', 3, 12) : ''}`;
     if (t === 'element_create') return `<p class="speech-modal__hint">${esc(AI_TOOL_INFO.element_create.description)}</p>${prompt('e.g. a glass of iced coffee on a wooden table, soft light')}
       <label class="speech-modal__field"><span>Shape</span><select data-k="aspect">${ASPECTS.map((a) => `<option${a === ui.aspect ? ' selected' : ''}>${a}</option>`).join('')}</select></label>`;
     return `<p class="speech-modal__hint">${esc(AI_TOOL_INFO.shot_board.description)}</p>${prompt('e.g. a founder launches a new product in a busy workshop')}
@@ -88,10 +97,10 @@ export function openAiToolsWindow(s, { tool = TIMELINE_AI_TOOLS.FILL_GAP, mount 
     if (!r || r.success === false) return '';
     if (r.urls) return `<div class="aitool-grid">${r.urls.map((u, i) => `<figure class="aitool-shot"><img src="${esc(u)}" alt="Shot ${i + 1}"/><button type="button" class="speech-modal__ghost" data-add="${i}">Add to timeline</button></figure>`).join('')}</div>
       <button type="button" class="speech-modal__btn" data-add="all">Add all ${r.urls.length} to the timeline</button>`;
-    const video = r.tool === 'fill_gap' || r.tool === 'extend';
+    const video = r.tool === 'fill_gap' || r.tool === 'extend' || (r.tool === 'generate' && r.kind !== 'image');
     return `<div class="aitool-result">${video ? `<video src="${esc(r.url)}" controls muted playsinline></video>` : `<img src="${esc(r.url)}" alt="Result"/>`}
       <div class="aitool-result-actions"><button type="button" class="speech-modal__btn speech-modal__btn--primary" data-add="0">Add to timeline</button>
-      ${r.tool === 'element_create' ? '<button type="button" class="speech-modal__btn" data-lib="1">Save to media library</button>' : ''}</div></div>`;
+      ${r.tool === 'element_create' || (r.tool === 'generate' && r.kind === 'image') ? '<button type="button" class="speech-modal__btn" data-lib="1">Save to media library</button>' : ''}</div></div>`;
   }
 
   function draw() {
@@ -113,7 +122,7 @@ export function openAiToolsWindow(s, { tool = TIMELINE_AI_TOOLS.FILL_GAP, mount 
         </div></div>
         <footer class="speech-modal__foot">
           ${ui.busy ? '<button type="button" class="speech-modal__btn" data-act="stop">Stop</button>' : ''}
-          <button type="button" class="speech-modal__btn speech-modal__btn--primary" data-act="generate"${ui.busy ? ' disabled' : ''}>${info.icon} ${ui.tool === 'shot_board' ? 'Make shot board' : ui.tool === 'element_create' ? 'Make image' : 'Make footage'}</button>
+          <button type="button" class="speech-modal__btn speech-modal__btn--primary" data-act="generate"${ui.busy ? ' disabled' : ''}>${info.icon} ${ui.tool === 'shot_board' ? 'Make shot board' : ui.tool === 'element_create' ? 'Make image' : ui.tool === 'generate' ? 'Generate' : 'Make footage'}</button>
         </footer>
       </div>`;
     if (focus) {
@@ -126,6 +135,7 @@ export function openAiToolsWindow(s, { tool = TIMELINE_AI_TOOLS.FILL_GAP, mount 
     const f = ui.frames;
     if (ui.tool === 'fill_gap') return { firstFrameUrl: f.first?.url, lastFrameUrl: f.last?.url, prompt: ui.prompt, duration: ui.duration };
     if (ui.tool === 'extend') return { sourceFrameUrl: f.source?.url, prompt: ui.prompt, addedDuration: ui.duration };
+    if (ui.tool === 'generate') return { kind: ui.kind, prompt: ui.prompt, negative_prompt: ui.negative, aspect_ratio: ui.aspect, style: ui.style, model: ui.model, duration: ui.duration };
     if (ui.tool === 'element_create') return { prompt: ui.prompt, aspect_ratio: ui.aspect };
     return { prompt: ui.prompt, style: ui.style, aspect_ratio: ui.aspect, count: ui.count };
   }
@@ -133,7 +143,7 @@ export function openAiToolsWindow(s, { tool = TIMELINE_AI_TOOLS.FILL_GAP, mount 
   function missingInput() {
     if (ui.tool === 'fill_gap' && !ui.frames.first) return 'Add the start frame first.';
     if (ui.tool === 'extend' && !ui.frames.source) return 'Add the last frame of the clip first.';
-    if ((ui.tool === 'element_create' || ui.tool === 'shot_board') && !ui.prompt.trim()) return ui.tool === 'shot_board' ? 'Describe the story to storyboard.' : 'Describe the image to make.';
+    if ((ui.tool === 'element_create' || ui.tool === 'shot_board' || ui.tool === 'generate') && !ui.prompt.trim()) return ui.tool === 'shot_board' ? 'Describe the story to storyboard.' : ui.tool === 'generate' ? 'Describe what to generate.' : 'Describe the image to make.';
     return '';
   }
 
@@ -176,8 +186,8 @@ export function openAiToolsWindow(s, { tool = TIMELINE_AI_TOOLS.FILL_GAP, mount 
       s.toast?.(which === 'all' ? 'Shots added to the timeline' : 'Shot added to the timeline', 'success');
       return;
     }
-    const video = r.tool === 'fill_gap' || r.tool === 'extend';
-    s.addToTimeline({ kind: video ? 'video' : 'image', src: r.url, name: AI_TOOL_INFO[r.tool].label, durationSec: video ? (r.duration || r.addedDuration || 5) : 5, after: video ? 'selected' : undefined });
+    const video = r.tool === 'fill_gap' || r.tool === 'extend' || (r.tool === 'generate' && r.kind !== 'image');
+    s.addToTimeline({ kind: video ? 'video' : 'image', src: r.url, name: AI_TOOL_INFO[r.tool].label, durationSec: video ? (r.duration || r.addedDuration || 5) : 5, after: video && r.tool !== 'generate' ? 'selected' : undefined });
     s.toast?.('Added to the timeline', 'success');
   }
 
@@ -198,7 +208,8 @@ export function openAiToolsWindow(s, { tool = TIMELINE_AI_TOOLS.FILL_GAP, mount 
   });
   backdrop.addEventListener('change', async (e) => {
     const k = e.target.dataset?.k;
-    if (k === 'aspect' || k === 'style') { ui[k] = e.target.value; return; }
+    if (k === 'aspect' || k === 'style' || k === 'model') { ui[k] = e.target.value; return; }
+    if (k === 'kind') { ui.kind = e.target.value; draw(); return; }
     const slot = e.target.dataset?.upload;
     if (slot && e.target.files?.[0]) {
       ui.busy = 'Uploading…'; ui.error = ''; draw();
