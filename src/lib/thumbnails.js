@@ -378,6 +378,10 @@ const TOOL_THUMBNAILS = {
   'ai-image-face-swap': '/thumbnails/tools/face-swap.webp',
   'ai-product-shot': '/thumbnails/tools/product-shot.webp',
   'ai-ghibli-style': '/thumbnails/tools/ghibli-style.webp',
+  // New Edit Studio cards. Reuse existing artwork until dedicated images exist.
+  'image-effects': '/thumbnails/tools/ghibli-style.webp',
+  'qwen-image-edit-plus-lora': '/thumbnails/tools/reframe.webp',
+  'ideogram-character': '/thumbnails/tools/face-swap.webp',
 };
 
 const CATEGORY_THUMBNAILS = {
