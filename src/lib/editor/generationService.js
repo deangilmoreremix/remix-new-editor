@@ -15,10 +15,6 @@ const DEFAULT_CONFIG = {
     baseUrl: 'http://localhost:8000',
     timeout: 300000, // 5 minutes
   },
-  fal: {
-    baseUrl: 'https://queue.fal.run',
-    timeout: 300000,
-  },
   seedance: {
     baseUrl: 'https://api.seedance.com',
     timeout: 300000,
@@ -229,82 +225,6 @@ class LtxProvider {
 }
 
 // ============================================================================
-// FAL PROVIDER (Alternative)
-// ============================================================================
-
-class FalProvider {
-  constructor(config = {}) {
-    this.config = { ...DEFAULT_CONFIG.fal, ...config };
-    this.baseUrl = this.config.baseUrl;
-    this.timeout = this.config.timeout;
-    this.apiKey = config.apiKey || '';
-  }
-
-  async submit(request) {
-    const generationId = `fal_${Date.now()}`;
-
-    try {
-      const response = await fetch(`${this.baseUrl}/ltx-production/t2v`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Key ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          prompt: request.prompt,
-          negative_prompt: request.negativePrompt,
-          duration: Math.min(request.duration || 5, 10),
-          aspect_ratio: request.aspectRatio || '16:9',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`FAL API error: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return {
-        generationId,
-        status: 'queued',
-        previewUrl: result.request_id,
-        metadata: result,
-      };
-    } catch (error) {
-      return {
-        generationId,
-        status: 'failed',
-        error: error.message,
-      };
-    }
-  }
-
-  async poll(generationId) {
-    try {
-      const response = await fetch(`${this.baseUrl}/ltx-production/requests/${generationId}`, {
-        headers: {
-          'Authorization': `Key ${this.apiKey}`,
-        },
-      });
-
-      const result = await response.json();
-
-      return {
-        generationId,
-        status: result.status === 'COMPLETED' ? 'completed' : result.status === 'FAILED' ? 'failed' : 'processing',
-        previewUrl: result.output?.video_url || null,
-        error: result.error || null,
-      };
-    } catch (error) {
-      return {
-        generationId,
-        status: 'failed',
-        error: error.message,
-      };
-    }
-  }
-}
-
-// ============================================================================
 // GENERATION SERVICE
 // ============================================================================
 
@@ -316,7 +236,6 @@ class GenerationService {
   constructor() {
     this.providers = {
       ltx: new LtxProvider(),
-      fal: new FalProvider(),
     };
     this.activeJobs = new Map();
     this.listeners = new Map();
@@ -324,14 +243,12 @@ class GenerationService {
 
   /**
    * Set provider configuration
-   * @param {'ltx' | 'fal'} name
+   * @param {'ltx'} name
    * @param {Object} config
    */
   configureProvider(name, config) {
     if (name === 'ltx') {
       this.providers.ltx = new LtxProvider(config);
-    } else if (name === 'fal') {
-      this.providers.fal = new FalProvider(config);
     }
   }
 
@@ -346,7 +263,7 @@ class GenerationService {
   /**
    * Submit a generation job
    * @param {GenerationRequest} request
-   * @param {'ltx' | 'fal'} [provider]
+   * @param {'ltx'} [provider]
    * @returns {Promise<GenerationResult>}
    */
   async submit(request, provider = 'ltx') {
@@ -616,5 +533,5 @@ export function createBrollRequest(prompt, options = {}) {
 // ============================================================================
 
 export const generationService = new GenerationService();
-export { GenerationService, LtxProvider, FalProvider };
+export { GenerationService, LtxProvider };
 export default generationService;

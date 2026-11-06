@@ -631,7 +631,14 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // shortcut appeared to do nothing. Fixed by resolving the stored token
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', '1d2e713e134e8ed9f97a2b826d3a92a55fb7d3d868069bc66f55f54ae537bd0a'],
+    // Re-recorded deliberately again for the Timeline AI work: the "Free AI"
+    // (on-device Transformers.js) and "AI generate" (MuAPI) clip-editor
+    // sections, the Free AI rail panel, and Fill Gap / Extend shortcuts that
+    // used the undefined CINEGEN_TOOLS.GAP_FILL now open the working MuAPI
+    // flow. New files are stored through the page's existing
+    // uploadFileToStorage import; no upload-pipeline call site changed
+    // (section 2 import-surface guard still passes).
+    ['src/components/TimelineEditorPage.jsx', '8206d62583df51ca5af6fc17a7c98115e99dd3d7a59806beb3d311d63b38209e'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],

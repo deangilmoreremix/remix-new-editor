@@ -90,6 +90,14 @@
   status = 200
   force = true
 
+# Timeline Editor paid AI (MuAPI only, user's own key): Fill Gap, Extend,
+# layers, watermark removal. Submit + status polling.
+[[redirects]]
+  from = "/api/timeline-ai"
+  to = "/.netlify/functions/timeline-ai"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/watch-voice"
   to = "/.netlify/functions/watch-voice"

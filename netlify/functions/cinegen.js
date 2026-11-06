@@ -18,6 +18,7 @@ import {
   providerProxyPlayback,
   providerLayerDecompose,
 } from './cinegenProviders.js';
+import { userMuapiKey } from './_shared/byok.js';
 
 const ALLOWED_TOOLS = new Set([
   'gap_fill',
@@ -50,7 +51,7 @@ function corsHeaders() {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-MuAPI-Key',
     'Access-Control-Max-Age': '86400',
   };
 }
@@ -96,7 +97,9 @@ export async function handler(event) {
 
   const body = parseBody(event);
   const tool = body.tool || body.params?.tool;
-  const params = body.params || body;
+  // The caller's own MuAPI key (BYOK, X-MuAPI-Key); never read from the body.
+  const { userKey: _ignored, ...rawParams } = body.params || body;
+  const params = { ...rawParams, userKey: userMuapiKey(event.headers) || undefined };
 
   if (!tool || !ALLOWED_TOOLS.has(tool)) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Unsupported tool', allowedTools: Array.from(ALLOWED_TOOLS) }) };

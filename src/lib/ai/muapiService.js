@@ -4,10 +4,11 @@
  * This module is server-side only. It reads secrets from environment
  * variables and must never be imported from client bundles.
  *
- * Shape mirrors `src/lib/ai/sam3Service.js` so the editor's AI-tool UI
- * can treat all providers uniformly: submit → poll → result, with
- * consistent error handling and loading state.
+ * The editor's AI-tool UI treats it uniformly: submit → poll → result,
+ * with consistent error handling and loading state.
  */
+
+import { buildFirstLastFramePayload } from '../muapi/frameModels.js';
 
 const MUAPI_BASE_URL = 'https://api.muapi.ai/api/v1';
 
@@ -158,19 +159,11 @@ export async function extendMusic({ sourceAudioUrl, duration, signal } = {}) {
  * @param {AbortSignal} [params.signal]
  * @returns {Promise<Object>}
  */
-export async function generateVideoFromFrames({ firstFrameUrl, lastFrameUrl, prompt, model = 'seedance-2.5-first-last-frame', duration, signal } = {}) {
+export async function generateVideoFromFrames({ firstFrameUrl, lastFrameUrl, prompt, model, duration, signal } = {}) {
   if (!firstFrameUrl) throw new Error('firstFrameUrl is required');
-
-  const payload = {
-    model,
-    first_frame_url: firstFrameUrl,
-  };
-
-  if (lastFrameUrl) payload.last_frame_url = lastFrameUrl;
-  if (prompt) payload.prompt = prompt;
-  if (typeof duration === 'number') payload.duration = duration;
-
-  return submitAndWait({ endpoint: '/image-to-video', payload, signal });
+  // Each MuAPI model has its own endpoint and field names.
+  const { endpoint, payload } = buildFirstLastFramePayload({ model, firstFrameUrl, lastFrameUrl, prompt, duration });
+  return submitAndWait({ endpoint, payload, signal });
 }
 
 /**

@@ -427,7 +427,7 @@ function MediaLayer({ layer, seqFrom }) {
   if (layer.kind === 'video') {
     const kfVolume = layer.keyframes?.volume?.length ? valueAt(layer.keyframes.volume, t, 1) : 1;
     const volume = Math.max(0, Math.min(1, (layer.volume ?? 1) * kfVolume));
-    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%' }} />;
+    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%' }} />;
   }
   return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit }} />;
 }
@@ -450,7 +450,7 @@ export function AudioLayer({ layer }) {
   const kf = layer.keyframes?.volume;
   const base = Math.max(0, Math.min(1, layer.volume ?? 1));
   const volume = kf?.length ? (f) => Math.max(0, Math.min(1, base * valueAt(kf, f / fps, 1))) : base;
-  return <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} volume={volume} />;
+  return <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} />;
 }
 
 // ------------------------------------------------------------------ captions

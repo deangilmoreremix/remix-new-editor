@@ -172,12 +172,15 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
           : clip.src ? String(clip.src) : '';
       const volume = Math.max(0, Math.min(1, clip.volume ?? 1));
       const trimBefore = toFrame(Number(clip.trimIn ?? clip.sourceStart ?? 0));
+      // Playback speed (0.25–4×); omitted at normal speed so models stay unchanged.
+      const rate = Math.max(0.25, Math.min(4, Number(clip.playbackRate ?? clip.speed ?? 1) || 1));
+      const speed = Math.abs(rate - 1) > 1e-3 ? { playbackRate: rate } : {};
       if ((clip.type === 'audio' || isAudioTrack(track)) && clip.type !== 'video') {
-        if (src) audio.push({ ...base, kind: 'audio', src, trimBefore, volume: audible.has(track.id) ? volume : 0 });
+        if (src) audio.push({ ...base, kind: 'audio', src, trimBefore, ...speed, volume: audible.has(track.id) ? volume : 0 });
         return;
       }
       if (clip.type === 'video' && src) {
-        const layer = { ...base, kind: 'video', src, trimBefore, fit: clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
+        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, fit: clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
         layers.push(layer);
         if (isVideoTrack(track)) media.push(layer);
         return;

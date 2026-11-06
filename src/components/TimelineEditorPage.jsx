@@ -597,6 +597,10 @@ export function TimelineEditorPage() {
         <div class="card-title">🤖 AI Agent</div>
         <div id="aiAgentChat"></div>
       </aside>
+      <aside class="side-card" id="localAIPanel" hidden data-tooltip="Free AI - search footage, free voiceover and on-device models (runs in your browser)">
+        <div class="card-title">🧠 Free AI</div>
+        <div id="localAIHost"></div>
+      </aside>
       <aside class="side-card" id="cameraEffectsPanel" hidden>
         <div id="cameraEffectsContainer"></div>
         <div class="camera-effects-quick">
@@ -759,6 +763,7 @@ export function TimelineEditorPage() {
         ['🗣️', 'Smart Speech'],
         ['🎞️', 'Stock Media'],
         ['🤖', 'AI Agent'],
+        ['🧠', 'Free AI'],
         ['🔗', 'Share'],
         ['🎬', 'Scene Detector'],
         ['🎥', 'Camera FX'],
@@ -1147,11 +1152,11 @@ export function TimelineEditorPage() {
         switch (event.key.toLowerCase()) {
           case 'g':
             event.preventDefault();
-            runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }).then(updateCineGenResults);
+            openMuapiTool('fill_gap').then(updateCineGenResults);
             break;
           case 'e':
             event.preventDefault();
-            runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId }).then(updateCineGenResults);
+            openMuapiTool('extend').then(updateCineGenResults);
             break;
           case 'm':
             event.preventDefault();
@@ -2545,9 +2550,9 @@ export function TimelineEditorPage() {
       } else if (pill === 'Audio Sync') {
         syncSelectedAudio();
       } else if (pill === 'Fill Gap AI') {
-        runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }).then(updateCineGenResults);
+        openMuapiTool('fill_gap').then(updateCineGenResults);
       } else if (pill === 'Extend') {
-        runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId }).then(updateCineGenResults);
+        openMuapiTool('extend').then(updateCineGenResults);
       } else if (pill === 'Music Gen') {
         runCineGenTool('music_generation', { clipId: state.selectedClipId }).then(updateCineGenResults);
       } else if (pill === 'Elements') {
@@ -5432,6 +5437,14 @@ export function TimelineEditorPage() {
     var bgJobs = new Map();
     // eslint-disable-next-line no-var
     var activeBgPanel = null;
+    // eslint-disable-next-line no-var -- free (on-device) and MuAPI AI sections of the clip editor
+    var activeLocalAIPanel = null;
+    // eslint-disable-next-line no-var
+    var activeMuapiPanel = null;
+    // eslint-disable-next-line no-var -- which MuAPI tool to open next ('fill' | 'extend' | ...)
+    var pendingMuapiFocus = null;
+    // eslint-disable-next-line no-var
+    var localAIPanel = null;
     // eslint-disable-next-line no-var
     var editorClipId = null;
     const BG_REMOVAL_TYPES = new Set(['video', 'image', 'overlay-image']);
@@ -5589,7 +5602,114 @@ export function TimelineEditorPage() {
           return { filename };
         },
         confirm: (message) => Promise.resolve(window.confirm(message)),
+        /** Free on-device AI + MuAPI generation (src/lib/editor/ml, src/lib/editor/ai). */
+        aiEditor: () => localAIEditor(),
       };
+    }
+
+    // ---------------------------------------------------------------
+    // Free (on-device) and MuAPI AI: the editor contract used by
+    // src/lib/editor/ml/aiActions.js and src/lib/editor/ai/timelineMuapi.js.
+    function localAIEditor() {
+      const T = () => state.timelineSeconds || 60;
+      const toLeftWidth = (clip) => {
+        if (clip.start !== undefined && clip.end !== undefined) {
+          clip.left = (Number(clip.start) / T()) * 100;
+          clip.width = ((Number(clip.end) - Number(clip.start)) / T()) * 100;
+          delete clip.start;
+          delete clip.end;
+        }
+        return clip;
+      };
+      return {
+        timelineSeconds: T,
+        playheadSec,
+        clipStart: clipStartSec,
+        clipDuration: clipDurationSec,
+        setClipTimes(c, start, end) {
+          c.left = (start / T()) * 100;
+          c.width = ((end - start) / T()) * 100;
+          delete c.start;
+          delete c.end;
+        },
+        allClips,
+        assets: () => [...(state.assets || []), ...(state.mediaLibrary || [])],
+        getClip: (id) => allClips().find((c) => String(c.id) === String(id)) || null,
+        trackOf: (clip) => state.tracks.find((t) => (t.items || t.clips || []).some((c) => c.id === clip?.id)) || null,
+        ensureTrack: (name, type) => agentEditor().ensureTrack(name, type),
+        insertClip(clip, kind) {
+          return agentEditor().insertClip(clip, kind);
+        },
+        addToTrack(track, clip) {
+          const target = track || state.tracks[0];
+          if (!target.items) target.items = target.clips || [];
+          if (!clip.id) clip.id = `clip-${Date.now().toString(36)}`;
+          target.items.push(toLeftWidth(clip));
+          return clip;
+        },
+        removeClip: (id) => removeClipById(id),
+        mediaSrc: (clip) => clipMediaSrc(clip),
+        setMediaSrc: (clip, url) => setClipMediaSrc(clip, url),
+        snapshot: () => saveStateSnapshot(state),
+        commit() {
+          renderTracks();
+          scheduleEngineUpdate();
+          debouncedSave();
+        },
+        refresh: (clipId) => { if (editorClipId === clipId) renderClipEditor(clipId); },
+        /** Store a processed file: Supabase Storage URL, or a session-only local URL. */
+        async storeBlob(blob, name, { requireRemote = false } = {}) {
+          const file = blob instanceof File ? blob : new File([blob], name || 'file', { type: blob.type || 'application/octet-stream' });
+          let url = null;
+          try {
+            const r = await uploadFileToStorage(file);
+            url = typeof r === 'string' ? r : r?.url || null;
+          } catch (err) {
+            console.warn('[Timeline AI] upload failed', err);
+          }
+          if (url) return url;
+          if (requireRemote) throw new Error('Sign in so frames can be uploaded for MuAPI to read');
+          const { localMediaUrl } = await import('../lib/editor/remotion/localMedia.js');
+          showToast('Kept for this session only (sign in to save the file with the project)', 'info');
+          return localMediaUrl(blob);
+        },
+        growTimeline(end) {
+          if (end > T()) agentEditor().setTimelineSeconds(Math.min(600, Math.ceil(end + 0.5)));
+        },
+        toast: (message, type) => showToast(message, type),
+      };
+    }
+
+    /** Fill Gap / Extend shortcuts: open the selected clip's "AI generate" section. */
+    function openMuapiTool(tool) {
+      const clip = allClips().find((c) => c.id === state.selectedClipId);
+      if (!clip || !['video', 'image', 'overlay-image'].includes(clip.type)) {
+        showToast('Select a video or image clip first, then use Fill Gap or Extend', 'info');
+        return Promise.resolve({ success: false, tool, error: 'Select a video or image clip first' });
+      }
+      pendingMuapiFocus = tool === 'extend' ? 'extend' : 'fill';
+      openPanel('clipSettingsPanel');
+      renderClipEditor(clip.id);
+      return Promise.resolve({ success: false, pending: true, tool, message: 'Opened in Clip Editor → AI generate' });
+    }
+
+    async function mountLocalAIPanel() {
+      const host = root.querySelector('#localAIHost');
+      if (localAIPanel || !host) return;
+      const { renderLocalAIPanel } = await import('../lib/editor/ml/localAIPanel.js');
+      if (localAIPanel) return;
+      localAIPanel = renderLocalAIPanel(host, {
+        editor: {
+          ...localAIEditor(),
+          seek: (sec) => seekToSeconds(sec),
+          select: (id) => {
+            state.selectedClipId = id;
+            renderTracks();
+            openPanel('clipSettingsPanel');
+            renderClipEditor(id);
+          },
+        },
+      });
     }
 
     // eslint-disable-next-line no-var -- created on first use
@@ -5901,8 +6021,8 @@ export function TimelineEditorPage() {
 
     function renderClipEditor(clipId) {
       renderClipEditorBase(clipId);
-      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel].forEach((p) => p?.destroy());
-      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = null;
+      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel, activeLocalAIPanel, activeMuapiPanel].forEach((p) => p?.destroy());
+      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = activeLocalAIPanel = activeMuapiPanel = null;
       editorClipId = clipId;
       const clip = allClips().find((c) => c.id === clipId);
       if (!clip) return;
@@ -5922,6 +6042,26 @@ export function TimelineEditorPage() {
               onRestore: () => restoreBgRemoval(clip),
             });
           });
+      }
+
+      // Paid generation on MuAPI (Fill Gap, Extend, Layers, Remove watermark).
+      if (['video', 'image', 'overlay-image'].includes(clip.type)) {
+        const host = editorSection('clip-muapi-ai', 'AI generate');
+        const focus = pendingMuapiFocus;
+        pendingMuapiFocus = null;
+        import('../lib/editor/ai/aiGeneratePanel.js').then(({ renderMuapiClipPanel }) => {
+          if (!host.isConnected) return;
+          activeMuapiPanel = renderMuapiClipPanel(host, { editor: localAIEditor(), clip, focus });
+        });
+      }
+
+      // Free AI that runs on the user's device (masking, depth, tags, audio, captions…).
+      if (['video', 'image', 'overlay-image', 'audio', 'captions'].includes(clip.type)) {
+        const host = editorSection('clip-local-ai', 'Free AI');
+        import('../lib/editor/ml/aiClipPanel.js').then(({ renderAIClipPanel }) => {
+          if (!host.isConnected) return;
+          activeLocalAIPanel = renderAIClipPanel(host, { editor: localAIEditor(), clip });
+        });
       }
 
       if (clip.type === 'video') {
@@ -7081,6 +7221,7 @@ export function TimelineEditorPage() {
       if (!el) return;
       if (id === 'stockPanel') mountStockBrowser();
       if (id === 'aiAgentPanel') mountAgentPanel();
+      if (id === 'localAIPanel') mountLocalAIPanel();
       if (id === 'sharePanel') mountSharePanel();
       el.hidden = false;
       el.style.display = 'block';
@@ -7094,6 +7235,7 @@ export function TimelineEditorPage() {
       'Blend Modes': 'blendPanel',
       'Stock Media': 'stockPanel',
       'AI Agent': 'aiAgentPanel',
+      'Free AI': 'localAIPanel',
       'Share': 'sharePanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
@@ -7194,6 +7336,7 @@ export function TimelineEditorPage() {
         'Overlays': 'Overlays - Smart Text, Text Mask, Personalized Image, Image, Stickers, Wrapper, Lower Thirds, Transitions, Presets',
         'Stock Media': 'Stock Media - Pixabay and Pexels videos and images for the timeline',
         'AI Agent': 'AI Agent - describe a video or animation and the agent builds it on the timeline',
+        'Free AI': 'Free AI - search footage by description, free voiceover, on-device models (no API key)',
         'Share': 'Share - publish an interactive video with a link and embed code'
       };
       state.railActions.forEach(([icon, label, active]) => {
@@ -7238,7 +7381,7 @@ export function TimelineEditorPage() {
             case 'AI Video':
               
               // Quick access to CineGen tools from timeline
-              runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
+              openMuapiTool('fill_gap');
               break;
             case 'Recorder':
               openRecorderModal(state, showToast);
@@ -7313,10 +7456,10 @@ export function TimelineEditorPage() {
               openPanel('cinegenResultsPanel');
               break;
             case 'Gap Fill':
-              runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
+              openMuapiTool('fill_gap');
               break;
             case 'Extend Clip':
-              runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId });
+              openMuapiTool('extend');
               break;
             case 'Generate Music':
             case 'Mask Tool':
@@ -8614,7 +8757,7 @@ export function TimelineEditorPage() {
       const openSubtitleEditorBtn = root.querySelector('#openSubtitleEditor');
       if (genAutoCut) genAutoCut.addEventListener('click', () => openTemplateGeneratorModal(state, showToast));
       if (genSubtitles) genSubtitles.addEventListener('click', () => generateSubtitles());
-      if (genAiVideo) genAiVideo.addEventListener('click', () => runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }));
+      if (genAiVideo) genAiVideo.addEventListener('click', () => openMuapiTool('fill_gap'));
       if (genCutAi && window.showCutAIFromTimeline) genCutAi.addEventListener('click', () => window.showCutAIFromTimeline());
       if (openSubtitleEditorBtn) openSubtitleEditorBtn.addEventListener('click', () => generateSubtitles());
       const ccReset = root.querySelector('#ccReset');
@@ -8733,7 +8876,7 @@ export function TimelineEditorPage() {
       const cinegenBtn = root.querySelector('#cinegenToolsBtn');
       if (cinegenBtn) {
         cinegenBtn.addEventListener('click', () => {
-          runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
+          openMuapiTool('fill_gap');
           
         });
       }
@@ -8741,7 +8884,7 @@ export function TimelineEditorPage() {
       const gapFillBtn = root.querySelector('#cinegenGapFillBtn');
       if (gapFillBtn) {
         gapFillBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
+          const result = await openMuapiTool('fill_gap');
           updateCineGenResults(result);
           if (result.success) {
             applyCineGenResultToTimeline(result);
@@ -8753,7 +8896,7 @@ export function TimelineEditorPage() {
       const extendBtn = root.querySelector('#cinegenExtendBtn');
       if (extendBtn) {
         extendBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId });
+          const result = await openMuapiTool('extend');
           updateCineGenResults(result);
           if (result.success) {
             applyCineGenResultToTimeline(result);
@@ -8831,10 +8974,10 @@ export function TimelineEditorPage() {
       const polishBtn = root.querySelector('#cinegenPolishBtn');
       if (polishBtn) {
         polishBtn.addEventListener('click', async () => {
-          const gapResult = await runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
+          const gapResult = await openMuapiTool('fill_gap');
           if (gapResult.success) applyCineGenResultToTimeline(gapResult);
 
-          const extendResult = await runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId });
+          const extendResult = await openMuapiTool('extend');
           if (extendResult.success) applyCineGenResultToTimeline(extendResult);
 
           updateCineGenResults({ success: true, message: 'Clip polished (Gap Fill + Extend)' });

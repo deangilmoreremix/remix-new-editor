@@ -1,5 +1,4 @@
 import { aiService } from '../services/aiService.js';
-import { supabase } from '../supabase.js';
 
 export class AiMuAPI {
   static async generateVideo(prompt, model = 'wan2.1-text-to-video', options = {}) {
@@ -10,24 +9,22 @@ export class AiMuAPI {
     return aiService.generateImage({ prompt, model }, options);
   }
 
+  /**
+   * Object segmentation, free in the browser (SlimSAM / OWLv2 via
+   * Transformers.js — no fal, no server). `imageData` is an image URL.
+   * prompts: { type: 'text'|'point'|'box', prompt, points: [[x,y]], box: [x1,y1,x2,y2] }
+   * Returns { mask } — an object URL of a white-on-black mask PNG.
+   */
   static async applySAM3Segmentation(imageData, prompts) {
     const { type = 'text', prompt = '', points, box } = prompts || {};
-
-    const { data, error } = await supabase.functions.invoke('sam3-segment', {
-      body: {
-        imageUrl: imageData,
-        promptType: type,
-        prompt,
-        ...(points ? { points } : {}),
-        ...(box ? { box } : {}),
-      },
-    });
-
-    if (error) {
-      throw new Error(error.message || 'SAM3 segmentation failed');
-    }
-
-    return { mask: data?.maskUrl };
+    const [{ grabFrame }, ai] = await Promise.all([import('./ml/frameGrab.js'), import('./ml/localAI.js')]);
+    const canvas = await grabFrame(imageData, 0, { image: true, maxSize: 1280 });
+    const res = type === 'text' || (!points && !box)
+      ? await ai.maskFromText(canvas, prompt)
+      : await ai.maskFromPrompt(canvas, { points, box });
+    if (!res?.alpha) throw new Error('No object found for that prompt');
+    const png = await ai.alphaToMaskPng(res.alpha, res.width, res.height);
+    return { mask: URL.createObjectURL(png) };
   }
 
   static async generateMusic(context, options = {}) {
