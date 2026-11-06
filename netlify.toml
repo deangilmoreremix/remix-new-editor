@@ -115,6 +115,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/cinegen"
+  to = "/.netlify/functions/cinegen"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/watch-voice"
   to = "/.netlify/functions/watch-voice"
   status = 200
