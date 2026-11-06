@@ -64,6 +64,10 @@ export function createTemplateVideoTools({
   const isVideo = kind === 'video';
   const state = {
     aspectRatio: defaultAspectRatio || '',
+    // True once the user picks a ratio in this control. Until then the ratio
+    // already resolved by the studio (template, Video Intent, form) is sent;
+    // the control only shows it.
+    aspectRatioTouched: false,
     characterLock: false,
     cameraSpeed: DEFAULT_CAMERA_SPEED,
     guidance: DEFAULT_GUIDANCE,
@@ -88,7 +92,7 @@ export function createTemplateVideoTools({
   const arSel = document.createElement('select');
   arSel.name = 'template-aspect-ratio';
   arSel.className = 'h-9 rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs font-semibold text-white outline-none';
-  arSel.onchange = () => { state.aspectRatio = arSel.value; };
+  arSel.onchange = () => { state.aspectRatio = arSel.value; state.aspectRatioTouched = true; };
   arWrap.appendChild(arSel);
   if (!hasOwnAspectRatio) row.appendChild(arWrap);
 
@@ -305,7 +309,14 @@ export function createTemplateVideoTools({
     if (payload.negative_prompt) params.negative_prompt = payload.negative_prompt;
     if (payload.seed !== undefined && payload.seed !== null && payload.seed !== '' && payload.seed !== -1) params.seed = payload.seed;
     if (current.guidance && state.guidance !== DEFAULT_GUIDANCE) params.guidance_scale = state.guidance;
-    if (!hasOwnAspectRatio && current.ratios.length && state.aspectRatio) params.aspect_ratio = state.aspectRatio;
+    // An explicit choice in this control wins. Otherwise keep the ratio the
+    // studio already resolved (e.g. Video Intent's Aspect Ratio in Cinema),
+    // and only fill one in when none was resolved, so what the control shows
+    // is what is sent.
+    if (!hasOwnAspectRatio && current.ratios.length && state.aspectRatio
+      && (state.aspectRatioTouched || !params.aspect_ratio)) {
+      params.aspect_ratio = state.aspectRatio;
+    }
     if (state.characterLock && current.supportsCharacter) {
       try {
         const { getCharacterReference } = await import('./characterConsistency.js');
@@ -325,6 +336,18 @@ export function createTemplateVideoTools({
     attachToPrompt,
     applyToPrompt,
     applyToParams,
+    /**
+     * Show the ratio the studio resolved elsewhere (Video Intent, template).
+     * Ignored once the user has picked one here, and for ratios the current
+     * model does not offer.
+     */
+    syncAspectRatio: (value) => {
+      if (state.aspectRatioTouched || !value) return;
+      const v = String(value);
+      if (current.ratios.length && !current.ratios.includes(v)) return;
+      state.aspectRatio = v;
+      if ([...arSel.options].some(o => o.value === v)) arSel.value = v;
+    },
     getState: () => ({ ...state }),
   };
 }

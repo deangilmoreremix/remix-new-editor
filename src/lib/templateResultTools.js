@@ -253,3 +253,24 @@ export function createResultActions({ onRegenerate, onExtend } = {}) {
     },
   };
 }
+
+/**
+ * Plain-data copy of the settings that produced a result, kept on its history
+ * entry so "Regenerate" can re-run exactly that result. History is saved as
+ * JSON in localStorage, so functions, the per-run AbortSignal and inline
+ * `data:` URLs (e.g. a custom thumbnail) are left out.
+ * @param {object} params final request params
+ * @returns {object|null}
+ */
+export function snapshotGenerationParams(params) {
+  if (!params || typeof params !== 'object') return null;
+  try {
+    return JSON.parse(JSON.stringify(params, (key, val) => {
+      if (key === 'signal' || typeof val === 'function') return undefined;
+      if (typeof val === 'string' && val.startsWith('data:')) return undefined;
+      return val;
+    }));
+  } catch {
+    return null;
+  }
+}

@@ -46,7 +46,7 @@ import { resolveModel, normalizeAspectRatio, normalizeDuration, attachThumbnail,
 import { saveGeneration } from '../lib/generationHistory.js';
 import { appendMissingInputs, templateInputEntries, detectTemplateNiche } from '../lib/templatePromptComposer.js';
 import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
-import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend } from '../lib/templateResultTools.js';
+import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, snapshotGenerationParams } from '../lib/templateResultTools.js';
 import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 
@@ -124,19 +124,6 @@ export function CinemaTemplateStudio() {
   let videoTools = null;
   // After-generation tools (Video Studio): history strip, Regenerate, Extend.
   let currentResultEntry = null;
-  // Plain-data copy of the settings that produced a result, kept on its
-  // history entry so Regenerate re-runs THAT result (not the newest run).
-  // Drops the per-run AbortSignal and callbacks; history is saved as JSON.
-  const regenSnapshot = (p) => {
-    if (!p) return null;
-    try {
-      return JSON.parse(JSON.stringify(p, (key, val) => (
-        key === 'signal' || typeof val === 'function' ? undefined : val
-      )));
-    } catch {
-      return null;
-    }
-  };
   let lastRequestId = null;
   const resultHistory = createResultHistory({
     storageKey: 'cinema_template_history',
@@ -1173,6 +1160,8 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
   function onVideoIntentChanged(intent) {
     syncVideoIntentToTemplate(intent);
+    // Keep the Ratio control showing what will be sent (until the user picks one there).
+    videoTools?.syncAspectRatio?.(resolveGenerationAspectRatio(currentInputs, currentTemplate));
     renderSceneTimeline();
     renderSceneBuilder();
     updateOutputContent();
@@ -2848,8 +2837,15 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     return entries;
   }
 
-  async function runGeneration(params) {
+  /**
+   * @param {object} params
+   * @param {{ exact?: boolean }} [opts] exact: params are a stored snapshot of an
+   *   earlier run (Regenerate) — do not re-apply the current form's Advanced /
+   *   Character Lock / ratio on top of it.
+   */
+  async function runGeneration(params, { exact = false } = {}) {
     if (isGenerating) return;
+    const exactParams = exact ? { ...params } : null;
 
     isGenerating = true;
     let genBtn = container.querySelector('#generate-btn');
@@ -2869,7 +2865,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       const isVideo = currentTemplate.outputType === 'video';
       params = { ...params };
       // Advanced (negative prompt / seed), Character Lock, guidance, ratio.
-      if (videoTools) await videoTools.applyToParams(params);
+      if (!exact && videoTools) await videoTools.applyToParams(params);
       const hasImageUrl = !!params.image_url;
       const isV2V = getV2VModelById(params.model);
       const { route: runRoute } = currentMediaRoute(params.model);
@@ -2919,7 +2915,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
           model: params.model,
           type: isVideo ? 'video' : 'image',
           templateId: currentTemplate.id,
-          regenParams: regenSnapshot(params),
+          regenParams: snapshotGenerationParams(params),
         };
         resultHistory.add(currentResultEntry);
         retryCount = 0;
@@ -2939,7 +2935,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       errEl.dataset.generationError = '';
       errEl.textContent = userMessage;
 
-      if (!cancelled && retryCount < MAX_RETRIES && lastGenerationParams) {
+      if (!cancelled && retryCount < MAX_RETRIES && (exact || lastGenerationParams)) {
         const retryBtn = document.createElement('button');
         retryBtn.id = 'retry-btn';
         retryBtn.className = 'ml-2 underline text-emerald-200 hover:text-white';
@@ -2947,7 +2943,9 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         retryBtn.onclick = () => {
           retryCount++;
           if (errEl && errEl.parentNode) errEl.remove();
-          runGeneration(lastGenerationParams);
+          // A failed Regenerate retries that same stored run, not the newest form.
+          if (exact) runGeneration({ ...exactParams }, { exact: true });
+          else runGeneration(lastGenerationParams);
         };
         errEl.appendChild(retryBtn);
       }
@@ -3100,7 +3098,7 @@ const firstChild = storyboardRoot.firstElementChild;
         // rather than silently re-running a different, newer generation.
         const templateType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
         if (entry.regenParams && (!entry.type || entry.type === templateType)) {
-          runGeneration({ ...entry.regenParams });
+          runGeneration({ ...entry.regenParams }, { exact: true });
         } else {
           // Only open the form; the user starts the new generation.
           view = 'create';

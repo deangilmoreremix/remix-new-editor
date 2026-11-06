@@ -81,6 +81,40 @@ describe('createTemplateVideoTools', () => {
     expect(params.aspect_ratio).toBe('16:9');
   });
 
+  it('keeps a ratio the studio already resolved (Video Intent) until the user picks one in the control', async () => {
+    const t = createTemplateVideoTools({ getTarget: () => target });
+    t.refresh();
+    // Video Intent chose 9:16 → params already carry it; the untouched control must not overwrite it.
+    const fromIntent: any = { aspect_ratio: '9:16' };
+    await t.applyToParams(fromIntent);
+    expect(fromIntent.aspect_ratio).toBe('9:16');
+
+    // An explicit pick in the control wins.
+    const sel = t.element.querySelector('select[name="template-aspect-ratio"]') as HTMLSelectElement;
+    sel.value = '1:1';
+    sel.dispatchEvent(new Event('change'));
+    const picked: any = { aspect_ratio: '9:16' };
+    await t.applyToParams(picked);
+    expect(picked.aspect_ratio).toBe('1:1');
+  });
+
+  it('syncAspectRatio makes the control show the resolved ratio until the user picks one', () => {
+    const t = createTemplateVideoTools({ getTarget: () => target });
+    t.refresh();
+    const sel = t.element.querySelector('select[name="template-aspect-ratio"]') as HTMLSelectElement;
+    t.syncAspectRatio('9:16');
+    expect(sel.value).toBe('9:16');
+    expect(t.getState().aspectRatio).toBe('9:16');
+    // A ratio the model does not offer is ignored.
+    t.syncAspectRatio('21:9');
+    expect(sel.value).toBe('9:16');
+    // After the user picks one, syncing no longer changes it.
+    sel.value = '1:1';
+    sel.dispatchEvent(new Event('change'));
+    t.syncAspectRatio('16:9');
+    expect(sel.value).toBe('1:1');
+  });
+
   it('Character Lock (models that support it) sends the saved reference', async () => {
     target = { route: 'i2v', model: 'char-i2v', imageUrl: 'https://cdn/face.png' };
     const t = createTemplateVideoTools({ getTarget: () => target });
