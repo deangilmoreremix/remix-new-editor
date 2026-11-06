@@ -10,6 +10,7 @@ import { createEmptyState } from '../../studio/emptyState.js';
 import { createSegmented } from '../../studio/promptComposer.js';
 import { call, runJob, pool, ZackDError } from '../../../lib/zackd/api.js';
 import { runAssembly, buildSrt, DEFAULT_TRANSITION_SEC } from '../../../lib/zackd/assemble.js';
+import { TEMPLATES, TEMPLATE_ATTRIBUTION, templateToProject } from '../../../lib/zackd/templates.js';
 import {
   SEED_TOPICS, LOOKS, DEFAULT_LOOK, TTS_VOICES, DEFAULT_VOICE, DEFAULT_TTS_SPEED,
   CAPTION_LANGUAGES, CAPTION_THEMES, DEFAULT_CAPTION_LANGUAGE, DEFAULT_CAPTION_THEME,
@@ -104,6 +105,14 @@ export function ZackDStudio() {
     busy = true; error = ''; say('Finding topics…'); render();
     try { trends = (await call({ action: 'trends', query }, { signal: abort.signal })).topics; } catch (e) { fail(e); }
     busy = false; say(''); render();
+  }
+
+  // Load an upstream template. Never calls a paid API; a finished demo also brings its keyframes and clips.
+  function useTemplate(t) {
+    if (busy) return;
+    if (s.map && !window.confirm('Replace the current project with this template?')) return;
+    s = { ...blank(), ...templateToProject(t, window.location.origin) };
+    error = ''; save(); render();
   }
 
   async function writeScript() {
@@ -232,6 +241,25 @@ export function ZackDStudio() {
     row.append(go, sug);
     if (s.map) { const keep = el('button', BTN, 'Continue current project'); keep.onclick = () => setStage('script'); row.appendChild(keep); }
     box.appendChild(row);
+    box.appendChild(el('div', `${HEADING} mt-2`, 'Templates'));
+    const tg = el('div', 'grid gap-3 sm:grid-cols-3');
+    TEMPLATES.forEach((t) => {
+      const card = el('div', `${CARD} flex flex-col gap-2`);
+      if (t.demo) {
+        const v = media('video', t.demo, 'w-full rounded-md bg-black'); v.muted = false; v.loop = false; v.preload = 'none'; v.poster = t.poster;
+        v.style.aspectRatio = '9 / 16'; v.style.maxHeight = '320px';
+        card.appendChild(v);
+      }
+      card.appendChild(el('div', HEADING, t.title));
+      card.appendChild(el('div', 'text-xs text-white/50', t.description));
+      const go = el('button', t.kind === 'finished' ? BTN_MAIN : BTN, t.kind === 'finished' ? 'Use as template' : 'Use script');
+      go.disabled = busy; go.onclick = () => useTemplate(t);
+      card.appendChild(go);
+      tg.appendChild(card);
+    });
+    box.appendChild(tg);
+    box.appendChild(el('p', 'text-xs text-white/40', TEMPLATE_ATTRIBUTION));
+    box.appendChild(el('div', `${HEADING} mt-2`, 'Ideas'));
     const list = el('div', 'grid gap-2 sm:grid-cols-2');
     trends.forEach((t) => {
       const b = el('button', `${CARD} text-left hover:bg-primary/10`);

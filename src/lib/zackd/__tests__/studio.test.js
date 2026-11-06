@@ -123,4 +123,20 @@ describe('ZackDStudio flow', () => {
     expect(root.querySelector('[role=alert]').textContent).toContain('MuAPI key was rejected');
     expect(btn(root, 'character sheet').disabled).toBe(false);
   });
+
+  it('a finished template jumps straight to a final cut with no generation calls', async () => {
+    const root = ZackDStudio(); document.body.appendChild(root);
+    expect(root.textContent).toMatch(/Sample from the upstream open-source Zack D project/);
+    await click(root, 'Use as template');
+    expect(root.querySelector('textarea').value).toMatch(/Swallow Gum/);
+    await click(root, 'Approve script');
+    await click(root, 'Approve keyframes'); // keyframes came with the template
+    await click(root, 'Continue to audio');
+    await click(root, 'Continue to final cut');
+    await click(root, 'Assemble video');
+    const args = runAssembly.mock.calls.at(-1)[0];
+    expect(args.clips).toHaveLength(5);
+    expect(args.clips.every((c) => /\/zackd\/templates\/swallow-gum\/clips\/beat_/.test(c.url))).toBe(true);
+    expect(calls).toHaveLength(0); // no image/clip/tts/music job was submitted
+  });
 });
