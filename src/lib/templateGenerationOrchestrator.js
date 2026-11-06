@@ -7,6 +7,7 @@
  */
 
 import { composeNegativePrompt } from './templateEngine.js';
+import { toNicheKey } from './templatePromptComposer.js';
 import { getV2VModelById } from './models.js';
 
 /**
@@ -119,9 +120,9 @@ export function attachThumbnail(params, customThumbnailUrl) {
  * Build a negative prompt from template metadata, form state, and enhanced specs.
  */
 export function buildNegativePrompt(template, formState, specs) {
-  const negNiche = (formState.niche && formState.niche !== 'auto-detect')
+  const negNiche = toNicheKey((formState.niche && formState.niche !== 'auto-detect')
     ? formState.niche
-    : (template.niche || '');
+    : (template.niche || ''));
   return composeNegativePrompt(
     template.filmFamily || '',
     negNiche,

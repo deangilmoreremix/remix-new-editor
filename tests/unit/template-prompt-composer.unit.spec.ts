@@ -170,3 +170,23 @@ describe('Disney / Pixar and Superhero keep their named choices (review fix)', (
     });
   }
 });
+
+describe('niche templates use their niche terms', () => {
+  it('maps display labels ("Restaurant & Cafe") to niche ids for enrichment', async () => {
+    const { toNicheKey } = await import('../../src/lib/templatePromptComposer.js');
+    expect(toNicheKey('Restaurant & Cafe')).toBe('restaurant');
+    expect(toNicheKey('Luxury & Premium')).toBe('luxury-brand');
+    expect(toNicheKey('fitness')).toBe('fitness');
+    const t = normalizeTemplate(allTemplates.find(x => x.id === 'midnight_table_film'));
+    const { niche, prompt } = composeTemplatePrompt({ template: t, userPrompt: 'x', templateInputs: t.inputs });
+    expect(niche).toBe('restaurant');
+    expect(prompt).not.toMatch(/professional business environment/);
+  });
+
+  it('every niche template label maps to a niche with its own terms', async () => {
+    const { toNicheKey } = await import('../../src/lib/templatePromptComposer.js');
+    const { NICHE_ENRICHMENT } = await import('../../src/lib/templateMatrix.js');
+    const labels = [...new Set(allTemplates.map(t => t.niche).filter(Boolean))];
+    expect(labels.filter(l => !NICHE_ENRICHMENT[toNicheKey(l)])).toEqual([]);
+  });
+});

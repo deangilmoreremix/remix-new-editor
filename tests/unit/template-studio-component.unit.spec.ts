@@ -135,3 +135,15 @@ describe('TemplateStudio real-component generation tests', () => {
     expect(modelBtn).not.toBeNull();
   });
 });
+describe('niche template fields render once', () => {
+  it('midnight_table_film shows each of its fields a single time', async () => {
+    const { TemplateStudio } = await import('../../src/components/TemplateStudio.js');
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    host.appendChild(TemplateStudio('midnight_table_film'));
+    await new Promise(r => setTimeout(r, 50));
+    const labels = Array.from(host.querySelectorAll('.text-\\[11px\\].font-semibold.uppercase')).map(e => e.textContent.trim());
+    ['Restaurant Name', 'Cuisine Type'].forEach(l => expect(labels.filter(x => x === l).length).toBe(1));
+    host.remove();
+  }, 20000);
+});
