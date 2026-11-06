@@ -12,6 +12,12 @@ vi.mock('../components/personalize/personalizePopover.js', () => ({ replaceToken
 vi.mock('../lib/attachmentToolbar.js', () => ({ createAttachmentToolbar: vi.fn(() => ({})) }));
 vi.mock('../lib/loading.js', () => ({ showToast: vi.fn() }));
 vi.mock('../lib/thumbnails.js', () => ({
+  createEditorBanner: vi.fn(() => document.createElement('div')),
+  demoteBannerHeading: vi.fn((el) => {
+    const h = el.querySelector('h1');
+    if (h) { const d = document.createElement('div'); d.textContent = h.textContent; h.replaceWith(d); }
+    return el;
+  }),
   getToolThumbnail: (id) => `/thumbnails/tools/${id}.webp`,
   createThumbnailImg: (src, alt) => Object.assign(document.createElement('img'), { src, alt }),
   createStudioHeader: (_id, title, subtitle) => {

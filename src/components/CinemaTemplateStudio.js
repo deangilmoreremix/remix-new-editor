@@ -28,7 +28,7 @@ import { getVideoIntent, setVideoIntent, subscribeVideoIntent, resetVideoIntent 
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 
-import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, getCustomThumbnailFromCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { createStudioHeader, demoteBannerHeading, getTemplateThumbnailCandidates, saveCustomThumbnailToCache, getCustomThumbnailFromCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
@@ -257,6 +257,11 @@ export function CinemaTemplateStudio() {
         </button>
       </div>
     `;
+    const bannerRow = document.createElement('div');
+    bannerRow.className = 'px-4 pt-4 shrink-0';
+    // the page below already has its own heading (CINEMATIC TEMPLATES)
+    bannerRow.appendChild(demoteBannerHeading(createStudioHeader('cinema-template', 'Cinema Template Studio', 'Ready-made cinematic templates: pick one, add your media and generate')));
+    container.appendChild(bannerRow);
     container.appendChild(header);
 container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favorites'; render(); };
     container.querySelector('#recent-btn').onclick = () => { browseFilter = 'recent'; render(); };

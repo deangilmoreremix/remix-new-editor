@@ -8,6 +8,7 @@
 // with the same account through netlify/functions/website-builder-session.js.
 
 import { PAID_FEATURE } from '../lib/clerkEntitlements.js';
+import { createEditorBanner } from '../lib/thumbnails.js';
 
 const isDev = import.meta.env.DEV;
 const OPENTHORN_DEV_URL = 'http://localhost:5173/dashboard';
@@ -25,23 +26,6 @@ export function builderAccess(clerk) {
   }
   if (clerk.user.publicMetadata?.legacy_access === true) paid = true;
   return paid ? 'paid' : 'unpaid';
-}
-
-function createHeader() {
-  const header = document.createElement('div');
-  header.style.cssText = `
-    display:flex;align-items:center;justify-content:space-between;
-    padding:10px 16px;background:#050505;border-bottom:1px solid #27272a;
-    flex-shrink:0;
-  `;
-  header.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="width:8px;height:8px;border-radius:50%;background:#d9ff00;box-shadow:0 0 8px rgba(217,255,0,0.45);"></span>
-      <span style="color:#fff;font-weight:600;font-size:14px;${FONT}">Smart Website Builder</span>
-      <span style="color:#a1a1aa;font-size:12px;${FONT}">Bring your own AI key</span>
-    </div>
-  `;
-  return header;
 }
 
 function createIframe() {
@@ -96,7 +80,8 @@ async function resolveAccess() {
 export function OpenThornStudio() {
   const container = document.createElement('div');
   container.style.cssText = 'width:100%;height:100%;display:flex;flex-direction:column;background:#050505;';
-  container.appendChild(createHeader());
+  // The banner replaces the old thin title row (same title and "bring your own key" note).
+  container.appendChild(createEditorBanner('website-builder', 'Smart Website Builder', 'Build a full website from a prompt. Bring your own AI key.'));
 
   // Local dev talks to the standalone sub-app dev server; no Clerk gate.
   if (isDev) {
