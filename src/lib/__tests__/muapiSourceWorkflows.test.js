@@ -148,6 +148,32 @@ describe('Source workflows reach the provider intact', () => {
     expect(submittedBody(global.fetch).params.first_frame_url).toBe('https://cdn.muapi.ai/start.jpg');
   });
 
+  test('image edits keep the source and extra images the caller sends as images_list', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.png'] });
+    await client.generateI2I({
+      model: 'seedream-5.0-edit',
+      prompt: 'recolour',
+      images_list: ['https://cdn.muapi.ai/a.jpg', 'https://cdn.muapi.ai/b.jpg'],
+    });
+    expect(submittedBody(global.fetch).params.images_list).toEqual(['https://cdn.muapi.ai/a.jpg', 'https://cdn.muapi.ai/b.jpg']);
+  });
+
+  test('image edits that send a single image_url still work', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.png'] });
+    await client.generateI2I({ model: 'seedream-5.0-edit', prompt: 'recolour', image_url: 'https://cdn.muapi.ai/a.jpg' });
+    expect(submittedBody(global.fetch).params.images_list).toEqual(['https://cdn.muapi.ai/a.jpg']);
+  });
+
+  test('models that take reference_images still receive them', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.png'] });
+    await client.generateI2I({
+      model: 'vidu-q2-reference-to-image',
+      prompt: 'combine',
+      reference_images: ['https://cdn.muapi.ai/a.jpg', 'https://cdn.muapi.ai/b.jpg'],
+    });
+    expect(submittedBody(global.fetch).params.reference_images).toEqual(['https://cdn.muapi.ai/a.jpg', 'https://cdn.muapi.ai/b.jpg']);
+  });
+
   test('keyframes: start and end frame both go in images_list', async () => {
     global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
     await client.generateI2V({

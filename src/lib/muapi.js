@@ -745,7 +745,10 @@ export class MuapiClient {
         if (p.prompt) finalPayload.prompt = p.prompt;
 
         const imageField = modelInfo?.imageField || 'image_url';
-        const imagesList = p.images_list?.length > 0 ? p.images_list : (p.image_url ? [p.image_url] : null);
+        // The validated copy drops unknown keys (images_list is not in the schema), so read the
+        // caller's own list: Edit Studio sends its source and extra references that way.
+        const callerList = Array.isArray(params.images_list) ? params.images_list.filter(Boolean) : [];
+        const imagesList = callerList.length > 0 ? callerList : (p.image_url ? [p.image_url] : null);
         if (imagesList) {
             if (imageField === 'images_list') {
                 finalPayload.images_list = imagesList;
