@@ -46,6 +46,7 @@ import { persistPersonalizationAssetVersion } from '../lib/personalization/asset
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
 import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
+import { renderPersonalizationPanel, renderPersonalizationEditor, renderTokenEditor, renderBatchHub } from '../lib/editor/panels/personalPanels.js';
 import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
@@ -632,10 +633,8 @@ export function TimelineEditorPage() {
       <aside class="side-card" id="colorScopesPanel" hidden data-tooltip="Color scopes">
         <div class="card-title">📊 Color Scopes</div><div id="colorScopesContainer"></div>
       </aside>
-      <aside class="side-card" id="canvasPanel" hidden data-tooltip="Canvas editor"><div class="card-title">🎨 Canvas Editor</div><div id="canvasContainer"></div></aside>
       <aside class="side-card" id="tokenEditorPanel" hidden data-tooltip="Token editor"><div class="card-title">🏷️ Token Editor</div><div id="tokenEditorContainer"></div></aside>
       <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Batch generator"><div class="card-title">📦 Batch Generator</div><div id="batchGeneratorContainer"></div></aside>
-      <aside class="side-card" id="workflowPanel" hidden data-tooltip="Workflow automation"><div class="card-title">🔄 Workflow Automation</div><div id="workflowContainer"></div></aside>
       <aside class="side-card" id="personalizationPanel" hidden data-tooltip="Personalization"><div class="card-title">👤 Personalization</div><div id="personalizationContainer"></div></aside>
       <aside class="side-card" id="personalizationEditorPanel" hidden data-tooltip="Personalization editor"><div class="card-title">✏️ Personalization Editor</div><div id="personalizationEditorContainer"></div></aside>
     </div>
@@ -767,11 +766,10 @@ export function TimelineEditorPage() {
         ['✂️', 'Clip Editor'],
         ['🔄', 'Transitions Panel'],
         ['🎨', 'CineGen Results'],
-        ['🎭', 'Anim Demo'],
+        ['🎭', 'AI Animation'],
         ['🎨', 'Canvas'],
         ['🏷️', 'Token Editor'],
         ['📦', 'Batch Generator'],
-        ['🔄', 'Workflow'],
         ['👤', 'Personalization'],
         ['✏️', 'Personalization Editor']
       ],
@@ -1294,14 +1292,10 @@ export function TimelineEditorPage() {
       colorScopesContainer: root.querySelector('#colorScopesContainer'),
       compositingOverlay: root.querySelector('#compositingOverlay'),
       // Category C Editor Surfaces
-      canvasPanel: root.querySelector('#canvasPanel'),
-      canvasContainer: root.querySelector('#canvasContainer'),
       tokenEditorPanel: root.querySelector('#tokenEditorPanel'),
       tokenEditorContainer: root.querySelector('#tokenEditorContainer'),
       batchGeneratorPanel: root.querySelector('#batchGeneratorPanel'),
       batchGeneratorContainer: root.querySelector('#batchGeneratorContainer'),
-      workflowPanel: root.querySelector('#workflowPanel'),
-      workflowContainer: root.querySelector('#workflowContainer'),
       personalizationPanel: root.querySelector('#personalizationPanel'),
       personalizationContainer: root.querySelector('#personalizationContainer'),
       personalizationEditorPanel: root.querySelector('#personalizationEditorPanel'),
@@ -7146,15 +7140,80 @@ export function TimelineEditorPage() {
     }
 
     // Reveal a collapsed editor-only panel from the floating rail.
-    function openPanel(id) {
+    const LEGACY_RAIL_PANELS = ['tokenEditorPanel', 'batchGeneratorPanel', 'personalizationPanel', 'personalizationEditorPanel'];
+    // `exclusive` (rail clicks) closes the other side panels first; the clip
+    // editor opens beside them. Each panel gets a ✕. (The page stylesheet hides
+    // [hidden] with !important, so an inline display alone never shows a panel.)
+    function openPanel(id, { exclusive = true, scroll = true } = {}) {
       const el = root.querySelector('#' + id);
       if (!el) return;
+      if (exclusive) {
+        [...Object.values(RAIL_PANEL_MAP), ...LEGACY_RAIL_PANELS].forEach((other) => {
+          const o = other === id ? null : root.querySelector('#' + other);
+          if (o) { o.hidden = true; o.style.display = 'none'; }
+        });
+      }
+      const title = el.querySelector('.card-title');
+      if (title && !title.querySelector('.panel-close')) {
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'panel-close';
+        close.setAttribute('aria-label', 'Close panel');
+        close.textContent = '✕';
+        close.addEventListener('click', () => { el.hidden = true; el.style.display = 'none'; });
+        title.appendChild(close);
+      }
       if (id === 'stockPanel') mountStockBrowser();
       if (id === 'aiAgentPanel') mountAgentPanel();
       if (id === 'sharePanel') mountSharePanel();
       el.hidden = false;
       el.style.display = 'block';
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Media: the library card with Upload and Stock Media.
+    function openMediaLibrary() {
+      const card = root.querySelector('#mediaGrid')?.closest('.side-card');
+      if (!card) return;
+      card.hidden = false;
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      card.classList.add('rp-flash');
+      setTimeout(() => card.classList.remove('rp-flash'), 1600);
+      root.querySelector('#uploadBtn')?.focus({ preventScroll: true });
+    }
+
+    // AI Animation: the AI Agent, with animation ideas to start from.
+    const ANIMATION_STARTERS = [
+      ['Title intro', 'Create an animated title intro for my video with a bold headline that slides in and a subtle glow.'],
+      ['Kinetic text', 'Create a kinetic typography animation that spells out my headline word by word.'],
+      ['Logo reveal', 'Create a logo reveal animation with a light sweep across the logo.'],
+      ['Lower third', 'Create an animated lower third with a name and a job title that slides in and out.'],
+      ['Countdown', 'Create a 5 second countdown animation for a launch.'],
+    ];
+    async function openAiAnimation() {
+      openPanel('aiAgentPanel');
+      await mountAgentPanel();
+      const chat = root.querySelector('#aiAgentChat');
+      const input = chat?.querySelector('[data-agent-input]');
+      if (!chat || !input) return;
+      if (!chat.querySelector('.rp-starters')) {
+        const row = document.createElement('div');
+        row.className = 'pz-ui rp-starters';
+        row.innerHTML = `<span class="pz-label">Animation ideas</span>${ANIMATION_STARTERS.map(([label, prompt]) => `<button type="button" class="pz-btn pz-btn-secondary pz-btn-xs" data-prompt="${escapeHtml(prompt)}">${escapeHtml(label)}</button>`).join('')}`;
+        row.addEventListener('click', (e) => {
+          const prompt = e.target.closest('[data-prompt]')?.dataset.prompt;
+          if (prompt) { input.value = prompt; input.focus(); }
+        });
+        chat.prepend(row);
+      }
+      input.focus({ preventScroll: true });
+    }
+
+    // Clip Editor: the selected clip's settings, or a hint to pick one.
+    function showClipEditorOrHint() {
+      const selected = state.selectedClipId != null && state.tracks.flatMap((t) => t.items || t.clips || []).some((c) => c.id === state.selectedClipId);
+      if (selected) renderClipEditor(state.selectedClipId);
+      else if (els.clipEditorContainer) els.clipEditorContainer.innerHTML = '<div class="pz-ui"><p class="pz-hint">Click a clip on the timeline to edit its settings here.</p></div>';
     }
 
     // Maps floating-rail labels to collapsed panel element ids.
@@ -7228,10 +7287,11 @@ export function TimelineEditorPage() {
         'URL Video': 'Import from URL - Download and import video from a web address',
         'Page Shot': 'Webpage capture - Take a screenshot of any webpage',
         'Contacts': 'Import contacts - Import contact lists for personalization',
-        'Canvas': 'Canvas editor - Open the visual canvas composition editor',
+        'Canvas': 'Canvas - Place text, images, stickers and shapes on the video (opens Overlays)',
+        'Media': 'Media - Your media library: upload or drag clips onto the timeline',
+        'AI Animation': 'AI Animation - Ask the AI Agent to build an animation, with starter ideas',
         'Token Editor': 'Token editor - Create and manage personalization tokens',
         'Batch Generator': 'Batch generation - Generate multiple videos at once',
-        'Workflow': 'Workflow automation - Create automated video production pipelines',
         'Personalization': 'Personalization - Add dynamic content for different viewers',
         'Personalization Editor': 'Personalization editor - Advanced personalization settings',
         'Personalization Suite': 'Personalization suite - Complete video personalization workflow',
@@ -7338,16 +7398,20 @@ export function TimelineEditorPage() {
               openContactImporterModal(state, showToast);
               break;
             case 'Canvas':
-              showCanvasPanel();
+              // Overlays is the canvas: text, images, stickers and shapes you place and drag on the video.
+              openPanel('overlaysPanel');
+              break;
+            case 'Media':
+              openMediaLibrary();
+              break;
+            case 'AI Animation':
+              openAiAnimation();
               break;
             case 'Token Editor':
               showTokenEditorPanel();
               break;
             case 'Batch Generator':
               showBatchGeneratorPanel();
-              break;
-            case 'Workflow':
-              showWorkflowPanel();
               break;
             case 'Personalization':
               showPersonalizationPanel();
@@ -7404,6 +7468,7 @@ export function TimelineEditorPage() {
               break;
             default:
               if (RAIL_PANEL_MAP[label]) openPanel(RAIL_PANEL_MAP[label]);
+              if (label === 'Clip Editor') showClipEditorOrHint();
           }
         });
 
@@ -7417,13 +7482,12 @@ export function TimelineEditorPage() {
     }
 
     function showClipEditor(clipId) {
-      els.clipSettingsPanel?.style && (els.clipSettingsPanel.style.display = 'block');
+      openPanel('clipSettingsPanel', { exclusive: false, scroll: false });
       renderClipEditor(clipId);
     }
 
     function showTransitionSettings() {
-      els.transitionSettingsPanel?.style && (els.transitionSettingsPanel.style.display = 'block');
-      
+      openPanel('transitionSettingsPanel', { exclusive: false, scroll: false });
     }
 
     function showColorCorrectionPanel() {
@@ -7788,334 +7852,111 @@ export function TimelineEditorPage() {
     }
 
     // Category C Editor Surface panel functions
-    function showCanvasPanel() {
-      // Hide other panels
-      hideAllEditorPanels();
-      els.canvasPanel?.style && (els.canvasPanel.style.display = 'block');
-
-      // Render Canvas component
-      if (els.canvasContainer && !els.canvasContainer.innerHTML) {
-        // For now, render basic canvas HTML. In a full implementation, this would use ReactDOM
-        els.canvasContainer.innerHTML = `
-          <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-            <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Canvas Editor</h3>
-            <p style="color: #9ca3af; margin-bottom: 16px;">Visual canvas-based editing surface for composition.</p>
-            <canvas id="canvasEditor" width="800" height="450" style="border: 1px solid #374151; background: #1a1a1a; flex: 1;"></canvas>
-            <div style="margin-top: 16px; display: flex; gap: 8px;">
-              <button style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 4px;">Add Text</button>
-              <button style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 4px;">Add Shape</button>
-              <button style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 4px;">Add Image</button>
-            </div>
-          </div>
-        `;
-      }
+    // Personalization rail panels (src/lib/editor/panels/personalPanels.js):
+    // real contacts and details from the Personalization Studio.
+    const railPanels = {};
+    function mountRailPanel(key, container, render) {
+      if (!container) return;
+      if (railPanels[key]) railPanels[key].redraw?.();
+      else railPanels[key] = render(container);
     }
-
-    function showTokenEditorPanel() {
-      hideAllEditorPanels();
-      els.tokenEditorPanel?.style && (els.tokenEditorPanel.style.display = 'block');
-
-      if (els.tokenEditorContainer && !els.tokenEditorContainer.innerHTML) {
-        // Load variables from intelligence layer if a contact is selected
-        let tokenEntries = [
-          { token: '{first_name}', label: 'first_name' },
-          { token: '{last_name}', label: 'last_name' },
-          { token: '{email}', label: 'email' },
-          { token: '{company}', label: 'company' },
-        ];
-
-        try {
-          const selectedContactId = localStorage.getItem('remix_selected_contact_id');
-          if (selectedContactId) {
-            const profiles = JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]');
-            const profile = profiles.find((p) => p.id === selectedContactId);
-            if (profile?.variables) {
-              const enriched = Object.entries(profile.variables).map(([key, value]) => ({
-                token: `{{${key}}}`,
-                label: key,
-                preview: value ? String(value).slice(0, 30) : '',
-              }));
-              if (enriched.length > 0) {
-                tokenEntries = enriched;
-              }
-            }
-          }
-        } catch {}
-
-        const tokenButtons = tokenEntries.map((t) => `
-          <button class="token-btn" data-token="${t.token}" title="${t.preview || ''}" style="padding: 6px 10px; background: #1f2937; color: #e5e7eb; border: 1px solid #374151; border-radius: 4px; cursor: pointer; font-size: 11px;">${t.label}${t.preview ? ` (${t.preview})` : ''}</button>
-        `).join('');
-
-        const contactBanner = (() => {
-          try {
-            const id = localStorage.getItem('remix_selected_contact_id');
-            if (!id) return '';
-            const contacts = JSON.parse(localStorage.getItem('remix_contacts') || '[]');
-            const contact = contacts.find((c) => c.id === id);
-            if (!contact) return '';
-            return `<div style="padding: 8px 12px; background: rgba(217,255,0,0.05); border: 1px solid rgba(217,255,0,0.2); border-radius: 6px; margin-bottom: 12px; color: #d9ff00; font-size: 12px;">Personalized for: ${contact.name}${contact.company ? ` at ${contact.company}` : ''}</div>`;
-          } catch { return ''; }
-        })();
-
-        els.tokenEditorContainer.innerHTML = `
-          <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-            <h3 style="margin: 0 0 8px 0; color: #e5e7eb;">Token Editor</h3>
-            <p style="color: #9ca3af; margin-bottom: 12px; font-size: 13px;">Create content with dynamic tokens. Click a token to insert it.</p>
-            ${contactBanner}
-            <textarea placeholder="Enter text with {tokens}..." style="flex: 1; padding: 12px; background: #1f2937; border: 1px solid #374151; border-radius: 8px; color: #e5e7eb; resize: vertical; font-family: monospace; min-height: 200px;"></textarea>
-            <div style="margin-top: 16px;">
-              <div style="font-size: 11px; color: #9ca3af; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Available tokens</div>
-              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                ${tokenButtons}
-              </div>
-            </div>
-            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #1f2937; display: flex; gap: 8px;">
-              <button id="refresh-tokens" style="padding: 6px 12px; background: #1f2937; color: #9ca3af; border: 1px solid #374151; border-radius: 4px; cursor: pointer; font-size: 11px;">↻ Refresh</button>
-              <button id="auto-timeline-btn" style="padding: 6px 12px; background: rgba(217,255,0,0.1); color: #d9ff00; border: 1px solid rgba(217,255,0,0.3); border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600;">✨ Auto-generate timeline</button>
-              <a href="#/contacts" style="padding: 6px 12px; background: transparent; color: #d9ff00; border: 1px solid rgba(217,255,0,0.3); border-radius: 4px; text-decoration: none; font-size: 11px;">Manage Contacts</a>
-            </div>
-          </div>
-        `;
-
-        // Add token button functionality
-        els.tokenEditorContainer.querySelectorAll('.token-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const textarea = els.tokenEditorContainer.querySelector('textarea');
-            const token = btn.dataset.token;
-            textarea.value += token;
-            textarea.focus();
-          });
-        });
-
-        // Refresh button
-        const refreshBtn = els.tokenEditorContainer.querySelector('#refresh-tokens');
-        if (refreshBtn) {
-          refreshBtn.addEventListener('click', () => {
-            els.tokenEditorContainer.innerHTML = '';
-            showTokenEditorPanel();
-          });
-        }
-
-        // Auto-generate timeline button — calls /api/intelligence/auto-timeline
-        // and prepends the returned scenes to the current timeline.
-        const autoTimelineBtn = els.tokenEditorContainer.querySelector('#auto-timeline-btn');
-        if (autoTimelineBtn) {
-          autoTimelineBtn.addEventListener('click', async () => {
-            const contactId = localStorage.getItem('remix_selected_contact_id');
-            if (!contactId) {
-              alert('Select a contact first to auto-generate a personalized timeline.');
-              return;
-            }
-            const originalLabel = autoTimelineBtn.textContent;
-            autoTimelineBtn.disabled = true;
-            autoTimelineBtn.textContent = '⏳ Generating...';
-            try {
-              const session = await (async () => {
-                try {
-                  const { supabase } = await import('../lib/supabase.js');
-                  const { data } = await supabase.auth.getSession();
-                  return data.session;
-                } catch { return null; }
-              })();
-              const headers = { 'Content-Type': 'application/json' };
-              if (session) headers.Authorization = `Bearer ${session.access_token}`;
-              const res = await fetch(`/api/intelligence/auto-timeline/${contactId}`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({}),
-              });
-              if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || `HTTP ${res.status}`);
-              }
-              const data = await res.json();
-              const scenes = data.scenes || [];
-              if (scenes.length === 0) {
-                alert('No scenes generated. Make sure the contact has a complete profile.');
-                return;
-              }
-              // Convert scenes to timeline clips and prepend
-              const baseTime = 0;
-              scenes.forEach((scene, i) => {
-                const clip = {
-                  id: `auto-${Date.now()}-${i}`,
-                  type: 'text',
-                  start: baseTime + scenes.slice(0, i).reduce((s, sc) => s + (sc.durationSeconds || 5), 0),
-                  duration: scene.durationSeconds || 5,
-                  text: scene.prompt,
-                  assetUrl: scene.assetHints?.image || '',
-                  source: 'auto-timeline',
-                  beat: scene.beat,
-                };
-                // Push to the global clips array if available
-                if (typeof window !== 'undefined' && Array.isArray(window.__timelineClips)) {
-                  window.__timelineClips.push(clip);
-                } else if (typeof clips !== 'undefined' && Array.isArray(clips)) {
-                  clips.push(clip);
-                }
-              });
-              // Trigger a re-render of the timeline if a render function is exposed
-              if (typeof window !== 'undefined' && typeof window.__timelineRender === 'function') {
-                window.__timelineRender();
-              } else if (typeof renderTimeline === 'function') {
-                renderTimeline();
-              }
-              autoTimelineBtn.textContent = `✓ Added ${scenes.length} scenes`;
-              setTimeout(() => { autoTimelineBtn.textContent = originalLabel; autoTimelineBtn.disabled = false; }, 2500);
-            } catch (err) {
-              alert(`Auto-timeline failed: ${err.message}`);
-              autoTimelineBtn.textContent = originalLabel;
-              autoTimelineBtn.disabled = false;
-            }
-          });
-        }
-      }
+    function addSmartText(text) {
+      const T = state.timelineSeconds || 60;
+      const startSec = (state.playheadPercent / 100) * T;
+      const clip = createAddonClip('overlay-text', { startSec, timelineSeconds: T });
+      clip.addon = { ...clip.addon, text };
+      clip.name = `Text: ${text.slice(0, 30)}`;
+      saveStateSnapshot(state);
+      insertClipIntoTrack(clip, 'Text');
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast('Added as Smart Text at the playhead', 'success');
+      return clip;
     }
-
-    function showBatchGeneratorPanel() {
-      hideAllEditorPanels();
-      els.batchGeneratorPanel?.style && (els.batchGeneratorPanel.style.display = 'block');
-
-      if (els.batchGeneratorContainer && !els.batchGeneratorContainer.innerHTML) {
-        els.batchGeneratorContainer.innerHTML = `
-          <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-            <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Batch Generator</h3>
-            <p style="color: #9ca3af; margin-bottom: 16px;">Generate multiple videos or content items at once.</p>
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
-              <select style="padding: 8px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #e5e7eb;">
-                <option>Select Template...</option>
-                <option>Video Template 1</option>
-                <option>Video Template 2</option>
-              </select>
-              <div id="batchItems" style="flex: 1; overflow-y: auto; border: 1px solid #374151; border-radius: 4px; padding: 8px;">
-                <!-- Batch items will be added here -->
-              </div>
-              <div style="display: flex; gap: 8px;">
-                <button id="addBatchItem" style="padding: 8px 12px; background: #10b981; color: white; border: none; border-radius: 4px;">Add Item</button>
-                <button id="startBatch" style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 4px;">Start Batch</button>
-              </div>
-            </div>
-          </div>
-        `;
-
-        // Add batch functionality
-        const addBtn = els.batchGeneratorContainer.querySelector('#addBatchItem');
-        const batchItems = els.batchGeneratorContainer.querySelector('#batchItems');
-
-        addBtn.addEventListener('click', () => {
-          const itemCount = batchItems.children.length + 1;
-          const itemDiv = document.createElement('div');
-          itemDiv.style.cssText = 'background: #111827; padding: 8px; margin-bottom: 8px; border-radius: 4px;';
-          itemDiv.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span>Item ${itemCount}</span>
-              <button class="remove-item" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 2px 6px;">×</button>
-            </div>
-            <input type="text" placeholder="Item data..." style="width: 100%; padding: 4px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #e5e7eb;">
-          `;
-          itemDiv.querySelector('.remove-item').addEventListener('click', () => itemDiv.remove());
-          batchItems.appendChild(itemDiv);
-        });
-      }
+    // Intelligence layer: scenes for the selected contact become Smart Text clips.
+    async function buildSceneClips() {
+      const contactId = localStorage.getItem('remix_selected_contact_id');
+      if (!contactId) throw new Error('select a contact first');
+      const headers = { 'Content-Type': 'application/json' };
+      try {
+        const { supabase: sb } = await import('../lib/supabase.js');
+        const { data } = await sb.auth.getSession();
+        if (data?.session) headers.Authorization = `Bearer ${data.session.access_token}`;
+      } catch { /* anonymous */ }
+      const res = await fetch(`/api/intelligence/auto-timeline/${encodeURIComponent(contactId)}`, { method: 'POST', headers, body: '{}' });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
+      const scenes = (await res.json()).scenes || [];
+      const T = state.timelineSeconds || 60;
+      let at = (state.playheadPercent / 100) * T;
+      saveStateSnapshot(state);
+      let added = 0;
+      scenes.forEach((scene) => {
+        const dur = Math.max(1, Number(scene.durationSeconds) || 5);
+        if (at >= T - 0.1) return;
+        const clip = createAddonClip('overlay-text', { startSec: at, timelineSeconds: T });
+        clip.start = at;
+        clip.end = Math.min(T, at + dur);
+        clip.addon = { ...clip.addon, text: String(scene.prompt || scene.beat || '').slice(0, 140) };
+        clip.name = `Scene: ${String(scene.beat || scene.prompt || '').slice(0, 24)}`;
+        insertClipIntoTrack(clip, 'Text');
+        at += dur;
+        added += 1;
+      });
+      scheduleEngineUpdate();
+      debouncedSave();
+      return added;
     }
-
-    function showWorkflowPanel() {
-      hideAllEditorPanels();
-      els.workflowPanel?.style && (els.workflowPanel.style.display = 'block');
-
-      if (els.workflowContainer && !els.workflowContainer.innerHTML) {
-        els.workflowContainer.innerHTML = `
-          <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-            <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Workflow Automation</h3>
-            <p style="color: #9ca3af; margin-bottom: 16px;">Automate your video creation and distribution workflows.</p>
-            <div style="flex: 1; overflow-y: auto;">
-              <div style="display: grid; gap: 12px;">
-                <div class="workflow-card" style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; cursor: pointer;">
-                  <h4 style="margin: 0 0 8px 0; color: #e5e7eb;">Video Creation Pipeline</h4>
-                  <p style="margin: 0; color: #9ca3af; font-size: 14px;">Generate, edit, and publish videos automatically</p>
-                </div>
-                <div class="workflow-card" style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; cursor: pointer;">
-                  <h4 style="margin: 0 0 8px 0; color: #e5e7eb;">Batch Processing</h4>
-                  <p style="margin: 0; color: #9ca3af; font-size: 14px;">Process multiple videos with consistent branding</p>
-                </div>
-                <div class="workflow-card" style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; cursor: pointer;">
-                  <h4 style="margin: 0 0 8px 0; color: #e5e7eb;">Personalization Hub</h4>
-                  <p style="margin: 0; color: #9ca3af; font-size: 14px;">Create personalized content at scale</p>
-                </div>
-              </div>
-            </div>
-            <button style="margin-top: 16px; padding: 10px; background: #3b82f6; color: white; border: none; border-radius: 4px;">Create New Workflow</button>
-          </div>
-        `;
-      }
-    }
+    const activeContact = () => getActivePersonalizationProfile();
 
     function showPersonalizationPanel() {
-      hideAllEditorPanels();
-      els.personalizationPanel?.style && (els.personalizationPanel.style.display = 'block');
-
-      if (els.personalizationContainer && !els.personalizationContainer.innerHTML) {
-        els.personalizationContainer.innerHTML = `
-          <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-            <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Personalization</h3>
-            <p style="color: #9ca3af; margin-bottom: 16px;">Create personalized content using merge fields.</p>
-            <div style="flex: 1; overflow-y: auto; display: grid; gap: 8px;">
-              <div class="merge-field" style="background: #1f2937; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="font-weight: bold; color: #e5e7eb;">First Name</div>
-                  <div style="font-size: 12px; color: #6b7280;">{first_name}</div>
-                </div>
-                <span style="color: #9ca3af;">John</span>
-              </div>
-              <div class="merge-field" style="background: #1f2937; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="font-weight: bold; color: #e5e7eb;">Email</div>
-                  <div style="font-size: 12px; color: #6b7280;">{email}</div>
-                </div>
-                <span style="color: #9ca3af;">john@example.com</span>
-              </div>
-              <div class="merge-field" style="background: #1f2937; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="font-weight: bold; color: #e5e7eb;">Company</div>
-                  <div style="font-size: 12px; color: #6b7280;">{company}</div>
-                </div>
-                <span style="color: #9ca3af;">Acme Corp</span>
-              </div>
-            </div>
-            <button style="margin-top: 16px; padding: 10px; background: #3b82f6; color: white; border: none; border-radius: 4px;">Add Field</button>
-          </div>
-        `;
-      }
+      openPanel('personalizationPanel');
+      mountRailPanel('personalization', els.personalizationContainer, (el) => {
+        const panel = renderPersonalizationPanel(el, {
+          contacts: () => listContactProfiles(contactStore),
+          active: activeContact,
+          select: (id) => contactStore.selectContact(id),
+          addText: addSmartText,
+          openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
+            studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
+            onComplete: () => { renderContactSwitcher(); panel.redraw(); },
+          })),
+        });
+        window.addEventListener('remix:contact-changed', panel.redraw);
+        return panel;
+      });
     }
 
     function showPersonalizationEditorPanel() {
-      hideAllEditorPanels();
-      els.personalizationEditorPanel?.style && (els.personalizationEditorPanel.style.display = 'block');
-
-      if (els.personalizationEditorContainer && !els.personalizationEditorContainer.innerHTML) {
-        els.personalizationEditorContainer.innerHTML = `
-          <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-            <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Personalization Editor</h3>
-            <p style="color: #9ca3af; margin-bottom: 16px;">Edit personalized content with dynamic tokens.</p>
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
-              <textarea placeholder="Enter personalized text..." style="flex: 1; padding: 12px; background: #1f2937; border: 1px solid #374151; border-radius: 8px; color: #e5e7eb; resize: vertical;"></textarea>
-              <div style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px;">
-                <h4 style="margin: 0 0 8px 0; color: #e5e7eb;">Preview</h4>
-                <div id="personalizationPreview" style="color: #e5e7eb;">Preview will appear here...</div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
+      openPanel('personalizationEditorPanel');
+      mountRailPanel('pedit', els.personalizationEditorContainer, (el) => renderPersonalizationEditor(el, {
+        active: activeContact,
+        tokens: TOKEN_DEFS.map((d) => [d.key, d.label]),
+        resolve: (text, profile) => resolveOverlayText(text, profile),
+        addText: addSmartText,
+      }));
     }
 
-    function hideAllEditorPanels() {
-      els.canvasPanel?.style && (els.canvasPanel.style.display = 'none');
-      els.tokenEditorPanel?.style && (els.tokenEditorPanel.style.display = 'none');
-      els.batchGeneratorPanel?.style && (els.batchGeneratorPanel.style.display = 'none');
-      els.workflowPanel?.style && (els.workflowPanel.style.display = 'none');
-      els.personalizationPanel?.style && (els.personalizationPanel.style.display = 'none');
-      els.personalizationEditorPanel?.style && (els.personalizationEditorPanel.style.display = 'none');
+    function showTokenEditorPanel() {
+      openPanel('tokenEditorPanel');
+      mountRailPanel('token', els.tokenEditorContainer, (el) => renderTokenEditor(el, {
+        active: activeContact,
+        insert: addSmartText,
+        autoTimeline: buildSceneClips,
+      }));
+    }
+
+    function showBatchGeneratorPanel() {
+      openPanel('batchGeneratorPanel');
+      mountRailPanel('batch', els.batchGeneratorContainer, (el) => renderBatchHub(el, {
+        contacts: () => listContactProfiles(contactStore),
+        tokensUsed: () => projectTokens(state.tracks),
+        exportEach: () => {
+          openExportModal(state, showToast);
+          const sel = els.modalBody.querySelector('#exportFor');
+          if (sel && !sel.disabled) sel.value = 'each';
+        },
+        openShare: () => openPanel('sharePanel'),
+      }));
     }
 
     function renderLineDuration(clipId) {

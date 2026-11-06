@@ -1090,3 +1090,25 @@
 .share-personal__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow: auto; }
 .share-personal__list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text, rgba(255,255,255,.86)); }
 .share-personal__list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Bottom-row panels: close button, personalization panels, flash */
+.side-card .panel-close { float: right; width: 24px; height: 24px; margin: -2px 0 0 8px; border-radius: 6px; border: 1px solid var(--border, rgba(255,255,255,.1)); background: var(--surface-2, rgba(255,255,255,.05)); color: var(--text, #fff); font-size: 11px; line-height: 1; cursor: pointer; }
+.side-card .panel-close:hover, .side-card .panel-close:focus-visible { border-color: var(--cyan, #22d3ee); outline: none; }
+.rp { display: flex; flex-direction: column; gap: 10px; }
+.rp-row { display: flex; gap: 8px; align-items: center; }
+.rp-row .pz-select { flex: 1; min-width: 0; }
+.rp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow: auto; }
+.rp-var { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--pz-radius, 10px); border: 1px solid var(--pz-border, #27272a); background: var(--pz-card, #141414); font-size: 12px; }
+.rp-var div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rp-var strong { color: var(--pz-text, #fafafa); }
+.rp-var code { color: var(--pz-primary, #d9ff00); font-size: 11px; }
+.rp-var > span { color: var(--pz-text-2, #a1a1aa); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rp-text { min-height: 84px; resize: vertical; font: inherit; font-size: 13px; }
+.rp-preview { font-size: 14px; line-height: 1.5; color: var(--pz-text, #fafafa); white-space: pre-wrap; }
+.rp-starters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 10px; }
+.rp-starters .pz-label { width: 100%; margin: 0; }
+.rp-flash { animation: rp-flash 1.4s ease; }
+@keyframes rp-flash { 0%, 60% { box-shadow: 0 0 0 3px var(--cyan-soft, rgba(34,211,238,.35)); } 100% { box-shadow: none; } }
+/* Keep a panel's bottom clear of the floating bottom row when it scrolls into view. */
+.side-card { scroll-margin-bottom: 130px; }
+.rp-var--2 { grid-template-columns: minmax(0, 1fr) auto; }
