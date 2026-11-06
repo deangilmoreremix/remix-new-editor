@@ -1113,3 +1113,22 @@
 .side-card { scroll-margin-bottom: 130px; }
 .rp-var--2 { grid-template-columns: minmax(0, 1fr) auto; }
 .speech-modal__lead-chip { font-style: normal; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; margin-left: 6px; border-radius: 999px; background: var(--cyan-faint, rgba(34,211,238,.1)); color: var(--cyan, #22d3ee); }
+
+/* AI Tools window and history */
+.aitool-body { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.aitool-frames { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.aitool-frame { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: var(--r-sm, 8px); border: 1px solid var(--border-soft, rgba(255,255,255,.06)); background: var(--surface-1, rgba(255,255,255,.03)); }
+.aitool-frame-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.aitool-upload { cursor: pointer; }
+.aitool-thumb { width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border, rgba(255,255,255,.1)); }
+.aitool-result { display: flex; flex-direction: column; gap: 10px; }
+.aitool-result video, .aitool-result img { width: 100%; max-height: 320px; object-fit: contain; border-radius: 8px; background: #000; }
+.aitool-result-actions { display: flex; gap: 8px; }
+.aitool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.aitool-shot { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.aitool-shot img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; border: 1px solid var(--border, rgba(255,255,255,.1)); }
+.aitool-history { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.aitool-entry { display: flex; gap: 10px; align-items: center; padding: 8px; }
+.aitool-entry div { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12px; }
+.aitool-entry small { color: var(--pz-muted, #71717a); }
+.aitool-mini { flex: none; width: 64px; height: 40px; object-fit: cover; border-radius: 6px; background: #000; }

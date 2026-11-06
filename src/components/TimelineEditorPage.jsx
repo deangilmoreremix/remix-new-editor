@@ -65,7 +65,9 @@ import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } fro
 // Agent system integration
 import { initTimelineAgentIntegration } from '../timelineAgentIntegration.js';
 import { ColorCorrectionSystem } from '../lib/editor/colorCorrectionSystem.jsx';
-import { runCineGenTool, CINEGEN_TOOLS } from '../lib/cinegenIntegration.js';
+import { runTimelineAITool, AI_TOOL_INFO } from '../lib/editor/aiToolsClient.js';
+import { openAiToolsWindow, summarizeResult } from '../lib/editor/panels/aiTools.js';
+import { captureVideoFrame, sourceTimeFor } from '../lib/editor/panels/frameCapture.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 // CutAI integration loaded dynamically to avoid syntax issues in AIStoryboardStudio.jsx
@@ -611,10 +613,15 @@ export function TimelineEditorPage() {
           <button class="mini-btn" data-camera-effect="tilt-down">Tilt D</button>
         </div>
       </aside>
-      <aside class="side-card" id="cinegenResultsPanel" hidden data-tooltip="CineGen AI Tools Results">
-        <div class="card-title">🎨 CineGen Results</div>
-        <div id="cinegenResults" style="font-size: 12px; color: var(--text-dim); min-height: 60px;">No CineGen tools used yet</div>
-        <button class="mini-btn" id="clearCineGenResults" style="margin-top: 8px; width: 100%;">Clear History</button>
+      <aside class="side-card" id="cinegenResultsPanel" hidden data-tooltip="AI Tools - Fill Gap, Extend, Element and Shot Board on your own MuAPI key">
+        <div class="card-title">🎨 AI Tools</div>
+        <div class="pz-ui rp">
+          <p class="pz-hint">Make footage and images with your own MuAPI key: bridge a gap, extend a clip, create an element or storyboard a scene.</p>
+          <button type="button" class="pz-btn pz-btn-primary" id="openAiTools">Open AI Tools</button>
+          <span class="pz-label">History</span>
+        </div>
+        <div id="cinegenResults" class="pz-ui aitool-history"><p class="pz-hint">Nothing made yet.</p></div>
+        <button class="mini-btn" id="clearCineGenResults" style="margin-top: 8px; width: 100%;">Clear history</button>
       </aside>
       <aside class="side-card" id="clipSettingsPanel" hidden data-tooltip="Clip editor - Edit selected clip properties">
         <div class="card-title">🎬 Clip Editor</div><div id="clipEditorContainer"></div>
@@ -766,7 +773,7 @@ export function TimelineEditorPage() {
         ['🎞️', 'Multi-Cam'],
         ['✂️', 'Clip Editor'],
         ['🔄', 'Transitions Panel'],
-        ['🎨', 'CineGen Results'],
+        ['🎨', 'AI Tools'],
         ['🎭', 'AI Animation'],
         ['🎨', 'Canvas'],
         ['🏷️', 'Token Editor'],
@@ -1141,20 +1148,20 @@ export function TimelineEditorPage() {
         return;
       }
 
-      // CineGen keyboard shortcuts
+      // AI Tools keyboard shortcuts (Alt+G fill gap, Alt+E extend, Alt+M music)
       if (event.altKey) {
         switch (event.key.toLowerCase()) {
           case 'g':
             event.preventDefault();
-            runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }).then(updateCineGenResults);
+            openAiTools('fill_gap');
             break;
           case 'e':
             event.preventDefault();
-            runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId }).then(updateCineGenResults);
+            openAiTools('extend');
             break;
           case 'm':
             event.preventDefault();
-            runCineGenTool('music_generation', { clipId: state.selectedClipId }).then(updateCineGenResults);
+            openAgentWithPrompt('Add background music that fits the mood of this video, at a low volume under any voiceover.');
             break;
         }
       }
@@ -1331,209 +1338,87 @@ export function TimelineEditorPage() {
       return state.tracks.flatMap((track) => track.clips).find((item) => item.id === state.selectedClipId);
     }
 
-    function updateCineGenResults(result) {
-      const container = document.getElementById('cinegenResults');
-      if (!container) return;
-
-      const entry = {
-        timestamp: new Date().toLocaleTimeString(),
-        result
-      };
-      cinegenHistory.push(entry);
-
-      const item = document.createElement('div');
-      item.style.marginBottom = '8px';
-      item.style.padding = '8px';
-      item.style.borderRadius = '8px';
-      item.style.background = 'rgba(255,255,255,0.05)';
-      item.style.border = '1px solid var(--border)';
-      item.style.fontSize = '11px';
-
-      const success = result && result.success !== false;
-      item.style.borderColor = success ? 'rgba(52,211,153,0.4)' : 'rgba(239,68,68,0.4)';
-      item.innerHTML = `
-        <div style="font-weight:700;margin-bottom:4px;color:${success ? '#86efac' : '#fca5a5'}">
-          ${entry.timestamp} — ${success ? 'Success' : 'Failed'}
-        </div>
-        <div style="color:rgba(255,255,255,0.75);word-break:break-word;">
-          ${(result && result.message) || JSON.stringify(result)}
-        </div>
-      `;
-
-      container.insertBefore(item, container.firstChild);
+    // AI Tools (CineGen-derived): Fill Gap, Extend, Element and Shot Board on the
+    // user's own MuAPI key. The window is src/lib/editor/panels/aiTools.js.
+    function recordAiTool(result) {
+      if (!result) return;
+      cinegenHistory.unshift({ at: new Date(), result });
+      renderAiToolHistory();
     }
-
-    function applyCineGenResultToTimeline(result) {
-      if (!result || result.success === false) return;
-
-      const tool = result.tool || result.metadata?.tool;
-      const url = result.url || result.output?.url || result.video?.url;
-      const urls = Array.isArray(result.urls) ? result.urls : (url ? [url] : []);
-      const selectedClip = findSelectedClip();
-
-      if (tool === 'fill_gap' || tool === 'gap_fill') {
-        const targetTrack = state.tracks.find(t => ['video', 'image', 'b-roll', 'overlay'].includes(t.type)) || state.tracks[0];
-        if (!targetTrack) return;
-        const duration = result.duration || 5;
-        const startTime = selectedClip ? (selectedClip.end || selectedClip.start + duration) : 0;
-        const newClip = {
-          id: 'cinegen-' + Date.now(),
-          name: `AI Fill ${tool}`,
-          type: 'video',
-          src: url,
-          start: startTime,
-          end: startTime + duration,
-          duration,
-          sourceStart: 0,
-          sourceEnd: duration,
-          volume: 1,
-          opacity: 1,
-          playbackRate: 1,
-          effects: [],
-          transform: { x: 0, y: 0, scale: 1, rotation: 0 },
-          metadata: { cinegenProcessed: true, tool, requestId: result.requestId }
-        };
-        if (!targetTrack.clips) targetTrack.clips = [];
-        targetTrack.clips.push(newClip);
-        renderAll();
-        debouncedSave(0);
-        showToast('Gap filled with AI-generated clip', 'success');
-        return;
-      }
-
-      if (tool === 'extend' || tool === 'extend_clip') {
-        const targetTrack = selectedClip ? state.tracks.find(t => t.clips?.includes(selectedClip)) : state.tracks.find(t => ['video', 'image', 'b-roll'].includes(t.type)) || state.tracks[0];
-        if (!targetTrack || !selectedClip) return;
-        const addedDuration = result.addedDuration || 5;
-        const newClip = {
-          id: 'cinegen-' + Date.now(),
-          name: `AI Extend ${result.direction || 'after'}`,
-          type: selectedClip.type || 'video',
-          src: url,
-          start: selectedClip.end,
-          end: selectedClip.end + addedDuration,
-          duration: addedDuration,
-          sourceStart: 0,
-          sourceEnd: addedDuration,
-          volume: selectedClip.volume ?? 1,
-          opacity: selectedClip.opacity ?? 1,
-          playbackRate: selectedClip.playbackRate ?? 1,
-          effects: selectedClip.effects ? [...selectedClip.effects] : [],
-          transform: { ...(selectedClip.transform || { x: 0, y: 0, scale: 1, rotation: 0 }) },
-          metadata: { cinegenProcessed: true, tool, requestId: result.requestId, parentClipId: selectedClip.id }
-        };
-        if (!targetTrack.clips) targetTrack.clips = [];
-        targetTrack.clips.push(newClip);
-        renderAll();
-        debouncedSave(0);
-        showToast('Clip extended with AI-generated media', 'success');
-        return;
-      }
-
-      if (tool === 'music_generation') {
-        const audioTrack = state.tracks.find(t => t.type === 'audio') || state.tracks.find(t => t.clips?.some(c => c.type === 'audio'));
-        if (!audioTrack) return;
-        const newClip = {
-          id: 'cinegen-' + Date.now(),
-          name: `AI Music: ${result.genre || 'Generated'}`,
-          type: 'audio',
-          src: url,
-          start: 0,
-          end: result.duration || 30,
-          duration: result.duration || 30,
-          volume: 0.8,
-          metadata: { cinegenProcessed: true, tool, requestId: result.requestId, genre: result.genre, mood: result.mood, instrumental: result.instrumental }
-        };
-        if (!audioTrack.clips) audioTrack.clips = [];
-        audioTrack.clips.push(newClip);
-        renderAll();
-        debouncedSave(0);
-        showToast('AI music added to audio track', 'success');
-        return;
-      }
-
-      if (tool === 'element_create') {
-        const element = result.element || { name: 'Element', type: 'image', description: '', url };
-        state.mediaLibrary = state.mediaLibrary || [];
-        state.mediaLibrary.push({
-          id: 'element-' + Date.now(),
-          icon: element.type === 'image' ? '🖼️' : '🎬',
-          label: element.name || 'Generated Element',
-          type: element.type || 'image',
-          desc: element.description || 'AI-generated element',
-          src: element.url || url,
-          metadata: { cinegenProcessed: true, tool, requestId: result.requestId }
-        });
-        renderMedia();
-        debouncedSave(0);
-        showToast('Element added to media library', 'success');
-        return;
-      }
-
-      if (tool === 'shot_board') {
-        state.mediaLibrary = state.mediaLibrary || [];
-        (urls || []).forEach((shotUrl, idx) => {
-          state.mediaLibrary.push({
-            id: 'shot-' + Date.now() + '-' + idx,
-            icon: '🎬',
-            label: `Shot ${idx + 1}`,
-            type: 'image',
-            desc: 'AI-generated shot board frame',
-            src: shotUrl,
-            metadata: { cinegenProcessed: true, tool, requestId: result.requestId, shotIndex: idx }
-          });
-        });
-        renderMedia();
-        debouncedSave(0);
-        showToast(`${urls.length} shot board frames added to media library`, 'success');
-        return;
-      }
-
-      if (tool === 'sam3_segment' && result.video?.url) {
-        if (selectedClip) {
-          selectedClip.metadata = selectedClip.metadata || {};
-          selectedClip.metadata.maskUrl = result.video.url;
-          selectedClip.metadata.maskContentType = result.video.contentType;
-          selectedClip.metadata.sam3Processed = true;
-          selectedClip.metadata.sam3RequestId = result.requestId;
-        }
-        renderAll();
-        debouncedSave(0);
-        showToast('SAM3 segmentation applied — mask stored on clip', 'success');
-        return;
-      }
-
-      // Generic fallback: add any media URL to the first compatible track
-      if (urls.length > 0) {
-        const targetTrack = state.tracks.find(t => ['video', 'image', 'b-roll'].includes(t.type)) || state.tracks[0];
-        if (targetTrack) {
-          const startTime = selectedClip ? (selectedClip.end || selectedClip.start + 5) : 0;
-          urls.forEach((mediaUrl, idx) => {
-            const newClip = {
-              id: 'cinegen-' + Date.now() + '-' + idx,
-              name: `AI ${tool || 'Generated'} ${idx + 1}`,
-              type: 'video',
-              src: mediaUrl,
-              start: startTime + idx * 5,
-              end: startTime + idx * 5 + 5,
-              duration: 5,
-              sourceStart: 0,
-              sourceEnd: 5,
-              volume: 1,
-              opacity: 1,
-              playbackRate: 1,
-              effects: [],
-              transform: { x: 0, y: 0, scale: 1, rotation: 0 },
-              metadata: { cinegenProcessed: true, tool, requestId: result.requestId }
-            };
-            if (!targetTrack.clips) targetTrack.clips = [];
-            targetTrack.clips.push(newClip);
-          });
-          renderAll();
-          debouncedSave(0);
-          showToast(`Added ${urls.length} generated clip(s) to timeline`, 'success');
-        }
-      }
+    function renderAiToolHistory() {
+      const box = document.getElementById('cinegenResults');
+      if (!box) return;
+      if (!cinegenHistory.length) { box.innerHTML = '<p class="pz-hint">Nothing made yet.</p>'; return; }
+      box.innerHTML = cinegenHistory.slice(0, 30).map(({ at, result }) => {
+        const ok = result.success !== false;
+        const label = AI_TOOL_INFO[result.tool]?.label || 'AI Tool';
+        const media = ok ? (result.urls?.[0] || result.url) : '';
+        const thumb = media ? (result.tool === 'fill_gap' || result.tool === 'extend'
+          ? `<video class="aitool-mini" src="${escapeHtml(media)}" muted playsinline></video>`
+          : `<img class="aitool-mini" src="${escapeHtml(media)}" alt=""/>`) : '';
+        return `<div class="pz-card aitool-entry">${thumb}<div><strong>${escapeHtml(label)}</strong><span class="${ok ? '' : 'pz-warning'}">${escapeHtml(summarizeResult(result))}</span><small>${at.toLocaleTimeString()}</small></div></div>`;
+      }).join('');
+    }
+    function growTimelineTo(endSec) {
+      const T = state.timelineSeconds || 60;
+      if (endSec <= T) return;
+      const next = Math.ceil(endSec + 1);
+      state.tracks.forEach((t) => (t.items || t.clips || []).forEach((c) => {
+        if (typeof c.left === 'number') { c.left = (c.left * T) / next; c.width = (c.width * T) / next; }
+      }));
+      state.playheadPercent = ((state.playheadPercent || 0) * T) / next;
+      state.timelineSeconds = next;
+      drawRuler();
+    }
+    function aiClipInfo(clip) {
+      if (!clip) return null;
+      const T = state.timelineSeconds || 60;
+      const { start, end } = clipTimeRange(clip, T);
+      return { id: clip.id, src: clip.src, type: clip.type, name: clip.name, durationSec: Math.max(0, end - start), trimIn: Number(clip.trimIn ?? clip.sourceStart ?? 0), startSec: start, endSec: end };
+    }
+    let aiToolsCursor = null;
+    function openAiTools(tool) {
+      const items = () => state.tracks.flatMap((t) => (t.items || t.clips || []).map((c) => ({ c, t })));
+      const selectedEntry = () => (state.selectedClipId != null ? items().find(({ c }) => c.id === state.selectedClipId) : null);
+      return openAiToolsWindow({
+        hasKey: () => { const k = apiKeyManager.getMuapiKey?.(); return !!k && k !== 'dev'; },
+        getSelected: () => {
+          const e = selectedEntry();
+          return e && (e.c.type === 'video' || e.c.type === 'image') && e.c.src ? aiClipInfo(e.c) : null;
+        },
+        getNext: (info) => {
+          const e = items().find(({ c }) => c.id === info.id);
+          if (!e) return null;
+          const later = (e.t.items || e.t.clips || []).filter((c) => c.src && (c.type === 'video' || c.type === 'image') && (c.left ?? 0) > (e.c.left ?? 0)).sort((a, b) => a.left - b.left)[0];
+          return aiClipInfo(later);
+        },
+        captureFrame: (info, which) => (info.type === 'image' ? Promise.resolve(info.src) : captureVideoFrame(info.src, sourceTimeFor(info, which), { upload: uploadFileToStorage })),
+        upload: async (file) => { const out = await uploadFileToStorage(file); const url = typeof out === 'string' ? out : out?.url; if (!url || url.startsWith('blob:')) throw new Error('Upload failed. Sign in and try again.'); return url; },
+        run: (toolName, params, o) => runTimelineAITool(toolName, params, o),
+        record: recordAiTool,
+        toast: showToast,
+        addToLibrary: ({ src, label, type }) => {
+          state.mediaLibrary = state.mediaLibrary || [];
+          state.mediaLibrary.push({ id: `element-${Date.now()}`, icon: '🖼️', label, type, desc: 'AI Tools', src });
+          renderMedia();
+          debouncedSave();
+        },
+        addToTimeline: ({ kind, src, name, durationSec, after }) => {
+          const T = state.timelineSeconds || 60;
+          const sel = selectedEntry();
+          let startSec = (state.playheadPercent / 100) * T;
+          if (after === 'selected' && sel) startSec = aiClipInfo(sel.c).endSec;
+          else if (after === 'previous' && aiToolsCursor != null) startSec = aiToolsCursor;
+          growTimelineTo(startSec + durationSec);
+          saveStateSnapshot(state);
+          const clip = { id: `ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`, type: kind, name, src, start: startSec, end: startSec + durationSec, aiGenerated: true };
+          insertClipIntoTrack(clip, 'video');
+          aiToolsCursor = startSec + durationSec;
+          scheduleEngineUpdate();
+          debouncedSave();
+          return clip;
+        },
+      }, { tool });
     }
 
     function clearPreviewStage() {
@@ -2560,13 +2445,13 @@ export function TimelineEditorPage() {
       } else if (pill === 'Audio Sync') {
         syncSelectedAudio();
       } else if (pill === 'Fill Gap AI') {
-        runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }).then(updateCineGenResults);
+        openAiTools('fill_gap');
       } else if (pill === 'Extend') {
-        runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId }).then(updateCineGenResults);
+        openAiTools('extend');
       } else if (pill === 'Music Gen') {
-        runCineGenTool('music_generation', { clipId: state.selectedClipId }).then(updateCineGenResults);
+        openAgentWithPrompt('Add background music that fits the mood of this video, at a low volume under any voiceover.');
       } else if (pill === 'Elements') {
-        showToast('Elements panel: browse and drag reusable media into timeline', 'info');
+        openAiTools('element_create');
       }
     }
 
@@ -7199,6 +7084,13 @@ export function TimelineEditorPage() {
       ['Lower third', 'Create an animated lower third with a name and a job title that slides in and out.'],
       ['Countdown', 'Create a 5 second countdown animation for a launch.'],
     ];
+    // Open the AI Agent with a request typed in, ready to send.
+    async function openAgentWithPrompt(prompt) {
+      openPanel('aiAgentPanel');
+      await mountAgentPanel();
+      const input = root.querySelector('#aiAgentChat [data-agent-input]');
+      if (input) { input.value = prompt; input.focus({ preventScroll: true }); }
+    }
     async function openAiAnimation() {
       openPanel('aiAgentPanel');
       await mountAgentPanel();
@@ -7239,7 +7131,7 @@ export function TimelineEditorPage() {
       'Multi-Cam': 'multiCameraPanel',
       'Clip Editor': 'clipSettingsPanel',
       'Transitions Panel': 'transitionSettingsPanel',
-      'CineGen Results': 'cinegenResultsPanel'
+      'AI Tools': 'cinegenResultsPanel'
     };
 
     // Maps feature-index chip data-modal keys to editor modal/open actions.
@@ -7307,7 +7199,7 @@ export function TimelineEditorPage() {
         'Landing Pages': 'Landing pages - Create personalized landing pages',
         'Lead Generator': 'Lead capture - Add lead generation forms to videos',
         'AI Personalizer': 'AI Personalizer - Scan profiles and generate personalized content',
-        'CineGen Tools': 'CineGen AI Tools - Full suite of AI editing tools',
+        'AI Tools': 'AI Tools - Fill Gap, Extend, Element and Shot Board on your own MuAPI key',
         'Gap Fill': 'CineGen Gap Fill - Fill gaps between clips with AI',
         'Extend Clip': 'CineGen Extend - Extend selected clip with AI-generated content',
         'Generate Music': 'CineGen Generate Music - Create background music',
@@ -7375,9 +7267,7 @@ export function TimelineEditorPage() {
               showTransitionSettings();
               break;
             case 'AI Video':
-              
-              // Quick access to CineGen tools from timeline
-              runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
+              openAiTools('fill_gap');
               break;
             case 'Recorder':
               openRecorderModal(state, showToast);
@@ -7452,28 +7342,9 @@ export function TimelineEditorPage() {
              case 'Export':
                openExportModal(state, showToast);
                break;
-             case 'CineGen Tools':
+            case 'AI Tools':
               openPanel('cinegenResultsPanel');
-              break;
-            case 'Gap Fill':
-              runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
-              break;
-            case 'Extend Clip':
-              runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId });
-              break;
-            case 'Generate Music':
-            case 'Mask Tool':
-            case 'Element':
-            case 'Polish':
-            case 'Smart Subtitles':
-            case 'LLM Assistant':
-            case 'SAM3':
-            case 'Audio Sync':
-            case 'Layer Decomp':
-            case 'Shot Board':
-            case 'Proxy Play':
-            case 'Comp Plan':
-              openPanel('cinegenResultsPanel');
+              openAiTools();
               break;
             default:
               if (RAIL_PANEL_MAP[label]) openPanel(RAIL_PANEL_MAP[label]);
@@ -8534,7 +8405,7 @@ export function TimelineEditorPage() {
       const openSubtitleEditorBtn = root.querySelector('#openSubtitleEditor');
       if (genAutoCut) genAutoCut.addEventListener('click', () => openTemplateGeneratorModal(state, showToast));
       if (genSubtitles) genSubtitles.addEventListener('click', () => generateSubtitles());
-      if (genAiVideo) genAiVideo.addEventListener('click', () => runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }));
+      if (genAiVideo) genAiVideo.addEventListener('click', () => openAiTools('fill_gap'));
       if (genCutAi && window.showCutAIFromTimeline) genCutAi.addEventListener('click', () => window.showCutAIFromTimeline());
       if (openSubtitleEditorBtn) openSubtitleEditorBtn.addEventListener('click', () => generateSubtitles());
       const ccReset = root.querySelector('#ccReset');
@@ -8650,253 +8521,7 @@ export function TimelineEditorPage() {
       const cutaiBtn = root.querySelector('#cutaiStoryboardBtn');
       if (cutaiBtn) cutaiBtn.addEventListener('click', () => showCutAI());
 
-      const cinegenBtn = root.querySelector('#cinegenToolsBtn');
-      if (cinegenBtn) {
-        cinegenBtn.addEventListener('click', () => {
-          runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
-          
-        });
-      }
-
-      const gapFillBtn = root.querySelector('#cinegenGapFillBtn');
-      if (gapFillBtn) {
-        gapFillBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
-          updateCineGenResults(result);
-          if (result.success) {
-            applyCineGenResultToTimeline(result);
-            
-          }
-        });
-      }
-
-      const extendBtn = root.querySelector('#cinegenExtendBtn');
-      if (extendBtn) {
-        extendBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId });
-          updateCineGenResults(result);
-          if (result.success) {
-            applyCineGenResultToTimeline(result);
-            
-          }
-        });
-      }
-
-      const musicBtn = root.querySelector('#cinegenMusicBtn');
-      const modelSelect = root.querySelector('#musicModelSelect');
-      if (modelSelect && musicBtn) {
-        modelSelect.addEventListener('change', () => {
-          musicBtn.dataset.model = modelSelect.value;
-        });
-        musicBtn.dataset.model = modelSelect.value;
-      }
-      if (musicBtn) {
-        musicBtn.addEventListener('click', async () => {
-          try {
-            const { default: muapi } = await import('../lib/muapi.js');
-            const model = musicBtn.dataset.model || 'suno-create-music';
-            const prompt = prompt('Describe the music (or leave empty for auto):') || 'cinematic background music';
-            const result = await muapi.generateMusic({ model, prompt, duration: 30 });
-            if (result.url) {
-              // Drop generated audio onto the Audio track
-              const audioTrack = state.tracks.find(t => t.type === 'audio') || state.tracks[3];
-              if (audioTrack) {
-                audioTrack.clips = audioTrack.clips || [];
-                audioTrack.clips.push({
-                  id: 'music_' + Date.now(),
-                  name: `Music: ${model}`,
-                  src: result.url,
-                  start: 0,
-                  duration: 30,
-                  type: 'audio'
-                });
-                
-                if (typeof render === 'function') render();
-              }
-            } else {
-              
-            }
-          } catch (e) {
-            
-          }
-        });
-      }
-
-      const maskBtn = root.querySelector('#cinegenMaskBtn');
-      if (maskBtn) {
-        maskBtn.addEventListener('click', async () => {
-          const prompt = prompt('Enter segmentation prompt (e.g., "the person in red shirt")');
-          if (!prompt) return;
-          const result = await runCineGenTool('sam3_segment', {
-            clipId: state.selectedClipId,
-            prompt,
-            mode: 'text'
-          });
-          updateCineGenResults(result);
-          if (result.success) {
-            applyCineGenResultToTimeline(result);
-          }
-        });
-      }
-
-      const elementBtn = root.querySelector('#cinegenElementBtn');
-      if (elementBtn) {
-        elementBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('element_create', { clipId: state.selectedClipId });
-          updateCineGenResults(result);
-          if (result.success) {}
-        });
-      }
-
-      const polishBtn = root.querySelector('#cinegenPolishBtn');
-      if (polishBtn) {
-        polishBtn.addEventListener('click', async () => {
-          const gapResult = await runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
-          if (gapResult.success) applyCineGenResultToTimeline(gapResult);
-
-          const extendResult = await runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId });
-          if (extendResult.success) applyCineGenResultToTimeline(extendResult);
-
-          updateCineGenResults({ success: true, message: 'Clip polished (Gap Fill + Extend)' });
-          
-        });
-      }
-
-      const chatBtn = root.querySelector('#cinegenChatBtn');
-      if (chatBtn) {
-        chatBtn.addEventListener('click', () => {
-          // Focus the AI Chat panel
-          const chatInput = document.querySelector('#chatInput');
-          if (chatInput) chatInput.focus();
-          
-        });
-      }
-
-      const subBtn = root.querySelector('#cinegenSubBtn');
-      if (subBtn) {
-        subBtn.addEventListener('click', async () => {
-          await generateSubtitles();
-          
-        });
-      }
-
-      const llmBtn = root.querySelector('#cinegenLLMBtn');
-      if (llmBtn) {
-        llmBtn.addEventListener('click', () => {
-          const chatInput = document.querySelector('#chatInput');
-          if (chatInput) {
-            chatInput.focus();
-            chatInput.placeholder = 'Ask CineGen LLM...';
-          }
-          
-        });
-      }
-
-      const samBtn = root.querySelector('#cinegenSAMBtn');
-      if (samBtn) {
-        samBtn.addEventListener('click', async () => {
-          const prompt = prompt('Enter segmentation prompt (e.g., "the person in red shirt")');
-          if (!prompt) return;
-
-          const result = await runCineGenTool('sam3_segment', {
-            clipId: state.selectedClipId,
-            prompt: prompt
-          });
-
-          if (result.success) {
-            updateCineGenResults(result);
-            applyCineGenResultToTimeline(result);
-            
-          }
-        });
-      }
-
-      const syncBtn = root.querySelector('#cinegenSyncBtn');
-      if (syncBtn) {
-        syncBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('audio_sync', {
-            clipId: state.selectedClipId
-          });
-          updateCineGenResults(result);
-          if (result.success) {}
-        });
-      }
-
-      const layerBtn = root.querySelector('#cinegenLayerBtn');
-      if (layerBtn) {
-        layerBtn.addEventListener('click', async () => {
-          const selectedClip = findSelectedClip();
-          const imageUrl = selectedClip?.src || selectedClip?.url;
-          if (!imageUrl) {
-            showToast('Select a clip with media to decompose', 'error');
-            return;
-          }
-          const result = await runCineGenTool('layer_decompose', { clipId: state.selectedClipId, imageUrl });
-          updateCineGenResults(result);
-          if (result.success) {
-            // Add decomposed layers to media library
-            if (result.layers && Array.isArray(result.layers)) {
-              state.mediaLibrary = state.mediaLibrary || [];
-              result.layers.forEach((layer, idx) => {
-                state.mediaLibrary.push({
-                  id: `layer-${Date.now()}-${idx}`,
-                  icon: '🖼️',
-                  label: layer.name || `Layer ${idx + 1}`,
-                  type: 'image',
-                  desc: 'AI-decomposed layer',
-                  src: layer.url,
-                  metadata: { cinegenProcessed: true, tool: 'layer_decompose', layerIndex: idx }
-                });
-              });
-              renderMedia();
-              showToast(`Layer decomposition complete: ${result.layers.length} layers added to media library`, 'success');
-            } else if (result.url) {
-              state.mediaLibrary = state.mediaLibrary || [];
-              state.mediaLibrary.push({
-                id: `layer-${Date.now()}`,
-                icon: '🖼️',
-                label: 'Decomposed Layer',
-                type: 'image',
-                desc: 'AI-decomposed layer',
-                src: result.url,
-                metadata: { cinegenProcessed: true, tool: 'layer_decompose' }
-              });
-              renderMedia();
-              showToast('Layer decomposition complete', 'success');
-            }
-          }
-        });
-      }
-
-      const shotBtn = root.querySelector('#cinegenShotBtn');
-      if (shotBtn) {
-        shotBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('shot_board', { clipId: state.selectedClipId });
-          updateCineGenResults(result);
-          if (result.success) {}
-        });
-      }
-
-      const proxyBtn = root.querySelector('#cinegenProxyBtn');
-      if (proxyBtn) {
-        proxyBtn.addEventListener('click', async () => {
-          // Toggle proxy mode locally — proxy playback is a browser-side feature
-          const newProxyMode = !state.proxyMode;
-          state.setProxyMode(newProxyMode);
-          proxyBtn.classList.toggle('active', newProxyMode);
-          showToast(newProxyMode ? 'Proxy playback enabled' : 'Proxy playback disabled', 'info');
-          renderAll();
-        });
-      }
-
-      const planBtn = root.querySelector('#cinegenPlanBtn');
-      if (planBtn) {
-        planBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('composition_plan', { clipId: state.selectedClipId });
-          updateCineGenResults(result);
-          if (result.success) {}
-        });
-      }
+      root.querySelector('#openAiTools')?.addEventListener('click', () => openAiTools());
 
       // 3D Camera Effects quick buttons
       root.querySelectorAll('[data-camera-effect]').forEach(btn => {
@@ -8916,11 +8541,8 @@ export function TimelineEditorPage() {
       const clearBtn = root.querySelector('#clearCineGenResults');
       if (clearBtn) {
         clearBtn.addEventListener('click', () => {
-          const container = document.getElementById('cinegenResults');
-          if (container) {
-            container.innerHTML = 'No CineGen tools used yet';
-          }
           cinegenHistory = [];
+          renderAiToolHistory();
           
         });
       }
