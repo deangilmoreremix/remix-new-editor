@@ -15,6 +15,7 @@
  *   { action: 'submit', kind: 'clip', imageUrl, prompt, attempt? }
  *   { action: 'submit', kind: 'tts', text, voice?, speed? }
  *   { action: 'submit', kind: 'music', prompt?, mood?, duration? }
+ *   { action: 'submit', kind: 'captions', videoUrl, language?, theme? }   (burned-in captions, MuAPI ai-captions)
  *     → { ok, requestId, model, attempt, hasFallback } | { ok, status: 'done', url, model }
  *   { action: 'status', requestId }
  *     → { ok, status: 'pending' | 'done' | 'failed', url?, error? }
@@ -25,7 +26,7 @@ import {
   userMuapiKey, userOpenAIKey, NEED_MUAPI_KEY, NEED_OPENAI_KEY, BAD_MUAPI_KEY, openAIKeyError,
 } from './_shared/byok.js';
 import {
-  ASPECT_RATIO, MODELS, scriptInstructions, trendInstructions, parseJsonLoose, normalizeBeats, ttsPayload,
+  ASPECT_RATIO, MODELS, CAPTION_LANGUAGES, CAPTION_THEMES, DEFAULT_CAPTION_LANGUAGE, DEFAULT_CAPTION_THEME, scriptInstructions, trendInstructions, parseJsonLoose, normalizeBeats, ttsPayload,
 } from './_shared/zackdPrompts.js';
 
 const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
@@ -115,7 +116,20 @@ export function buildSubmit(body) {
       }),
     };
   }
-  return { error: 'kind must be image, clip, tts or music' };
+  if (body.kind === 'captions') {
+    const videoUrl = String(body.videoUrl || '').trim();
+    if (!/^https:\/\/[^\s]{4,2000}$/.test(videoUrl)) return { error: 'videoUrl must be an https URL' };
+    return {
+      models: [MODELS.captions],
+      attempt: 0,
+      payload: {
+        video_url: videoUrl,
+        language: CAPTION_LANGUAGES.includes(body.language) ? body.language : DEFAULT_CAPTION_LANGUAGE,
+        theme: CAPTION_THEMES.some((t) => t.value === body.theme) ? body.theme : DEFAULT_CAPTION_THEME,
+      },
+    };
+  }
+  return { error: 'kind must be image, clip, tts, music or captions' };
 }
 
 async function submit(body, keys) {
@@ -157,7 +171,8 @@ async function status(body, keys, fetchImpl) {
     const data = await muapiGet(`/predictions/${encodeURIComponent(id)}/result`, keys.muapi, fetchImpl);
     const st = String(data.status || '').toLowerCase();
     if (['completed', 'succeeded', 'success'].includes(st)) {
-      const url = extractRealUrl(data);
+      // ai-captions answers with { video: <url> }; other models use outputs[0] / url.
+      const url = extractRealUrl(data) || extractRealUrl({ url: typeof data.video === 'string' ? data.video : data.video?.url });
       return json(200, url ? { ok: true, status: 'done', url } : { ok: true, status: 'failed', error: 'Nothing was produced.' });
     }
     if (['failed', 'error'].includes(st)) return json(200, { ok: true, status: 'failed', error: 'Generation failed.' });

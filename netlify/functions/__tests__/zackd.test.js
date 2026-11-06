@@ -77,6 +77,21 @@ describe('zackd function', () => {
     expect(buildSubmit({ kind: 'video' }).error).toBeTruthy();
   });
 
+  it('builds burned-in caption requests (ai-captions) with enum validation', () => {
+    const ok = buildSubmit({ kind: 'captions', videoUrl: 'https://cdn.example.com/cut.mp4', language: 'Spanish (Mexico)', theme: 'Beast' });
+    expect(ok.models).toEqual(['ai-captions']);
+    expect(ok.payload).toEqual({ video_url: 'https://cdn.example.com/cut.mp4', language: 'Spanish (Mexico)', theme: 'Beast' });
+    expect(buildSubmit({ kind: 'captions', videoUrl: 'https://cdn.example.com/cut.mp4', language: 'Klingon', theme: 'nope' }).payload)
+      .toMatchObject({ language: 'English', theme: 'Hormozi_1' });
+    expect(buildSubmit({ kind: 'captions', videoUrl: 'http://cdn.example.com/cut.mp4' }).error).toMatch(/https/);
+    expect(buildSubmit({ kind: 'captions' }).error).toBeTruthy();
+  });
+
+  it('reads the captioned video from the ai-captions result', async () => {
+    const f = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ status: 'completed', video: 'https://cdn.example.com/captioned.mp4' }) });
+    expect(body(await handle({ action: 'status', requestId: 'req_cap1' }, 'u5', { keys, fetchImpl: f }))).toEqual({ ok: true, status: 'done', url: 'https://cdn.example.com/captioned.mp4' });
+  });
+
   it('requires the right BYOK key per action', async () => {
     expect((await handle({ action: 'script', topic: 'x' }, 'u1', { keys: { muapi: keys.muapi } })).statusCode).toBe(401);
     expect(body(await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u1', { keys: { openai: keys.openai } })).error.message).toMatch(/MuAPI/);

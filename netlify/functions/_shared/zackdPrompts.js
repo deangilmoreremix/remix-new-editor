@@ -23,7 +23,46 @@ export const MODELS = {
   image: ['nano-banana-2', 'flux-dev-image'],
   clip: ['veo3.1-fast-image-to-video', 'veo3.1-image-to-video'],
   tts: 'minimax-speech-2.6-turbo',
+  captions: 'ai-captions',
 };
+
+/** MuAPI AI Captions (Vadoo): language + theme enums, from https://muapi.ai/playground/ai-captions */
+export const CAPTION_LANGUAGES = [
+  'English', 'English (USA)', 'English (UK)', 'English (Australia)',
+  'English (Canada)', 'Japanese', 'Chinese', 'German',
+  'Hindi', 'French', 'French (France)', 'French (Canada)',
+  'Korean', 'Portuguese (Brazil)', 'Portuguese (Portugal)', 'Portuguese',
+  'Spanish (Spain)', 'Spanish (Mexico)', 'Italian', 'Spanish',
+  'Indonesian', 'Dutch', 'Turkish', 'Filipino',
+  'Polish', 'Swedish', 'Bulgarian', 'Romanian',
+  'Arabic (Saudi Arabia)', 'Arabic (UAE)', 'Arabic', 'Czech',
+  'Greek', 'Finnish', 'Croatian', 'Malay',
+  'Slovak', 'Danish', 'Tamil', 'Telugu',
+  'Ukrainian', 'Russian', 'Hungarian', 'Norwegian',
+  'Vietnamese',
+];
+export const CAPTION_THEMES = [
+  { value: 'Hormozi_1', label: 'Hormozi 1' },
+  { value: 'Hormozi_2', label: 'Hormozi 2' },
+  { value: 'Hormozi_3', label: 'Hormozi 3' },
+  { value: 'Beast', label: 'Beast' },
+  { value: 'Ali', label: 'Ali' },
+  { value: 'Noah', label: 'Noah' },
+  { value: 'Karl', label: 'Karl' },
+  { value: 'Luke', label: 'Luke' },
+  { value: 'Devin', label: 'Devin' },
+  { value: 'Celine', label: 'Celine' },
+  { value: 'Maya', label: 'Maya' },
+  { value: 'Ella', label: 'Ella' },
+  { value: 'Dan', label: 'Dan' },
+  { value: 'David', label: 'David' },
+  { value: 'Tracy', label: 'Tracy' },
+  { value: 'Umi', label: 'Umi' },
+  { value: 'Iman', label: 'Iman' },
+  { value: 'William', label: 'William' },
+];
+export const DEFAULT_CAPTION_LANGUAGE = 'English';
+export const DEFAULT_CAPTION_THEME = 'Hormozi_1';
 
 export const TTS_VOICES = [
   'Casual_Guy', 'Deep_Voice_Man', 'Friendly_Person', 'Patient_Man', 'Determined_Man', 'Decent_Boy',

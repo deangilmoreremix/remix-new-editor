@@ -12,6 +12,7 @@ import { call, runJob, pool, ZackDError } from '../../../lib/zackd/api.js';
 import { runAssembly, buildSrt, DEFAULT_TRANSITION_SEC } from '../../../lib/zackd/assemble.js';
 import {
   SEED_TOPICS, LOOKS, DEFAULT_LOOK, TTS_VOICES, DEFAULT_VOICE, DEFAULT_TTS_SPEED,
+  CAPTION_LANGUAGES, CAPTION_THEMES, DEFAULT_CAPTION_LANGUAGE, DEFAULT_CAPTION_THEME,
   characterSheetPrompt, keyframePrompt, clipPrompt, narrationText, allShots, totalDuration,
 } from '../../../../netlify/functions/_shared/zackdPrompts.js';
 
@@ -25,6 +26,7 @@ const STAGES = [
 const blank = () => ({
   stage: 'topic', topic: '', map: null, look: DEFAULT_LOOK, sheets: {}, shots: {},
   voice: DEFAULT_VOICE, speed: DEFAULT_TTS_SPEED, narration: null, music: null, final: null,
+  captionLang: DEFAULT_CAPTION_LANGUAGE, captionTheme: DEFAULT_CAPTION_THEME,
 });
 
 function load() {
@@ -155,6 +157,31 @@ export function ZackDStudio() {
       say('Done');
     } catch (e) { fail(e); say(''); }
     busy = false; render();
+  }
+
+  // Opt-in, paid: upload the rendered cut to MuAPI, then burn animated captions in with ai-captions (Vadoo).
+  async function burnCaptions() {
+    if (!s.final?.blob || busy) return;
+    if (!s.narration) { error = 'Captions are generated from the spoken audio. Add narration first.'; render(); return; }
+    if (!window.confirm('Burn captions into the video with MuAPI AI Captions? About $0.20 minimum ($0.005 per second), and it takes a few minutes.')) return;
+    busy = true; error = ''; progress = 0; log = 'Uploading the video…'; say(log); render();
+    try {
+      const { muapi } = await import('../../../lib/muapi.js');
+      const file = new File([s.final.blob], 'zackd-cut.mp4', { type: 'video/mp4' });
+      const videoUrl = await muapi.uploadFile(file, { signal: abort.signal });
+      log = 'Burning captions (2-3 minutes)…'; say(log); render();
+      const r = await runJob({ kind: 'captions', videoUrl, language: s.captionLang, theme: s.captionTheme }, { signal: abort.signal });
+      s.final.captioned = { url: r.url, saved: false };
+      showToast('Captions ready', 'success', 2500);
+    } catch (e) { fail(e); }
+    busy = false; log = ''; say(''); render();
+  }
+
+  function saveCaptionedToLibrary() {
+    const c = s.final?.captioned;
+    if (!c || c.saved) return;
+    saveGeneration({ studio: 'zackd', type: 'video', url: c.url, prompt: s.topic });
+    c.saved = true; showToast('Saved to your library', 'success', 2500); render();
   }
 
   async function saveToLibrary() {
@@ -369,7 +396,34 @@ export function ZackDStudio() {
       cap.onclick = () => download(new Blob([buildSrt(s.map.beats, { transition: DEFAULT_TRANSITION_SEC })], { type: 'text/plain' }), 'zackd-short.srt');
       const lib = el('button', BTN, s.final.saved ? 'Saved to library' : 'Save to library'); lib.disabled = busy || s.final.saved; lib.onclick = saveToLibrary;
       row.append(dl, cap, lib); box.appendChild(row);
-      box.appendChild(el('p', 'text-xs text-muted', 'Captions are exported as a separate .srt file; they are not burned into the video.'));
+      box.appendChild(el('p', 'text-xs text-muted', 'The .srt is a free, separate caption file. To burn animated captions into the video, use the option below.'));
+
+      // Opt-in burned-in captions (MuAPI AI Captions / Vadoo)
+      const capCard = el('div', `${CARD} flex flex-col gap-3`);
+      capCard.appendChild(el('div', HEADING, 'Burn captions into the video'));
+      capCard.appendChild(el('div', 'text-xs text-secondary', 'Animated, word-by-word captions in a viral style. Paid: about $0.20 minimum ($0.005 per second), and it takes 2-3 minutes. Needs narration.'));
+      const capRow = el('div', 'flex gap-2 items-center flex-wrap');
+      const lang = el('select', FIELD); lang.setAttribute('aria-label', 'Caption language');
+      CAPTION_LANGUAGES.forEach((l) => { const o = el('option', '', l); o.value = l; o.selected = l === s.captionLang; lang.appendChild(o); });
+      lang.onchange = () => { s.captionLang = lang.value; save(); };
+      const theme = el('select', FIELD); theme.setAttribute('aria-label', 'Caption theme');
+      CAPTION_THEMES.forEach((t) => { const o = el('option', '', t.label); o.value = t.value; o.selected = t.value === s.captionTheme; theme.appendChild(o); });
+      theme.onchange = () => { s.captionTheme = theme.value; save(); };
+      const burn = el('button', BTN_MAIN, s.final.captioned ? 'Burn again' : 'Burn captions');
+      burn.disabled = busy || !s.narration; burn.onclick = burnCaptions;
+      capRow.append(lang, theme, burn); capCard.appendChild(capRow);
+      if (!s.narration) capCard.appendChild(el('div', 'text-xs text-muted', 'Generate narration first: captions are transcribed from the spoken audio.'));
+      if (s.final.captioned) {
+        const cv = media('video', s.final.captioned.url, 'rounded-md bg-black'); cv.muted = false; cv.loop = false;
+        cv.style.maxHeight = '70vh'; cv.style.aspectRatio = '9 / 16';
+        capCard.appendChild(cv);
+        const cr = el('div', 'flex gap-2 flex-wrap');
+        const open = el('a', BTN, 'Open / download captioned video'); open.href = s.final.captioned.url; open.target = '_blank'; open.rel = 'noopener noreferrer';
+        const save2 = el('button', BTN, s.final.captioned.saved ? 'Saved to library' : 'Save captioned to library');
+        save2.disabled = busy || s.final.captioned.saved; save2.onclick = saveCaptionedToLibrary;
+        cr.append(open, save2); capCard.appendChild(cr);
+      }
+      box.appendChild(capCard);
     }
     const row = el('div', 'flex gap-2');
     const back = el('button', BTN, 'Back'); back.onclick = () => setStage('audio');

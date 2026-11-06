@@ -2,7 +2,7 @@
 import { apiKeyManager } from '../apiKeyManager.js';
 
 const POLL_MS = 4000;
-const JOB_TIMEOUT_MS = { image: 4 * 60_000, clip: 12 * 60_000, tts: 4 * 60_000, music: 8 * 60_000 };
+const JOB_TIMEOUT_MS = { image: 4 * 60_000, clip: 12 * 60_000, tts: 4 * 60_000, music: 8 * 60_000, captions: 15 * 60_000 };
 
 async function clerkToken() {
   try {
