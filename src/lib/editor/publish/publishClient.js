@@ -78,6 +78,7 @@ export function preparePublishProject(state, { title } = {}) {
     timelineSeconds: Number(state?.timelineSeconds) || 60,
     tracks,
     listBuilder: state?.listBuilder ? clean(state.listBuilder) : null,
+    multiCam: state?.multiCam ? clean(state.multiCam) : null,
   };
 }
 
