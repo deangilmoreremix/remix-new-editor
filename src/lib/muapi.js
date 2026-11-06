@@ -25,17 +25,19 @@ function schemaForModel(modelInfo) {
     : rule);
   const ratios = modelInfo?.inputs?.aspect_ratio?.enum;
   const resolutions = modelInfo?.inputs?.resolution?.enum;
+  const formats = modelInfo?.inputs?.output_format?.enum;
   // Duration bounds the model declares (a range, or an enum of seconds).
   const dur = modelInfo?.inputs?.duration;
   const declared = Array.isArray(dur?.enum)
     ? dur.enum.map(Number).filter((n) => Number.isFinite(n))
     : [dur?.minValue ?? dur?.minimum, dur?.maxValue ?? dur?.maximum].filter((n) => Number.isFinite(n));
-  if (!ratios?.length && !resolutions?.length && !declared.length) return EFFECT_PARAM_SCHEMA;
+  if (!ratios?.length && !resolutions?.length && !formats?.length && !declared.length) return EFFECT_PARAM_SCHEMA;
   const base = EFFECT_PARAM_SCHEMA.duration;
   return {
     ...EFFECT_PARAM_SCHEMA,
     aspect_ratio: widen(EFFECT_PARAM_SCHEMA.aspect_ratio, ratios),
     resolution: widen(EFFECT_PARAM_SCHEMA.resolution, resolutions),
+    output_format: widen(EFFECT_PARAM_SCHEMA.output_format, formats),
     duration: declared.length
       ? { ...base, min: Math.min(base.min, ...declared), max: Math.max(base.max, ...declared) }
       : base,

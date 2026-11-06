@@ -61,6 +61,20 @@ describe('Source workflows reach the provider intact', () => {
     expect(params.resolution).toBe('2k');
   });
 
+  test('image edits accept the output format the model declares (jpg/png)', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.png'] });
+    for (const output_format of ['jpg', 'png']) {
+      await client.generateI2I({
+        model: 'nano-banana-2-edit',
+        prompt: 'recolour',
+        image_url: 'https://cdn.muapi.ai/a.jpg',
+        output_format,
+      });
+    }
+    const bodies = global.fetch.mock.calls.map((c) => JSON.parse(c[1].body).params.output_format);
+    expect(bodies).toEqual(['jpg', 'png']);
+  });
+
   test('plain text-to-image models still send image_url unchanged', async () => {
     global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.png'] });
     await client.generateImage({ model: 'nano-banana-pro', prompt: 'x', image_url: 'https://cdn.muapi.ai/ref.jpg' });
