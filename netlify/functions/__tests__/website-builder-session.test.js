@@ -31,16 +31,38 @@ function fakeFetch(user, status = 200) {
   return vi.fn(async () => ({ ok: status === 200, status, json: async () => user }));
 }
 
-function fakeAdmin({ existing = true, suspended = false } = {}) {
-  let userExists = existing;
-  const generateLink = vi.fn(async () => (userExists
-    ? { data: { user: { id: 'auth-uuid-1' }, properties: { hashed_token: 'hash-abc', action_link: 'https://secret' } }, error: null }
-    : { data: null, error: { status: 404, message: 'User not found' } }));
-  const createUser = vi.fn(async () => { userExists = true; return { data: { user: { id: 'auth-uuid-1' } }, error: null }; });
+/**
+ * Fake Supabase admin client that mimics the behaviours that matter here:
+ * - createUser fails with email_exists when the address already has a login;
+ * - generateLink({ type: 'magiclink' }) SILENTLY CREATES an unknown user with
+ *   no app_metadata. The main app's on_auth_user_created trigger rejects such
+ *   a user (production error: null clerk_id), so `autoCreatedUnmarked` must
+ *   stay false.
+ * `profile` is the existing wb_profiles row for this Clerk user, if any.
+ */
+function fakeAdmin({ profile = null, authUserExists = false, suspended = false } = {}) {
+  const state = { authUserExists: authUserExists || !!profile, autoCreatedUnmarked: false };
+  const createUser = vi.fn(async () => {
+    if (state.authUserExists) {
+      return { data: null, error: { status: 422, code: 'email_exists', message: 'A user with this email address has already been registered' } };
+    }
+    state.authUserExists = true;
+    return { data: { user: { id: 'auth-uuid-1' } }, error: null };
+  });
+  const generateLink = vi.fn(async () => {
+    if (!state.authUserExists) {
+      state.authUserExists = true;
+      state.autoCreatedUnmarked = true;
+    }
+    return { data: { user: { id: 'auth-uuid-1' }, properties: { hashed_token: 'hash-abc', action_link: 'https://secret' } }, error: null };
+  });
+  const maybeSingle = vi.fn(async () => ({ data: profile, error: null }));
+  const eq = vi.fn(() => ({ maybeSingle }));
   const single = vi.fn(async () => ({ data: { suspended }, error: null }));
   const upsert = vi.fn(() => ({ select: () => ({ single }) }));
-  const client = { auth: { admin: { generateLink, createUser } }, from: vi.fn(() => ({ upsert })) };
-  return { client, generateLink, createUser, upsert };
+  const from = vi.fn(() => ({ select: () => ({ eq }), upsert }));
+  const client = { auth: { admin: { generateLink, createUser } }, from };
+  return { client, generateLink, createUser, upsert, eq, state };
 }
 
 function call(handler, auth = { userId: 'user_123', claims: {} }) {
@@ -70,40 +92,51 @@ describe('primaryVerifiedEmail', () => {
 });
 
 describe('website-builder-session handler', () => {
-  it('issues a token for a paid user (Clerk Billing feature)', async () => {
+  const RETURNING = { id: 'auth-uuid-1', email: 'dean@example.com' };
+
+  it('first visit: creates the login WITH the builder marker before asking for a link', async () => {
     const admin = fakeAdmin();
     const handler = createHandler({ fetchImpl: fakeFetch(clerkUser()), createAdminClient: () => admin.client });
-    const res = await call(handler, { userId: 'user_123', claims: { fea: 'u:smartvideo_full_access' } });
+    const res = await call(handler);
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual({ token_hash: 'hash-abc', type: 'email', email: 'dean@example.com' });
     expect(JSON.stringify(res.body)).not.toContain('https://secret');
-    expect(admin.createUser).not.toHaveBeenCalled();
+    expect(admin.createUser).toHaveBeenCalledWith({
+      email: 'dean@example.com',
+      email_confirm: true,
+      app_metadata: { clerk_user_id: 'user_123', source: 'smart-website-builder' },
+    });
+    // The regression: the user must never be created implicitly by generateLink.
+    expect(admin.state.autoCreatedUnmarked).toBe(false);
+    expect(admin.createUser.mock.invocationCallOrder[0]).toBeLessThan(admin.generateLink.mock.invocationCallOrder[0]);
     expect(admin.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'auth-uuid-1', email: 'dean@example.com', clerk_user_id: 'user_123', full_name: 'Dean R' }),
       { onConflict: 'id' },
     );
   });
 
-  it('accepts legacy_access customers', async () => {
-    const admin = fakeAdmin();
-    const handler = createHandler({
-      fetchImpl: fakeFetch(clerkUser({ public_metadata: { legacy_access: true } })),
-      createAdminClient: () => admin.client,
-    });
-    expect((await call(handler)).statusCode).toBe(200);
+  it('reuses an address that already has a Supabase login from another app', async () => {
+    const admin = fakeAdmin({ authUserExists: true });
+    const handler = createHandler({ fetchImpl: fakeFetch(clerkUser()), createAdminClient: () => admin.client });
+    const res = await call(handler);
+    expect(res.statusCode).toBe(200);
+    expect(admin.createUser).toHaveBeenCalledTimes(1);
+    expect(admin.generateLink).toHaveBeenCalledTimes(1);
   });
 
-  it('creates the Supabase auth user on first visit', async () => {
-    const admin = fakeAdmin({ existing: false });
+  it('returning user: matched by Clerk id, no createUser, stored email is kept', async () => {
+    const admin = fakeAdmin({ profile: { id: 'auth-uuid-1', email: 'old@example.com' } });
     const handler = createHandler({ fetchImpl: fakeFetch(clerkUser()), createAdminClient: () => admin.client });
-    const res = await call(handler, { userId: 'user_123', claims: { fea: 'u:smartvideo_full_access' } });
+    const res = await call(handler);
     expect(res.statusCode).toBe(200);
-    expect(admin.createUser).toHaveBeenCalledWith(expect.objectContaining({ email: 'dean@example.com', email_confirm: true }));
-    expect(admin.generateLink).toHaveBeenCalledTimes(2);
+    expect(res.body.email).toBe('old@example.com');
+    expect(admin.eq).toHaveBeenCalledWith('clerk_user_id', 'user_123');
+    expect(admin.createUser).not.toHaveBeenCalled();
+    expect(admin.generateLink).toHaveBeenCalledWith({ type: 'magiclink', email: 'old@example.com' });
   });
 
   it('issues a token for a free (unpaid) SmartVideo user too', async () => {
-    const admin = fakeAdmin();
+    const admin = fakeAdmin({ profile: RETURNING });
     const handler = createHandler({ fetchImpl: fakeFetch(clerkUser()), createAdminClient: () => admin.client });
     const res = await call(handler);
     expect(res.statusCode).toBe(200);
@@ -113,19 +146,28 @@ describe('website-builder-session handler', () => {
   it('refuses unverified email addresses', async () => {
     const admin = fakeAdmin();
     const user = clerkUser({
-      public_metadata: { legacy_access: true },
       email_addresses: [{ id: 'em_1', email_address: 'victim@example.com', verification: { status: 'unverified' } }],
     });
     const handler = createHandler({ fetchImpl: fakeFetch(user), createAdminClient: () => admin.client });
     const res = await call(handler);
     expect(res.statusCode).toBe(403);
+    expect(admin.createUser).not.toHaveBeenCalled();
     expect(admin.generateLink).not.toHaveBeenCalled();
   });
 
   it('refuses suspended builder profiles', async () => {
-    const admin = fakeAdmin({ suspended: true });
-    const handler = createHandler({ fetchImpl: fakeFetch(clerkUser({ public_metadata: { legacy_access: true } })), createAdminClient: () => admin.client });
+    const admin = fakeAdmin({ profile: RETURNING, suspended: true });
+    const handler = createHandler({ fetchImpl: fakeFetch(clerkUser()), createAdminClient: () => admin.client });
     expect((await call(handler)).statusCode).toBe(403);
+  });
+
+  it('returns session_failed (500) when Supabase cannot create the login', async () => {
+    const admin = fakeAdmin();
+    admin.createUser.mockResolvedValueOnce({ data: null, error: { status: 500, message: 'Database error creating new user' } });
+    const handler = createHandler({ fetchImpl: fakeFetch(clerkUser()), createAdminClient: () => admin.client });
+    const res = await call(handler);
+    expect(res.statusCode).toBe(500);
+    expect(res.body.error).toBe('session_failed');
   });
 
   it('returns 401 without a verified Clerk identity', async () => {
