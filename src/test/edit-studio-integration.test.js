@@ -24,6 +24,12 @@ vi.mock('../lib/clerkEntitlements.js', () => ({
 }));
 
 vi.mock('../lib/thumbnails.js', () => ({
+  createEditorBanner: vi.fn(() => document.createElement('div')),
+  demoteBannerHeading: vi.fn((el) => {
+    const h = el.querySelector('h1');
+    if (h) { const d = document.createElement('div'); d.textContent = h.textContent; h.replaceWith(d); }
+    return el;
+  }),
   createStudioHeader: vi.fn((_id, title = '', subtitle = '') => {
     const el = document.createElement('div');
     el.innerHTML = `<h1></h1><p></p>`;

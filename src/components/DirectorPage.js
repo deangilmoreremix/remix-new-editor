@@ -1,6 +1,7 @@
 import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { supabase } from '../lib/supabase.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -404,7 +405,8 @@ const AGENT_STEPS = {
 
 export function DirectorPage() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full overflow-hidden bg-[#08090b]';
+  // flex column so the banner sits above the page and the main panels take the rest of the height
+  container.className = 'w-full h-full flex flex-col overflow-hidden bg-[#08090b]';
   mountStudioChrome(container, { currentRoute: 'director' });
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -653,6 +655,8 @@ export function DirectorPage() {
             </div>
         </div>
     `;
+    // the page already has its own DIRECTOR heading below the banner
+    container.insertBefore(demoteBannerHeading(createEditorBanner('director', 'Director', 'AI agentic editor with 48 agents, backed by VideoDB and FFmpeg')), container.firstChild);
 
     // ── DOM refs ──────────────────────────────────────────────────────
     const commandInput = container.querySelector('#command-input');

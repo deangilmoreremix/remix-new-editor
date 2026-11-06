@@ -105,7 +105,7 @@ import { RetakePanel } from './RetakePanel.jsx';
 import { ImportTimelineModal } from './ImportTimelineModal.jsx';
 import { ICLoraPanel } from './ICLoraPanel.jsx';
 // Category C Editor Surface imports removed - not implemented
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createEditorBanner } from '../lib/thumbnails.js';
 
 export function TimelineEditorPage() {
   const container = document.createElement('div');
@@ -126,8 +126,6 @@ export function TimelineEditorPage() {
   };
   TLEditor.featureFlags = FEATURE_FLAGS;
 
-  const heroBanner = createHeroSection('timeline', 'h-64 md:h-80 lg:h-96 mb-4');
-  if (heroBanner) container.appendChild(heroBanner);
 
   // Initialize design system enforcement
   enforceDesignSystem();
@@ -9350,6 +9348,9 @@ export function TimelineEditorPage() {
   // --- Insert styles and initialize the timeline editor app
   injectStyles();
   createTimelineEditorApp(container);
+
+  // Added after the editor is built: it replaces the container's contents when it mounts.
+  container.insertBefore(createEditorBanner('timeline', 'Timeline Editor', 'Edit, caption, personalise and export your video'), container.firstChild);
 
   return container;
 }
