@@ -46,7 +46,7 @@ import { persistPersonalizationAssetVersion } from '../lib/personalization/asset
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
 import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
-import { listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
+import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../lib/pexelsApi.js';
@@ -1189,6 +1189,7 @@ export function TimelineEditorPage() {
     // Picking another contact (Personalize window) re-renders the preview with
     // their details and their own personalized voice line.
     cleanup.addWindowListener('remix:contact-changed', () => {
+      previewAnswers = null;
       try { scheduleEngineUpdate(); } catch { /* engine not ready */ }
       // Overlays drawn in the page (no engine) and the open Personalized
       // Image settings show the new contact's images too.
@@ -1848,6 +1849,8 @@ export function TimelineEditorPage() {
             res.failed ? 'error' : 'success',
           );
 
+          applyPreviewAnswers(data);
+
           // Upstream form: once submitted it never shows again, and a form
           // that paused the video resumes it.
           selected._submitted = true;
@@ -2013,11 +2016,20 @@ export function TimelineEditorPage() {
     // before calling replaceTokensInPrompt — see personalizePopover.js's
     // module comment: "intentionally tiny so they can be inlined without
     // pulling in src/lib/contactStore.js."
+    // What a viewer typed into the List Builder / Lead Generator preview: it
+    // fills {{tokens}} in the preview until another contact is picked.
+    let previewAnswers = null;
+    function applyPreviewAnswers(data) {
+      previewAnswers = profileWithAnswers(getActivePersonalizationProfile() || { id: 'preview-viewer', variables: {} }, data).variables;
+      scheduleEngineUpdate();
+      renderOverlayLayer();
+    }
     function getActivePersonalizationProfile() {
       try {
         const id = localStorage.getItem('remix_selected_contact_id');
-        if (!id) return null;
-        return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === id) || null;
+        const found = id ? JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === id) || null : null;
+        if (!previewAnswers) return found;
+        return { ...(found || { id: 'preview-viewer' }), variables: { ...(found?.variables || {}), ...previewAnswers } };
       } catch {
         return null;
       }
@@ -5404,12 +5416,14 @@ export function TimelineEditorPage() {
           lb._localLeads = [...(lb._localLeads || []), { ...data, submittedAt: new Date().toISOString(), _stored: !!res.stored }];
           if (lb.kind === 'personalizer') {
             savePersonalizerProfile(data);
+          } else {
+            applyPreviewAnswers(data);
           }
           if (lb.fbPixelId && typeof window.fbq === 'function') {
             window.fbq('trackSingle', lb.fbPixelId, 'Lead', data);
           }
           if (!preview) lb._submitted = true;
-          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : leadResultMessage(res, lb.emailEnabled && lb.emailAddress), res.failed ? 'error' : 'success');
+          showToast(lb.kind === 'personalizer' ? 'Personalization applied — {{tokens}} now use these answers' : `${leadResultMessage(res, lb.emailEnabled && lb.emailAddress)} — {{tokens}} in the video now use these answers`, res.failed ? 'error' : 'success');
           resume();
           return '';
         },
