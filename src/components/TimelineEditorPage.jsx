@@ -46,6 +46,7 @@ import { persistPersonalizationAssetVersion } from '../lib/personalization/asset
 import { browserImageProbe, contactImageGaps, describeBrokenImages, describeImageGaps, findBrokenImages } from '../lib/personalization/imageReadiness.js';
 import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryService.js';
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
+import { createContactSync } from '../lib/editor/personalize/clientSync.js';
 import { renderPersonalizationPanel, renderPersonalizationEditor, renderTokenEditor, renderBatchHub } from '../lib/editor/panels/personalPanels.js';
 import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
@@ -1184,6 +1185,14 @@ export function TimelineEditorPage() {
 
     // Add keyboard event listeners
     cleanup.addDocumentListener('keydown', handleKeyboardShortcuts);
+    // The Personalize window (OpenHiggsBolt) keeps its clients and saved Lead
+    // Finder leads in its own storage. Copy them into the contact store the
+    // editor reads, on load, on focus, and whenever the studio saves something.
+    const contactSync = createContactSync({ store: contactStore, onChange: () => { try { renderContactSwitcher(); } catch { /* not mounted yet */ } } });
+    contactSync.run({ leads: true }).catch(() => {});
+    cleanup.addInterval(setInterval(() => contactSync.check(), 2000));
+    cleanup.addWindowListener('focus', () => { contactSync.run({ leads: true }).catch(() => {}); });
+    cleanup.addWindowListener('storage', () => contactSync.check());
     // Picking another contact (Personalize window) re-renders the preview with
     // their details and their own personalized voice line.
     cleanup.addWindowListener('remix:contact-changed', () => {
@@ -7918,7 +7927,7 @@ export function TimelineEditorPage() {
           addText: addSmartText,
           openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
             studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
-            onComplete: () => { renderContactSwitcher(); panel.redraw(); },
+            onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); panel.redraw(); },
           })),
         });
         window.addEventListener('remix:contact-changed', panel.redraw);

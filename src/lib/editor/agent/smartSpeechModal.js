@@ -141,7 +141,7 @@ export function openSmartSpeechModal(services = {}, { mount = document.body } = 
             const id = String(c.id);
             return `<li class="speech-modal__contact${line ? '' : ' is-missing'}">
               <input type="checkbox" data-contact="${esc(id)}" ${ui.selected.has(id) ? 'checked' : ''} ${line && !p ? '' : 'disabled'} aria-label="${esc(contactName(c))}"/>
-              <div><strong>${esc(contactName(c))}</strong><span>${line ? `“${esc(line)}”` : 'Missing a detail this line uses: hears the fallback'}</span></div>
+              <div><strong>${esc(contactName(c))}${c.source === 'lead-finder' ? ' <em class="speech-modal__lead-chip">Lead</em>' : ''}</strong><span>${line ? `“${esc(line)}”` : 'Missing a detail this line uses: hears the fallback'}</span></div>
             </li>`;
           }).join('')}</ul>` : `
           <p class="speech-modal__empty">No contacts yet. Add them in the <strong>Personalize</strong> window (Personalization Studio); business details saved from its <strong>Find a Business</strong> search fill business tokens like {{businessName}}. You can still add this line now: everyone hears the fallback.</p>`}

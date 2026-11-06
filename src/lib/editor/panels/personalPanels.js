@@ -153,7 +153,7 @@ export function renderBatchHub(el, s) {
       <p class="pz-hint">One video per contact: their details fill the text and images, and their own voice line plays. ${used.length ? `This video uses ${used.map((k) => `<code>{{${esc(k)}}}</code>`).join(', ')}.` : 'Add {{tokens}} to the video first, or every contact gets the same video.'}</p>
       ${contacts.length ? `
         <div class="pz-card"><span class="pz-label">${ready} of ${contacts.length} contacts ready</span>
-          <ul class="rp-list">${rows.map(({ p, missing }) => `<li class="rp-var rp-var--2"><div><strong>${esc(contactName(p))}</strong></div>
+          <ul class="rp-list">${rows.map(({ p, missing }) => `<li class="rp-var rp-var--2"><div><strong>${esc(contactName(p))}</strong>${p.source === 'lead-finder' ? '<span class="pz-chip">Lead</span>' : ''}</div>
             ${missing.length ? `<span class="pz-chip pz-chip-warn" title="Missing: ${esc(missing.join(', '))}">missing ${esc(missing.slice(0, 2).join(', '))}${missing.length > 2 ? '…' : ''}</span>` : '<span class="pz-chip">ready</span>'}</li>`).join('')}</ul></div>
         <div class="pz-actions">
           <button type="button" class="pz-btn pz-btn-primary" data-rp="export">Export one video per contact</button>
