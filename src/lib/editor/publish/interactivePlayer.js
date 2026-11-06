@@ -15,6 +15,7 @@ import { addonOptions } from '../addons/registry.js';
 import { timelineToComposition } from '../remotion/timelineToComposition.js';
 import { showLeadForm, ctaElement, linkBoxElement } from './viewerOverlays.js';
 import { ctaTarget } from '../addons/ctaLink.js';
+import { profileWithAnswers } from '../personalize/perContact.js';
 
 const TEXT_KEYS = new Set(['text', 'name', 'title', 'heading', 'body']);
 
@@ -35,15 +36,7 @@ export function buildViewerModel(project, profile, { fps = 30, quality = '1080p'
   return { ...model, layers: stripUnresolvedTokens(model.layers) };
 }
 
-/** Personalizer answers ("FIRST NAME": "Ann") → token variables. */
-export function profileWithAnswers(profile, data) {
-  const variables = { ...(profile?.variables || {}) };
-  Object.entries(data || {}).forEach(([k, v]) => {
-    const key = String(k).toLowerCase().replace(/[^a-z0-9]+/g, '');
-    if (key && v) { variables[key] = String(v); variables[k] = String(v); }
-  });
-  return { ...(profile || {}), variables };
-}
+export { profileWithAnswers };
 
 /**
  * @param {object} o
@@ -82,7 +75,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   let resumeTimer = null;
   let destroyed = false;
 
-  const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps });
+  const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps, gating: gateOpen });
 
   const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || ctaTarget(addonOptions(c)));
   const onCall = ({ clip, phone }) => {
@@ -166,6 +159,14 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     return interrupted;
   }
 
+  /** Put what the viewer typed into the video: {{tokens}} fill in at once. */
+  function applyAnswers(data) {
+    currentProfile = profileWithAnswers(currentProfile, data);
+    model = buildViewerModel(voicedProject(), currentProfile, { fps });
+    engine.update(model);
+    loadVoices();
+  }
+
   function openLeadForm(clip) {
     gateOpen = true;
     showLeadForm(layer, clip, {
@@ -175,6 +176,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
         if (res?.error && !res.stored) return { ok: false, message: 'Sorry, that didn’t go through — please try again.' };
         clip._submitted = true;
         runtime.markSubmitted(clip.id);
+        applyAnswers(data);
         gateOpen = false;
         play();
         return { ok: true };
@@ -192,12 +194,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
       onSubmit: async (data) => {
         await onLead?.({ clipId: 'list-builder', kind: listBuilder.kind === 'personalizer' ? 'personalizer' : 'list-builder', data });
         listBuilder._submitted = true;
-        if (listBuilder.kind === 'personalizer') {
-          currentProfile = profileWithAnswers(currentProfile, data);
-          model = buildViewerModel(voicedProject(), currentProfile, { fps });
-          engine.update(model);
-          loadVoices();
-        }
+        applyAnswers(data);
         gateOpen = false;
         play();
         return '';

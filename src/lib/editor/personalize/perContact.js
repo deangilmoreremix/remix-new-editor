@@ -163,3 +163,21 @@ export function contactIdFromQuery(search = globalThis.location?.search || '') {
   const id = new URLSearchParams(search).get(CONTACT_PARAM);
   return id && ID_RE.test(id) ? id : null;
 }
+
+/**
+ * Form answers ("FIRST NAME": "Ann") → token variables, from the Personalizer,
+ * the List Builder or a Lead Generator form. Also stored under the studio's
+ * canonical token (NAME → fullName, FIRST NAME → firstName, COMPANY → company).
+ */
+export function profileWithAnswers(profile, data) {
+  const variables = { ...(profile?.variables || {}) };
+  Object.entries(data || {}).forEach(([k, v]) => {
+    const key = String(k).toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (!key || !v) return;
+    variables[key] = String(v);
+    variables[k] = String(v);
+    const canonical = canonicalTokenKey(k);
+    if (canonical) variables[canonical] = String(v);
+  });
+  return { ...(profile || {}), variables };
+}
