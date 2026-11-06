@@ -9,7 +9,8 @@ import { getBrand, saveAsset, listAssets } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast } from '../lib/loading.js';
 import { muapi } from '../lib/muapi.js';
-import { buildImagePrompt } from '../lib/campaignGenerator.js';
+import { buildImagePrompt, generateAssetImage } from '../lib/campaignGenerator.js';
+import { PLATFORMS } from '../lib/platforms.js';
 
 export function AssetCanvasEditor(params = {}) {
   const container = document.createElement('div');
@@ -158,18 +159,14 @@ export function AssetCanvasEditor(params = {}) {
     btn.disabled = true;
     btn.textContent = busyLabel;
     try {
-      const platformId = savedAsset?.platform && savedAsset.platform !== 'canvas' ? savedAsset.platform : undefined;
+      const platform = PLATFORMS.find(p => p.id === savedAsset?.platform) || PLATFORMS.find(p => p.id === 'web-banner');
       const concept = {
-        visual_direction: [
-          brand.imageryStyle ? `${brand.imageryStyle} imagery` : '',
-          brand.brandName ? `for ${brand.brandName}` : '',
-          state.body,
-        ].filter(Boolean).join(', '),
+        title: state.headline,
+        theme: '',
+        visual_direction: [brand.imageryStyle ? `${brand.imageryStyle} imagery` : '', state.body].filter(Boolean).join(', '),
       };
-      const prompt = buildImagePrompt(brand, concept, { platform: platformId }, state.headline, { noText });
-      const refs = [prompt];
-      if (brand.logoUrl) refs.push(brand.logoUrl);
-      const url = await muapi.imageEdit2(prompt, refs, { aspectRatio: '16:9', resolution: '2k', outputFormat: 'png' });
+      const prompt = buildImagePrompt(brand, concept, platform.id, state.headline, { noText });
+      const url = await generateAssetImage(brand, prompt, platform);
       if (!url) throw new Error('Image generation returned no URL');
       state.imageUrl = url;
       renderCanvas();

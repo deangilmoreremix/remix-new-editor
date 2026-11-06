@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { toHex } from '../../src/lib/colors.js';
 
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -975,45 +976,327 @@ export async function mirrorPersonalizationAsset({
 // --- Brand Studio scraper -------------------------------------------------
 // Powers POST /api/personalizer/brand-scrape. Follows the business asset
 // finder's free path: static fetch first, then the rendered Playwright worker
-// (PERSONALIZATION_RENDERED_DISCOVERY_URL / SCREENSHOT_API_URL) for JS-heavy
-// sites and the screenshot. It never calls Firecrawl. Returns the shape expected
-// by src/lib/brandAnalyzer.js#scrapeSite (a port of Open-Pomelli's scraper).
+// (PERSONALIZATION_RENDERED_DISCOVERY_URL / SCREENSHOT_API_URL) for the
+// screenshot, JS-heavy pages and (when it returns them) the browser-computed
+// styles, as in Open-Pomelli's Playwright scraper. It never calls Firecrawl.
+// Returns the shape expected by src/lib/brandAnalyzer.js#scrapeSite.
 
-const BRAND_BODY_TEXT_MAX = 6000;
+const BRAND_BODY_TEXT_MAX = 8000;
 const BRAND_THIN_TEXT_MIN = 200;
-const BRAND_CSS_MAX_FILES = 3;
+const BRAND_MIN_COLORS = 3;
+const BRAND_CSS_MAX_FILES = 6;
 const BRAND_CSS_MAX_BYTES = 512 * 1024;
+const BRAND_CSS_IMPORT_DEPTH = 1;
 const BRAND_SCREENSHOT_MAX_CHARS = 8 * 1024 * 1024;
-const BRAND_COLOR_RE = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}[^)]*\)/g;
+const BRAND_LOGO_MIN_SCORE = 6;
+const BRAND_LOGO_MAX = 5;
+const BRAND_FONT_MAX = 6;
+const BRAND_COLOR_CAP = 3000;
+
+const BRAND_COLOR_TOKEN_RE = /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/g;
 const GENERIC_FONTS = new Set([
   'inherit', 'initial', 'unset', 'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy',
   'system-ui', 'ui-sans-serif', 'ui-serif', 'ui-monospace', '-apple-system', 'blinkmacsystemfont',
   'segoe ui', 'arial', 'helvetica', 'helvetica neue', 'times new roman', 'times',
 ]);
+const ICON_FONT_RE = /(awesome|icon|material|glyph|symbols|dashicons|fontello|ionicons|feather|emoji)/i;
+const BRAND_SELECTOR_RE = /(^|[\s,>+~])(body|html|a|button|h[1-3]|header|nav|:root)(?=[\s,.:#[>{+~]|$)|\.(btn|button|primary|cta|brand)\b/i;
+const BRAND_VAR_NAME_RE = /(primary|brand|accent|secondary|theme|main)/i;
+const NON_BRAND_SECTION_RE = /(client|partner|customer|trusted[\s_-]*by|press|testimonial|sponsor|as[\s_-]*seen|featured[\s_-]*in|logos?[\s_-]*(wall|grid|strip|cloud|carousel|marquee))/i;
 
-function extractBrandFonts(css) {
+function brandToHex(raw) {
+  return toHex(raw);
+}
+
+function stripCssComments(css) {
+  return css.replace(/\/\*[\s\S]*?\*\//g, '');
+}
+
+function stripDarkModeBlocks(css) {
+  const re = /@media[^{]*prefers-color-scheme\s*:\s*dark[^{]*\{/gi;
+  let out = '';
+  let last = 0;
+  let m;
+  while ((m = re.exec(css))) {
+    out += css.slice(last, m.index);
+    let depth = 1;
+    let j = re.lastIndex;
+    while (j < css.length && depth > 0) {
+      const ch = css[j++];
+      if (ch === '{') depth += 1;
+      else if (ch === '}') depth -= 1;
+    }
+    last = j;
+    re.lastIndex = j;
+  }
+  return out + css.slice(last);
+}
+
+function cleanFontName(raw) {
+  return String(raw || '').replace(/!important/i, '').replace(/["']/g, '').trim();
+}
+
+function addFont(map, raw, weight) {
+  const name = cleanFontName(raw);
+  if (!name || name.startsWith('var(') || name.length > 60) return;
+  const lower = name.toLowerCase();
+  if (GENERIC_FONTS.has(lower) || ICON_FONT_RE.test(lower)) return;
+  map.set(name, (map.get(name) || 0) + weight);
+}
+
+/** Fonts: @font-face and Google Fonts first (the real brand-font signal), then font-family usage. */
+function extractBrandFonts(css, html) {
   const fonts = new Map();
-  for (const match of css.matchAll(/font-family\s*:\s*([^;}{]+)/gi)) {
-    for (const part of match[1].split(',')) {
-      const name = part.replace(/!important/i, '').replace(/["']/g, '').trim();
-      if (!name || name.startsWith('var(') || GENERIC_FONTS.has(name.toLowerCase())) continue;
-      fonts.set(name, (fonts.get(name) || 0) + 1);
+  for (const block of css.matchAll(/@font-face\s*\{([^}]*)\}/gi)) {
+    const family = block[1].match(/font-family\s*:\s*([^;}]+)/i)?.[1];
+    if (family) addFont(fonts, family, 5);
+  }
+  for (const link of html.matchAll(/fonts\.googleapis\.com\/css2?\?([^"'\s>]+)/gi)) {
+    for (const param of decodeHtml(link[1]).split('&')) {
+      if (!param.startsWith('family=')) continue;
+      const name = decodeURIComponent(param.slice(7).split(':')[0].replace(/\+/g, ' '));
+      addFont(fonts, name, 5);
     }
   }
-  return [...fonts.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n).slice(0, 6);
+  const usage = css.replace(/@font-face\s*\{[^}]*\}/gi, '');
+  for (const match of usage.matchAll(/font-family\s*:\s*([^;}{]+)/gi)) {
+    for (const part of match[1].split(',')) addFont(fonts, part, 1);
+  }
+  return [...fonts.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n).slice(0, BRAND_FONT_MAX);
 }
 
-function htmlToBrandText(html) {
-  return decodeHtml(
-    html
-      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
-      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
-      .replace(/<[^>]+>/g, ' '),
-  ).replace(/\s+/g, ' ').trim().slice(0, BRAND_BODY_TEXT_MAX);
+/**
+ * Colors from the page's CSS, standing in for upstream's computed styles:
+ * custom properties are resolved, dark-mode-only rules are dropped, colors used by
+ * body/links/buttons/headings/header/nav and brand-named variables are weighted up,
+ * hsl() is supported, and near-greys are dropped. Returns hex strings (repeated by weight).
+ */
+function extractBrandColors(css, extraColors = []) {
+  const clean = stripDarkModeBlocks(stripCssComments(css)).replace(/@font-face\s*\{[^}]*\}/gi, '');
+
+  const vars = new Map();
+  for (const m of clean.matchAll(/(--[\w-]+)\s*:\s*([^;}{]+)/g)) {
+    if (!vars.has(m[1])) vars.set(m[1], m[2].trim());
+  }
+  const resolve = (value) => {
+    let out = value;
+    for (let i = 0; i < 3 && /var\(/.test(out); i += 1) {
+      out = out.replace(/var\(\s*(--[\w-]+)\s*(?:,[^)]*)?\)/g, (_, name) => vars.get(name) ?? '');
+    }
+    return out;
+  };
+
+  const counts = [];
+  const push = (token, weight) => {
+    const hex = brandToHex(token);
+    if (!hex) return;
+    for (let i = 0; i < weight && counts.length < BRAND_COLOR_CAP; i += 1) counts.push(hex);
+  };
+
+  for (const [name, value] of vars) {
+    const weight = BRAND_VAR_NAME_RE.test(name) ? 4 : 1;
+    for (const token of resolve(value).match(BRAND_COLOR_TOKEN_RE) || []) push(token, weight);
+  }
+
+  for (const rule of clean.matchAll(/([^{}@]+)\{([^{}]*)\}/g)) {
+    const selector = rule[1].trim();
+    const weight = BRAND_SELECTOR_RE.test(selector) ? 5 : 1;
+    for (const decl of rule[2].split(';')) {
+      const idx = decl.indexOf(':');
+      if (idx < 0) continue;
+      const prop = decl.slice(0, idx).trim().toLowerCase();
+      if (prop.startsWith('--')) continue; // handled above
+      if (!/^(color|background|background-color|border|border-color|fill|stroke|outline-color)$/.test(prop)) continue;
+      for (const token of resolve(decl.slice(idx + 1)).match(BRAND_COLOR_TOKEN_RE) || []) push(token, weight);
+    }
+  }
+
+  for (const token of extraColors) push(token, 5);
+
+  const isGrey = (hex) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    return Math.max(r, g, b) - Math.min(r, g, b) < 14;
+  };
+  const coloured = counts.filter((hex) => !isGrey(hex));
+  return coloured.length ? coloured : counts;
 }
 
-// Same endpoint, auth and request contract as discoverRenderedAssetsFallback.
-// Returns { html, screenshot } (either may be empty) or null when the worker is
+function visibleBrandText(html) {
+  const without = html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, ' ')
+    .replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, ' ')
+    .replace(/<nav\b[^>]*>[\s\S]*?<\/nav>/gi, ' ')
+    .replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/gi, ' ')
+    .replace(/<(div|section|aside)\b[^>]*(?:id|class)=["'][^"']*(?:cookie|consent|gdpr)[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, ' ');
+  const main = without.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
+  const scope = main && htmlToPlain(main).length >= BRAND_THIN_TEXT_MIN ? main : without;
+  const headings = [...scope.matchAll(/<h[1-3]\b[^>]*>([\s\S]*?)<\/h[1-3]>/gi)]
+    .map((m) => htmlToPlain(m[1]))
+    .filter(Boolean)
+    .slice(0, 12);
+  const body = htmlToPlain(scope);
+  return [headings.join(' | '), body].filter(Boolean).join('\n').slice(0, BRAND_BODY_TEXT_MAX);
+}
+
+function htmlToPlain(html) {
+  return decodeHtml(html.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+}
+
+function brandNameToken(pageUrl) {
+  try {
+    const parts = new URL(pageUrl).hostname.toLowerCase().replace(/^www\./, '').split('.');
+    const token = parts.length > 1 ? parts[parts.length - 2] : parts[0];
+    return token && token.length >= 3 ? token : '';
+  } catch {
+    return '';
+  }
+}
+
+/** Logos, ranked: JSON-LD, then images by header / home-link / brand-name / "logo" signals; customer-logo walls are penalised. */
+function extractBrandLogos(html, pageUrl) {
+  const scored = new Map();
+  const bump = (url, score) => {
+    if (!url) return;
+    scored.set(url, Math.max(scored.get(url) ?? -Infinity, score));
+  };
+
+  for (const m of html.matchAll(/["']logo["']\s*:\s*["']([^"']+)["']/gi)) {
+    bump(absoluteUrl(m[1], pageUrl), 20);
+  }
+
+  const zones = [...html.matchAll(/<(header|nav)\b[^>]*>[\s\S]*?<\/\1>/gi)].map((m) => [m.index, m.index + m[0].length]);
+  const token = brandNameToken(pageUrl);
+  let origin = '';
+  try { origin = new URL(pageUrl).origin; } catch {}
+
+  for (const m of html.matchAll(/<img\b([^>]*?)>/gi)) {
+    const tag = m[1] || '';
+    const src = tag.match(/\b(?:data-src|src)=["']([^"']+)["']/i)?.[1];
+    const url = absoluteUrl(src || '', pageUrl);
+    if (!url) continue;
+    const rawAlt = decodeHtml(tag.match(/\balt=["']([^"']*)["']/i)?.[1] || '');
+    // A descriptive sentence ("Aerial view ... imitating the Stripe logo.") is not a logo label.
+    const alt = rawAlt.split(/\s+/).filter(Boolean).length <= 5 ? rawAlt : '';
+    const cls = tag.match(/\bclass=["']([^"']*)["']/i)?.[1] || '';
+    const hay = `${url} ${alt} ${cls}`.toLowerCase();
+
+    // Match the brand name against the file path / alt / class only: CDN hosts such as
+    // images.stripeassets.com or www.notion.com would otherwise match every image.
+    let pathname = '';
+    try { pathname = new URL(url).pathname; } catch {}
+    const nameHay = `${pathname} ${alt} ${cls}`.toLowerCase();
+
+    let score = 0;
+    if (/logo|brandmark|wordmark/.test(hay)) score += 4;
+    if (zones.some(([a, b]) => m.index >= a && m.index <= b)) score += 3;
+    if (token && nameHay.includes(token)) score += 3;
+
+    // "Hertz logo" on a stripe.com page is somebody else's logo.
+    const named = alt.match(/^\s*(.+?)\s+logo\s*$/i);
+    if (named && token && !named[1].toLowerCase().includes(token)) score -= 8;
+
+    const before = html.slice(Math.max(0, m.index - 400), m.index);
+    const openA = before.lastIndexOf('<a ');
+    if (openA > before.lastIndexOf('</a>')) {
+      const href = before.slice(openA).match(/href=["']([^"']*)["']/i)?.[1];
+      if (href !== undefined) {
+        const abs = absoluteUrl(href, pageUrl);
+        if (href === '' || href === '/' || href === '#' || href === './' || (abs && abs.replace(/\/$/, '') === origin)) score += 3;
+      }
+    }
+
+    const context = html.slice(Math.max(0, m.index - 700), m.index);
+    if (NON_BRAND_SECTION_RE.test(context.slice(-700)) || NON_BRAND_SECTION_RE.test(cls)) score -= 8;
+
+    if (score >= BRAND_LOGO_MIN_SCORE) bump(url, score);
+  }
+
+  const ranked = [...scored.entries()].sort((a, b) => b[1] - a[1]).map(([u]) => u).slice(0, BRAND_LOGO_MAX);
+
+  // Brand icons are a better fallback than a generic og:image (at most two sizes).
+  let icons = 0;
+  for (const m of html.matchAll(/<link\b[^>]*>/gi)) {
+    const tag = m[0];
+    if (!/rel=["'][^"']*(apple-touch-icon|mask-icon)[^"']*["']/i.test(tag)) continue;
+    const url = absoluteUrl(tag.match(/href=["']([^"']+)["']/i)?.[1] || '', pageUrl);
+    if (url && !ranked.includes(url) && ranked.length < BRAND_LOGO_MAX && icons < 2) {
+      ranked.push(url);
+      icons += 1;
+    }
+  }
+  return ranked;
+}
+
+async function fetchBrandStylesheets(html, pageUrl) {
+  const found = [];
+  for (const m of html.matchAll(/<link\b[^>]*>/gi)) {
+    if (!/rel=["']stylesheet["']/i.test(m[0])) continue;
+    const abs = absoluteUrl(m[0].match(/href=["']([^"']+)["']/i)?.[1] || '', pageUrl);
+    if (abs) found.push(abs);
+  }
+  const seen = new Set();
+  const texts = [];
+  let queue = found;
+  for (let depth = 0; depth <= BRAND_CSS_IMPORT_DEPTH && queue.length; depth += 1) {
+    const batch = queue.filter((u) => !seen.has(u)).slice(0, Math.max(0, BRAND_CSS_MAX_FILES - seen.size));
+    batch.forEach((u) => seen.add(u));
+    const loaded = await Promise.all(batch.map((u) => fetchTextResource(u, BRAND_CSS_MAX_BYTES)));
+    const next = [];
+    loaded.forEach((res, i) => {
+      if (!res?.text) return;
+      texts.push(res.text);
+      for (const im of res.text.matchAll(/@import\s+(?:url\()?\s*["']?([^"')\s;]+)/gi)) {
+        const abs = absoluteUrl(im[1], batch[i]);
+        if (abs) next.push(abs);
+      }
+    });
+    queue = next;
+  }
+  return texts;
+}
+
+async function extractBrandFromHtml(html, pageUrl) {
+  const metaContent = (names) => {
+    for (const name of names) {
+      const re1 = new RegExp(`<meta[^>]+(?:name|property)=["']${name}["'][^>]+content=["']([^"']*)["']`, 'i');
+      const re2 = new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+(?:name|property)=["']${name}["']`, 'i');
+      const hit = html.match(re1)?.[1] ?? html.match(re2)?.[1];
+      if (hit) return decodeHtml(hit).trim();
+    }
+    return '';
+  };
+
+  const title = decodeHtml(html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || metaContent(['og:title'])).trim();
+  const description = metaContent(['description', 'og:description']);
+  const ogImage = absoluteUrl(metaContent(['og:image', 'og:image:url', 'twitter:image']), pageUrl) || null;
+  const iconMatch = html.match(/<link[^>]+rel=["'][^"']*\bicon\b[^"']*["'][^>]*href=["']([^"']+)["']/i)
+    || html.match(/<link[^>]+href=["']([^"']+)["'][^>]*rel=["'][^"']*\bicon\b[^"']*["']/i);
+  const favicon = absoluteUrl(iconMatch?.[1] || '/favicon.ico', pageUrl) || null;
+
+  const cssParts = [];
+  for (const m of html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)) cssParts.push(m[1]);
+  for (const m of html.matchAll(/\sstyle=["']([^"']+)["']/gi)) cssParts.push(`x{${m[1]}}`);
+  cssParts.push(...await fetchBrandStylesheets(html, pageUrl));
+  const css = cssParts.join('\n');
+
+  const themeColor = metaContent(['theme-color']);
+  return {
+    title: title.slice(0, 300),
+    description: description.slice(0, 1200),
+    ogImage,
+    favicon,
+    logoCandidates: extractBrandLogos(html, pageUrl),
+    fonts: extractBrandFonts(css, html),
+    rawColors: extractBrandColors(css, themeColor ? [themeColor] : []),
+    bodyText: visibleBrandText(html),
+  };
+}
+
+// Same endpoint, auth and request contract as discoverRenderedAssetsFallback, plus a
+// hint asking the worker for upstream's page.evaluate output. Returns
+// { html, screenshot, computed } (each may be empty) or null when the worker is
 // not configured or fails. `screenshot` is a data URI.
 async function fetchRenderedBrandSnapshot(websiteUrl) {
   const apiUrl = process.env.PERSONALIZATION_RENDERED_DISCOVERY_URL || process.env.SCREENSHOT_API_URL;
@@ -1036,22 +1319,30 @@ async function fetchRenderedBrandSnapshot(websiteUrl) {
         includeImages: true,
         includeHtml: true,
         includeSocial: false,
-        width: 1280,
-        height: 720,
+        includeComputedStyles: true,
+        width: 1440,
+        height: 900,
       }),
       signal: controller.signal,
     });
     if (!response.ok) return null;
     const payload = await response.json().catch(() => ({}));
+    const root = payload?.data && typeof payload.data === 'object' ? { ...payload.data, ...payload } : payload;
 
     const html =
-      (typeof payload?.html === 'string' && payload.html) ||
-      (typeof payload?.rawHtml === 'string' && payload.rawHtml) ||
-      (typeof payload?.data?.html === 'string' && payload.data.html) ||
-      (typeof payload?.data?.rawHtml === 'string' && payload.data.rawHtml) ||
+      (typeof root?.html === 'string' && root.html) ||
+      (typeof root?.rawHtml === 'string' && root.rawHtml) ||
       '';
 
-    const shot = payload?.screenshot || payload?.data?.screenshot || payload?.image || payload?.url || payload?.data?.url || '';
+    const strings = (v, max) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x).slice(0, max) : []);
+    const computed = {
+      colors: strings(root?.computedStyles?.colors ?? root?.rawColors, 200),
+      fonts: strings(root?.computedStyles?.fonts ?? root?.fonts, 20),
+      logoCandidates: strings(root?.logoCandidates, 10),
+      bodyText: typeof root?.bodyText === 'string' ? root.bodyText.slice(0, BRAND_BODY_TEXT_MAX) : '',
+    };
+
+    const shot = root?.screenshot || root?.image || root?.url || '';
     let screenshot = null;
     if (typeof shot === 'string' && shot) {
       if (shot.startsWith('data:image/')) {
@@ -1071,7 +1362,7 @@ async function fetchRenderedBrandSnapshot(websiteUrl) {
         }
       }
     }
-    return { html, screenshot };
+    return { html, screenshot, computed };
   } catch {
     return null;
   } finally {
@@ -1084,73 +1375,54 @@ export async function scrapeBrandSite(websiteUrl) {
 
   // 1) Free static fetch (same helper as the asset finder).
   const staticPage = await fetchHtml(rootUrl);
-  let html = staticPage?.html || '';
-  let finalUrl = staticPage?.finalUrl || rootUrl;
+  const finalUrl = staticPage?.finalUrl || rootUrl;
+  let brand = staticPage ? await extractBrandFromHtml(staticPage.html, finalUrl) : null;
 
-  // 2) Rendered Playwright worker: screenshot always, DOM when the static page is thin.
+  // 2) Rendered Playwright worker: screenshot always; DOM when the static page is a thin
+  //    shell (JS-heavy SPA) or yields too few colors; computed styles when it returns them.
   const rendered = await fetchRenderedBrandSnapshot(finalUrl);
-  const staticText = html ? htmlToBrandText(html) : '';
-  if (rendered?.html && staticText.length < BRAND_THIN_TEXT_MIN) {
-    html = rendered.html;
+  const thin = !brand || brand.bodyText.length < BRAND_THIN_TEXT_MIN || brand.rawColors.length < BRAND_MIN_COLORS;
+  if (rendered?.html && thin) {
+    const fromRendered = await extractBrandFromHtml(rendered.html, finalUrl);
+    brand = brand
+      ? {
+          ...brand,
+          title: brand.title || fromRendered.title,
+          description: brand.description || fromRendered.description,
+          ogImage: brand.ogImage || fromRendered.ogImage,
+          bodyText: fromRendered.bodyText.length > brand.bodyText.length ? fromRendered.bodyText : brand.bodyText,
+          logoCandidates: brand.logoCandidates.length ? brand.logoCandidates : fromRendered.logoCandidates,
+          fonts: brand.fonts.length ? brand.fonts : fromRendered.fonts,
+          rawColors: fromRendered.rawColors.length > brand.rawColors.length ? fromRendered.rawColors : brand.rawColors,
+        }
+      : fromRendered;
   }
-  if (!html) throw new Error('Website could not be fetched.');
+  if (!brand) throw new Error('Website could not be fetched.');
 
-  const metaContent = (names) => {
-    for (const name of names) {
-      const re1 = new RegExp(`<meta[^>]+(?:name|property)=["']${name}["'][^>]+content=["']([^"']*)["']`, 'i');
-      const re2 = new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+(?:name|property)=["']${name}["']`, 'i');
-      const hit = html.match(re1)?.[1] ?? html.match(re2)?.[1];
-      if (hit) return decodeHtml(hit).trim();
-    }
-    return '';
-  };
-
-  const title = decodeHtml(html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || metaContent(['og:title'])).trim();
-  const description = metaContent(['description', 'og:description']);
-  const ogImage = absoluteUrl(metaContent(['og:image', 'og:image:url', 'twitter:image']), finalUrl) || null;
-
-  const iconMatch = html.match(/<link[^>]+rel=["'][^"']*icon[^"']*["'][^>]*href=["']([^"']+)["']/i)
-    || html.match(/<link[^>]+href=["']([^"']+)["'][^>]*rel=["'][^"']*icon[^"']*["']/i);
-  const favicon = absoluteUrl(iconMatch?.[1] || '/favicon.ico', finalUrl) || null;
-
-  // Logo candidates: the asset finder's own classifier (category 'logo'), plus JSON-LD logo.
-  const logoCandidates = [];
-  for (const m of html.matchAll(/["']logo["']\s*:\s*["']([^"']+)["']/gi)) {
-    const u = absoluteUrl(m[1], finalUrl);
-    if (u) logoCandidates.push(u);
+  // Browser-computed values, when the worker provides them, beat CSS parsing.
+  const c = rendered?.computed;
+  if (c?.colors?.length) brand.rawColors = c.colors;
+  if (c?.fonts?.length) {
+    const fonts = new Map();
+    c.fonts.forEach((f) => addFont(fonts, f, 1));
+    if (fonts.size) brand.fonts = [...fonts.keys()].slice(0, BRAND_FONT_MAX);
   }
-  for (const c of extractImageCandidates(html, finalUrl)) {
-    if (heuristicClassification(c).category === 'logo') logoCandidates.push(c.url);
+  if (c?.logoCandidates?.length) {
+    const abs = c.logoCandidates.map((u) => absoluteUrl(u, finalUrl)).filter(Boolean);
+    brand.logoCandidates = [...new Set([...abs, ...brand.logoCandidates])].slice(0, BRAND_LOGO_MAX);
   }
-
-  // Colors + fonts from inline CSS and a few linked stylesheets (bounded).
-  const cssParts = [];
-  for (const m of html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)) cssParts.push(m[1]);
-  for (const m of html.matchAll(/\sstyle=["']([^"']+)["']/gi)) cssParts.push(m[1]);
-  const sheetUrls = [];
-  for (const m of html.matchAll(/<link[^>]+rel=["']stylesheet["'][^>]*>/gi)) {
-    const href = m[0].match(/href=["']([^"']+)["']/i)?.[1];
-    const abs = absoluteUrl(href || '', finalUrl);
-    if (abs) sheetUrls.push(abs);
-  }
-  const sheets = await Promise.all(
-    sheetUrls.slice(0, BRAND_CSS_MAX_FILES).map((u) => fetchTextResource(u, BRAND_CSS_MAX_BYTES)),
-  );
-  for (const sheet of sheets) if (sheet?.text) cssParts.push(sheet.text);
-  const css = cssParts.join('\n');
-  const themeColor = metaContent(['theme-color']);
-  const rawColors = [...(themeColor ? [themeColor] : []), ...(css.match(BRAND_COLOR_RE) || [])].slice(0, 2000);
+  if (c?.bodyText && c.bodyText.length > brand.bodyText.length) brand.bodyText = c.bodyText;
 
   return {
     url: finalUrl,
-    title: title.slice(0, 300),
-    description: description.slice(0, 1200),
-    bodyText: htmlToBrandText(html),
-    ogImage,
-    favicon,
-    logoCandidates: Array.from(new Set(logoCandidates)).slice(0, 8),
-    fonts: extractBrandFonts(css),
-    rawColors,
+    title: brand.title,
+    description: brand.description,
+    bodyText: brand.bodyText,
+    ogImage: brand.ogImage,
+    favicon: brand.favicon,
+    logoCandidates: brand.logoCandidates,
+    fonts: brand.fonts,
+    rawColors: brand.rawColors,
     screenshot: rendered?.screenshot || null,
   };
 }

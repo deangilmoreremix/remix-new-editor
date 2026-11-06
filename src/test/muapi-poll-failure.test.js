@@ -31,4 +31,29 @@ describe('pollForResult failure handling', () => {
     global.fetch = pollResponse({ balance: 12.5 });
     await expect(client.getBalance()).resolves.toBe(12.5);
   });
+
+  // Open-Pomelli (muapi.ts) treats any result that is not processing/pending as final,
+  // including ones with no `status` field.
+  test('accepts a status-less result that carries a text payload', async () => {
+    global.fetch = pollResponse({ id: 'r1', text: 'hello' });
+    await expect(client.pollForResult('req-nostatus', 5, 10)).resolves.toMatchObject({ text: 'hello' });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('accepts a status-less result that carries outputs', async () => {
+    global.fetch = pollResponse({ outputs: ['https://cdn.example/a.png'] });
+    await expect(client.pollForResult('req-nostatus-2', 5, 10)).resolves.toMatchObject({ outputs: ['https://cdn.example/a.png'] });
+  });
+
+  test('stops immediately on a cancelled job', async () => {
+    global.fetch = pollResponse({ status: 'cancelled' });
+    await expect(client.pollForResult('req-cancel', 5, 10)).rejects.toThrow('cancelled');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('keeps polling while the job is still processing', async () => {
+    global.fetch = pollResponse({ status: 'processing' });
+    await expect(client.pollForResult('req-proc', 2, 10)).rejects.toThrow('timed out');
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
 });

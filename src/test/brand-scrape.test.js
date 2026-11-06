@@ -112,3 +112,81 @@ describe('scrapeBrandSite extraction', () => {
     expect(out.title).toBe('Acme Roofing');
   });
 });
+
+describe('scrapeBrandSite upstream-parity extraction', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.PERSONALIZATION_RENDERED_DISCOVERY_URL;
+  });
+  const serve = (page, extra = () => null) =>
+    vi.stubGlobal('fetch', vi.fn(async (url) => extra(String(url)) || html(page)));
+
+  it('prefers the header/home-link logo and ignores customer-logo walls and descriptive alts', async () => {
+    serve(`<html><head><title>Acme</title></head><body>
+      <header><a href="/"><img src="/brand/acme-logo.svg" alt="Acme"></a></header>
+      <section class="trusted-by"><img src="/c/hertz.png" alt="Hertz logo"><img src="/c/x.png" alt="logo"></section>
+      <img src="/hero.png" alt="Aerial view of a street intersection imitating the Acme logo.">
+      <p>${'Acme builds things for people. '.repeat(10)}</p></body></html>`);
+    const out = await scrapeBrandSite('https://acme.example');
+    expect(out.logoCandidates[0]).toBe('https://acme.example/brand/acme-logo.svg');
+    expect(out.logoCandidates).not.toContain('https://acme.example/c/hertz.png');
+    expect(out.logoCandidates).not.toContain('https://acme.example/hero.png');
+  });
+
+  it('does not treat a CDN host containing the brand name as a brand match', async () => {
+    serve(`<html><head></head><body><nav><img src="https://acmeassets.example/nav/capture.png" alt="Capture"></nav>
+      <p>${'Acme builds things. '.repeat(20)}</p></body></html>`);
+    const out = await scrapeBrandSite('https://acme.example');
+    expect(out.logoCandidates).toEqual([]);
+  });
+
+  it('resolves CSS variables and hsl, weights brand selectors and drops dark-mode and grey colors', async () => {
+    serve(`<html><head><title>T</title><style>
+      :root{--brand-primary: hsl(10 80% 50%); --grey:#888888}
+      @media (prefers-color-scheme: dark){ a{color:#00ff00} .x{background:#00ff00} }
+      a{color:var(--brand-primary)} .card{background:#cccccc} .y{color:#3366cc}
+      </style></head><body>${'text '.repeat(80)}</body></html>`);
+    const { pickPalette } = await import('../lib/colors.js');
+    const out = await scrapeBrandSite('https://acme.example');
+    const palette = pickPalette(out.rawColors);
+    expect(palette.primary[0]).toBe('#e63c19');
+    expect(out.rawColors).not.toContain('#00ff00');
+    expect(out.rawColors).not.toContain('#888888');
+  });
+
+  it('reads brand fonts from @font-face and Google Fonts and skips icon fonts', async () => {
+    serve(`<html><head><title>T</title>
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Open+Sans&display=swap" rel="stylesheet">
+      <style>@font-face{font-family:"Brand Display";src:url(x.woff2)} body{font-family:"FontAwesome",Arial,sans-serif} h1{font-family:'Roboto',sans-serif}</style>
+      </head><body>${'text '.repeat(80)}</body></html>`);
+    const out = await scrapeBrandSite('https://acme.example');
+    expect(out.fonts).toEqual(expect.arrayContaining(['Brand Display', 'Poppins', 'Open Sans', 'Roboto']));
+    expect(out.fonts).not.toContain('FontAwesome');
+    expect(out.fonts).not.toContain('Arial');
+  });
+
+  it('strips navigation, footer and cookie banners from the text and puts headings first', async () => {
+    serve(`<html><head><title>T</title></head><body>
+      <nav>HOME PRICING LOGIN</nav><div id="cookie-banner">We use cookies</div>
+      <main><h1>Roofs that last</h1><p>${'We install and repair roofs. '.repeat(15)}</p></main>
+      <footer>Copyright 2025 legal</footer></body></html>`);
+    const out = await scrapeBrandSite('https://acme.example');
+    expect(out.bodyText.startsWith('Roofs that last')).toBe(true);
+    expect(out.bodyText).not.toMatch(/PRICING|We use cookies|Copyright/);
+  });
+
+  it('prefers browser-computed styles from the rendered worker when it returns them', async () => {
+    process.env.PERSONALIZATION_RENDERED_DISCOVERY_URL = 'https://worker.example/render';
+    serve(PAGE, (url) => (url === 'https://worker.example/render'
+      ? Response.json({
+          screenshot: 'data:image/png;base64,iVBORw0KGgo=',
+          computedStyles: { colors: ['rgb(12, 99, 200)', 'rgb(12, 99, 200)'], fonts: ['Inter', 'sans-serif'] },
+          logoCandidates: ['/computed-logo.png'],
+        })
+      : null));
+    const out = await scrapeBrandSite('https://acme.example');
+    expect(out.rawColors).toEqual(['rgb(12, 99, 200)', 'rgb(12, 99, 200)']);
+    expect(out.fonts).toEqual(['Inter']);
+    expect(out.logoCandidates[0]).toBe('https://acme.example/computed-logo.png');
+  });
+});

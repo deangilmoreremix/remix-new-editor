@@ -168,8 +168,11 @@ export async function analyzeBrand(url) {
   const vision = parseJSON(visionRaw);
 
   const sitePalette = pickPalette(site.rawColors);
-  const primaryColors = dedupHex(sitePalette.primary, asStringArray(vision.primary_colors)).slice(0, 5);
-  const secondaryColors = dedupHex(sitePalette.secondary, asStringArray(vision.secondary_colors)).slice(0, 5);
+  // Open-Pomelli order: the vision model's read of the rendered page first, then the
+  // palette computed from the page's CSS. Non-hex strings from the model are dropped.
+  const hexOnly = (arr) => arr.filter((c) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(c).trim())).map((c) => c.trim());
+  const primaryColors = dedupHex(hexOnly(asStringArray(vision.primary_colors)), sitePalette.primary).slice(0, 5);
+  const secondaryColors = dedupHex(hexOnly(asStringArray(vision.secondary_colors)), sitePalette.secondary).slice(0, 5);
 
   const logoUrl = site.logoCandidates[0] || site.ogImage || site.favicon;
 
@@ -183,7 +186,7 @@ export async function analyzeBrand(url) {
     tagline: asString(text.tagline),
     valueProposition: asString(text.value_proposition),
     toneOfVoice: asStringArray(text.tone_of_voice),
-      brandPersonality: [...new Set([...asStringArray(text.brand_personality), ...asStringArray(vision.brand_vibe)])],
+      brandPersonality: dedupHex(asStringArray(text.brand_personality), asStringArray(vision.brand_vibe)),
     targetAudience: asString(text.target_audience),
     keyMessages: asStringArray(text.key_messages),
     primaryColors,

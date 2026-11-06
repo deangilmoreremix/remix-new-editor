@@ -404,6 +404,21 @@ export class MuapiClient {
                     return data;
                 }
 
+                // Upstream (Open-Pomelli muapi.ts) treats any result that is not
+                // processing/pending as final, including ones with no `status`.
+                // Accept a status-less result only when it carries a real payload.
+                if (!status && MuapiClient.hasResultPayload(data)) {
+                    return data;
+                }
+
+                if (status === 'cancelled' || status === 'canceled') {
+                    const err = new Error('Generation was cancelled.');
+                    err.requestId = requestId;
+                    err.generationResult = data;
+                    err.terminal = true;
+                    throw err;
+                }
+
                 if (status === 'failed' || status === 'error') {
                     // MuAPI refunds failed jobs; say so, like upstream's generationLifecycle.
                     const cost = data.cost;
@@ -1328,6 +1343,17 @@ export class MuapiClient {
         const requestId = submit?.request_id || submit?.id;
         if (!requestId) return submit;
         return this.pollForResult(requestId, 120, 2500, signal);
+    }
+
+    static hasResultPayload(r) {
+        if (!r || typeof r !== 'object') return false;
+        for (const k of ['text', 'result', 'output', 'content', 'url', 'image_url', 'video_url', 'output_url']) {
+            if (typeof r[k] === 'string' && r[k].trim() !== '') return true;
+        }
+        for (const list of [r.outputs, r.images]) {
+            if (Array.isArray(list) && list.length > 0) return true;
+        }
+        return !!(r.output?.url || r.output?.text || r.video?.url || r.audio?.url);
     }
 
     static extractText(r) {
