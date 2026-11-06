@@ -1,8 +1,9 @@
 // src/lib/brandStore.js
 // Lightweight persistence layer for Brand DNA, campaigns, assets, photoshoots, and animations.
-// Uses localStorage as the primary store. Can be extended to sync with Supabase.
-
-import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
+// Uses localStorage only. Brand Studio data stays in the browser by design: the Supabase
+// brand_* tables are guarded by an `app.clerk_user_id` session setting that a browser client
+// cannot set, and the old direct-sync calls targeted tables/columns that do not exist, so
+// they never succeeded. Server-side sync would need a Clerk-verified Netlify function.
 
 const STORE_KEYS = {
   brands: 'brand_dna_list',
@@ -99,75 +100,6 @@ function evictOldEntries() {
   }
 }
 
-function isAuthenticated() {
-  return typeof window !== 'undefined' && !!window.Clerk?.user;
-}
-
-async function syncBrandToSupabase(brand) {
-  if (!isSupabaseConfigured() || !isAuthenticated()) return;
-  try {
-    await supabase.from('brand_dna').upsert({
-      id: brand.id,
-      ...brand,
-      updated_at: new Date().toISOString(),
-    });
-  } catch (err) {
-    console.warn('[brandStore] Supabase brand sync failed:', err);
-  }
-}
-
-async function syncCampaignToSupabase(campaign) {
-  if (!isSupabaseConfigured() || !isAuthenticated()) return;
-  try {
-    await supabase.from('campaigns').upsert({
-      id: campaign.id,
-      ...campaign,
-      updated_at: new Date().toISOString(),
-    });
-  } catch (err) {
-    console.warn('[brandStore] Supabase campaign sync failed:', err);
-  }
-}
-
-async function syncAssetToSupabase(asset) {
-  if (!isSupabaseConfigured() || !isAuthenticated()) return;
-  try {
-    await supabase.from('assets').upsert({
-      id: asset.id,
-      ...asset,
-      updated_at: new Date().toISOString(),
-    });
-  } catch (err) {
-    console.warn('[brandStore] Supabase asset sync failed:', err);
-  }
-}
-
-async function syncPhotoshootToSupabase(photoshoot) {
-  if (!isSupabaseConfigured() || !isAuthenticated()) return;
-  try {
-    await supabase.from('photoshoots').upsert({
-      id: photoshoot.id,
-      ...photoshoot,
-      updated_at: new Date().toISOString(),
-    });
-  } catch (err) {
-    console.warn('[brandStore] Supabase photoshoot sync failed:', err);
-  }
-}
-
-async function syncAnimationToSupabase(animation) {
-  if (!isSupabaseConfigured() || !isAuthenticated()) return;
-  try {
-    await supabase.from('animations').upsert({
-      id: animation.id,
-      ...animation,
-      updated_at: new Date().toISOString(),
-    });
-  } catch (err) {
-    console.warn('[brandStore] Supabase animation sync failed:', err);
-  }
-}
-
 // ---- Brand DNA ----
 export function listBrands() {
   return safeGet(STORE_KEYS.brands, []);
@@ -190,7 +122,6 @@ export function saveBrand(dna) {
     brands.unshift(record);
   }
   safeSet(STORE_KEYS.brands, brands, MAX_BRANDS);
-  syncBrandToSupabase(record);
   return record;
 }
 
@@ -213,7 +144,6 @@ export function saveCampaign(campaign) {
     campaigns.push(record);
   }
   safeSet(STORE_KEYS.campaigns, campaigns, MAX_CAMPAIGNS);
-  syncCampaignToSupabase(record);
   return record;
 }
 
@@ -232,7 +162,6 @@ export function saveAsset(asset) {
     assets.push(record);
   }
   safeSet(STORE_KEYS.assets, assets, MAX_ASSETS);
-  syncAssetToSupabase(record);
   return record;
 }
 
@@ -251,7 +180,6 @@ export function savePhotoshoot(photoshoot) {
     photoshoots.unshift(record);
   }
   safeSet(STORE_KEYS.photoshoots, photoshoots, MAX_PHOTOSHOOTS);
-  syncPhotoshootToSupabase(record);
   return record;
 }
 
@@ -270,23 +198,10 @@ export function saveAnimation(animation) {
     animations.unshift(record);
   }
   safeSet(STORE_KEYS.animations, animations, MAX_ANIMATIONS);
-  syncAnimationToSupabase(record);
   return record;
 }
 
 // ---- Utilities ----
 export function generateId() {
   return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-export async function fetchBrandsFromSupabase() {
-  if (!isSupabaseConfigured()) return [];
-  try {
-    const { data, error } = await supabase.from('brand_dna').select('*');
-    if (error) throw error;
-    return data || [];
-  } catch (err) {
-    console.warn('[brandStore] Failed to fetch brands from Supabase:', err);
-    return [];
-  }
 }
