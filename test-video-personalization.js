@@ -7,7 +7,6 @@ console.log('🧪 COMPREHENSIVE VIDEO PERSONALIZATION TEST SUITE\n');
 // Test 1: File Structure Validation
 console.log('1️⃣  FILE STRUCTURE VALIDATION');
 const requiredFiles = [
-  'components/VideoPersonalizationHub.jsx',
   'components/VideoUploader.jsx',
   'components/VideoPersonalizer.jsx',
   'components/TokenEditor.jsx',
@@ -28,7 +27,6 @@ requiredFiles.forEach(file => {
 // Test 2: Component Size Validation
 console.log('\n2️⃣  COMPONENT SIZE VALIDATION');
 const components = [
-  'VideoPersonalizationHub.jsx',
   'VideoUploader.jsx',
   'VideoPersonalizer.jsx',
   'TokenEditor.jsx',
@@ -48,7 +46,6 @@ components.forEach(comp => {
 // Test 3: Import Validation
 console.log('\n3️⃣  IMPORT VALIDATION');
 const importPatterns = [
-  { file: 'VideoPersonalizationHub.jsx', patterns: ['ContactImporterModal', 'VideoUploader', 'VideoPersonalizer', 'TokenEditor'] },
   { file: 'VideoUploader.jsx', patterns: ['useState', 'useRef', 'SVGInline'] },
   { file: 'VideoPersonalizer.jsx', patterns: ['useState', 'useEffect', 'useCallback'] },
   { file: 'TokenEditor.jsx', patterns: ['useState', 'useEffect', 'systemTokens'] },

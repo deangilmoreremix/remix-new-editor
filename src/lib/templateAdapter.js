@@ -65,6 +65,28 @@ function normalizeInputs(template) {
 }
 
 /**
+ * Image-driven templates (i2v / i2i) cannot generate without a source image.
+ * Make sure the form always offers one and that it is marked required, so
+ * every studio (Template Studio, Cinema Template Studio) asks for it.
+ * @param {Array} inputs
+ * @param {string} modelType
+ * @returns {Array}
+ */
+function ensureRequiredImageInput(inputs, modelType) {
+  if (modelType !== 'i2v' && modelType !== 'i2i') return inputs;
+  const list = Array.isArray(inputs) ? inputs : [];
+  const hasImageUrl = list.some(i => i && i.name === 'image_url');
+  const out = list.map(i => (i && i.name === 'image_url' ? { ...i, required: true } : i));
+  if (hasImageUrl) return out;
+  // A frame / image input under another name already covers the source image.
+  if (list.some(i => i && (i.type === 'image' || i.type === 'frame'))) return out;
+  return [
+    { name: 'image_url', type: 'image', label: 'Upload your reference image', required: true },
+    ...out,
+  ];
+}
+
+/**
  * Generate inputs for matrix templates
  * @param {Object} template - The matrix template
  * @returns {Array} - Generated inputs array
@@ -279,7 +301,7 @@ export function normalizeTemplate(template) {
     outputPackage: specs.outputPackage || ['master prompt'],
     
     // Input fields (normalized)
-    inputs: normalizeInputs(template),
+    inputs: ensureRequiredImageInput(normalizeInputs(template), computedModelType),
     quickInputs: template.quickInputs || [],
     advancedInputs: template.advancedInputs || [],
     

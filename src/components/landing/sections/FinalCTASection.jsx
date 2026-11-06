@@ -31,6 +31,9 @@ export function FinalCTASection() {
         <!-- Final CTA Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <div id="checkout-cta-final-host"></div>
+          <button type="button" data-final-find-my-brand class="final-cta-secondary px-8 md:px-12 py-4 border-2 border-emerald-400/50 text-emerald-100 font-bold text-lg rounded-xl hover:border-emerald-400 hover:bg-emerald-400/10 transition-all duration-300 group">
+            <span class="flex items-center justify-center gap-2">✦ Find My Brand (free)</span>
+          </button>
           <button class="final-cta-secondary px-8 md:px-12 py-4 border-2 border-emerald-400/50 text-emerald-100 font-bold text-lg rounded-xl hover:border-emerald-400 hover:bg-emerald-400/10 transition-all duration-300 group">
             <span class="flex items-center justify-center gap-2">
               🎬 Watch Success Stories
@@ -107,6 +110,16 @@ Workspace root folder: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-
       observer.observe(el);
     });
   }, 100);
+
+  // Free "Find My Brand" — OpenHiggsBolt's signed-out discovery (/demo),
+  // opened in place through the shared personalization modal.
+  const findMyBrandBtn = section.querySelector('[data-final-find-my-brand]');
+  if (findMyBrandBtn) {
+    findMyBrandBtn.addEventListener('click', async () => {
+      const { openFreeDiscovery } = await import('../../../features/personalization/mount.jsx');
+      openFreeDiscovery({ trigger: findMyBrandBtn });
+    });
+  }
 
   // Checkout CTA
   const checkoutHost = section.querySelector('#checkout-cta-final-host');

@@ -1,4 +1,4 @@
-import { handleViewPrompt, handleCreateThisStyle, openAssetDetail } from '../../lib/exampleGalleryBridge.js';
+import { handleViewPrompt, handleCreateThisStyle, handlePersonalizeDemo, openAssetDetail } from '../../lib/exampleGalleryBridge.js';
 
 /** Fallback thumbnail shown when an example has no image of its own. */
 const PLACEHOLDER_SVG =
@@ -253,7 +253,18 @@ export default function ExampleGallery({ studioId, assets, maxCards = 20 }) {
         handleCreateThisStyle(asset);
       });
 
+      // "Personalize This Demo" — same design as "View Prompt".
+      const personalizeBtn = document.createElement('button');
+      personalizeBtn.className = 'eg-btn eg-btn-view eg-btn-personalize';
+      personalizeBtn.textContent = 'Personalize This Demo';
+      personalizeBtn.setAttribute('aria-haspopup', 'dialog');
+      personalizeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handlePersonalizeDemo(asset, { trigger: personalizeBtn });
+      });
+
       actions.appendChild(viewBtn);
+      actions.appendChild(personalizeBtn);
       actions.appendChild(createBtn);
       body.appendChild(actions);
       card.appendChild(body);

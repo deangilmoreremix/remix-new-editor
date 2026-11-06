@@ -37,3 +37,25 @@ export const MAX_SELECTED_VIDEOS = 5;
 export const MIN_VIDEOS_FOR_TRANSITIONS = 2;
 export const DEFAULT_TRANSITION_DURATION = 1;
 export const DEFAULT_CLIP_DURATION = 5;
+
+// Legacy exports from the repo-root `lib/constants/templateGenerator.js`.
+// Vite serves `/lib/*` from `src/lib`, so the legacy Template Generator modal
+// (components/modals/TemplateGenerator/*) and its stores resolve to this file
+// and need these names too.
+export const generatorTabs = [
+  { label: 'library' },
+  { label: 'uploads' },
+];
+
+export const entities = {
+  NICHE_SCRIPT: entityKeys.NICHE_SCRIPT,
+  OVERLAY: entityKeys.OVERLAY,
+  VIDEO: entityKeys.VIDEO,
+};
+
+export const STEPS = {
+  MEDIA: 0,
+  SCRIPT: 1,
+  OVERLAY: 2,
+  PREVIEW: 3,
+};

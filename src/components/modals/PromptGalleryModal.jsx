@@ -2,6 +2,7 @@ import { BaseModal } from './BaseModal.jsx';
 import { searchPrompts, getPromptById, CATEGORIES, SOURCES } from '../../lib/promptCatalogs.js';
 import { buildStructuredPrompt, CAMERA_VOCABULARY, LIGHTING_VOCABULARY } from '../../lib/promptVocabulary.js';
 import { MODAL_SHORTCUTS, renderShortcutsOverlay } from './modalShortcuts.js';
+import { injectCatalogModalStyles } from './catalogModalStyles.js';
 
 const FAVORITES_KEY = 'promptGalleryFavorites';
 
@@ -65,11 +66,17 @@ export class PromptGalleryModal extends BaseModal {
       .replace(/"/g, '&quot;');
   }
 
+  open() {
+    injectCatalogModalStyles();
+    super.open();
+  }
+
+  onRender() {
+    this._bind();
+  }
+
   _refresh() {
-    if (this.container) {
-      this.render();
-      this._bind();
-    }
+    this.refresh();
   }
 
   _bind() {
@@ -104,7 +111,8 @@ export class PromptGalleryModal extends BaseModal {
     });
 
     root.querySelectorAll('[data-action="toggle-favorite"]').forEach(btn => {
-      btn.onclick = () => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
         const id = btn.dataset.id;
         const prompt = getPromptById(id) || this.selectedPrompt;
         if (prompt) this._toggleFavorite(prompt);
@@ -117,6 +125,7 @@ export class PromptGalleryModal extends BaseModal {
         const prompt = getPromptById(id);
         if (prompt) {
           this.selectedPrompt = prompt;
+          this.builderBasePrompt = null;
           this._refresh();
         }
       };
@@ -159,6 +168,11 @@ export class PromptGalleryModal extends BaseModal {
       styleInput.oninput = (e) => { this.style = e.target.value; this._refresh(); };
     }
 
+    const builderBaseInput = root.querySelector('[data-builder-base]');
+    if (builderBaseInput) {
+      builderBaseInput.oninput = (e) => { this.builderBasePrompt = e.target.value; this._refresh(); };
+    }
+
     const negativeInput = root.querySelector('[data-negative]');
     if (negativeInput) {
       negativeInput.oninput = (e) => { this.negativePrompt = e.target.value; this._refresh(); };
@@ -168,7 +182,7 @@ export class PromptGalleryModal extends BaseModal {
     if (builderUseBtn) {
       builderUseBtn.onclick = () => {
         const built = buildStructuredPrompt({
-          basePrompt: this.selectedPrompt?.prompt || '',
+          basePrompt: this._builderBase(),
           camera: this.camera,
           lighting: this.lighting,
           style: this.style,
@@ -300,13 +314,19 @@ export class PromptGalleryModal extends BaseModal {
     `;
   }
 
+  // The builder's base prompt starts from the selected prompt but can be
+  // edited freely; null means "follow the selected prompt".
+  _builderBase() {
+    return this.builderBasePrompt ?? this.selectedPrompt?.prompt ?? '';
+  }
+
   _renderBuilderPanel() {
-    const base = this.selectedPrompt?.prompt || '';
+    const base = this._builderBase();
     const built = buildStructuredPrompt({ basePrompt: base, camera: this.camera, lighting: this.lighting, style: this.style, negativePrompt: this.negativePrompt });
     return `
       <div class="builder-panel">
         <label>Base Prompt</label>
-        <textarea data-style rows="4" placeholder="Paste or type a base prompt...">${this._escapeHtml(base)}</textarea>
+        <textarea data-builder-base rows="4" placeholder="Paste or type a base prompt...">${this._escapeHtml(base)}</textarea>
         <label>Camera</label>
         <select data-camera>
           <option value="">None</option>

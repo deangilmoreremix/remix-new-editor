@@ -159,6 +159,7 @@ vi.mock('../../src/lib/modelSelectorUI.js', () => ({
 
 vi.mock('../../src/lib/templateEngine.js', () => ({
   getNicheTerms: vi.fn(() => []),
+  detectNiche: vi.fn(() => 'general-business'),
   enrichPromptString: vi.fn((p) => p),
   deriveEngineInputFromTemplate: vi.fn(() => ({})),
   composeNegativePrompt: vi.fn(() => ''),
@@ -213,19 +214,37 @@ vi.mock('../../src/lib/supabase.js', () => ({
   },
 }));
 
+// Real loading helpers, with showToast wrapped so a test can see which toasts were shown.
+vi.mock('../../src/lib/loading.js', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return { ...actual, showToast: vi.fn((...args: any[]) => actual.showToast(...args)) };
+});
+
+// The Video Studio model picker needs the full upstream UI; capture its
+// options so a test can make a deliberate model pick through onPick.
+const modelPickerState = vi.hoisted(() => ({ lastOptions: null as any }));
+vi.mock('../../src/lib/templateMedia.js', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  // Real picker by default; a test can capture the next call instead.
+  return { ...actual, openStudioModelPicker: vi.fn((opts) => actual.openStudioModelPicker(opts)) };
+});
+
 // Captures the options passed to createUploadPicker so tests can invoke the
 // selection callback directly (the real picker needs a browser file dialog).
-const uploadPickerState = vi.hoisted(() => ({ lastOptions: null }));
+const uploadPickerState = vi.hoisted(() => ({ lastOptions: null, pickers: [] }));
 
 vi.mock('../../src/components/UploadPicker.js', () => ({
   createUploadPicker: vi.fn((opts) => {
     uploadPickerState.lastOptions = opts;
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
     const panel = document.createElement('div');
     panel.className = 'upload-picker-panel';
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     panel.appendChild(fileInput);
-    return { panel, open: vi.fn(), close: vi.fn() };
+    uploadPickerState.pickers.push({ trigger, opts });
+    return { trigger, panel, reset: vi.fn(), open: vi.fn(), close: vi.fn() };
   }),
 }));
 
@@ -244,6 +263,8 @@ describe('TemplateStudio feature tests', () => {
   let localStorageMock;
 
   beforeEach(async () => {
+    uploadPickerState.pickers.length = 0;
+    uploadPickerState.lastOptions = null;
     // Reset cross-test mock state. Without this, `mockReturnValueOnce`
     // values and muapi call history leak between tests, so a later mount
     // can consume a stale template and generation never reaches the
@@ -508,15 +529,6 @@ describe('TemplateStudio feature tests', () => {
     promptInput.value = 'cinematic restaurant scene';
     promptInput.dispatchEvent(new Event('input', { bubbles: true }));
 
-    // Mock the image upload state
-    const imageInput = container.querySelector('input[type="file"]');
-    if (imageInput) {
-      const dt = new DataTransfer();
-      dt.items.add(new File([''], 'test.jpg', { type: 'image/jpeg' }));
-      imageInput.files = dt.files;
-      imageInput.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
     
@@ -529,8 +541,9 @@ describe('TemplateStudio feature tests', () => {
     mount();
     await new Promise(r => setTimeout(r, 50));
 
-    const videoUploadBtn = container.querySelector('#videoUploadBtn');
-    expect(videoUploadBtn).not.toBeNull();
+    // Video templates expose the Video Studio source-video picker.
+    const videoField = container.querySelector('.template-media-field[data-media-kind="video"]');
+    expect(videoField).not.toBeNull();
   });
 
   it('renders AI captions button for video templates', async () => {
@@ -564,6 +577,7 @@ describe('TemplateStudio feature tests', () => {
   });
 
   it('closes model picker dropdown on second click', async () => {
+    document.querySelectorAll('.upstream-model-picker').forEach(h => h.remove());
     mount();
     await new Promise(r => setTimeout(r, 50));
 
@@ -571,17 +585,25 @@ describe('TemplateStudio feature tests', () => {
     modelBtn.click();
     await new Promise(r => setTimeout(r, 100));
 
-    let dropdown = container.querySelector('[role="listbox"]');
-    expect(dropdown).not.toBeNull();
-    expect(dropdown.classList.contains('opacity-100')).toBe(true);
+    // The Video Studio model picker mounts in a fixed host on <body>.
+    for (let i = 0; i < 20 && !document.querySelector('.upstream-model-picker'); i++) await new Promise(r => setTimeout(r, 50));
+    expect(document.querySelector('.upstream-model-picker')).not.toBeNull();
 
     modelBtn.click();
     await new Promise(r => setTimeout(r, 100));
 
-    dropdown = container.querySelector('[role="listbox"]');
-    // Dropdown should still exist but be hidden
-    expect(dropdown).not.toBeNull();
-    expect(dropdown.classList.contains('opacity-0')).toBe(true);
+    expect(document.querySelector('.upstream-model-picker')).toBeNull();
+  });
+
+  it('uses the Video Studio model picker for video templates', async () => {
+    document.querySelectorAll('.upstream-model-picker').forEach(h => h.remove());
+    mount();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('#templateModelTrigger').click();
+    for (let i = 0; i < 20 && !document.querySelector('.upstream-model-picker'); i++) await new Promise(r => setTimeout(r, 50));
+    const host = document.querySelector('.upstream-model-picker');
+    expect(host).not.toBeNull();
+    host.remove();
   });
 
   it('handles template not found with error message', async () => {
@@ -760,18 +782,15 @@ describe('TemplateStudio feature tests', () => {
    * invokes the picker's onSelect callback with a fake URL, populating
    * formState so generation validation passes.
    */
-  async function supplyUpload(labelText, url) {
-    // The upload area is the clickable div (has an onclick handler) whose text
-    // includes the label; the bare span match would not be clickable.
-    const uploadArea = Array.from(container.querySelectorAll('div')).find(
-      (el) => typeof el.onclick === 'function' && (el.textContent || '').includes(labelText)
-    );
-    expect(uploadArea).toBeDefined();
-    uploadArea.click();
+  async function supplyUpload(kind, url) {
+    // Each media input renders one persistent Video Studio upload picker
+    // inside a `.template-media-field` row; select through that picker.
+    const row = container.querySelector(`.template-media-field[data-media-kind="${kind}"]`);
+    expect(row).not.toBeNull();
+    const entry = uploadPickerState.pickers.find(p => row.contains(p.trigger));
+    expect(entry).toBeDefined();
+    entry.opts.onSelect({ url });
     await new Promise(r => setTimeout(r, 20));
-    expect(uploadPickerState.lastOptions).toBeDefined();
-    uploadPickerState.lastOptions.onSelect({ url });
-    uploadPickerState.lastOptions = null;
   }
 
   it('routes i2v modelType to muapi.generateI2V', async () => {
@@ -800,7 +819,7 @@ describe('TemplateStudio feature tests', () => {
 
     // Supply the reference image the picker would normally provide, so the
     // i2v image validation passes and generation reaches muapi.
-    await supplyUpload('Click to upload an image', 'https://cdn.muapi.ai/input/i2v-ref.png');
+    await supplyUpload('image', 'https://cdn.muapi.ai/input/i2v-ref.png');
 
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
@@ -823,7 +842,7 @@ describe('TemplateStudio feature tests', () => {
       ],
     }));
 
-    await supplyUpload('Click to upload an image', 'https://cdn.muapi.ai/input/i2i-ref.png');
+    await supplyUpload('image', 'https://cdn.muapi.ai/input/i2i-ref.png');
 
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
@@ -856,13 +875,151 @@ describe('TemplateStudio feature tests', () => {
       ],
     }));
 
-    await supplyUpload('Click to upload a video', 'https://cdn.muapi.ai/input/v2v-src.mp4');
+    await supplyUpload('video', 'https://cdn.muapi.ai/input/v2v-src.mp4');
 
     const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
     genBtn.click();
     await new Promise(r => setTimeout(r, 300));
 
     expect(processV2VSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('an i2v template on the video-to-video route needs only the source video (review fix)', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const processV2VSpy = vi.spyOn(muapi, 'processV2V');
+
+    const template = buildTemplate({
+      modelType: 'i2v',
+      model: 'kling-v2v',
+      inputs: [
+        { name: 'prompt', type: 'textarea', label: 'Prompt' },
+        { name: 'image_url', type: 'image', label: 'Image' },
+        { name: 'video_url', type: 'video', label: 'Video' },
+      ],
+    });
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    vi.mocked(getTemplateById).mockReturnValue(template);
+    const element = TemplateStudio(template.id);
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+    const promptInput = container.querySelector('textarea');
+    promptInput.value = 'test prompt';
+    promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // The user picks a video-to-video model in the model picker.
+    const media = await import('../../src/lib/templateMedia.js');
+    vi.mocked(media.openStudioModelPicker).mockImplementationOnce(async (opts: any) => {
+      modelPickerState.lastOptions = opts;
+      return { close() {} } as any;
+    });
+    container.querySelector('#templateModelTrigger').click();
+    await new Promise(r => setTimeout(r, 20));
+    expect(modelPickerState.lastOptions).not.toBeNull();
+    modelPickerState.lastOptions.onPick('kling-v2v', 'v2v');
+    await supplyUpload('video', 'https://cdn.muapi.ai/input/v2v-src.mp4');
+
+    const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
+    genBtn.click();
+    await new Promise(r => setTimeout(r, 300));
+
+    expect(container.textContent).not.toContain('Please upload an image before generating.');
+    expect(processV2VSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('Regenerate re-runs the selected history result, not the current form (review fix)', async () => {
+    const { muapi } = await import('../../src/lib/muapi.js');
+    const spy = vi.spyOn(muapi, 'generateVideo');
+    spy.mockClear();
+    const { showToast } = await import('../../src/lib/loading.js');
+
+    const template = buildTemplate({ modelType: 't2v', model: 'kling-v2.6-pro-t2v', outputType: 'video' });
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    vi.mocked(getTemplateById).mockReturnValue(template);
+    const element = TemplateStudio(template.id);
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+
+    const generate = async (text) => {
+      const promptInput = container.querySelector('textarea');
+      promptInput.value = text;
+      promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+      Array.from(container.querySelectorAll('button')).find(b => b.textContent?.includes('Generate')).click();
+      await new Promise(r => setTimeout(r, 300));
+    };
+
+    await generate('FIRST unique prompt');
+    const firstUrl = container.querySelector('video')?.getAttribute('src');
+    await new Promise(r => setTimeout(r, 20));
+    await generate('SECOND unique prompt');
+    expect(spy).toHaveBeenCalledTimes(2);
+    const first = spy.mock.calls[0][0];
+    const second = spy.mock.calls[1][0];
+    expect(first.prompt).toContain('FIRST unique prompt');
+    expect(second.prompt).toContain('SECOND unique prompt');
+
+    // Select the first result in the history strip, then Regenerate.
+    const thumb = container.querySelector(`[data-result-history] [data-history-url="${firstUrl}"]`);
+    expect(thumb).not.toBeNull();
+    thumb.click();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('#generateAgainBtn').click();
+    await new Promise(r => setTimeout(r, 300));
+
+    expect(spy).toHaveBeenCalledTimes(3);
+    const regen = spy.mock.calls[2][0];
+    expect(regen.prompt).toBe(first.prompt);
+    expect(regen.prompt).not.toContain('SECOND unique prompt');
+    expect(regen.model).toBe(first.model);
+    // Per-run fields are fresh, not carried over from the stored run.
+    expect(regen.signal).not.toBe(first.signal);
+
+    // A result whose settings were not saved is not re-run (and nothing is charged).
+    vi.mocked(showToast).mockClear();
+    localStorage.setItem('template_studio_history', JSON.stringify([
+      { url: 'https://cdn.test/legacy.mp4', type: 'video', templateId: template.id, prompt: 'legacy' },
+      { url: 'https://cdn.test/foreign.mp4', type: 'video', templateId: 'another-template', prompt: 'foreign' },
+    ]));
+    const el2 = TemplateStudio(template.id);
+    container.innerHTML = '';
+    container.appendChild(el2);
+    await new Promise(r => setTimeout(r, 50));
+    const before = spy.mock.calls.length;
+    container.querySelector('[data-history-url="https://cdn.test/legacy.mp4"]').click();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('#generateAgainBtn').click();
+    await new Promise(r => setTimeout(r, 100));
+    expect(spy.mock.calls.length).toBe(before);
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining("settings weren't saved"), 'warning');
+
+    container.querySelector('[data-history-url="https://cdn.test/foreign.mp4"]').click();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('#generateAgainBtn').click();
+    await new Promise(r => setTimeout(r, 100));
+    expect(spy.mock.calls.length).toBe(before);
+    expect(showToast).toHaveBeenCalledWith(expect.stringContaining('another template'), 'warning');
+    localStorage.removeItem('template_studio_history');
+  });
+
+  it('Publish sends the shown result\'s own media type (review fix)', async () => {
+    const { openSocialPublish } = await import('../../src/lib/socialPublishHelpers.js');
+    vi.mocked(openSocialPublish).mockClear();
+    localStorage.setItem('template_studio_history', JSON.stringify([
+      { url: 'https://cdn.test/old-image.png', type: 'image', templateId: 'other-template', prompt: 'old' },
+    ]));
+    const template = buildTemplate({ modelType: 't2v', model: 'kling-v2.6-pro-t2v', outputType: 'video' });
+    const { getTemplateById } = await import('../../src/lib/templates.js');
+    vi.mocked(getTemplateById).mockReturnValue(template);
+    const element = TemplateStudio(template.id);
+    container.innerHTML = '';
+    container.appendChild(element);
+    await new Promise(r => setTimeout(r, 50));
+
+    container.querySelector('[data-history-url="https://cdn.test/old-image.png"]').click();
+    await new Promise(r => setTimeout(r, 50));
+    container.querySelector('.publish-social-btn').click();
+    expect(openSocialPublish).toHaveBeenCalledWith({ mediaUrl: 'https://cdn.test/old-image.png', mediaType: 'image' });
   });
 
   it('routes t2i modelType to muapi.generateImage', async () => {

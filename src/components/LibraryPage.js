@@ -98,6 +98,18 @@ export function LibraryPage() {
       ].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
     }
 
+    // Fold in MuAPI's own history when a key is configured (best-effort).
+    try {
+      const { apiKeyManager } = await import('../lib/apiKeyManager.js');
+      if (apiKeyManager.getKey()) {
+        const [{ muapi }, { fetchServerHistory, mergeServerHistory }] = await Promise.all([
+          import('../lib/muapi.js'),
+          import('../lib/serverHistory.js'),
+        ]);
+        items = mergeServerHistory(items, (await fetchServerHistory(muapi)).filter((i) => i.type !== 'audio'));
+      }
+    } catch { /* server history is optional */ }
+
     historyCache = items;
     updateCounts(items);
     return items;
@@ -231,6 +243,8 @@ export function LibraryPage() {
       });
       mk('Delete', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>', () => {
         if (!confirmDeleteGeneration(item.url, item.type)) return;
+        // Keep MuAPI's own history from restoring it on the next load.
+        import('../lib/serverHistory.js').then((m) => m.rememberDeletedUrl(item.url)).catch(() => {});
         historyCache = (historyCache || []).filter((i) => i.url !== item.url);
         updateCounts(historyCache);
         renderGrid();

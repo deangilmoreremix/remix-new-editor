@@ -794,6 +794,7 @@ export function SmartVideoViral() {
            ` : ''}
             <div class="mt-auto flex gap-2">
               <button class="copy-prompt-btn btn-primary-modern" data-id="${item.imglumeId}" title="Copy prompt to clipboard">Copy Prompt</button>
+              <button class="personalize-demo-btn btn-secondary-modern" data-id="${item.imglumeId}" title="Personalize this demo for a business" aria-haspopup="dialog">Personalize This Demo</button>
               <button class="create-style-btn btn-secondary-modern" data-id="${item.imglumeId}" title="Create this style in studio">Create This Style</button>
               <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern" title="View source post on X">Source</a>
             </div>
@@ -889,6 +890,19 @@ export function SmartVideoViral() {
           document.body.removeChild(textarea);
           showToast('Prompt copied to clipboard!', 'success', 2000);
         });
+      });
+    });
+    // "Personalize This Demo" (OpenHiggsBolt GO AI Viral → personalization modal).
+    gridEl.querySelectorAll('.personalize-demo-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Compare as strings: Seedance ids are strings ("seedance-1402").
+        const id = btn.getAttribute('data-id');
+        const item = prompts.find(p => String(p.imglumeId) === id);
+        if (!item) return;
+        const { openViralPersonalization } = await import('../features/personalization/mount.jsx');
+        openViralPersonalization(item, { trigger: btn });
       });
     });
     gridEl.querySelectorAll('.create-style-btn').forEach(btn => {

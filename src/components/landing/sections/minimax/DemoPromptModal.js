@@ -12,7 +12,7 @@ import {
   formatDuration,
   loadDemoPrompt as loadMiniMaxDemoPrompt,
 } from '../../../../data/minimaxH3Demos.js';
-import { createStyleLink, escapeHtml, injectMinimaxStyles } from './ui.js';
+import { createStyleLink, createPersonalizeButton, escapeHtml, injectMinimaxStyles } from './ui.js';
 
 const FOCUSABLE = [
   'a[href]',
@@ -147,7 +147,7 @@ export function openDemoPromptModal(demo, trigger, options = {}) {
           </svg>
           <span data-mmx-copy-label>Copy Prompt</span>
         </button>
-        <div data-mmx-create-slot class="sm:ml-auto"></div>
+        <div data-mmx-create-slot class="sm:ml-auto flex flex-wrap items-center gap-2"></div>
       </footer>
     </div>`;
 
@@ -158,6 +158,7 @@ export function openDemoPromptModal(demo, trigger, options = {}) {
   const promptBody = backdrop.querySelector('[data-mmx-prompt-body]');
   const createSlot = backdrop.querySelector('[data-mmx-create-slot]');
 
+  createSlot.appendChild(createPersonalizeButton(demo, { loadPrompt: loadPrompt || loadMiniMaxDemoPrompt }));
   createSlot.appendChild(createStyleLink(demo, { label: 'Create This Style', variant: 'primary', getTarget: options.getTarget, loadPrompt: loadPrompt || loadMiniMaxDemoPrompt }));
 
   let promptText = '';

@@ -26,6 +26,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { createActionPill, arrangeActionRow, ADVANCED_ICON } from './studio/actionRow.js';
+import { createSegmented } from './studio/promptComposer.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
@@ -505,6 +506,27 @@ export function CinemaStudio() {
       },
     });
     uploadRow.appendChild(uploadPicker.trigger);
+    // Drop an image straight onto the start-frame button (upstream behaviour).
+    {
+        const tile = uploadPicker.trigger;
+        const setDrag = (on) => { tile.classList.toggle('border-primary', on); tile.classList.toggle('bg-primary/10', on); };
+        tile.addEventListener('dragover', (e) => { e.preventDefault(); setDrag(true); });
+        tile.addEventListener('dragleave', () => setDrag(false));
+        tile.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDrag(false);
+            const file = Array.from(e.dataTransfer?.files || []).find((f) => f.type.startsWith('image/'));
+            if (!file) { showToast('Drop an image to use as the start frame.', 'error'); return; }
+            try {
+                const { uploadMediaFile } = await import('../lib/editor/upload.js');
+                const url = await uploadMediaFile(file, { kind: 'image' });
+                uploadPicker.setImage(url);
+            } catch (err) {
+                showToast(`Upload failed: ${err.message || 'try again'}`, 'error');
+            }
+        });
+    }
     uploadPicker.panel.classList.add('mb-2');
     uploadRow.appendChild(uploadPicker.panel);
 
@@ -746,6 +768,21 @@ export function CinemaStudio() {
     };
     settingsToolbar.appendChild(resBtn);
 
+    // Upstream Cinema renders stills; ours renders video. Keep both: a mode
+    // toggle sends the same camera-built prompt to generateImage for stills.
+    let outputMode = 'video';
+    try { if (localStorage.getItem('cinema_output_mode') === 'image') outputMode = 'image'; } catch { /* ignore */ }
+    const modeSeg = createSegmented(
+        [{ value: 'video', label: 'Video' }, { value: 'image', label: 'Image' }],
+        outputMode,
+        (value) => {
+            outputMode = value;
+            try { localStorage.setItem('cinema_output_mode', value); } catch { /* ignore */ }
+        },
+    );
+    modeSeg.dataset.cinemaMode = '';
+    settingsToolbar.insertBefore(modeSeg, settingsToolbar.firstChild);
+
     // Opens the Advanced Options panel (negative prompt, seed, duration, …).
     const advancedBtn = createActionPill({ icon: ADVANCED_ICON, label: 'Advanced', tooltip: 'Show advanced options' });
     advancedBtn.querySelector('[data-action-label]')?.setAttribute('data-advanced-label', '');
@@ -781,7 +818,7 @@ export function CinemaStudio() {
         };
     }
 
-    // Personalize trigger (opens PersonalizeModal as a pop-up)
+    // Personalize trigger (opens the Personalization + Lead Finder modal)
     const personalizeHandle = mountPersonalizeTrigger({
         controlsContainer: settingsToolbar,
         getTextarea: () => textarea,
@@ -1304,7 +1341,8 @@ export function CinemaStudio() {
             deleteBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
             deleteBtn.onclick = (e) => {
                 e.stopPropagation();
-                if (!confirmDeleteGeneration(entry.url, 'video')) return;
+                // Stills are stored in the image history, so delete from the matching bucket.
+                if (!confirmDeleteGeneration(entry.url, entry.kind === 'image' ? 'image' : 'video')) return;
                 generationHistory.splice(idx, 1);
                 try { localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50))); } catch { /* ignore */ }
                 renderHistory();
@@ -1321,10 +1359,13 @@ export function CinemaStudio() {
         generationHistory.unshift(entry);
         // Shared library + "Edit in Workbench" (covers fresh results and recovered jobs).
         const s = entry.settings || {};
-        registerGeneration('cinema', 'video', entry.url, {
+        const meta = {
             prompt: s.prompt || '', model: s.model || '',
             parameters: { aspect_ratio: s.aspect_ratio, duration: s.duration, resolution: s.resolution },
-        });
+        };
+        // Still renders (Image output mode) register as images.
+        if (entry.kind === 'image') registerGeneration('cinema', 'image', entry.url, meta);
+        else registerGeneration('cinema', 'video', entry.url, meta);
         try {
             localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50)));
         } catch (e) {
@@ -1518,6 +1559,41 @@ export function CinemaStudio() {
             // below but never defined, so every successful render threw.
             const dynamicPayload = dynamicControls ? dynamicControls.getPayload({}) : {};
             const resolution = (resBtn.dataset.value || '1k').toLowerCase();
+
+            if (outputMode === 'image') {
+                // Still-image render (upstream Cinema behaviour): 1K/2K/4K.
+                // The resolution control is shared with video (e.g. 480p after a model
+                // switch), so map it onto what the still model actually declares.
+                const stillModelId = currentSettings.referenceUrl ? 'nano-banana-pro-edit' : 'nano-banana-pro';
+                const declaredRes = (getModelById(stillModelId)?.inputs?.resolution?.enum || ['1k', '2k', '4k']).map((r) => String(r).toLowerCase());
+                const wantedRes = String(resBtn.dataset.value || '2K').toLowerCase();
+                const stillRes = (declaredRes.includes(wantedRes) ? wantedRes : (declaredRes.includes('2k') ? '2k' : declaredRes[0])).toUpperCase();
+                if (stillRes.toLowerCase() !== wantedRes) updateResBtn(stillRes);
+                const { resolveMuapiMediaRef } = await import('../lib/muapiStudioMedia.js');
+                const startUrl = currentSettings.referenceUrl
+                  ? await resolveMuapiMediaRef({ url: currentSettings.referenceUrl, assetId: currentSettings.referenceAssetId })
+                  : null;
+                pendingJob = createPendingJobTracker('cinema', {
+                    kind: 'image', // so a still recovered after a reload is saved as an image
+                    settings: { prompt: basePrompt, ...currentSettings, resolution: stillRes },
+                }, { maxAttempts: 120 });
+                const stillModel = startUrl ? 'nano-banana-pro-edit' : 'nano-banana-pro';
+                // The still models declare lowercase 1k/2k/4k; generateImage maps the
+                // reference onto the model's declared image field (images_list).
+                const editing = !!startUrl && !!getModelById(stillModel);
+                const still = await muapi.generateImage({
+                    model: editing ? stillModel : 'nano-banana-pro',
+                    prompt: finalPrompt,
+                    aspect_ratio: currentSettings.aspect_ratio,
+                    resolution: stillRes.toLowerCase(),
+                    ...(editing ? { image_url: startUrl, images_list: [startUrl] } : {}),
+                    onRequestId: pendingJob.onRequestId,
+                });
+                if (!still?.url) throw new Error('No Data');
+                addToHistory({ url: still.url, kind: 'image', timestamp: Date.now(), settings: { prompt: basePrompt, ...currentSettings, model: 'nano-banana-pro', resolution: stillRes } });
+                showCanvas(still.url);
+                return;
+            }
             const hasStartFrame = !!currentSettings.referenceUrl;
             const hasEndFrame = !!currentSettings.endFrameUrl;
             const isRef = hasStartFrame;
@@ -1708,7 +1784,7 @@ export function CinemaStudio() {
     resumePendingJobs('cinema', {
         poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
         onResult: (url, job) => {
-            addToHistory({ url, timestamp: Date.now(), settings: job.historyMeta.settings || {} });
+            addToHistory({ url, kind: job.historyMeta.kind, timestamp: Date.now(), settings: job.historyMeta.settings || {} });
             showToast('Recovered a generation that finished while you were away', 'success');
         },
     });

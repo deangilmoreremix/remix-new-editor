@@ -230,8 +230,17 @@ export async function submitViewerLead({ publishedId, clipId, kind, data }, { ur
 export function profileFromQuery(search = globalThis.location?.search || '') {
   const params = new URLSearchParams(search);
   const variables = {};
+  // Per-image style carried by personal links: `<token>__f=x,y` (crop focus)
+  // and `<token>__l=0.9` (brightness), restored below as saved assets.
+  const style = {};
+  params.forEach((v, k) => {
+    const m = /^(.{1,40})__(f|l)$/.exec(k);
+    if (!m || !isImageTokenKey(m[1])) return;
+    (style[m[1]] ||= {})[m[2]] = v;
+  });
   params.forEach((v, k) => {
     if (['embed', 'autoplay', 't', 'c'].includes(k) || k.length > 40) return;
+    if (/__(f|l)$/.test(k) && isImageTokenKey(k.replace(/__(f|l)$/, ''))) return;
     // Image URLs from personal links ({{logoUrl}}, …) are kept whole — a cut
     // URL is a broken image — but only http(s) ones of sane length.
     if (isImageTokenKey(k)) {
@@ -245,5 +254,18 @@ export function profileFromQuery(search = globalThis.location?.search || '') {
   const id = params.get('c');
   const contactId = id && /^[A-Za-z0-9_-]{1,80}$/.test(id) ? id : null;
   if (!Object.keys(variables).length && !contactId) return null;
-  return contactId ? { id: contactId, variables } : { variables };
+  const profile = contactId ? { id: contactId, variables } : { variables };
+  const restored = [];
+  for (const [key, s] of Object.entries(style)) {
+    const url = variables[key];
+    if (!url) continue;
+    const asset = { url, originalUrl: url };
+    const f = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(String(s.f || ''));
+    if (f) asset.focus = { x: Math.max(0, Math.min(100, Number(f[1]))), y: Math.max(0, Math.min(100, Number(f[2]))) };
+    const lum = s.l != null && String(s.l).trim() !== '' ? Number(s.l) : NaN;
+    if (Number.isFinite(lum) && lum >= 0 && lum <= 1) asset.luminance = lum;
+    if (asset.focus || asset.luminance != null) restored.push(asset);
+  }
+  if (restored.length) profile.personalization = { assets: { savedReferences: restored } };
+  return profile;
 }

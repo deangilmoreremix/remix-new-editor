@@ -273,6 +273,51 @@ export function createStudioIcon(demo, options = {}) {
   return button;
 }
 
+/**
+ * "Personalize This Demo" (OpenHiggsBolt DemoTemplateActions). Same markup and
+ * classes as the "View Prompt" button next to it. Opens the personalization
+ * modal for this demo: anonymously on the standalone landing page (no Clerk
+ * there, like OpenHiggsBolt's `?demo=1`), signed-in inside the app.
+ */
+export function createPersonalizeButton(demo, options = {}) {
+  const { label = 'Personalize This Demo', variant = 'ghost', loadPrompt } = options;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.mmxCta = 'personalize';
+  button.dataset.mmxSlug = demo.slug;
+
+  const base =
+    'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]';
+  const variants = {
+    ghost: 'px-4 py-2 bg-transparent border border-white/10 text-white/75 hover:border-white/25 hover:text-white hover:shadow-[0_0_10px_rgba(255,255,255,0.04)]',
+    quiet: 'text-white/60 hover:text-white',
+  };
+
+  button.className = `${base} ${variants[variant] || variants.ghost}`;
+  button.innerHTML = `
+    <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3z"/>
+    </svg>
+    <span>${escapeHtml(label)}</span>`;
+  button.setAttribute('aria-label', `Personalize the ${demo.title} demo`);
+  button.setAttribute('aria-haspopup', 'dialog');
+
+  button.addEventListener('click', async () => {
+    let prompt = demo.prompt || '';
+    if (!prompt && typeof loadPrompt === 'function') {
+      try { prompt = (await loadPrompt(demo.slug)) || ''; } catch { prompt = ''; }
+    }
+    const { openDemoPersonalization } = await import('../../../../features/personalization/mount.jsx');
+    openDemoPersonalization({ ...demo, prompt }, {
+      access: routerIsMounted() ? 'authenticated' : 'anonymous',
+      trigger: button,
+    });
+  });
+
+  return button;
+}
+
 /** "View Prompt" trigger — a real <button>, never a div with a handler. */
 export function createViewPromptButton(demo, onOpen, options = {}) {
   const { label = 'View Prompt', variant = 'ghost' } = options;

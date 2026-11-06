@@ -23,8 +23,10 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
+import { createSegmented } from './studio/promptComposer.js';
+import { createMotionPanel } from './studios/MotionPanels.js';
 
-export function VideoToolsStudio() {
+function VideoToolsCatalogStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-4 md:p-6 relative';
   mountStudioChrome(container, { currentRoute: 'videotools' });
@@ -530,4 +532,56 @@ genBtn.type = 'button';
 
   updateFormVisibility();
   return container;
+}
+
+/**
+ * Video Tools. The existing tools plus upstream's Recast and Motion Control
+ * studios as extra tabs on the same page (`?mode=recast` / `?mode=control`).
+ */
+export function VideoToolsStudio() {
+  const root = document.createElement('div');
+  root.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
+
+  const bar = document.createElement('div');
+  bar.className = 'flex items-center justify-center gap-3 px-4 py-2 border-b border-white/5 bg-app-bg shrink-0 z-20';
+  const body = document.createElement('div');
+  body.className = 'flex-1 min-h-0 relative';
+
+  const tools = VideoToolsCatalogStudio();
+  tools.classList.add('absolute', 'inset-0');
+  const hosts = {};
+  const panels = {};
+  for (const mode of ['recast', 'control']) {
+    const host = document.createElement('div');
+    host.className = 'absolute inset-0 overflow-y-auto custom-scrollbar hidden p-4 md:p-6';
+    host.dataset.motionHost = mode;
+    hosts[mode] = host;
+  }
+  body.append(tools, hosts.recast, hosts.control);
+
+  const show = (mode) => {
+    tools.classList.toggle('hidden', mode !== 'tools');
+    for (const [key, host] of Object.entries(hosts)) host.classList.toggle('hidden', key !== mode);
+    if (hosts[mode] && !panels[mode]) {
+      panels[mode] = createMotionPanel(mode === 'control' ? 'motion-control' : 'recast');
+      hosts[mode].appendChild(panels[mode]);
+    }
+    try {
+      const url = new URL(window.location.href);
+      if (mode === 'tools') url.searchParams.delete('mode'); else url.searchParams.set('mode', mode);
+      window.history.replaceState({}, '', url);
+    } catch { /* ignore */ }
+  };
+
+  const toggle = createSegmented(
+    [{ value: 'tools', label: 'Tools' }, { value: 'recast', label: 'Recast' }, { value: 'control', label: 'Motion control' }],
+    'tools',
+    show,
+  );
+  bar.appendChild(toggle);
+  root.append(bar, body);
+
+  const initial = new URLSearchParams(window.location.search).get('mode');
+  if (initial === 'recast' || initial === 'control') { toggle.setValue(initial); show(initial); }
+  return root;
 }

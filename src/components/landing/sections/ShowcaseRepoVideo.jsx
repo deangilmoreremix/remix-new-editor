@@ -31,7 +31,7 @@ import { seedance25Demos, getCreateTarget as getCreateTargetSeedance, loadDemoPr
 import { zeroLuDemos, getCreateTarget as getCreateTargetZeroLu, loadDemoPrompt as loadDemoPromptZeroLu, ZERO_LU_MODEL } from '../../../data/zeroLuDemos.js';
 
 import { createMediaFrame, cleanupFrames, pauseFramesIn, revealOnScroll } from './minimax/mediaFrame.js';
-import { injectMinimaxStyles, sectionHeading, createStyleLink, createViewPromptButton, createStudioIcon, metaPill, categoryBadge, escapeHtml } from './minimax/ui.js';
+import { injectMinimaxStyles, sectionHeading, createStyleLink, createViewPromptButton, createPersonalizeButton, createStudioIcon, metaPill, categoryBadge, escapeHtml } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
 /** Per-source adapters for CTA routing and prompt loading. */
@@ -266,6 +266,7 @@ function createGalleryCard(demo, showLikes = false) {
       getTarget: adapter.getCreateTarget,
     })
   );
+  primaryActions.appendChild(createPersonalizeButton(demo, { loadPrompt: adapter.loadDemoPrompt }));
   primaryActions.appendChild(createStyleLink(demo, {
     label: 'Create This Type of Video',
     variant: 'ghost',

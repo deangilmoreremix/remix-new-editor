@@ -16,7 +16,7 @@ import {
   metaPill,
   escapeHtml,
 } from './minimax/ui.js';
-import { createViewPromptButton } from './minimax/ui.js';
+import { createViewPromptButton, createPersonalizeButton } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
 /**
@@ -111,6 +111,7 @@ function createUGCCard(config) {
   const studioIconsHost = card.querySelector('[data-mmx-studio-icons]');
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt: loadDemoPrompt }));
+  primaryActions.appendChild(createPersonalizeButton(demo, { loadPrompt: loadDemoPrompt }));
   primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video', loadPrompt: loadDemoPrompt, autoGenerate: true }));
 
   const target = getCreateTarget(demo);

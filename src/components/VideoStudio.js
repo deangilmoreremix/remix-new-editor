@@ -8,6 +8,9 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { createSafeVideo } from '../lib/security.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { arrangeActionRow, ADVANCED_ICON } from './studio/actionRow.js';
+import { openComposerPopover } from './studio/promptComposer.js';
+import { createCostLine } from './studio/costEstimate.js';
+import { getContinuationTargetsForEntry, buildVideoToolPayload } from '../lib/videoToolCapabilities.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -52,6 +55,8 @@ export function VideoStudio() {
     let selectedResolution = defaultModel.inputs?.resolution?.default || '';
     let selectedQuality = defaultModel.inputs?.quality?.default || '';
     let lastGenerationId = null;
+    let extendTargetId = null;
+    const continuationLabel = (id) => (/4k/i.test(id) ? 'Upscale to 4K' : `Extend (${id.replace(/-extend.*$/, '').replace(/^veo3\.1.*/, 'Veo 3.1').replace(/^grok-imagine/, 'Grok Imagine').replace(/^seedance-v2\.0/, 'Seedance 2.0').replace(/^seedance-2-vip/, 'Seedance 2 VIP').replace(/^seedance-2/, 'Seedance 2')})`);
     let lastGenerationModel = null;
     let nativeAudio = false;
     let characterLock = false;
@@ -70,6 +75,7 @@ export function VideoStudio() {
     let uploadedImageUrl = null;
     let uploadedEndImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
+    let refreshVideoCost = () => {};
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
@@ -181,10 +187,13 @@ export function VideoStudio() {
     topRow.className = 'flex items-start gap-5 px-2';
 
     // --- Image Upload Picker (Image-to-Video) ---
+    // Video-to-video models that also take a character image (Motion transfer).
+    const v2vNeedsImage = () => v2vMode && !!v2vModels.find((m) => m.id === selectedModel)?.inputs?.image_url;
     const picker = createUploadPicker({
         anchorContainer: container,
         onSelect: ({ url }) => {
             uploadedImageUrl = url;
+            if (v2vNeedsImage()) return; // keep the motion video and its model
             // Clear video mode if active
             if (v2vMode) {
                 uploadedVideoUrl = null;
@@ -204,6 +213,7 @@ export function VideoStudio() {
         },
         onClear: () => {
             uploadedImageUrl = null;
+            if (v2vNeedsImage()) return;
             imageMode = false;
         selectedModel = t2vModels[0].id;
         selectedModelName = t2vModels[0].name;
@@ -459,14 +469,22 @@ export function VideoStudio() {
                 uploadedImageUrl = null;
                 imageMode = false;
             }
+            // A workflow picked from the Source menu already chose its model (and
+            // needs the prompt); only fall back to watermark removal otherwise.
+            const keepChosenModel = v2vMode && v2vModels.some((m) => m.id === selectedModel);
             v2vMode = true;
-            selectedModel = v2vModels[0].id;
-            selectedModelName = v2vModels[0].name;
-            document.getElementById('v-model-btn-label').textContent = selectedModelName;
-            updateModelBtnIcon();
-            updateControlsForModel(selectedModel);
-            textarea.placeholder = 'Video ready — click Generate to remove watermark';
-            textarea.disabled = true;
+            if (keepChosenModel) {
+                refreshVideoCost(v2vModels.find((m) => m.id === selectedModel));
+                if (v2vNeedsImage() && !uploadedImageUrl) picker.trigger.click();
+            } else {
+                selectedModel = v2vModels[0].id;
+                selectedModelName = v2vModels[0].name;
+                document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                updateModelBtnIcon();
+                updateControlsForModel(selectedModel);
+                textarea.placeholder = 'Video ready — click Generate to remove watermark';
+                textarea.disabled = true;
+            }
         } catch (err) {
             showVideoIcon();
             if (err.message === 'Please sign in and add api credits.') {
@@ -542,11 +560,21 @@ export function VideoStudio() {
     };
 
     let videoPrefill = '';
+    let stagedReferenceImageUrl = null;
+    let stagedAspectRatio = null;
     try {
         const raw = localStorage.getItem('prefill_prompt');
         if (raw) {
             localStorage.removeItem('prefill_prompt');
             videoPrefill = raw;
+        }
+    } catch { /* ignore */ }
+    // A sketch from Image Studio's Draw modal arrives as the start frame.
+    try {
+        const startFrame = localStorage.getItem('video_prefill_start_frame');
+        if (startFrame) {
+            localStorage.removeItem('video_prefill_start_frame');
+            setTimeout(() => picker.setImage(startFrame), 150);
         }
     } catch { /* ignore */ }
     if (!videoPrefill) {
@@ -555,6 +583,8 @@ export function VideoStudio() {
             if (staged.model) selectedModel = staged.model;
             videoPrefill = staged.prompt || '';
             autoGenerate = Boolean(staged.autoGenerate);
+            stagedReferenceImageUrl = staged.params?.referenceImageUrl || null;
+            stagedAspectRatio = staged.params?.aspectRatio || null;
         }
     }
     if (videoPrefill) {
@@ -778,6 +808,49 @@ export function VideoStudio() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
     `, selectedQuality || 'basic', 'v-quality-btn', 'Set output quality');
 
+    // Source / workflow menu (upstream's Video modes): picks the matching model
+    // and asks for the media that mode needs.
+    const WORKFLOWS = [
+        { id: 'text', label: 'Text to video', kind: 't2v' },
+        { id: 'image', label: 'Animate image', kind: 'i2v' },
+        { id: 'keyframes', label: 'Keyframes (start + end)', kind: 'i2v', model: 'seedance-2-first-last-frame' },
+        { id: 'references', label: 'References', kind: 'i2v', model: 'seedance-2-omni-reference' },
+        { id: 'edit', label: 'Edit video', kind: 'v2v', model: 'wan2.2-edit-video' },
+        { id: 'extend', label: 'Extend uploaded video', kind: 'v2v', model: 'wan2.7-video-extend' },
+        { id: 'motion', label: 'Motion transfer', kind: 'v2v', model: 'wan2.2-animate' },
+    ];
+    const workflowBtn = createControlBtn(`
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M4 6h16M4 12h10M4 18h6"/></svg>
+    `, 'Source', 'v-workflow-btn', 'Video source / workflow');
+    workflowBtn.dataset.workflowPill = '';
+    const applyWorkflow = (w) => {
+        const list = w.kind === 'v2v' ? v2vModels : w.kind === 'i2v' ? i2vModels : t2vModels;
+        const model = list.find((m) => m.id === w.model) || list[0];
+        if (!model) return;
+        if (w.kind !== 'v2v' && uploadedVideoUrl) { uploadedVideoUrl = null; showVideoIcon(); }
+        const keepImage = w.kind === 'v2v' && !!model.inputs?.image_url;
+        if (w.kind !== 'i2v' && imageMode && !keepImage) { picker.reset(); uploadedImageUrl = null; }
+        imageMode = w.kind === 'i2v';
+        v2vMode = w.kind === 'v2v';
+        selectedModel = model.id;
+        selectedModelName = model.name;
+        const label = document.getElementById('v-model-btn-label');
+        if (label) label.textContent = selectedModelName;
+        const wl = workflowBtn.querySelector('#v-workflow-btn-label');
+        if (wl) wl.textContent = w.label;
+        updateModelBtnIcon();
+        updateControlsForModel(selectedModel);
+        textarea.disabled = false;
+        if (w.kind === 'i2v' && !uploadedImageUrl) picker.trigger.click();
+        if (w.kind === 'v2v' && !uploadedVideoUrl) videoFileInput.click();
+        else if (keepImage && !uploadedImageUrl) picker.trigger.click();
+    };
+    let menuSpec = null; // items for the generic 'menu' dropdown
+
+    // Sits with the media inputs (it decides which media the run needs).
+    const topRowTextarea = topRow.querySelector('textarea');
+    if (topRowTextarea) topRow.insertBefore(workflowBtn, topRowTextarea); else topRow.appendChild(workflowBtn);
+    workflowBtn.classList.add('shrink-0', 'self-center');
     controlsLeft.appendChild(modelBtn);
     controlsLeft.appendChild(arBtn);
     controlsLeft.appendChild(durationBtn);
@@ -884,6 +957,13 @@ generateBtn.type = 'button';
     generateBtn.innerHTML = `Generate ✨`;
 
     bottomRow.appendChild(controlsLeft);
+    // Estimated price for video-to-video runs (upstream's estimateV2VCost); best-effort.
+    const costLine = createCostLine({ estimate: (params) => muapi.estimateV2VCost(params) });
+    refreshVideoCost = (model) => {
+        if (!v2vMode || !uploadedVideoUrl || !model) { costLine.refresh(null); return; }
+        costLine.refresh(model.id, { model: model.id, ...buildVideoToolPayload(model, { video_url: uploadedVideoUrl }) });
+    };
+    bottomRow.appendChild(costLine.el);
     bottomRow.appendChild(generateBtn);
     bar.appendChild(bottomRow);
     promptWrapper.appendChild(bar);
@@ -1118,6 +1198,7 @@ generateBtn.type = 'button';
 
     const updateControlsForModel = (modelId) => {
         const model = getCurrentModels().find(m => m.id === modelId);
+        refreshVideoCost(model);
 
         // Native audio toggle — only show for models that support it
         const vNativeAudioRow = advancedPanel.querySelector('#v-native-audio-row');
@@ -1370,6 +1451,26 @@ generateBtn.type = 'button';
                 list.appendChild(item);
             });
             dropdown.appendChild(list);
+        } else if (type === 'menu' && menuSpec) {
+            // Simple option list (Source workflows, effect presets).
+            dropdown.classList.add('max-w-[260px]');
+            dropdown.innerHTML = `<div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 border-b border-white/5 mb-2"></div>`;
+            dropdown.firstElementChild.textContent = menuSpec.title;
+            const list = document.createElement('div');
+            list.className = 'flex flex-col gap-1 max-h-[50vh] overflow-y-auto custom-scrollbar';
+            menuSpec.items.forEach((opt) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
+                item.innerHTML = `<span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100"></span>${opt.selected ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}`;
+                item.firstElementChild.textContent = opt.label;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    closeDropdown();
+                    opt.onSelect();
+                };
+                list.appendChild(item);
+            });
+            dropdown.appendChild(list);
         }
 
         // Position dropdown viewport-aware
@@ -1421,6 +1522,10 @@ generateBtn.type = 'button';
             closeDropdown();
             openVideoModelPicker(modelBtn);
         }
+    };
+    workflowBtn.onclick = (e) => {
+        menuSpec = { title: 'Source', items: WORKFLOWS.map((w) => ({ label: w.label, onSelect: () => applyWorkflow(w) })) };
+        toggleDropdown('menu', workflowBtn)(e);
     };
     arBtn.onclick = toggleDropdown('ar', arBtn);
     durationBtn.onclick = toggleDropdown('duration', durationBtn);
@@ -1525,7 +1630,8 @@ generateBtn.type = 'button';
     const extendBtn = document.createElement('button');
     extendBtn.className = 'hidden bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-primary/30 text-primary backdrop-blur-lg';
     extendBtn.textContent = '↗ Extend';
-    extendBtn.title = 'Extend this video using Seedance 2.0 Extend';
+    extendBtn.title = 'Extend this video or upscale it to 4K';
+    let continuationTargets = [];
 
     const newPromptBtn = document.createElement('button');
     newPromptBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
@@ -1557,9 +1663,12 @@ generateBtn.type = 'button';
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
-        // Show extend button only for seedance-v2.0-t2v and i2v (not extend itself)
-        const isSeedance2 = genModel && (genModel === 'seedance-v2.0-t2v' || genModel === 'seedance-v2.0-i2v');
-        extendBtn.classList.toggle('hidden', !isSeedance2);
+        // Extend / 4K for every model that has a compatible continuation model.
+        const sourceEntry = generationHistory.find((e) => e.id === lastGenerationId)
+            || (lastGenerationId ? { id: lastGenerationId, model: genModel } : null);
+        continuationTargets = sourceEntry ? getContinuationTargetsForEntry({ ...sourceEntry, model: genModel || sourceEntry.model }) : [];
+        extendBtn.classList.toggle('hidden', continuationTargets.length === 0);
+        extendBtn.textContent = continuationTargets.length === 1 ? `↗ ${continuationLabel(continuationTargets[0])}` : '↗ Extend / 4K';
 
         resultVideo.src = videoUrl;
         resultVideo.onloadeddata = () => {
@@ -1652,13 +1761,8 @@ generateBtn.type = 'button';
                     return;
                 }
                 // Restore extend context when viewing a seedance-v2.0 generation
-                if (entry.model === 'seedance-v2.0-t2v' || entry.model === 'seedance-v2.0-i2v') {
-                    lastGenerationId = entry.id;
-                    lastGenerationModel = entry.model;
-                } else {
-                    lastGenerationId = null;
-                    lastGenerationModel = null;
-                }
+                lastGenerationId = entry.id || null;
+                lastGenerationModel = entry.model || null;
                 showVideoInCanvas(entry.url, entry.model);
                 historyList.querySelectorAll('div').forEach(t => {
                     t.classList.remove('border-primary', 'shadow-glow');
@@ -1771,7 +1875,21 @@ generateBtn.type = 'button';
         generateBtn.classList.remove('border-red-500/50');
     };
 
-    extendBtn.onclick = async () => {
+    // With several continuation models, ask which one; then run the extend flow.
+    extendBtn.onclick = () => {
+        if (!lastGenerationId) return;
+        if (continuationTargets.length <= 1) {
+            extendTargetId = continuationTargets[0] || null;
+            runExtend();
+            return;
+        }
+        openComposerPopover(extendBtn, {
+            title: 'Continue this video',
+            items: continuationTargets.map((id) => ({ label: continuationLabel(id), onSelect: () => { extendTargetId = id; runExtend(); } })),
+        });
+    };
+
+    const runExtend = async () => {
         if (!lastGenerationId) return;
         resetToPromptBar();
         textarea.value = '';
@@ -1784,7 +1902,10 @@ generateBtn.type = 'button';
 
         try {
             const catalog = await muapi.getModelCatalog();
-            const extendModel = catalog.find(m => m.requiresRequestId === true || m.id.endsWith('-extend'));
+            const wantedId = extendTargetId;
+            extendTargetId = null;
+            const extendModel = (wantedId && catalog.find(m => m.id === wantedId))
+                || catalog.find(m => m.requiresRequestId === true || m.id.endsWith('-extend'));
             if (extendModel) {
                 extendModelId = extendModel.id;
                 extendModelName = extendModel.name;
@@ -1945,6 +2066,14 @@ generateBtn.type = 'button';
                 showInlineError(container, 'Please upload a video first.');
                 return;
             }
+            if (v2vNeedsImage() && !uploadedImageUrl) {
+                showInlineError(container, 'Please add the character image to animate.');
+                return;
+            }
+            if (v2vModels.find((m) => m.id === selectedModel)?.promptRequired && !prompt) {
+                showInlineError(container, 'Please describe the change you want.');
+                return;
+            }
         } else if (isExtendMode) {
             if (!lastGenerationId) {
                 showInlineError(container, 'No Seedance 2.0 generation found to extend. Generate a video first.');
@@ -2001,6 +2130,8 @@ generateBtn.type = 'button';
                 const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl, signal: abortController.signal, onRequestId: pendingJob.onRequestId };
                 if (customThumbnailUrl) v2vParams.thumbnail_url = customThumbnailUrl;
                 if (nativeAudio) v2vParams.native_audio = true;
+                if (prompt) v2vParams.prompt = prompt;
+                if (v2vNeedsImage() && uploadedImageUrl) v2vParams.image_url = uploadedImageUrl;
                 const res = await muapi.processV2V(v2vParams);
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
@@ -2045,19 +2176,15 @@ generateBtn.type = 'button';
                 const res = await muapi.generateI2V(i2vParams);
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
-                    if (selectedModel === 'seedance-v2.0-i2v') {
-                        lastGenerationId = genId;
-                        lastGenerationModel = selectedModel;
-                    } else {
-                        lastGenerationId = null;
-                        lastGenerationModel = null;
-                    }
+                    lastGenerationId = genId;
+                    lastGenerationModel = selectedModel;
                     addToHistory({
                         id: genId,
                         url: res.url,
                         prompt: enrichedPrompt,
                         model: selectedModel,
                         aspect_ratio: selectedAr,
+                        resolution: i2vParams.resolution || undefined,
                         duration: selectedDuration,
                         timestamp: new Date().toISOString()
                     });
@@ -2106,13 +2233,8 @@ generateBtn.type = 'button';
 
             if (res && res.url) {
                 const genId = res.id || res.request_id || Date.now().toString();
-                if (selectedModel === 'seedance-v2.0-t2v' || selectedModel === 'seedance-v2.0-i2v') {
-                    lastGenerationId = genId;
-                    lastGenerationModel = selectedModel;
-                } else {
-                    lastGenerationId = null;
-                    lastGenerationModel = null;
-                }
+                lastGenerationId = genId;
+                lastGenerationModel = selectedModel;
 
                 addToHistory({
                     id: genId,
@@ -2120,6 +2242,7 @@ generateBtn.type = 'button';
                     prompt: enrichedPrompt,
                     model: selectedModel,
                     aspect_ratio: selectedAr,
+                    resolution: params.resolution || undefined,
                     duration: selectedDuration,
                     timestamp: new Date().toISOString()
                 });
@@ -2164,6 +2287,40 @@ generateBtn.type = 'button';
     if (galleryAssets.length > 0) {
       const gallery = ExampleGallery({ studioId: 'video', assets: galleryAssets, maxCards: 28 });
       container.appendChild(gallery);
+    }
+
+    // Staged hand-off ("Edit in Video Studio" from the personalization modal),
+    // as OpenHiggsBolt's Video Studio applies it: the start image
+    // (image-to-video) and a 9:16 / 16:9 aspect ratio. Applied once the studio
+    // is in the document — picker.setImage() fires onSelect, which updates the
+    // model button.
+    const applyStagedAspectRatio = () => {
+      if (stagedAspectRatio !== '9:16' && stagedAspectRatio !== '16:9') return;
+      const available = getCurrentAspectRatios(selectedModel) || [];
+      if (available.length && !available.includes(stagedAspectRatio)) return;
+      selectedAr = stagedAspectRatio;
+      const arLabel = document.getElementById('v-ar-btn-label');
+      if (arLabel) arLabel.textContent = selectedAr;
+    };
+    if (typeof stagedReferenceImageUrl === 'string' && /^https?:\/\//i.test(stagedReferenceImageUrl)) {
+      let tries = 0;
+      const applyHandoff = () => {
+        if (!document.getElementById('v-model-btn-label') && tries++ < 120) {
+          requestAnimationFrame(applyHandoff);
+          return;
+        }
+        try {
+          // setImage → onSelect switches to image-to-video (and that model's
+          // default ratio), so the staged ratio is applied afterwards.
+          picker.setImage(stagedReferenceImageUrl);
+          applyStagedAspectRatio();
+        } catch (err) {
+          console.warn('[VideoStudio] hand-off image not applied:', err);
+        }
+      };
+      requestAnimationFrame(applyHandoff);
+    } else if (stagedAspectRatio) {
+      requestAnimationFrame(() => applyStagedAspectRatio());
     }
 
     if (autoGenerate) {
