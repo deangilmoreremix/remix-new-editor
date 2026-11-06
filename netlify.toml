@@ -98,6 +98,14 @@
   status = 200
   force = true
 
+# Timeline Editor text AI (OpenAI Responses API, user's own key): chat modes,
+# storyboard, script breakdown, shot list, beat sheet.
+[[redirects]]
+  from = "/api/timeline-llm"
+  to = "/.netlify/functions/timeline-llm"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/watch-voice"
   to = "/.netlify/functions/watch-voice"

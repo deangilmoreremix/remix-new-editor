@@ -342,48 +342,7 @@ export async function providerCompositionPlan(params = {}) {
   };
 }
 
-export async function providerLLMChat(params = {}) {
-  const { message, context } = params;
-
-  if (!message) {
-    return { success: false, code: 'PROVIDER_NOT_CONFIGURED', error: 'message is required for llm_chat' };
-  }
-
-  // Structured project context should be supplied by the caller.
-  const systemPrompt = [
-    'You are a timeline editing assistant.',
-    'Respond with concise, actionable instructions.',
-    'If you suggest timeline operations, return them as structured actions.',
-  ].join(' ');
-
-  const result = await submitAndWait({
-    endpoint: '/chat/completions',
-    payload: {
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...(context?.messages || []),
-        { role: 'user', content: message },
-      ],
-      temperature: 0.4,
-      max_tokens: 800,
-    },
-  });
-
-  const text = result.raw?.choices?.[0]?.message?.content;
-  if (!text) {
-    return { success: false, code: 'PROVIDER_NOT_CONFIGURED', error: 'No text response from LLM provider' };
-  }
-
-  return {
-    success: true,
-    tool: 'llm_chat',
-    text,
-    usage: result.raw?.usage || null,
-    requestId: result.requestId,
-    raw: result.raw,
-  };
-}
+// LLM chat moved to /api/timeline-llm (OpenAI Responses API, user's own key).
 
 const RUNS_IN_BROWSER = 'Object masking runs free in your browser now (Timeline Editor → select a clip → Free AI → Mask an object). No server or fal account is used.';
 

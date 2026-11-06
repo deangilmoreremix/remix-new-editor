@@ -105,6 +105,35 @@ describe('timeline-image-generate (Template Generator AI image)', async () => {
   });
 });
 
+describe('timeline-image-generate — Images 2.6 and reference images', async () => {
+  const { handler } = await import('../../netlify/functions/timeline-image-generate.js');
+
+  it('accepts the Images 2.6 models and edits with reference images on the user key', async () => {
+    stubOpenAI(200, { data: [{ b64_json: 'aGVsbG8=' }] });
+    const r = await handler({
+      httpMethod: 'POST',
+      headers: { 'X-OpenAI-Key': USER_KEY },
+      body: JSON.stringify({
+        prompt: 'same character, low angle',
+        model: 'gpt-image-2.6-sunburst',
+        referenceImageUrls: ['https://cdn.example.com/hero.png', 'data:image/png;base64,xx', 'http://insecure.example.com/x.png'],
+      }),
+    });
+    expect(r.statusCode).toBe(200);
+    expect(JSON.parse(r.body).assets[0].model).toBe('gpt-image-2.6-sunburst');
+    expect(openaiCalls).toHaveLength(1);
+    expect(openaiCalls[0].url).toBe('https://api.openai.com/v1/images/edits');
+    expect(openaiCalls[0].auth).toBe(`Bearer ${USER_KEY}`);
+  });
+
+  it('rejects unknown models', async () => {
+    stubOpenAI();
+    const r = await handler({ httpMethod: 'POST', headers: { 'X-OpenAI-Key': USER_KEY }, body: JSON.stringify({ prompt: 'x', model: 'gpt-image-2.6-flare-image-to-image' }) });
+    expect(r.statusCode).toBe(400);
+    expect(openaiCalls).toHaveLength(0);
+  });
+});
+
 describe('personalizer-api (Personalization AI)', async () => {
   const { handler } = await import('../../netlify/functions/personalizer-api.js');
   const vision = { mode: 'validate', originalImageUrl: 'https://cdn.example.com/a.png', editedImageUrl: 'https://cdn.example.com/b.png' };

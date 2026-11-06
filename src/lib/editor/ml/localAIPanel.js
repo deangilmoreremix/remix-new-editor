@@ -16,7 +16,7 @@ const fmtT = (s) => (s == null ? '' : `${Math.floor(s / 60)}:${String(Math.floor
  * @param {object} opts { editor (aiActions contract + seek(sec), select(clipId)), confirm?(msg) }
  */
 export function renderLocalAIPanel(container, { editor, confirm } = {}) {
-  const ui = { query: '', hits: null, busy: '', error: '', voice: KOKORO_VOICES[0][0], speed: 1, script: '', cached: {}, gpu: null, downloading: {}, controller: null };
+  const ui = { query: '', hits: null, busy: '', error: '', voice: KOKORO_VOICES[0][0], speed: 1, script: '', musicPrompt: '', cached: {}, gpu: null, downloading: {}, controller: null };
 
   const draw = () => {
     container.innerHTML = `
@@ -38,6 +38,14 @@ export function renderLocalAIPanel(container, { editor, confirm } = {}) {
         <label class="cap-row"><span>Voice</span><select data-lai-voice>${KOKORO_VOICES.map(([v, l]) => `<option value="${v}" ${v === ui.voice ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
         <label class="cap-row"><span>Speed</span><input type="range" min="0.6" max="1.6" step="0.05" value="${ui.speed}" data-lai-speed aria-label="Speech speed"/></label>
         <button type="button" class="mini-btn cap-primary" data-lai="voice" ${ui.busy ? 'disabled' : ''}>Add voiceover at playhead</button>
+
+        <h4 class="addon-panel__heading">Music for this video</h4>
+        <textarea data-lai-music rows="3" placeholder="Describe the music, or write it from your clips…" style="width:100%">${esc(ui.musicPrompt)}</textarea>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button type="button" class="mini-btn" data-lai="music-prompt" ${ui.busy ? 'disabled' : ''}>Write prompt from clips (free)</button>
+          ${editor.addMusic ? `<button type="button" class="mini-btn cap-primary" data-lai="music" ${ui.busy || !ui.musicPrompt.trim() ? 'disabled' : ''}>Generate music (MuAPI, your key)</button>` : ''}
+        </div>
+        <p class="addon-field__hint">The prompt is written on your device from what the clips show. Music fades and ducks under voiceovers.</p>
 
         <h4 class="addon-panel__heading">On-device models</h4>
         <ul class="ai-models" style="list-style:none;padding:0;margin:0">
@@ -102,6 +110,12 @@ export function renderLocalAIPanel(container, { editor, confirm } = {}) {
       if (h.clipId) editor.select?.(h.clipId);
     },
     voice: () => task('Speaking', ['kokoro'], (o) => actions.addFreeVoiceover(editor, { text: ui.script, voice: ui.voice, speed: ui.speed, ...o })),
+    'music-prompt': () => task('Watching your clips', ['florence'], async (o) => {
+      const clips = editor.allClips().filter((c) => actions.isVisual(c) && editor.mediaSrc(c));
+      if (!clips.length) throw new Error('Add video or image clips first');
+      ui.musicPrompt = await actions.promptForMusic(editor, clips, o) || ui.musicPrompt;
+    }),
+    music: () => task('Composing music (1–3 min)', [], () => editor.addMusic(ui.musicPrompt.trim())),
     download: async (b) => {
       const key = b.dataset.key;
       ui.downloading[key] = 0;
@@ -129,6 +143,12 @@ export function renderLocalAIPanel(container, { editor, confirm } = {}) {
     const el = e.target;
     if (el.dataset.laiQuery !== undefined) ui.query = el.value;
     else if (el.dataset.laiScript !== undefined) ui.script = el.value;
+    else if (el.dataset.laiMusic !== undefined) {
+      const had = !!ui.musicPrompt.trim();
+      ui.musicPrompt = el.value;
+      const btn = container.querySelector('[data-lai="music"]');
+      if (btn && had !== !!ui.musicPrompt.trim()) btn.disabled = !ui.musicPrompt.trim();
+    }
     else if (el.dataset.laiSpeed !== undefined) ui.speed = Number(el.value);
   };
   const onChange = (e) => { if (e.target.dataset.laiVoice !== undefined) ui.voice = e.target.value; };

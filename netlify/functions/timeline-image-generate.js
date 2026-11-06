@@ -24,9 +24,12 @@
  *   size?: '1024x1024' | '1024x1536' | '1536x1024' | 'auto',
  *   quality?: 'low' | 'medium' | 'high' | 'auto',
  *   referenceImageUrl?: string,  // for editing
+ *   referenceImageUrls?: string[], // up to 8 public https images: edit / keep a
+ *                                  // character, product or location consistent
  *   editInstruction?: string,    // for editing
  *   n?: number (1-4),
- *   model?: 'gpt-image-2' | 'gpt-image-2.5-sunburst' | 'gpt-image-2.5-flare',
+ *   model?: 'gpt-image-2' | 'gpt-image-2.5-sunburst' | 'gpt-image-2.5-flare'
+ *         | 'gpt-image-2.6-flare' | 'gpt-image-2.6-sunburst',
  * }
  *
  * Returns: { ok: true, assets: [{ id, type, url, prompt, model, ... }] }
@@ -60,6 +63,9 @@ const OPENAI_IMAGE_MODELS = Object.freeze([
   'gpt-image-2',
   'gpt-image-2.5-sunburst',
   'gpt-image-2.5-flare',
+  // Images 2.6: Flare (fast) and Sunburst (detail, precise edits).
+  'gpt-image-2.6-flare',
+  'gpt-image-2.6-sunburst',
 ]);
 
 function isSupportedImageModel(modelId) {
@@ -93,6 +99,18 @@ function parseDimensions(size) {
 
 async function callResponsesApi(apiKey, body) {
   return fetchWithTimeout('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * Images edits with reference images, as JSON ({ images: [{ image_url }] }),
+ * so the function never has to download and re-upload the files.
+ */
+async function callImagesEditApi(apiKey, body) {
+  return fetchWithTimeout('https://api.openai.com/v1/images/edits', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify(body),
@@ -174,10 +192,16 @@ export async function handler(event) {
     size,
     quality = 'auto',
     referenceImageUrl,
+    referenceImageUrls,
     editInstruction,
     n = 1,
     model,
   } = body;
+
+  // Reference images (edit / consistency). Public https only — never data: or
+  // internal URLs — and at most 8.
+  const refs = [...new Set([referenceImageUrl, ...(Array.isArray(referenceImageUrls) ? referenceImageUrls : [])]
+    .filter((u) => typeof u === 'string' && /^https:\/\//i.test(u)))].slice(0, 8);
 
   if (!prompt || !prompt.trim()) {
     return jsonResponse(400, { ok: false, error: 'Prompt is required' });
@@ -208,7 +232,24 @@ export async function handler(event) {
   //   image_generation tool for context-aware generation.
   // - Otherwise, use the direct /v1/images/generations endpoint.
 
-  if (niche || scene) {
+  if (refs.length) {
+    // Edit / reference path: the images guide the result (same character,
+    // product or place; a new camera angle; a change described in the prompt).
+    const editBody = {
+      model: imageModel,
+      prompt: String(editInstruction || prompt).trim(),
+      images: refs.map((image_url) => ({ image_url })),
+      size: resolvedSize,
+      n: Math.min(Math.max(n, 1), 4),
+    };
+    if (quality && quality !== 'auto') editBody.quality = quality;
+    try {
+      imageRes = await callImagesEditApi(apiKey, editBody);
+    } catch (e) {
+      const msg = e?.name === 'AbortError' ? 'OpenAI Images API timed out' : `Network error: ${e.message}`;
+      return jsonResponse(502, { ok: false, error: msg });
+    }
+  } else if (niche || scene) {
     // Context-aware path via Responses API
     useResponsesApi = true;
     const fullPrompt = `${contextBlock}User prompt: ${prompt.trim()}\n\nRefine this into a high-quality image-generation prompt.`;

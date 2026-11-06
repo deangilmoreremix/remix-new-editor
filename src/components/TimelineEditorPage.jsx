@@ -599,6 +599,14 @@ export function TimelineEditorPage() {
         <div class="card-title">🤖 AI Agent</div>
         <div id="aiAgentChat"></div>
       </aside>
+      <aside class="side-card" id="storyboardPanelCard" hidden data-tooltip="Storyboard - plan shots, Images 2.6 frames, Shot Board, Elements, script import">
+        <div class="card-title">🎞️ Storyboard</div>
+        <div id="storyboardHost"></div>
+      </aside>
+      <aside class="side-card" id="aiChatPanelCard" hidden data-tooltip="AI Chat - Ask, Search, Cut and Timeline modes (OpenAI, your key)">
+        <div class="card-title">💬 AI Chat</div>
+        <div id="aiChatContainer"></div>
+      </aside>
       <aside class="side-card" id="localAIPanel" hidden data-tooltip="Free AI - search footage, free voiceover and on-device models (runs in your browser)">
         <div class="card-title">🧠 Free AI</div>
         <div id="localAIHost"></div>
@@ -766,6 +774,8 @@ export function TimelineEditorPage() {
         ['🎞️', 'Stock Media'],
         ['🤖', 'AI Agent'],
         ['🧠', 'Free AI'],
+        ['💬', 'AI Chat'],
+        ['🎞️', 'Storyboard'],
         ['🔗', 'Share'],
         ['🎬', 'Scene Detector'],
         ['🎥', 'Camera FX'],
@@ -2468,6 +2478,10 @@ export function TimelineEditorPage() {
       if (id === 'mask') {
         showToast('Mask tool active — select a clip and open AI Tools to segment');
       }
+      // CineGen AI tools open the features that do the work.
+      if (id === 'music') openPanel('localAIPanel');
+      if (id === 'fillGap') openMuapiTool('fill_gap');
+      if (id === 'extend') openMuapiTool('extend');
     }
 
     /**
@@ -5696,6 +5710,16 @@ export function TimelineEditorPage() {
       return Promise.resolve({ success: false, pending: true, tool, message: 'Opened in Clip Editor → AI generate' });
     }
 
+    // eslint-disable-next-line no-var -- created on first open
+    var storyboardPanel = null;
+    async function mountStoryboardPanel() {
+      const host = root.querySelector('#storyboardHost');
+      if (storyboardPanel || !host) return;
+      const { renderStoryboardPanel } = await import('../lib/editor/ai/storyboardPanel.js');
+      if (storyboardPanel) return;
+      storyboardPanel = renderStoryboardPanel(host, { editor: { ...localAIEditor(), selectedClipId: () => state.selectedClipId } });
+    }
+
     async function mountLocalAIPanel() {
       const host = root.querySelector('#localAIHost');
       if (localAIPanel || !host) return;
@@ -5705,6 +5729,14 @@ export function TimelineEditorPage() {
         editor: {
           ...localAIEditor(),
           seek: (sec) => seekToSeconds(sec),
+          // Music through the AI Agent's add_music tool (MuAPI on the user's key; fades + ducking).
+          addMusic: async (prompt) => {
+            const tools = await getAgentTools();
+            saveStateSnapshot(state);
+            const out = await tools.run('add_music', { prompt });
+            if (!out.ok) throw new Error(out.content || 'Music generation failed');
+            showToast('Music added to the Music track', 'success');
+          },
           select: (id) => {
             state.selectedClipId = id;
             renderTracks();
@@ -6456,27 +6488,60 @@ export function TimelineEditorPage() {
       }
     }
 
+    // ---------------------------------------------------------------- AI chat helpers
+    // eslint-disable-next-line no-var -- loaded on first chat message
+    var timelineLlmModule = null;
+    function buildChatContext() {
+      if (!timelineLlmModule) return '';
+      return timelineLlmModule.buildProjectContext(localAIEditor(), { selectedId: state.selectedClipId, markers: state.markers || [] });
+    }
+    import('../lib/editor/ai/timelineLlm.js').then((m) => { timelineLlmModule = m; }).catch(() => {});
+
+    /** CineGen "Cut" mode: lay the selects end to end in a new timeline tab. */
+    async function applyCutListAsNewTab(cuts) {
+      const m = timelineLlmModule || await import('../lib/editor/ai/timelineLlm.js');
+      const pieces = m.buildCutClips(cuts, (id) => allClips().find((c) => String(c.id) === id));
+      if (!pieces.length) throw new Error('None of the suggested selects match clips on this timeline');
+      const total = pieces[pieces.length - 1].end;
+      addNewTimeline(state);
+      const T = Math.max(10, Math.ceil(total + 1));
+      state.timelineSeconds = T;
+      state.projectTitle = `Rough cut ${timelineCount(state)}`;
+      const entry = timelineList(state).find((t) => t.id === currentTimelineId(state));
+      if (entry) { entry.projectTitle = state.projectTitle; entry.timelineSeconds = T; }
+      state.tracks.forEach((t) => { const empty = []; t.items = empty; t.clips = empty; });
+      const target = (type) => state.tracks.find((t) => (type === 'audio' ? t.type === 'audio' : t.type === 'video')) || state.tracks[0];
+      pieces.forEach(({ clip, start, end, type }) => {
+        clip.left = (start / T) * 100;
+        clip.width = ((end - start) / T) * 100;
+        target(type).items.push(clip);
+      });
+      renderAll();
+      scheduleEngineUpdate();
+      debouncedSave();
+      return `Built "${state.projectTitle}" with ${pieces.length} selects (${total.toFixed(1)}s) in a new tab. Your original timeline is unchanged in its own tab.`;
+    }
+
+    async function sendToAgent(text) {
+      openPanel('aiAgentPanel');
+      await mountAgentPanel();
+      agentPanel?.send?.(text);
+    }
+
     function initializeAIChatPanel() {
       if (!aiChatPanel && els.aiChatContainer) {
         aiChatPanel = new AIChatPanel(els.aiChatContainer, state, {
+          getContext: () => buildChatContext(),
+          seekTo: (sec) => seekToSeconds(sec),
+          applyCuts: (cuts) => applyCutListAsNewTab(cuts),
+          sendToAgent: (text) => sendToAgent(text),
           detectScenes: async () => {
             initializeSceneDetector();
             if (sceneDetector && sceneDetector.detectScenes) {
               await sceneDetector.detectScenes();
             }
           },
-          splitClipAtPlayhead: () => {
-            // Find selected clip and split it
-            const selectedTrack = state.tracks.find(t => t.id === state.selectedTrackId);
-            if (selectedTrack) {
-              const selectedClip = selectedTrack.clips.find(c => c.id === state.selectedClipId);
-              if (selectedClip) {
-                const splitTime = (state.playheadPercent / 100) * state.timelineSeconds;
-                // Implement split logic here
-                showToast('Clip split functionality to be implemented', 'info');
-              }
-            }
-          },
+          splitClipAtPlayhead: () => splitClipAtPlayhead(),
           trimSelectedClip: (start, end) => {
             // Implement trim logic
             showToast('Trim clip functionality to be implemented', 'info');
@@ -7378,6 +7443,7 @@ export function TimelineEditorPage() {
       if (id === 'stockPanel') mountStockBrowser();
       if (id === 'aiAgentPanel') mountAgentPanel();
       if (id === 'localAIPanel') mountLocalAIPanel();
+      if (id === 'storyboardPanelCard') mountStoryboardPanel();
       if (id === 'sharePanel') mountSharePanel();
       el.hidden = false;
       el.style.display = 'block';
@@ -7392,6 +7458,8 @@ export function TimelineEditorPage() {
       'Stock Media': 'stockPanel',
       'AI Agent': 'aiAgentPanel',
       'Free AI': 'localAIPanel',
+      'AI Chat': 'aiChatPanelCard',
+      'Storyboard': 'storyboardPanelCard',
       'Share': 'sharePanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
@@ -7493,6 +7561,8 @@ export function TimelineEditorPage() {
         'Stock Media': 'Stock Media - Pixabay and Pexels videos and images for the timeline',
         'AI Agent': 'AI Agent - describe a video or animation and the agent builds it on the timeline',
         'Free AI': 'Free AI - search footage by description, free voiceover, on-device models (no API key)',
+        'AI Chat': 'AI Chat - ask about your footage, find moments, rough-cut into a new tab (OpenAI, your key)',
+        'Storyboard': 'Storyboard - plan shots, make frames with Images 2.6, Shot Board, Elements, import scripts',
         'Share': 'Share - publish an interactive video with a link and embed code'
       };
       state.railActions.forEach(([icon, label, active]) => {

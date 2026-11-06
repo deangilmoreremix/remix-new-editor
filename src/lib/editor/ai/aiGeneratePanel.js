@@ -7,6 +7,7 @@
 import * as muapi from './timelineMuapi.js';
 import * as local from '../ml/aiActions.js';
 import { confirmDownloads } from '../ml/aiClipPanel.js';
+import { listElements, resolveMentions } from './elementsStore.js';
 import {
   FIRST_LAST_FRAME_MODELS, DEFAULT_FILL_GAP_MODEL,
   VIDEO_EXTEND_MODELS, DEFAULT_EXTEND_MODEL,
@@ -159,7 +160,10 @@ export function renderMuapiClipPanel(container, { editor, clip, focus, confirm }
     },
     fill() {
       const gap = gaps()[ui.fillSide];
-      return run('Filling gap', (o) => muapi.fillGap(editor, gap, { model: ui.fillModel, prompt: ui.fillPrompt, ...o }));
+      return run('Filling gap', async (o) => {
+        const { text } = resolveMentions(ui.fillPrompt, await listElements()); // @Element → its description
+        return muapi.fillGap(editor, gap, { model: ui.fillModel, prompt: text, ...o });
+      });
     },
     async 'ext-prompt'() {
       if (!(await confirmDownloads(['florence'], confirm))) return;
@@ -170,7 +174,10 @@ export function renderMuapiClipPanel(container, { editor, clip, focus, confirm }
     },
     extend() {
       const seconds = Math.max(1, Math.min(15, Math.round(ui.extSeconds) || 5));
-      return run('Extending', (o) => muapi.extendClip(editor, clip, { direction: ui.extDir, seconds, model: ui.extModel, prompt: ui.extPrompt, ...o }));
+      return run('Extending', async (o) => {
+        const { text } = resolveMentions(ui.extPrompt, await listElements());
+        return muapi.extendClip(editor, clip, { direction: ui.extDir, seconds, model: ui.extModel, prompt: text, ...o });
+      });
     },
     layers() { return run('Splitting layers', (o) => muapi.decomposeLayers(editor, clip, { model: ui.layerModel, ...o })); },
     watermark() { return run('Removing watermark', (o) => muapi.removeWatermark(editor, clip, { model: ui.wmModel, rightsConfirmed: ui.rights, ...o })); },

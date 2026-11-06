@@ -94,3 +94,13 @@ describe('other MuAPI payloads', () => {
     expect(resultUrls(null)).toEqual([]);
   });
 });
+
+describe('image → video (storyboard frames)', async () => {
+  const { buildImageToVideoPayload } = await import('../frameModels.js');
+  it('uses the model endpoint and snaps the duration', () => {
+    const r = buildImageToVideoPayload({ imageUrl: 'https://cdn.example.com/f.png', prompt: 'slow push in', duration: 7 });
+    expect(r).toEqual({ endpoint: '/seedance-lite-i2v', model: 'seedance-lite-i2v', payload: { image_url: 'https://cdn.example.com/f.png', prompt: 'slow push in', duration: 5 } });
+    expect(buildImageToVideoPayload({ model: 'veo3.1-lite-image-to-video', imageUrl: 'https://x/y.png', duration: 9 }).payload.duration).toBe(8);
+    expect(() => buildImageToVideoPayload({ imageUrl: 'data:x' })).toThrow(/https/);
+  });
+});

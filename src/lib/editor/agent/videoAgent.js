@@ -106,6 +106,8 @@ export function describeToolCall(name, args = {}) {
     case 'label_speakers': return 'Labelling speakers';
     case 'translate_captions': return `Translating captions (${a.language || ''})`;
     case 'add_free_voiceover': return 'Recording a free voiceover';
+    case 'generate_image': return 'Generating an image (OpenAI Images 2.6)';
+    case 'storyboard': return 'Storyboarding shots (OpenAI)';
     case 'fill_gap': return 'Filling the gap (MuAPI)';
     case 'extend_clip': return `Extending the clip ${a.direction === 'before' ? 'backward' : 'forward'} (MuAPI)`;
     case 'add_voiceover': return `Recording voiceover${a.voice ? ` (${String(a.voice).replace(/_/g, ' ')})` : ''}`;

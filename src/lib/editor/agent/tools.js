@@ -120,6 +120,9 @@ export function toolDefinitions() {
     { name: 'label_speakers', description: 'Free, on-device: label which speaker says each caption in a captions clip (made by add_captions with source_clip_id).', parameters: { type: 'object', properties: { clip_id: { type: 'string', description: 'The captions clip' } }, required: ['clip_id'], additionalProperties: false } },
     { name: 'translate_captions', description: 'Free, on-device: add a translated copy of a captions clip. language is a code like es, fr, de, pt, ja, zh, ar, hi.', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, language: { type: 'string' }, from: { type: 'string', description: 'Source language code, default en' } }, required: ['clip_id', 'language'], additionalProperties: false } },
     { name: 'add_free_voiceover', description: 'Free, on-device voiceover (Kokoro). Lower quality than add_voiceover but costs nothing and needs no key. Voices: af_heart, af_bella, af_nicole, am_michael, am_fenrir, bf_emma, bm_george, bm_fable.', parameters: { type: 'object', properties: { text: { type: 'string' }, voice: { type: 'string' }, speed: { type: 'number', minimum: 0.6, maximum: 1.6 }, start: { type: 'number' } }, required: ['text'], additionalProperties: false } },
+    // OpenAI on the user's own key (Images 2.6, Responses API). The user confirms each run.
+    { name: 'generate_image', description: 'Generate an image with OpenAI Images 2.6 (user\'s OpenAI key, user confirms) and place it as an image clip. Use @Name to include a saved Element (character/location/prop) — its reference images keep it consistent.', parameters: { type: 'object', properties: { prompt: { type: 'string' }, start: { type: 'number' }, duration: { type: 'number' }, aspect: { type: 'string', enum: ['16:9', '9:16', '1:1'] }, detail: { type: 'boolean', description: 'Use Images 2.6 Sunburst (more detail, slower)' } }, required: ['prompt'], additionalProperties: false } },
+    { name: 'storyboard', description: 'Plan a storyboard from an idea or script (OpenAI), make a frame per shot with Images 2.6 and place the shots on the timeline with dialogue captions. Uses the user\'s OpenAI key; the user confirms. @Name mentions use saved Elements.', parameters: { type: 'object', properties: { idea: { type: 'string' }, shots: { type: 'number', minimum: 3, maximum: 12 }, style: { type: 'string' }, aspect: { type: 'string', enum: ['16:9', '9:16', '1:1'] } }, required: ['idea'], additionalProperties: false } },
     // Paid generation on MuAPI (user's own key). The user confirms each run.
     { name: 'fill_gap', description: 'Paid (MuAPI, user confirms): generate a clip that bridges the gap after (or before) a clip on its track, from the real frames either side.', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, side: { type: 'string', enum: ['after', 'before'] }, prompt: { type: 'string' } }, required: ['clip_id'], additionalProperties: false } },
     { name: 'extend_clip', description: 'Paid (MuAPI, user confirms): extend a video clip forward (continue the shot) or backward (lead-in). seconds 1–10.', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, direction: { type: 'string', enum: ['after', 'before'] }, seconds: { type: 'number', minimum: 1, maximum: 10 }, prompt: { type: 'string' } }, required: ['clip_id'], additionalProperties: false } },
@@ -487,6 +490,34 @@ export function createAgentTools(editor) {
       reduck();
       editor.commit();
       return { clip: summarizeClip(clip, editor), tip: 'Use add_captions with source_clip_id to caption this voiceover.' };
+    },
+
+    // ---------------------------------------------------------- OpenAI images / storyboard (user's key)
+    async generate_image({ prompt, start, duration = 4, aspect = '16:9', detail = false }) {
+      const ok = await editor.confirm('The AI agent wants to generate an image with OpenAI Images 2.6 (uses your OpenAI key). Continue?');
+      need(ok, 'The user declined the image generation');
+      const [{ makeImage, DEFAULT_IMAGE_MODEL, DETAIL_IMAGE_MODEL }, { listElements, resolveMentions }] = await Promise.all([import('../ai/openaiImages.js'), import('../ai/elementsStore.js')]);
+      const { text, refs } = resolveMentions(String(prompt || ''), await listElements());
+      need(text.trim(), 'prompt is required');
+      const { url, model } = await makeImage(aiEditor(), text, { model: detail ? DETAIL_IMAGE_MODEL : DEFAULT_IMAGE_MODEL, aspectRatio: aspect, refs });
+      const times = placeTimes(editor, start, duration, 4);
+      const clip = editor.insertClip({ id: `img-${Date.now().toString(36)}`, type: 'image', name: text.slice(0, 60), src: url, fit: 'cover', start: times.start, end: times.end }, 'video');
+      editor.commit();
+      return { clip: summarizeClip(clip, editor), model };
+    },
+
+    async storyboard({ idea, shots = 6, style = '', aspect = '16:9' }) {
+      const n = Math.max(3, Math.min(12, Math.round(num(shots, 6))));
+      const ok = await editor.confirm(`The AI agent wants to storyboard ${n} shots and make a frame for each with OpenAI Images 2.6 (uses your OpenAI key). Continue?`);
+      need(ok, 'The user declined the storyboard');
+      const [sbm, { listElements }, { defaultCaptionStyle: dcs }] = await Promise.all([import('../ai/storyboard.js'), import('../ai/elementsStore.js'), import('../remotion/captions.js')]);
+      const elements = await listElements();
+      const plan = await sbm.planShots(String(idea || ''), { shots: n, style, elements });
+      for (const shot of plan.shots) {
+        try { shot.frameUrl = (await sbm.frameForShot(aiEditor(), shot, { elements, style, aspect })).url; } catch { /* placed without a frame if it failed */ }
+      }
+      const placed = sbm.placeShots(aiEditor(), plan.shots, { captionStyle: dcs('classic') });
+      return { title: plan.title, shots: plan.shots.map((s) => ({ title: s.title, framed: !!s.frameUrl })), start: round(placed.start), end: round(placed.end) };
     },
 
     // ---------------------------------------------------------- paid MuAPI generation

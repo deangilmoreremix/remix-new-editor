@@ -5,6 +5,7 @@
 //   extend_before   a clip's first frame → a lead-in that ends on it
 //   layers          image → separated layers (Seedream)
 //   watermark_remove video → the same video without a watermark
+//   shot_video       one still (storyboard frame) → a short clip
 //
 // Submit/status like agent-audio.js: `submit` starts the MuAPI job and returns
 // a requestId at once; the browser polls `status` (Netlify functions can't
@@ -20,6 +21,7 @@ import {
   buildExtendBeforePayload,
   buildLayerPayload,
   buildWatermarkPayload,
+  buildImageToVideoPayload,
   resultUrls,
 } from '../../src/lib/muapi/frameModels.js';
 
@@ -35,6 +37,7 @@ const BUILDERS = {
   extend_before: buildExtendBeforePayload,
   layers: buildLayerPayload,
   watermark_remove: buildWatermarkPayload,
+  shot_video: buildImageToVideoPayload,
 };
 
 // Light per-user throttle (per function instance).

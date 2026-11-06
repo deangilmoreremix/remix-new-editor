@@ -640,8 +640,9 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // (section 2 import-surface guard still passes). Then re-recorded once
     // more for the CineGen edit tools (blade/ripple/roll/slip/slide, markers,
     // speed, flip, source In/Out, audio sync, proxies, real waveforms and
-    // filmstrips); also no upload call site changed.
-    ['src/components/TimelineEditorPage.jsx', '0a943842c74e19ab64957d635f2f7e4cea37266f0806cee04116ef865590cbc7'],
+    // filmstrips), and for the AI Chat / Storyboard rail panels (OpenAI
+    // Responses API + Images 2.6 on the user's key); no upload call site changed.
+    ['src/components/TimelineEditorPage.jsx', '0cffb2cc546deb9949187c007403ddd5f2a210037e8f9cf726f8bb23a3504dcf'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -681,7 +682,11 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // `../../lib/cinegenIntegration.js`) so the timeline AI tool resolves
     // again. No upload-pipeline behaviour changed. Semantic coverage in
     // section 5.
-    ['src/components/timeline/AIChatPanel.js', '78c426c7d1ee9006a57abd37613b8e24b66dcdc3ccfb9d750a6a07a87f4aa575'],
+    // Re-recorded deliberately again: the chat now runs on the OpenAI
+    // Responses API (user's own key) with CineGen's Ask/Search/Cut/Timeline
+    // modes; the old keyword-triggered fake replies were removed. It has no
+    // upload code (semantic guard in section 5).
+    ['src/components/timeline/AIChatPanel.js', 'c6171ce7952da3edc7e3187e53b601d2390cbccdc12571ec337bd7f2e5e80ca6'],
     // Re-recorded deliberately after repairing a broken relative import
     // (`../../lib/muapi.js` → `../../../lib/muapi.js`): from create/nodes/ the
     // old path pointed at a non-existent src/components/lib and the build
@@ -878,9 +883,13 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain('await fetch(this.proxyUrl');
   });
 
-  it('AIChatPanel.js still imports the CineGen integration and exports its class', async () => {
+  // Updated deliberately: the chat moved off the CineGen integration's MuAPI
+  // llm_chat onto the OpenAI Responses API (user's own key) via
+  // src/lib/editor/ai/timelineLlm.js. It never touched the upload pipeline.
+  it('AIChatPanel.js uses the Responses API chat client and exports its class', async () => {
     const source = readSource('src/components/timeline/AIChatPanel.js');
-    expect(source).toContain("await import('../../lib/cinegenIntegration.js')");
+    expect(source).toContain("from '../../lib/editor/ai/timelineLlm.js'");
+    expect(source).not.toMatch(/upload|supabase|storage/i);
     expect(source).toContain('export default class AIChatPanel {');
     expect(source).toContain('export { AIChatPanel };');
 

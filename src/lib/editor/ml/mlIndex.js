@@ -9,6 +9,8 @@
 import { get, set, del, createStore } from 'idb-keyval';
 
 let store = null;
+/** IndexedDB call that gives up after `ms` (a broken/blocked IDB must not hang search). */
+const withTimeout = (p, ms = 1500) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('storage timeout')), ms))]);
 const memory = new Map();
 
 function getStore() {
@@ -27,7 +29,7 @@ export async function getIndex(assetId) {
   const s = getStore();
   if (!s) return null;
   try {
-    const rec = await get(assetId, s);
+    const rec = await withTimeout(get(assetId, s));
     if (rec) memory.set(assetId, rec);
     return rec || null;
   } catch {
@@ -40,14 +42,14 @@ export async function putIndex(assetId, patch) {
   const rec = { ...prev, ...patch, assetId, updatedAt: Date.now() };
   memory.set(assetId, rec);
   const s = getStore();
-  if (s) { try { await set(assetId, rec, s); } catch { /* memory copy still works this session */ } }
+  if (s) { try { await withTimeout(set(assetId, rec, s)); } catch { /* memory copy still works this session */ } }
   return rec;
 }
 
 export async function deleteIndex(assetId) {
   memory.delete(assetId);
   const s = getStore();
-  if (s) { try { await del(assetId, s); } catch { /* ignore */ } }
+  if (s) { try { await withTimeout(del(assetId, s)); } catch { /* ignore */ } }
 }
 
 export function dot(a, b) {

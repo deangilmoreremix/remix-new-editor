@@ -33,6 +33,17 @@ export const VIDEO_EXTEND_MODELS = {
 
 export const DEFAULT_EXTEND_MODEL = 'ltx-2.3-video-extend';
 
+/** One image → video (animate a storyboard frame). Fields from MuAPI's catalog. */
+export const IMAGE_TO_VIDEO_MODELS = {
+  'seedance-lite-i2v': { label: 'Seedance Lite', costUsd: 0.1, durations: [5, 10] },
+  'wan2.7-image-to-video': { label: 'Wan 2.7', costUsd: 0.1, durations: [5, 10] },
+  'kling-v2.1-standard-i2v': { label: 'Kling 2.1 Standard', costUsd: 0.225, durations: [5, 10] },
+  'seedance-v1.5-pro-i2v-fast': { label: 'Seedance 1.5 Pro Fast', costUsd: 0.26, durations: [5, 10] },
+  'veo3.1-lite-image-to-video': { label: 'Veo 3.1 Lite', costUsd: 0.3, durations: [4, 8] },
+};
+
+export const DEFAULT_IMAGE_TO_VIDEO_MODEL = 'seedance-lite-i2v';
+
 /** Image → layers. */
 export const LAYER_MODELS = {
   'bytedance-seedream-5.0-pro-layer': { label: 'Seedream 5.0 Pro Layers', costUsd: 0.045, needsPrompt: true },
@@ -105,6 +116,22 @@ export function buildExtendBeforePayload({ model, firstFrameUrl, prompt, duratio
     prompt: prompt || 'Lead-in shot that ends exactly on this frame. Natural motion, consistent lighting.',
     duration,
   });
+}
+
+/** Animate one still (storyboard frame) into a clip. Duration snaps to the model's allowed values. */
+export function buildImageToVideoPayload({ model, imageUrl, prompt, duration = 5 } = {}) {
+  const [id, info] = pick(IMAGE_TO_VIDEO_MODELS, model, DEFAULT_IMAGE_TO_VIDEO_MODEL, 'image-to-video');
+  const want = Number(duration) || info.durations[0];
+  const snapped = info.durations.reduce((a, b) => (Math.abs(b - want) < Math.abs(a - want) ? b : a));
+  return {
+    endpoint: `/${id}`,
+    payload: {
+      image_url: requireHttps(imageUrl, 'The frame'),
+      prompt: String(prompt || 'Subtle natural motion, cinematic camera movement.').slice(0, 2000),
+      duration: snapped,
+    },
+    model: id,
+  };
 }
 
 export function buildLayerPayload({ model, imageUrl, prompt } = {}) {
