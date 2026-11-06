@@ -6682,9 +6682,11 @@ export function TimelineEditorPage() {
     function openTemplateGeneratorModal(state, showToast) {
       try {
         const modal = new TemplateGeneratorModal({
-          onComplete: (result) => {
-            // Apply template to timeline
-            applyTemplateToTimeline(result, state);
+          // The wizard hands back a composition ({ tracks, transitions }); place it on this
+          // editor's own tracks at the playhead.
+          onConfirm: (result) => {
+            const n = applyCompositionToTimeline(result?.composition, state);
+            if (n) showToast(`Added ${n} clip${n === 1 ? '' : 's'} to the timeline`, 'success');
           },
           onError: (error) => console.log(`Template generation failed: ${error}`, 'error')
         });
@@ -7057,6 +7059,60 @@ export function TimelineEditorPage() {
         audioTrack.clips.push(newClip);
         renderTracks();
       }
+    }
+
+    /**
+     * Template Generator → timeline. Media clips go on the video track one after another
+     * from the playhead (credit kept, transitions stored on the outgoing clip); script
+     * captions and text elements go on text tracks. Returns the number of clips added.
+     */
+    function applyCompositionToTimeline(composition, st) {
+      if (!composition?.tracks?.length) return 0;
+      const T0 = st.timelineSeconds || 45;
+      const offset = Math.min((st.playheadPercent / 100) * T0, Math.max(0, T0 - 1));
+      const mk = (c, i, trackDef) => {
+        const start = offset + (Number(c.startTime) || 0);
+        const duration = Math.max(0.5, Number(c.duration) || 5);
+        const a = c.asset || {};
+        const base = { id: Date.now() + Math.floor(Math.random() * 1e6) + i, name: c.name || a.name || 'Clip', start, end: start + duration };
+        if (c.type === 'video' || c.type === 'image') {
+          return { ...base, type: c.type, src: a.url, poster: a.thumbnail, fit: 'cover', source: a.source || a.provider, credit: a.credit };
+        }
+        const text = String(c.text || c.name || '');
+        return { ...base, type: 'text', heading: text.slice(0, 40), body: text, caption: trackDef.name === 'Script' || c.type === 'caption' };
+      };
+      let count = 0;
+      let end = 0;
+      const placed = [];
+      composition.tracks.forEach((trackDef, ti) => {
+        const isMedia = (trackDef.clips || []).some((c) => c.type === 'video' || c.type === 'image');
+        if (trackDef.type === 'audio' && !isMedia) return; // audio is added from the editor's Audio tools
+        const trackName = isMedia ? videoTrackName() : (trackDef.name || 'Text');
+        const clips = [];
+        (trackDef.clips || []).forEach((c, i) => {
+          const clip = mk(c, count + i, trackDef);
+          if (!clip.src && clip.type !== 'text') return;
+          end = Math.max(end, clip.end);
+          clips.push(clip);
+        });
+        placed[ti] = clips;
+        if (!isMedia && !st.tracks.some((t) => t.name === trackName) && clips.length) {
+          st.tracks.push({ id: `track-tg-${Date.now().toString(36)}-${ti}`, type: 'text', name: trackName, muted: false, solo: false, locked: false, items: [] });
+        }
+        trackDef._hostTrack = trackName;
+      });
+      if (end > st.timelineSeconds) st.timelineSeconds = Math.ceil(end + 2);
+      placed.forEach((clips, ti) => clips?.forEach((clip) => {
+        insertClipIntoTrack(clip, composition.tracks[ti]._hostTrack);
+        count += 1;
+      }));
+      (composition.transitions || []).forEach((tr) => {
+        const clip = placed[typeof tr.inTrack === 'number' ? tr.inTrack : tr.trackIndex]?.[tr.fromClipIndex];
+        if (clip) clip.transition = { type: tr.type, duration: tr.duration || 1 };
+      });
+      renderTracks();
+      debouncedSave();
+      return count;
     }
 
     function applyTemplateToTimeline(templateData, state) {

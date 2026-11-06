@@ -1,1751 +1,1027 @@
 import { BaseModal } from './BaseModal.jsx';
 import { ALL_NICHE_TEMPLATES } from '../../lib/nicheTemplatesIndex.js';
-import { generateScript, rewriteScript, shortenScript, expandScript, applyCta, changeTone, changeAudience } from '../../lib/editor/scriptAiService.js';
-import { searchPixabay, normalizePixabayImage, normalizePixabayVideo, suggestPixabayQueries } from '../../lib/editor/pixabayService.js';
-import { generateImage, aspectRatioToSize, normalizeGeneratedImage, buildScenePromptContext } from '../../lib/editor/aiImageService.js';
+import { generateScript, rewriteScript, shortenScript, expandScript } from '../../lib/editor/scriptAiService.js';
+import { generateImage } from '../../lib/editor/aiImageService.js';
 import { buildCompositionFromState, buildPreviewFromState } from '../../lib/editor/templateCompositionBuilder.js';
 import { normalizeAsset } from '../../lib/editor/assetModel.js';
+import { TransitionsLibrary } from '../../lib/editor/transitionsLibrary.js';
+import { UPLOAD_LIMITS } from '../../lib/editor/uploadLimits.js';
+import * as pexelsApi from '../../lib/pexelsApi.js';
+import * as pixabayApi from '../../lib/pixabayApi.js';
+import { uploadFileToSupabase } from '../../lib/uploadService.js';
+import {
+  STEPS, STEP_LABELS, MAX_VIDEOS, createWizardState, guardStep, nextStepIndex, nextDisabled, nextLabel,
+  toggleVideo, toBuilderState, hasScript, sceneNames,
+} from './template-generator/rules.js';
+import {
+  PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
+} from './template-generator/stock.js';
+import { createPreviewPlayer, renderPlayerHTML, playlistFromPreview, formatTime } from './template-generator/preview.js';
+import '../../styles/template-generator.css';
 
 /**
- * TemplateGeneratorModal — Full multi-step workflow
+ * TemplateGeneratorModal — the original "Video Automation Creator" wizard, ported to the
+ * new Timeline editor.
  *
- * Replaces the legacy Yes/No shell with a complete 9-step template generation pipeline:
- *   1. Niche selection
- *   2. Script (select legacy / AI generate / rewrite / shorten / expand / tone / CTA)
- *   3. Template (with filters: industry, goal, platform, aspect ratio, duration, style)
- *   4. Media (scene-level: per-scene My Media / Pixabay / AI Generate tabs)
- *   5. Overlays (text, logo, CTA, lower third, captions, stickers, lead form, interactive)
- *   6. Voice (TTS provider abstraction, presets, personalization tokens)
- *   7. Personalization (contact preview, token resolution)
- *   8. Preview (real playable composition built from the same builder used for insertion)
- *   9. Add to Timeline (uses TimelineFeatureApi.applyTemplate — single transactional undo)
+ *   Start screen ("Do you want to use the Video Automation Creator?")
+ *   1. Video    — "Find Free videos": Pixabay, Pexels, Upload, Remote URL (+ AI Generate)
+ *   2. Script   — niche scripts, plus write / AI-write your own
+ *   3. Overlay  — transitions between the videos (needs 2+), plus text elements
+ *   4. Preview  — the assembled result, optional Voice + Personalization, Add to Timeline
  *
- * Uses TimelineFeatureApi for all timeline mutations so undo/redo and history work.
+ * The rules (max 5 videos, overlay needs 2+ videos, warnings, skipping Overlay) live in
+ * ./template-generator/rules.js and come straight from the original ModalContent.jsx.
+ * Rendering is one function; listeners are delegated and attached once, so stepping
+ * back and forth can never stack handlers or leave the header out of date.
  */
+
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const cssUrl = (u) => (/^(https?:|blob:|data:image|\/)/i.test(String(u || ''))
+  ? `url('${String(u).replace(/['"()\\<>\n\r]/g, (c) => `%${c.charCodeAt(0).toString(16).padStart(2, '0')}`)}')`
+  : 'none');
+const ICON = (name) => `/static/svgImages/template-generator/${name}.svg`;
+const STEP_ICONS = ['niche-templates-icon', 'niche-scripts-icon', 'overlays-icon', 'preview-icon'];
+
+const PROVIDER_BLURB = {
+  pixabay: 'Free videos, photos, illustrations and vectors from Pixabay.',
+  pexels: 'Free videos, photos and curated collections from Pexels.',
+  upload: 'Use your own videos and images.',
+  remote: 'Paste a link to a video or image.',
+  ai: 'Generate an image with AI (uses your OpenAI key).',
+};
+const TRANSITION_CATEGORY_LABELS = { fade: 'Fade', wipe: 'Wipe', push: 'Push', zoom: 'Zoom', iris: 'Iris', shape: 'Shape' };
+
 export class TemplateGeneratorModal extends BaseModal {
   constructor(options = {}) {
-    super({
-      title: 'Template Generator',
-      size: 'large',
-      ...options
-    });
+    super({ title: 'Template Generator', size: 'full', showFooter: false, ...options });
 
-    this.step = 1;
-    this.maxStep = 9;
-    this.data = {
-      niche: null,
-      script: { text: '', tone: 'conversational', audience: 'general', cta: '' },
-      template: null,
-      selectedTemplate: null,
-      media: [],
-      mediaByScene: [],       // [{ sceneName: string, sceneIndex: number, media: Asset[], mediaType: 'image'|'video' }]
-      transitions: [],
-      overlays: [],
-      voice: { enabled: false, provider: 'openai', voice: 'alloy', text: '', instructions: '' },
-      personalization: { enabled: false, contactId: null, tokens: {} }
-    };
+    this.timelineApi = options.timelineApi || null;
+    this.s = createWizardState();
+    this.stock = options.stockSearch || createStockClient({ pexels: pexelsApi, pixabay: pixabayApi });
 
-    // Transient UI state for media step
-    this._mediaUiState = {
-      activeSceneIndex: 0,
-      activeTab: 'library',
-      pixabayResults: [],
-      pixabayQuery: '',
-      pixabayLoading: false,
-      generatedResults: [],
-      generateLoading: false,
-      generatePrompt: '',
-      editingSceneIndex: null,
-      editingResultIndex: null,
-      editReferenceUrl: null,
-      editInstruction: '',
-    };
-
-    // Preview playback state
-    this._previewState = {
-      playing: false,
-      currentTime: 0,
-      duration: 0,
+    this.ui = {
+      safariAccepted: false,
+      provider: 'pixabay',
+      filter: 'videos',
+      query: '',
+      results: [],
+      collections: null,
+      collectionId: null,
+      collectionTitle: '',
+      page: 1,
+      hasMore: false,
       loading: false,
       error: null,
+      uploads: [],
+      uploadStatus: '',
+      remoteUrl: '',
+      remoteError: '',
+      remoteItems: [],
+      aiPrompt: '',
+      aiLoading: false,
+      aiError: '',
+      aiResults: [],
+      scriptQuery: '',
+      scriptNiche: 'all',
+      scriptBusy: '',
+      scriptError: '',
+      overlayTab: 'transitions',
+      overlayQuery: '',
+      overlayCategory: 'all',
+      popup: null,       // { kind: 'video'|'script', id }
+      openPanels: {},    // 'voice' | 'personalization'
+      busy: false,
+      toast: '',
     };
 
-    // Timeline API reference (passed by the host studio)
-    this.timelineApi = options.timelineApi || null;
+    const lib = new TransitionsLibrary();
+    this.transitions = Object.entries(lib.transitions).map(([id, t]) => ({ id, name: t.name, category: t.category, icon: t.icon, description: t.description }));
+    this.niches = [...new Set(ALL_NICHE_TEMPLATES.map((t) => t.niche).filter(Boolean))];
+    this.itemsById = new Map();
+    this._player = null;
+    this._searchTimer = null;
+    this._searchToken = 0;
+    this._toastTimer = null;
+  }
 
-    // Cached composition for preview (rebuilt from state, never mutates TimelineState)
-    this._cachedComposition = null;
+  // ----------------------------------------------------------------- shell
+
+  open() {
+    super.open();
+    this.overlay?.classList.add('tg-overlay');
+  }
+
+  destroy() {
+    this._destroyPlayer();
+    clearTimeout(this._searchTimer);
+    clearTimeout(this._toastTimer);
+    super.destroy();
   }
 
   renderBody() {
-    return `
-      <div class="template-gen-workflow">
-        <div class="tg-progress-bar">
-          ${this.renderProgressSteps()}
-        </div>
-        <div class="tg-step-content" id="tg-step-content">
-          ${this.renderStep()}
-        </div>
-        <div class="tg-nav-buttons">
-          <button class="tg-btn tg-btn-secondary" id="tg-back" ${this.step === 1 ? 'disabled' : ''}>
-            ← Back
-          </button>
-          <div class="tg-step-info">Step ${this.step} of ${this.maxStep}</div>
-          <button class="tg-btn tg-btn-primary" id="tg-next" ${this.step === this.maxStep ? 'id="tg-finish"' : ''}>
-            ${this.step === this.maxStep ? 'Add to Timeline' : 'Next →'}
-          </button>
-        </div>
-      </div>
-    `;
+    return `<div class="tg-root">${this.s.started ? this.renderWizard() : this.renderStart()}</div>`;
   }
 
-  renderProgressSteps() {
-    const steps = ['Niche', 'Script', 'Template', 'Media', 'Overlays', 'Voice', 'Personalization', 'Preview', 'Add to Timeline'];
-    return steps.map((label, i) => {
-      const num = i + 1;
-      const active = num === this.step;
-      const done = num < this.step;
-      return `<div class="tg-step-pill ${active ? 'active' : ''} ${done ? 'done' : ''}" data-step="${num}">
-        <span class="tg-step-num">${done ? '✓' : num}</span>
-        <span class="tg-step-label">${label}</span>
+  renderFooter() { return ''; }
+
+  /** Repaint the whole modal body (tabs, step, Next button). Listeners are delegated: nothing to rebind. */
+  paint() {
+    this._destroyPlayer();
+    this.setBodyContent(this.renderBody());
+    this._afterPaint();
+  }
+
+  _afterPaint() {
+    if (this.s.started && this.s.step === STEPS.PREVIEW) this._mountPlayer();
+    if (this.ui.toast) this._showToast(this.ui.toast, true);
+  }
+
+  // ----------------------------------------------------------- start screen
+
+  renderStart() {
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    const isSafari = ua.includes('Safari') && !ua.includes('Chrome') && !ua.includes('Chromium');
+    if (isSafari && !this.ui.safariAccepted) {
+      return `
+        <div class="tg-start template-generator-modal">
+          <div class="generator-offer__warning">
+            <span class="generator-offer__warning-text">We recommend using <a class="generator-offer__warning-link" href="https://www.google.com/chrome/" target="_blank" rel="noopener">Google Chrome</a> for the best experience.</span>
+            <p class="generator-offer__warning-small-text">Some effects and video previews may not work in Safari.</p>
+          </div>
+          <button type="button" class="generator-offer__btn generator-offer__yes" data-act="safari-accept">Accept</button>
+        </div>`;
+    }
+    return `
+      <div class="tg-start template-generator-modal">
+        <div class="generator-offer__text-box"><p class="generator-offer__text">Do you want to use the Video Automation Creator?</p></div>
+        <img class="generator-img" src="/static/images/generator.svg" alt="" width="133" height="86">
+        <div class="generator-offer__btns">
+          <button type="button" class="generator-offer__btn generator-offer__yes" data-act="start">Yes</button>
+          <button type="button" class="generator-offer__btn generator-offer__no" data-act="decline">No, thanks</button>
+        </div>
       </div>`;
-    }).join('');
+  }
+
+  // ------------------------------------------------------------ wizard shell
+
+  renderWizard() {
+    const { step } = this.s;
+    const disabled = nextDisabled(this.s, step, this.ui.busy);
+    return `
+      <div class="template-generator-modal content tg-wizard">
+        <div class="template-generator-header" role="tablist" aria-label="Template steps">
+          ${STEP_LABELS.map((label, i) => `
+            <button type="button" role="tab" aria-selected="${i === step}" class="header-tabs__item${i === step ? ' header-tabs__item--active' : ''}" data-act="tab" data-step="${i}">
+              <img src="${ICON(STEP_ICONS[i])}" alt="" width="19" height="19"><span>${label}</span>
+            </button>`).join('')}
+        </div>
+        <div class="generator-body">
+          <div class="extra-container">
+            <button type="button" class="btn-add next-button${disabled ? ' disabled' : ''}" id="tg-next" data-act="next" ${disabled ? 'disabled' : ''}>${this.ui.busy ? 'Adding…' : nextLabel(step)}</button>
+          </div>
+          <div class="tg-step" id="tg-step">${this.renderStep()}</div>
+        </div>
+        <div class="tg-toast" id="tg-toast" role="status" aria-live="polite" hidden></div>
+        <div class="tg-popup-host" id="tg-popup">${this.renderPopup()}</div>
+      </div>`;
   }
 
   renderStep() {
-    switch (this.step) {
-      case 1: return this.renderStep1Niche();
-      case 2: return this.renderStep2Script();
-      case 3: return this.renderStep3Template();
-      case 4: return this.renderStep4Media();
-      case 5: return this.renderStep5Overlays();
-      case 6: return this.renderStep6Voice();
-      case 7: return this.renderStep7Personalization();
-      case 8: return this.renderStep8Preview();
-      case 9: return this.renderStep9AddToTimeline();
-      default: return '<div>Unknown step</div>';
+    switch (this.s.step) {
+      case STEPS.SCRIPT: return this.renderScriptStep();
+      case STEPS.OVERLAY: return this.renderOverlayStep();
+      case STEPS.PREVIEW: return this.renderPreviewStep();
+      default: return this.renderVideoStep();
     }
   }
 
-  // Step 1: Niche selection
-  renderStep1Niche() {
-    const niches = [...new Set(ALL_NICHE_TEMPLATES.map(t => t.niche).filter(Boolean))];
-    return `
-      <h3>Choose Your Niche</h3>
-      <p class="tg-step-desc">Select the industry that best matches your content.</p>
-      <div class="tg-niche-grid">
-        ${niches.map(n => `
-          <button class="tg-niche-card ${this.data.niche === n ? 'selected' : ''}" data-niche="${n}">
-            <span class="tg-niche-icon">🎯</span>
-            <span class="tg-niche-name">${n}</span>
-          </button>
-        `).join('')}
-      </div>
-    `;
-  }
+  // ------------------------------------------------------------- Video step
 
-  // Step 2: Script
-  renderStep2Script() {
+  renderVideoStep() {
+    const u = this.ui;
     return `
-      <h3>Write or Generate Your Script</h3>
-      <p class="tg-step-desc">Use a legacy script, write your own, or let AI help.</p>
-      <div class="tg-script-tools">
-        <div class="tg-form-group">
-          <label>Script Text</label>
-          <textarea id="tg-script-text" class="tg-textarea" rows="6" placeholder="Enter your script here, or use AI tools below...">${this.data.script.text}</textarea>
-        </div>
-        <div class="tg-form-row">
-          <div class="tg-form-group">
-            <label>Tone</label>
-            <select id="tg-script-tone" class="tg-select">
-              ${['conversational', 'professional', 'energetic', 'warm', 'dramatic', 'tutorial', 'commercial']
-                .map(t => `<option value="${t}" ${this.data.script.tone === t ? 'selected' : ''}>${t.charAt(0).toUpperCase() + t.slice(1)}</option>`).join('')}
-            </select>
+      <div class="tg-video">
+        <aside class="library__block template__block tg-providers">
+          <span>Find Free videos</span>
+          <div class="library__block-sidebar"><div class="library__btn-container">
+            ${PROVIDERS.map(([id, name]) => `
+              <button type="button" class="library__btn-item${u.provider === id ? ' library__btn-active' : ''}" data-act="provider" data-id="${id}" title="${esc(PROVIDER_BLURB[id])}"><p>${name}</p></button>`).join('')}
+          </div></div>
+        </aside>
+        <section class="tg-video-main">
+          <div class="search">
+            <h4 class="search-title">Choose your videos <span class="tg-count" id="tg-count">${this.s.selectedVideos.length}/${MAX_VIDEOS}</span></h4>
+            ${this.renderProviderControls()}
           </div>
-          <div class="tg-form-group">
-            <label>Audience</label>
-            <select id="tg-script-audience" class="tg-select">
-              ${['general', 'business', 'consumer', 'youth', 'professionals', 'creators']
-                .map(a => `<option value="${a}" ${this.data.script.audience === a ? 'selected' : ''}>${a.charAt(0).toUpperCase() + a.slice(1)}</option>`).join('')}
-            </select>
-          </div>
-        </div>
-        <div class="tg-form-group">
-          <label>Call to Action</label>
-          <input type="text" id="tg-script-cta" class="tg-input" placeholder="e.g., Book your free consultation today" value="${this.data.script.cta}">
-        </div>
-        <div class="tg-ai-tools">
-          <button class="tg-btn tg-btn-ai" id="tg-ai-generate">✨ AI Generate</button>
-          <button class="tg-btn tg-btn-ai" id="tg-ai-rewrite">🔄 Rewrite</button>
-          <button class="tg-btn tg-btn-ai" id="tg-ai-shorten">📝 Shorten</button>
-          <button class="tg-btn tg-btn-ai" id="tg-ai-expand">📖 Expand</button>
-        </div>
-      </div>
-    `;
+          <div class="generator-list video-list"><div class="list-items" id="tg-list">${this.renderProviderList()}</div></div>
+          ${this.renderSelectedStrip()}
+          ${STOCK_HOME[u.provider] ? `<p class="tg-attribution">Provided by <a href="${STOCK_HOME[u.provider]}" target="_blank" rel="noopener">${u.provider === 'pexels' ? 'Pexels' : 'Pixabay'}</a>. Credit is kept with each clip.</p>` : ''}
+        </section>
+      </div>`;
   }
 
-  // Step 3: Template selection with filters
-  renderStep3Template() {
-    const templates = this.data.niche
-      ? ALL_NICHE_TEMPLATES.filter(t => t.niche === this.data.niche)
-      : ALL_NICHE_TEMPLATES;
-    return `
-      <h3>Choose a Template</h3>
-      <p class="tg-step-desc">Select a template that fits your content style.</p>
-      <div class="tg-template-filters">
-        <input type="text" id="tg-template-search" class="tg-input" placeholder="Search templates...">
-        <select id="tg-template-aspect" class="tg-select">
-          <option value="">All Aspect Ratios</option>
-          <option value="16:9">16:9 (Landscape)</option>
-          <option value="9:16">9:16 (Portrait/Story)</option>
-          <option value="1:1">1:1 (Square)</option>
-        </select>
-        <select id="tg-template-duration" class="tg-select">
-          <option value="">All Durations</option>
-          <option value="short">Under 30s</option>
-          <option value="medium">30s-60s</option>
-          <option value="long">60s+</option>
-        </select>
-      </div>
-      <div class="tg-template-grid" id="tg-template-grid">
-        ${templates.slice(0, 12).map(t => `
-          <button class="tg-template-card ${this.data.template?.id === t.id ? 'selected' : ''}" data-template-id="${t.id}">
-            <div class="tg-template-thumb">${t.thumbnail || '🎬'}</div>
-            <div class="tg-template-name">${t.name || t.id}</div>
-            <div class="tg-template-meta">${t.niche || ''}</div>
-          </button>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  /**
-   * Get the full template object from ALL_NICHE_TEMPLATES by ID.
-   */
-  getFullTemplate() {
-    if (!this.data.template?.id) return null;
-    return ALL_NICHE_TEMPLATES.find(t => t.id === this.data.template.id) || null;
-  }
-
-  /**
-   * Get the scene structure for the selected template.
-   * Falls back to a default 5-scene structure if the template has no sceneStructure.
-   */
-  getSceneStructure() {
-    const tpl = this.getFullTemplate();
-    if (tpl?.sceneStructure && Array.isArray(tpl.sceneStructure) && tpl.sceneStructure.length > 0) {
-      return tpl.sceneStructure;
-    }
-    // Default fallback scenes
-    return ['Opening', 'Main content', 'Transition', 'Highlight', 'Closing CTA'];
-  }
-
-  /**
-   * Ensure mediaByScene is initialized for the current template's scenes.
-   */
-  ensureSceneMediaState() {
-    const scenes = this.getSceneStructure();
-    if (!this.data.mediaByScene || this.data.mediaByScene.length !== scenes.length) {
-      this.data.mediaByScene = scenes.map((sceneName, i) => ({
-        sceneName,
-        sceneIndex: i,
-        media: null,
-        mediaType: 'video',
-        status: 'empty', // 'empty' | 'loading' | 'ready' | 'error'
-      }));
-    }
-    return this.data.mediaByScene;
-  }
-
-  // Step 4: Media (scene-level)
-  renderStep4Media() {
-    const scenes = this.getSceneStructure();
-    this.ensureSceneMediaState();
-
-    return `
-      <h3>Assign Media Per Scene</h3>
-      <p class="tg-step-desc">Each scene in your template needs its own media. Switch between scenes to assign media individually.</p>
-      ${this.renderSceneTabs(scenes)}
-      ${this.renderSceneMediaPanel(scenes)}
-    `;
-  }
-
-  /**
-   * Render scene navigation tabs.
-   */
-  renderSceneTabs(scenes) {
-    const activeIdx = this._mediaUiState.activeSceneIndex;
-    return `
-      <div class="tg-scene-tabs">
-        ${scenes.map((scene, i) => {
-          const isActive = i === activeIdx;
-          const slot = this.data.mediaByScene[i] || {};
-          const hasMedia = slot.status === 'ready';
-          const statusDot = hasMedia ? 'tg-dot-ready' : 'tg-dot-empty';
-          return `
-            <button class="tg-scene-tab ${isActive ? 'active' : ''}" data-scene-index="${i}">
-              <span class="tg-scene-tab-name">Scene ${i + 1}: ${scene}</span>
-              <span class="tg-scene-status-dot ${statusDot}"></span>
-            </button>
-          `;
-        }).join('')}
-      </div>
-    `;
-  }
-
-  /**
-   * Render the full media panel for the active scene.
-   */
-  renderSceneMediaPanel(scenes) {
-    const activeIdx = this._mediaUiState.activeSceneIndex;
-    const scene = scenes[activeIdx] || `Scene ${activeIdx + 1}`;
-    const slot = this.data.mediaByScene[activeIdx] || {};
-    const activeTab = this._mediaUiState.activeTab;
-    const isEditing = this._mediaUiState.editingSceneIndex !== null;
-
-    // If editing, show the edit panel instead of normal tabs
-    if (isEditing && this._mediaUiState.editingSceneIndex === activeIdx) {
+  renderProviderControls() {
+    const u = this.ui;
+    if (u.provider === 'pixabay' || u.provider === 'pexels') {
+      const filters = MEDIA_FILTERS[u.provider];
       return `
-        <div class="tg-scene-media-panel">
-          <div class="tg-scene-header">
-            <h4>Scene ${activeIdx + 1}: <span class="tg-scene-name">${scene}</span></h4>
-            <span class="tg-scene-media-status editing">✏️ Editing image</span>
-          </div>
-          ${this.renderEditImagePanel(scene, activeIdx)}
+        <div class="tg-chips" role="group" aria-label="Media type">
+          ${filters.map(([id, label]) => `<button type="button" class="tg-chip${u.filter === id ? ' is-active' : ''}" data-act="filter" data-id="${id}">${label}</button>`).join('')}
         </div>
-      `;
+        ${u.filter === 'collections' ? '' : `
+          <div class="library__search-box search-box tg-searchbox">
+            <span aria-hidden="true">🔍</span>
+            <input type="search" id="tg-query" data-query="stock" placeholder="${u.filter === 'videos' ? 'Search free videos…' : 'Search free images…'}" value="${esc(u.query)}" autocomplete="off" aria-label="Search">
+          </div>`}`;
     }
-
-    return `
-      <div class="tg-scene-media-panel">
-        <div class="tg-scene-header">
-          <h4>Scene ${activeIdx + 1}: <span class="tg-scene-name">${scene}</span></h4>
-          <span class="tg-scene-media-status ${slot.status || 'empty'}">
-            ${slot.status === 'ready' ? '✓ Media assigned' : slot.status === 'loading' ? '⏳ Loading...' : '○ No media assigned'}
-          </span>
-        </div>
-
-        ${slot.status === 'ready' && slot.media ? this.renderMediaPreview(slot, scene, activeIdx) : ''}
-
-        <div class="tg-media-tabs">
-          <button class="tg-media-tab ${activeTab === 'library' ? 'active' : ''}" data-media-tab="library">📁 My Media</button>
-          <button class="tg-media-tab ${activeTab === 'stock' ? 'active' : ''}" data-media-tab="stock">🖼️ Stock (Pixabay)</button>
-          <button class="tg-media-tab ${activeTab === 'generate' ? 'active' : ''}" data-media-tab="generate">✨ AI Generate</button>
-        </div>
-
-        <div class="tg-media-tab-content" id="tg-media-tab-content">
-          ${this.renderMediaTabPanel(activeTab, scene, activeIdx)}
-        </div>
-      </div>
-    `;
-  }
-
-  /**
-   * Render the currently selected media tab panel.
-   */
-  renderMediaTabPanel(activeTab, scene, sceneIndex) {
-    switch (activeTab) {
-      case 'library':
-        return this.renderMediaLibraryPanel(scene, sceneIndex);
-      case 'stock':
-        return this.renderStockMediaPanel(scene, sceneIndex);
-      case 'generate':
-        return this.renderGenerateMediaPanel(scene, sceneIndex);
-      default:
-        return '<p class="tg-empty-state">Select a media source.</p>';
-    }
-  }
-
-  /**
-   * My Media library panel — lists existing media assets.
-   */
-  renderMediaLibraryPanel(scene, sceneIndex) {
-    const hasMedia = this.data.media.length > 0;
-    if (!hasMedia) {
+    if (u.provider === 'upload') {
       return `
-        <div class="tg-media-tab-panel">
-          <p class="tg-empty-state">No media in your library yet. Try the Stock or AI Generate tabs to add media.</p>
+        <div class="tg-dropzone" data-act="upload-click" role="button" tabindex="0">
+          <b>⬆ Upload videos or images</b>
+          <span>Click or drop files here · images up to ${Math.round(UPLOAD_LIMITS.image / 1048576)} MB, videos up to ${Math.round(UPLOAD_LIMITS.video / 1048576)} MB</span>
+          <input type="file" id="tg-file" multiple accept="video/*,image/*" hidden>
         </div>
-      `;
+        ${u.uploadStatus ? `<p class="tg-status">${esc(u.uploadStatus)}</p>` : ''}`;
+    }
+    if (u.provider === 'remote') {
+      return `
+        <div class="library__search-box search-box tg-searchbox">
+          <input type="url" id="tg-remote-url" placeholder="https://… link to a video or image" value="${esc(u.remoteUrl)}" aria-label="Link to a video or image">
+          <button type="button" class="tg-chip is-active" data-act="remote-add">Add</button>
+        </div>
+        ${u.remoteError ? `<p class="tg-status tg-status--error">${esc(u.remoteError)}</p>` : ''}`;
     }
     return `
-      <div class="tg-media-tab-panel">
-        <div class="tg-media-grid" id="tg-media-library-grid">
-          ${this.data.media.map((m, i) => `
-            <button class="tg-media-card" data-media-index="${i}" data-scene-index="${sceneIndex}">
-              <img class="tg-stock-thumb" src="${m.thumbnail || m.url}" alt="${m.name || 'Media'}">
-              <span class="tg-media-card-label">${m.name || `Media ${i + 1}`}</span>
-            </button>
-          `).join('')}
-        </div>
+      <div class="library__search-box search-box tg-searchbox">
+        <input type="text" id="tg-ai-prompt" data-bind="ui.aiPrompt" placeholder="Describe the image you want…" value="${esc(u.aiPrompt)}" aria-label="Image prompt">
+        <button type="button" class="tg-chip is-active" data-act="ai-generate" ${u.aiLoading ? 'disabled' : ''}>${u.aiLoading ? 'Generating…' : '✨ Generate'}</button>
       </div>
-    `;
+      ${u.aiError ? `<p class="tg-status tg-status--error">${esc(u.aiError)}</p>` : ''}`;
   }
 
-  /**
-   * Stock media panel — Pixabay search with per-scene query suggestions.
-   */
-  renderStockMediaPanel(scene, sceneIndex) {
-    const loading = this._mediaUiState.pixabayLoading;
-    const results = this._mediaUiState.pixabayResults;
-    const suggestions = suggestPixabayQueries({ niche: this.data.niche, script: this.data.script.text });
-
-    return `
-      <div class="tg-media-tab-panel">
-        <div class="tg-stock-search-bar">
-          <input type="text" id="tg-pixabay-query" class="tg-input" placeholder="Search stock media..." value="${this._mediaUiState.pixabayQuery || ''}">
-          <button class="tg-btn tg-btn-ai" id="tg-pixabay-search-btn" ${loading ? 'disabled' : ''}>
-            ${loading ? '⏳' : '🔍'} Search
-          </button>
-        </div>
-        ${suggestions.length > 0 ? `
-          <div class="tg-suggestions">
-            ${suggestions.map(q => `<button class="tg-suggestion-chip" data-suggestion="${q}">${q}</button>`).join('')}
-          </div>
-        ` : ''}
-        ${loading ? `
-          <div class="tg-loading-indicator">
-            <div class="tg-spinner"></div>
-            <span>Searching Pixabay...</span>
-          </div>
-        ` : results.length > 0 ? `
-          <div class="tg-media-grid" id="tg-stock-results-grid">
-            ${results.map(r => {
-              const norm = r.type === 'video' ? normalizePixabayVideo(r) : normalizePixabayImage(r);
-              return `
-                <button class="tg-media-card" data-stock-id="${r.id}" data-scene-index="${sceneIndex}" data-stock-type="${r.type || 'image'}">
-                  <img class="tg-stock-thumb" src="${norm.thumbnail}" alt="${norm.name}">
-                  <span class="tg-media-card-label">${norm.name}</span>
-                </button>
-              `;
-            }).join('')}
-          </div>
-        ` : `<p class="tg-empty-state">Search for stock media for this scene.</p>`}
-      </div>
-    `;
+  /** Items shown for the active provider. */
+  providerItems() {
+    const u = this.ui;
+    if (u.provider === 'upload') return u.uploads;
+    if (u.provider === 'remote') return u.remoteItems;
+    if (u.provider === 'ai') return u.aiResults;
+    return u.results;
   }
 
-  /**
-   * AI Generate panel — GPT-Image-2 with context-aware prompts.
-   */
-  renderGenerateMediaPanel(scene, sceneIndex) {
-    const loading = this._mediaUiState.generateLoading;
-    const results = this._mediaUiState.generatedResults;
-    const ctx = buildScenePromptContext({
-      niche: this.data.niche,
-      scene,
-      aspectRatio: '16:9',
-    });
-    const suggestedPrompt = `Scene: ${scene}. ${ctx}`;
-
-    return `
-      <div class="tg-media-tab-panel">
-        <div class="tg-form-group">
-          <label>Scene Prompt</label>
-          <textarea id="tg-generate-prompt" class="tg-textarea" rows="4" placeholder="Describe the scene visually...">${this._mediaUiState.generatePrompt || suggestedPrompt}</textarea>
-        </div>
-        <div class="tg-form-row">
-          <div class="tg-form-group">
-            <label>Media Type</label>
-            <select id="tg-generate-type" class="tg-select">
-              <option value="image">Image</option>
-              <option value="video">Video (stock replacement)</option>
-            </select>
-          </div>
-          <div class="tg-form-group">
-            <label>Quality</label>
-            <select id="tg-generate-quality" class="tg-select">
-              <option value="auto">Auto</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-        </div>
-        <button class="tg-btn tg-btn-ai" id="tg-generate-btn" ${loading ? 'disabled' : ''}>
-          ${loading ? '⏳ Generating...' : '✨ Generate Image'}
-        </button>
-        ${loading ? `
-          <div class="tg-loading-indicator">
-            <div class="tg-spinner"></div>
-            <span>Generating with GPT-Image-2...</span>
-          </div>
-        ` : results.length > 0 ? `
-          <div class="tg-media-grid" id="tg-generated-results-grid">
-            ${results.map((r, i) => this.renderGeneratedImageCard(r, i, scene, sceneIndex)).join('')}
-          </div>
-        ` : ''}
-      </div>
-    `;
+  renderProviderList() {
+    const u = this.ui;
+    if ((u.provider === 'pexels') && u.filter === 'collections' && !u.collectionId) return this.renderCollections();
+    const items = this.providerItems();
+    const cards = items.map((it) => this.renderVideoCard(it)).join('');
+    let tail = '';
+    if (u.loading) tail = '<div class="tg-loading" aria-busy="true">Loading…</div>';
+    else if (u.error) tail = `<div class="tg-empty tg-empty--error">${esc(u.error)}</div>`;
+    else if (!items.length) tail = `<div class="tg-empty">${this.emptyText()}</div>`;
+    else if (u.hasMore && (u.provider === 'pixabay' || u.provider === 'pexels')) tail = '<button type="button" class="tg-more" data-act="load-more">Load more</button>';
+    const back = u.collectionId ? `<button type="button" class="tg-chip tg-back" data-act="collections-back">← ${esc(u.collectionTitle || 'Collections')}</button>` : '';
+    return `${back}${cards}${tail}`;
   }
 
-  /**
-   * Render a generated image result card with "Edit with AI" support.
-   */
-  renderGeneratedImageCard(result, index, scene, sceneIndex) {
-    const asset = normalizeGeneratedImage(result);
-    const thumb = asset.thumbnail || asset.url;
-    return `
-      <div class="tg-generated-card" data-result-index="${index}" data-scene-index="${sceneIndex}">
-        <img class="tg-stock-thumb" src="${thumb}" alt="Generated result ${index + 1}">
-        <div class="tg-generated-card-actions">
-          <button class="tg-btn tg-btn-sm tg-btn-secondary" data-select-generated="${index}" data-scene-index="${sceneIndex}">
-            ✓ Use This
-          </button>
-          <button class="tg-btn tg-btn-sm tg-btn-ai" data-edit-image="${index}" data-scene-index="${sceneIndex}">
-            ⚙️ Edit
-          </button>
-        </div>
-        ${result.revisedPrompt ? `<div class="tg-revised-prompt">Refined: ${result.revisedPrompt.slice(0, 80)}...</div>` : ''}
-      </div>
-    `;
+  emptyText() {
+    const u = this.ui;
+    if (u.provider === 'upload') return 'No uploads yet. Add your own videos or images above.';
+    if (u.provider === 'remote') return 'Paste a link above to add a video or image.';
+    if (u.provider === 'ai') return 'Describe an image above and generate it.';
+    return u.query ? 'Nothing found. Try another search.' : 'Nothing to show yet.';
   }
 
-  /**
-   * Render the media preview for a scene that has media assigned,
-   * including the "Edit with AI" button.
-   */
-  renderMediaPreview(slot, scene, sceneIndex) {
-    const m = slot.media;
-    const thumb = m.thumbnail || m.url;
-    return `
-      <div class="tg-scene-media-preview">
-        <img class="tg-preview-thumb" src="${thumb}" alt="${m.name || scene}">
-        <div class="tg-preview-info">
-          <span class="tg-preview-name">${m.name || scene}</span>
-          <span class="tg-preview-source">${m.provider || m.source || 'unknown'}</span>
-        </div>
-        <div class="tg-preview-actions">
-          <button class="tg-btn tg-btn-sm tg-btn-secondary" data-clear-scene="${sceneIndex}">✕ Change</button>
-          ${m.source === 'openai' ? `
-            <button class="tg-btn tg-btn-sm tg-btn-ai" data-edit-assigned="${sceneIndex}">⚙️ Edit</button>
-          ` : ''}
-        </div>
-      </div>
-    `;
+  renderCollections() {
+    const u = this.ui;
+    if (u.loading) return '<div class="tg-loading" aria-busy="true">Loading…</div>';
+    if (u.error) return `<div class="tg-empty tg-empty--error">${esc(u.error)}</div>`;
+    if (!u.collections?.length) return '<div class="tg-empty">No collections found.</div>';
+    return u.collections.map((c) => `
+      <button type="button" class="niche-script tg-collection" data-act="collection" data-id="${esc(c.id)}" data-title="${esc(c.title)}">
+        <span class="niche-script__title"><img class="niche-script__title-icon" src="${ICON('niche-script')}" alt=""><span>${esc(c.title)}</span></span>
+        <span class="tg-meta">${esc(c.count ?? '')} items</span>
+      </button>`).join('');
   }
 
-  // Step 5: Overlays
-  renderStep5Overlays() {
-    const overlayTypes = [
-      { id: 'text', label: 'Text', icon: '📝' },
-      { id: 'logo', label: 'Logo', icon: '🏷️' },
-      { id: 'cta', label: 'CTA Button', icon: '🔘' },
-      { id: 'lower-third', label: 'Lower Third', icon: '📊' },
-      { id: 'caption', label: 'Captions', icon: '💬' },
-      { id: 'sticker', label: 'Sticker', icon: '⭐' },
-      { id: 'lead-form', label: 'Lead Form', icon: '📋' },
-      { id: 'interactive', label: 'Interactive', icon: '👆' }
-    ];
+  renderVideoCard(it) {
+    this.itemsById.set(it.id, it);
+    const selected = this.s.selectedVideos.some((v) => v.id === it.id);
+    const badge = it.kind === 'video' ? `VIDEO${it.duration ? ` · ${formatTime(it.duration)}` : ''}` : 'PHOTO';
     return `
-      <h3>Add Overlays</h3>
-      <p class="tg-step-desc">Enhance your video with text, branding, and interactive elements.</p>
-      <div class="tg-overlay-grid">
-        ${overlayTypes.map(o => `
-          <button class="tg-overlay-card" data-overlay-type="${o.id}">
-            <span class="tg-overlay-icon">${o.icon}</span>
-            <span class="tg-overlay-label">${o.label}</span>
-          </button>
-        `).join('')}
-      </div>
-    `;
+      <div class="video-tile video__item video-element${selected ? ' active' : ''}" role="button" tabindex="0" aria-pressed="${selected}"
+           data-act="pick-video" data-id="${esc(it.id)}" style="background-image:${cssUrl(it.poster || it.preview)}" title="${esc(it.title)}">
+        ${selected ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
+        <span class="tg-badge">${esc(badge)}</span>
+        ${it.status === 'uploading' ? '<span class="tg-uploading">Uploading…</span>' : ''}
+        <div class="tg-card-title">${esc(it.title)}</div>
+        <button type="button" class="video__item__button tg-card-preview" data-act="preview-video" data-id="${esc(it.id)}">Preview</button>
+      </div>`;
   }
 
-  // Step 6: Voice (TTS)
-  renderStep6Voice() {
+  renderSelectedStrip() {
+    const sel = this.s.selectedVideos;
+    if (!sel.length) return '<p class="tg-hint">Pick up to 5 clips. Add more later in the timeline.</p>';
     return `
-      <h3>Add Voice Narration</h3>
-      <p class="tg-step-desc">Generate AI voice narration for your script.</p>
-      <div class="tg-voice-config">
-        <label class="tg-toggle">
-          <input type="checkbox" id="tg-voice-enabled" ${this.data.voice.enabled ? 'checked' : ''}>
-          <span>Enable AI Voice Narration</span>
-        </label>
-        <div class="tg-form-row">
-          <div class="tg-form-group">
-            <label>Provider</label>
-            <select id="tg-voice-provider" class="tg-select">
-              <option value="openai" ${this.data.voice.provider === 'openai' ? 'selected' : ''}>OpenAI TTS</option>
-            </select>
-          </div>
-          <div class="tg-form-group">
-            <label>Voice</label>
-            <select id="tg-voice-voice" class="tg-select">
-              ${['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
-                .map(v => `<option value="${v}" ${this.data.voice.voice === v ? 'selected' : ''}>${v.charAt(0).toUpperCase() + v.slice(1)}</option>`).join('')}
-            </select>
-          </div>
-        </div>
-        <div class="tg-form-group">
-          <label>Delivery Instructions</label>
-          <select id="tg-voice-preset" class="tg-select">
-            <option value="">Custom...</option>
-            <option value="conversational">Conversational</option>
-            <option value="professional">Professional</option>
-            <option value="warm">Warm</option>
-            <option value="energetic">Energetic</option>
-            <option value="calm">Calm</option>
-            <option value="dramatic">Dramatic</option>
-            <option value="whisper">Whisper</option>
-          </select>
-        </div>
-        <div class="tg-form-group">
-          <label>Custom Instructions</label>
-          <textarea id="tg-voice-instructions" class="tg-textarea" rows="3" placeholder="e.g., Speak with enthusiasm and pause for emphasis">${this.data.voice.instructions}</textarea>
-        </div>
-      </div>
-    `;
+      <div class="tg-selected" aria-label="Selected clips">
+        ${sel.map((it, i) => `
+          <span class="tg-selected__item"><b>${i + 1}</b> ${esc(it.title)}
+            <button type="button" aria-label="Remove ${esc(it.title)}" data-act="remove-video" data-id="${esc(it.id)}">✕</button></span>`).join('')}
+      </div>`;
   }
 
-  // Step 7: Personalization
-  renderStep7Personalization() {
-    return `
-      <h3>Personalization</h3>
-      <p class="tg-step-desc">Add personalization tokens to make this video unique for each viewer.</p>
-      <div class="tg-personalization-config">
-        <label class="tg-toggle">
-          <input type="checkbox" id="tg-pers-enabled" ${this.data.personalization.enabled ? 'checked' : ''}>
-          <span>Enable Personalization</span>
-        </label>
-        <div class="tg-token-list">
-          <p class="tg-section-label">Available Tokens:</p>
-          <div class="tg-tokens">
-            ${['{{first_name}}', '{{last_name}}', '{{company}}', '{{city}}', '{{industry}}', '{{offer}}', '{{email}}', '{{phone}}']
-              .map(t => `<code class="tg-token">${t}</code>`).join('')}
-          </div>
-          <p class="tg-hint">Click a token to copy it to clipboard.</p>
-        </div>
-        <button class="tg-btn tg-btn-secondary" id="tg-preview-as-contact">👤 Preview As Contact</button>
-      </div>
-    `;
+  // ------------------------------------------------------------ Script step
+
+  scriptCards() {
+    const q = this.ui.scriptQuery.trim().toLowerCase();
+    return ALL_NICHE_TEMPLATES.filter((t) => (this.ui.scriptNiche === 'all' || t.niche === this.ui.scriptNiche)
+      && (!q || `${t.name} ${t.description} ${t.niche}`.toLowerCase().includes(q)));
   }
 
-  // Step 8: Preview
-  renderStep8Preview() {
-    // Build the composition from the same builder used for insertion
-    // This creates a temporary derivation — never mutates TimelineState
-    this._cachedComposition = buildCompositionFromState(this.data);
-    const preview = buildPreviewFromState(this.data);
-    const totalMedia = this.data.mediaByScene.filter(s => s.status === 'ready').length;
-    const totalScenes = this.getSceneStructure().length;
-
-    // Get the ordered list of playable clips (video/image/audio) for the preview player
-    const playableClips = this._getPlayableClips(preview);
-
+  renderScriptStep() {
+    const u = this.ui;
+    const sc = this.s.script;
+    const sel = this.s.selectedScript;
     return `
-      <h3>Preview Your Composition</h3>
-      <p class="tg-step-desc">Review everything before adding to your timeline. Navigate back to edit.</p>
-
-      <div class="tg-preview-summary">
-        <div class="tg-summary-section">
-          <h4>📋 Configuration</h4>
-          <ul>
-            <li><strong>Niche:</strong> ${this.data.niche || 'Not selected'}</li>
-            <li><strong>Template:</strong> ${this.data.selectedTemplate?.name || 'Not selected'}</li>
-            <li><strong>Script:</strong> ${this.data.script.text ? this.data.script.text.substring(0, 100) + '...' : 'None'}</li>
-            <li><strong>Media per scene:</strong> ${totalMedia} / ${totalScenes} scenes assigned</li>
-            <li><strong>Transitions:</strong> ${preview.transitions.length} configured</li>
-            <li><strong>Overlays:</strong> ${this.data.overlays.length}</li>
-            <li><strong>Voice:</strong> ${this.data.voice.enabled ? this.data.voice.voice : 'Disabled'}</li>
-            <li><strong>Personalization:</strong> ${this.data.personalization.enabled ? 'Enabled' : 'Disabled'}</li>
-            <li><strong>Total duration:</strong> ${Math.round(preview.duration)}s</li>
-          </ul>
-        </div>
-
-        <div class="tg-preview-player-container">
-          ${this.renderPreviewPlayer(preview, playableClips)}
-          <div class="tg-preview-timeline">
-            <div class="tg-preview-track" id="tg-preview-track">
-              ${this.renderPreviewTrack(playableClips, preview.transitions)}
+      <div class="tg-script">
+        <div class="tg-script-left">
+          <div class="search">
+            <h4 class="search-title">Choose your script</h4>
+            <div class="library__search-box search-box tg-searchbox"><span aria-hidden="true">🔍</span>
+              <input type="search" id="tg-script-query" data-query="script" placeholder="Search scripts…" value="${esc(u.scriptQuery)}" aria-label="Search scripts"></div>
+            <div class="tg-chips">
+              <button type="button" class="tg-chip${u.scriptNiche === 'all' ? ' is-active' : ''}" data-act="niche" data-id="all">All</button>
+              ${this.niches.map((n) => `<button type="button" class="tg-chip${u.scriptNiche === n ? ' is-active' : ''}" data-act="niche" data-id="${esc(n)}">${esc(n)}</button>`).join('')}
             </div>
           </div>
+          <div class="generator-list niche-scripts-list"><div class="list-items" id="tg-script-list">${this.renderScriptCards()}</div></div>
         </div>
-
-        <div class="tg-preview-nav">
-          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-media">← Media</button>
-          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-script">← Script</button>
-          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-template">← Template</button>
-          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-overlays">← Overlays</button>
-          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-voice">← Voice</button>
-          <button class="tg-btn tg-btn-secondary tg-btn-sm" id="tg-preview-back-personalization">← Personalization</button>
-        </div>
-
-        <div class="tg-scene-breakdown">
-          <h4>📽️ Scene Media Breakdown</h4>
-          ${this.renderSceneBreakdown(preview)}
-        </div>
-      </div>
-    `;
+        <aside class="tg-script-right">
+          <h4>Your script ${sel ? `<span class="tg-meta">· ${esc(sel.name)}</span>` : ''}</h4>
+          <p class="tg-hint">Optional. Each line becomes a caption on its scene. Write your own or let AI help (uses your OpenAI key).</p>
+          <textarea id="tg-script-text" class="tg-textarea" rows="8" data-bind="s.script.text" placeholder="Write or paste your script here…">${esc(sc.text)}</textarea>
+          <div class="tg-form-row">
+            <label>Tone
+              <select data-bind="s.script.tone">${['conversational', 'professional', 'energetic', 'warm', 'dramatic', 'tutorial', 'commercial'].map((t) => `<option value="${t}"${sc.tone === t ? ' selected' : ''}>${t[0].toUpperCase() + t.slice(1)}</option>`).join('')}</select></label>
+            <label>Audience
+              <select data-bind="s.script.audience">${['general', 'business', 'consumer', 'youth', 'professionals', 'creators'].map((a) => `<option value="${a}"${sc.audience === a ? ' selected' : ''}>${a[0].toUpperCase() + a.slice(1)}</option>`).join('')}</select></label>
+          </div>
+          <label class="tg-field">Call to action
+            <input type="text" data-bind="s.script.cta" placeholder="e.g. Book your free consultation today" value="${esc(sc.cta)}"></label>
+          <div class="tg-ai-tools">
+            ${[['generate', '✨ Write with AI'], ['rewrite', '🔄 Rewrite'], ['shorten', '📝 Shorten'], ['expand', '📖 Expand']].map(([k, label]) => `<button type="button" class="tg-chip" data-act="ai-script" data-kind="${k}" ${u.scriptBusy ? 'disabled' : ''}>${u.scriptBusy === k ? '⏳ Working…' : label}</button>`).join('')}
+          </div>
+          ${u.scriptError ? `<p class="tg-status tg-status--error">${esc(u.scriptError)}</p>` : ''}
+        </aside>
+      </div>`;
   }
 
-  /**
-   * Get ordered list of playable clips from the preview descriptor.
-   */
-  _getPlayableClips(preview) {
-    const clips = [];
-    for (const track of (preview.tracks || [])) {
-      for (const clip of (track.clips || [])) {
-        if (clip.type === 'video' || clip.type === 'image' || clip.type === 'audio') {
-          if (clip.asset?.url || clip.asset?.src) {
-            clips.push(clip);
-          }
-        }
-      }
-    }
-    // Sort by startTime
-    return clips.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+  renderScriptCards() {
+    const cards = this.scriptCards();
+    if (!cards.length) return '<div class="tg-empty">No scripts match.</div>';
+    const activeId = this.s.selectedScript?.id;
+    return cards.map((t) => `
+      <div class="niche-script${t.id === activeId ? ' active' : ''}" role="button" tabindex="0" aria-pressed="${t.id === activeId}" data-act="script-pick" data-id="${esc(t.id)}" title="${esc(t.description)}">
+        ${t.id === activeId ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
+        <div class="niche-script__title"><img class="niche-script__title-icon" src="${ICON('niche-script')}" alt=""><span>${esc(t.name)}</span></div>
+        <span class="tg-meta">${esc(t.niche)}</span>
+        <button type="button" class="niche-script__button" data-act="script-preview" data-id="${esc(t.id)}">Preview</button>
+      </div>`).join('');
   }
 
-  /**
-   * Render the playable preview player.
-   * Uses a standard HTML5 video element for video clips and image elements
-   * for image clips, sequenced via JavaScript.
-   */
-  renderPreviewPlayer(preview, playableClips) {
-    const hasVideo = playableClips.some(c => c.type === 'video');
-    const hasImage = playableClips.some(c => c.type === 'image');
-    const hasAudio = playableClips.some(c => c.type === 'audio');
-    const totalDuration = Math.round(preview.duration || 0);
-    const firstClip = playableClips[0];
+  // ----------------------------------------------------------- Overlay step
 
-    if (playableClips.length === 0) {
-      return `
-        <div class="tg-preview-player-empty">
-          <p class="tg-empty-state">No media assigned to any scene. Go to the Media step to assign media.</p>
-        </div>
-      `;
-    }
-
-    // Build a sequential playlist from all playable clips
-    const playlist = playableClips.map(c => ({
-      id: c.asset?.id || c.name,
-      src: c.asset?.url || c.asset?.src,
-      type: c.type,
-      name: c.name,
-      duration: c.duration || 5,
-      startTime: c.startTime || 0,
-      thumbnail: c.asset?.thumbnail,
-    }));
-
+  renderOverlayStep() {
+    const u = this.ui;
     return `
-      <div class="tg-preview-player-wrapper" id="tg-preview-player-wrapper">
-        <div class="tg-preview-display" id="tg-preview-display">
-          ${hasVideo ? `
-            <video id="tg-preview-video" class="tg-preview-video" preload="metadata" poster="${firstClip?.thumbnail || ''}">
-              ${playlist.filter(p => p.type === 'video').map(p => `<source src="${p.src}" type="video/mp4">`).join('')}
-            </video>
-          ` : hasImage ? `
-            <img id="tg-preview-image" class="tg-preview-image" src="${firstClip?.src || ''}" alt="Preview">
-          ` : `
-            <div class="tg-preview-placeholder">▶️</div>
-          `}
+      <div class="tg-overlays">
+        <div class="search">
+          <h4 class="search-title">Choose your overlay</h4>
+          <div class="tg-chips" role="tablist">
+            <button type="button" class="tg-chip${u.overlayTab === 'transitions' ? ' is-active' : ''}" data-act="overlay-tab" data-id="transitions">Transitions</button>
+            <button type="button" class="tg-chip${u.overlayTab === 'elements' ? ' is-active' : ''}" data-act="overlay-tab" data-id="elements">Text elements</button>
+          </div>
         </div>
+        ${u.overlayTab === 'transitions' ? this.renderTransitions() : this.renderElements()}
+      </div>`;
+  }
 
-        <div class="tg-preview-controls">
-          <div class="tg-preview-control-row">
-            <button class="tg-btn tg-btn-sm tg-btn-secondary" id="tg-preview-restart">⟲</button>
-            <button class="tg-btn tg-btn-sm tg-btn-primary" id="tg-preview-play-pause">▶️ Play</button>
-            <div class="tg-preview-progress-container">
-              <div class="tg-preview-progress" id="tg-preview-progress">
-                <div class="tg-preview-progress-fill" id="tg-preview-progress-fill"></div>
-                <div class="tg-preview-progress-handle" id="tg-preview-progress-handle"></div>
+  transitionCards() {
+    const q = this.ui.overlayQuery.trim().toLowerCase();
+    return this.transitions.filter((t) => (this.ui.overlayCategory === 'all' || t.category === this.ui.overlayCategory)
+      && (!q || `${t.name} ${t.category}`.toLowerCase().includes(q)));
+  }
+
+  renderTransitions() {
+    const u = this.ui;
+    const cats = [...new Set(this.transitions.map((t) => t.category))];
+    const cur = this.s.selectedTransition?.type;
+    return `
+      <p class="tg-hint">A transition plays between each pair of your ${this.s.selectedVideos.length} clips.</p>
+      <div class="library__search-box search-box tg-searchbox"><span aria-hidden="true">🔍</span>
+        <input type="search" id="tg-overlay-query" data-query="overlay" placeholder="Search transitions…" value="${esc(u.overlayQuery)}" aria-label="Search transitions"></div>
+      <div class="tg-chips">
+        <button type="button" class="tg-chip${u.overlayCategory === 'all' ? ' is-active' : ''}" data-act="transition-cat" data-id="all">All</button>
+        ${cats.map((c) => `<button type="button" class="tg-chip${u.overlayCategory === c ? ' is-active' : ''}" data-act="transition-cat" data-id="${c}">${TRANSITION_CATEGORY_LABELS[c] || c}</button>`).join('')}
+      </div>
+      <div class="generator-list overlays"><div class="list-items" id="tg-overlay-list">
+        <button type="button" class="overlays__item overlays__item-container tg-transition${!cur ? ' active' : ''}" data-act="transition-pick" data-id=""><span class="tg-tr-icon">⛔</span><b>None</b><span class="tg-meta">Plain cuts</span></button>
+        ${this.transitionCards().map((t) => `
+          <button type="button" class="overlays__item overlays__item-container tg-transition${cur === t.id ? ' active' : ''}" data-act="transition-pick" data-id="${esc(t.id)}" title="${esc(t.description || '')}" aria-pressed="${cur === t.id}">
+            ${cur === t.id ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
+            <span class="tg-tr-icon">${esc(t.icon || '🎞️')}</span><b>${esc(t.name)}</b><span class="tg-meta">${esc(TRANSITION_CATEGORY_LABELS[t.category] || t.category)}</span>
+          </button>`).join('')}
+      </div></div>`;
+  }
+
+  renderElements() {
+    const e = this.s.elements;
+    return `
+      <div class="tg-elements">
+        <label class="tg-toggle"><input type="checkbox" data-bind="s.elements.captions" ${e.captions ? 'checked' : ''}><span>Show my script as captions, one line per clip</span></label>
+        <label class="tg-field">Title (first 3 seconds)
+          <input type="text" data-bind="s.elements.title" placeholder="e.g. Summer Sale" value="${esc(e.title)}"></label>
+        <label class="tg-field">Lower third
+          <input type="text" data-bind="s.elements.lowerThird" placeholder="e.g. Jane Doe · Owner" value="${esc(e.lowerThird)}"></label>
+        <label class="tg-field">Call to action (last 4 seconds)
+          <input type="text" data-bind="s.elements.cta" placeholder="${esc(this.s.script.cta || 'e.g. Book your free consultation')}" value="${esc(e.cta)}"></label>
+        <p class="tg-hint">These become editable text clips on their own tracks. Logos, stickers, lead forms and interactive overlays are in the editor's Overlay tools.</p>
+      </div>`;
+  }
+
+  // ----------------------------------------------------------- Preview step
+
+  builderState() { return toBuilderState(this.s); }
+
+  buildPreview() {
+    try {
+      const st = this.builderState();
+      return { preview: buildPreviewFromState(st), error: null };
+    } catch (err) {
+      return { preview: null, error: err.message || 'Could not build the preview' };
+    }
+  }
+
+  renderPreviewStep() {
+    const s = this.s;
+    const { preview, error } = this.buildPreview();
+    const playlist = preview ? playlistFromPreview(preview) : [];
+    this._playlist = playlist;
+    const hasOverlayTab = s.selectedVideos.length >= 2;
+    const voiceOpen = this.ui.openPanels.voice;
+    const persOpen = this.ui.openPanels.personalization;
+    const tr = this.transitions.find((t) => t.id === s.selectedTransition?.type);
+    return `
+      <div class="tg-preview">
+        <div class="search">
+          <h4 class="search-title">Preview</h4>
+          <span class="library__search-box search-box preview-box">Complete your selection and add the files to the timeline</span>
+        </div>
+        <div class="generator-list preview-tab__content">
+          <div class="preview-tab-settings">
+            <div class="preview-tab__content-overlays video-list">
+              <div class="elements-list list-items">
+                ${s.selectedVideos.map((it) => `
+                  <div class="video-tile video__item video-element" style="background-image:${cssUrl(it.poster || it.preview)}" title="${esc(it.title)}">
+                    <button type="button" class="preview__delete" aria-label="Remove ${esc(it.title)}" data-act="remove-video" data-id="${esc(it.id)}">−</button>
+                    <div class="tg-card-title">${esc(it.title)}</div>
+                  </div>`).join('')}
+                <div class="overlays__item-container overlays__item select${hasOverlayTab ? '' : ' disabled'}" role="button" tabindex="0" data-act="tab" data-step="${STEPS.OVERLAY}">
+                  <div class="select-overlay-container"><span>${tr ? `${esc(tr.icon || '')} ${esc(tr.name)} transition` : (hasOverlayTab ? 'Please select overlay' : 'Please select more than one video and Select overlay')}</span></div>
+                </div>
               </div>
             </div>
-            <span class="tg-preview-time" id="tg-preview-time">0:00 / ${this._formatTime(totalDuration)}</span>
-            <button class="tg-btn tg-btn-sm tg-btn-secondary" id="tg-preview-fullscreen">⛶</button>
+            <div class="preview-tab__content-scripts">
+              <div class="niche-script" role="button" tabindex="0" data-act="tab" data-step="${STEPS.SCRIPT}">
+                <div class="niche-script__title"><img class="niche-script__title-icon" src="${ICON('niche-script')}" alt=""><span>${esc(s.selectedScript?.name || 'Your script')}</span></div>
+                <span class="tg-meta">${esc(sceneNames(s).length)} scenes</span>
+              </div>
+            </div>
+          </div>
+          <div class="preview-tab__content-watch">
+            ${error ? `<div class="tg-player tg-player--empty">${esc(error)}</div>` : renderPlayerHTML(playlist)}
           </div>
         </div>
-
-        <div class="tg-preview-playlist" id="tg-preview-playlist">
-          ${playlist.map((p, i) => `
-            <div class="tg-playlist-item ${i === 0 ? 'active' : ''}" data-playlist-index="${i}">
-              <span class="tg-playlist-item-name">${p.name || `Scene ${i + 1}`}</span>
-              <span class="tg-playlist-item-duration">${this._formatTime(p.duration)}</span>
-            </div>
-          `).join('')}
+        <div class="tg-extras">
+          ${this.renderPanel('voice', '🎙️ Voice narration (optional)', voiceOpen, this.renderVoiceFields())}
+          ${this.renderPanel('personalization', '👤 Personalization (optional)', persOpen, this.renderPersonalizationFields())}
         </div>
-      </div>
-    `;
+      </div>`;
   }
 
-  /**
-   * Render the preview timeline ruler showing clip positions and transitions.
-   */
-  renderPreviewTrack(playableClips, transitions) {
-    const totalDuration = playableClips.length > 0
-      ? Math.max(...playableClips.map(c => (c.startTime || 0) + (c.duration || 5)))
-      : 0;
-    const pixelsPerSecond = 8; // visual scale
+  renderPanel(id, title, open, inner) {
+    return `<section class="tg-panel${open ? ' is-open' : ''}"><button type="button" class="tg-panel__head" data-act="panel-toggle" data-id="${id}" aria-expanded="${!!open}">${title}<span>${open ? '▾' : '▸'}</span></button>${open ? `<div class="tg-panel__body">${inner}</div>` : ''}</section>`;
+  }
 
+  renderVoiceFields() {
+    const v = this.s.voice;
     return `
-      <div class="tg-preview-timeline-track" style="width: ${Math.max(totalDuration * pixelsPerSecond, 200)}px">
-        ${playableClips.map((c, i) => {
-          const start = (c.startTime || 0) * pixelsPerSecond;
-          const width = (c.duration || 5) * pixelsPerSecond;
-          const color = c.type === 'video' ? '#3b82f6' : c.type === 'image' ? '#a78bfa' : '#f59e0b';
-          return `
-            <div class="tg-preview-timeline-clip" data-clip-index="${i}" style="left: ${start}px; width: ${width}px; background: ${color};">
-              <span class="tg-preview-timeline-label">${c.name || `Scene ${i + 1}`}</span>
+      <label class="tg-toggle"><input type="checkbox" data-bind="s.voice.enabled" ${v.enabled ? 'checked' : ''}><span>Add AI voice narration of my script</span></label>
+      <div class="tg-form-row">
+        <label>Voice <select data-bind="s.voice.voice">${['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'].map((x) => `<option value="${x}"${v.voice === x ? ' selected' : ''}>${x[0].toUpperCase() + x.slice(1)}</option>`).join('')}</select></label>
+      </div>
+      <label class="tg-field">Delivery instructions <input type="text" data-bind="s.voice.instructions" placeholder="e.g. Warm, upbeat, pause for emphasis" value="${esc(v.instructions)}"></label>`;
+  }
+
+  renderPersonalizationFields() {
+    const p = this.s.personalization;
+    return `
+      <label class="tg-toggle"><input type="checkbox" data-bind="s.personalization.enabled" ${p.enabled ? 'checked' : ''}><span>Personalize this video for each viewer</span></label>
+      <p class="tg-hint">Use tokens in your script: ${['{{first_name}}', '{{last_name}}', '{{company}}', '{{city}}', '{{offer}}'].map((t) => `<code>${t}</code>`).join(' ')}</p>`;
+  }
+
+  // ----------------------------------------------------------------- popups
+
+  renderPopup() {
+    const p = this.ui.popup;
+    if (!p) return '';
+    if (p.kind === 'video') {
+      const it = this.itemsById.get(p.id);
+      if (!it) return '';
+      const selected = this.s.selectedVideos.some((v) => v.id === it.id);
+      const credit = it.user ? `${it.kind === 'video' ? 'Video' : 'Photo'} by ${esc(it.user)}${it.source === 'pexels' || it.source === 'pixabay' ? ` on <a href="${esc(it.pageURL || STOCK_HOME[it.source])}" target="_blank" rel="noopener">${it.source === 'pexels' ? 'Pexels' : 'Pixabay'}</a>` : ''}` : '';
+      return `
+        <div class="tg-popup" role="dialog" aria-modal="true" aria-label="Preview ${esc(it.title)}" data-act="popup-backdrop">
+          <div class="tg-popup__card">
+            <button type="button" class="tg-popup__close" data-act="popup-close" aria-label="Close">✕</button>
+            <h4>${esc(it.title)}</h4>
+            ${it.kind === 'video' ? `<video class="tg-popup__media" src="${esc(it.preview || it.url)}" controls autoplay muted playsinline></video>` : `<img class="tg-popup__media" src="${esc(it.preview || it.url)}" alt="${esc(it.title)}">`}
+            ${credit ? `<p class="tg-credit">${credit}</p>` : ''}
+            <div class="tg-popup__actions">
+              <button type="button" class="tg-chip" data-act="popup-close">Close</button>
+              <button type="button" class="tg-chip is-active" data-act="popup-use" data-id="${esc(it.id)}">${selected ? 'Remove from selection' : 'Use this clip'}</button>
             </div>
-          `;
-        }).join('')}
-        ${transitions.map((tr, i) => {
-          const clipA = playableClips[tr.fromClipIndex];
-          if (!clipA) return '';
-          const start = (clipA.startTime || 0) + (clipA.duration || 5) - (tr.duration || 1) / 2;
-          const width = tr.duration || 1;
-          return `
-            <div class="tg-preview-transition" data-transition-index="${i}" style="left: ${start * pixelsPerSecond}px; width: ${width * pixelsPerSecond}px;">
-              <span>⇄</span>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-  }
-
-  /**
-   * Format seconds as MM:SS.
-   */
-  _formatTime(seconds) {
-    if (!seconds || isNaN(seconds)) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
-
-  /**
-   * Format a preview descriptor for the scene table.
-   */
-  renderSceneBreakdown(preview) {
-    const scenes = this.getSceneStructure();
+          </div>
+        </div>`;
+    }
+    const t = ALL_NICHE_TEMPLATES.find((x) => x.id === p.id);
+    if (!t) return '';
+    const d = t.duration || {};
     return `
-      <table class="tg-scene-table">
-        <thead>
-          <tr>
-            <th>Scene</th>
-            <th>Name</th>
-            <th>Media</th>
-            <th>Source</th>
-            <th>Provider</th>
-            <th>Duration</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${scenes.map((scene, i) => {
-            const slot = this.data.mediaByScene[i] || {};
-            const media = slot.media;
-            return `
-              <tr>
-                <td>${i + 1}</td>
-                <td>${scene}</td>
-                <td>${media ? (media.name || 'media') : '—'}</td>
-                <td>${media ? (media.source || '—') : '—'}</td>
-                <td>${media ? (media.provider || '—') : '—'}</td>
-                <td>${media ? this._formatTime(media.duration) : '—'}</td>
-                <td class="tg-scene-status-cell ${slot.status || 'empty'}">
-                  ${slot.status === 'ready' ? '✓ Assigned' : slot.status === 'loading' ? '⏳ Loading' : '○ Empty'}
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    `;
+      <div class="tg-popup" role="dialog" aria-modal="true" aria-label="Preview ${esc(t.name)}" data-act="popup-backdrop">
+        <div class="tg-popup__card">
+          <button type="button" class="tg-popup__close" data-act="popup-close" aria-label="Close">✕</button>
+          <h4>${esc(t.name)}</h4>
+          <p class="tg-meta">${esc(t.niche)} · ${esc((t.aspectRatios || []).join(' / '))}${d.default ? ` · about ${d.default}s` : ''}</p>
+          <p>${esc(t.description)}</p>
+          <ol class="tg-scenes">${(t.sceneStructure || []).map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
+          <div class="tg-popup__actions">
+            <button type="button" class="tg-chip" data-act="popup-close">Close</button>
+            <button type="button" class="tg-chip is-active" data-act="popup-use-script" data-id="${esc(t.id)}">Use this script</button>
+          </div>
+        </div>
+      </div>`;
   }
 
-  // Step 9: Add to Timeline
-  renderStep9AddToTimeline() {
-    const totalMedia = this.data.mediaByScene.filter(s => s.status === 'ready').length;
-    const totalScenes = this.getSceneStructure().length;
-    return `
-      <h3>Add to Timeline</h3>
-      <p class="tg-step-desc">Your template will be added as editable Timeline elements.</p>
-      <div class="tg-add-summary">
-        <p>The following will be created on your timeline:</p>
-        <ul>
-          <li>📹 ${totalMedia} video/image clip(s) from ${totalScenes} scenes</li>
-          <li>📝 ${this.data.overlays.filter(o => o.type === 'text').length || 0} text overlay(s)</li>
-          <li>🎙️ ${this.data.voice.enabled ? '1 voice narration' : 'No voice'}</li>
-          <li>🎨 ${this.data.overlays.length} overlay(s)</li>
-        </ul>
-        <p class="tg-hint">All elements remain editable after insertion. One Undo will revert the complete template insertion.</p>
-      </div>
-    `;
+  setPopup(popup) {
+    this.ui.popup = popup;
+    const host = this.overlay?.querySelector('#tg-popup');
+    if (host) host.innerHTML = this.renderPopup();
   }
 
-  renderFooter() {
-    return '';
-  }
+  // ----------------------------------------------------------------- events
 
   setupEventListeners() {
     super.setupEventListeners();
-
-    const backBtn = this.overlay.querySelector('#tg-back');
-    const nextBtn = this.overlay.querySelector('#tg-next');
-
-    if (backBtn) {
-      backBtn.addEventListener('click', () => this.goBack());
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => this.goNext());
-    }
-
-    this.setupStepListeners();
+    this._bindDelegates();
   }
 
-  setupStepListeners() {
-    switch (this.step) {
-      case 1:
-        this.overlay.querySelectorAll('.tg-niche-card').forEach(card => {
-          card.addEventListener('click', () => {
-            this.data.niche = card.dataset.niche;
-            this.refresh();
-          });
-        });
-        break;
-      case 2:
-        this.setupStep2ScriptListeners();
-        break;
-      case 3:
-        this.overlay.querySelectorAll('.tg-template-card').forEach(card => {
-          card.addEventListener('click', () => {
-            const tplId = card.dataset.templateId;
-            const fullTpl = ALL_NICHE_TEMPLATES.find(t => t.id === tplId);
-            this.data.template = { id: tplId };
-            this.data.selectedTemplate = fullTpl || null;
-            this.refresh();
-          });
-        });
-        break;
-      case 4:
-        this.setupStep4MediaListeners();
-        break;
-      case 7:
-        this.setupStep7PersonalizationListeners();
-        break;
-      case 8:
-        this.setupStep8PreviewListeners();
-        break;
-    }
-  }
+  _bindDelegates() {
+    const root = this.overlay;
+    if (!root || root._tgBound) return; // bound once per overlay, never stacked
+    root._tgBound = true;
 
-  /**
-   * Step 7: Personalization toggle listener.
-   */
-  setupStep7PersonalizationListeners() {
-    const persToggle = this.overlay.querySelector('#tg-pers-enabled');
-    if (persToggle) {
-      persToggle.addEventListener('change', () => {
-        this.data.personalization.enabled = persToggle.checked;
-      });
-    }
-  }
-
-  /**
-   * Step 8: Preview control listeners.
-   * Handles play/pause, seek, restart, fullscreen, and edit navigation buttons.
-   */
-  setupStep8PreviewListeners() {
-    // Play/Pause
-    const playBtn = this.overlay.querySelector('#tg-preview-play-pause');
-    if (playBtn) {
-      playBtn.addEventListener('click', () => this._togglePreviewPlayback());
-    }
-
-    // Restart
-    const restartBtn = this.overlay.querySelector('#tg-preview-restart');
-    if (restartBtn) {
-      restartBtn.addEventListener('click', () => this._restartPreview());
-    }
-
-    // Progress bar seek
-    const progress = this.overlay.querySelector('#tg-preview-progress');
-    if (progress) {
-      progress.addEventListener('click', (e) => this._seekPreview(e));
-    }
-
-    // Progress handle drag
-    const handle = this.overlay.querySelector('#tg-preview-progress-handle');
-    if (handle) {
-      handle.addEventListener('mousedown', (e) => this._startSeekDrag(e));
-    }
-
-    // Fullscreen
-    const fullscreenBtn = this.overlay.querySelector('#tg-preview-fullscreen');
-    if (fullscreenBtn) {
-      fullscreenBtn.addEventListener('click', () => this._toggleFullscreen());
-    }
-
-    // Playlist item click
-    this.overlay.querySelectorAll('.tg-playlist-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const idx = parseInt(item.dataset.playlistIndex, 10);
-        this._seekToPlaylistItem(idx);
-      });
+    root.addEventListener('click', (e) => {
+      const el = e.target.closest?.('[data-act]');
+      if (!el || !root.contains(el)) return;
+      // Clicks on the backdrop itself (not the card) close the popup.
+      if (el.dataset.act === 'popup-backdrop' && e.target !== el) return;
+      // A button inside a clickable card must not also trigger the card.
+      e.stopPropagation();
+      this._act(el.dataset.act, el, e);
     });
 
-    // Edit navigation buttons
-    const backMediaBtn = this.overlay.querySelector('#tg-preview-back-media');
-    if (backMediaBtn) {
-      backMediaBtn.addEventListener('click', () => { this.step = 4; this.refresh(); });
-    }
-    const backScriptBtn = this.overlay.querySelector('#tg-preview-back-script');
-    if (backScriptBtn) {
-      backScriptBtn.addEventListener('click', () => { this.step = 2; this.refresh(); });
-    }
-    const backTemplateBtn = this.overlay.querySelector('#tg-preview-back-template');
-    if (backTemplateBtn) {
-      backTemplateBtn.addEventListener('click', () => { this.step = 3; this.refresh(); });
-    }
-    const backOverlaysBtn = this.overlay.querySelector('#tg-preview-back-overlays');
-    if (backOverlaysBtn) {
-      backOverlaysBtn.addEventListener('click', () => { this.step = 5; this.refresh(); });
-    }
-    const backVoiceBtn = this.overlay.querySelector('#tg-preview-back-voice');
-    if (backVoiceBtn) {
-      backVoiceBtn.addEventListener('click', () => { this.step = 6; this.refresh(); });
-    }
-    const backPersBtn = this.overlay.querySelector('#tg-preview-back-personalization');
-    if (backPersBtn) {
-      backPersBtn.addEventListener('click', () => { this.step = 7; this.refresh(); });
-    }
-  }
-
-  /**
-   * Toggle playback of the preview video element.
-   */
-  _togglePreviewPlayback() {
-    const video = this.overlay.querySelector('#tg-preview-video');
-    const img = this.overlay.querySelector('#tg-preview-image');
-    const playBtn = this.overlay.querySelector('#tg-preview-play-pause');
-
-    if (!video && !img) return;
-
-    if (video) {
-      if (this._previewState.playing) {
-        video.pause();
-        this._previewState.playing = false;
-        if (playBtn) playBtn.innerHTML = '▶️ Play';
-      } else {
-        video.play().catch(e => {
-          console.error('[TemplateGeneratorModal] Preview play failed:', e);
-          this._previewState.error = e.message;
-          this._renderPreviewError(e.message);
-        });
-        this._previewState.playing = true;
-        if (playBtn) playBtn.innerHTML = '⏸️ Pause';
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.ui.popup) { e.stopPropagation(); this.setPopup(null); return; }
+      if (e.key === 'Enter' || e.key === ' ') {
+        const card = e.target.closest?.('[role="button"][data-act]');
+        if (card && e.target === card) { e.preventDefault(); this._act(card.dataset.act, card, e); return; }
       }
-    } else if (img) {
-      // For image-only previews, toggle a simple fade animation
-      this._previewState.playing = !this._previewState.playing;
-      if (playBtn) playBtn.innerHTML = this._previewState.playing ? '⏸️ Pause' : '▶️ Play';
-    }
-  }
+      if (e.key === 'Enter' && e.target.id === 'tg-remote-url') { e.preventDefault(); this._act('remote-add', e.target, e); }
+      if (e.key === 'Enter' && e.target.id === 'tg-ai-prompt') { e.preventDefault(); this._act('ai-generate', e.target, e); }
+    }, true);
 
-  /**
-   * Restart preview from beginning.
-   */
-  _restartPreview() {
-    const video = this.overlay.querySelector('#tg-preview-video');
-    if (video) {
-      video.currentTime = 0;
-      video.play().catch(console.error);
-      this._previewState.playing = true;
-      const playBtn = this.overlay.querySelector('#tg-preview-play-pause');
-      if (playBtn) playBtn.innerHTML = '⏸️ Pause';
-    }
-  }
+    root.addEventListener('input', (e) => this._onInput(e));
+    root.addEventListener('change', (e) => this._onChange(e));
 
-  /**
-   * Seek preview to position in the progress bar.
-   */
-  _seekPreview(e) {
-    const progressBar = e.currentTarget;
-    const rect = progressBar.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    const clamped = Math.max(0, Math.min(1, percent));
-    const video = this.overlay.querySelector('#tg-preview-video');
-    if (video && this._cachedComposition) {
-      const targetTime = clamped * this._cachedComposition.meta.totalDuration;
-      video.currentTime = targetTime;
-    }
-  }
-
-  /**
-   * Handle progress handle drag for seeking.
-   */
-  _startSeekDrag(e) {
-    e.preventDefault();
-    const progressBar = this.overlay.querySelector('#tg-preview-progress');
-    const handle = e.currentTarget;
-    const onMove = (moveEvent) => {
-      const rect = progressBar.getBoundingClientRect();
-      const percent = Math.max(0, Math.min(1, (moveEvent.clientX - rect.left) / rect.width));
-      const fill = this.overlay.querySelector('#tg-preview-progress-fill');
-      if (fill) fill.style.width = `${percent * 100}%`;
-    };
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-    };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  }
-
-  /**
-   * Toggle fullscreen on the preview player.
-   */
-  _toggleFullscreen() {
-    const player = this.overlay.querySelector('#tg-preview-player-wrapper');
-    if (!player) return;
-    if (document.fullScreenElement) {
-      document.exitFullscreen();
-    } else if (player.requestFullscreen) {
-      player.requestFullscreen();
-    }
-  }
-
-  /**
-   * Seek to a specific playlist item.
-   */
-  _seekToPlaylistItem(index) {
-    const video = this.overlay.querySelector('#tg-preview-video');
-    const playlistItem = this.overlay.querySelectorAll('.tg-playlist-item')[index];
-    if (!playlistItem) return;
-
-    // Highlight active
-    this.overlay.querySelectorAll('.tg-playlist-item').forEach((item, i) => {
-      item.classList.toggle('active', i === index);
+    // Drag & drop files onto the Upload dropzone.
+    root.addEventListener('dragover', (e) => { if (e.target.closest?.('.tg-dropzone')) e.preventDefault(); });
+    root.addEventListener('drop', (e) => {
+      if (!e.target.closest?.('.tg-dropzone') || !e.dataTransfer?.files?.length) return;
+      e.preventDefault();
+      this._addUploads(e.dataTransfer.files);
     });
+  }
 
-    if (video && this._cachedComposition) {
-      // Find the clip's start time from the preview descriptor
-      const clip = this._getPlayableClips(buildPreviewFromState(this.data)).clips
-        || [];
-      // Simplified: seek to the start time of the clip at this index
-      const playableClips = this._getPlayableClips(buildPreviewFromState(this.data));
-      if (playableClips[index]) {
-        video.currentTime = playableClips[index].startTime || 0;
+  _onInput(e) {
+    const t = e.target;
+    if (t.dataset?.query) {
+      const kind = t.dataset.query;
+      if (kind === 'stock') {
+        this.ui.query = t.value;
+        clearTimeout(this._searchTimer);
+        this._searchTimer = setTimeout(() => this.runSearch(true), 350);
+      } else if (kind === 'script') {
+        this.ui.scriptQuery = t.value;
+        this._setHTML('#tg-script-list', this.renderScriptCards());
+      } else if (kind === 'overlay') {
+        this.ui.overlayQuery = t.value;
+        this._refreshTransitionList();
       }
+      return;
+    }
+    if (t.dataset?.bind && t.type !== 'checkbox' && t.tagName !== 'SELECT') this._bind(t);
+  }
+
+  _onChange(e) {
+    const t = e.target;
+    if (t.id === 'tg-file') { this._addUploads(t.files); t.value = ''; return; }
+    if (t.dataset?.bind) this._bind(t);
+  }
+
+  /** data-bind="s.script.text" / "ui.aiPrompt" → write the value into state without repainting. */
+  _bind(el) {
+    const [root, ...path] = el.dataset.bind.split('.');
+    let obj = root === 'ui' ? this.ui : this.s;
+    for (let i = 0; i < path.length - 1; i += 1) obj = obj[path[i]];
+    obj[path.at(-1)] = el.type === 'checkbox' ? el.checked : el.value;
+    this._updateNext();
+  }
+
+  _act(act, el) {
+    const id = el.dataset.id;
+    switch (act) {
+      case 'start': this.s.started = true; this.paint(); this.runSearch(true); break;
+      case 'decline': this.onCancel(); this.close(); break;
+      case 'safari-accept': this.ui.safariAccepted = true; this.paint(); break;
+      case 'tab': this.goTo(Number(el.dataset.step)); break;
+      case 'next': this.goNext(); break;
+      case 'provider': this.setProvider(id); break;
+      case 'filter': this.ui.filter = id; this.ui.collectionId = null; this.runSearch(true); this._refreshControls(); break;
+      case 'load-more': this.ui.page += 1; this.runSearch(false); break;
+      case 'collection': this.ui.collectionId = id; this.ui.collectionTitle = el.dataset.title || ''; this.runSearch(true); break;
+      case 'collections-back': this.ui.collectionId = null; this.runSearch(true); break;
+      case 'pick-video': this.pickVideo(id); break;
+      case 'preview-video': this.setPopup({ kind: 'video', id }); break;
+      case 'remove-video': this.removeVideo(id); break;
+      case 'popup-close': case 'popup-backdrop': this.setPopup(null); break;
+      case 'popup-use': this.pickVideo(id); this.setPopup(null); break;
+      case 'popup-use-script': this.pickScript(id); this.setPopup(null); break;
+      case 'upload-click': this.overlay.querySelector('#tg-file')?.click(); break;
+      case 'remote-add': this.addRemote(); break;
+      case 'ai-generate': this.runAiImage(); break;
+      case 'niche': this.ui.scriptNiche = id; this.paint(); break;
+      case 'script-pick': this.pickScript(id); break;
+      case 'script-preview': this.setPopup({ kind: 'script', id }); break;
+      case 'ai-script': this.runScriptAction(el.dataset.kind); break;
+      case 'overlay-tab': this.ui.overlayTab = id; this.paint(); break;
+      case 'transition-cat': this.ui.overlayCategory = id; this.paint(); break;
+      case 'transition-pick': this.pickTransition(id); break;
+      case 'panel-toggle': this.ui.openPanels[id] = !this.ui.openPanels[id]; this.paint(); break;
+      default: break;
     }
   }
 
-  /**
-   * Render an error state in the preview area.
-   */
-  _renderPreviewError(message) {
-    const errorDiv = this.overlay.querySelector('#tg-preview-display');
-    if (errorDiv) {
-      errorDiv.innerHTML = `
-        <div class="tg-preview-error">
-          <span class="tg-error-icon">⚠️</span>
-          <p>Preview error: ${message}</p>
-          <button class="tg-btn tg-btn-sm tg-btn-secondary" onclick="window.location.reload()">Retry</button>
-        </div>
-      `;
+  // --------------------------------------------------------------- wizard
+
+  goTo(target) {
+    if (target === this.s.step) return;
+    if (target > this.s.step || target === STEPS.PREVIEW) {
+      const warn = guardStep(this.s, target);
+      if (warn) { this.toast(warn); return; }
     }
+    this.s.step = target;
+    this.paint();
+    if (target === STEPS.VIDEO && !this.ui.results.length && !this.ui.loading) this.runSearch(true);
   }
 
-  /**
-   * Update the preview progress bar and time display.
-   * Called from the video element's timeupdate event.
-   */
-  _updatePreviewProgress(currentTime, duration) {
-    if (!duration || isNaN(duration)) return;
-    const percent = currentTime / duration;
-    const fill = this.overlay.querySelector('#tg-preview-progress-fill');
-    const timeLabel = this.overlay.querySelector('#tg-preview-time');
-    if (fill) fill.style.width = `${percent * 100}%`;
-    if (timeLabel) timeLabel.textContent = `${this._formatTime(currentTime)} / ${this._formatTime(duration)}`;
+  async goNext() {
+    const { step } = this.s;
+    if (this.ui.busy || nextDisabled(this.s, step)) return;
+    if (step === STEPS.PREVIEW) { await this.addToTimeline(); return; }
+    const target = nextStepIndex(this.s, step);
+    const warn = guardStep(this.s, target);
+    if (warn) { this.toast(warn); return; }
+    this.s.step = target;
+    this.paint();
   }
 
-  /**
-   * Attach video event listeners for progress tracking.
-   */
-  _attachVideoEvents() {
-    const video = this.overlay.querySelector('#tg-preview-video');
-    if (!video || !this._cachedComposition) return;
-
-    video.addEventListener('timeupdate', () => {
-      this._updatePreviewProgress(video.currentTime, video.duration);
-    });
-    video.addEventListener('loadedmetadata', () => {
-      this._previewState.duration = video.duration;
-    });
-    video.addEventListener('ended', () => {
-      this._previewState.playing = false;
-      const playBtn = this.overlay.querySelector('#tg-preview-play-pause');
-      if (playBtn) playBtn.innerHTML = '▶️ Play';
-    });
+  pickVideo(id) {
+    const it = this.itemsById.get(id);
+    if (!it) return;
+    if (it.status === 'uploading') { this.toast('That file is still uploading — one moment.'); return; }
+    const res = toggleVideo(this.s, it);
+    if (!res.ok) { this.toast(res.message); return; }
+    this._refreshSelection();
   }
 
-  /**
-   * Step 2: Script AI tool listeners.
-   */
-  setupStep2ScriptListeners() {
-    const genBtn = this.overlay.querySelector('#tg-ai-generate');
-    const rewriteBtn = this.overlay.querySelector('#tg-ai-rewrite');
-    const shortenBtn = this.overlay.querySelector('#tg-ai-shorten');
-    const expandBtn = this.overlay.querySelector('#tg-ai-expand');
+  removeVideo(id) {
+    const i = this.s.selectedVideos.findIndex((v) => v.id === id);
+    if (i < 0) return;
+    this.s.selectedVideos.splice(i, 1);
+    if (this.s.step === STEPS.PREVIEW && this.s.selectedVideos.length < 2) this.s.selectedTransition = null;
+    this.paint();
+  }
 
-    const scriptInput = this.overlay.querySelector('#tg-script-text');
-    const getScriptText = () => scriptInput ? scriptInput.value : this.data.script.text;
-    const setScriptText = (val) => {
-      this.data.script.text = val;
-      if (scriptInput) scriptInput.value = val;
-    };
+  pickScript(id) {
+    const t = ALL_NICHE_TEMPLATES.find((x) => x.id === id);
+    if (!t) return;
+    this.s.selectedScript = this.s.selectedScript?.id === id ? null : t;
+    this.paint();
+  }
 
-    const runScriptAction = async (actionFn, loadingLabel, btn) => {
-      const originalText = btn ? btn.innerHTML : '';
-      if (btn) { btn.disabled = true; btn.innerHTML = `⏳ ${loadingLabel}`; }
+  pickTransition(id) {
+    this.s.selectedTransition = id ? { type: id, duration: 1 } : null;
+    this._refreshTransitionList();
+    this._updateNext();
+  }
+
+  // --------------------------------------------------------- partial updates
+
+  _setHTML(sel, html) { const el = this.overlay?.querySelector(sel); if (el) el.innerHTML = html; }
+
+  _refreshTransitionList() { this.paint(); }
+
+  _refreshControls() { this._setHTML('#tg-step', this.renderStep()); }
+
+  paintList() {
+    this._setHTML('#tg-list', this.renderProviderList());
+    const q = this.overlay?.querySelector('#tg-query');
+    if (q && q !== document.activeElement) q.value = this.ui.query;
+  }
+
+  /** Selection changed on the Video step: update cards, counter, strip and Next without losing scroll/focus. */
+  _refreshSelection() {
+    const sel = new Set(this.s.selectedVideos.map((v) => v.id));
+    this.overlay?.querySelectorAll('.video-tile[data-id]').forEach((card) => {
+      const on = sel.has(card.dataset.id);
+      card.classList.toggle('active', on);
+      card.setAttribute('aria-pressed', String(on));
+      const mark = card.querySelector('.preview__select');
+      if (on && !mark) card.insertAdjacentHTML('afterbegin', '<span class="preview__select" aria-hidden="true">✓</span>');
+      if (!on && mark) mark.remove();
+    });
+    const count = this.overlay?.querySelector('#tg-count');
+    if (count) count.textContent = `${this.s.selectedVideos.length}/${MAX_VIDEOS}`;
+    const strip = this.overlay?.querySelector('.tg-selected, .tg-hint');
+    if (strip) strip.outerHTML = this.renderSelectedStrip();
+    this._updateNext();
+  }
+
+  _updateNext() {
+    const btn = this.overlay?.querySelector('#tg-next');
+    if (!btn) return;
+    const disabled = nextDisabled(this.s, this.s.step, this.ui.busy);
+    btn.disabled = disabled;
+    btn.classList.toggle('disabled', disabled);
+    btn.textContent = this.ui.busy ? 'Adding…' : nextLabel(this.s.step);
+  }
+
+  toast(message) {
+    this.ui.toast = message;
+    this._showToast(message);
+  }
+
+  _showToast(message, keep = false) {
+    const el = this.overlay?.querySelector('#tg-toast');
+    if (!el) return;
+    el.textContent = message;
+    el.hidden = !message;
+    clearTimeout(this._toastTimer);
+    if (!keep || message) this._toastTimer = setTimeout(() => { this.ui.toast = ''; el.hidden = true; }, 4500);
+  }
+
+  // ------------------------------------------------------------ providers
+
+  setProvider(id) {
+    if (this.ui.provider === id) return;
+    this.ui.provider = id;
+    this.ui.filter = 'videos';
+    this.ui.collectionId = null;
+    this.ui.error = null;
+    this.paint();
+    if (id === 'pixabay' || id === 'pexels') this.runSearch(true);
+  }
+
+  async runSearch(reset = true) {
+    const u = this.ui;
+    if (u.provider !== 'pixabay' && u.provider !== 'pexels') return;
+    if (reset) { u.page = 1; u.results = []; u.collections = null; }
+    const token = ++this._searchToken;
+    u.loading = true;
+    u.error = null;
+    this.paintList();
+    const res = await this.stock({ source: u.provider, filter: u.filter, query: u.query, page: u.page, collectionId: u.collectionId });
+    if (token !== this._searchToken) return; // a newer search replaced this one
+    u.loading = false;
+    if (res.error) u.error = res.error;
+    if (res.collections) u.collections = res.collections;
+    const seen = new Set(u.results.map((i) => i.id));
+    for (const it of res.items || []) if (!seen.has(it.id)) { u.results.push(it); this.itemsById.set(it.id, it); }
+    u.hasMore = !!res.hasMore;
+    this.paintList();
+  }
+
+  // Upload ---------------------------------------------------------------
+
+  async _addUploads(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    const u = this.ui;
+    for (const file of files) {
+      const kind = kindFromUrlOrType(file.name, file.type);
+      if (!kind) { u.uploadStatus = `"${file.name}" isn't a video or image.`; this.paint(); continue; }
+      const limit = UPLOAD_LIMITS[kind];
+      if (file.size > limit) { u.uploadStatus = `"${file.name}" is too large (max ${Math.round(limit / 1048576)} MB for ${kind}s).`; this.paint(); continue; }
+      const local = URL.createObjectURL(file);
+      const meta = kind === 'video' ? await probeVideo(local) : {};
+      const item = {
+        id: `upload-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        kind, source: 'upload', title: file.name.replace(/\.[^.]+$/, ''), url: local, preview: local,
+        poster: kind === 'image' ? local : '', duration: meta.duration || 0, width: meta.width, height: meta.height,
+        user: '', pageURL: '', status: 'uploading',
+      };
+      u.uploads.unshift(item);
+      this.itemsById.set(item.id, item);
+      u.uploadStatus = `Uploading ${file.name}…`;
+      this.paint();
       try {
-        const text = getScriptText();
-        const result = await actionFn({
-          niche: this.data.niche,
-          existingScript: text,
-          tone: this.data.script.tone,
-          audience: this.data.script.audience,
-          cta: this.data.script.cta,
-          templateContext: this.data.selectedTemplate,
-          personalizationEnabled: this.data.personalization.enabled,
-        });
-        if (result.ok) {
-          setScriptText(result.text);
-        } else {
-          console.error('[TemplateGeneratorModal] Script action failed:', result.error);
-        }
-      } catch (e) {
-        console.error('[TemplateGeneratorModal] Script action error:', e);
-      } finally {
-        if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+        const userId = typeof window !== 'undefined' ? window.Clerk?.user?.id : undefined;
+        const { url } = await uploadFileToSupabase(file, { category: kind, ...(userId ? { userId } : {}) });
+        item.url = url;
+        item.preview = url;
+        if (kind === 'image') item.poster = url;
+        item.status = 'ready';
+        u.uploadStatus = `${file.name} uploaded.`;
+      } catch (err) {
+        u.uploads = u.uploads.filter((x) => x !== item);
+        u.uploadStatus = `Couldn't upload ${file.name}${err?.message ? ` — ${err.message}` : ''}`;
       }
-    };
-
-    if (genBtn) {
-      genBtn.addEventListener('click', () => {
-        runScriptAction(generateScript, 'Generating...', genBtn);
-      });
-    }
-    if (rewriteBtn) {
-      rewriteBtn.addEventListener('click', () => {
-        runScriptAction(rewriteScript, 'Rewriting...', rewriteBtn);
-      });
-    }
-    if (shortenBtn) {
-      shortenBtn.addEventListener('click', () => {
-        runScriptAction(shortenScript, 'Shortening...', shortenBtn);
-      });
-    }
-    if (expandBtn) {
-      expandBtn.addEventListener('click', () => {
-        runScriptAction(expandScript, 'Expanding...', expandBtn);
-      });
-    }
-
-    // Sync script data on blur
-    if (scriptInput) {
-      scriptInput.addEventListener('blur', () => {
-        this.data.script.text = scriptInput.value;
-      });
-    }
-    const toneSelect = this.overlay.querySelector('#tg-script-tone');
-    if (toneSelect) {
-      toneSelect.addEventListener('change', () => {
-        this.data.script.tone = toneSelect.value;
-      });
-    }
-    const audienceSelect = this.overlay.querySelector('#tg-script-audience');
-    if (audienceSelect) {
-      audienceSelect.addEventListener('change', () => {
-        this.data.script.audience = audienceSelect.value;
-      });
-    }
-    const ctaInput = this.overlay.querySelector('#tg-script-cta');
-    if (ctaInput) {
-      ctaInput.addEventListener('blur', () => {
-        this.data.script.cta = ctaInput.value;
-      });
+      this.paint();
     }
   }
 
-  /**
-   * Step 4: Scene-level media listeners.
-   * Handles scene tab switching, source tab switching,
-   * stock search, AI generation, media selection, and image editing.
-   */
-  setupStep4MediaListeners() {
-    // Scene tab switching
-    this.overlay.querySelectorAll('.tg-scene-tab[data-scene-index]').forEach(tab => {
-      tab.addEventListener('click', () => {
-        this._mediaUiState.activeSceneIndex = parseInt(tab.dataset.sceneIndex, 10);
-        this.refresh();
-      });
-    });
+  // Remote URL -------------------------------------------------------------
 
-    // Media source tab switching
-    this.overlay.querySelectorAll('.tg-media-tab[data-media-tab]').forEach(tab => {
-      tab.addEventListener('click', () => {
-        this._mediaUiState.activeTab = tab.dataset.mediaTab;
-        this.refresh();
-      });
-    });
-
-    // Pixabay search
-    const searchBtn = this.overlay.querySelector('#tg-pixabay-search-btn');
-    if (searchBtn) {
-      searchBtn.addEventListener('click', () => this._runPixabaySearch());
-    }
-
-    // Pixabay search on Enter in query input
-    const queryInput = this.overlay.querySelector('#tg-pixabay-query');
-    if (queryInput) {
-      queryInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          this._runPixabaySearch();
-        }
-      });
-    }
-
-    // Suggestion chips
-    this.overlay.querySelectorAll('.tg-suggestion-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        this._mediaUiState.pixabayQuery = chip.dataset.suggestion;
-        this._runPixabaySearch();
-      });
-    });
-
-    // AI Generate button
-    const generateBtn = this.overlay.querySelector('#tg-generate-btn');
-    if (generateBtn) {
-      generateBtn.addEventListener('click', () => this._runImageGeneration());
-    }
-
-    // Select generated image
-    this.overlay.querySelectorAll('[data-select-generated]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const idx = parseInt(btn.dataset.selectGenerated, 10);
-        const sceneIndex = parseInt(btn.dataset.sceneIndex, 10);
-        const result = this._mediaUiState.generatedResults[idx];
-        if (result) {
-          const asset = normalizeGeneratedImage(result);
-          this._assignMediaToScene(sceneIndex, asset);
-          this.refresh();
-        }
-      });
-    });
-
-    // Select stock image/video
-    this.overlay.querySelectorAll('.tg-media-card[data-stock-id]').forEach(card => {
-      card.addEventListener('click', () => {
-        const stockId = card.dataset.stockId;
-        const sceneIndex = parseInt(card.dataset.sceneIndex, 10);
-        const stockType = card.dataset.stockType || 'image';
-
-        // Find the original hit — we need to re-search since we didn't store hits
-        // but we normalized at render time. We'll need to store the raw hits.
-        // For now, re-extract from the DOM data attribute approach:
-        const hits = this._mediaUiState.pixabayResults;
-        const hit = hits.find(h => String(h.id) === stockId);
-        if (hit) {
-          const asset = stockType === 'video' ? normalizePixabayVideo(hit) : normalizePixabayImage(hit);
-          this._assignMediaToScene(sceneIndex, asset);
-          this.refresh();
-        }
-      });
-    });
-
-    // Select from My Media library
-    this.overlay.querySelectorAll('.tg-media-card[data-media-index]').forEach(card => {
-      card.addEventListener('click', () => {
-        const mediaIdx = parseInt(card.dataset.mediaIndex, 10);
-        const sceneIndex = parseInt(card.dataset.sceneIndex, 10);
-        const media = this.data.media[mediaIdx];
-        if (media) {
-          this._assignMediaToScene(sceneIndex, media);
-          this.refresh();
-        }
-      });
-    });
-
-    // Clear/change scene media
-    this.overlay.querySelectorAll('[data-clear-scene]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sceneIndex = parseInt(btn.dataset.clearScene, 10);
-        this.data.mediaByScene[sceneIndex].media = null;
-        this.data.mediaByScene[sceneIndex].status = 'empty';
-        this.refresh();
-      });
-    });
-
-    // Edit assigned openai image
-    this.overlay.querySelectorAll('[data-edit-assigned]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sceneIndex = parseInt(btn.dataset.editAssigned, 10);
-        this._openEditImagePanel(sceneIndex);
-      });
-    });
-
-    // Edit generated image
-    this.overlay.querySelectorAll('[data-edit-image]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const resultIdx = parseInt(btn.dataset.editImage, 10);
-        const sceneIndex = parseInt(btn.dataset.sceneIndex, 10);
-        this._openEditImagePanel(sceneIndex, null, resultIdx);
-      });
-    });
-
-    // Edit image form submission
-    const editFormBtn = this.overlay.querySelector('#tg-edit-image-btn');
-    if (editFormBtn) {
-      editFormBtn.addEventListener('click', () => this._runImageEdit());
-    }
-
-    // Edit image cancel
-    const editCancelBtn = this.overlay.querySelector('#tg-edit-image-cancel');
-    if (editCancelBtn) {
-      editCancelBtn.addEventListener('click', () => {
-        this._mediaUiState.editingSceneIndex = null;
-        this._mediaUiState.editingResultIndex = null;
-        this._mediaUiState.editReferenceUrl = null;
-        this._mediaUiState.editInstruction = '';
-        this._mediaUiState.activeTab = 'generate';
-        this.refresh();
-      });
-    }
+  async addRemote() {
+    const input = this.overlay?.querySelector('#tg-remote-url');
+    const value = input ? input.value : this.ui.remoteUrl;
+    this.ui.remoteUrl = value;
+    const res = await remoteItem(value);
+    if (res.error) { this.ui.remoteError = res.error; this.paint(); return; }
+    this.ui.remoteError = '';
+    this.ui.remoteUrl = '';
+    this.ui.remoteItems.unshift(res.item);
+    this.itemsById.set(res.item.id, res.item);
+    this.paint();
   }
 
-  /**
-   * Assign a media asset to a scene slot.
-   */
-  _assignMediaToScene(sceneIndex, media) {
-    this.ensureSceneMediaState();
-    this.data.mediaByScene[sceneIndex] = {
-      sceneName: this.data.mediaByScene[sceneIndex].sceneName,
-      sceneIndex,
-      media,
-      mediaType: media.type || 'image',
-      status: 'ready',
-    };
-    // Also keep flat media list in sync for backward compat
-    if (!this.data.media.find(m => m.id === media.id)) {
-      this.data.media.push(media);
-    }
-  }
+  // AI image ---------------------------------------------------------------
 
-  /**
-   * Run a Pixabay search for the current scene.
-   */
-  async _runPixabaySearch() {
-    const queryInput = this.overlay.querySelector('#tg-pixabay-query');
-    const query = queryInput ? queryInput.value : this._mediaUiState.pixabayQuery;
-    this._mediaUiState.pixabayQuery = query;
-
-    if (!query || !query.trim()) return;
-
-    this._mediaUiState.pixabayLoading = true;
-    this._mediaUiState.pixabayResults = [];
-    this.refresh();
-
+  async runAiImage() {
+    const u = this.ui;
+    const input = this.overlay?.querySelector('#tg-ai-prompt');
+    if (input) u.aiPrompt = input.value;
+    if (!u.aiPrompt.trim()) { u.aiError = 'Describe the image first.'; this.paint(); return; }
+    u.aiLoading = true;
+    u.aiError = '';
+    this.paint();
     try {
-      // Search for both images and videos
-      const [imgRes, vidRes] = await Promise.all([
-        searchPixabay({ type: 'images', query, perPage: 9 }),
-        searchPixabay({ type: 'videos', query, perPage: 6 }),
-      ]);
-
-      const imgHits = imgRes.ok ? imgRes.hits.map(h => ({ ...h, type: 'image' })) : [];
-      const vidHits = vidRes.ok ? vidRes.hits.map(h => ({ ...h, type: 'video' })) : [];
-      this._mediaUiState.pixabayResults = [...imgHits, ...vidHits];
-    } catch (e) {
-      console.error('[TemplateGeneratorModal] Pixabay search error:', e);
-    } finally {
-      this._mediaUiState.pixabayLoading = false;
-      this.refresh();
+      const res = await generateImage({ prompt: u.aiPrompt.trim(), niche: this.s.selectedScript?.niche, aspectRatio: '16:9', n: 2 });
+      if (!res.ok) throw new Error(res.error || 'Image generation failed');
+      for (const a of res.assets || []) {
+        const item = {
+          id: a.id || `ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+          kind: 'image', source: 'ai', title: (a.prompt || u.aiPrompt).slice(0, 48), url: a.url, preview: a.url, poster: a.url,
+          duration: 0, width: a.width, height: a.height, user: '', pageURL: '',
+        };
+        u.aiResults.unshift(item);
+        this.itemsById.set(item.id, item);
+      }
+    } catch (err) {
+      u.aiError = err.message || 'Image generation failed';
     }
+    u.aiLoading = false;
+    this.paint();
   }
 
-  /**
-   * Run AI image generation for the current scene.
-   */
-  async _runImageGeneration() {
-    const promptInput = this.overlay.querySelector('#tg-generate-prompt');
-    const prompt = promptInput ? promptInput.value : '';
-    this._mediaUiState.generatePrompt = prompt;
+  // AI script --------------------------------------------------------------
 
-    if (!prompt || !prompt.trim()) return;
-
-    const scenes = this.getSceneStructure();
-    const scene = scenes[this._mediaUiState.activeSceneIndex] || `Scene ${this._mediaUiState.activeSceneIndex + 1}`;
-
-    this._mediaUiState.generateLoading = true;
-    this.refresh();
-
+  async runScriptAction(kind) {
+    const fns = { generate: generateScript, rewrite: rewriteScript, shorten: shortenScript, expand: expandScript };
+    const fn = fns[kind];
+    if (!fn) return;
+    const text = this.overlay?.querySelector('#tg-script-text');
+    if (text) this.s.script.text = text.value;
+    this.ui.scriptBusy = kind;
+    this.ui.scriptError = '';
+    this.paint();
     try {
-      const result = await generateImage({
-        prompt: prompt.trim(),
-        niche: this.data.niche,
-        scene,
-        aspectRatio: '16:9',
-        quality: 'auto',
-        n: 1,
+      const sc = this.s.selectedScript;
+      const result = await fn({
+        niche: sc?.niche || null,
+        existingScript: this.s.script.text,
+        tone: this.s.script.tone,
+        audience: this.s.script.audience,
+        cta: this.s.script.cta,
+        templateContext: sc || undefined,
+        personalizationEnabled: this.s.personalization.enabled,
       });
-
-      if (result.ok) {
-        this._mediaUiState.generatedResults = result.assets || [];
-      } else {
-        console.error('[TemplateGeneratorModal] Image generation failed:', result.error);
-      }
-    } catch (e) {
-      console.error('[TemplateGeneratorModal] Image generation error:', e);
-    } finally {
-      this._mediaUiState.generateLoading = false;
-      this.refresh();
+      if (!result.ok) throw new Error(result.error || 'The script service failed');
+      this.s.script.text = result.text;
+    } catch (err) {
+      this.ui.scriptError = err.message || 'The script service failed';
     }
+    this.ui.scriptBusy = '';
+    this.paint();
   }
 
-  /**
-   * Open the "Edit with AI" panel for a scene's assigned media or a generated result.
-   */
-  _openEditImagePanel(sceneIndex, assignedMedia = null, resultIndex = null) {
-    this._mediaUiState.editingSceneIndex = sceneIndex;
-    this._mediaUiState.editingResultIndex = resultIndex;
-    this._mediaUiState.editReferenceUrl = assignedMedia ? (assignedMedia.url || assignedMedia.thumbnail) : null;
-    this._mediaUiState.editInstruction = '';
-    this.refresh();
+  // ----------------------------------------------------------------- player
 
-    // After render, focus the instruction input
-    setTimeout(() => {
-      const input = this.overlay.querySelector('#tg-edit-instruction');
-      if (input) input.focus();
-    }, 50);
+  _mountPlayer() {
+    this._destroyPlayer();
+    const pl = this._playlist || [];
+    const captions = [];
+    const st = this.s;
+    const lines = toBuilderState(st).overlays.filter((o) => o.type === 'caption');
+    lines.forEach((c, i) => captions.push({ index: i, text: c.text }));
+    this._player = createPreviewPlayer(this.overlay, pl, { captions });
   }
 
-  /**
-   * Render the edit-image panel (inline, replaces the generate panel content).
-   */
-  renderEditImagePanel(scene, sceneIndex) {
-    const scenes = this.getSceneStructure();
-    const currentScene = scenes[sceneIndex] || scene;
-    const editingMedia = this._mediaUiState.editingResultIndex !== null
-      ? this._mediaUiState.generatedResults[this._mediaUiState.editingResultIndex]
-      : this.data.mediaByScene[sceneIndex]?.media || null;
-
-    const referenceUrl = this._mediaUiState.editReferenceUrl || (editingMedia ? (editingMedia.url || editingMedia.thumbnail) : '');
-
-    return `
-      <div class="tg-media-tab-panel">
-        <div class="tg-edit-image-panel">
-          <div class="tg-edit-header">
-            <h5>Edit Image with AI</h5>
-            <span class="tg-edit-scene-name">${currentScene}</span>
-          </div>
-
-          ${referenceUrl ? `
-            <div class="tg-edit-reference-preview">
-              <img class="tg-preview-thumb" src="${referenceUrl}" alt="Reference image">
-            </div>
-          ` : ''}
-
-          <div class="tg-form-group">
-            <label>Edit Instruction</label>
-            <textarea id="tg-edit-instruction" class="tg-textarea" rows="3" placeholder="e.g., change the background to sunset, add more flowers, brighter colors...">${this._mediaUiState.editInstruction || ''}</textarea>
-          </div>
-
-          <div class="tg-form-group">
-            <label>Scene Prompt (for context)</label>
-            <textarea id="tg-edit-prompt" class="tg-textarea" rows="2" placeholder="Describe the full scene...">Scene: ${currentScene}. ${buildScenePromptContext({
-              niche: this.data.niche,
-              scene: currentScene,
-              aspectRatio: '16:9',
-            })}</textarea>
-          </div>
-
-          <div class="tg-edit-actions">
-            <button class="tg-btn tg-btn-secondary" id="tg-edit-image-cancel">← Back to Generate</button>
-            <button class="tg-btn tg-btn-ai" id="tg-edit-image-btn" ${this._mediaUiState.generateLoading ? 'disabled' : ''}>
-              ${this._mediaUiState.generateLoading ? '⏳ Editing...' : '✨ Apply Edit'}
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
+  _destroyPlayer() {
+    if (this._player) { this._player.destroy(); this._player = null; }
   }
 
-  /**
-   * Run the image edit workflow using the backend's referenceImageUrl + editInstruction.
-   */
-  async _runImageEdit() {
-    const instructionInput = this.overlay.querySelector('#tg-edit-instruction');
-    const promptInput = this.overlay.querySelector('#tg-edit-prompt');
+  // -------------------------------------------------------------- timeline
 
-    const editInstruction = instructionInput ? instructionInput.value : '';
-    const prompt = promptInput ? promptInput.value : '';
-
-    if (!editInstruction || !editInstruction.trim()) return;
-
-    const scenes = this.getSceneStructure();
-    const scene = scenes[this._mediaUiState.editingSceneIndex] || `Scene ${this._mediaUiState.editingSceneIndex + 1}`;
-
-    this._mediaUiState.generateLoading = true;
-    this.refresh();
-
+  /** Pixabay photos can't be hotlinked, AI images may be base64, local blobs vanish: store them first. */
+  async _ensureDurable(item) {
+    const needs = item.mustCopy || /^data:|^blob:/i.test(item.url);
+    if (!needs) return item;
     try {
-      // Use the reference image URL + edit instruction to generate an edited version
-      const referenceUrl = this._mediaUiState.editReferenceUrl;
-      const result = await generateImage({
-        prompt: `${prompt} | EDIT: ${editInstruction.trim()}`,
-        niche: this.data.niche,
-        scene,
-        aspectRatio: '16:9',
-        quality: 'auto',
-        referenceImageUrl: referenceUrl,
-        editInstruction: editInstruction.trim(),
-        n: 1,
-      });
-
-      if (result.ok) {
-        // Merge new results with existing ones
-        this._mediaUiState.generatedResults = [...result.assets, ...this._mediaUiState.generatedResults];
-      } else {
-        console.error('[TemplateGeneratorModal] Image edit failed:', result.error);
-      }
-    } catch (e) {
-      console.error('[TemplateGeneratorModal] Image edit error:', e);
-    } finally {
-      this._mediaUiState.generateLoading = false;
-      // Reset edit state but go back to generate panel
-      this._mediaUiState.editingSceneIndex = null;
-      this._mediaUiState.editingResultIndex = null;
-      this._mediaUiState.editReferenceUrl = null;
-      this._mediaUiState.editInstruction = '';
-      this._mediaUiState.activeTab = 'generate';
-      this.refresh();
+      const blob = await (await fetch(item.url)).blob();
+      const ext = (blob.type.split('/')[1] || 'png').split('+')[0];
+      const file = new File([blob], `${item.id}.${ext}`, { type: blob.type || 'image/png' });
+      const { url } = await uploadFileToSupabase(file, { category: item.kind === 'video' ? 'video' : 'image' });
+      return { ...item, url, preview: url, poster: item.poster === item.url ? url : item.poster };
+    } catch {
+      // Keep the original link rather than blocking the template; the clip may stop loading later.
+      return item;
     }
   }
 
-  goBack() {
-    if (this.step > 1) {
-      this.step--;
-      // Reset media edit state if going back from generate/edit panel
-      this._mediaUiState.editingSceneIndex = null;
-      this._mediaUiState.editingResultIndex = null;
-      this._mediaUiState.editReferenceUrl = null;
-      this._mediaUiState.editInstruction = '';
-      // Pause preview if going back from Step 8
-      if (this.step === 7) {
-        this._previewState.playing = false;
-      }
-      this.refresh();
-    }
-  }
-
-  goNext() {
-    // Validate scene media before proceeding
-    if (this.step === 4) {
-      this.ensureSceneMediaState();
-      const assignedScenes = this.data.mediaByScene.filter(s => s.status === 'ready').length;
-      const emptyScenes = this.getSceneStructure().length - assignedScenes;
-      if (emptyScenes > 0) {
-        // Allow proceeding with warning — not all scenes need media
-        // but log it for visibility
-        console.warn(`[TemplateGeneratorModal] ${emptyScenes} scene(s) have no media assigned`);
-      }
-    }
-
-    // When moving from Step 8 to Step 9, rebuild the cached composition
-    if (this.step === 8) {
-      this._cachedComposition = buildCompositionFromState(this.data);
-    }
-
-    if (this.step < this.maxStep) {
-      this.step++;
-      this.refresh();
-    } else {
-      this.addToTimeline();
-    }
-  }
-
-  refresh() {
-    if (this.overlay) {
-      const content = this.overlay.querySelector('#tg-step-content');
-      if (content) {
-        content.innerHTML = this.renderStep();
-        this.setupStepListeners();
-        this.setupEventListeners();
-        // Re-attach video events if we're on the preview step
-        if (this.step === 8) {
-          setTimeout(() => this._attachVideoEvents(), 50);
-        }
-      }
-    }
-  }
-
-  /**
-   * Real Add-to-Timeline integration.
-   * Uses TimelineFeatureApi.applyTemplate with the composition built from
-   * the same builder used for preview. The entire insertion is one
-   * transactional history entry (one Undo reverts everything).
-   *
-   * If TimelineFeatureApi is not available, falls back to onConfirm callback
-   * with the composition data.
-   */
   async addToTimeline() {
+    this.ui.busy = true;
+    this._updateNext();
     try {
-      // Build the composition from the same builder used for preview
-      const composition = buildCompositionFromState(this.data);
+      const durable = [];
+      for (const it of this.s.selectedVideos) durable.push(await this._ensureDurable(it));
+      const state = toBuilderState({ ...this.s, selectedVideos: durable });
+      const composition = buildCompositionFromState(state);
+      composition.name = this.s.selectedScript?.name || composition.name;
 
-      // Normalize all assets in the composition through the asset model
       for (const track of composition.tracks) {
         for (const clip of track.clips) {
-          if (clip.asset && !clip.assetId) {
-            const normalized = normalizeAsset(clip.asset);
-            clip.asset = normalized;
-          }
+          if (clip.asset && !clip.assetId) clip.asset = normalizeAsset(clip.asset);
         }
       }
 
+      const payload = {
+        action: 'add-to-timeline',
+        composition,
+        sceneStructure: sceneNames(this.s),
+        mediaByScene: state.mediaByScene,
+        source: 'template-generator',
+      };
       if (this.timelineApi) {
-        // Real Timeline insertion via TimelineFeatureApi
-        // applyTemplate wraps everything in a single beginTransaction/commit
         const result = this.timelineApi.applyTemplate(composition);
-
-        // Preserve scene metadata on each inserted clip
-        const insertedClips = composition.tracks.flatMap((t, ti) =>
-          (t.clips || []).map((c, ci) => ({ trackIndex: ti, clipIndex: ci, ...c }))
-        );
-
-        this.onConfirm({
-          action: 'add-to-timeline',
-          composition,
-          trackIds: result.trackIds,
-          clipIds: result.clipIds,
-          transitionIds: result.transitionIds,
-          sceneStructure: this.getSceneStructure(),
-          mediaByScene: this.data.mediaByScene,
-          source: 'template-generator',
-          success: true,
-        });
+        this.onConfirm({ ...payload, trackIds: result.trackIds, clipIds: result.clipIds, transitionIds: result.transitionIds, success: true });
       } else {
-        // Fallback: pass composition to the caller
-        this.onConfirm({
-          action: 'add-to-timeline',
-          composition,
-          sceneStructure: this.getSceneStructure(),
-          mediaByScene: this.data.mediaByScene,
-          source: 'template-generator',
-        });
+        this.onConfirm(payload);
       }
-
+      this.ui.busy = false;
       this.close();
     } catch (err) {
       console.error('[TemplateGeneratorModal] Failed to add to timeline:', err);
-      // Show error state in the modal rather than silently failing
-      this.setError(err, err.message || 'Failed to add template to timeline. Please check your media assignments and try again.');
+      this.ui.busy = false;
+      this._updateNext();
+      this.toast(err.message || 'Failed to add the template to the timeline. Please try again.');
+      this.onError(err);
     }
   }
+
+  // Compat: a few callers/tests read these.
+  get data() { return this.s; }
+  get step() { return this.s.step + 1; }
+  get hasScriptSelected() { return hasScript(this.s); }
 }
 
 export default TemplateGeneratorModal;
