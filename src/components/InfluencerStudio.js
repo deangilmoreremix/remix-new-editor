@@ -1051,7 +1051,7 @@ export async function InfluencerStudio() {
 
       const downloadBtn = document.createElement('button');
       downloadBtn.type = 'button';
-      downloadBtn.className = 'hist-download p-1.5 bg-primary rounded-lg text-black hover:scale-110 transition-transform';
+      downloadBtn.className = 'hist-download p-1.5 bg-primary/10 border border-primary/30 rounded-lg text-white hover:scale-110 transition-transform';
       downloadBtn.title = 'Download';
       downloadBtn.innerHTML = SVG_HIST_DOWNLOAD;
       overlay.appendChild(downloadBtn);

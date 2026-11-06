@@ -632,8 +632,8 @@
 }
 
 .mdv-action-primary {
-  background: #d9ff00;
-  color: #000000;
+  background: rgba(217, 255, 0, 0.10);
+  color: #ffffff;
   box-shadow: 0 0 20px rgba(217, 255, 0, 0.15);
 }
 

@@ -58,7 +58,7 @@ function createNotice({ title, text, actionLabel, onAction }) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.textContent = actionLabel;
-    btn.style.cssText = 'width:100%;padding:11px 16px;border:none;border-radius:8px;background:#d9ff00;color:#050505;font-weight:600;font-size:14px;cursor:pointer;';
+    btn.style.cssText = 'width:100%;padding:11px 16px;border:1px solid rgba(217,255,0,0.35);border-left:2px solid #d9ff00;border-radius:8px;background:rgba(217,255,0,0.10);color:#fff;font-weight:600;font-size:14px;cursor:pointer;';
     btn.addEventListener('click', onAction);
     card.appendChild(btn);
   }

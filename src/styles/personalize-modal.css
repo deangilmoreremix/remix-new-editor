@@ -75,8 +75,8 @@
 .pm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .pm-btn-primary {
-  background: var(--pm-primary);
-  color: var(--pm-on-primary, #000000);
+  background: rgba(217, 255, 0, 0.10);
+  color: #ffffff;
 }
 
 .pm-btn-primary:hover:not(:disabled) {
@@ -530,8 +530,8 @@
 }
 
 .pm-action-primary {
-  background: var(--pm-primary);
-  color: var(--pm-on-primary, #000000);
+  background: rgba(217, 255, 0, 0.10);
+  color: #ffffff;
 }
 
 .pm-action-primary:hover:not(:disabled) {

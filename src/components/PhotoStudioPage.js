@@ -139,12 +139,12 @@ export function PhotoStudioPage() {
 
   const modeToggle = document.createElement('button');
   modeToggle.type = 'button';
-  modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+  modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary/10 text-white border-primary/30' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
   modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
   modeToggle.onclick = () => {
     state.muapiMode = !state.muapiMode;
     if (!state.muapiMode) state.selectedMuapiModel = null;
-    modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+    modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary/10 text-white border-primary/30' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
     modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
     renderMuapiModelSelector();
   };
@@ -225,7 +225,7 @@ export function PhotoStudioPage() {
   modeToggle.onclick = () => {
     state.muapiMode = !state.muapiMode;
     if (!state.muapiMode) state.selectedMuapiModel = null;
-    modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+    modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary/10 text-white border-primary/30' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
     modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
     renderMuapiModelSelector();
     renderAdvancedMuapiControls();
@@ -279,7 +279,7 @@ export function PhotoStudioPage() {
       const btn = document.createElement('button');
       btn.type = 'button';
       const isSelected = selected.includes(opt.id);
-      btn.className = `px-3 py-2 rounded-xl text-xs font-bold transition-all border ${isSelected ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+      btn.className = `px-3 py-2 rounded-xl text-xs font-bold transition-all border ${isSelected ? 'bg-primary/10 text-white border-primary/30' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
       btn.textContent = opt.label;
       btn.onclick = () => {
         const idx = selected.indexOf(opt.id);

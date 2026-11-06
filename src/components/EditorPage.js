@@ -1439,7 +1439,7 @@ export function EditorPage() {
         const messageDiv = document.createElement('div');
         messageDiv.className = `flex gap-2 ${isUser ? 'justify-end' : ''}`;
         messageDiv.innerHTML = `
-            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${isUser ? 'bg-primary text-black' : 'bg-white/10 text-white'}">
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${isUser ? 'bg-primary/10 border border-primary/30 text-white' : 'bg-white/10 text-white'}">
                 ${isUser ? 'You' : 'AI'}
             </div>
             <div class="bg-${isUser ? 'primary/20' : 'white/10'} rounded-lg px-3 py-2 max-w-[80%]">

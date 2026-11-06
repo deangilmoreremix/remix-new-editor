@@ -64,9 +64,10 @@ export class ErrorBoundary {
         const retryBtn = document.createElement('button');
         retryBtn.textContent = 'Try Again';
         retryBtn.style.cssText = `
-            background: #d9ff00;
-            color: #000;
-            border: none;
+            background: rgba(217,255,0,0.10);
+            color: #fff;
+            border: 1px solid rgba(217,255,0,0.35);
+            border-left: 2px solid #d9ff00;
             padding: 0.5rem 1.5rem;
             border-radius: 0.375rem;
             font-weight: 600;

@@ -634,7 +634,7 @@ export function CinemaStudio() {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
             || t2vModels.find(x => x.id === currentSettings.model)
             || t2vModels[0];
-        modelBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-[8px] font-black text-black">V</span></div> ${m ? m.name : currentSettings.model}`;
+        modelBtn.innerHTML = `<div class="w-4 h-4 bg-primary/10 border border-primary/30 rounded flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-[8px] font-black text-white">V</span></div> ${m ? m.name : currentSettings.model}`;
     };
     updateModelBtn();
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };

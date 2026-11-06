@@ -11,7 +11,7 @@ const PRIMARY = 'var(--color-primary, #d9ff00)';
 const POSITION_CLASS = 'absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-[95%] lg:max-w-4xl z-30 animate-fade-in-up';
 const PANEL_CLASS = 'w-full bg-gradient-to-b from-[#18181c]/90 via-[#0f0f12]/90 to-[#0c0c0e]/95 backdrop-blur-2xl rounded-[2rem] border border-white/[0.08] p-4 flex flex-col gap-3 shadow-[0_15px_50px_rgba(0,0,0,0.8)]';
 const TEXTAREA_CLASS = 'w-full bg-transparent border-none text-white text-sm placeholder:text-white/20 focus:outline-none resize-none pt-1 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar disabled:opacity-40';
-const ACTION_CLASS = 'bg-primary text-black px-7 py-3 rounded-full font-bold text-sm hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-primary/20 hover:shadow-primary/35 border border-primary/10 z-10 disabled:opacity-50 disabled:cursor-not-allowed';
+const ACTION_CLASS = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg z-10 disabled:cursor-not-allowed';
 const CONTROL_LAYOUT_CLASS = 'h-[38px] flex items-center gap-2 rounded-md transition-all border group whitespace-nowrap shadow-inner focus:outline-none focus-visible:border-primary/45 focus-visible:ring-1 focus-visible:ring-primary/30';
 const CONTROL_IDLE_CLASS = 'text-white bg-[#16161a]/60 hover:bg-[#202026]/80 border-white/[0.06]';
 const CONTROL_ACTIVE_CLASS = 'text-primary bg-primary/10 hover:bg-primary/15 border-primary/25';
@@ -181,7 +181,7 @@ export function createSegmented(options, value, onChange) {
       b.setAttribute('aria-pressed', opt.value === current ? 'true' : 'false');
       b.className = join(
         'min-h-7 px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/40',
-        opt.value === current ? 'bg-primary text-black shadow-md shadow-primary/20' : 'text-white/40 hover:text-white/70',
+        opt.value === current ? 'bg-primary/10 border border-primary/30 text-white shadow-md shadow-primary/20' : 'text-white/40 hover:text-white/70',
       );
       b.textContent = opt.label;
       b.addEventListener('click', () => {

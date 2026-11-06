@@ -603,9 +603,9 @@
 }
 
 .gtm-prompt-modal .gtm-variant-chip.active {
-  color: var(--app-on-primary);
-  background: var(--app-primary);
-  border-color: var(--app-primary);
+  color: #ffffff;
+  background: rgba(217, 255, 0, 0.10);
+  border-color: rgba(217, 255, 0, 0.35);
 }
 
 /* Refine (multi-turn) */
@@ -647,8 +647,8 @@
 }
 
 .gtm-prompt-modal .refine-btn {
-  background: var(--app-primary);
-  color: var(--app-on-primary);
+  background: rgba(217, 255, 0, 0.10);
+  color: #ffffff;
 }
 
 /* ============================================
@@ -978,8 +978,8 @@
 /* Difficulty badges — neutral chips on the dark surface. Only the
    "advanced" tier gets the brand accent so it still reads as a rank. */
 .gtm-prompt-modal .gtm-example-advanced {
-  background: var(--app-primary);
-  color: var(--app-on-primary);
+  background: rgba(217, 255, 0, 0.10);
+  color: #ffffff;
 }
 .gtm-prompt-modal .gtm-example-intermediate {
   background: var(--app-soft);
@@ -1100,8 +1100,8 @@
   align-self: flex-start;
   padding: 3px 10px;
   border-radius: var(--border-radius-full);
-  background: var(--app-primary);
-  color: var(--app-on-primary);
+  background: rgba(217, 255, 0, 0.10);
+  color: #ffffff;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -1180,9 +1180,9 @@
 }
 
 .gtm-prompt-modal .gtm-chip.active {
-  background: var(--app-primary);
-  border-color: transparent;
-  color: var(--app-on-primary);
+  background: rgba(217, 255, 0, 0.10);
+  border-color: rgba(217, 255, 0, 0.35);
+  color: #ffffff;
 }
 
 .gtm-prompt-modal .gtm-angle {

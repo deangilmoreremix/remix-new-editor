@@ -831,7 +831,7 @@ export function AudioStudio() {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = d === duration
-      ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black'
+      ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary/10 border border-primary/30 text-white'
       : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     btn.textContent = `${d}s`;
     btn.onclick = () => {
@@ -993,7 +993,7 @@ export function AudioStudio() {
   // Generate button
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
+  genBtn.className = 'w-full bg-primary/10 border border-primary/30 text-white py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Generate Audio';
   genBtn.setAttribute('aria-label', 'Generate audio');
   formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
@@ -1038,7 +1038,7 @@ export function AudioStudio() {
         <span id="fade-status" class="text-[10px] text-muted"></span>
       </div>
       <div class="flex items-center gap-2">
-        <button id="apply-edits-btn" class="px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
+        <button id="apply-edits-btn" class="px-4 py-2 bg-primary/10 border border-primary/30 text-white rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
         <button id="reset-edits-btn" class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/10 transition-all">Reset</button>
       </div>
     </div>
@@ -1076,7 +1076,7 @@ export function AudioStudio() {
     Array.from(durationRow.children).forEach((btn, i) => {
       const d = ['15', '30', '60', '120'][i];
       btn.className = d === duration
-        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary text-black'
+        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary/10 border border-primary/30 text-white'
         : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10';
     });
   }
@@ -1121,7 +1121,7 @@ export function AudioStudio() {
       <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
         <div id="waveform-container" class="w-full h-24 mb-3 rounded-xl overflow-hidden bg-white/5"></div>
         <div class="flex items-center gap-3 mb-3">
-          <button id="waveform-play-btn" aria-label="Play" class="w-12 h-12 bg-primary hover:bg-primary/80 text-black rounded-full flex items-center justify-center transition-all">
+          <button id="waveform-play-btn" aria-label="Play" class="w-12 h-12 bg-primary/10 border border-primary/30 hover:bg-primary/20 text-white rounded-full flex items-center justify-center transition-all">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </button>
           <span id="waveform-time" class="text-xs font-bold text-secondary tabular-nums">0:00 / 0:00</span>
@@ -1133,7 +1133,7 @@ export function AudioStudio() {
           </div>
         </div>
         <audio id="waveform-audio" class="hidden" src="${url}" type="audio/mpeg"></audio>
-        <a href="${url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
+        <a href="${url}" download class="block w-full bg-primary/10 border border-primary/30 text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
       </div>
       <div id="audio-editor-controls" class="mt-4 bg-[#111]/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
         <div class="text-xs font-bold text-secondary uppercase tracking-wider">Audio Editor</div>
@@ -1156,7 +1156,7 @@ export function AudioStudio() {
           <span id="fade-status" class="text-[10px] text-muted"></span>
         </div>
         <div class="flex items-center gap-2">
-          <button id="apply-edits-btn" class="px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
+          <button id="apply-edits-btn" class="px-4 py-2 bg-primary/10 border border-primary/30 text-white rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
           <button id="reset-edits-btn" class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/10 transition-all">Reset</button>
         </div>
       </div>

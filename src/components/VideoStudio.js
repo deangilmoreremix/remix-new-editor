@@ -1736,7 +1736,7 @@ generateBtn.type = 'button';
             overlay.className = 'absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center gap-1';
             
             const downloadBtn = document.createElement('button');
-            downloadBtn.className = 'hist-download p-1.5 bg-primary rounded-lg text-black hover:scale-110 transition-transform';
+            downloadBtn.className = 'hist-download p-1.5 bg-primary/10 border border-primary/30 rounded-lg text-white hover:scale-110 transition-transform';
             downloadBtn.title = 'Download';
             downloadBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
             overlay.appendChild(downloadBtn);

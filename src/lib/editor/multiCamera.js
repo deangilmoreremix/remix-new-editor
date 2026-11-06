@@ -66,7 +66,7 @@ export function renderCameraAnglesPanel(state) {
   panel.innerHTML = `
     <h3 class="text-lg font-bold mb-4">Camera Angles</h3>
     <div class="camera-angles-list mb-4"></div>
-    <button class="add-angle-btn w-full py-2 bg-primary text-black rounded-lg font-semibold hover:bg-primary/80 transition-colors" data-tooltip="Add a new camera angle: Create a new camera perspective that you can switch to during editing">
+    <button class="add-angle-btn w-full py-2 bg-primary/10 border border-primary/30 text-white rounded-lg font-semibold hover:bg-primary/20 transition-colors" data-tooltip="Add a new camera angle: Create a new camera perspective that you can switch to during editing">
       + Add Camera Angle
     </button>
   `;

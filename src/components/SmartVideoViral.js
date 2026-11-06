@@ -505,13 +505,13 @@ export function SmartVideoViral() {
     btn.addEventListener('click', () => {
       mediaTypeFilter = btn.getAttribute('data-mt');
       mediaFilter.querySelectorAll('.media-btn').forEach(b => {
-        b.classList.remove('bg-primary', 'text-black'); b.classList.add('text-zinc-200', 'hover:text-white');
+        b.classList.remove('bg-primary/10 border border-primary/30', 'text-white'); b.classList.add('text-zinc-200', 'hover:text-white');
       });
-      btn.classList.add('bg-primary', 'text-black'); btn.classList.remove('text-zinc-200', 'hover:text-white');
+      btn.classList.add('bg-primary/10 border border-primary/30', 'text-white'); btn.classList.remove('text-zinc-200', 'hover:text-white');
       applyFilters();
     });
   });
-  mediaFilter.querySelector('[data-mt="all"]').classList.add('bg-primary', 'text-black');
+  mediaFilter.querySelector('[data-mt="all"]').classList.add('bg-primary/10 border border-primary/30', 'text-white');
   mediaFilter.querySelector('[data-mt="all"]').classList.remove('text-zinc-200');
   categorySelect.addEventListener('change', () => { categoryFilter = categorySelect.value; applyFilters(); });
   modelSelect.addEventListener('change', () => { modelFilter = modelSelect.value; applyFilters(); });
@@ -1186,11 +1186,11 @@ export function SmartVideoViral() {
     const sheetMedia = sheet.querySelector('#sheet-media-filter');
     sheetMedia.querySelectorAll('.sheet-media-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        sheetMedia.querySelectorAll('.sheet-media-btn').forEach(b => { b.classList.remove('bg-primary', 'text-black'); b.classList.add('text-zinc-200'); });
-        btn.classList.add('bg-primary', 'text-black'); btn.classList.remove('text-zinc-200');
+        sheetMedia.querySelectorAll('.sheet-media-btn').forEach(b => { b.classList.remove('bg-primary/10 border border-primary/30', 'text-white'); b.classList.add('text-zinc-200'); });
+        btn.classList.add('bg-primary/10 border border-primary/30', 'text-white'); btn.classList.remove('text-zinc-200');
       });
     });
-    sheetMedia.querySelector('[data-mt="all"]').classList.add('bg-primary', 'text-black');
+    sheetMedia.querySelector('[data-mt="all"]').classList.add('bg-primary/10 border border-primary/30', 'text-white');
     sheetMedia.querySelector('[data-mt="all"]').classList.remove('text-zinc-200');
     const sheetSort = sheet.querySelector('#sheet-sort');
     const sheetModel = sheet.querySelector('#sheet-model');
@@ -1203,8 +1203,8 @@ export function SmartVideoViral() {
       sheetMedia.querySelectorAll('.sheet-media-btn').forEach(b => {
         const mt = b.getAttribute('data-mt');
         if (mt === mediaTypeFilter) {
-          sheetMedia.querySelectorAll('.sheet-media-btn').forEach(x => { x.classList.remove('bg-primary', 'text-black'); x.classList.add('text-zinc-200'); });
-          b.classList.add('bg-primary', 'text-black'); b.classList.remove('text-zinc-200');
+          sheetMedia.querySelectorAll('.sheet-media-btn').forEach(x => { x.classList.remove('bg-primary/10 border border-primary/30', 'text-white'); x.classList.add('text-zinc-200'); });
+          b.classList.add('bg-primary/10 border border-primary/30', 'text-white'); b.classList.remove('text-zinc-200');
         }
       });
       sheetCat.value = categoryFilter;
@@ -1232,8 +1232,8 @@ export function SmartVideoViral() {
       mediaFilter.querySelectorAll('.media-btn').forEach(b => {
         const mt = b.getAttribute('data-mt');
         if (mt === mediaTypeFilter) {
-          mediaFilter.querySelectorAll('.media-btn').forEach(x => { x.classList.remove('bg-primary', 'text-black'); x.classList.add('text-zinc-200', 'hover:text-white'); });
-          b.classList.add('bg-primary', 'text-black'); b.classList.remove('text-zinc-200', 'hover:text-white');
+          mediaFilter.querySelectorAll('.media-btn').forEach(x => { x.classList.remove('bg-primary/10 border border-primary/30', 'text-white'); x.classList.add('text-zinc-200', 'hover:text-white'); });
+          b.classList.add('bg-primary/10 border border-primary/30', 'text-white'); b.classList.remove('text-zinc-200', 'hover:text-white');
         }
       });
       categorySelect.value = categoryFilter;
@@ -1437,8 +1437,8 @@ export function SmartVideoViral() {
           resetBtn.addEventListener('click', () => {
             searchQuery = ''; mediaTypeFilter = 'all'; categoryFilter = 'all'; modelFilter = 'all'; sortKey = 'fresh'; excludeChinese = true;
             searchInput.value = ''; categorySelect.value = 'all'; modelSelect.value = 'all'; sortSelect.value = 'fresh';
-            mediaFilter.querySelectorAll('.media-btn').forEach(b => { b.classList.remove('bg-primary', 'text-black'); b.classList.add('text-zinc-200', 'hover:text-white'); });
-            mediaFilter.querySelector('[data-mt="all"]').classList.add('bg-primary', 'text-black');
+            mediaFilter.querySelectorAll('.media-btn').forEach(b => { b.classList.remove('bg-primary/10 border border-primary/30', 'text-white'); b.classList.add('text-zinc-200', 'hover:text-white'); });
+            mediaFilter.querySelector('[data-mt="all"]').classList.add('bg-primary/10 border border-primary/30', 'text-white');
             mediaFilter.querySelector('[data-mt="all"]').classList.remove('text-zinc-200');
             langToggle.classList.add('bg-primary/10', 'border-primary/20', 'text-primary');
             langToggle.classList.remove('bg-zinc-800', 'border-zinc-700/80', 'text-zinc-300');

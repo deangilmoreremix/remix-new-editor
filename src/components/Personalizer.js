@@ -287,9 +287,10 @@ function renderFormElement(options) {
     margin-top: 4px;
     padding: 8px 12px;
     border-radius: 6px;
-    border: none;
-    background: #d9ff00;
-    color: #000;
+    border: 1px solid rgba(217,255,0,0.35);
+    border-left: 2px solid #d9ff00;
+    background: rgba(217,255,0,0.10);
+    color: #fff;
     font-weight: 600;
     font-size: 13px;
     cursor: pointer;
@@ -771,9 +772,10 @@ export function Personalizer() {
   previewBtn.style.cssText = `
     padding: 8px 12px;
     border-radius: 6px;
-    border: none;
-    background: #d9ff00;
-    color: #000;
+    border: 1px solid rgba(217,255,0,0.35);
+    border-left: 2px solid #d9ff00;
+    background: rgba(217,255,0,0.10);
+    color: #fff;
     font-weight: 600;
     font-size: 12px;
     cursor: pointer;
@@ -1611,7 +1613,7 @@ export function Personalizer() {
             const inputType = field === 'email' ? 'email' : 'text';
             formHtml += `<input type="${inputType}" placeholder="${escapeHtml(field)}" style="width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:#fff;font-size:13px;box-sizing:border-box;" />`;
           });
-          formHtml += `<button type="button" style="margin-top:4px;padding:8px;border-radius:6px;border:none;background:#d9ff00;color:#000;font-weight:600;cursor:pointer;">${escapeHtml(el.submitText || 'Submit')}</button></div>`;
+          formHtml += `<button type="button" style="margin-top:4px;padding:8px;border-radius:6px;border:1px solid rgba(217,255,0,0.35);border-left:2px solid #d9ff00;background:rgba(217,255,0,0.10);color:#fff;font-weight:600;cursor:pointer;">${escapeHtml(el.submitText || 'Submit')}</button></div>`;
           body += formHtml;
           break;
         }

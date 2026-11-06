@@ -322,7 +322,7 @@ function openInterestModal(app) {
         <p class="text-sm font-medium text-white/40 leading-relaxed px-4" data-body></p>
       </div>
       <div class="space-y-3">
-        <button type="button" data-submit class="w-full py-4 bg-primary text-black rounded-md text-sm font-black uppercase tracking-widest disabled:opacity-50">Get Template</button>
+        <button type="button" data-submit class="w-full py-4 bg-primary/10 border border-primary/30 text-white rounded-md text-sm font-black uppercase tracking-widest disabled:opacity-50">Get Template</button>
         <button type="button" data-close class="w-full py-4 bg-white/5 border border-white/10 text-white/60 rounded-md text-sm font-bold uppercase tracking-widest hover:bg-white/10">Maybe Later</button>
       </div>
     </div>`;

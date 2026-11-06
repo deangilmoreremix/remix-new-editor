@@ -329,7 +329,7 @@ export function EditStudio() {
     const thumbSrc = getToolThumbnail(tool.id);
     if (thumbSrc) thumbWrapper.appendChild(createThumbnailImg(thumbSrc, tool.name, 'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500'));
     const openChip = document.createElement('span');
-    openChip.className = 'absolute bottom-2 right-2 text-[10px] font-black bg-primary text-black rounded-full px-2.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity';
+    openChip.className = 'absolute bottom-2 right-2 text-[10px] font-black bg-primary/10 border border-primary/30 text-white rounded-full px-2.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity';
     openChip.textContent = 'Open studio →';
     thumbWrapper.appendChild(openChip);
     const info = document.createElement('div');
@@ -599,7 +599,7 @@ export function EditStudio() {
   // Apply + progress.
   const editBtn = document.createElement('button');
   editBtn.type = 'button';
-  editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all disabled:opacity-50';
+  editBtn.className = 'w-full bg-primary/10 border border-primary/30 text-white py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all disabled:opacity-50';
   editBtn.textContent = 'Apply Edit';
   const formError = document.createElement('div');
   formError.className = 'hidden text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3';
@@ -671,7 +671,7 @@ export function EditStudio() {
   beforeTag.className = 'absolute top-2 left-2 text-[10px] font-black bg-black/70 text-white rounded px-2 py-0.5';
   beforeTag.textContent = 'BEFORE';
   const afterTag = document.createElement('span');
-  afterTag.className = 'absolute top-2 right-2 text-[10px] font-black bg-primary text-black rounded px-2 py-0.5';
+  afterTag.className = 'absolute top-2 right-2 text-[10px] font-black bg-primary/10 border border-primary/30 text-white rounded px-2 py-0.5';
   afterTag.textContent = 'AFTER';
   const slider = document.createElement('input');
   slider.type = 'range';
@@ -693,7 +693,7 @@ export function EditStudio() {
   const resultActions = document.createElement('div');
   resultActions.className = 'hidden flex flex-wrap gap-2';
   const downloadBtn = document.createElement('a');
-  downloadBtn.className = 'flex-1 min-w-[120px] bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all';
+  downloadBtn.className = 'flex-1 min-w-[120px] bg-primary/10 border border-primary/30 text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all';
   downloadBtn.textContent = 'Download';
   downloadBtn.target = '_blank';
   downloadBtn.rel = 'noopener';
@@ -798,7 +798,7 @@ export function EditStudio() {
     for (const [id, btn] of Object.entries(viewButtons)) {
       const active = id === mode;
       btn.setAttribute('aria-pressed', String(active));
-      btn.className = `text-[10px] font-bold rounded-md px-2 py-1 ${active ? 'text-black bg-primary' : 'text-white hover:text-primary'}`;
+      btn.className = `text-[10px] font-bold rounded-md px-2 py-1 ${active ? 'text-white bg-primary/10 border border-primary/30' : 'text-white hover:text-primary'}`;
     }
     if (!resultUrl) return;
     const compare = mode === 'compare';

@@ -74,7 +74,7 @@ function renderLeadRow(lead) {
 
   const stage = STAGES.includes(lead.stage) ? lead.stage : 'New';
   const badge = el('span', 'justify-self-start md:justify-self-end inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold whitespace-nowrap', stage);
-  if (stage === 'Converted') badge.className += ' bg-primary text-black border-primary';
+  if (stage === 'Converted') badge.className += ' bg-primary/10 border border-primary/30 text-white border-primary/30';
   else if (stage === 'Not Interested') badge.className += ' border-white/10 text-muted';
   else badge.className += ' border-primary/40 bg-primary/10 text-primary';
 
@@ -101,7 +101,7 @@ export function LeadFinderStudio() {
   heroText.appendChild(el('p', 'text-sm text-secondary max-w-xl',
     'Search a niche and location, review scored prospects, pull their real logos and photos from their website, and turn any of them into a personalized demo video.'));
   const heroActions = el('div', 'flex flex-col sm:flex-row gap-2 shrink-0');
-  const findBtn = el('button', 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-black shadow-glow hover:bg-[var(--color-primary-hover)] transition-colors', 'Find businesses');
+  const findBtn = el('button', 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary/10 border border-primary/30 px-5 py-3 text-sm font-bold text-white shadow-glow hover:bg-primary/20 transition-colors', 'Find businesses');
   findBtn.type = 'button';
   findBtn.addEventListener('click', () => openLeadFinder(findBtn));
   heroActions.appendChild(findBtn);

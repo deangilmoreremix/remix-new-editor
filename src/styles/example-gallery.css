@@ -73,9 +73,9 @@
 }
 
 .eg-filter-chip.active {
-  background: #d9ff00;
-  color: #000000;
-  border-color: #d9ff00;
+  background: rgba(217, 255, 0, 0.10);
+  color: #ffffff;
+  border-color: rgba(217, 255, 0, 0.35);
   font-weight: 700;
 }
 

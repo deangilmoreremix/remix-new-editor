@@ -296,7 +296,7 @@ export function PlanCard({ eyebrow, title, meta, steps, onApprove, onReject, bus
       </div>
       <div className="mt-4 flex justify-end gap-2">
         <button type="button" disabled={busy} onClick={onReject} className="px-4 py-2 rounded-lg text-xs font-medium disabled:opacity-50" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: semantic.textSecondary }}>{rejectLabel}</button>
-        <button type="button" disabled={busy} onClick={onApprove} className="px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-50" style={{ background: 'var(--color-primary)', color: 'white' }}>{approveLabel}</button>
+        <button type="button" disabled={busy} onClick={onApprove} className="px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-50" style={{ background: 'rgba(217,255,0,0.10)', border: '1px solid rgba(217,255,0,0.35)', color: '#fff' }}>{approveLabel}</button>
       </div>
     </div>
   )

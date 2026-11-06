@@ -415,7 +415,7 @@ export function DemoDetailModal({ asset, source = 'minimax', onClose }) {
                 console.error('[DemoDetailModal] "Personalize This Demo" failed', error),
               );
             }}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-black transition-all duration-300 hover:shadow-glow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 sm:ml-auto"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/30 px-5 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:shadow-glow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 sm:ml-auto"
           >
             Personalize This Demo
           </button>
@@ -426,7 +426,7 @@ export function DemoDetailModal({ asset, source = 'minimax', onClose }) {
             aria-label={`Create this style: ${info.title}`}
             disabled={busy}
             onClick={handleCreate}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-black transition-all duration-300 hover:shadow-glow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 disabled:cursor-wait disabled:opacity-70"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/30 px-5 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:shadow-glow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 disabled:cursor-wait disabled:opacity-70"
           >
             {busy ? 'Spinning up…' : 'Create This Style'}
             {busy ? null : (

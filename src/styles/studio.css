@@ -113,9 +113,9 @@
 }
 
 .toolbar-btn:hover {
-    background: var(--color-primary);
-    color: black;
-    border-color: var(--color-primary);
+    background: rgba(217, 255, 0, 0.10);
+    color: #ffffff;
+    border-color: rgba(217, 255, 0, 0.35);
 }
 
 /* ============================================================

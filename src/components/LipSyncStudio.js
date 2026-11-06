@@ -323,7 +323,7 @@ export function LipSyncStudio() {
     audioPlayBtn.type = 'button';
     audioPlayBtn.hidden = true;
     audioPlayBtn.dataset.audioPreview = '';
-    audioPlayBtn.className = 'w-5 h-5 rounded-full bg-primary text-black text-[9px] leading-none flex items-center justify-center';
+    audioPlayBtn.className = 'w-5 h-5 rounded-full bg-primary/10 border border-primary/30 text-white text-[9px] leading-none flex items-center justify-center';
     audioPlayBtn.setAttribute('aria-label', 'Play audio');
     audioPlayBtn.textContent = '▶';
     let previewAudio = null;
@@ -1029,7 +1029,7 @@ export function LipSyncStudio() {
             thumb.innerHTML = `
                 <video src="${entry.url}" preload="metadata" muted class="w-full aspect-square object-cover"></video>
                 <div class="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                    <button class="hist-download p-1.5 bg-primary rounded-lg text-black hover:scale-110 transition-transform" title="Download">
+                    <button class="hist-download p-1.5 bg-primary/10 border border-primary/30 rounded-lg text-white hover:scale-110 transition-transform" title="Download">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                     </button>
                     <button class="hist-delete p-1.5 bg-red-500/80 rounded-lg text-white hover:scale-110 transition-transform" title="Delete">

@@ -322,7 +322,7 @@ export function LibraryPage() {
 
       const useBtn = document.createElement('button');
       useBtn.type = 'button';
-      useBtn.className = 'px-2 py-1 rounded-lg bg-primary/90 text-black text-[10px] font-bold hover:bg-primary transition-all';
+      useBtn.className = 'px-2 py-1 rounded-lg bg-primary/10 text-white text-[10px] font-bold hover:bg-primary transition-all';
       useBtn.textContent = 'Use in studio';
       useBtn.onclick = (e) => { e.stopPropagation(); showUseInStudio(asset); };
       actions.appendChild(useBtn);

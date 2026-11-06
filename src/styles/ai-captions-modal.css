@@ -100,9 +100,9 @@
 }
 
 .ai-captions-mode-switch .mode-btn.active {
-  color: var(--app-on-primary);
-  background: var(--app-primary);
-  border-color: var(--app-primary);
+  color: #ffffff;
+  background: rgba(217, 255, 0, 0.10);
+  border-color: rgba(217, 255, 0, 0.35);
   box-shadow: 0 2px 8px var(--app-glow);
 }
 
@@ -454,9 +454,9 @@
 }
 
 .theme-chip.active {
-  color: var(--app-on-primary);
-  background: var(--app-primary);
-  border-color: var(--app-primary);
+  color: #ffffff;
+  background: rgba(217, 255, 0, 0.10);
+  border-color: rgba(217, 255, 0, 0.35);
   box-shadow: 0 2px 8px var(--app-glow);
 }
 
@@ -625,8 +625,8 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   text-decoration: none;
-  background: var(--app-primary);
-  color: var(--app-on-primary);
+  background: rgba(217, 255, 0, 0.10);
+  color: #ffffff;
 }
 
 .ai-captions-modal .gtm-action:focus-visible {

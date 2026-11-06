@@ -24,7 +24,7 @@ const ICON = {
   close: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>',
 };
 
-const ROUND_BTN = 'p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-primary hover:text-black transition-all border border-white/10';
+const ROUND_BTN = 'p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-primary hover:text-white transition-all border border-white/10';
 
 export async function copyText(text) {
   await navigator.clipboard.writeText(text);

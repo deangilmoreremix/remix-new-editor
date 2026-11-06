@@ -122,7 +122,7 @@ export function createMarketingAdMode() {
         <div class="flex flex-col items-center gap-4">
           <img data-img class="max-h-[60vh] max-w-[80vw] rounded-2xl object-cover shadow-2xl" alt="">
           <div class="text-white font-bold" data-name></div>
-          <button type="button" data-select class="px-8 py-3 rounded-full bg-primary text-black font-bold text-sm">Select Avatar</button>
+          <button type="button" data-select class="px-8 py-3 rounded-full bg-primary/10 border border-primary/30 text-white font-bold text-sm">Select Avatar</button>
         </div>
         <button type="button" data-next aria-label="Next Avatar" class="w-11 h-11 rounded-full bg-white/10 text-white text-xl hover:bg-white/20">›</button>
         <button type="button" data-close aria-label="Close" class="absolute -top-2 -right-2 w-9 h-9 rounded-full bg-white/10 text-white hover:bg-white/20">×</button>

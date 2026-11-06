@@ -56,8 +56,9 @@ export const panels = {
 export const buttons = {
   // Primary CTA — remix neon-yellow background
   primary: {
-    background: 'var(--color-primary)',
-    color: 'black',
+    background: 'rgba(217,255,0,0.10)',
+    color: '#fff',
+    border: '1px solid rgba(217,255,0,0.35)',
   },
   // Ghost — for secondary actions
   ghost: {

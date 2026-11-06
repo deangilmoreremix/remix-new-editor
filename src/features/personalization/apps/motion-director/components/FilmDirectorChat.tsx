@@ -45,7 +45,7 @@ export const FilmMessage: React.FC<{ message: Pick<FilmChatMessage, 'role' | 'co
 
 const choiceStyle = (primary: boolean): React.CSSProperties =>
   primary
-    ? { background: 'var(--color-primary)', color: 'white' }
+    ? { background: 'rgba(217,255,0,0.10)', border: '1px solid rgba(217,255,0,0.35)', color: '#fff' }
     : { background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: semantic.textSecondary };
 
 /** Downloads the film's design spec as Markdown. */

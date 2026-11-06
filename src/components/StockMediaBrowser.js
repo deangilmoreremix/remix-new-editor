@@ -449,7 +449,7 @@ export function openStockMediaBrowser({
         ${isVideo ? '<div class="absolute inset-0 flex items-center justify-center"><div class="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div>' : ''}
         ${isGif ? '<div class="absolute top-2 right-2 px-2 py-0.5 bg-black/60 rounded text-[8px] font-bold text-white">GIF</div>' : ''}
         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <button class="select-btn px-3 py-1.5 bg-primary text-black text-[10px] font-bold rounded-lg hover:opacity-80 transition-opacity">Select</button>
+          <button class="select-btn px-3 py-1.5 bg-primary/10 border border-primary/30 text-white text-[10px] font-bold rounded-lg hover:opacity-80 transition-opacity">Select</button>
           ${onDownload ? `<button class="download-btn px-3 py-1.5 bg-white/10 text-white text-[10px] font-bold rounded-lg hover:bg-white/20 transition-opacity">Download</button>` : ''}
         </div>
       </div>

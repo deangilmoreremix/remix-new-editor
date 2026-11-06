@@ -314,12 +314,12 @@ export function CampaignWizard(params = {}) {
         const idx = state.selectedPlatforms.indexOf(p.id);
         if (idx >= 0) {
           state.selectedPlatforms.splice(idx, 1);
-          chip.classList.remove('bg-primary', 'text-black', 'border-primary');
+          chip.classList.remove('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
           chip.classList.add('bg-white/5', 'text-white', 'border-white/10');
         } else {
           state.selectedPlatforms.push(p.id);
           chip.classList.remove('bg-white/5', 'text-white', 'border-white/10');
-          chip.classList.add('bg-primary', 'text-black', 'border-primary');
+          chip.classList.add('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
         }
       };
       platformRow.appendChild(chip);

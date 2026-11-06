@@ -16,7 +16,7 @@ import { notifyGeneration } from './generationNotifications.js';
 import { showToast } from '../../lib/loading.js';
 
 const PANEL_CLASS = 'w-full bg-gradient-to-b from-[#18181c]/90 via-[#0f0f12]/90 to-[#0c0c0e]/95 backdrop-blur-2xl rounded-[2rem] border border-white/[0.08] p-4 flex flex-col gap-3 shadow-[0_15px_50px_rgba(0,0,0,0.8)]';
-const ACTION_CLASS = 'bg-primary text-black px-7 py-3 rounded-full font-bold text-sm hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-primary/20 hover:shadow-primary/35 border border-primary/10 z-10 disabled:opacity-50 disabled:cursor-not-allowed';
+const ACTION_CLASS = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg z-10 disabled:cursor-not-allowed';
 const FOOTER_CLASS = 'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-3 border-t border-white/[0.03] relative';
 const CONTROLS_CLASS = 'flex items-center gap-2 relative flex-wrap pb-1 md:pb-0';
 

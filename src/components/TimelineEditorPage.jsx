@@ -193,7 +193,7 @@ export function TimelineEditorPage() {
         const headerActions = modal.querySelector('#headerActions');
         if (headerActions) {
           const sendBtn = document.createElement('button');
-          sendBtn.className = 'flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-xl text-sm font-semibold hover:shadow-glow transition-all ml-2 border border-primary/50';
+          sendBtn.className = 'flex items-center gap-2 px-4 py-2 bg-primary/10 text-white rounded-xl text-sm font-semibold hover:shadow-glow transition-all ml-2 border border-primary/50';
           sendBtn.innerHTML = `
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Send to Timeline

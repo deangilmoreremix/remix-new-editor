@@ -69,7 +69,7 @@ export function AnimatePage() {
   SOURCE_TYPES.forEach(st => {
     const tab = document.createElement('button');
     tab.type = 'button';
-    tab.className = `px-4 py-2 rounded-xl text-xs font-bold transition-all border ${state.sourceType === st.id ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+    tab.className = `px-4 py-2 rounded-xl text-xs font-bold transition-all border ${state.sourceType === st.id ? 'bg-primary/10 text-white border-primary/30' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
     tab.textContent = st.label;
     tab.onclick = () => {
       state.sourceType = st.id;
@@ -94,10 +94,10 @@ export function AnimatePage() {
     sourceTabs.querySelectorAll('button').forEach((tab, idx) => {
       const st = SOURCE_TYPES[idx];
       if (state.sourceType === st.id) {
-        tab.classList.add('bg-primary', 'text-black', 'border-primary');
+        tab.classList.add('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
         tab.classList.remove('bg-white/5', 'text-white', 'border-white/10');
       } else {
-        tab.classList.remove('bg-primary', 'text-black', 'border-primary');
+        tab.classList.remove('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
         tab.classList.add('bg-white/5', 'text-white', 'border-white/10');
       }
     });
@@ -182,7 +182,7 @@ export function AnimatePage() {
   DEFAULT_PROMPTS.forEach((p, idx) => {
     const chip = document.createElement('button');
     chip.type = 'button';
-    chip.className = `px-2 py-1 rounded-lg text-[10px] font-bold transition-all border ${state.promptIndex === idx ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+    chip.className = `px-2 py-1 rounded-lg text-[10px] font-bold transition-all border ${state.promptIndex === idx ? 'bg-primary/10 text-white border-primary/30' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
     chip.textContent = p.length > 28 ? `${p.slice(0, 26)}…` : p;
     chip.title = p;
     chip.onclick = () => {
@@ -207,10 +207,10 @@ export function AnimatePage() {
   function renderPromptSuggestions() {
     promptSuggestions.querySelectorAll('button').forEach((chip, idx) => {
       if (state.promptIndex === idx) {
-        chip.classList.add('bg-primary', 'text-black', 'border-primary');
+        chip.classList.add('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
         chip.classList.remove('bg-white/5', 'text-white', 'border-white/10');
       } else {
-        chip.classList.remove('bg-primary', 'text-black', 'border-primary');
+        chip.classList.remove('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
         chip.classList.add('bg-white/5', 'text-white', 'border-white/10');
       }
     });
@@ -253,12 +253,12 @@ export function AnimatePage() {
 
   const modeToggle = document.createElement('button');
   modeToggle.type = 'button';
-  modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+  modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary/10 text-white border-primary/30' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
   modeToggle.textContent = state.muapiMode ? 'Choose a model' : 'Seedance Lite (default)';
   modeToggle.onclick = () => {
     state.muapiMode = !state.muapiMode;
     if (!state.muapiMode) state.selectedMuapiModel = null;
-    modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+    modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary/10 text-white border-primary/30' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
     modeToggle.textContent = state.muapiMode ? 'Choose a model' : 'Seedance Lite (default)';
     renderMuapiModelSelector();
     renderAdvancedMuapiControls();

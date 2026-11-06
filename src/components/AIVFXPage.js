@@ -186,7 +186,7 @@ export function AIVFXPage() {
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
   genBtn.dataset.vfxGenerate = '';
-  genBtn.className = 'bg-primary text-black px-7 py-3 rounded-full font-bold text-sm hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed';
+  genBtn.className = 'bg-primary/10 border border-primary/30 text-white px-7 py-3 rounded-full font-bold text-sm hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed';
   genBtn.textContent = 'Generate ✨';
   footer.appendChild(genBtn);
 
@@ -219,7 +219,7 @@ export function AIVFXPage() {
   function renderTabs() {
     Object.entries(tabButtons).forEach(([id, b]) => {
       b.className = id === state.category
-        ? 'px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-primary text-black'
+        ? 'px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-primary/10 border border-primary/30 text-white'
         : 'px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap bg-white/5 text-white/60 hover:bg-white/10 hover:text-white';
     });
   }

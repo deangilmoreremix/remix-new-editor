@@ -204,7 +204,7 @@ export function AssetCanvasEditor(params = {}) {
     textWrap.appendChild(body);
 
     const cta = document.createElement('div');
-    cta.className = 'px-5 py-2 bg-primary text-black rounded-xl text-xs font-black uppercase tracking-wider';
+    cta.className = 'px-5 py-2 bg-primary/10 border border-primary/30 text-white rounded-xl text-xs font-black uppercase tracking-wider';
     cta.textContent = state.cta;
     textWrap.appendChild(cta);
 

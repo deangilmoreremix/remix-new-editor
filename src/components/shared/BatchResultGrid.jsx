@@ -73,7 +73,7 @@ const BatchResultGrid = ({
                                     e.stopPropagation();
                                     onDownload?.(result, index);
                                 }}
-                                className="p-2 bg-primary text-black rounded-lg hover:scale-110 transition-transform"
+                                className="p-2 bg-primary/10 border border-primary/30 text-white rounded-lg hover:scale-110 transition-transform"
                                 title="Download"
                             >
                                 <Download className="w-4 h-4" />

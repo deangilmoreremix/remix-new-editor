@@ -133,7 +133,7 @@ export function createResultHistory({ storageKey, onSelect, title = 'History' } 
       dl.type = 'button';
       dl.title = 'Download';
       dl.dataset.action = 'download';
-      dl.className = 'rounded-lg bg-primary p-1.5 text-black';
+      dl.className = 'rounded-lg bg-primary/10 border border-primary/30 p-1.5 text-white';
       dl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
       dl.onclick = (e) => {
         e.stopPropagation();
