@@ -20,13 +20,6 @@ export const LOCAL_MODELS = {
     sizeMB: 15,
     license: 'Apache-2.0',
   },
-  owl: {
-    id: 'Xenova/owlv2-base-patch16-ensemble',
-    label: 'Find objects by name (OWLv2)',
-    feature: 'Type "the dog" to mask an object',
-    sizeMB: 160,
-    license: 'Apache-2.0',
-  },
   clip: {
     id: 'Xenova/clip-vit-base-patch32',
     label: 'Visual search and tags (CLIP)',
@@ -43,8 +36,8 @@ export const LOCAL_MODELS = {
   },
   florence: {
     id: 'onnx-community/Florence-2-base-ft',
-    label: 'Describe a frame (Florence-2)',
-    feature: 'Writes prompts for Fill Gap, Extend and Music',
+    label: 'Describe and find objects (Florence-2)',
+    feature: 'Writes prompts for Fill Gap, Extend and Music; finds objects by name for masking',
     sizeMB: 240,
     license: 'MIT',
   },

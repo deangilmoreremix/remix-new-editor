@@ -1224,6 +1224,10 @@ export default defineConfig({
         // parses them with the plain js loader and fails with
         // "The JSX syntax extension is not currently enabled".
         esbuildOptions: { loader: { '.js': 'jsx' } },
+        // kokoro-js / phonemizer (free on-device voiceover) ship emscripten
+        // asm.js; the jsx loader above misparses it ("(0 | n) is not a
+        // function"). Serve them untouched.
+        exclude: ['kokoro-js', 'phonemizer'],
     },
     // Many legacy modules under components/ are authored as .js files that
     // nevertheless contain JSX. @vitejs/plugin-react only reliably transforms
@@ -1234,7 +1238,9 @@ export default defineConfig({
     esbuild: {
         loader: 'tsx',
         include: /\.jsx?$/,
-        exclude: /\.tsx?$/,
+        // Never re-parse kokoro-js / phonemizer as TSX (their asm.js has
+        // `a < b > (c)` sequences that TSX reads as generics).
+        exclude: [/\.tsx?$/, /node_modules[\\/](kokoro-js|phonemizer)[\\/]/],
         jsx: 'automatic',
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
     },

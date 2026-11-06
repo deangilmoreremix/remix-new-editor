@@ -6,8 +6,14 @@
  * in:  { id, task: 'speak', input: { text, voice, speed } } | { id, task: 'preload' }
  * out: { id, type: 'progress', progress } | { id, type: 'done', result: { wav: Blob } } | { id, type: 'error', message }
  */
-import { KokoroTTS } from 'kokoro-js';
+import { KokoroTTS, env } from 'kokoro-js';
+// kokoro-js pins Transformers.js 3.x, which would load its ONNX runtime from
+// a CDN. Serve that exact runtime from our own bundle instead.
+import ortMjs from '../../../../node_modules/kokoro-js/node_modules/@huggingface/transformers/dist/ort-wasm-simd-threaded.jsep.mjs?url';
+import ortWasm from '../../../../node_modules/kokoro-js/node_modules/@huggingface/transformers/dist/ort-wasm-simd-threaded.jsep.wasm?url';
 import { LOCAL_MODELS } from './modelRegistry.js';
+
+env.wasmPaths = { mjs: new URL(ortMjs, self.location.href).href, wasm: new URL(ortWasm, self.location.href).href };
 
 let ttsPromise = null;
 

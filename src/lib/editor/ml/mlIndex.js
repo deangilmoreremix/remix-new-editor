@@ -61,7 +61,7 @@ export function dot(a, b) {
  * Rank indexed assets against a (normalized) query embedding.
  * @returns {{ assetId, t, score }[]} best frame per asset, highest score first
  */
-export function rankFrames(records, query, { limit = 20, minScore = 0.18 } = {}) {
+export function rankFrames(records, query, { limit = 20, minScore = 0.22 } = {}) {
   const hits = [];
   for (const rec of records) {
     let best = null;

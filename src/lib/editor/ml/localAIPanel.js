@@ -26,10 +26,8 @@ export function renderLocalAIPanel(container, { editor, confirm } = {}) {
         ${ui.error ? `<p class="addon-field__hint" role="alert" style="color:var(--danger,#ff6b6b)">${esc(ui.error)}</p>` : ''}
 
         <h4 class="addon-panel__heading">Search footage</h4>
-        <div style="display:flex;gap:6px">
-          <input type="search" data-lai-query placeholder='e.g. "beach at sunset"' value="${esc(ui.query)}" style="flex:1;min-width:0"/>
-          <button type="button" class="mini-btn cap-primary" data-lai="search" ${ui.busy ? 'disabled' : ''}>Search</button>
-        </div>
+        <input type="search" data-lai-query placeholder='e.g. "beach at sunset"' value="${esc(ui.query)}" aria-label="Describe what to find" style="width:100%;box-sizing:border-box;margin-bottom:6px"/>
+        <button type="button" class="mini-btn cap-primary" data-lai="search" ${ui.busy ? 'disabled' : ''}>Search</button>
         <p class="addon-field__hint">Searches the video and images in this project. The first search looks at each clip once.</p>
         ${ui.hits ? (ui.hits.length ? `<ol class="ai-hits" style="padding-left:18px;margin:6px 0">${ui.hits.map((h, i) => `
           <li><button type="button" class="mini-btn" data-lai="hit" data-i="${i}" style="text-align:left">${esc(h.name)} · ${h.type === 'image' ? 'image' : fmtT(h.t)}${h.timelineSec != null ? ` → timeline ${fmtT(h.timelineSec)}` : ''} <span class="addon-field__hint">${Math.round(h.score * 100)}</span></button></li>`).join('')}</ol>`

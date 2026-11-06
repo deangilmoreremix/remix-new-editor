@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Segmentation now runs in the browser (SlimSAM / OWLv2) — no fal, no edge function.
+// Segmentation now runs in the browser (SlimSAM + Florence-2) — no fal, no edge function.
 const canvas = { width: 4, height: 2 };
 vi.mock('../ml/frameGrab.js', () => ({ grabFrame: vi.fn(async () => canvas) }));
 vi.mock('../ml/localAI.js', () => ({
@@ -21,7 +21,7 @@ describe('AiMuAPI.applySAM3Segmentation (in-browser)', () => {
     globalThis.URL.createObjectURL = vi.fn(() => 'blob:mask');
   });
 
-  it('masks by text prompt with the local OWLv2 → SAM pipeline', async () => {
+  it('masks by text prompt with the local Florence-2 → SAM pipeline', async () => {
     ai.maskFromText.mockResolvedValue(hit);
     const result = await AiMuAPI.applySAM3Segmentation('https://example.com/img.png', { type: 'text', prompt: 'a cat' });
     expect(grabFrame).toHaveBeenCalledWith('https://example.com/img.png', 0, expect.objectContaining({ image: true }));

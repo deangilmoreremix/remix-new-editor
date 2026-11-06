@@ -26,7 +26,7 @@ function imagePayload(imageData) {
 const fromCanvas = (canvas) => imagePayload(canvasImageData(canvas));
 
 // ---------------------------------------------------------------------------
-// Masks (SlimSAM + OWLv2)
+// Masks (SlimSAM; Florence-2 finds objects by name)
 // ---------------------------------------------------------------------------
 
 /**
@@ -39,10 +39,10 @@ export async function maskFromPrompt(canvas, { points = [], labels, box, onProgr
 }
 
 /** Mask the best match for a text query ("the dog"). alpha is null when nothing matched. */
-export async function maskFromText(canvas, query, { threshold = 0.1, onProgress, signal } = {}) {
+export async function maskFromText(canvas, query, { onProgress, signal } = {}) {
   if (!String(query || '').trim()) throw new Error('Type what to mask, e.g. "the dog"');
   const [image, transfer] = fromCanvas(canvas);
-  return runLocalTask('owl.mask', { image, query: String(query).trim(), threshold }, { transfer, onProgress, signal });
+  return runLocalTask('text.mask', { image, query: String(query).trim() }, { transfer, onProgress, signal });
 }
 
 /** Black/white mask PNG (white = object). */

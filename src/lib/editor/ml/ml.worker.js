@@ -30,11 +30,18 @@ import { LOCAL_MODELS } from './modelRegistry.js';
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 
+// WebGPU capability: { gpu, fp16 }. fp16 weights need the 'shader-f16' feature.
 let gpuPromise = null;
-const hasGpu = () => {
-  if (!gpuPromise) gpuPromise = (async () => !!(self.navigator?.gpu && await self.navigator.gpu.requestAdapter().catch(() => null)))();
+const gpuInfo = () => {
+  if (!gpuPromise) {
+    gpuPromise = (async () => {
+      const adapter = self.navigator?.gpu ? await self.navigator.gpu.requestAdapter().catch(() => null) : null;
+      return { gpu: !!adapter, fp16: !!adapter?.features?.has?.('shader-f16') };
+    })();
+  }
   return gpuPromise;
 };
+const hasGpu = async () => (await gpuInfo()).gpu;
 
 const loaded = new Map();
 let currentId = 0;
@@ -50,36 +57,51 @@ function progressFor(id, key) {
   };
 }
 
+const modelId = (key) => LOCAL_MODELS[key].id;
+
+// Models that failed on WebGPU in this session run on WASM from then on.
+const forceWasm = new Set();
+
+async function common(key) {
+  const { gpu: hasAdapter, fp16 } = await gpuInfo();
+  const gpu = hasAdapter && !forceWasm.has(key);
+  return {
+    device: gpu ? 'webgpu' : 'wasm',
+    gpu,
+    // Half precision only where the GPU supports it.
+    half: gpu && fp16 ? 'fp16' : 'fp32',
+    progress_callback: progressFor(currentId, key),
+  };
+}
+
+/** Load on WebGPU, and fall back to WASM if the GPU path fails (missing ops, fp16, drivers). */
 function once(key, factory) {
   if (!loaded.has(key)) {
-    const p = factory();
+    const p = (async () => {
+      try {
+        return await factory();
+      } catch (err) {
+        if (forceWasm.has(key) || !(await hasGpu())) throw err;
+        forceWasm.add(key);
+        return factory();
+      }
+    })();
     loaded.set(key, p);
     p.catch(() => loaded.delete(key));
   }
   return loaded.get(key);
 }
 
-const modelId = (key) => LOCAL_MODELS[key].id;
-
-async function common(key) {
-  const gpu = await hasGpu();
-  return { device: gpu ? 'webgpu' : 'wasm', gpu, progress_callback: progressFor(currentId, key) };
-}
-
 const LOADERS = {
   sam: () => once('sam', async () => {
-    const { device, gpu, progress_callback } = await common('sam');
-    const model = await SamModel.from_pretrained(modelId('sam'), { device, dtype: gpu ? 'fp16' : 'q8', progress_callback });
+    const { device, gpu, half, progress_callback } = await common('sam');
+    const model = await SamModel.from_pretrained(modelId('sam'), { device, dtype: gpu ? half : 'q8', progress_callback });
     const processor = await AutoProcessor.from_pretrained(modelId('sam'), { progress_callback });
     return { model, processor };
   }),
-  owl: () => once('owl', async () => {
-    const { device, gpu, progress_callback } = await common('owl');
-    return pipeline('zero-shot-object-detection', modelId('owl'), { device, dtype: gpu ? 'fp16' : 'q8', progress_callback });
-  }),
   clip: () => once('clip', async () => {
-    const { device, gpu, progress_callback } = await common('clip');
-    const dtype = gpu ? 'fp16' : 'q8';
+    const { device, gpu, half, progress_callback } = await common('clip');
+    const dtype = gpu ? half : 'q8';
     const [tokenizer, text, processor, vision] = await Promise.all([
       AutoTokenizer.from_pretrained(modelId('clip'), { progress_callback }),
       CLIPTextModelWithProjection.from_pretrained(modelId('clip'), { device, dtype, progress_callback }),
@@ -89,20 +111,20 @@ const LOADERS = {
     return { tokenizer, text, processor, vision };
   }),
   detr: () => once('detr', async () => {
-    const { device, gpu, progress_callback } = await common('detr');
+    const { device, gpu, half, progress_callback } = await common('detr');
     return pipeline('object-detection', modelId('detr'), { device, dtype: gpu ? 'fp32' : 'q8', progress_callback });
   }),
   florence: () => once('florence', async () => {
-    const { device, gpu, progress_callback } = await common('florence');
+    const { device, gpu, half, progress_callback } = await common('florence');
     const dtype = gpu
-      ? { embed_tokens: 'fp16', vision_encoder: 'fp16', encoder_model: 'q4', decoder_model_merged: 'q4' }
+      ? { embed_tokens: half, vision_encoder: half, encoder_model: 'q4', decoder_model_merged: 'q4' }
       : { embed_tokens: 'fp32', vision_encoder: 'fp32', encoder_model: 'q8', decoder_model_merged: 'q8' };
     const model = await Florence2ForConditionalGeneration.from_pretrained(modelId('florence'), { device, dtype, progress_callback });
     const processor = await AutoProcessor.from_pretrained(modelId('florence'), { progress_callback });
     return { model, processor };
   }),
   clap: () => once('clap', async () => {
-    const { device, gpu, progress_callback } = await common('clap');
+    const { device, gpu, half, progress_callback } = await common('clap');
     return pipeline('zero-shot-audio-classification', modelId('clap'), { device: gpu ? device : 'wasm', dtype: 'q8', progress_callback });
   }),
   diarize: () => once('diarize', async () => {
@@ -117,11 +139,11 @@ const LOADERS = {
     return pipeline('translation', modelId('translate'), { device: 'wasm', dtype: 'q8', progress_callback });
   }),
   depth: () => once('depth', async () => {
-    const { device, gpu, progress_callback } = await common('depth');
-    return pipeline('depth-estimation', modelId('depth'), { device, dtype: gpu ? 'fp16' : 'q8', progress_callback });
+    const { device, gpu, half, progress_callback } = await common('depth');
+    return pipeline('depth-estimation', modelId('depth'), { device, dtype: gpu ? half : 'q8', progress_callback });
   }),
   upscale: () => once('upscale', async () => {
-    const { device, gpu, progress_callback } = await common('upscale');
+    const { device, gpu, half, progress_callback } = await common('upscale');
     return pipeline('image-to-image', modelId('upscale'), { device, dtype: gpu ? 'fp32' : 'q8', progress_callback });
   }),
 };
@@ -152,7 +174,14 @@ async function samMask({ image, points = [], labels, box }) {
     opts.input_points = [[points.map(([x, y]) => [x, y])]];
     opts.input_labels = [[(labels && labels.length === points.length ? labels : points.map(() => 1))]];
   }
-  if (box) opts.input_boxes = [[box]];
+  if (box) {
+    opts.input_boxes = [[box]];
+    // SAM v1 needs at least one point: use the box centre as a positive click.
+    if (!points.length) {
+      opts.input_points = [[[(box[0] + box[2]) / 2, (box[1] + box[3]) / 2]]];
+      opts.input_labels = [[1]];
+    }
+  }
   const inputs = await processor(raw, opts);
   const out = await model(inputs);
   const masks = await processor.post_process_masks(out.pred_masks, inputs.original_sizes, inputs.reshaped_input_sizes);
@@ -177,32 +206,43 @@ async function samMask({ image, points = [], labels, box }) {
   return { result: { alpha, width: w, height: h, score: scores[best], bbox }, transfer: [alpha.buffer] };
 }
 
+/** Boxes ([x1,y1,x2,y2] in image px) for a phrase, via Florence-2 grounding. */
+async function groundPhrase(image, query) {
+  const { model, processor } = await LOADERS.florence();
+  const raw = toRaw(image);
+  const task = '<CAPTION_TO_PHRASE_GROUNDING>';
+  const prompts = processor.construct_prompts(task + String(query).slice(0, 80));
+  const inputs = await processor(raw, prompts);
+  const ids = await model.generate({ ...inputs, max_new_tokens: 64 });
+  const text = processor.batch_decode(ids, { skip_special_tokens: false })[0];
+  const parsed = processor.post_process_generation(text, task, raw.size)?.[task];
+  return (parsed?.bboxes || []).filter((b) => Array.isArray(b) && b.length === 4 && b[2] > b[0] && b[3] > b[1]);
+}
+
 const TASKS = {
   async preload({ key }) {
     if (key === 'kokoro') throw new Error('Kokoro loads in its own worker');
     const load = LOADERS[key];
     if (!load) throw new Error(`Unknown model: ${key}`);
     await load();
-    return { result: { key, device: (await hasGpu()) ? 'webgpu' : 'wasm' } };
+    return { result: { key, device: (await hasGpu()) && !forceWasm.has(key) ? 'webgpu' : 'wasm' } };
   },
 
   'sam.mask': samMask,
 
-  /** Find objects by name, then mask the best match with SAM. */
-  async 'owl.mask'({ image, query, threshold = 0.1 }) {
-    const detector = await LOADERS.owl();
-    const raw = toRaw(image);
-    const found = await detector(raw, [String(query)], { threshold, top_k: 5 });
-    if (!found?.length) return { result: { alpha: null, detections: [] } };
-    const top = found.sort((a, b) => b.score - a.score)[0];
-    const box = [top.box.xmin, top.box.ymin, top.box.xmax, top.box.ymax];
-    const { result, transfer } = await samMask({ image, box });
-    return { result: { ...result, detections: found }, transfer };
+  /**
+   * Find an object by name with Florence-2 phrase grounding, then mask it
+   * with SAM. (OWL-ViT/OWLv2 can't run in onnxruntime-web: unsupported Cast op.)
+   */
+  async 'text.mask'({ image, query }) {
+    const boxes = await groundPhrase(image, query);
+    if (!boxes.length) return { result: { alpha: null, detections: [] } };
+    const { result, transfer } = await samMask({ image, box: boxes[0] });
+    return { result: { ...result, detections: boxes.map((box) => ({ label: query, box })) }, transfer };
   },
 
-  async 'owl.detect'({ image, labels, threshold = 0.1 }) {
-    const detector = await LOADERS.owl();
-    return { result: await detector(toRaw(image), labels, { threshold }) };
+  async 'text.locate'({ image, query }) {
+    return { result: (await groundPhrase(image, query)).map((box) => ({ label: query, box })) };
   },
 
   async 'clip.image'({ images }) {

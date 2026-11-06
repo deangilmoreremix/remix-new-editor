@@ -35,8 +35,13 @@ export function createWorkerClient(factory) {
       if (data.type === 'progress') { job.onProgress?.(data); return; }
       pending.delete(data.id);
       job.cleanup?.();
-      if (data.type === 'error') job.reject(new Error(data.message || 'Local AI failed'));
-      else job.resolve(data.result);
+      if (data.type === 'error') {
+        job.reject(new Error(data.message || 'Local AI failed'));
+        // A failed model load can leave the ONNX runtime unusable for later
+        // sessions; start a fresh worker for the next job (models reload
+        // from the browser cache).
+        if (!pending.size) { worker?.terminate?.(); worker = null; }
+      } else job.resolve(data.result);
     });
     worker.addEventListener('error', (e) => {
       failAll(new Error(e?.message || 'Local AI worker failed'));

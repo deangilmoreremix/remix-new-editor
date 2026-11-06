@@ -10,7 +10,7 @@ export class AiMuAPI {
   }
 
   /**
-   * Object segmentation, free in the browser (SlimSAM / OWLv2 via
+   * Object segmentation, free in the browser (SlimSAM + Florence-2 via
    * Transformers.js — no fal, no server). `imageData` is an image URL.
    * prompts: { type: 'text'|'point'|'box', prompt, points: [[x,y]], box: [x1,y1,x2,y2] }
    * Returns { mask } — an object URL of a white-on-black mask PNG.

@@ -15,7 +15,7 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
 const jobs = new Map();
 
 const MODELS_FOR = {
-  mask: ['sam'], maskText: ['owl', 'sam'], describe: ['florence'], tags: ['clip', 'detr'],
+  mask: ['sam'], maskText: ['florence', 'sam'], describe: ['florence'], tags: ['clip', 'detr'],
   depth: ['depth'], parallax: ['depth'], upscale: ['upscale'], audio: ['clap'],
   silences: [], speakers: ['diarize'], translate: ['translate'],
 };
@@ -82,7 +82,7 @@ export function renderAIClipPanel(container, { editor, clip, confirm } = {}) {
         ${visual ? `
           <details class="ai-local-group" ${ui.frame ? 'open' : ''}>
             <summary>Mask an object</summary>
-            <p class="addon-field__hint">Click the object (Alt-click to exclude an area), drag a box around it, or type its name.</p>
+            <p class="addon-field__hint">Click the object (Alt-click to exclude an area), drag a box around it, or type its name.${image ? '' : ' Cutting an object out of a whole video is slow without WebGPU (several seconds per frame).'}</p>
             <div class="ai-mask-stage" style="position:relative;max-width:100%;cursor:crosshair">
               ${ui.frame ? '' : '<button type="button" class="mini-btn" data-ai="load-frame">Show frame at playhead</button>'}
               <canvas data-ai-canvas style="max-width:100%;${ui.frame ? '' : 'display:none'}"></canvas>
