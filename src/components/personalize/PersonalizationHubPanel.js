@@ -1146,8 +1146,8 @@ const HUB_CSS = `
 }
 .pzh-btn:hover { background: rgba(255,255,255,0.14); }
 .pzh-btn:disabled { opacity: 0.5; cursor: default; }
-.pzh-btn-primary { background: var(--color-primary, #6366f1); border-color: transparent; }
-.pzh-btn-primary:hover { filter: brightness(1.1); }
+.pzh-btn-primary { background: rgba(217,255,0,0.10); border: 1px solid rgba(217,255,0,0.35); border-left: 2px solid #d9ff00; color: #fff; }
+.pzh-btn-primary:hover { border-color: rgba(217,255,0,0.5); border-left: 2px solid #d9ff00; box-shadow: 0 0 16px rgba(217,255,0,0.08); }
 .pzh-btn-small { font-size: 10px; padding: 2px 5px; flex: 1; }
 .pzh-role { display: flex; flex-direction: column; gap: 5px; }
 .pzh-role-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.5); }

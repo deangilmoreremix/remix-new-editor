@@ -94,10 +94,10 @@ export function AnimatePage() {
     sourceTabs.querySelectorAll('button').forEach((tab, idx) => {
       const st = SOURCE_TYPES[idx];
       if (state.sourceType === st.id) {
-        tab.classList.add('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
+        tab.classList.add('bg-primary/10', 'border', 'border-primary/30', 'text-white', 'border-primary/30');
         tab.classList.remove('bg-white/5', 'text-white', 'border-white/10');
       } else {
-        tab.classList.remove('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
+        tab.classList.remove('bg-primary/10', 'border', 'border-primary/30', 'text-white', 'border-primary/30');
         tab.classList.add('bg-white/5', 'text-white', 'border-white/10');
       }
     });
@@ -207,10 +207,10 @@ export function AnimatePage() {
   function renderPromptSuggestions() {
     promptSuggestions.querySelectorAll('button').forEach((chip, idx) => {
       if (state.promptIndex === idx) {
-        chip.classList.add('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
+        chip.classList.add('bg-primary/10', 'border', 'border-primary/30', 'text-white', 'border-primary/30');
         chip.classList.remove('bg-white/5', 'text-white', 'border-white/10');
       } else {
-        chip.classList.remove('bg-primary/10 border border-primary/30', 'text-white', 'border-primary/30');
+        chip.classList.remove('bg-primary/10', 'border', 'border-primary/30', 'text-white', 'border-primary/30');
         chip.classList.add('bg-white/5', 'text-white', 'border-white/10');
       }
     });

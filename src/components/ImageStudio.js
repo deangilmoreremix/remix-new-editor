@@ -940,12 +940,12 @@ generateBtn.type = 'button';
             const tag = btn.dataset.tag;
             if (enhanceSelectedTags.has(tag)) {
                 enhanceSelectedTags.delete(tag);
-                btn.classList.remove('bg-primary/10 border border-primary/30', 'text-white');
+                btn.classList.remove('bg-primary/10', 'border', 'border-primary/30', 'text-white');
                 btn.classList.add('bg-white/5', 'text-secondary');
             } else {
                 enhanceSelectedTags.add(tag);
                 btn.classList.remove('bg-white/5', 'text-secondary');
-                btn.classList.add('bg-primary/10 border border-primary/30', 'text-white');
+                btn.classList.add('bg-primary/10', 'border', 'border-primary/30', 'text-white');
             }
             updateEnhancedPrompt();
         };

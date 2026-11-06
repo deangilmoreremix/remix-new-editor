@@ -51,7 +51,7 @@ export function ICLoraPanel({ onApply, onClose }) {
         
         <div class="flex gap-2 mt-6">
           <button class="flex-1 px-4 py-2 bg-white/10 rounded text-sm hover:bg-white/20" onclick="${onClose}">Cancel</button>
-          <button class="flex-1 px-4 py-2 bg-primary rounded text-sm font-semibold hover:opacity-90" onclick="handleApply()">Apply</button>
+          <button class="btn-primary-modern flex-1 px-4 py-2 rounded text-sm font-semibold" onclick="handleApply()">Apply</button>
         </div>
       </div>
     </div>

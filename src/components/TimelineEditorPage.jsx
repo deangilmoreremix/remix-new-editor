@@ -7704,7 +7704,7 @@ export function TimelineEditorPage() {
           </div>
           <div class="flex gap-2 mt-6">
             <button class="flex-1 px-4 py-2 bg-white/10 rounded text-sm hover:bg-white/20" onclick="this.closest('.retake-panel-fixed').remove()">Cancel</button>
-            <button class="flex-1 px-4 py-2 bg-primary rounded text-sm font-semibold hover:opacity-90" onclick="retakeClipHandler(${clip.id})">Retake</button>
+            <button class="btn-primary-modern flex-1 px-4 py-2 rounded text-sm font-semibold" onclick="retakeClipHandler(${clip.id})">Retake</button>
           </div>
         </div>
       `;
@@ -8129,7 +8129,7 @@ export function TimelineEditorPage() {
                 .toast-text { flex: 1; }
                 .toast-actions { display: flex; gap: 8px; margin-top: 12px; }
                 .toast-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 12px; }
-                .toast-btn-primary { background: var(--cyan); color: white; }
+                .toast-btn-primary { background: rgba(217,255,0,0.10); border: 1px solid rgba(217,255,0,0.35); border-left: 2px solid #d9ff00; color: #fff; }
                 .toast-btn-secondary { background: transparent; color: var(--text); }
                 .toast-btn:hover { transform: translateY(-1px); }
               `;
