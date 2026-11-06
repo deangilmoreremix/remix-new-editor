@@ -898,6 +898,9 @@ export class MuapiClient {
                 // Keyframe models take [start, end] in one list.
                 const endFrame = params.lastFrameUrl || params.last_frame_url || params.last_image_url;
                 finalPayload.images_list = endFrame ? [p.image_url, endFrame] : [p.image_url];
+            } else if (modelInfo?.inputs?.[imageField]?.type === 'array') {
+                // Any other list-typed image input (image_urls, reference_images, …).
+                finalPayload[imageField] = [p.image_url];
             } else {
                 finalPayload[imageField] = p.image_url;
             }

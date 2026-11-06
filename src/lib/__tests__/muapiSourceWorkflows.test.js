@@ -131,6 +131,23 @@ describe('Source workflows reach the provider intact', () => {
     expect(submittedBody(global.fetch).params[field]).toBe('https://cdn.muapi.ai/end.jpg');
   });
 
+  test.each([
+    ['gemini-omni-image-to-video', 'image_urls'],
+    ['gemini-omni-flash-1-1-reference-to-video', 'image_urls'],
+    ['minimax-h3-reference-to-video', 'reference_images'],
+    ['minimax-h3-max-reference-to-video', 'reference_images'],
+  ])('%s takes its image as a list under %s', async (model, field) => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
+    await client.generateI2V({ model, prompt: 'go', image_url: 'https://cdn.muapi.ai/start.jpg' });
+    expect(submittedBody(global.fetch).params[field]).toEqual(['https://cdn.muapi.ai/start.jpg']);
+  });
+
+  test('a model with a single-image input still gets a string', async () => {
+    global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
+    await client.generateI2V({ model: 'gemini-omni-flash-1-1-image-to-video', prompt: 'go', image_url: 'https://cdn.muapi.ai/start.jpg' });
+    expect(submittedBody(global.fetch).params.first_frame_url).toBe('https://cdn.muapi.ai/start.jpg');
+  });
+
   test('keyframes: start and end frame both go in images_list', async () => {
     global.fetch = makeFetchMock({ outputs: ['https://cdn.muapi.ai/out.mp4'] });
     await client.generateI2V({
