@@ -38,6 +38,8 @@ describe('adapted recipes are opt-in', () => {
 
   it('documents why: the static check alone lets the escape through when enabled', async () => {
     // If this ever starts rejecting, the sandbox/check has improved and the default can be revisited.
+    // (compileAdapted itself also refuses unless adapted code is enabled, so enable it for this case.)
+    vi.stubEnv('VITE_MOTION_ALLOW_ADAPTED_CODE', 'true');
     await expect(compileAdapted(ESCAPE, 'Evil')).resolves.toBeTypeOf('function');
   });
 });

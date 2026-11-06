@@ -1,5 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { __setAdaptedCodeEnabledForTests } from '../lib/shotAdapter';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { checkAdaptedSource, compileAdapted } from '../lib/shotAdapter';
 
 const GOOD = `
@@ -14,9 +13,9 @@ export default function Shot(props) {
 
 const bad = async (code: string) => (await checkAdaptedSource(code)).error;
 
-// Adapted code is off in the app (see lib/shotAdapter); these tests exercise the machinery with it on.
-beforeAll(() => __setAdaptedCodeEnabledForTests(true));
-afterAll(() => __setAdaptedCodeEnabledForTests(false));
+// Adapted code is opt-in (lib/adaptedPolicy.ts); these tests exercise the machinery with it on.
+beforeAll(() => { vi.stubEnv('VITE_MOTION_ALLOW_ADAPTED_CODE', 'true'); });
+afterAll(() => { vi.unstubAllEnvs(); });
 
 describe('adapted shot sandbox', () => {
   it('accepts a plain Remotion component', async () => {

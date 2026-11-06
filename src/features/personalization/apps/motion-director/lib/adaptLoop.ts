@@ -73,6 +73,8 @@ export const stillFrames = (clip: ClipData): number[] => [Math.floor(clip.durati
 
 /** Adapt one shot; resolves to the props to add to the clip, or null when nothing clean came out. */
 export async function adaptShot(project: ProjectData, clip: ClipData, ctx: AdaptContext, deps: AdaptDeps, signal: AbortSignal): Promise<{ props: Record<string, unknown>; notes: string } | null> {
+  // Off unless a deployment opts in (adaptedPolicy.ts): don't spend a model call on code that can't run.
+  if (!adaptedCodeEnabled()) return null;
   const stem = stemOf(clip);
   const source = await (deps.source ?? fetchRecipeSource)(stem);
   if (!source) return null;

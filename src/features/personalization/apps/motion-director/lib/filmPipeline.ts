@@ -32,7 +32,7 @@ import { fallbackTexts } from './retext';
 import { rulesOfScene } from './shotRules';
 import { reviewFilm, type ReviewItem } from './filmReview';
 import { adaptFilm } from './adaptLoop';
-import { adaptedCodeIsEnabled } from './shotAdapter';
+import { adaptedCodeEnabled } from './adaptedPolicy';
 import { defaultTrackFor } from './defaultMusic';
 
 export type ActivityStatus = 'running' | 'done' | 'error';
@@ -455,7 +455,7 @@ export async function buildFilmProject(
   const spec = { ...buildDesignSpec(plan, opts.capture, opts.prompt), ...(opts.mapping?.length ? { mapping: opts.mapping } : {}), ...(opts.release?.length ? { release: opts.release } : {}), ...(opts.direction ? { direction: opts.direction } : {}) };
   let built: ProjectData = { ...project, spec };
   // Upstream's coding agent edits each shot's source for the product; here the model does, behind the sandbox, one shot at a time.
-  if (opts.capture && !opts.capture.partial && opts.adaptShots !== false && adaptedCodeIsEnabled()) {
+  if (opts.capture && !opts.capture.partial && opts.adaptShots !== false && adaptedCodeEnabled()) {
     const brandTokens = { name: brand?.name, accent: plan.palette?.accent, background: plan.palette?.background, text: plan.palette?.text, font: opts.capture.brand?.fontFamily ?? undefined };
     built = await adaptFilm(
       built,

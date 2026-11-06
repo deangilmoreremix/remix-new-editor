@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { compileAdapted, adaptedCodeIsEnabled } from '../lib/shotAdapter';
+import { compileAdapted } from '../lib/shotAdapter';
+import { adaptedCodeEnabled } from '../lib/adaptedPolicy';
 import { adaptFilm, adaptShot } from '../lib/adaptLoop';
 import { prepareAdapted } from '../lib/adaptedRuntime';
 
@@ -11,7 +12,7 @@ describe('adapted code stays off', () => {
   const escape = "const key = ['con', 'structor'].join(''); const make = (() => {})[key]; const root = make('return this')(); export default () => root;";
 
   it('is off by default', () => {
-    expect(adaptedCodeIsEnabled()).toBe(false);
+    expect(adaptedCodeEnabled()).toBe(false);
   });
 
   it('refuses to compile anything, including code that would pass the static check', async () => {

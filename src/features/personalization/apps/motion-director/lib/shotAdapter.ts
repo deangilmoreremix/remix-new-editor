@@ -1,5 +1,6 @@
 import React from 'react';
 import * as Remotion from 'remotion';
+import { adaptedCodeEnabled } from './adaptedPolicy';
 
 /**
  * Runs a recipe that the AI adapted to a person's site (upstream does this by editing the demo's
@@ -18,18 +19,6 @@ const FORBIDDEN_IDENTS = new Set([
 const FORBIDDEN_PROPS = new Set(['constructor', '__proto__', 'prototype', 'innerHTML', 'outerHTML', 'dangerouslySetInnerHTML', 'srcdoc', 'cookie'])
 const FORBIDDEN_TAGS = new Set(['script', 'iframe', 'object', 'embed', 'link', 'meta', 'base', 'form', 'frame', 'frameset', 'portal'])
 const EXTERNAL = /(?:^|[\s("'=,])(?:https?:)?\/\/[\w.-]+|javascript:|data:text\/html|vbscript:/i
-
-/**
- * Adapted code is OFF. The check below is a static blacklist, and a blacklist cannot stop model
- * output from reaching the page's global object (for example by building "constructor" from
- * parts and calling the Function constructor it returns), which would expose stored API keys.
- * Until adapted code runs isolated from the app's origin (a sandboxed iframe with no access to
- * keys), nothing compiles or runs it; shots play their plain recipe instead.
- */
-let adaptedCodeEnabled = false
-export const adaptedCodeIsEnabled = (): boolean => adaptedCodeEnabled
-/** Tests only: production code never turns adapted code on. */
-export const __setAdaptedCodeEnabledForTests = (on: boolean): void => { adaptedCodeEnabled = on }
 
 export interface AdaptCheck {
   ok: boolean
@@ -166,7 +155,8 @@ export type AdaptedComponent = React.ComponentType<Record<string, unknown>>
 
 /** Check, transpile and instantiate the adapted component; throws with a readable reason. */
 export async function compileAdapted(code: string, stem?: string): Promise<AdaptedComponent> {
-  if (!adaptedCodeEnabled) throw new Error('adapted code is turned off')
+  // Off unless a deployment opts in (adaptedPolicy.ts): a static check is not a sandbox.
+  if (!adaptedCodeEnabled()) throw new Error('adapted code is turned off')
   const checked = await checkAdaptedSource(code, stem)
   if (!checked.ok) throw new Error(checked.error)
   const ts = await loadTs()
