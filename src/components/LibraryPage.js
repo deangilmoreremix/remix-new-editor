@@ -53,7 +53,12 @@ export function LibraryPage() {
     btn.className = 'px-4 py-2 rounded-full text-xs font-bold transition-all';
     btn.dataset.label = label;
     btn.textContent = label;
-    btn.onclick = () => { activeFilter = f; updateFilters(); renderGrid(); };
+    btn.onclick = () => {
+      activeFilter = f;
+      updateFilters();
+      sortSelect.hidden = searchInput.hidden = f === 'uploads';
+      renderGrid();
+    };
     filterBtns[f] = btn;
     controls.appendChild(btn);
   });
@@ -68,7 +73,13 @@ export function LibraryPage() {
   searchInput.type = 'text';
   searchInput.placeholder = 'Search by prompt or model...';
   searchInput.className = 'bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors w-56';
-  searchInput.oninput = () => { searchQuery = searchInput.value.toLowerCase(); renderGrid(); };
+  searchInput.setAttribute('aria-label', 'Search library');
+  let searchTimer = null;
+  searchInput.oninput = () => {
+    searchQuery = searchInput.value.toLowerCase();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(renderGrid, 150);
+  };
   right.append(sortSelect, searchInput);
   controls.appendChild(right);
 
@@ -139,8 +150,11 @@ export function LibraryPage() {
     });
   }
 
+  let renderToken = 0;
   async function renderGrid() {
+    const token = ++renderToken;
     let items = await loadHistory();
+    if (token !== renderToken) return; // a newer render superseded this one
 
     if (activeFilter === 'uploads') {
       await renderUploads();
@@ -218,7 +232,7 @@ export function LibraryPage() {
 
       // Quick actions (top-left, on hover): download, copy prompt, delete.
       const quick = document.createElement('div');
-      quick.className = 'absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity';
+      quick.className = 'absolute top-2 left-2 flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 transition-opacity';
       const mk = (label, svg, fn) => {
         const b = document.createElement('button');
         b.type = 'button';
@@ -238,8 +252,12 @@ export function LibraryPage() {
       }
       mk('Save', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>', async () => {
         const { saveToContent } = await import('../lib/contentLibrary.js');
-        saveToContent({ url: item.url, type: typeOf(item), prompt: item.prompt || '', model: item.model || '', studio: item.studio || '' });
-        showToast('Saved to Content', 'success');
+        try {
+          await saveToContent({ url: item.url, type: typeOf(item), prompt: item.prompt || '', model: item.model || '', studio: item.studio || '' });
+          showToast('Saved to Content', 'success');
+        } catch {
+          showToast('Could not save to Content', 'error');
+        }
       });
       mk('Delete', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>', () => {
         if (!confirmDeleteGeneration(item.url, item.type)) return;
@@ -251,7 +269,15 @@ export function LibraryPage() {
       });
       card.appendChild(quick);
 
-      card.onclick = () => { if (typeOf(item) !== 'audio') showPreview(item); };
+      if (typeOf(item) !== 'audio') {
+        card.onclick = () => showPreview(item);
+        card.setAttribute('role', 'button');
+        card.tabIndex = 0;
+        card.setAttribute('aria-label', item.prompt || item.template || 'Open generation');
+        card.onkeydown = (e) => {
+          if (e.target === card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); showPreview(item); }
+        };
+      }
       grid.appendChild(card);
     });
 
@@ -273,8 +299,11 @@ export function LibraryPage() {
   }
 
   async function renderUploads() {
+    const token = renderToken;
     gridArea.innerHTML = '<div class="text-muted text-xs">Loading your uploads…</div>';
-    cachedAssets = await loadAssets();
+    const loaded = await loadAssets();
+    if (token !== renderToken) return;
+    cachedAssets = loaded;
 
     gridArea.innerHTML = '';
 
@@ -352,7 +381,7 @@ export function LibraryPage() {
       cachedAssets = cachedAssets.filter(a => a.id !== asset.id);
       if (cachedAssets.length === 0) renderUploads();
     } catch {
-      // leave the card in place on failure
+      showToast('Could not delete that upload. Try again.', 'error');
     }
   }
 
@@ -412,7 +441,9 @@ export function LibraryPage() {
   function downloadItem(item) {
     const a = document.createElement('a');
     a.href = item.url;
-    a.download = `generation-${item.id || Date.now()}`;
+    const ext = (String(item.url).split(/[?#]/)[0].match(/\.([a-z0-9]{2,4})$/i) || [])[1]
+      || (typeOf(item) === 'video' ? 'mp4' : typeOf(item) === 'audio' ? 'mp3' : 'png');
+    a.download = `generation-${item.id || Date.now()}.${ext}`;
     a.target = '_blank';
     a.rel = 'noopener';
     a.click();
@@ -421,7 +452,7 @@ export function LibraryPage() {
   function showPreview(item) {
     const detailView = new MediaDetailView({
       mediaUrl: item.url,
-      mediaType: item.type === 'video' ? 'video' : 'image',
+      mediaType: typeOf(item) === 'video' ? 'video' : 'image',
       title: item.prompt || item.template || 'Generated',
       prompt: item.prompt || '',
       model: item.model || '',

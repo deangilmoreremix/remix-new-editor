@@ -129,6 +129,16 @@ export function AppsHub() {
     noResults.classList.toggle('hidden', total > 0);
   };
 
+  // Hand-off from Explore's "Browse by Category": pre-fill the search.
+  try {
+    const preset = localStorage.getItem('apps_prefill_search');
+    if (preset) {
+      localStorage.removeItem('apps_prefill_search');
+      searchInput.value = preset;
+      searchInput.oninput();
+    }
+  } catch { /* storage unavailable */ }
+
   return container;
 }
 

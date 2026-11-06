@@ -37,6 +37,7 @@ export class MediaDetailView {
       activeInstance.hide(true);
     }
     activeInstance = this;
+    this._opener = document.activeElement;
     this._build();
     this.isOpen = true;
     document.body.appendChild(this.overlay);
@@ -48,6 +49,13 @@ export class MediaDetailView {
 
   hide(silent = false) {
     if (!this.isOpen && !silent) return;
+    if (!this.overlay) {
+      if (activeInstance === this) activeInstance = null;
+      this.isOpen = false;
+      return;
+    }
+    clearTimeout(this._toastTimeout);
+    clearTimeout(this._flashTimeout);
     this._animateOut(() => {
       if (this.overlay && this.overlay.parentNode) {
         this.overlay.parentNode.removeChild(this.overlay);
@@ -56,7 +64,16 @@ export class MediaDetailView {
       document.removeEventListener('keydown', this._boundKeyDown);
       this.isOpen = false;
       if (activeInstance === this) activeInstance = null;
+      this._restoreFocus();
     });
+  }
+
+  _restoreFocus() {
+    const el = this._opener;
+    this._opener = null;
+    if (el && typeof el.focus === 'function' && document.contains(el)) {
+      try { el.focus(); } catch { /* ignore */ }
+    }
   }
 
   destroy() {
@@ -140,7 +157,7 @@ export class MediaDetailView {
     const mediaHTML = this.mediaType === 'video'
       ? `<div class="mdv-media-wrap">
            <div class="mdv-media-inner">
-             <video src="${escapeHtml(this.mediaUrl)}" controls autoplay loop playsinline class="mdv-media-element"></video>
+             <video src="${escapeHtml(safeUrl(this.mediaUrl))}" controls autoplay loop playsinline class="mdv-media-element"></video>
            </div>
            <div class="mdv-media-badge">
              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -149,7 +166,7 @@ export class MediaDetailView {
          </div>`
       : `<div class="mdv-media-wrap">
            <div class="mdv-media-inner">
-             <img src="${escapeHtml(this.mediaUrl)}" alt="${escapeHtml(this.title || 'Preview')}" class="mdv-media-element" loading="eager" />
+             <img src="${escapeHtml(safeUrl(this.mediaUrl))}" alt="${escapeHtml(this.title || 'Preview')}" class="mdv-media-element" loading="eager" />
            </div>
            ${this.model ? `<div class="mdv-model-badge">${escapeHtml(this.model)}</div>` : ''}
          </div>`;
@@ -239,7 +256,7 @@ export class MediaDetailView {
                 <div class="mdv-related-row">
                   ${this.relatedItems.map((item, idx) => `
                     <button class="mdv-related-item" data-action="related" data-index="${idx}" aria-label="${escapeHtml(item.title || 'Related')}">
-                      <img src="${escapeHtml(item.thumbnail || item.url || '')}" alt="" class="mdv-related-img" loading="lazy" />
+                      <img src="${escapeHtml(safeUrl(item.thumbnail || item.url || ''))}" alt="" class="mdv-related-img" loading="lazy" />
                       <div class="mdv-related-label">${escapeHtml(item.title || 'Related')}</div>
                     </button>
                   `).join('')}
@@ -260,7 +277,7 @@ export class MediaDetailView {
     const actions = [];
     if (this.mediaUrl) {
       actions.push(`
-        <a href="${this.mediaUrl}" download class="mdv-action-btn mdv-action-primary" data-action="download">
+        <a href="${escapeHtml(safeUrl(this.mediaUrl))}" download class="mdv-action-btn mdv-action-primary" data-action="download">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           <span>Download</span>
         </a>
@@ -296,7 +313,9 @@ export class MediaDetailView {
     if (this.date) {
       items.push(`<div class="mdv-meta-item"><div class="mdv-meta-label">Date</div><div class="mdv-meta-value">${escapeHtml(this.date)}</div></div>`);
     }
-    items.push(`<div class="mdv-meta-item"><div class="mdv-meta-label">Words</div><div class="mdv-meta-value">${wordCount}</div></div>`);
+    if (wordCount > 0) {
+      items.push(`<div class="mdv-meta-item"><div class="mdv-meta-label">Words</div><div class="mdv-meta-value">${wordCount}</div></div>`);
+    }
     if (items.length === 0) return '';
     return `<div class="mdv-meta-grid">${items.join('')}</div>`;
   }
@@ -384,6 +403,26 @@ export class MediaDetailView {
   }
 
   _handleKeyDown(e) {
+    if (e.key === 'Tab' && this.container) {
+      const focusable = Array.from(this.container.querySelectorAll(
+        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )).filter(el => el.offsetParent !== null || el === document.activeElement);
+      if (focusable.length === 0) { e.preventDefault(); return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (!this.container.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+      return;
+    }
     if (e.key === 'Escape') {
       e.preventDefault();
       this.hide();
@@ -409,7 +448,7 @@ export class MediaDetailView {
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
     if (focusable.length > 0) {
-      setTimeout(() => focusable[0].focus(), 100);
+      setTimeout(() => { if (this.isOpen) focusable[0].focus(); }, 100);
     }
   }
 
@@ -440,9 +479,19 @@ export class MediaDetailView {
   }
 }
 
+// Only http(s), blob:, relative and data:image/video URLs may reach an href/src.
+function safeUrl(url) {
+  const u = String(url || '').trim();
+  if (!u) return '';
+  if (/^(https?:|blob:|\/|\.\/|\.\.\/)/i.test(u)) return u;
+  if (/^data:(image|video|audio)\//i.test(u)) return u;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(u)) return '';
+  return u;
+}
+
 function escapeHtml(str) {
   if (!str) return '';
-  return str
+  return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

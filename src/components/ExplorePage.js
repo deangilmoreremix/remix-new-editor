@@ -2,6 +2,21 @@ import { navigate } from '../lib/router.js';
 import { templates, TEMPLATE_CATEGORIES } from '../lib/templates.js';
 import { getTemplateThumbnail, getCategoryThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function safeStore(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* storage unavailable */ }
+}
+
+// Hand the chosen model to Image Studio, which restores it from its saved
+// settings (unknown ids fall back to its default).
+function prefillImageModel(model) {
+  try {
+    const saved = JSON.parse(localStorage.getItem('image_studio_settings') || '{}') || {};
+    localStorage.setItem('image_studio_settings', JSON.stringify({ ...saved, model }));
+  } catch { /* storage unavailable */ }
+}
+
 const CURATED_PROMPTS = [
   { prompt: 'A samurai standing in cherry blossom rain, cinematic lighting, epic composition', model: 'nano-banana', category: 'Cinematic' },
   { prompt: 'Cyberpunk street market at night, neon signs, rain reflections, detailed', model: 'flux-dev', category: 'Sci-Fi' },
@@ -40,6 +55,7 @@ export function ExplorePage() {
   trendingGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3';
 
   const trending = templates.slice(0, 8);
+  if (trending.length === 0) trendingSection.style.display = 'none';
   trending.forEach(t => {
     const card = document.createElement('div');
     card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
@@ -53,8 +69,8 @@ export function ExplorePage() {
     const info = document.createElement('div');
     info.className = 'p-3';
     info.innerHTML = `
-      <div class="text-sm font-bold text-white group-hover:text-primary transition-colors">${t.name}</div>
-      <div class="text-xs text-muted mt-0.5">${t.description}</div>
+      <div class="text-sm font-bold text-white group-hover:text-primary transition-colors">${esc(t.name)}</div>
+      <div class="text-xs text-muted mt-0.5">${esc(t.description)}</div>
     `;
     card.appendChild(info);
     card.onclick = () => navigate(`template/${t.id}`);
@@ -75,12 +91,13 @@ export function ExplorePage() {
     const card = document.createElement('div');
     card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 hover:bg-white/[0.06] hover:border-white/10 transition-all group';
     card.innerHTML = `
-      <div class="text-xs text-muted mb-2">${p.category} / ${p.model}</div>
-      <div class="text-sm text-white leading-relaxed mb-3">${p.prompt}</div>
+      <div class="text-xs text-muted mb-2">${esc(p.category)} / ${esc(p.model)}</div>
+      <div class="text-sm text-white leading-relaxed mb-3">${esc(p.prompt)}</div>
       <button class="text-xs font-bold text-primary hover:underline try-btn">Try this prompt</button>
     `;
     card.querySelector('.try-btn').onclick = () => {
-      localStorage.setItem('prefill_prompt', p.prompt);
+      safeStore('prefill_prompt', p.prompt);
+      prefillImageModel(p.model);
       navigate('image');
     };
     promptsGrid.appendChild(card);
@@ -112,11 +129,14 @@ export function ExplorePage() {
     const info = document.createElement('div');
     info.className = 'p-3';
     info.innerHTML = `
-      <div class="text-sm font-bold text-white group-hover:text-primary transition-colors">${cat}</div>
+      <div class="text-sm font-bold text-white group-hover:text-primary transition-colors">${esc(cat)}</div>
       <div class="text-xs text-muted mt-1">${count} templates</div>
     `;
     card.appendChild(info);
-    card.onclick = () => navigate('apps');
+    card.onclick = () => {
+      safeStore('apps_prefill_search', cat);
+      navigate('apps');
+    };
     catGrid.appendChild(card);
   });
   categoriesSection.appendChild(catGrid);
