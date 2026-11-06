@@ -15,6 +15,7 @@ export const TIMELINE_AI_TOOLS = {
   EXTEND: 'extend',
   ELEMENT_CREATE: 'element_create',
   SHOT_BOARD: 'shot_board',
+  GENERATE: 'generate',
 };
 
 export const AI_TOOL_INFO = {
@@ -22,7 +23,10 @@ export const AI_TOOL_INFO = {
   extend: { label: 'Extend', icon: '➡️', description: 'Continue a clip: a new clip that carries on from its last frame.' },
   element_create: { label: 'Element', icon: '🖼️', description: 'Create an image from a description, to reuse in your video.' },
   shot_board: { label: 'Shot Board', icon: '🎞️', description: 'Storyboard a scene as several images.' },
+  generate: { label: 'Generate', icon: '✨', description: 'Make a new video clip or image from a description.' },
 };
+
+export const GENERATE_VIDEO_MODELS = [['seedance-lite-t2v', 'Seedance Lite (fast)'], ['seedance-pro-t2v', 'Seedance Pro'], ['seedance-pro-t2v-fast', 'Seedance Pro Fast']];
 
 export const AI_TOOLS_ENDPOINT = '/api/cinegen';
 export const NEED_KEY_MESSAGE = 'AI Tools use your own MuAPI key. Add it in Settings → API keys (MuAPI API Key).';

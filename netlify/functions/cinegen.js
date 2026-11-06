@@ -20,7 +20,8 @@ import { withClerkAuth } from './_shared/clerkAuth.js';
 import { userMuapiKey, NEED_MUAPI_KEY, BAD_MUAPI_KEY } from './_shared/byok.js';
 import { muapiPost, extractRealUrl } from './cinegenProviders.js';
 
-export const TOOLS = ['fill_gap', 'extend', 'element_create', 'shot_board'];
+export const TOOLS = ['fill_gap', 'extend', 'element_create', 'shot_board', 'generate'];
+export const VIDEO_MODELS = ['seedance-lite-t2v', 'seedance-pro-t2v', 'seedance-pro-t2v-fast'];
 const VIDEO_MODEL = 'seedance-2.5-first-last-frame';
 const RATE = { windowMs: 10 * 60_000, max: 30 };
 const hits = new Map();
@@ -80,6 +81,21 @@ export function buildToolRequest(tool, p = {}) {
       payload: { model: 'flux-dev', prompt: `Shot board: ${prompt}. Style: ${style}. Aspect ratio: ${aspect}.`, aspect_ratio: aspect, n: clamp(p.count, 1, 8, 4) },
     };
   }
+  if (tool === 'generate') {
+    const prompt = text(p.prompt);
+    if (!prompt) return { error: 'Describe what to generate.' };
+    const negative = text(p.negative_prompt, 500);
+    const aspect = ASPECTS.includes(p.aspect_ratio) ? p.aspect_ratio : '16:9';
+    if (p.kind === 'image') {
+      const payload = { model: 'flux-dev', prompt: p.style ? `${prompt}. Style: ${text(p.style, 60)}.` : prompt, aspect_ratio: aspect };
+      if (negative) payload.negative_prompt = negative;
+      return { endpoint: '/generate-image', payload };
+    }
+    const model = VIDEO_MODELS.includes(p.model) ? p.model : VIDEO_MODELS[0];
+    const payload = { prompt: p.style ? `${prompt}. Style: ${text(p.style, 60)}.` : prompt, aspect_ratio: aspect, duration: clamp(p.duration, 3, 12, 5) };
+    if (negative) payload.negative_prompt = negative;
+    return { endpoint: `/${model}`, payload };
+  }
   return { error: 'Unsupported tool' };
 }
 
@@ -92,6 +108,7 @@ export function normalizeResult(tool, data, p = {}) {
   }
   const url = extractRealUrl(data);
   if (!url) return { success: false, tool, error: 'The provider returned no usable result.' };
+  if (tool === 'generate') return { success: true, tool, url, kind: p.kind === 'image' ? 'image' : 'video', duration: clamp(p.duration, 3, 12, 5), requestId };
   if (tool === 'fill_gap') return { success: true, tool, url, duration: clamp(p.duration, 2, 15, 5), requestId };
   if (tool === 'extend') return { success: true, tool, url, addedDuration: clamp(p.addedDuration, 1, 15, 5), direction: 'after', requestId };
   return { success: true, tool, url, element: { name: text(p.name, 60) || 'Element', type: 'image', description: text(p.prompt), url }, requestId };

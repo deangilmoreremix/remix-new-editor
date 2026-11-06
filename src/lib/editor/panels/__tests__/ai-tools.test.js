@@ -64,7 +64,7 @@ describe('AI Tools window', () => {
 
   it('Fill Gap: frames from the selected and next clips, then the clip goes after the selected one', async () => {
     const w = openAiToolsWindow(s);
-    expect(w.el.querySelectorAll('[data-tool]')).toHaveLength(4);
+    expect(w.el.querySelectorAll('[data-tool]')).toHaveLength(5);
     click(w.el, '[data-act="generate"]');
     expect(w.el.querySelector('.speech-modal__errors').textContent).toMatch(/start frame/);
     click(w.el, '[data-frame="first"][data-act="end-of-selected"]');
@@ -120,6 +120,6 @@ describe('AI Tools window', () => {
     expect(summarizeResult({ success: false, error: 'Nope' })).toBe('Nope');
     expect(sourceTimeFor(selected, 'end')).toBeCloseTo(4.9);
     expect(sourceTimeFor(selected, 'start')).toBe(1);
-    expect(Object.values(TIMELINE_AI_TOOLS)).toHaveLength(4);
+    expect(Object.values(TIMELINE_AI_TOOLS)).toHaveLength(5);
   });
 });

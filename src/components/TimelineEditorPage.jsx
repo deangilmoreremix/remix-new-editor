@@ -5549,6 +5549,30 @@ export function TimelineEditorPage() {
       return supabase.supabase;
     }
     const publishedKey = () => String(currentTimelineId(state) || 'default');
+    let scopesMounted = null;
+    async function mountColorScopesPanel() {
+      const host = root.querySelector('#colorScopesContainer');
+      if (!host) return;
+      if (scopesMounted) { scopesMounted.refresh(); return; }
+      const { mountColorScopes } = await import('../lib/editor/colorScopes.js');
+      scopesMounted = mountColorScopes(host, {
+        getFrame: async () => {
+          const hasMedia = state.tracks.some((t) => (t.items || t.clips || []).length);
+          if (!hasMedia) return null;
+          const { renderStill } = await import('../lib/editor/remotion/exportClient.js');
+          const model = timelineToComposition(state, { fps: ENGINE_FPS, quality: '720p', profile: getActivePersonalizationProfile() });
+          const sec = ((state.playheadPercent || 0) / 100) * (state.timelineSeconds || 60);
+          const { blob } = await renderStill(model, Math.min(Math.max(0, model.durationInFrames - 1), Math.round(sec * ENGINE_FPS)));
+          const bmp = await createImageBitmap(blob);
+          const scale = Math.min(1, 480 / bmp.width);
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(bmp.width * scale)); c.height = Math.max(1, Math.round(bmp.height * scale));
+          const ctx = c.getContext('2d', { willReadFrequently: true });
+          ctx.drawImage(bmp, 0, 0, c.width, c.height);
+          return ctx.getImageData(0, 0, c.width, c.height);
+        },
+      });
+    }
     async function mountSharePanel() {
       const host = root.querySelector('#shareBody');
       if (sharePanel || !host) return;
@@ -6154,8 +6178,10 @@ export function TimelineEditorPage() {
     function initializeSceneDetector() {
       if (!sceneDetector && els.sceneDetectorContainer) {
         sceneDetector = new SceneDetector(els.sceneDetectorContainer, {
-          tracks: state.tracks,
-          timelineSeconds: state.timelineSeconds,
+          getTracks: () => state.tracks,
+          getTimelineSeconds: () => state.timelineSeconds,
+          get selectedClipId() { return state.selectedClipId; },
+          clipStartSec: (clip) => clipTimeRange(clip, state.timelineSeconds || 60).start,
           seekTo: (time) => {
             state.playheadPercent = (time / state.timelineSeconds) * 100;
             renderPlayhead();
@@ -7060,6 +7086,7 @@ export function TimelineEditorPage() {
       if (id === 'stockPanel') mountStockBrowser();
       if (id === 'aiAgentPanel') mountAgentPanel();
       if (id === 'sharePanel') mountSharePanel();
+      if (id === 'colorScopesPanel') mountColorScopesPanel();
       el.hidden = false;
       el.style.display = 'block';
       if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -7169,7 +7196,7 @@ export function TimelineEditorPage() {
       els.floatingRail.innerHTML = '';
       renderFilmstrip();
       const railTooltips = {
-        'Generate': 'Generate new AI content - Create video, images, or audio from prompts',
+        'Generate': 'Generate - make a video clip or an image from a description, on your own MuAPI key',
         'Split': 'Split clip at playhead - Divide the selected clip into two at the current position',
         'Scenes': 'Detect scenes - Automatically identify scene changes in your footage',
         'Subtitle': 'Add subtitles - Generate or edit subtitles for your video',
@@ -7239,8 +7266,7 @@ export function TimelineEditorPage() {
         button.addEventListener('click', async () => {
           switch (label) {
             case 'Generate':
-              // Trigger generation with current prompt
-              await generateClip();
+              openAiTools('generate');
               break;
             case 'Split':
               splitClipAtPlayhead();
@@ -8269,7 +8295,7 @@ export function TimelineEditorPage() {
           renderPreviewAsset(state.viewerMode === 'source' ? findSelectedClip() : null);
         });
       });
-      els.generateBtn?.addEventListener('click', generateClip);
+      els.generateBtn?.addEventListener('click', () => openAiTools('generate'));
 
       // Header top actions (prototype skeleton, listeners-only)
       bindTopActions();
