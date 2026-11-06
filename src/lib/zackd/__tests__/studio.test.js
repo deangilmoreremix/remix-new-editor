@@ -137,6 +137,14 @@ describe('ZackDStudio flow', () => {
     const args = runAssembly.mock.calls.at(-1)[0];
     expect(args.clips).toHaveLength(5);
     expect(args.clips.every((c) => /\/zackd\/templates\/swallow-gum\/clips\/beat_/.test(c.url))).toBe(true);
+    expect(args.keepClipAudio).toBe(true); // the Veo sound is kept by default
     expect(calls).toHaveLength(0); // no image/clip/tts/music job was submitted
+
+    // turning it off is respected on the next render
+    const box = root.querySelector('#zackd-keep-clip-audio'); expect(box.checked).toBe(true);
+    box.checked = false; box.dispatchEvent(new Event('change'));
+    await click(root, 'Re-assemble');
+    expect(runAssembly.mock.calls.at(-1)[0].keepClipAudio).toBe(false);
+    expect(root.textContent).toMatch(/clip sound is off|The cut will use/);
   });
 });

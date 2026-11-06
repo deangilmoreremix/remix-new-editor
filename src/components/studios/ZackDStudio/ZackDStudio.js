@@ -27,7 +27,7 @@ const STAGES = [
 const blank = () => ({
   stage: 'topic', topic: '', map: null, look: DEFAULT_LOOK, sheets: {}, shots: {},
   voice: DEFAULT_VOICE, speed: DEFAULT_TTS_SPEED, narration: null, music: null, final: null,
-  captionLang: DEFAULT_CAPTION_LANGUAGE, captionTheme: DEFAULT_CAPTION_THEME,
+  captionLang: DEFAULT_CAPTION_LANGUAGE, captionTheme: DEFAULT_CAPTION_THEME, keepClipAudio: true,
 });
 
 function load() {
@@ -158,7 +158,7 @@ export function ZackDStudio() {
     try {
       const { blob, duration } = await runAssembly({
         clips: shots.map((x) => ({ url: s.shots[x.shot_id].clip, duration: x.duration_sec, zoom: x.zoom_impact })),
-        narrationUrl: s.narration, musicUrl: s.music, transition: DEFAULT_TRANSITION_SEC, signal: abort.signal,
+        narrationUrl: s.narration, musicUrl: s.music, keepClipAudio: s.keepClipAudio !== false, transition: DEFAULT_TRANSITION_SEC, signal: abort.signal,
         onProgress: (phase, p) => say(phase === 'encode' ? `Encoding ${Math.round(p * 100)}%` : phase === 'download' ? 'Downloading clips…' : 'Loading encoder…'),
       });
       if (s.final?.objectUrl) URL.revokeObjectURL(s.final.objectUrl);
@@ -411,7 +411,13 @@ export function ZackDStudio() {
     const box = el('div', 'flex flex-col gap-4');
     box.appendChild(el('p', 'text-sm text-secondary', 'Assembly runs in your browser: crossfades and wipes between shots, impact zooms, narration with music ducked underneath. It can take a minute or two.'));
     const hasAudio = !!s.narration;
-    if (!hasAudio) box.appendChild(el('p', 'text-xs text-muted', 'No narration yet. The video will have no voiceover.'));
+    // Keep each clip's own (Veo) sound: full volume on its own, ducked under narration.
+    const keepRow = el('label', 'flex items-center gap-2 text-sm text-white/80 cursor-pointer');
+    const keep = el('input'); keep.type = 'checkbox'; keep.checked = s.keepClipAudio !== false; keep.id = 'zackd-keep-clip-audio';
+    keep.onchange = () => { s.keepClipAudio = keep.checked; save(); };
+    keepRow.append(keep, el('span', '', "Keep the clips' own sound (Veo audio), quieter under narration"));
+    box.appendChild(keepRow);
+    if (!hasAudio) box.appendChild(el('p', 'text-xs text-muted', s.keepClipAudio === false ? 'No narration and clip sound is off, so the video will be silent.' : 'No narration yet. The cut will use the clips\' own sound.'));
     const go = el('button', BTN_MAIN, s.final ? 'Re-assemble' : 'Assemble video'); go.disabled = busy; go.onclick = assemble;
     box.appendChild(go);
     if (s.final) {

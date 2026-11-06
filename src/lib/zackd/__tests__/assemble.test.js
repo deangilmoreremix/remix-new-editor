@@ -39,6 +39,43 @@ describe('buildAssemblyPlan', () => {
   });
 });
 
+describe('buildAssemblyPlan with the clips\' own audio', () => {
+  const shots = [{ duration: 3 }, { duration: 3, hasAudio: false }, { duration: 4, zoom: true }];
+
+  it('builds per-shot audio, crossfades it with the video timing and uses silence for audio-less clips', () => {
+    const p = buildAssemblyPlan(shots, { transition: 0.5, clipAudio: true });
+    expect(p.filterComplex).toContain('[0:a]atrim=duration=3,asetpts=PTS-STARTPTS');
+    expect(p.filterComplex).toContain('anullsrc=r=48000:cl=stereo,atrim=duration=3,asetpts=PTS-STARTPTS[a1]');
+    expect(p.filterComplex).not.toContain('[1:a]');
+    expect(p.filterComplex).toContain('[a0][a1]acrossfade=d=0.5[ax1]');
+    expect(p.filterComplex).toContain('[ax1][a2]acrossfade=d=0.5[ax2]');
+    expect(p.filterComplex).toContain('[ax2]volume=1[clipaudio]');
+    expect(p.audioLabel).toBe('clipaudio');
+    expect(p.total).toBeCloseTo(9, 5);
+  });
+
+  it('ducks the clip audio under narration and mixes all sources', () => {
+    const p = buildAssemblyPlan(shots, { transition: 0.5, clipAudio: true, hasNarration: true, hasMusic: true });
+    expect(p.filterComplex).toContain('volume=0.25[clipaudio]');
+    expect(p.filterComplex).toContain('[3:a]highpass'); // narration keeps its input slot after the clips
+    expect(p.filterComplex).toContain('[4:a]aresample=48000,volume=0.126');
+    expect(p.filterComplex).toContain('[clipaudio][nar][bgm]amix=inputs=3:duration=longest:normalize=0[aout]');
+    expect(p.audioLabel).toBe('aout');
+    expect(p.inputCount).toBe(5);
+    expect(buildAssemblyPlan(shots, { clipAudio: true, hasMusic: true }).filterComplex).toContain('[clipaudio][bgm]amix=inputs=2');
+  });
+
+  it('is unchanged when clip audio is off, and supports hard cuts and one clip', () => {
+    const off = buildAssemblyPlan(shots, { hasNarration: true });
+    expect(off.filterComplex).not.toContain('acrossfade');
+    expect(off.audioLabel).toBe('nar');
+    expect(buildAssemblyPlan(shots, { transition: 0, clipAudio: true }).filterComplex).toContain('[a0][a1]concat=n=2:v=0:a=1[ax1]');
+    const one = buildAssemblyPlan([{ duration: 3 }], { clipAudio: true });
+    expect(one.filterComplex).toContain('[a0]volume=1[clipaudio]');
+    expect(one.audioLabel).toBe('clipaudio');
+  });
+});
+
 describe('buildSrt', () => {
   it('places beat captions on the transition-adjusted timeline', () => {
     const beats = [

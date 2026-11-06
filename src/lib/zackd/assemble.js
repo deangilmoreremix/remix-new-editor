@@ -18,7 +18,17 @@ const num = (n) => Number(n.toFixed(4)).toString();
  * @returns {{ filterComplex: string, total: number, audioLabel: string|null, inputCount: number }}
  *   Inputs: 0..N-1 clips, then narration (if any), then music (if any).
  */
-export function buildAssemblyPlan(shots, { transition = DEFAULT_TRANSITION_SEC, hasNarration = false, hasMusic = false } = {}) {
+export const CLIP_VOLUME_UNDER_NARRATION = 0.25; // about -12 dB: the Veo sound sits under the voice
+
+/** Level for the clips' own audio: full when it is the only sound, ducked when narration is present. */
+export const clipVolumeFor = (hasNarration) => (hasNarration ? CLIP_VOLUME_UNDER_NARRATION : 1);
+
+/**
+ * Inputs: 0..N-1 clips, then narration (if any), then music (if any).
+ * `clipAudio` keeps each clip's own sound: shots with `hasAudio === false` contribute silence so a clip without an
+ * audio stream cannot break the graph. The audio is joined with the same crossfade timing as the video.
+ */
+export function buildAssemblyPlan(shots, { transition = DEFAULT_TRANSITION_SEC, hasNarration = false, hasMusic = false, clipAudio = false, clipVolume } = {}) {
   if (!Array.isArray(shots) || !shots.length) throw new Error('No clips to assemble.');
   const td = shots.length > 1 ? Math.max(0, Number(transition) || 0) : 0;
   shots.forEach((s, i) => {
@@ -54,20 +64,38 @@ export function buildAssemblyPlan(shots, { transition = DEFAULT_TRANSITION_SEC, 
 
   const total = elapsed;
   const n = shots.length;
-  let audioLabel = null;
+  const sources = []; // audio labels to mix, in order
+
+  if (clipAudio) {
+    shots.forEach((sh, i) => {
+      const d = num(sh.duration);
+      f.push(sh.hasAudio === false
+        ? `anullsrc=r=48000:cl=stereo,atrim=duration=${d},asetpts=PTS-STARTPTS[a${i}]`
+        : `[${i}:a]atrim=duration=${d},asetpts=PTS-STARTPTS,aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a${i}]`);
+    });
+    let lastA = 'a0';
+    for (let i = 1; i < shots.length; i += 1) {
+      const out = `ax${i}`;
+      f.push(td > 0 ? `[${lastA}][a${i}]acrossfade=d=${num(td)}[${out}]` : `[${lastA}][a${i}]concat=n=2:v=0:a=1[${out}]`);
+      lastA = out;
+    }
+    const vol = clipVolume ?? clipVolumeFor(hasNarration);
+    f.push(`[${lastA}]volume=${num(vol)}[clipaudio]`);
+    sources.push('clipaudio');
+  }
   if (hasNarration) {
     f.push(`[${n}:a]highpass=f=80,lowpass=f=8000,volume=1.2,aresample=48000[nar]`);
-    audioLabel = 'nar';
+    sources.push('nar');
   }
   if (hasMusic) {
     const mi = n + (hasNarration ? 1 : 0);
     f.push(`[${mi}:a]aresample=48000,volume=${MUSIC_VOLUME},afade=t=out:st=${num(Math.max(0, total - 1))}:d=1[bgm]`);
-    if (hasNarration) {
-      f.push('[nar][bgm]amix=inputs=2:duration=longest:normalize=0[aout]');
-      audioLabel = 'aout';
-    } else {
-      audioLabel = 'bgm';
-    }
+    sources.push('bgm');
+  }
+  let audioLabel = sources[0] || null;
+  if (sources.length > 1) {
+    f.push(`${sources.map((l) => `[${l}]`).join('')}amix=inputs=${sources.length}:duration=longest:normalize=0[aout]`);
+    audioLabel = 'aout';
   }
   return { filterComplex: f.join(';'), total, audioLabel, inputCount: n + (hasNarration ? 1 : 0) + (hasMusic ? 1 : 0) };
 }
@@ -117,12 +145,22 @@ async function fetchBytes(url, signal) {
   return new Uint8Array(await res.arrayBuffer());
 }
 
+/** True when the clip has an audio stream. ffmpeg.wasm ships no ffprobe, so read the stream list from `-i` logs. */
+async function probeHasAudio(ff, name) {
+  const lines = [];
+  const onLog = ({ message }) => lines.push(message);
+  ff.on('log', onLog);
+  try { await ff.exec(['-hide_banner', '-i', name]); } catch { /* -i without an output exits non-zero by design */ } finally { ff.off('log', onLog); }
+  return lines.some((l) => /Stream #\d+:\d+.*Audio:/.test(l));
+}
+
 /**
  * Assemble clips + narration + music into one 9:16 MP4 Blob.
  * @param {{ url: string, duration: number, zoom: boolean }[]} clips
+ * @param {boolean} keepClipAudio keep each clip's own (Veo) sound, ducked under narration
  */
-export async function runAssembly({ clips, narrationUrl, musicUrl, transition = DEFAULT_TRANSITION_SEC, onProgress, signal }) {
-  const plan = buildAssemblyPlan(clips, { transition, hasNarration: !!narrationUrl, hasMusic: !!musicUrl });
+export async function runAssembly({ clips, narrationUrl, musicUrl, keepClipAudio = true, transition = DEFAULT_TRANSITION_SEC, onProgress, signal }) {
+  buildAssemblyPlan(clips, { transition }); // validate early, before the encoder is downloaded
   const [{ FFmpeg }, { toBlobURL }] = await Promise.all([import('@ffmpeg/ffmpeg'), import('@ffmpeg/util')]);
   const ff = new FFmpeg();
   ff.on('progress', ({ progress }) => onProgress?.('encode', Math.min(1, Math.max(0, progress))));
@@ -133,13 +171,19 @@ export async function runAssembly({ clips, narrationUrl, musicUrl, transition = 
   });
 
   const args = [];
+  const probed = clips.map((c) => ({ ...c }));
   for (let i = 0; i < clips.length; i += 1) {
     onProgress?.('download', i / clips.length);
     await ff.writeFile(`clip${i}.mp4`, await fetchBytes(clips[i].url, signal));
     args.push('-i', `clip${i}.mp4`);
+    if (keepClipAudio) probed[i].hasAudio = await probeHasAudio(ff, `clip${i}.mp4`);
   }
   if (narrationUrl) { await ff.writeFile('narration.mp3', await fetchBytes(narrationUrl, signal)); args.push('-i', 'narration.mp3'); }
   if (musicUrl) { await ff.writeFile('bgm.mp3', await fetchBytes(musicUrl, signal)); args.push('-i', 'bgm.mp3'); }
+
+  // Only keep clip audio if at least one clip really has some (otherwise it would just be silence).
+  const clipAudio = keepClipAudio && probed.some((c) => c.hasAudio);
+  const plan = buildAssemblyPlan(probed, { transition, hasNarration: !!narrationUrl, hasMusic: !!musicUrl, clipAudio });
 
   args.push('-filter_complex', plan.filterComplex, '-map', '[vout]');
   if (plan.audioLabel) args.push('-map', `[${plan.audioLabel}]`, '-c:a', 'aac', '-b:a', '96k');
@@ -149,5 +193,5 @@ export async function runAssembly({ clips, narrationUrl, musicUrl, transition = 
   if (code !== 0) throw new Error('The video encoder failed. Try fewer or shorter clips.');
   const data = await ff.readFile('final.mp4');
   ff.terminate();
-  return { blob: new Blob([data], { type: 'video/mp4' }), duration: plan.total };
+  return { blob: new Blob([data], { type: 'video/mp4' }), duration: plan.total, hasAudio: !!plan.audioLabel };
 }
