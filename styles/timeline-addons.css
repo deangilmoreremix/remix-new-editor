@@ -1112,3 +1112,4 @@
 /* Keep a panel's bottom clear of the floating bottom row when it scrolls into view. */
 .side-card { scroll-margin-bottom: 130px; }
 .rp-var--2 { grid-template-columns: minmax(0, 1fr) auto; }
+.speech-modal__lead-chip { font-style: normal; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; margin-left: 6px; border-radius: 999px; background: var(--cyan-faint, rgba(34,211,238,.1)); color: var(--cyan, #22d3ee); }
