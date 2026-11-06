@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from 'react';
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { __setAdaptedCodeEnabledForTests } from '../lib/shotAdapter';
 import { createRoot } from 'react-dom/client';
 import { Thumbnail } from '@remotion/player';
 import { withDemoProps } from '../cards/demoProps';
@@ -24,6 +25,10 @@ const show = async (props: Record<string, unknown>) => {
   root.unmount();
   return text;
 };
+
+// Adapted code is off in the app (see lib/shotAdapter); these tests exercise the machinery with it on.
+beforeAll(() => __setAdaptedCodeEnabledForTests(true));
+afterAll(() => __setAdaptedCodeEnabledForTests(false));
 
 describe('a clip with adapted source', () => {
   it('plays the adapted component, and the plain recipe when the source is broken', async () => {

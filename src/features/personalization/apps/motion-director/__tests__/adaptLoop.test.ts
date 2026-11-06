@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { __setAdaptedCodeEnabledForTests } from '../lib/shotAdapter';
 import { MOTION_TEMPLATES } from '../../../data/motionRecipeCatalog';
 import { planToProject } from '../lib/buildFilm';
 import type { DirectorPlan } from '../lib/directorPlan';
@@ -29,6 +30,10 @@ const deps = (over: Partial<AdaptDeps> = {}): AdaptDeps => ({
   reference: vi.fn(async () => ['data:image/jpeg;base64,REF']),
   ...over,
 });
+
+// Adapted code is off in the app (see lib/shotAdapter); these tests exercise the machinery with it on.
+beforeAll(() => __setAdaptedCodeEnabledForTests(true));
+afterAll(() => __setAdaptedCodeEnabledForTests(false));
 
 describe('adapting shots', () => {
   it('targets shots that draw sample screens first and skips title cards', () => {
