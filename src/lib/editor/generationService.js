@@ -393,6 +393,13 @@ class MuAPIProvider {
     }
 
     const result = await checkStatus(requestId, null);
+
+    // A dropped connection or 5xx is not the end of a paid job: keep it
+    // pending and out of the terminal cache so the next poll asks again.
+    if (result.retryable) {
+      return { generationId, status: 'processing', progress: result.progress, error: result.error };
+    }
+
     const normalized = {
       generationId,
       status: result.status,
