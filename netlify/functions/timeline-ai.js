@@ -6,6 +6,7 @@
 //   layers          image → separated layers (Seedream)
 //   watermark_remove video → the same video without a watermark
 //   shot_video       one still (storyboard frame) → a short clip
+//   music            prompt (+ lyrics) → a music track or one composition section
 //
 // Submit/status like agent-audio.js: `submit` starts the MuAPI job and returns
 // a requestId at once; the browser polls `status` (Netlify functions can't
@@ -22,6 +23,7 @@ import {
   buildLayerPayload,
   buildWatermarkPayload,
   buildImageToVideoPayload,
+  buildMusicPayload,
   resultUrls,
 } from '../../src/lib/muapi/frameModels.js';
 
@@ -38,6 +40,7 @@ const BUILDERS = {
   layers: buildLayerPayload,
   watermark_remove: buildWatermarkPayload,
   shot_video: buildImageToVideoPayload,
+  music: buildMusicPayload,
 };
 
 // Light per-user throttle (per function instance).

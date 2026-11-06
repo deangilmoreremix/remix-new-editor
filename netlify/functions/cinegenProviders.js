@@ -333,15 +333,7 @@ export async function providerShotBoard(params = {}) {
   };
 }
 
-export async function providerCompositionPlan(params = {}) {
-  return {
-    success: false,
-    code: 'PROVIDER_NOT_CONFIGURED',
-    tool: 'composition_plan',
-    error: 'Composition plan generation is not configured. This feature requires a configured LLM or music-planning provider endpoint.'
-  };
-}
-
+// Composition Plan moved to the Timeline Editor (OpenAI plan + MuAPI sections): src/lib/editor/ai/music.js
 // LLM chat moved to /api/timeline-llm (OpenAI Responses API, user's own key).
 
 const RUNS_IN_BROWSER = 'Object masking runs free in your browser now (Timeline Editor → select a clip → Free AI → Mask an object). No server or fal account is used.';

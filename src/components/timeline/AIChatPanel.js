@@ -14,6 +14,7 @@
  *   seekTo(sec)                      jump the playhead
  *   applyCuts(cuts) → string         build a new tab from a cut list
  *   sendToAgent(text)                hand an edit to the AI Agent
+ *   toggleVoice(handlers) → boolean  start/stop the Voice Director (true = now listening)
  *   detectScenes, splitClipAtPlayhead, … (executeCommand compatibility)
  * }
  */
@@ -62,8 +63,10 @@ export default class AIChatPanel {
         <div class="ai-chat-skills" id="aiChatSkills"></div>
         <div class="ai-chat-input-row">
           <input class="ai-chat-input" id="aiChatInput" placeholder="Ask about your footage, @mention a clip…" aria-label="Message AI assistant" />
+          ${this.callbacks.toggleVoice ? '<button class="ai-chat-voice" id="aiChatVoice" aria-label="Talk to the editor" aria-pressed="false" title="Voice Director: talk to the editor (OpenAI, your key)">🎙</button>' : ''}
           <button class="ai-chat-send" id="aiChatSend" aria-label="Send">↑</button>
         </div>
+        <div class="ai-chat-voice-status addon-field__hint" id="aiChatVoiceStatus" role="status"></div>
         <div class="ai-chat-stats" id="aiChatStats"></div>
       </div>
     `;
@@ -80,7 +83,31 @@ export default class AIChatPanel {
       if (e.key === ' ' && e.shiftKey) { e.preventDefault(); this._toggleSkillPicker(); }
     });
     send?.addEventListener('click', () => this._sendMessage());
+    this.container.querySelector('#aiChatVoice')?.addEventListener('click', () => this._toggleVoice());
     this.container.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => this.setMode(b.dataset.mode)));
+  }
+
+  /** Voice Director on/off. The page owns the connection; we show its status and what was said. */
+  async _toggleVoice() {
+    const btn = this.container?.querySelector('#aiChatVoice');
+    const status = this.container?.querySelector('#aiChatVoiceStatus');
+    const setStatus = (t) => { if (status) status.textContent = t || ''; };
+    try {
+      const on = await this.callbacks.toggleVoice({
+        onStatus: setStatus,
+        onHeard: (t) => this._addMessage('user', `🎙 ${t}`),
+        onSaid: (t) => this._addMessage('ai', t),
+        onError: (e) => this._addMessage('ai', `⚠️ ${e.message}`),
+      });
+      btn?.setAttribute('aria-pressed', String(!!on));
+      btn?.classList.toggle('active', !!on);
+      if (!on) setStatus('');
+    } catch (err) {
+      btn?.setAttribute('aria-pressed', 'false');
+      btn?.classList.remove('active');
+      setStatus('');
+      this._addMessage('ai', `⚠️ ${err.message}`);
+    }
   }
 
   setMode(mode) {

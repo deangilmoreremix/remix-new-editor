@@ -10,14 +10,14 @@ import {
   providerMusicGeneration,
   providerElementCreate,
   providerShotBoard,
-  providerCompositionPlan,
   providerMaskTool,
   providerSAM3Segment,
   providerAudioSync,
   providerProxyPlayback,
   providerLayerDecompose,
 } from './cinegenProviders.js';
-import { userMuapiKey } from './_shared/byok.js';
+import { userMuapiKey, NEED_MUAPI_KEY } from './_shared/byok.js';
+import { withClerkAuth } from './_shared/clerkAuth.js';
 
 const ALLOWED_TOOLS = new Set([
   'gap_fill',
@@ -32,7 +32,6 @@ const ALLOWED_TOOLS = new Set([
   'layer_decompose',
   'shot_board',
   'proxy_playback',
-  'composition_plan'
 ]);
 
 function parseBody(event) {
@@ -65,6 +64,9 @@ function localFallback(tool, params) {
   };
 }
 
+// Tools that call MuAPI: these need the user's own key (no platform-key fallback).
+const MUAPI_TOOLS = new Set(['fill_gap', 'gap_fill', 'extend', 'extend_clip', 'music_generation', 'element_create', 'shot_board', 'layer_decompose']);
+
 const PROVIDER_MAP = {
   fill_gap: providerFillGap,
   gap_fill: providerFillGap,
@@ -78,10 +80,10 @@ const PROVIDER_MAP = {
   layer_decompose: providerLayerDecompose,
   shot_board: providerShotBoard,
   proxy_playback: providerProxyPlayback,
-  composition_plan: providerCompositionPlan,
 };
 
-export async function handler(event) {
+// Signed-in users only, on their own MuAPI key (BYOK) — never the site's key.
+export const handler = withClerkAuth(async (event) => {
   const headers = corsHeaders();
 
   if (event.httpMethod === 'OPTIONS') {
@@ -94,12 +96,16 @@ export async function handler(event) {
 
   const body = parseBody(event);
   const tool = body.tool || body.params?.tool;
-  // The caller's own MuAPI key (BYOK, X-MuAPI-Key); never read from the body.
+  // The caller's own MuAPI key (BYOK, X-MuAPI-Key); never read from the body. No platform-key fallback.
   const { userKey: _ignored, ...rawParams } = body.params || body;
   const params = { ...rawParams, userKey: userMuapiKey(event.headers) || undefined };
 
   if (!tool || !ALLOWED_TOOLS.has(tool)) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Unsupported tool', allowedTools: Array.from(ALLOWED_TOOLS) }) };
+  }
+
+  if (MUAPI_TOOLS.has(tool) && !params.userKey) {
+    return { statusCode: 401, headers, body: JSON.stringify({ success: false, code: 'need_key', error: NEED_MUAPI_KEY }) };
   }
 
   try {
@@ -120,4 +126,4 @@ export async function handler(event) {
     console.error('[cinegen] handler error:', error);
     return { statusCode: 500, headers, body: JSON.stringify({ success: false, error: 'Timeline AI service error' }) };
   }
-}
+});

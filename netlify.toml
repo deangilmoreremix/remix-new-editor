@@ -106,6 +106,13 @@
   status = 200
   force = true
 
+# Voice Director: mints an OpenAI Realtime client secret on the user's own key.
+[[redirects]]
+  from = "/api/timeline-voice"
+  to = "/.netlify/functions/timeline-voice"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/watch-voice"
   to = "/.netlify/functions/watch-voice"

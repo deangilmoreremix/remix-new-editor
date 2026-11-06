@@ -39,8 +39,12 @@ function startJob(clipId, label, run) {
     subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
   };
   const onProgress = (p) => { job.last = p; listeners.forEach((fn) => fn(p)); };
-  job.done = (async () => run({ onProgress, signal: controller.signal }))();
-  job.done.catch(() => {}).finally(() => jobs.delete(clipId));
+  // Remove the job as part of `done` itself, so by the time a caller's `await job.done`
+  // continues (and redraws) the panel no longer sees a running job.
+  job.done = (async () => {
+    try { return await run({ onProgress, signal: controller.signal }); } finally { jobs.delete(clipId); }
+  })();
+  job.done.catch(() => {});
   jobs.set(clipId, job);
   return job;
 }

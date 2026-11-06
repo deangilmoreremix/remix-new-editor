@@ -44,6 +44,12 @@ export const IMAGE_TO_VIDEO_MODELS = {
 
 export const DEFAULT_IMAGE_TO_VIDEO_MODEL = 'seedance-lite-i2v';
 
+/** Music generation. Suno takes lyrics as the prompt in custom mode; `style` is required. */
+export const MUSIC_MODELS = {
+  'suno-create-music': { label: 'Suno', costUsd: 0.09, durations: [10, 180] },
+};
+export const DEFAULT_MUSIC_MODEL = 'suno-create-music';
+
 /** Image → layers. */
 export const LAYER_MODELS = {
   'bytedance-seedream-5.0-pro-layer': { label: 'Seedream 5.0 Pro Layers', costUsd: 0.045, needsPrompt: true },
@@ -132,6 +138,29 @@ export function buildImageToVideoPayload({ model, imageUrl, prompt, duration = 5
     },
     model: id,
   };
+}
+
+/**
+ * Music or one section of a composition.
+ * - Instrumental: `prompt` describes the music.
+ * - With lyrics: custom mode, `prompt` is the lyrics and `style` the style tags.
+ */
+export function buildMusicPayload({ model, prompt, style, title, duration = 30, instrumental = true, lyrics } = {}) {
+  const [id, info] = pick(MUSIC_MODELS, model, DEFAULT_MUSIC_MODEL, 'music');
+  const styleText = String(style || '').trim().slice(0, 300) || 'cinematic';
+  const words = String(lyrics || '').trim();
+  const payload = { style: styleText, duration: clampInt(duration, info.durations), instrumental: !words && instrumental !== false };
+  if (title) payload.title = String(title).slice(0, 80);
+  if (words) {
+    payload.prompt = words.slice(0, 3000);
+    payload.custom_mode = true;
+    payload.instrumental = false;
+  } else {
+    const p = String(prompt || '').trim();
+    if (!p) throw Object.assign(new Error('Describe the music first'), { code: 'BAD_INPUT' });
+    payload.prompt = p.slice(0, 500);
+  }
+  return { endpoint: `/${id}`, payload, model: id };
 }
 
 export function buildLayerPayload({ model, imageUrl, prompt } = {}) {

@@ -640,9 +640,12 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // (section 2 import-surface guard still passes). Then re-recorded once
     // more for the CineGen edit tools (blade/ripple/roll/slip/slide, markers,
     // speed, flip, source In/Out, audio sync, proxies, real waveforms and
-    // filmstrips), and for the AI Chat / Storyboard rail panels (OpenAI
-    // Responses API + Images 2.6 on the user's key); no upload call site changed.
-    ['src/components/TimelineEditorPage.jsx', '0cffb2cc546deb9949187c007403ddd5f2a210037e8f9cf726f8bb23a3504dcf'],
+    // filmstrips), for the AI Chat / Storyboard rail panels (OpenAI
+    // Responses API + Images 2.6 on the user's key), and for the remaining
+    // CineGen work: the on-device Mask tool, track delete/reorder, linked
+    // clips, Track Forward, keyframe lanes and the Voice Director button;
+    // the dead #cinegen* button listeners were removed. No upload call site changed.
+    ['src/components/TimelineEditorPage.jsx', '8896d77153b409afd58bdf111f2a43feea68269387bc530cab7b4d6b06ae39c2'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -665,7 +668,11 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // The byte hash is the accepted new baseline for that approved edit; the
     // real guard now lives in the semantic assertions in section 5.
     ['src/lib/cinegen.js', '1a96e9fc4e7d0d17ba1c9cce9b2c1c2e539d3cf54fb0107c444c62dc9c2df531'],
-    ['src/lib/cinegenIntegration.js', 'd73459062a6ff89b78b3196a7fc90c140ff491c1ffeafc18f28769d24cec706d'],
+    // Re-recorded deliberately: the legacy Timeline AI client now sends the
+    // Clerk session token and the user's own MuAPI key (X-MuAPI-Key), because
+    // netlify/functions/cinegen.js no longer accepts anonymous calls or spends
+    // the platform key. No upload-pipeline behaviour changed.
+    ['src/lib/cinegenIntegration.js', 'cac9ddf60add2a1c83814a55a6d91e15506c42612aca4cd537809ec8a7394024'],
     ['src/modules/CineGen/src/layout/CineGenLayout.tsx', 'b3b232c358d01931e066ddf5d779a80a7280de70a13c8ab6c72c93b31def9e3a'],
     ['src/components/elements/element-card.jsx', 'd6bcaa6ec593761739b590a6370241f280ef7fda6e30354eb07da03c6e779bf1'],
     ['src/components/elements/element-generate.jsx', '7fc3ab1fa298a640f20070f70f93c17fcf8fe9289523a343cd6cc4bb6c799525'],
@@ -686,7 +693,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // Responses API (user's own key) with CineGen's Ask/Search/Cut/Timeline
     // modes; the old keyword-triggered fake replies were removed. It has no
     // upload code (semantic guard in section 5).
-    ['src/components/timeline/AIChatPanel.js', 'c6171ce7952da3edc7e3187e53b601d2390cbccdc12571ec337bd7f2e5e80ca6'],
+    ['src/components/timeline/AIChatPanel.js', 'ac38f4df2c3f71a417c30a8ef95dfe5116cd5380900cbd5505f739bf072b310d'],
     // Re-recorded deliberately after repairing a broken relative import
     // (`../../lib/muapi.js` → `../../../lib/muapi.js`): from create/nodes/ the
     // old path pointed at a non-existent src/components/lib and the build
@@ -732,7 +739,11 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/lib/editor/__tests__/timeline-operations.test.js', '2cf48c06362a441f6005b49b9b75047f12666e407fb583e2034e62ba28cdc4df'],
     ['src/lib/editor/__tests__/timeline-state-multitab.test.js', 'b0df5878f31b1efd9879d40736fbfd28b7eebc197394a30d33ece3df95b403af'],
     ['src/lib/editor/__tests__/timeline-track-controls.test.js', '91925a63b3deb493a8c0ae2c03ce787f70646be810b4b57aa4251fbd6d5cc7d3'],
-    ['src/lib/editor/__tests__/timeline-editor-mask.test.js', '591901aa5d3add68baa1c2d8b86dbbe1dafd32fb2cd4711a3700d5c3aa97eef9'],
+    // Re-recorded deliberately: the Mask tool now runs on-device (pointer events →
+    // maskObject) instead of the removed fal/SAM3 route, so the two source-string
+    // assertions about the old code (toast text, maskClickPoint & co.) were pointed at
+    // the new implementation. The behaviours they protect are unchanged.
+    ['src/lib/editor/__tests__/timeline-editor-mask.test.js', '5ea39b64fe13d81d78134429834aaad6734534aad02a6381edd06264c4195a26'],
     ['src/lib/editor/__tests__/timeline-feature-api.test.js', '29a24abc1c81fb4eb63d995eceff6d129499afb166f4744a81dccc5e9bcdbcf2'],
     ['src/lib/editor/__tests__/tool-parity.test.js', 'ee65825791b7447025949328c2017d8b8338c71d4a1cf012e0a60b3bd61f4a71'],
   ];

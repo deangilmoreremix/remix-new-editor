@@ -105,3 +105,69 @@ describe('speed, source in/out, markers', () => {
     expect(nextMarker(m, 9)).toBeNull();
   });
 });
+
+import { linkClips, unlinkClips, linkedPartners, linkCandidate, moveTrack, removeTrack, snapToSilence, moveKeyframeTime } from '../editTools.js';
+
+describe('link / unlink', () => {
+  it('links, finds partners and unlinks', () => {
+    const v = { id: 'v', type: 'video', left: 10 };
+    const a = { id: 'a', type: 'audio', left: 10.2 };
+    const other = { id: 'o', type: 'audio', left: 50 };
+    expect(linkCandidate(v, [v, a, other])).toBe(a);
+    expect(linkCandidate(v, [v, other])).toBeNull();
+    const id = linkClips([v, a]);
+    expect(linkedPartners([v, a, other], v)).toEqual([a]);
+    expect(a.linkId).toBe(id);
+    expect(linkCandidate(other, [v, a, other])).toBeNull(); // already linked clips are skipped
+    unlinkClips([v, a]);
+    expect(linkedPartners([v, a], v)).toEqual([]);
+  });
+});
+
+describe('tracks', () => {
+  it('moves and removes tracks but never the last one', () => {
+    const tracks = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    expect(moveTrack(tracks, 'a', -1)).toBe(false);
+    expect(moveTrack(tracks, 'a', 1)).toBe(true);
+    expect(tracks.map((t) => t.id)).toEqual(['b', 'a', 'c']);
+    expect(removeTrack(tracks, 'b').id).toBe('b');
+    expect(removeTrack(tracks, 'zzz')).toBeNull();
+    removeTrack(tracks, 'a');
+    expect(removeTrack(tracks, 'c')).toBeNull();
+    expect(tracks).toHaveLength(1);
+  });
+});
+
+describe('humanize cut', () => {
+  const silences = [{ start: 2, end: 2.6 }, { start: 5, end: 5.2 }];
+  it('snaps a cut that lands mid-word into the nearest silence', () => {
+    expect(snapToSilence(1.8, silences)).toBeCloseTo(2.05, 5);
+    expect(snapToSilence(2.9, silences)).toBeCloseTo(2.55, 5);
+    expect(snapToSilence(2.3, silences)).toBe(2.3); // already in silence
+    expect(snapToSilence(4, silences)).toBe(4); // nothing close
+  });
+});
+
+describe('keyframe lanes', () => {
+  it('moves a keyframe in time, clamped and kept sorted', () => {
+    const kf = { opacity: [{ t: 0, v: 0 }, { t: 2, v: 1 }, { t: 4, v: 0 }] };
+    const moved = moveKeyframeTime(kf, 'opacity', 0, 3.1234, 5);
+    expect(moved.opacity.map((k) => [k.t, k.v])).toEqual([[2, 1], [3.12, 0], [4, 0]]);
+    expect(moveKeyframeTime(kf, 'opacity', 2, 99, 5).opacity.at(-1).t).toBe(5);
+    expect(moveKeyframeTime(kf, 'opacity', 9, 1, 5)).toBe(kf);
+  });
+});
+
+import { shiftForward } from '../editTools.js';
+describe('track forward', () => {
+  it('moves the clip and everything after it on every track, clamped to the timeline', () => {
+    const v1 = { id: 'v1', left: 0, width: 10 };
+    const v2 = { id: 'v2', left: 20, width: 10 };
+    const a2 = { id: 'a2', left: 22, width: 10 };
+    expect(shiftForward([[v1, v2], [a2]], v2, 5)).toBe(5);
+    expect([v1.left, v2.left, a2.left]).toEqual([0, 25, 27]);
+    expect(shiftForward([[v1, v2], [a2]], v2, 90)).toBe(63); // right edge hits 100
+    expect(shiftForward([[v1, v2], [a2]], v2, -500)).toBe(-88);
+    expect(v1.left).toBe(0);
+  });
+});

@@ -50,3 +50,16 @@ describe('timeline-llm (OpenAI Responses API, user key)', () => {
     expect(parseOutput({ output_text: 'not json' })).toBeNull();
   });
 });
+
+describe('timeline-llm frame task (Frame Chat)', () => {
+  it('sends the frame as an image input and accepts only https or base64 images', async () => {
+    const fetchImpl = vi.fn(async () => okResponse({ answer: 'The text is small.' }));
+    const r = await handle({ task: 'frame', input: { text: 'is the text readable?', image: 'data:image/jpeg;base64,/9j/4AAQ' } }, { key: KEY, fetchImpl });
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(body.input[0].content).toEqual([{ type: 'input_text', text: 'is the text readable?' }, { type: 'input_image', image_url: 'data:image/jpeg;base64,/9j/4AAQ' }]);
+    expect(body.text.format.name).toBe('timeline_frame');
+    expect(JSON.parse(r.body).data.answer).toBe('The text is small.');
+    expect(buildRequest('frame', { text: 'q', image: 'file:///etc/passwd' }).error).toMatch(/image/);
+    expect(buildRequest('frame', { text: ' ', image: 'https://x/y.png' }).error).toMatch(/text/);
+  });
+});

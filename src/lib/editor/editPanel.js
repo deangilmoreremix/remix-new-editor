@@ -49,9 +49,19 @@ export function renderEditPanel(container, { clip, durationSec = 0, proxyOn = fa
               <button type="button" class="mini-btn" data-ed="mark-out">Set Out (O)</button>
               <span class="addon-field__hint" data-ed-range>In ${fmt(ui.in)} · Out ${fmt(ui.out)} · ${(ui.out - ui.in).toFixed(2)}s</span>
             </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+              <button type="button" class="mini-btn" data-ed="step-back" aria-label="Back one frame" title="Back one frame (,)">◀ Frame</button>
+              <button type="button" class="mini-btn" data-ed="step-fwd" aria-label="Forward one frame" title="Forward one frame (.)">Frame ▶</button>
+              <button type="button" class="mini-btn" data-ed="goto-in">Go to In</button>
+              <button type="button" class="mini-btn" data-ed="goto-out">Go to Out</button>
+            </div>
             <button type="button" class="mini-btn cap-primary" data-ed="apply-inout">Use this range</button>
           </details>` : ''}
-        ${isAudio ? `<button type="button" class="mini-btn" data-ed="sync" ${ui.busy ? 'disabled' : ''}>Sync to the video (match sound)</button>` : ''}
+        ${isAudio ? `<div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="mini-btn" data-ed="sync" ${ui.busy ? 'disabled' : ''}>Sync to the video (match sound)</button>
+          <button type="button" class="mini-btn" data-ed="sync-all" ${ui.busy ? 'disabled' : ''}>Sync every audio clip</button></div>` : ''}
+        ${(isVideo || isAudio) && clip.src ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <button type="button" class="mini-btn" data-ed="humanize" ${ui.busy ? 'disabled' : ''} title="Move the clip's start and end into the nearest silence so cuts never land mid-word">Humanize cut</button>
+          <button type="button" class="mini-btn ${clip.linkId ? 'active' : ''}" data-ed="link" aria-pressed="${!!clip.linkId}" title="Linked clips move and trim together">${clip.linkId ? '🔗 Unlink' : '🔗 Link audio & video'}</button></div>` : ''}
         ${isVideo ? `
           <label style="display:flex;gap:6px;align-items:center;font-size:12px;margin-top:6px">
             <input type="checkbox" data-ed-proxy ${ui.proxyOn ? 'checked' : ''} ${ui.busy ? 'disabled' : ''}/>
@@ -79,6 +89,19 @@ export function renderEditPanel(container, { clip, durationSec = 0, proxyOn = fa
     'mark-in': () => { ui.in = media()?.currentTime ?? ui.in; if (ui.out <= ui.in) ui.out = ui.in + 1; range(); },
     'mark-out': () => { ui.out = media()?.currentTime ?? ui.out; if (ui.out <= ui.in) ui.in = Math.max(0, ui.out - 1); range(); },
     'apply-inout': () => { ops.setInOut?.(ui.in, ui.out); say(`Clip now shows ${fmt(ui.in)}–${fmt(ui.out)}`); },
+    'step-back': () => { const m = media(); if (m) m.currentTime = Math.max(0, m.currentTime - 1 / 30); },
+    'step-fwd': () => { const m = media(); if (m) m.currentTime += 1 / 30; },
+    'goto-in': () => { const m = media(); if (m) m.currentTime = ui.in; },
+    'goto-out': () => { const m = media(); if (m) m.currentTime = ui.out; },
+    link: () => { if (ops.toggleLink?.() !== false) draw(); },
+    humanize: async () => {
+      ui.busy = true; say('Listening for silences…');
+      try { await ops.humanize?.(); say('Done'); } catch (err) { say(err?.message || 'Humanize failed'); } finally { ui.busy = false; draw(); }
+    },
+    'sync-all': async () => {
+      ui.busy = true; say('Listening to every audio clip…');
+      try { say(await ops.syncAll?.() || 'Synced'); } catch (err) { say(err?.message || 'Sync failed'); } finally { ui.busy = false; draw(); }
+    },
     sync: async () => {
       ui.busy = true; say('Listening to both clips…');
       try { say(await ops.syncAudio?.() || 'Synced'); } catch (err) { say(err?.message || 'Sync failed'); } finally { ui.busy = false; draw(); }

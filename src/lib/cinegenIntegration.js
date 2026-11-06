@@ -37,9 +37,18 @@ export async function runTimelineAITool(tool, params = {}) {
   };
 
   try {
+    // Signed-in users on their own MuAPI key (BYOK): session token + X-MuAPI-Key.
+    const headers = { 'Content-Type': 'application/json' };
+    try {
+      const token = await globalThis.window?.Clerk?.session?.getToken?.();
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const { apiKeyManager } = await import('./apiKeyManager.js');
+      const muapi = apiKeyManager?.getMuapiKey?.();
+      if (muapi && muapi !== 'dev') headers['X-MuAPI-Key'] = muapi;
+    } catch { /* unauthenticated: the function will answer 401 */ }
     const res = await fetch(ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload)
     });
 

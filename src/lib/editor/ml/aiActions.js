@@ -12,6 +12,7 @@
  */
 import * as ai from './localAI.js';
 import { grabFrame, clipSourceIn, clipSpeed } from './frameGrab.js';
+import { snapToSilence, setInOut } from '../editTools.js';
 
 const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const fileName = (clip, suffix, ext) => `${String(clip?.name || 'clip').replace(/[^\w-]+/g, '_').slice(0, 40)}-${suffix}.${ext}`;
@@ -243,6 +244,33 @@ export async function removeSilences(editor, clip, { thresholdDb = -42, minSec =
   editor.commit();
   editor.toast(`Removed ${removed.toFixed(1)} s of silence`, 'success');
   return { removedSec: removed, pieces: keep.length };
+}
+
+/**
+ * Humanize cut: move the clip's in and out points to the nearest silence so
+ * the cut never lands mid-word. Silences are found on the device.
+ * @returns {{ inShift: number, outShift: number }} seconds moved
+ */
+export async function humanizeCut(editor, clip, { window = 0.4, thresholdDb = -38, signal } = {}) {
+  if (!hasAudio(clip)) throw new Error('This clip has no audio to listen to');
+  const speed = clipSpeed(clip);
+  const inSec = clipSourceIn(clip);
+  const outSec = inSec + editor.clipDuration(clip) * speed;
+  const from = Math.max(0, inSec - 1);
+  const silences = (await ai.detectSilences(editor.mediaSrc(clip), { fromSec: from, toSec: outSec + 1, minSec: 0.15, thresholdDb, signal }))
+    .map((s) => ({ start: s.start + from, end: s.end + from }));
+  const newIn = snapToSilence(inSec, silences, window);
+  const newOut = snapToSilence(outSec, silences, window);
+  if (Math.abs(newIn - inSec) < 0.01 && Math.abs(newOut - outSec) < 0.01) {
+    editor.toast('Your cuts already sit in silence', 'info');
+    return { inShift: 0, outShift: 0 };
+  }
+  editor.snapshot();
+  setInOut(clip, newIn, newOut, editor.timelineSeconds());
+  editor.commit();
+  editor.refresh?.(clip.id);
+  editor.toast(`Cut moved: start ${newIn >= inSec ? '+' : ''}${(newIn - inSec).toFixed(2)}s, end ${newOut >= outSec ? '+' : ''}${(newOut - outSec).toFixed(2)}s`, 'success');
+  return { inShift: newIn - inSec, outShift: newOut - outSec };
 }
 
 // ---------------------------------------------------------------- captions

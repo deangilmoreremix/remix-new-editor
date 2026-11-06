@@ -7,6 +7,7 @@ import * as actions from './aiActions.js';
 import { LOCAL_MODELS, KOKORO_VOICES } from './modelRegistry.js';
 import { isModelCached, clearModel, preloadModel, hasWebGpu } from './mlClient.js';
 import { confirmDownloads } from './aiClipPanel.js';
+import * as music from '../ai/music.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const fmtT = (s) => (s == null ? '' : `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`);
@@ -16,7 +17,7 @@ const fmtT = (s) => (s == null ? '' : `${Math.floor(s / 60)}:${String(Math.floor
  * @param {object} opts { editor (aiActions contract + seek(sec), select(clipId)), confirm?(msg) }
  */
 export function renderLocalAIPanel(container, { editor, confirm } = {}) {
-  const ui = { query: '', hits: null, busy: '', error: '', voice: KOKORO_VOICES[0][0], speed: 1, script: '', musicPrompt: '', cached: {}, gpu: null, downloading: {}, controller: null };
+  const ui = { query: '', hits: null, busy: '', error: '', voice: KOKORO_VOICES[0][0], speed: 1, script: '', musicPrompt: '', genre: 'cinematic', mood: 'calm', mstyle: '', tempo: 100, mdur: 30, instrumental: true, plan: null, planStatus: {}, cached: {}, gpu: null, downloading: {}, controller: null };
 
   const draw = () => {
     container.innerHTML = `
@@ -39,13 +40,33 @@ export function renderLocalAIPanel(container, { editor, confirm } = {}) {
         <label class="cap-row"><span>Speed</span><input type="range" min="0.6" max="1.6" step="0.05" value="${ui.speed}" data-lai-speed aria-label="Speech speed"/></label>
         <button type="button" class="mini-btn cap-primary" data-lai="voice" ${ui.busy ? 'disabled' : ''}>Add voiceover at playhead</button>
 
-        <h4 class="addon-panel__heading">Music for this video</h4>
-        <textarea data-lai-music rows="3" placeholder="Describe the music, or write it from your clips…" style="width:100%">${esc(ui.musicPrompt)}</textarea>
+        <h4 class="addon-panel__heading">Music</h4>
+        <div class="cap-row"><span>Genre</span><select data-lai-m="genre">${music.GENRES.map((g) => `<option ${g === ui.genre ? 'selected' : ''}>${esc(g)}</option>`).join('')}</select>
+          <span>Mood</span><select data-lai-m="mood">${music.MOODS.map((g) => `<option ${g === ui.mood ? 'selected' : ''}>${esc(g)}</option>`).join('')}</select></div>
+        <div class="cap-row"><span>Style</span><select data-lai-m="mstyle">${music.STYLES.map((g) => `<option value="${esc(g)}" ${g === ui.mstyle ? 'selected' : ''}>${esc(g || '—')}</option>`).join('')}</select>
+          <span>Tempo</span><input type="number" data-lai-m="tempo" min="40" max="200" value="${ui.tempo}" style="width:64px"/> bpm</div>
+        <div class="cap-row"><span>Length</span><input type="number" data-lai-m="mdur" min="${music.MIN_SECONDS}" max="${music.MAX_SECONDS}" value="${ui.mdur}" style="width:64px"/> s
+          <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" data-lai-m="instrumental" ${ui.instrumental ? 'checked' : ''}/> Instrumental</label></div>
+        <textarea data-lai-music rows="2" placeholder="Describe the music (optional), or write it from your clips…" style="width:100%">${esc(ui.musicPrompt)}</textarea>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button type="button" class="mini-btn" data-lai="music-prompt" ${ui.busy ? 'disabled' : ''}>Write prompt from clips (free)</button>
-          ${editor.addMusic ? `<button type="button" class="mini-btn cap-primary" data-lai="music" ${ui.busy || !ui.musicPrompt.trim() ? 'disabled' : ''}>Generate music (MuAPI, your key)</button>` : ''}
+          ${editor.generateMusic ? `<button type="button" class="mini-btn cap-primary" data-lai="music" ${ui.busy ? 'disabled' : ''}>Generate music (MuAPI, your key)</button>` : ''}
         </div>
-        <p class="addon-field__hint">The prompt is written on your device from what the clips show. Music fades and ducks under voiceovers.</p>
+        <p class="addon-field__hint">The prompt is written on your device from what the clips show. Music is added at the playhead and fades and ducks under voiceovers.</p>
+
+        <h4 class="addon-panel__heading">Composition Plan</h4>
+        <p class="addon-field__hint">Plan a multi-section score for this video with OpenAI (your key), edit it, then generate every section in order.</p>
+        <button type="button" class="mini-btn" data-lai="plan" ${ui.busy || !editor.projectContext ? 'disabled' : ''}>Plan sections (AI)</button>
+        ${ui.plan ? `
+          <label class="cap-row"><span>Shared style</span><input data-lai-plan="global_style" value="${esc(ui.plan.global_style)}"/></label>
+          <ol style="padding-left:18px">${ui.plan.sections.map((sec, i) => `
+            <li style="margin-bottom:8px"><input data-lai-sec="name" data-i="${i}" value="${esc(sec.name)}" style="width:55%;font-weight:600"/>
+              <input data-lai-sec="duration" data-i="${i}" type="number" min="10" max="60" value="${sec.duration}" style="width:56px"/> s
+              <span class="addon-field__hint">${esc(ui.planStatus[i] || '')}</span>
+              <input data-lai-sec="style_tags" data-i="${i}" value="${esc(sec.style_tags)}" placeholder="Style tags" style="width:100%"/>
+              <input data-lai-sec="description" data-i="${i}" value="${esc(sec.description)}" placeholder="What the music does" style="width:100%"/>
+              <textarea data-lai-sec="lyrics" data-i="${i}" rows="1" placeholder="Lyrics (leave empty for instrumental)" style="width:100%">${esc(sec.lyrics)}</textarea></li>`).join('')}</ol>
+          <button type="button" class="mini-btn cap-primary" data-lai="compose" ${ui.busy || !editor.generateMusic ? 'disabled' : ''}>Generate all sections (MuAPI, ~${ui.plan.sections.length * 0.09 < 1 ? '$' + (ui.plan.sections.length * 0.09).toFixed(2) : '$' + (ui.plan.sections.length * 0.09).toFixed(1)})</button>` : ''}
 
         <h4 class="addon-panel__heading">On-device models</h4>
         <ul class="ai-models" style="list-style:none;padding:0;margin:0">
@@ -115,7 +136,21 @@ export function renderLocalAIPanel(container, { editor, confirm } = {}) {
       if (!clips.length) throw new Error('Add video or image clips first');
       ui.musicPrompt = await actions.promptForMusic(editor, clips, o) || ui.musicPrompt;
     }),
-    music: () => task('Composing music (1–3 min)', [], () => editor.addMusic(ui.musicPrompt.trim())),
+    music: () => task('Composing music (1–3 min)', [], (o) => music.generateMusic(editor, {
+      prompt: ui.musicPrompt, genre: ui.genre, mood: ui.mood, style: ui.mstyle, tempo: ui.tempo, duration: ui.mdur, instrumental: ui.instrumental,
+    }, { signal: o.signal, onProgress: (p) => p.elapsedSec && setBusy(`Composing music… ${p.elapsedSec}s`) })),
+    plan: () => task('Planning the score', [], async (o) => {
+      ui.plan = await music.planComposition(editor.projectContext(), { seconds: editor.timelineSeconds(), signal: o.signal });
+      ui.planStatus = {};
+    }),
+    compose: () => task('Generating sections', [], async (o) => {
+      const r = await music.composeFromPlan(editor, ui.plan, {
+        signal: o.signal,
+        onSection: (i, sec, st) => { ui.planStatus[i] = st; setBusy(`Section ${i + 1} of ${ui.plan.sections.length}: ${sec.name} (${st})…`); },
+      });
+      if (r.failed) throw new Error(`Stopped at ${r.failed}. ${r.placed.length} section(s) were placed.`);
+      editor.toast?.(`Score added: ${r.placed.length} sections`, 'success');
+    }),
     download: async (b) => {
       const key = b.dataset.key;
       ui.downloading[key] = 0;
@@ -143,15 +178,25 @@ export function renderLocalAIPanel(container, { editor, confirm } = {}) {
     const el = e.target;
     if (el.dataset.laiQuery !== undefined) ui.query = el.value;
     else if (el.dataset.laiScript !== undefined) ui.script = el.value;
-    else if (el.dataset.laiMusic !== undefined) {
-      const had = !!ui.musicPrompt.trim();
-      ui.musicPrompt = el.value;
-      const btn = container.querySelector('[data-lai="music"]');
-      if (btn && had !== !!ui.musicPrompt.trim()) btn.disabled = !ui.musicPrompt.trim();
+    else if (el.dataset.laiMusic !== undefined) ui.musicPrompt = el.value;
+    else if (el.dataset.laiM !== undefined) {
+      const k = el.dataset.laiM;
+      ui[k] = k === 'instrumental' ? el.checked : (k === 'tempo' || k === 'mdur') ? Number(el.value) : el.value;
+    } else if (el.dataset.laiPlan !== undefined && ui.plan) ui.plan[el.dataset.laiPlan] = el.value;
+    else if (el.dataset.laiSec !== undefined && ui.plan) {
+      const sec = ui.plan.sections[Number(el.dataset.i)];
+      if (sec) sec[el.dataset.laiSec] = el.dataset.laiSec === 'duration' ? music.snapDuration(el.value, music.MIN_SECONDS, 60) : el.value;
     }
     else if (el.dataset.laiSpeed !== undefined) ui.speed = Number(el.value);
   };
-  const onChange = (e) => { if (e.target.dataset.laiVoice !== undefined) ui.voice = e.target.value; };
+  const onChange = (e) => {
+    const d = e.target.dataset;
+    if (d.laiVoice !== undefined) ui.voice = e.target.value;
+    else if (d.laiM !== undefined) {
+      const k = d.laiM;
+      ui[k] = k === 'instrumental' ? e.target.checked : (k === 'tempo' || k === 'mdur') ? Number(e.target.value) : e.target.value;
+    }
+  };
   const onKey = (e) => { if (e.key === 'Enter' && e.target.dataset?.laiQuery !== undefined) handlers.search(); };
 
   container.addEventListener('click', onClick);

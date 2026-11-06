@@ -63,7 +63,6 @@ import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } fro
 // Agent system integration
 import { initTimelineAgentIntegration } from '../timelineAgentIntegration.js';
 import { ColorCorrectionSystem } from '../lib/editor/colorCorrectionSystem.jsx';
-import { runCineGenTool, CINEGEN_TOOLS } from '../lib/cinegenIntegration.js';
 import * as editTools from '../lib/editor/editTools.js';
 import { decorateClip, proxyMap, makeProxy, clearProxies } from '../lib/editor/clipVisuals.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -976,12 +975,6 @@ export function TimelineEditorPage() {
     });
   }
 
-  // Mask tool state for click/box capture on preview stage
-  let maskClickPoint = null;
-  let maskSelectionBox = null;
-  let normStartX = 0;
-  let normStartY = 0;
-
   // Enhanced state management with local storage persistence
   function loadProjectFromStorage() {
     try {
@@ -1172,7 +1165,7 @@ export function TimelineEditorPage() {
             break;
           case 'm':
             event.preventDefault();
-            runCineGenTool('music_generation', { clipId: state.selectedClipId }).then(updateCineGenResults);
+            openPanel('localAIPanel');
             break;
         }
       }
@@ -2456,6 +2449,7 @@ export function TimelineEditorPage() {
       { id: 'fillGap', icon: '✨', label: 'Fill Gap', hint: '' },
       { id: 'extend', icon: '➡️', label: 'Extend', hint: 'E' },
       { id: 'mask', icon: '🎭', label: 'Mask', hint: 'X' },
+      { id: 'trackforward', icon: '⏭️', label: 'Track Forward', hint: 'A' },
     ];
 
     const toolMap = {
@@ -2468,15 +2462,42 @@ export function TimelineEditorPage() {
       'm': 'music',
       'e': 'extend',
       'x': 'mask',
+      'a': 'trackforward',
     };
+
+    /** Show the mask overlay only while the Mask tool is active. */
+    function syncMaskOverlay() {
+      const overlay = root.querySelector('#maskOverlay');
+      if (overlay) overlay.hidden = selectedToolLabel() !== 'Mask';
+    }
+
+    /** Mask tool: cut the clicked / boxed object out of the selected clip with the on-device SAM. */
+    async function runMaskTool({ point, box }) {
+      const clip = allClips().find((c) => c.id === state.selectedClipId);
+      if (!clip || !['video', 'image', 'overlay-image'].includes(clip.type)) { showToast('Select a video or image clip first, then use the Mask tool', 'info'); return; }
+      try {
+        const [{ confirmDownloads }, actions] = await Promise.all([import('../lib/editor/ml/aiClipPanel.js'), import('../lib/editor/ml/aiActions.js')]);
+        if (!(await confirmDownloads(['sam']))) return;
+        showToast('Masking on your device…', 'info');
+        const ed = localAIEditor();
+        const frame = await actions.frameAtPlayhead(ed, clip, { maxSize: 1024 });
+        const prompt = box
+          ? { box: [box[0] * frame.width, box[1] * frame.height, box[2] * frame.width, box[3] * frame.height] }
+          : { points: [[point[0] * frame.width, point[1] * frame.height]] };
+        await actions.maskObject(ed, clip, { prompt, mode: 'cutout', frame });
+      } catch (err) {
+        showToast(`Mask failed: ${err?.message || err}`, 'error');
+      }
+    }
 
     function selectTool(id) {
       const def = TOOL_DEFS.find(t => t.id === id);
       state.selectedTool = def ? def.label : id;
       renderTools();
+      syncMaskOverlay();
       updatePreview();
       if (id === 'mask') {
-        showToast('Mask tool active — select a clip and open AI Tools to segment');
+        showToast('Mask tool: click an object, or drag a box around it, on the preview');
       }
       // CineGen AI tools open the features that do the work.
       if (id === 'music') openPanel('localAIPanel');
@@ -2570,7 +2591,7 @@ export function TimelineEditorPage() {
       } else if (pill === 'Extend') {
         openMuapiTool('extend').then(updateCineGenResults);
       } else if (pill === 'Music Gen') {
-        runCineGenTool('music_generation', { clipId: state.selectedClipId }).then(updateCineGenResults);
+        openPanel('localAIPanel');
       } else if (pill === 'Elements') {
         showToast('Elements panel: browse and drag reusable media into timeline', 'info');
       }
@@ -2836,9 +2857,17 @@ export function TimelineEditorPage() {
               <button class="track-toggle ${track.muted ? '' : 'on'}" data-toggle="mute" aria-label="${track.muted ? 'Unmute' : 'Mute'} ${track.name}" aria-pressed="${!track.muted}" title="${track.muted ? 'Unmute' : 'Mute'}">${track.muted ? '🔇' : '🔊'}</button>
               <button class="track-toggle ${track.solo ? 'on' : ''}" data-toggle="solo" aria-label="Solo ${track.name}" aria-pressed="${!!track.solo}" title="Solo">S</button>
               <button class="track-toggle ${track.locked ? 'locked' : ''}" data-toggle="lock" aria-label="${track.locked ? 'Unlock' : 'Lock'} ${track.name}" aria-pressed="${!!track.locked}" title="${track.locked ? 'Unlock' : 'Lock'}">${track.locked ? '🔒' : '🔓'}</button>
+              <button class="track-op" data-trk="up" aria-label="Move ${track.name} up" title="Move track up">▲</button>
+              <button class="track-op" data-trk="down" aria-label="Move ${track.name} down" title="Move track down">▼</button>
+              <button class="track-op" data-trk="remove" aria-label="Delete ${track.name}" title="Delete track">✕</button>
             </div>
             <span class="track-count">${seedCountText}</span>
           `;
+
+          meta.querySelectorAll('.track-op').forEach((btn) => {
+            btn.style.cssText = 'min-width:22px;padding:0 4px;font-size:10px;background:none;border:1px solid rgba(255,255,255,.15);border-radius:4px;color:inherit;cursor:pointer;';
+            btn.addEventListener('click', () => trackOp(track.id, btn.dataset.trk));
+          });
 
           meta.querySelectorAll('.track-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -3245,6 +3274,7 @@ export function TimelineEditorPage() {
 
             const first = clips[0];
             const drift = percent - (first.left || 0);
+            const leftBeforeMove = first.left || 0;
 
             // Alt+drag duplicate: copy rather than move
             const isDuplicate = e.altKey;
@@ -3304,6 +3334,17 @@ export function TimelineEditorPage() {
               track.items.push(c);
             });
             track.items.sort((a, b) => (a.left || 0) - (b.left || 0));
+            // Linked clips (e.g. the audio of a video) move by the same amount on their own tracks.
+            if (data.type === 'clip' && first.linkId) {
+              const moved = (first.left || 0) - leftBeforeMove;
+              editTools.linkedPartners(allClips, first).forEach((p) => {
+                p.left = Math.max(0, Math.min(100 - (p.width || 0), (p.left || 0) + moved));
+                if (state.timelineSeconds) {
+                  p.start = (p.left / 100) * state.timelineSeconds;
+                  p.end = p.start + ((p.width || 0) / 100) * state.timelineSeconds;
+                }
+              });
+            }
             reAliasAllTracks(state);
 
             if (state.rippleMode) trimTailPastEnd(track, state.timelineSeconds || 60);
@@ -5460,6 +5501,8 @@ export function TimelineEditorPage() {
     var pendingMuapiFocus = null;
     // eslint-disable-next-line no-var -- clip editor "Edit" section (speed, flip, in/out, sync, proxies)
     var activeEditPanel = null;
+    // eslint-disable-next-line no-var -- keyframe lanes under the Keyframes panel
+    var activeLanesPanel = null;
     // eslint-disable-next-line no-var
     var localAIPanel = null;
     // eslint-disable-next-line no-var
@@ -5729,14 +5772,9 @@ export function TimelineEditorPage() {
         editor: {
           ...localAIEditor(),
           seek: (sec) => seekToSeconds(sec),
-          // Music through the AI Agent's add_music tool (MuAPI on the user's key; fades + ducking).
-          addMusic: async (prompt) => {
-            const tools = await getAgentTools();
-            saveStateSnapshot(state);
-            const out = await tools.run('add_music', { prompt });
-            if (!out.ok) throw new Error(out.content || 'Music generation failed');
-            showToast('Music added to the Music track', 'success');
-          },
+          // Music (presets, composition plan) is generated by src/lib/editor/ai/music.js on MuAPI.
+          generateMusic: true,
+          projectContext: () => buildChatContext(),
           select: (id) => {
             state.selectedClipId = id;
             renderTracks();
@@ -6056,8 +6094,8 @@ export function TimelineEditorPage() {
 
     function renderClipEditor(clipId) {
       renderClipEditorBase(clipId);
-      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel, activeLocalAIPanel, activeMuapiPanel, activeEditPanel].forEach((p) => p?.destroy());
-      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = activeLocalAIPanel = activeMuapiPanel = activeEditPanel = null;
+      [activeEffectsPanel, activeKeyframesPanel, activeCaptionsPanel, activeBgPanel, activeLocalAIPanel, activeMuapiPanel, activeEditPanel, activeLanesPanel].forEach((p) => p?.destroy());
+      activeEffectsPanel = activeKeyframesPanel = activeCaptionsPanel = activeBgPanel = activeLocalAIPanel = activeMuapiPanel = activeEditPanel = activeLanesPanel = null;
       editorClipId = clipId;
       const clip = allClips().find((c) => c.id === clipId);
       if (!clip) return;
@@ -6102,6 +6140,12 @@ export function TimelineEditorPage() {
                 commitEdit();
               },
               syncAudio: () => syncAudioClip(clip),
+              syncAll: () => syncAllAudio(),
+              toggleLink: () => toggleClipLink(clip),
+              humanize: async () => {
+                const actions = await import('../lib/editor/ml/aiActions.js');
+                await actions.humanizeCut(localAIEditor(), clip);
+              },
               setProxy: (on, onProgress) => setProxyPlayback(on, onProgress),
               addMarker: () => addMarkerAtPlayhead(),
             },
@@ -6248,6 +6292,26 @@ export function TimelineEditorPage() {
               renderTracks();
               scheduleEngineUpdate();
               debouncedSave();
+              activeLanesPanel?.refresh();
+            },
+          });
+        });
+        // Lanes with draggable diamonds, editing the same clip.keyframes.
+        const lanesHost = editorSection('clip-keyframe-lanes', 'Keyframe lanes');
+        import('../lib/editor/keyframeLanes.js').then(({ renderKeyframeLanes }) => {
+          if (!lanesHost.isConnected) return;
+          activeLanesPanel = renderKeyframeLanes(lanesHost, {
+            clip,
+            duration: clipDurationSec(clip),
+            getTime: () => Math.max(0, Math.min(clipDurationSec(clip), playheadSec() - clipStartSec(clip))),
+            onSeek: (t) => seekToSeconds(clipStartSec(clip) + t),
+            onChange: (keyframes) => {
+              saveStateSnapshot(state);
+              if (Object.keys(keyframes).length) clip.keyframes = keyframes; else delete clip.keyframes;
+              renderTracks();
+              scheduleEngineUpdate();
+              debouncedSave();
+              activeKeyframesPanel?.refresh();
             },
           });
         });
@@ -6522,6 +6586,25 @@ export function TimelineEditorPage() {
       return `Built "${state.projectTitle}" with ${pieces.length} selects (${total.toFixed(1)}s) in a new tab. Your original timeline is unchanged in its own tab.`;
     }
 
+    // eslint-disable-next-line no-var -- the live Voice Director connection, if any
+    var voiceSession = null;
+    /** Start or stop the Voice Director. Resolves true when it is now listening. */
+    async function toggleVoiceDirector(handlers = {}) {
+      if (voiceSession) { voiceSession.stop(); voiceSession = null; return false; }
+      const [{ startVoiceDirector }, tools] = await Promise.all([import('../lib/editor/ai/voiceDirector.js'), getAgentTools()]);
+      voiceSession = await startVoiceDirector({
+        definitions: tools.definitions,
+        run: async (name, args) => {
+          saveStateSnapshot(state);
+          const out = await tools.run(name, args);
+          renderTracks();
+          scheduleEngineUpdate();
+          return out;
+        },
+      }, { ...handlers, onStatus: (t) => { handlers.onStatus?.(t); if (t === 'Stopped') voiceSession = null; } });
+      return true;
+    }
+
     async function sendToAgent(text) {
       openPanel('aiAgentPanel');
       await mountAgentPanel();
@@ -6535,6 +6618,7 @@ export function TimelineEditorPage() {
           seekTo: (sec) => seekToSeconds(sec),
           applyCuts: (cuts) => applyCutListAsNewTab(cuts),
           sendToAgent: (text) => sendToAgent(text),
+          toggleVoice: (handlers) => toggleVoiceDirector(handlers),
           detectScenes: async () => {
             initializeSceneDetector();
             if (sceneDetector && sceneDetector.detectScenes) {
@@ -6749,7 +6833,7 @@ export function TimelineEditorPage() {
       if (e.button !== 0) return;
       const tool = (selectedToolLabel() || 'Select').toLowerCase();
       const edge = e.target?.dataset?.handle || null;
-      const bodyTool = ['slip', 'slide', 'blade'].includes(tool);
+      const bodyTool = ['slip', 'slide', 'blade', 'track forward'].includes(tool);
       if (!edge && !bodyTool) return;
       const lane = clipEl.parentElement;
       const laneWidth = lane?.getBoundingClientRect().width || 0;
@@ -6780,6 +6864,14 @@ export function TimelineEditorPage() {
         else if (edge) got = editTools.trimEdge(items, clip, edge, delta, T, { ripple: tool === 'ripple' });
         else if (tool === 'slip') { editTools.slipClip(clip, delta, T); got = delta; }
         else if (tool === 'slide') got = editTools.slideClip(items, clip, delta, T);
+        else if (tool === 'track forward') got = editTools.shiftForward(state.tracks.map((t) => t.items || t.clips || []), clip, delta);
+        // Linked clips (audio + video) trim and slip together.
+        if (got && clip.linkId && tool !== 'roll' && tool !== 'slide' && tool !== 'track forward') {
+          editTools.linkedPartners(allClips(), clip).forEach((p) => {
+            if (edge) editTools.trimEdge([], p, edge, got, T);
+            else if (tool === 'slip') editTools.slipClip(p, got, T);
+          });
+        }
         applied += got;
         if (!frame) frame = requestAnimationFrame(() => { frame = 0; renderTracks(); });
       };
@@ -6851,6 +6943,35 @@ export function TimelineEditorPage() {
       audioClip.left = Math.max(0, ((clipStartSecH(video) + offsetSec) / tlSec()) * 100);
       commitEdit();
       return `Synced: audio starts ${offsetSec >= 0 ? offsetSec.toFixed(2) + 's after' : (-offsetSec).toFixed(2) + 's before'} the video (match ${Math.round(confidence * 100)}%)`;
+    }
+
+    /** Sync every audio clip against the video it overlaps; reports how many matched. */
+    async function syncAllAudio() {
+      const audios = allClips().filter((c) => c.type === 'audio' && c.src && c.role !== 'music');
+      if (!audios.length) throw new Error('No audio clips to sync');
+      let ok = 0;
+      const failed = [];
+      for (const a of audios) {
+        try { await syncAudioClip(a); ok += 1; } catch (err) { failed.push(`${a.name || 'audio'}: ${err.message}`); }
+      }
+      return `Synced ${ok} of ${audios.length} audio clip(s).${failed.length ? ` Skipped: ${failed.slice(0, 2).join('; ')}` : ''}`;
+    }
+
+    /** Link a clip with its audio/video partner (or unlink it) so they move and trim together. */
+    function toggleClipLink(clip) {
+      const all = allClips();
+      saveStateSnapshot(state);
+      if (clip.linkId) {
+        editTools.unlinkClips([clip, ...editTools.linkedPartners(all, clip)]);
+        showToast('Clips unlinked', 'success');
+      } else {
+        const mate = editTools.linkCandidate(clip, all);
+        if (!mate) { showToast('No clip on another track starts at the same time to link with', 'info'); return false; }
+        editTools.linkClips([clip, mate]);
+        showToast(`Linked with "${mate.name || mate.type}"`, 'success');
+      }
+      commitEdit();
+      return true;
     }
 
     // ---------------------------------------------------------------- proxies
@@ -7711,8 +7832,29 @@ export function TimelineEditorPage() {
     }
 
     function addTrack(type) {
-      state.tracks.push({ id: `${type.toLowerCase()}-${Date.now()}`, name: type, muted: false, solo: false, locked: false, clips: [] });
+      const list = [];
+      state.tracks.push({ id: `${type.toLowerCase()}-${Date.now()}`, type: String(type).toLowerCase(), name: type, muted: false, solo: false, locked: false, clips: list, items: list });
       renderTracks();
+    }
+
+    /** Track header buttons: move up/down and delete. */
+    function trackOp(trackId, op) {
+      const track = state.tracks.find((t) => t.id === trackId);
+      if (!track) return;
+      if (op === 'remove') {
+        const count = (track.items || track.clips || []).length;
+        if (state.tracks.length <= 1) { showToast('A timeline needs at least one track', 'info'); return; }
+        if (count && !window.confirm(`Delete "${track.name}" and its ${count} clip(s)? You can undo this.`)) return;
+        saveStateSnapshot(state);
+        editTools.removeTrack(state.tracks, trackId);
+      } else {
+        saveStateSnapshot(state);
+        if (!editTools.moveTrack(state.tracks, trackId, op === 'up' ? -1 : 1)) return;
+      }
+      // Rows are built once per track; rebuild them all so the DOM follows the new order.
+      trackDomCache.forEach((c) => c.row?.remove());
+      trackDomCache.clear();
+      commitEdit();
     }
 
     function showClipEditor(clipId) {
@@ -8926,9 +9068,10 @@ export function TimelineEditorPage() {
           const toolKey = key;
           state.selectedTool = toolMap[toolKey];
           renderTools();
+          syncMaskOverlay();
           updatePreview();
           if (toolMap[toolKey] === 'mask') {
-            showToast('Mask tool active — select a clip and open AI Tools to segment');
+            showToast('Mask tool: click an object, or drag a box around it, on the preview');
           }
         }
       });
@@ -8942,36 +9085,46 @@ export function TimelineEditorPage() {
       if (zoomInBtn) zoomInBtn.addEventListener('click', () => setZoom((state.zoom || 1) + 0.25));
       if (zoomFitBtn) zoomFitBtn.addEventListener('click', () => setZoom(1));
 
-      // Mask overlay click/box capture for AI segmentation
+      // Mask tool (X): click an object or drag a box on the preview; the
+      // on-device SAM cuts it out of the selected clip (no server, no fal).
       const maskOverlay = root.querySelector('#maskOverlay');
       if (maskOverlay) {
-        maskOverlay.addEventListener('click', (e) => {
+        maskOverlay.style.cssText = 'position:absolute;inset:0;z-index:6;cursor:crosshair;';
+        const rectOf = () => maskOverlay.getBoundingClientRect();
+        const norm = (e) => {
+          const r = rectOf();
+          return { x: Math.max(0, Math.min(1, (e.clientX - r.left) / (r.width || 1))), y: Math.max(0, Math.min(1, (e.clientY - r.top) / (r.height || 1))) };
+        };
+        const drawBox = (a, b) => {
+          let box = maskOverlay.querySelector('.mask-box');
+          if (!box) {
+            box = document.createElement('div');
+            box.className = 'mask-box';
+            box.style.cssText = 'position:absolute;border:2px solid #4da3ff;background:rgba(77,163,255,.15);pointer-events:none;';
+            maskOverlay.appendChild(box);
+          }
+          box.style.left = `${Math.min(a.x, b.x) * 100}%`;
+          box.style.top = `${Math.min(a.y, b.y) * 100}%`;
+          box.style.width = `${Math.abs(a.x - b.x) * 100}%`;
+          box.style.height = `${Math.abs(a.y - b.y) * 100}%`;
+        };
+        let start = null;
+        maskOverlay.addEventListener('pointerdown', (e) => {
           if (selectedToolLabel() !== 'Mask') return;
-          const rect = maskOverlay.getBoundingClientRect();
-          maskClickPoint = {
-            x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
-            y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
-          };
+          start = norm(e);
+          maskOverlay.setPointerCapture?.(e.pointerId);
         });
-        maskOverlay.addEventListener('mousedown', (e) => {
-          if (selectedToolLabel() !== 'Mask') return;
-          const rect = maskOverlay.getBoundingClientRect();
-          normStartX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-          normStartY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-          maskSelectionBox = null;
+        maskOverlay.addEventListener('pointermove', (e) => { if (start) drawBox(start, norm(e)); });
+        maskOverlay.addEventListener('pointerup', (e) => {
+          if (!start) return;
+          const end = norm(e);
+          const a = start;
+          start = null;
+          maskOverlay.querySelector('.mask-box')?.remove();
+          const drag = Math.hypot(end.x - a.x, end.y - a.y) > 0.02;
+          runMaskTool(drag ? { box: [Math.min(a.x, end.x), Math.min(a.y, end.y), Math.max(a.x, end.x), Math.max(a.y, end.y)] } : { point: [a.x, a.y] });
         });
-        maskOverlay.addEventListener('mouseup', (e) => {
-          if (selectedToolLabel() !== 'Mask') return;
-          const rect = maskOverlay.getBoundingClientRect();
-          const endX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-          const endY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-          maskSelectionBox = {
-            x: Math.min(normStartX, endX),
-            y: Math.min(normStartY, endY),
-            w: Math.abs(endX - normStartX),
-            h: Math.abs(endY - normStartY),
-          };
-        });
+        syncMaskOverlay();
       }
 
       // The preview is always edge-to-edge (see .preview-large CSS in
@@ -9101,253 +9254,8 @@ export function TimelineEditorPage() {
       const cutaiBtn = root.querySelector('#cutaiStoryboardBtn');
       if (cutaiBtn) cutaiBtn.addEventListener('click', () => showCutAI());
 
-      const cinegenBtn = root.querySelector('#cinegenToolsBtn');
-      if (cinegenBtn) {
-        cinegenBtn.addEventListener('click', () => {
-          openMuapiTool('fill_gap');
-          
-        });
-      }
-
-      const gapFillBtn = root.querySelector('#cinegenGapFillBtn');
-      if (gapFillBtn) {
-        gapFillBtn.addEventListener('click', async () => {
-          const result = await openMuapiTool('fill_gap');
-          updateCineGenResults(result);
-          if (result.success) {
-            applyCineGenResultToTimeline(result);
-            
-          }
-        });
-      }
-
-      const extendBtn = root.querySelector('#cinegenExtendBtn');
-      if (extendBtn) {
-        extendBtn.addEventListener('click', async () => {
-          const result = await openMuapiTool('extend');
-          updateCineGenResults(result);
-          if (result.success) {
-            applyCineGenResultToTimeline(result);
-            
-          }
-        });
-      }
-
-      const musicBtn = root.querySelector('#cinegenMusicBtn');
-      const modelSelect = root.querySelector('#musicModelSelect');
-      if (modelSelect && musicBtn) {
-        modelSelect.addEventListener('change', () => {
-          musicBtn.dataset.model = modelSelect.value;
-        });
-        musicBtn.dataset.model = modelSelect.value;
-      }
-      if (musicBtn) {
-        musicBtn.addEventListener('click', async () => {
-          try {
-            const { default: muapi } = await import('../lib/muapi.js');
-            const model = musicBtn.dataset.model || 'suno-create-music';
-            const prompt = prompt('Describe the music (or leave empty for auto):') || 'cinematic background music';
-            const result = await muapi.generateMusic({ model, prompt, duration: 30 });
-            if (result.url) {
-              // Drop generated audio onto the Audio track
-              const audioTrack = state.tracks.find(t => t.type === 'audio') || state.tracks[3];
-              if (audioTrack) {
-                audioTrack.clips = audioTrack.clips || [];
-                audioTrack.clips.push({
-                  id: 'music_' + Date.now(),
-                  name: `Music: ${model}`,
-                  src: result.url,
-                  start: 0,
-                  duration: 30,
-                  type: 'audio'
-                });
-                
-                if (typeof render === 'function') render();
-              }
-            } else {
-              
-            }
-          } catch (e) {
-            
-          }
-        });
-      }
-
-      const maskBtn = root.querySelector('#cinegenMaskBtn');
-      if (maskBtn) {
-        maskBtn.addEventListener('click', async () => {
-          const prompt = prompt('Enter segmentation prompt (e.g., "the person in red shirt")');
-          if (!prompt) return;
-          const result = await runCineGenTool('sam3_segment', {
-            clipId: state.selectedClipId,
-            prompt,
-            mode: 'text'
-          });
-          updateCineGenResults(result);
-          if (result.success) {
-            applyCineGenResultToTimeline(result);
-          }
-        });
-      }
-
-      const elementBtn = root.querySelector('#cinegenElementBtn');
-      if (elementBtn) {
-        elementBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('element_create', { clipId: state.selectedClipId });
-          updateCineGenResults(result);
-          if (result.success) {}
-        });
-      }
-
-      const polishBtn = root.querySelector('#cinegenPolishBtn');
-      if (polishBtn) {
-        polishBtn.addEventListener('click', async () => {
-          const gapResult = await openMuapiTool('fill_gap');
-          if (gapResult.success) applyCineGenResultToTimeline(gapResult);
-
-          const extendResult = await openMuapiTool('extend');
-          if (extendResult.success) applyCineGenResultToTimeline(extendResult);
-
-          updateCineGenResults({ success: true, message: 'Clip polished (Gap Fill + Extend)' });
-          
-        });
-      }
-
-      const chatBtn = root.querySelector('#cinegenChatBtn');
-      if (chatBtn) {
-        chatBtn.addEventListener('click', () => {
-          // Focus the AI Chat panel
-          const chatInput = document.querySelector('#chatInput');
-          if (chatInput) chatInput.focus();
-          
-        });
-      }
-
-      const subBtn = root.querySelector('#cinegenSubBtn');
-      if (subBtn) {
-        subBtn.addEventListener('click', async () => {
-          await generateSubtitles();
-          
-        });
-      }
-
-      const llmBtn = root.querySelector('#cinegenLLMBtn');
-      if (llmBtn) {
-        llmBtn.addEventListener('click', () => {
-          const chatInput = document.querySelector('#chatInput');
-          if (chatInput) {
-            chatInput.focus();
-            chatInput.placeholder = 'Ask CineGen LLM...';
-          }
-          
-        });
-      }
-
-      const samBtn = root.querySelector('#cinegenSAMBtn');
-      if (samBtn) {
-        samBtn.addEventListener('click', async () => {
-          const prompt = prompt('Enter segmentation prompt (e.g., "the person in red shirt")');
-          if (!prompt) return;
-
-          const result = await runCineGenTool('sam3_segment', {
-            clipId: state.selectedClipId,
-            prompt: prompt
-          });
-
-          if (result.success) {
-            updateCineGenResults(result);
-            applyCineGenResultToTimeline(result);
-            
-          }
-        });
-      }
-
-      const syncBtn = root.querySelector('#cinegenSyncBtn');
-      if (syncBtn) {
-        syncBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('audio_sync', {
-            clipId: state.selectedClipId
-          });
-          updateCineGenResults(result);
-          if (result.success) {}
-        });
-      }
-
-      const layerBtn = root.querySelector('#cinegenLayerBtn');
-      if (layerBtn) {
-        layerBtn.addEventListener('click', async () => {
-          const selectedClip = findSelectedClip();
-          const imageUrl = selectedClip?.src || selectedClip?.url;
-          if (!imageUrl) {
-            showToast('Select a clip with media to decompose', 'error');
-            return;
-          }
-          const result = await runCineGenTool('layer_decompose', { clipId: state.selectedClipId, imageUrl });
-          updateCineGenResults(result);
-          if (result.success) {
-            // Add decomposed layers to media library
-            if (result.layers && Array.isArray(result.layers)) {
-              state.mediaLibrary = state.mediaLibrary || [];
-              result.layers.forEach((layer, idx) => {
-                state.mediaLibrary.push({
-                  id: `layer-${Date.now()}-${idx}`,
-                  icon: '🖼️',
-                  label: layer.name || `Layer ${idx + 1}`,
-                  type: 'image',
-                  desc: 'AI-decomposed layer',
-                  src: layer.url,
-                  metadata: { cinegenProcessed: true, tool: 'layer_decompose', layerIndex: idx }
-                });
-              });
-              renderMedia();
-              showToast(`Layer decomposition complete: ${result.layers.length} layers added to media library`, 'success');
-            } else if (result.url) {
-              state.mediaLibrary = state.mediaLibrary || [];
-              state.mediaLibrary.push({
-                id: `layer-${Date.now()}`,
-                icon: '🖼️',
-                label: 'Decomposed Layer',
-                type: 'image',
-                desc: 'AI-decomposed layer',
-                src: result.url,
-                metadata: { cinegenProcessed: true, tool: 'layer_decompose' }
-              });
-              renderMedia();
-              showToast('Layer decomposition complete', 'success');
-            }
-          }
-        });
-      }
-
-      const shotBtn = root.querySelector('#cinegenShotBtn');
-      if (shotBtn) {
-        shotBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('shot_board', { clipId: state.selectedClipId });
-          updateCineGenResults(result);
-          if (result.success) {}
-        });
-      }
-
-      const proxyBtn = root.querySelector('#cinegenProxyBtn');
-      if (proxyBtn) {
-        proxyBtn.addEventListener('click', async () => {
-          // Toggle proxy mode locally — proxy playback is a browser-side feature
-          const newProxyMode = !state.proxyMode;
-          state.setProxyMode(newProxyMode);
-          proxyBtn.classList.toggle('active', newProxyMode);
-          showToast(newProxyMode ? 'Proxy playback enabled' : 'Proxy playback disabled', 'info');
-          renderAll();
-        });
-      }
-
-      const planBtn = root.querySelector('#cinegenPlanBtn');
-      if (planBtn) {
-        planBtn.addEventListener('click', async () => {
-          const result = await runCineGenTool('composition_plan', { clipId: state.selectedClipId });
-          updateCineGenResults(result);
-          if (result.success) {}
-        });
-      }
+      // (The CineGen toolbar buttons were removed: Fill Gap, Extend, Layers, Music, Mask and
+      // the other AI tools now live in the Clip Editor and the Free AI / Storyboard panels.)
 
       // 3D Camera Effects quick buttons
       root.querySelectorAll('[data-camera-effect]').forEach(btn => {

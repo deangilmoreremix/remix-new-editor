@@ -216,3 +216,97 @@ export function addMarker(markers, sec, label = '') {
 
 export const nextMarker = (markers, sec) => (markers || []).find((m) => m.t > sec + 0.01) || null;
 export const prevMarker = (markers, sec) => [...(markers || [])].reverse().find((m) => m.t < sec - 0.01) || null;
+
+// ---------------------------------------------------------------- link / unlink
+
+/** Link clips so they move, trim and slip together (CineGen: linked audio + video). */
+export function linkClips(clips, id = `link-${Date.now().toString(36)}`) {
+  clips.forEach((c) => { c.linkId = id; });
+  return id;
+}
+
+export function unlinkClips(clips) {
+  clips.forEach((c) => { delete c.linkId; });
+}
+
+/** Every clip sharing this clip's link (excluding itself). */
+export function linkedPartners(allClips, clip) {
+  if (!clip?.linkId) return [];
+  return allClips.filter((c) => c !== clip && c.linkId === clip.linkId);
+}
+
+/**
+ * The clip best matched to link with `clip`: on another track, starting at
+ * (about) the same time, preferring the other media kind (audio ↔ video).
+ */
+export function linkCandidate(clip, others, { tolerancePct = 0.5 } = {}) {
+  const near = others.filter((c) => c !== clip && Math.abs(num(c.left) - num(clip.left)) <= tolerancePct && !c.linkId);
+  const wantOther = clip.type === 'audio' ? 'video' : clip.type === 'video' ? 'audio' : null;
+  return near.find((c) => c.type === wantOther) || near[0] || null;
+}
+
+// ---------------------------------------------------------------- tracks
+
+/** Move a track up (-1) or down (+1). Returns true if it moved. */
+export function moveTrack(tracks, id, dir) {
+  const i = tracks.findIndex((t) => t.id === id);
+  const j = i + (dir < 0 ? -1 : 1);
+  if (i < 0 || j < 0 || j >= tracks.length) return false;
+  [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
+  return true;
+}
+
+/** Remove a track (never the last one). Returns the removed track or null. */
+export function removeTrack(tracks, id) {
+  if (tracks.length <= 1) return null;
+  const i = tracks.findIndex((t) => t.id === id);
+  return i < 0 ? null : tracks.splice(i, 1)[0];
+}
+
+// ---------------------------------------------------------------- humanize cut
+
+/**
+ * Snap a cut time to the middle of the nearest silence within `window`
+ * seconds (so a cut never lands mid-word). Times in the same unit (seconds).
+ * @param {{start:number,end:number}[]} silences
+ * @returns {number} the new time (unchanged if no silence is close enough)
+ */
+export function snapToSilence(t, silences, window = 0.4) {
+  let best = null;
+  for (const s of silences) {
+    const mid = (s.start + s.end) / 2;
+    // Already inside a silence: keep it.
+    if (t >= s.start && t <= s.end) return t;
+    const d = Math.min(Math.abs(t - s.start), Math.abs(t - s.end));
+    if (d <= window && (!best || d < best.d)) best = { d, at: t < s.start ? s.start + Math.min(0.05, (s.end - s.start) / 2) : s.end - Math.min(0.05, (s.end - s.start) / 2), mid };
+  }
+  return best ? best.at : t;
+}
+
+// ---------------------------------------------------------------- keyframe lanes
+
+/** Move keyframe `index` of `prop` to time `t` (seconds from the clip start), keeping the list sorted. */
+export function moveKeyframeTime(keyframes, prop, index, t, duration) {
+  const list = [...(keyframes?.[prop] || [])];
+  if (!list[index]) return keyframes;
+  const moved = { ...list[index], t: Math.max(0, Math.min(duration, Math.round(t * 100) / 100)) };
+  list[index] = moved;
+  list.sort((a, b) => a.t - b.t);
+  return { ...keyframes, [prop]: list };
+}
+
+/**
+ * Track Forward: move `clip` and every clip that starts at or after it, on
+ * all tracks, by `deltaPct`, keeping their spacing. Clamped to the timeline.
+ * @param {object[][]} trackItems  the clip lists of every track
+ * @returns {number} the delta applied
+ */
+export function shiftForward(trackItems, clip, deltaPct) {
+  const moving = trackItems.flat().filter((c) => num(c.left) >= num(clip.left) - EPS);
+  if (!moving.length) return 0;
+  const minLeft = Math.min(...moving.map((c) => num(c.left)));
+  const maxRight = Math.max(...moving.map(right));
+  const d = clampDelta(deltaPct, -minLeft, Math.max(0, 100 - maxRight));
+  moving.forEach((c) => { c.left = num(c.left) + d; });
+  return d;
+}

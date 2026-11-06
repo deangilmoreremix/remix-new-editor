@@ -8,6 +8,7 @@ import * as muapi from './timelineMuapi.js';
 import * as local from '../ml/aiActions.js';
 import { confirmDownloads } from '../ml/aiClipPanel.js';
 import { listElements, resolveMentions } from './elementsStore.js';
+import * as frameTools from './frameTools.js';
 import {
   FIRST_LAST_FRAME_MODELS, DEFAULT_FILL_GAP_MODEL,
   VIDEO_EXTEND_MODELS, DEFAULT_EXTEND_MODEL,
@@ -26,8 +27,12 @@ function startJob(clipId, label, run) {
   const listeners = new Set();
   const job = { label, last: null, cancel: () => controller.abort(), subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn); } };
   const onProgress = (p) => { job.last = p; listeners.forEach((fn) => fn(p)); };
-  job.done = run({ onProgress, signal: controller.signal });
-  job.done.catch(() => {}).finally(() => jobs.delete(clipId));
+  // Remove the job as part of `done` itself, so by the time a caller's `await job.done`
+  // continues (and redraws) the panel no longer sees a running job.
+  job.done = (async () => {
+    try { return await run({ onProgress, signal: controller.signal }); } finally { jobs.delete(clipId); }
+  })();
+  job.done.catch(() => {});
   jobs.set(clipId, job);
   return job;
 }
@@ -55,6 +60,7 @@ export function renderMuapiClipPanel(container, { editor, clip, focus, confirm }
     fillModel: DEFAULT_FILL_GAP_MODEL, fillPrompt: '', fillSide: 'after',
     extDir: 'after', extSeconds: 5, extModel: DEFAULT_EXTEND_MODEL, extPrompt: '',
     layerModel: DEFAULT_LAYER_MODEL, wmModel: DEFAULT_WATERMARK_MODEL, rights: false,
+    qeText: '', askText: '', askAnswer: '',
     error: '', unsub: null,
   };
   const gaps = () => ({ after: muapi.gapNextTo(editor, clip, { side: 'after' }), before: muapi.gapNextTo(editor, clip, { side: 'before' }) });
@@ -102,6 +108,20 @@ export function renderMuapiClipPanel(container, { editor, clip, focus, confirm }
             <button type="button" class="mini-btn" data-mu="ext-prompt" ${j ? 'disabled' : ''}>Write prompt from frame (free)</button>
             <button type="button" class="mini-btn cap-primary" data-mu="extend" ${j ? 'disabled' : ''}>Extend</button>
           </div>
+        </details>` : ''}
+
+        ${isVideo || isImage ? `
+        <details class="ai-local-group" data-mu-anchor="quickedit">
+          <summary>Quick edit this frame <span class="addon-field__hint">(Images 2.6, your OpenAI key)</span></summary>
+          <p class="addon-field__hint">Changes the frame at the playhead and adds the result as an image clip there. Use @Name to bring in an Element.</p>
+          <input data-mu-qe value="${esc(ui.qeText)}" placeholder='e.g. "make it night" or "remove the car"' style="width:100%"/>
+          <button type="button" class="mini-btn cap-primary" data-mu="quickedit" ${j ? 'disabled' : ''}>Edit frame</button>
+        </details>
+        <details class="ai-local-group" data-mu-anchor="askframe" ${ui.askAnswer ? 'open' : ''}>
+          <summary>Ask about this frame <span class="addon-field__hint">(OpenAI, your key)</span></summary>
+          <input data-mu-ask value="${esc(ui.askText)}" placeholder='e.g. "is the text readable?"' style="width:100%"/>
+          <button type="button" class="mini-btn" data-mu="askframe" ${j ? 'disabled' : ''}>Ask</button>
+          ${ui.askAnswer ? `<p class="addon-field__hint" style="white-space:pre-wrap">${esc(ui.askAnswer)}</p>` : ''}
         </details>` : ''}
 
         ${isVideo || isImage ? `
@@ -179,6 +199,8 @@ export function renderMuapiClipPanel(container, { editor, clip, focus, confirm }
         return muapi.extendClip(editor, clip, { direction: ui.extDir, seconds, model: ui.extModel, prompt: text, ...o });
       });
     },
+    quickedit() { return run('Editing the frame', (o) => frameTools.quickEdit(editor, clip, ui.qeText, o)); },
+    askframe() { return run('Looking at the frame', async (o) => { ui.askAnswer = await frameTools.askFrame(editor, clip, ui.askText, o); }); },
     layers() { return run('Splitting layers', (o) => muapi.decomposeLayers(editor, clip, { model: ui.layerModel, ...o })); },
     watermark() { return run('Removing watermark', (o) => muapi.removeWatermark(editor, clip, { model: ui.wmModel, rightsConfirmed: ui.rights, ...o })); },
     restore() { local.restoreMedia(editor, clip); },
@@ -195,6 +217,8 @@ export function renderMuapiClipPanel(container, { editor, clip, focus, confirm }
     if (d.muFillPrompt !== undefined) ui.fillPrompt = e.target.value;
     else if (d.muExtPrompt !== undefined) ui.extPrompt = e.target.value;
     else if (d.muExtSec !== undefined) ui.extSeconds = Number(e.target.value);
+    else if (d.muQe !== undefined) ui.qeText = e.target.value;
+    else if (d.muAsk !== undefined) ui.askText = e.target.value;
   };
   const onChange = (e) => {
     const d = e.target.dataset;

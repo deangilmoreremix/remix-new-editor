@@ -18,6 +18,7 @@ import { OPENAI_IMAGE_MODELS, DEFAULT_IMAGE_MODEL } from './openaiImages.js';
 import { importScript, serializeScreenplay, sceneCharacters } from '../director/screenplay.js';
 import { IMAGE_TO_VIDEO_MODELS, DEFAULT_IMAGE_TO_VIDEO_MODEL } from '../../muapi/frameModels.js';
 import { defaultCaptionStyle } from '../remotion/captions.js';
+import * as lb from './lookBible.js';
 import { frameAtPlayhead } from '../ml/aiActions.js';
 import { canvasToBlob } from '../ml/frameGrab.js';
 
@@ -37,6 +38,7 @@ export function renderStoryboardPanel(container, { editor, llm = runLlm } = {}) 
     script: null, beats: null, shotlists: {},
     boardRef: null, board: [], boardNote: '',
     elements: [], editing: null,
+    look: lb.loadLook(), breakdown: null, breakdownItems: [],
     busy: '', error: '', controller: null,
   };
 
@@ -69,6 +71,19 @@ export function renderStoryboardPanel(container, { editor, llm = runLlm } = {}) 
     <p class="addon-field__hint">Plan shots with OpenAI, make each frame with Images 2.6 (your OpenAI key), then place them on the timeline. Use <strong>@Name</strong> to bring in an Element.</p>
     <textarea data-sb="idea" rows="4" placeholder="An idea, a script or a scene… e.g. '@Maya finds a glowing map in her grandmother's attic'" style="width:100%">${esc(ui.idea)}</textarea>
     <label class="cap-row"><span>Style</span><input data-sb="style" value="${esc(ui.style)}" placeholder="e.g. warm 35mm film, golden hour"/></label>
+    <details class="ai-local-group" ${ui.look.genre || ui.look.references.length || ui.look.notes ? 'open' : ''}>
+      <summary>Look Bible${lb.lookStyle(ui.look) ? ' ✓' : ''}</summary>
+      <label class="cap-row"><span>Genre</span><select data-look="genre">${opts(lb.LOOK_GENRES.map((g) => [g, g || '—']), ui.look.genre)}</select></label>
+      <label class="cap-row"><span>Film refs</span><input data-look="references" value="${esc(ui.look.references.join(', '))}" placeholder="e.g. Blade Runner, Heat"/></label>
+      <textarea data-look="notes" rows="2" placeholder="Visual style, mood, pacing notes…" style="width:100%">${esc(ui.look.notes)}</textarea>
+      ${ui.look.palette.length || ui.look.lens ? `<p class="addon-field__hint">Palette: ${esc(ui.look.palette.join(', '))}${ui.look.lens ? ` · ${esc(ui.look.lens)}` : ''}</p>` : ''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="mini-btn" data-act="look-expand" ${ui.busy ? 'disabled' : ''}>Rewrite with AI</button>
+        <button type="button" class="mini-btn" data-act="look-board" ${ui.busy ? 'disabled' : ''}>Mood board (3 stills)</button>
+      </div>
+      ${ui.look.moodboard.length ? `<div style="display:flex;gap:4px;margin-top:4px">${ui.look.moodboard.map((u) => `<img src="${esc(u)}" alt="Mood board still" style="width:32%;border-radius:4px"/>`).join('')}</div>` : ''}
+      <p class="addon-field__hint">The look is added to every frame prompt.</p>
+    </details>
     <div class="cap-row"><span>Shots</span><input data-sb="count" type="number" min="3" max="12" value="${ui.count}" style="width:60px"/>
       <span>Aspect</span><select data-sb="aspect">${opts([['16:9', '16:9'], ['9:16', '9:16'], ['1:1', '1:1']], ui.aspect)}</select></div>
     <label class="cap-row"><span>Frames</span><select data-sb="imageModel">${opts(OPENAI_IMAGE_MODELS, ui.imageModel)}</select></label>
@@ -85,6 +100,11 @@ export function renderStoryboardPanel(container, { editor, llm = runLlm } = {}) 
               <input data-shot="camera" data-i="${i}" value="${esc(s.camera)}" placeholder="Camera" style="width:100%"/>
               <textarea data-shot="prompt" data-i="${i}" rows="2" style="width:100%">${esc(s.prompt)}</textarea>
               <input data-shot="dialogue" data-i="${i}" value="${esc(s.dialogue)}" placeholder="Dialogue (optional)" style="width:100%"/>
+              <div style="display:flex;gap:4px"><input data-shot="note" data-i="${i}" value="${esc(s.note || '')}" placeholder="Director note, e.g. 'make it dusk'" style="flex:1;min-width:0"/>
+                <button type="button" class="mini-btn" data-act="rewrite" data-i="${i}" ${ui.busy ? 'disabled' : ''}>Rewrite</button></div>
+              ${s.proposal ? `<div class="addon-field__hint" style="border:1px solid var(--border,rgba(255,255,255,.15));padding:4px;border-radius:4px">Proposed: ${esc(s.proposal.prompt)}
+                <button type="button" class="mini-btn cap-primary" data-act="keep-rewrite" data-i="${i}">Keep</button>
+                <button type="button" class="mini-btn" data-act="discard-rewrite" data-i="${i}">Discard</button></div>` : ''}
               <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
                 <input data-shot="duration" data-i="${i}" type="number" min="1" max="15" step="0.5" value="${s.duration}" style="width:60px"/> s
                 <button type="button" class="mini-btn" data-act="frame" data-i="${i}" ${ui.busy ? 'disabled' : ''}>${s.frameUrl ? 'Redo frame' : 'Make frame'}</button>
@@ -119,9 +139,13 @@ export function renderStoryboardPanel(container, { editor, llm = runLlm } = {}) 
           ${ui.shotlists[i] ? `<table class="chat-table"><thead><tr><th>Shot</th><th>Camera</th><th>Action</th><th>s</th></tr></thead><tbody>${ui.shotlists[i].map((r) => `<tr><td>${esc(r.shot)}</td><td>${esc(r.camera)}</td><td>${esc(r.description)}</td><td>${r.duration}</td></tr>`).join('')}</tbody></table>` : ''}
         </li>`).join('')}</ol>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="mini-btn" data-act="breakdown" ${ui.busy ? 'disabled' : ''}>Breakdown (AI)</button>
         <button type="button" class="mini-btn" data-act="beats" ${ui.busy ? 'disabled' : ''}>Beat sheet (AI)</button>
         <button type="button" class="mini-btn" data-act="cast" ${ui.busy ? 'disabled' : ''}>Add characters as Elements</button>
       </div>
+      ${ui.breakdownItems.length ? `<h4 class="addon-panel__heading">Breakdown</h4>
+        <ul style="list-style:none;padding:0">${ui.breakdownItems.map((it) => `<li>${it.existing ? '✓' : '＋'} <strong>${esc(it.name)}</strong> <span class="addon-field__hint">${esc(it.category)}${it.existing ? ' · already an Element' : ''}</span></li>`).join('')}</ul>
+        ${ui.breakdownItems.some((it) => !it.existing) ? '<button type="button" class="mini-btn cap-primary" data-act="breakdown-create">Create the missing Elements</button>' : ''}` : ''}
       ${ui.beats ? `<ol style="padding-left:18px">${ui.beats.map((b) => `<li><strong>${esc(b.name)}</strong> — ${esc(b.description)} <span class="addon-field__hint">${esc(b.scene)}</span></li>`).join('')}</ol>` : ''}` : ''}`;
 
   const viewBoard = () => `
@@ -173,8 +197,9 @@ export function renderStoryboardPanel(container, { editor, llm = runLlm } = {}) 
 
   // ------------------------------------------------------------------ actions
   const shot = (i) => ui.shots[Number(i)];
+  const fullStyle = () => [ui.style, lb.lookStyle(ui.look)].filter(Boolean).join('. ');
   const makeFrame = async (s, signal) => {
-    const { url, model } = await sb.frameForShot(editor, s, { elements: ui.elements, style: ui.style, model: ui.imageModel, aspect: ui.aspect, signal });
+    const { url, model } = await sb.frameForShot(editor, s, { elements: ui.elements, style: fullStyle(), model: ui.imageModel, aspect: ui.aspect, signal });
     s.frameUrl = url;
     s.clipUrl = null;
     if (model !== ui.imageModel) editor.toast?.(`Your key can't use ${ui.imageModel} yet — used ${model}`, 'info');
@@ -183,7 +208,7 @@ export function renderStoryboardPanel(container, { editor, llm = runLlm } = {}) 
 
   const actions = {
     plan: () => task('Planning shots', async (signal) => {
-      const r = await sb.planShots(ui.idea, { shots: ui.count, style: ui.style, elements: ui.elements, llm, signal });
+      const r = await sb.planShots(ui.idea, { shots: ui.count, style: fullStyle(), elements: ui.elements, llm, signal });
       ui.title = r.title;
       ui.shots = r.shots;
     }),
@@ -212,6 +237,31 @@ export function renderStoryboardPanel(container, { editor, llm = runLlm } = {}) 
       ui.shotlists = {};
       draw();
     },
+    'look-expand': () => task('Writing the look bible', async (signal) => {
+      ui.look = await lb.expandLook(ui.look, { signal });
+      lb.saveLook(ui.look);
+    }),
+    'look-board': () => task('Making the mood board', async (signal) => {
+      ui.look.moodboard = await lb.makeMoodboard(editor, ui.look, { signal });
+      lb.saveLook(ui.look);
+    }),
+    rewrite: (b) => task('Rewriting the shot', async (signal) => {
+      const s = shot(b.dataset.i);
+      s.proposal = await lb.rewriteShot(s, s.note, { look: ui.look, signal });
+    }),
+    'keep-rewrite': (b) => { const s = shot(b.dataset.i); if (s?.proposal) { s.prompt = s.proposal.prompt; s.camera = s.proposal.camera; s.note = ''; s.proposal = null; s.frameUrl = null; s.clipUrl = null; draw(); } },
+    'discard-rewrite': (b) => { const s = shot(b.dataset.i); if (s) { s.proposal = null; draw(); } },
+    breakdown: () => task('Breaking down the script', async (signal) => {
+      const { data } = await llm('breakdown', { text: ui.script.text }, { signal });
+      ui.breakdown = data;
+      ui.breakdownItems = lb.matchBreakdown(data, ui.elements, els.slug);
+    }),
+    'breakdown-create': () => task('Creating Elements', async () => {
+      for (const it of ui.breakdownItems.filter((x) => !x.existing)) await els.saveElement({ name: it.name, category: it.category });
+      ui.elements = await els.listElements();
+      ui.breakdownItems = lb.matchBreakdown(ui.breakdown, ui.elements, els.slug);
+      editor.toast?.('Elements created', 'success');
+    }),
     'to-storyboard': (b) => {
       const sc = ui.script.scenes[Number(b.dataset.i)];
       ui.idea = serializeScreenplay({ elements: sc.elements });
@@ -293,14 +343,18 @@ export function renderStoryboardPanel(container, { editor, llm = runLlm } = {}) 
     const d = e.target.dataset;
     if (d.sb && ['idea', 'style', 'boardNote'].includes(d.sb)) ui[d.sb] = e.target.value;
     else if (d.sb === 'count') ui.count = Math.max(3, Math.min(12, Number(e.target.value) || 6));
-    else if (d.shot) {
+    else if (d.look) {
+      ui.look[d.look] = d.look === 'references' ? lb.parseReferences(e.target.value) : e.target.value;
+      lb.saveLook(ui.look);
+    } else if (d.shot) {
       const s = shot(d.i);
       if (s) s[d.shot] = d.shot === 'duration' ? Math.max(1, Math.min(15, Number(e.target.value) || 4)) : e.target.value;
     } else if (d.el && ui.editing && d.el !== 'upload') ui.editing[d.el] = e.target.value;
   };
   const onChange = async (e) => {
     const d = e.target.dataset;
-    if (d.sb && ['aspect', 'imageModel', 'videoModel'].includes(d.sb)) ui[d.sb] = e.target.value;
+    if (d.look === 'genre') { ui.look.genre = e.target.value; lb.saveLook(ui.look); }
+    else if (d.sb && ['aspect', 'imageModel', 'videoModel'].includes(d.sb)) ui[d.sb] = e.target.value;
     else if (d.el === 'category' && ui.editing) ui.editing.category = e.target.value;
     else if (d.sb === 'file' && e.target.files?.[0]) {
       const f = e.target.files[0];

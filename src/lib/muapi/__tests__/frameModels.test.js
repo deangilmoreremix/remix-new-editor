@@ -104,3 +104,20 @@ describe('image → video (storyboard frames)', async () => {
     expect(() => buildImageToVideoPayload({ imageUrl: 'data:x' })).toThrow(/https/);
   });
 });
+
+describe('music payloads', async () => {
+  const { buildMusicPayload } = await import('../frameModels.js');
+  it('instrumental: prompt describes the music, style is always set', () => {
+    expect(buildMusicPayload({ prompt: 'warm piano', style: 'ambient, 70 bpm', duration: 45 })).toEqual({
+      endpoint: '/suno-create-music', model: 'suno-create-music', payload: { style: 'ambient, 70 bpm', duration: 45, instrumental: true, prompt: 'warm piano' },
+    });
+    expect(buildMusicPayload({ prompt: 'x', duration: 999 }).payload).toMatchObject({ style: 'cinematic', duration: 180 });
+  });
+  it('lyrics switch to custom mode with the lyrics as the prompt', () => {
+    const r = buildMusicPayload({ lyrics: 'La la la', style: 'indie pop', title: 'Song', duration: 30 });
+    expect(r.payload).toMatchObject({ prompt: 'La la la', custom_mode: true, instrumental: false, title: 'Song' });
+  });
+  it('needs something to describe', () => {
+    expect(() => buildMusicPayload({})).toThrow(/Describe/);
+  });
+});
