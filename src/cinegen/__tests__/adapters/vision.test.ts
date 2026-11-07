@@ -27,3 +27,14 @@ describe('analyzeAssetVisualSummary (OpenAI vision)', () => {
     expect(r.status).toBe('failed');
   });
 });
+
+describe('detectObjectsInImage (CineGen normalizer, OpenAI transport)', () => {
+  it('parses CineGen-shaped proposals', async () => {
+    const { detectObjectsInImage } = await import('../../adapters/main-process/vision');
+    responsesChat.mockResolvedValue({ message: '{"objects":[{"label":"person","box":[0.5,0.5,0.4,0.8],"score":0.9}]}', usage: {} });
+    const r = await detectObjectsInImage({ imagePath: 'https://x.test/a.jpg' });
+    expect(r.status).toBe('ready');
+    expect(r.objects[0]).toMatchObject({ label: 'person' });
+    expect(r.objects[0].box).toEqual([0.5, 0.5, 0.4, 0.8]);
+  });
+});
