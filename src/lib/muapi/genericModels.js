@@ -36,6 +36,13 @@ export function findCatalogModel(key) {
   return allCatalogModels().find((m) => m.key === key) || null;
 }
 
+// Bundled snapshot entries whose endpoint differs from MuAPI's live catalog (found by a live route check: these 404'd).
+const ENDPOINT_FIXES = {
+  'ai-image-upscaler': 'ai-image-upscale',
+  'bytedance-seedream-5.0-pro-edit': 'seedream-5.0-pro-edit',
+  'bytedance-seedream-5.0-pro': 'seedream-5.0-pro',
+};
+
 const MEDIA_FIELD = /image|video|audio|frame|url|mask|reference/i;
 const httpsOnly = (v) => /^https:\/\//i.test(String(v || ''));
 
@@ -62,5 +69,5 @@ export function buildGenericPayload({ model: key, inputs = {} } = {}) {
     payload[name] = (t === 'int' || t === 'integer' || t === 'number') && typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value)) ? Number(value) : value;
   }
   if (!payload.prompt && model.hasPrompt === false) delete payload.prompt;
-  return { endpoint: `/${model.endpoint || model.id}`, payload, model: model.id };
+  return { endpoint: `/${ENDPOINT_FIXES[model.id] || model.endpoint || model.id}`, payload, model: model.id };
 }

@@ -76,8 +76,11 @@ export async function handle(body, userId, { keys = {}, post = muapiPost, fetchI
   if (body.action === 'submit') {
     if (rateLimited(userId || 'anon')) return fail(429, 'rate_limited', 'Too many AI requests — wait a few minutes.');
     let req;
-    if (body.tool === 'generate' && body.params?.model && !findCatalogModel(body.params.model)) {
-      // Not in the bundled snapshot: use MuAPI's live catalog (ElevenLabs, Whisper, Suno sounds, ...).
+    const bundled = body.tool === 'generate' && body.params?.model ? findCatalogModel(body.params.model) : null;
+    // A bundled entry that declares no inputs (e.g. sync-lipsync) would drop every field, so it uses the live catalog too.
+    const bundledUsable = bundled && (Object.keys(bundled.model.inputs || {}).length || bundled.model.imageField || bundled.model.videoField || bundled.model.hasPrompt !== false);
+    if (body.tool === 'generate' && body.params?.model && !bundledUsable) {
+      // Not in the bundled snapshot (or it declares no fields): use MuAPI's live catalog (ElevenLabs, Whisper, Suno sounds, ...).
       try {
         const m = await liveModel(String(body.params.model), { fetchImpl });
         req = m ? buildLivePayload(m, body.params.inputs) : { error: `Unknown model: ${body.params.model}` };
