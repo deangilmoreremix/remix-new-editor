@@ -205,7 +205,7 @@ button, input, textarea, select { font: inherit; }
 }
 .circle-btn { width: 40px; height: 40px; border-radius: var(--r-full); border: 1px solid transparent; background: var(--surface-3); color: white; cursor: pointer; display: grid; place-items: center; transition: transform .15s ease, background .15s ease; }
 .circle-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.16); }
-.circle-btn.primary { width: 48px; height: 48px; background: white; color: black; box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
+.circle-btn.primary { width: 48px; height: 48px; background: rgba(217,255,0,0.10); color: #fff; border: 1px solid rgba(217,255,0,0.35); box-shadow: 0 0 16px rgba(217,255,0,0.08); }
 .timeline-card, .side-card {
   border-radius: var(--r-2xl); border: 1px solid var(--border); background: var(--surface-1);
   box-shadow: var(--shadow-card);

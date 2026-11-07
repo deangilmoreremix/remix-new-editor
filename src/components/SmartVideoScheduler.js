@@ -58,13 +58,13 @@ export function SmartVideoScheduler() {
     btn.type = 'button';
     btn.textContent = tab;
     btn.className = tab === activeTab
-      ? 'px-4 py-2 rounded-lg text-xs font-bold bg-white text-black shadow transition-all'
+      ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary/10 border border-primary/30 text-white shadow transition-all'
       : 'px-4 py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-white hover:bg-white/10 transition-all';
     btn.onclick = () => {
       activeTab = tab;
       Object.entries(tabButtons).forEach(([key, b]) => {
         b.className = key === activeTab
-          ? 'px-4 py-2 rounded-lg text-xs font-bold bg-white text-black shadow transition-all'
+          ? 'px-4 py-2 rounded-lg text-xs font-bold bg-primary/10 border border-primary/30 text-white shadow transition-all'
           : 'px-4 py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-white hover:bg-white/10 transition-all';
       });
       renderTabContent();

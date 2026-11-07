@@ -734,7 +734,7 @@ export function mountModelSelector(container, options = {}) {
       catBtn.style.cssText = `
         flex: 1;
         padding: 6px 8px;
-        border: 1px solid ${isActive ? '#3b82f6' : 'rgba(255,255,255,0.1)'};
+        border: 1px solid ${isActive ? 'rgba(217,255,0,0.35)' : 'rgba(255,255,255,0.1)'};
         border-radius: 6px;
         background: ${isActive ? '#1d4ed8' : 'transparent'};
         color: ${isActive ? '#fff' : '#9ca3af'};
@@ -768,9 +768,9 @@ export function mountModelSelector(container, options = {}) {
       align-items: center;
       gap: 8px;
       padding: 8px 12px;
-      border: 1px solid ${isSelected ? '#3b82f6' : 'transparent'};
+      border: 1px solid ${isSelected ? 'rgba(217,255,0,0.35)' : 'transparent'};
       border-radius: 8px;
-      background: ${isSelected ? '#1e3a5f' : 'transparent'};
+      background: ${isSelected ? 'rgba(217,255,0,0.10)' : 'transparent'};
       color: #e5e7eb;
       font-size: 13px;
       cursor: pointer;
@@ -849,7 +849,7 @@ export function renderModelList(models = [], selectedModelId = null, showProvide
   const items = models.map(m => {
     const isSelected = m.id === selectedModelId || m.name === selectedModelId;
     const providerBadge = showProviderName && m.provider_name ? `<span style="margin-left: auto; font-size: 11px; color: #6b7280;">${m.provider_name}</span>` : '';
-    return `<button data-model-id="${m.id}" data-model-name="${m.name}" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; border: 1px solid ${isSelected ? '#3b82f6' : 'transparent'}; border-radius: 8px; background: ${isSelected ? '#1e3a5f' : 'transparent'}; color: #e5e7eb; font-size: 13px; cursor: pointer; text-align: left;">${m.name || m.id}${providerBadge}</button>`;
+    return `<button data-model-id="${m.id}" data-model-name="${m.name}" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; border: 1px solid ${isSelected ? 'rgba(217,255,0,0.35)' : 'transparent'}; border-radius: 8px; background: ${isSelected ? 'rgba(217,255,0,0.10)' : 'transparent'}; color: #e5e7eb; font-size: 13px; cursor: pointer; text-align: left;">${m.name || m.id}${providerBadge}</button>`;
   }).join('');
   return `<div style="display: flex; flex-direction: column; gap: 4px;">${items}</div>`;
 }

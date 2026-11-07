@@ -458,9 +458,10 @@ export const enforceDesignSystem = () => {
       .${TIMELINE_DESIGN_SYSTEM.styles.buttons.circle}.primary {
         width: 48px;
         height: 48px;
-        background: white;
-        color: black;
-        box-shadow: 0 10px 30px rgba(255,255,255,0.15);
+        background: rgba(217,255,0,0.10);
+        color: #fff;
+        border: 1px solid rgba(217,255,0,0.35);
+        box-shadow: 0 0 16px rgba(217,255,0,0.08);
       }
 
       /* Enhanced drag-and-drop with visual feedback */

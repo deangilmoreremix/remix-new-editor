@@ -1638,7 +1638,7 @@ generateBtn.type = 'button';
     newPromptBtn.textContent = '+ New';
 
     const renderBtn = document.createElement('button');
-    renderBtn.className = 'bg-emerald-500 text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
+    renderBtn.className = 'btn-primary-modern px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
     renderBtn.textContent = '🎬 Open in Render';
 
     canvasControls.appendChild(regenerateBtn);

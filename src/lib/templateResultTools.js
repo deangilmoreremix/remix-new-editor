@@ -210,7 +210,7 @@ export function createResultActions({ onRegenerate, onExtend } = {}) {
             ${EXTEND_DURATIONS.map(d => `<option value="${d}">${d}s</option>`).join('')}
           </select>
         </label>
-        <button type="button" data-action="extend-run" class="ml-auto rounded-2xl bg-white px-5 py-2.5 text-xs font-bold text-black transition hover:opacity-90">Extend ✨</button>
+        <button type="button" data-action="extend-run" class="ml-auto rounded-2xl btn-primary-modern px-5 py-2.5 text-xs font-bold   transition ">Extend ✨</button>
       </div>
       <div data-extend-status class="text-xs text-zinc-400"></div>
     </div>

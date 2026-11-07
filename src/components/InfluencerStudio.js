@@ -432,14 +432,14 @@ export async function InfluencerStudio() {
     tabBtn.dataset.tabKey = key;
     const isActive = key === activeTab;
     tabBtn.className = isActive
-      ? 'flex-1 py-1.5 rounded-lg text-xs font-semibold bg-white text-black shadow transition-all'
+      ? 'flex-1 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 border border-primary/30 text-white shadow transition-all'
       : 'flex-1 py-1.5 rounded-lg text-xs font-semibold text-gray-500 hover:text-white hover:bg-white/10 transition-all';
     tabBtn.onclick = () => {
       activeTab = key;
       tabRow.querySelectorAll('button').forEach((b) => {
         const k = b.dataset.tabKey;
         b.className = k === activeTab
-          ? 'flex-1 py-1.5 rounded-lg text-xs font-semibold bg-white text-black shadow transition-all'
+          ? 'flex-1 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 border border-primary/30 text-white shadow transition-all'
           : 'flex-1 py-1.5 rounded-lg text-xs font-semibold text-gray-500 hover:text-white hover:bg-white/10 transition-all';
       });
       attrScroll.querySelectorAll('[data-subcat]').forEach((sc) => {
@@ -513,7 +513,7 @@ export async function InfluencerStudio() {
 
         if (isSelected) {
           const badge = document.createElement('div');
-          badge.className = 'absolute top-1 right-1 w-4 h-4 rounded-full bg-white text-black flex items-center justify-center';
+          badge.className = 'absolute top-1 right-1 w-4 h-4 rounded-full bg-primary/10 border border-primary/30 text-white flex items-center justify-center';
           badge.innerHTML = SVG_CHECK;
           btn.appendChild(badge);
         }
@@ -546,7 +546,7 @@ export async function InfluencerStudio() {
         if (existingBadge) existingBadge.remove();
         if (isSel) {
           const badge = document.createElement('div');
-          badge.className = 'absolute top-1 right-1 w-4 h-4 rounded-full bg-white text-black flex items-center justify-center attr-check-badge';
+          badge.className = 'absolute top-1 right-1 w-4 h-4 rounded-full bg-primary/10 border border-primary/30 text-white flex items-center justify-center attr-check-badge';
           badge.innerHTML = SVG_CHECK;
           btn.appendChild(badge);
         }

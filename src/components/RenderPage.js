@@ -249,7 +249,7 @@ export function RenderPage() {
         <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-2xl">🔍</div>
         <h3 class="text-lg font-black text-white">Video not found</h3>
         <p class="mt-1 text-sm text-white/60">No video exists for <code class="rounded bg-white/10 px-1.5 py-0.5 text-xs text-white/80">${escapeHtml(id || 'this id')}</code>. It may have been deleted or never saved.</p>
-        <button id="openPickerBtn" class="mt-5 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Choose a video</button>
+        <button id="openPickerBtn" class="mt-5 rounded-2xl btn-primary-modern px-5 py-3 text-sm font-semibold   transition ">Choose a video</button>
       </div>
     `;
     previewArea.appendChild(host);
@@ -354,7 +354,7 @@ export function RenderPage() {
         </div>
         <div class="flex flex-wrap gap-3">
           <button id="saveDraftBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-zinc-100 shadow-lg shadow-black/20 transition hover:bg-white/10">Save Draft</button>
-          <button class="start-render-btn rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Start Render</button>
+          <button class="start-render-btn rounded-2xl btn-primary-modern px-5 py-3 text-sm font-semibold   transition ">Start Render</button>
         </div>
       </div>
     `;
@@ -373,7 +373,7 @@ export function RenderPage() {
           </div>
           <div class="flex flex-wrap gap-3">
             <button id="saveDraftBtn" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-zinc-100 shadow-lg shadow-black/20 transition hover:bg-white/10">Save Draft</button>
-            <button class="start-render-btn rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Start Render</button>
+            <button class="start-render-btn rounded-2xl btn-primary-modern px-5 py-3 text-sm font-semibold   transition ">Start Render</button>
           </div>
         </div>
       </div>
@@ -480,7 +480,7 @@ export function RenderPage() {
   actionBtnsRow.id = 'actionButtonsRow';
   ACTION_BUTTONS.forEach(action => {
     const btn = document.createElement('button');
-    btn.className = `rounded-2xl px-5 py-3 text-sm font-medium transition ${action === 'Export Video' ? 'bg-white text-black shadow-xl hover:opacity-90' : 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]'}`;
+    btn.className = `rounded-2xl px-5 py-3 text-sm font-medium transition ${action === 'Export Video' ? 'bg-primary/10 border border-primary/30 text-white shadow-xl ' : 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]'}`;
     btn.textContent = action;
     btn.onclick = () => dispatchAction(action);
     btn.setAttribute('aria-pressed', String(action === activeAction));
@@ -546,7 +546,7 @@ export function RenderPage() {
   presetsBtnsDiv.id = 'presetsContainer';
   Object.keys(PRESET_CONFIG).forEach(preset => {
     const btn = document.createElement('button');
-    btn.className = `rounded-full border px-3 py-2 text-xs font-semibold transition ${preset === selectedPreset ? 'border-white bg-white text-black' : 'border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]'}`;
+    btn.className = `rounded-full border px-3 py-2 text-xs font-semibold transition ${preset === selectedPreset ? 'border-primary/30 bg-primary/10 text-white' : 'border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]'}`;
     btn.textContent = preset;
     btn.onclick = () => selectPreset(preset);
     btn.setAttribute('aria-pressed', String(preset === selectedPreset));
@@ -1802,7 +1802,7 @@ export function RenderPage() {
         actionBtnsRow.querySelectorAll('button').forEach(b => {
           const isActive = b.textContent === action;
           b.setAttribute('aria-pressed', String(isActive));
-          b.className = `rounded-2xl px-5 py-3 text-sm font-medium transition ${isActive ? 'bg-white text-black shadow-xl hover:opacity-90' : 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]'}`;
+          b.className = `rounded-2xl px-5 py-3 text-sm font-medium transition ${isActive ? 'bg-primary/10 border border-primary/30 text-white shadow-xl ' : 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]'}`;
         });
       }
       try { await handler(); }
@@ -1833,7 +1833,7 @@ export function RenderPage() {
     if (presetsContainer) {
       presetsContainer.querySelectorAll('button').forEach(btn => {
         if (btn.textContent === preset) {
-          btn.className = 'rounded-full border border-white bg-white text-black px-3 py-2 text-xs font-semibold transition';
+          btn.className = 'rounded-full border border-primary/30 bg-primary/10 text-white px-3 py-2 text-xs font-semibold transition';
           btn.setAttribute('aria-pressed', 'true');
         } else {
           btn.className = 'rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/75 hover:bg-white/[0.08] transition';

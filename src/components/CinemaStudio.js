@@ -272,7 +272,7 @@ export function CinemaStudio() {
     overlayHeader.className = 'flex items-center justify-between mb-8';
     overlayHeader.innerHTML = `
         <div class="flex gap-4">
-            <button class="px-4 py-2 bg-white text-black text-xs font-bold rounded-full">All</button>
+            <button class="px-4 py-2 btn-primary-modern   text-xs font-bold rounded-full">All</button>
         </div>
         <button id="close-overlay-btn" class="text-white/50 hover:text-white transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>

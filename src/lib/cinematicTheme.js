@@ -28,7 +28,7 @@ export const CINEMATIC_THEME = {
   active: {
     emerald: 'border-emerald-400/28 bg-emerald-500/12 text-white shadow-[0_0_28px_rgba(16,185,129,0.18)]',
     emeraldSoft: 'border-emerald-400/30 bg-emerald-500/12 text-emerald-100',
-    white: 'border-white bg-white text-black shadow-xl',
+    white: 'border-primary/30 bg-primary/10 text-white',
   },
 
   text: {
@@ -44,11 +44,11 @@ export const CINEMATIC_THEME = {
   },
 
   buttons: {
-    primary: 'rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90',
+    primary: 'rounded-2xl btn-primary-modern px-5 py-3 text-sm font-semibold   transition ',
     secondary: 'rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-medium text-zinc-100 transition hover:bg-white/[0.08]',
     ghost: 'rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75 transition hover:bg-white/[0.08]',
     chip: 'rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/75 transition hover:bg-white/[0.08]',
-    chipActive: 'rounded-full border border-white bg-white px-3 py-2 text-xs font-semibold text-black',
+    chipActive: 'rounded-full border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-white',
   },
 
   layout: {
