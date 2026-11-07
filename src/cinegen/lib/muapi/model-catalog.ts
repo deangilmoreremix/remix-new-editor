@@ -3,6 +3,8 @@
 import type { ModelDefinition, ModelInputField } from '@cinegen/types/workflow';
 // @ts-expect-error plain JS shared with the Netlify function
 import { allCatalogModels } from '../../../lib/muapi/genericModels.js';
+// Full live MuAPI catalog (api.muapi.ai/api/v1/models) with real field types — see scripts/build-muapi-catalog.mjs.
+import live from '../../../lib/muapi/liveModels.json';
 
 type Field = { type?: string; title?: string; description?: string; enum?: unknown[]; default?: unknown; minValue?: number; maxValue?: number; step?: number; name?: string; items?: unknown };
 const MEDIA = /image|frame|mask|reference/i;
@@ -57,10 +59,28 @@ const OPENAI_IMAGE: ModelDefinition = {
 };
 const OPENAI_IMAGE_DETAIL: ModelDefinition = { ...OPENAI_IMAGE, id: 'gpt-image-2.6-sunburst', nodeType: 'gpt-image-2.6-sunburst', name: 'GPT Image 2.6 Sunburst', description: 'OpenAI Images 2.6 (detail, edits) — your OpenAI key' };
 
+type LiveField = { name: string; type?: string; required?: number; title?: string; enum?: unknown[]; default?: unknown; minValue?: number; maxValue?: number };
+type LiveModel = { name: string; endpoint: string; category: string; group: string; fields: LiveField[] };
+const LIVE_OUT: Record<string, ['image' | 'video' | 'audio' | 'model3d', ModelDefinition['category']]> = {
+  image: ['image', 'image'], 'image-tools': ['image', 'image-edit'], video: ['video', 'video'], 'video-tools': ['video', 'video'],
+  'video-edit': ['video', 'video'], avatar: ['video', 'video'], 'ai-effects': ['video', 'video'], music: ['audio', 'audio'], audio: ['audio', 'audio'], '3d': ['model3d', 'model3d'],
+};
+function liveEntry(m: LiveModel) {
+  const [outputType, category] = LIVE_OUT[m.group];
+  const inputs: Record<string, Field> = {};
+  for (const f of m.fields) inputs[f.name] = { type: f.type, title: f.title, enum: f.enum, default: f.default, minValue: f.minValue, maxValue: f.maxValue };
+  return { key: m.name, kind: 'live', category, outputType, model: { id: m.name, name: m.name, endpoint: m.endpoint, inputs, hasPrompt: 'prompt' in inputs, provider_name: m.category } };
+}
+
 let registry: Record<string, ModelDefinition> | null = null;
 export function buildMuapiRegistry(): Record<string, ModelDefinition> {
   if (registry) return registry;
   registry = { [OPENAI_IMAGE.nodeType]: OPENAI_IMAGE, [OPENAI_IMAGE_DETAIL.nodeType]: OPENAI_IMAGE_DETAIL };
   for (const entry of allCatalogModels()) registry[entry.key] = toDefinition(entry);
+  // Models MuAPI offers that the bundled snapshot lacks (the server validates them against the live catalog).
+  for (const m of (live as { models: LiveModel[] }).models) {
+    if (!LIVE_OUT[m.group] || registry[m.name]) continue;
+    registry[m.name] = toDefinition(liveEntry(m) as Parameters<typeof toDefinition>[0]);
+  }
   return registry;
 }
