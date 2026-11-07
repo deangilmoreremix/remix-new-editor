@@ -184,3 +184,14 @@ export function workflowMediaInputs(inputs: Record<string, unknown>, outputType:
       candidate.value === entry.value && candidate.role === entry.role
     )) === index);
 }
+
+// [remix] CineGen's owner-funded generation (Firebase) has no counterpart here: generation always runs on the user's own
+// MuAPI / OpenAI keys. Same exports so CineGen's workspace shell and settings code run unchanged.
+export type FundedProvider = 'fal' | 'higgsfield';
+export interface ProjectFundingStatus { enabled: boolean; providers: FundedProvider[]; monthlyLimit: number; used: number; month: string; role: 'owner' | 'editor'; ownerId: string }
+let activeProjectId = '';
+export function setActiveFundingProject(projectId: string | null): void { activeProjectId = projectId ?? ''; void activeProjectId; }
+export async function getProjectFundingStatus(_projectId: string): Promise<ProjectFundingStatus> {
+  return { enabled: false, providers: [], monthlyLimit: 0, used: 0, month: new Date().toISOString().slice(0, 7), role: 'owner', ownerId: '' };
+}
+export async function configureProjectFunding(): Promise<void> { /* no shared funding on the web editor */ }

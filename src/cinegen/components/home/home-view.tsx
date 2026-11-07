@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ProjectCard } from './project-card';
-import { createAvailableProject, deleteAvailableProject, listAvailableProjects, type ProjectMeta } from '@cinegen/adapters/web-projects'; // [remix] browser project store
+import type { ProjectMeta } from '../../electron.d';
+import { createAvailableProject, deleteAvailableProject, listAvailableProjects } from '@cinegen/lib/cloud/projects';
 
 interface HomeViewProps {
   onOpenProject: (id: string, useSqlite: boolean) => void;

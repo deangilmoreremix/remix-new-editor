@@ -1,4 +1,4 @@
-import type { ProjectMeta } from '@cinegen/adapters/web-projects'; // [remix]
+import type { ProjectMeta } from '../../electron.d';
 
 interface ProjectCardProps {
   project: ProjectMeta;
