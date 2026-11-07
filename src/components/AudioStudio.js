@@ -1038,7 +1038,7 @@ export function AudioStudio() {
         <span id="fade-status" class="text-[10px] text-muted"></span>
       </div>
       <div class="flex items-center gap-2">
-        <button id="apply-edits-btn" class="px-4 py-2 bg-primary/10 border border-primary/30 text-white rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
+        <button id="apply-edits-btn" class="px-4 py-2 btn-primary-modern rounded-xl text-xs font-bold  transition-all">Apply Edits</button>
         <button id="reset-edits-btn" class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/10 transition-all">Reset</button>
       </div>
     </div>
@@ -1133,7 +1133,7 @@ export function AudioStudio() {
           </div>
         </div>
         <audio id="waveform-audio" class="hidden" src="${url}" type="audio/mpeg"></audio>
-        <a href="${url}" download class="block w-full bg-primary/10 border border-primary/30 text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
+        <a href="${url}" download class="block w-full btn-primary-modern py-2.5 rounded-xl font-bold text-sm text-center  transition-all">Download Audio</a>
       </div>
       <div id="audio-editor-controls" class="mt-4 bg-[#111]/80 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
         <div class="text-xs font-bold text-secondary uppercase tracking-wider">Audio Editor</div>
@@ -1156,7 +1156,7 @@ export function AudioStudio() {
           <span id="fade-status" class="text-[10px] text-muted"></span>
         </div>
         <div class="flex items-center gap-2">
-          <button id="apply-edits-btn" class="px-4 py-2 bg-primary/10 border border-primary/30 text-white rounded-xl text-xs font-bold hover:shadow-glow transition-all">Apply Edits</button>
+          <button id="apply-edits-btn" class="px-4 py-2 btn-primary-modern rounded-xl text-xs font-bold  transition-all">Apply Edits</button>
           <button id="reset-edits-btn" class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-xs font-bold hover:bg-white/10 transition-all">Reset</button>
         </div>
       </div>

@@ -420,10 +420,9 @@ export const enforceDesignSystem = () => {
 
       /* Enforce button styling */
       .${TIMELINE_DESIGN_SYSTEM.styles.buttons.primary} {
-        background: transparent;
-        color: rgba(255,255,255,0.85);
-        border: 1px solid rgba(255,255,255,0.12);
-        border-left: 2px solid #d9ff00;
+        background: linear-gradient(to right, ${TIMELINE_DESIGN_SYSTEM.variables['--cyan']}, ${TIMELINE_DESIGN_SYSTEM.variables['--emerald']});
+        color: #03131a;
+        border: 1px solid ${TIMELINE_DESIGN_SYSTEM.variables['--border']};
         padding: 11px 14px;
         border-radius: 12px;
         cursor: pointer;
@@ -458,10 +457,9 @@ export const enforceDesignSystem = () => {
       .${TIMELINE_DESIGN_SYSTEM.styles.buttons.circle}.primary {
         width: 48px;
         height: 48px;
-        background: rgba(217,255,0,0.10);
-        color: #fff;
-        border: 1px solid rgba(217,255,0,0.35);
-        box-shadow: 0 0 16px rgba(217,255,0,0.08);
+        background: white;
+        color: black;
+        box-shadow: 0 10px 30px rgba(255,255,255,0.15);
       }
 
       /* Enhanced drag-and-drop with visual feedback */

@@ -193,7 +193,7 @@ export function TimelineEditorPage() {
         const headerActions = modal.querySelector('#headerActions');
         if (headerActions) {
           const sendBtn = document.createElement('button');
-          sendBtn.className = 'flex items-center gap-2 px-4 py-2 bg-primary/10 text-white rounded-xl text-sm font-semibold hover:shadow-glow transition-all ml-2 border border-primary/50';
+          sendBtn.className = 'flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-xl text-sm font-semibold hover:shadow-glow transition-all ml-2 border border-primary/50';
           sendBtn.innerHTML = `
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Send to Timeline
@@ -7704,7 +7704,7 @@ export function TimelineEditorPage() {
           </div>
           <div class="flex gap-2 mt-6">
             <button class="flex-1 px-4 py-2 bg-white/10 rounded text-sm hover:bg-white/20" onclick="this.closest('.retake-panel-fixed').remove()">Cancel</button>
-            <button class="btn-primary-modern flex-1 px-4 py-2 rounded text-sm font-semibold" onclick="retakeClipHandler(${clip.id})">Retake</button>
+            <button class="flex-1 px-4 py-2 bg-primary rounded text-sm font-semibold hover:opacity-90" onclick="retakeClipHandler(${clip.id})">Retake</button>
           </div>
         </div>
       `;
@@ -8129,7 +8129,7 @@ export function TimelineEditorPage() {
                 .toast-text { flex: 1; }
                 .toast-actions { display: flex; gap: 8px; margin-top: 12px; }
                 .toast-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 12px; }
-                .toast-btn-primary { background: rgba(217,255,0,0.10); border: 1px solid rgba(217,255,0,0.35); border-left: 2px solid #d9ff00; color: #fff; }
+                .toast-btn-primary { background: var(--cyan); color: white; }
                 .toast-btn-secondary { background: transparent; color: var(--text); }
                 .toast-btn:hover { transform: translateY(-1px); }
               `;

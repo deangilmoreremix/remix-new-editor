@@ -233,7 +233,7 @@ export function DemoCard({
               console.error('[DemoCard] "Personalize This Demo" failed', error),
             );
           }}
-          className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/30 py-2 text-xs font-bold text-white transition-all duration-300 hover:shadow-glow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 disabled:cursor-wait disabled:opacity-70"
+          className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 btn-primary-modern rounded-lg py-2 text-xs font-bold transition-all duration-300 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 disabled:cursor-wait disabled:opacity-70"
         >
           Personalize This Demo
         </button>
@@ -247,7 +247,7 @@ export function DemoCard({
           aria-label={`Create this style: ${info.title}`}
           disabled={busy}
           onClick={handleUse}
-          className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary/10 border border-primary/30 py-2 text-xs font-bold text-white transition-all duration-300 hover:shadow-glow active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 disabled:cursor-wait disabled:opacity-70"
+          className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 btn-primary-modern rounded-lg py-2 text-xs font-bold transition-all duration-300 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 disabled:cursor-wait disabled:opacity-70"
         >
           {busy ? 'Spinning up…' : 'Create This Style'}
           {busy ? null : (

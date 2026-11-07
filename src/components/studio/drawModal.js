@@ -32,8 +32,8 @@ export function openDrawModal({ onDone, backgroundUrl, width = 1024, height = 10
       <div class="flex-1 min-h-0 overflow-auto flex justify-center"><canvas data-canvas class="max-w-full max-h-[62vh] rounded-xl bg-white touch-none cursor-crosshair"></canvas></div>
       <div class="flex justify-end gap-2">
         <button type="button" data-cancel class="px-4 py-2 rounded-full bg-white/10 text-white text-sm font-semibold">Cancel</button>
-        <button type="button" data-done-video class="px-4 py-2 rounded-full bg-white/10 text-white text-sm font-semibold">Animate as video</button>
-        <button type="button" data-done class="px-5 py-2 rounded-full bg-primary/10 border border-primary/30 text-white text-sm font-bold">Use as reference</button>
+        <button type="button" data-done-video class="px-4 py-2 rounded-full bg-white/10  text-sm font-semibold">Animate as video</button>
+        <button type="button" data-done class="px-5 py-2 rounded-full btn-primary-modern text-sm font-bold">Use as reference</button>
       </div>
     </div>`;
   const canvas = overlay.querySelector('[data-canvas]');

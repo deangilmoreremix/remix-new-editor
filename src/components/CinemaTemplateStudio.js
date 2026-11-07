@@ -1455,7 +1455,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
         </div>
       </div>
       <div class="mt-6 flex gap-3">
-        <button id="save-scene-btn" class="flex-1 py-2.5 bg-primary/10 border border-primary/30 text-white font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform">
+        <button id="save-scene-btn" class="flex-1 py-2.5 btn-primary-modern font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform">
           Save Changes
         </button>
         <button id="cancel-scene-btn" class="px-6 py-2.5 bg-white/5 text-white font-bold text-sm rounded-xl hover:bg-white/10 transition-colors">
