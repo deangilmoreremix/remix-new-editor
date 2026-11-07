@@ -119,7 +119,39 @@ async function runJob(assetId: string, url: string, jobType: string) {
   }
 }
 
+/** Cut [startSec, endSec) out of a media file in the browser (mediabunny / WebCodecs); returns a blob: URL. */
+async function trimToBlobUrl(inputPath: string, startSec: number, endSec: number): Promise<string> {
+  const mb = await import('mediabunny');
+  const input = new mb.Input({ source: new mb.UrlSource(inputPath), formats: mb.ALL_FORMATS });
+  const audioOnly = mediaTypeOf(inputPath) === 'audio';
+  const output = new mb.Output({ format: audioOnly ? new mb.Mp3OutputFormat() : new mb.Mp4OutputFormat(), target: new mb.BufferTarget() });
+  const conversion = await mb.Conversion.init({ input, output, trim: { start: Math.max(0, startSec), end: endSec } });
+  if (!conversion.isValid) throw new Error('This media cannot be trimmed in the browser.');
+  await conversion.execute();
+  const buffer = (output.target as { buffer: ArrayBuffer | null }).buffer;
+  if (!buffer) throw new Error('The trim produced no output.');
+  const blob = new Blob([buffer], { type: audioOnly ? 'audio/mpeg' : 'video/mp4' });
+  const url = URL.createObjectURL(blob);
+  webFiles.set(url, { name: 'trim', type: blob.type, size: blob.size });
+  return url;
+}
+
+/** A public URL for media the model APIs must fetch: https passes through, local media is uploaded. */
+async function publicUrlFor(source: string): Promise<{ url: string }> {
+  if (/^https:\/\//i.test(source)) return { url: source };
+  const blob = await (await fetch(source)).blob();
+  const name = webFiles.get(source)?.name ?? 'media';
+  const url = await durableUrl(new File([blob], name, { type: blob.type }));
+  if (!/^https:\/\//i.test(url)) throw new Error('Could not upload this media. Sign in so uploads are available.');
+  return { url };
+}
+
 export const webMediaApi = {
+  elements: {
+    uploadMediaSource: async (source: unknown) => publicUrlFor(String(source)),
+    uploadTranscriptionSource: async (source: unknown) => publicUrlFor(String(source)),
+  },
+  shell: { openPath: async (target: unknown) => { window.open(String(target), '_blank', 'noopener'); } },
   media: {
     import: async (p: unknown) => {
       const { filePaths } = p as { filePaths: string[] };
@@ -145,6 +177,15 @@ export const webMediaApi = {
       const a = p as { inputPath: string; timeSec: number };
       return { outputPath: await frameDataUrl(a.inputPath, a.timeSec, 1920) };
     },
+    trimVideo: async (p: unknown) => {
+      const a = p as { inputPath: string; startSec: number; endSec: number };
+      return { outputPath: await trimToBlobUrl(a.inputPath, a.startSec, a.endSec) };
+    },
+    extractClip: async (p: unknown) => {
+      const a = p as { inputPath: string; startTimeSec: number; durationSec: number };
+      return { outputPath: await trimToBlobUrl(a.inputPath, a.startTimeSec, a.startTimeSec + a.durationSec) };
+    },
+    downloadRemote: async (p: unknown) => ({ path: (p as { url: string }).url }), // the browser streams remote media; nothing to download
     writeTempImage: async (p: unknown) => ({ outputPath: (p as { dataUrl: string }).dataUrl }),
   },
   dialog: {

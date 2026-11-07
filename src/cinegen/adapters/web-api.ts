@@ -3,30 +3,9 @@
 import { registerElectronApi } from './electron-shim';
 import { webMediaApi } from './web-media';
 import { uploadFileToStorage } from '../../lib/supabase.js';
-import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 
-async function authHeader(): Promise<Record<string, string>> {
-  try {
-    const token = await (window as unknown as { Clerk?: { session?: { getToken?: () => Promise<string> } } }).Clerk?.session?.getToken?.();
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  } catch { return {}; }
-}
-
-/** One free-form Responses API call (user's own OpenAI key) via /api/timeline-llm task "raw". */
-export async function responsesChat(input: { system?: string; user: string; images?: string[]; json?: boolean }) {
-  const res = await fetch('/api/timeline-llm', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...(await authHeader()), ...openaiKeyHeader() },
-    body: JSON.stringify({ task: 'raw', input }),
-  });
-  const data = await res.json().catch(() => null);
-  if (!res.ok || !data?.ok) throw new Error(data?.error?.message || `The AI is unavailable (HTTP ${res.status}). Add your OpenAI key in Settings.`);
-  const u = data.usage ?? {};
-  return {
-    message: String(data.data?.text ?? ''),
-    usage: { promptTokens: u.input_tokens ?? 0, completionTokens: u.output_tokens ?? 0, totalTokens: u.total_tokens ?? 0, cachedTokens: u.input_tokens_details?.cached_tokens ?? 0 },
-  };
-}
+import { responsesChat } from './llm-responses';
+export { responsesChat };
 
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
 const transcriptionListeners = new Set<(e: TranscriptionEvent) => void>();
@@ -53,7 +32,55 @@ function toSegments(words: Array<{ text: string; start: number; end: number }>) 
 type ExportJobState = { id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; createdAt: string; completedAt?: string };
 const exportJobs = new Map<string, ExportJobState>();
 
+const batchListeners = new Set<(e: unknown) => void>();
+
 export function registerWebApi() {
+  registerElectronApi('sync', {
+    // CineGen's audio sync, in the browser (adapters/main-process/audio-sync.ts)
+    computeOffset: async (p: unknown) => {
+      const a = p as { sourceFilePath: string; targetFilePath: string };
+      return (await import('./main-process/audio-sync')).computeSyncOffset(a.sourceFilePath, a.targetFilePath);
+    },
+    batchMatch: async (p: unknown) => {
+      const a = p as { videoAssets: Array<{ id: string; filePath: string; name: string }>; audioAssets: Array<{ id: string; filePath: string; name: string }> };
+      return (await import('./main-process/audio-sync')).computeBatchMatch(a.videoAssets, a.audioAssets, '', '', '', (pr) => batchListeners.forEach((fn) => fn(pr)));
+    },
+    onBatchProgress: (cb: unknown) => { const fn = cb as (e: unknown) => void; batchListeners.add(fn); return () => batchListeners.delete(fn); },
+  });
+  registerElectronApi('music', {
+    generatePrompt: async (p: unknown) => (await import('./main-process/music-prompt')).generateMusicPrompt(p as never),
+  });
+  registerElectronApi('prompts', {
+    // CineGen's own message builder + edit applier; only the model call is local (OpenAI, user's key).
+    rewrite: async (input: unknown) => {
+      const { studioRewriteMessages, applyStudioPromptEdits } = await import('@cinegen/lib/studio/prompt-rewrite');
+      const req = input as { text: string };
+      const [system, user] = studioRewriteMessages(input as never);
+      try {
+        const r = await responsesChat({ system: system.content, user: user.content, json: true });
+        return { status: 'complete', text: applyStudioPromptEdits(JSON.parse(r.message), req.text) };
+      } catch (err) {
+        return { status: 'error', error: err instanceof Error ? err.message : String(err) };
+      }
+    },
+  });
+  registerElectronApi('llm', {
+    // Frame Chat / prompt enhancer (was the Gemini CLI): OpenAI vision on the user's key.
+    geminiChat: async (p: unknown) => {
+      const a = p as { userMessage: string; visualRefs?: Array<{ fileRef?: string; framePaths?: string[]; mediaType?: string }> };
+      const { toVisionImage } = await import('./main-process/vision');
+      const urls = (a.visualRefs ?? []).flatMap((r) => (r.mediaType === 'image' && r.fileRef ? [r.fileRef] : r.framePaths ?? []));
+      const images = (await Promise.all(urls.slice(0, 6).map((u) => toVisionImage(u)))).filter((u): u is string => Boolean(u));
+      const r = await responsesChat({ user: a.userMessage, images });
+      return { message: r.message, sessionId: undefined };
+    },
+    // Assistant canvas attachments: a CORS-safe resized JPEG of an image the user already has.
+    canvasImagePreview: async (source: unknown) => (await import('./main-process/vision')).toVisionImage(String(source), 1280),
+  });
+  registerElectronApi('llm', {
+    // CineGen's cut workflow, run in the browser (src/cinegen/adapters/main-process/llm-chat.ts)
+    runCutWorkflow: async (p: unknown) => (await import('./main-process/llm-chat')).runCutWorkflow(p as never),
+  });
   for (const [ns, methods] of Object.entries(webMediaApi)) registerElectronApi(ns, methods as Record<string, (...a: unknown[]) => unknown>);
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.

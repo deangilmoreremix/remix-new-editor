@@ -1,12 +1,10 @@
 import { rewrittenStudioPrompt, type StudioRewriteRequest, type StudioRewriteResult } from './prompt-rewrite';
 
 async function requestRewrite(input: StudioRewriteRequest, signal: AbortSignal): Promise<StudioRewriteResult> {
-  const { waitForCloudAuth } = await import('@cinegen/lib/cloud/firebase');
-  const user = await waitForCloudAuth();
-  if (!user) throw new Error('Sign in to CineGen to use the AI prompt editor.');
+  // [remix] The prompt editor runs on the user's own OpenAI key (no CineGen cloud account).
   signal.throwIfAborted();
-  const token = await user.getIdToken();
-  if (window.electronAPI?.prompts) return window.electronAPI.prompts.rewrite(input, token);
+  if (window.electronAPI?.prompts) return window.electronAPI.prompts.rewrite(input, '');
+  const token = '';
   if (window.location.protocol === 'file:' || /Electron\//.test(navigator.userAgent)) throw new Error('Install the latest CineGen Mac build to use the AI prompt editor.');
   const response = await fetch('https://cinegen-api.christopherjohnogden.workers.dev/api/rpc/prompts/rewrite', {
     method: 'POST', headers: { 'content-type': 'application/json', 'x-cinegen-id-token': token, 'x-cinegen-origin': 'https://cinegen-film.vercel.app' },
