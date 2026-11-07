@@ -48,6 +48,12 @@ const asArray = (v: unknown): string[] => (Array.isArray(v) ? v : v ? [v] : []).
 
 export async function runWorkflow(params: WorkflowRunParams, _options: WorkflowRunOptions = {}): Promise<unknown> {
   const inputs = params.inputs ?? {};
+  // Layer-decompose vision prepass: describe the image with OpenAI vision (user's key).
+  if (params.nodeType === 'layer-decompose-vision') {
+    const { responsesChat } = await import('../../adapters/web-api');
+    const r = await responsesChat({ user: String(inputs.prompt ?? ''), images: asArray(inputs.image_url) });
+    return { output: r.message };
+  }
   // SAM 3 (was fal) -> free on-device SlimSAM / Florence-2 in the browser (Transformers.js).
   if (params.nodeType === 'sam3-segment-cloud') return runOnDeviceSegment(inputs);
   if (params.nodeType === 'sam3-track-cloud') {

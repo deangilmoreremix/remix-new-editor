@@ -7,9 +7,9 @@ describe('toFileUrl', () => {
       .toBe('/media/projects/project-1/generated/result.mp4');
   });
 
-  it('keeps Electron local path conversion intact', () => {
-    expect(toFileUrl('/Users/editor/My Clip #1.mov'))
-      .toBe('local-media://file/Users/editor/My%20Clip%20%231.mov');
+  // [remix] Web: there is no local-media:// protocol, so root-relative paths stay ordinary site URLs.
+  it('keeps root-relative paths as site URLs', () => {
+    expect(toFileUrl('/Users/editor/My Clip #1.mov')).toBe('/Users/editor/My Clip #1.mov');
   });
 
   it('passes through existing URLs', () => {

@@ -706,7 +706,7 @@ export function SourceViewerMaskTool({ asset, clip, onAcceptMaskedVideo }: Sourc
       (async () => {
         try {
           const apiKey = getApiKey();
-          if (!apiKey) throw new Error('Add your fal.ai API key in Settings before using SAM 3 cloud.');
+          if (!apiKey) throw new Error('Masking runs on your device.');
           if (!displaySourceUrl && !localInputPath) throw new Error('This asset does not have a source URL that can be used.');
           if (cancelled) return;
           setRemoteSourceUrl(null);
@@ -1211,7 +1211,7 @@ export function SourceViewerMaskTool({ asset, clip, onAcceptMaskedVideo }: Sourc
       apiKey,
       nodeId: 'edit-sam3-mask-frame',
       nodeType: 'sam3-segment-cloud',
-      modelId: 'fal-ai/sam-3/image',
+      modelId: 'on-device-sam',
       inputs: {
         image_url: frameSource.uploadUrl,
         ...(textVal ? { prompt: textVal } : {}),
@@ -1307,7 +1307,7 @@ export function SourceViewerMaskTool({ asset, clip, onAcceptMaskedVideo }: Sourc
   const runCloudFramePreview = useCallback(async (history: CloudPrompt[]) => {
     const apiKey = getApiKey();
     if (!apiKey) {
-      setError('Add your fal.ai API key in Settings.');
+      setError('Masking runs on your device.');
       return false;
     }
     if (history.length === 0) {
@@ -1330,7 +1330,7 @@ export function SourceViewerMaskTool({ asset, clip, onAcceptMaskedVideo }: Sourc
 
   const runCloudClipTracking = useCallback(async (history: CloudPrompt[]) => {
     const apiKey = getApiKey();
-    if (!apiKey) { setError('Add your fal.ai API key in Settings.'); return false; }
+    if (!apiKey) { setError('Masking runs on your device.'); return false; }
 
     const trackingHistory = getTrackingPromptHistory(history);
     const textVal = trackingHistory.filter((p): p is TextPrompt => p.kind === 'text').map((p) => p.text.trim()).filter(Boolean).join(', ');
@@ -1358,7 +1358,7 @@ export function SourceViewerMaskTool({ asset, clip, onAcceptMaskedVideo }: Sourc
       const trackingSource = await ensureCloudTrackingSource();
       if (!trackingSource) return false;
       const result = await runWorkflow({
-        apiKey, nodeId: 'edit-sam3-mask', nodeType: 'sam3-track-cloud', modelId: 'fal-ai/sam-3/video',
+        apiKey, nodeId: 'edit-sam3-mask', nodeType: 'sam3-track-cloud', modelId: 'unavailable',
         inputs: {
           video_url: trackingSource.url,
           ...(textVal ? { prompt: textVal } : {}),
@@ -1766,7 +1766,7 @@ export function SourceViewerMaskTool({ asset, clip, onAcceptMaskedVideo }: Sourc
           <button
             className={`svm__backend-btn${backend === 'cloud' ? ' svm__backend-btn--active' : ''}`}
             onClick={() => setBackend('cloud')}
-            title="Cloud SAM 3 (fal.ai — video support)"
+            title="On-device SAM (runs in your browser)"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />

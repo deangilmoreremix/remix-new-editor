@@ -25,7 +25,7 @@ type TranscriptStatus = 'queued' | 'transcribing' | 'ready' | 'failed';
 type VisualIndexStatus = 'queued' | 'analyzing' | 'ready' | 'failed';
 
 const TRANSCRIPTION_ENGINE_LABELS: Record<TranscriptionEngine, string> = {
-  'faster-whisper-local': 'Fast Local',
+  'faster-whisper-local': 'On your device (Whisper)',
   'whisperx-local': 'WhisperX Local',
   'whisper-cloud': 'Whisper Cloud',
 };
@@ -644,11 +644,8 @@ export function LeftPanel({
     if (!projectId) return;
     const targets = assets.filter((a) => assetIds.includes(a.id) && (a.type === 'video' || a.type === 'audio') && a.fileRef);
     if (targets.length === 0) return;
-    const apiKey = engine === 'whisper-cloud' ? getApiKey() : undefined;
-    if (engine === 'whisper-cloud' && !apiKey) {
-      window.alert('Add your fal.ai API key in Settings before using Whisper Cloud.');
-      return;
-    }
+    const apiKey = undefined; // [remix] transcription runs on-device (Whisper in your browser); no key
+
     const pendingIds = new Set(targets.map((asset) => asset.id));
 
     setTranscribingIds((prev) => {
@@ -1586,7 +1583,7 @@ export function LeftPanel({
                         ? `Transcribing${transcribableIds.length > 1 ? ` (${transcribableIds.length})` : ''}…`
                         : `Transcribe${transcribableIds.length > 1 ? ` (${transcribableIds.length})` : ''}`}
                     </span>
-                    {(['faster-whisper-local', 'whisperx-local', 'whisper-cloud'] as TranscriptionEngine[]).map((engine) => (
+                    {(['faster-whisper-local'] as TranscriptionEngine[]).map((engine) => (
                       <button
                         key={engine}
                         className="mp__ctx-item mp__ctx-item--indent"

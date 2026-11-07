@@ -401,7 +401,7 @@ export interface DirectorShow {
   llmSpend?: DirectorLlmSpend;
   /** LLM used for breakdown, shotlist, look bible, and rewrite: a local CLI
    *  (Claude / Codex / Gemini), ChatGPT Luna via Codex CLI, OpenAI Luna via
-   *  API key, fal.ai's any-llm endpoint, or Higgsfield's llm_text model. */
+   *  API key. */
   llmProvider: 'claude-code' | 'codex' | 'gemini' | 'luna' | 'openai' | 'fal' | 'higgsfield';
   /** Per-scene manual asset overrides (asset tags). sceneIndex -> added/removed. */
   sceneAssetOverrides?: Record<number, { added: string[]; removed: string[] }>;
@@ -410,7 +410,7 @@ export interface DirectorShow {
 }
 
 export const CLIP_LENGTHS: ClipLengthSec[] = [10, 15, 20, 30];
-export const DEFAULT_DIRECTOR_ADAPTER_ID = 'topview-auto';
+export const DEFAULT_DIRECTOR_ADAPTER_ID = 'muapi-video'; // [remix] MuAPI video (was Topview)
 export const DIRECTOR_GENRES = [
   { id: 'auto', label: 'Auto' },
   { id: 'action', label: 'Action' },

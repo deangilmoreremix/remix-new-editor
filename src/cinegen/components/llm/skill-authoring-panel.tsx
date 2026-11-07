@@ -76,7 +76,7 @@ export function SkillAuthoringPanel({
 
   const runTurn = useCallback(async (userMessage: string, history: SkillAuthoringMessage[]) => {
     if (!backend) {
-      setError('Install a CLI, add a fal.ai API key, or select a local model to build skills with AI.');
+      setError('Add your OpenAI key in Settings to build skills with AI.');
       return;
     }
 

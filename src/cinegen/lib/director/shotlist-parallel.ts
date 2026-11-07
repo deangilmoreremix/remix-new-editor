@@ -1,6 +1,6 @@
 import { parseToScreenplay } from './screenplay';
 
-/** How many fal.ai any-llm jobs we keep in flight. Each is an independent
+/** How many LLM jobs we keep in flight. Each is an independent
  *  queue subscribe — fal has no client-side serial lock, and Gemini Flash
  *  is latency-bound, so 3 parallel 20s calls beat 3 sequential ones. */
 export const FAL_SHOTLIST_CONCURRENCY = 3;

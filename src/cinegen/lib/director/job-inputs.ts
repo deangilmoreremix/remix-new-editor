@@ -201,7 +201,7 @@ export function shotlistContinuationInput(
   ].join('\n\n');
 }
 
-/** One chronological excerpt of a scene, for a parallel fal.ai shotlist job.
+/** One chronological excerpt of a scene, for a parallel shotlist job.
  *  Clip ids are prefixed per slice so concurrent merges cannot collide. */
 export function shotlistSliceInput(
   show: DirectorShow,

@@ -41,6 +41,13 @@ export const LOCAL_MODELS = {
     sizeMB: 240,
     license: 'MIT',
   },
+  whisper: {
+    id: 'onnx-community/whisper-base_timestamped',
+    label: 'Speech to text (Whisper)',
+    feature: 'Transcribes clips on your device with word timestamps (Search, Cut and captions)',
+    sizeMB: 150,
+    license: 'MIT',
+  },
   clap: {
     id: 'Xenova/clap-htsat-unfused',
     label: 'Audio understanding (CLAP)',

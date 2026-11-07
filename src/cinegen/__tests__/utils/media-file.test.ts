@@ -8,7 +8,8 @@ afterEach(() => {
 });
 
 describe('resolveMediaFileUrl', () => {
-  it('turns a Finder file path into an encoded Electron media URL', async () => {
+  // [remix] Web: no local-media:// protocol; the path is returned as-is.
+  it('returns a Finder file path unchanged on the web', async () => {
     const file = new File(['frame'], 'Shot #1?.png', { type: 'image/png' });
     (window as Window & { electronAPI: typeof window.electronAPI }).electronAPI = {
       file: {
@@ -17,7 +18,7 @@ describe('resolveMediaFileUrl', () => {
     } as typeof window.electronAPI;
 
     await expect(resolveMediaFileUrl(file))
-      .resolves.toBe('local-media://file/Users/editor/Shot%20%231%3F.png');
+      .resolves.toBe('/Users/editor/Shot #1?.png');
   });
 });
 
@@ -32,5 +33,5 @@ it('uploads a phone video when the browser bridge supplies only a blob preview',
   } as unknown as typeof window.electronAPI;
   expect(getLocalPathForFile(file)).toBeUndefined();
   await expect(resolveMediaFileUrl(file)).resolves.toBe('https://cinegen-film.vercel.app/media/uploads/phone.MOV');
-  expect(upload).toHaveBeenCalledWith({ buffer, name: 'IMG_5388.MOV', type: 'video/quicktime' }, undefined);
+  expect(upload).toHaveBeenCalledWith({ buffer, name: 'IMG_5388.MOV', type: 'video/quicktime' }, 'byok'); // [remix] sentinel key
 });

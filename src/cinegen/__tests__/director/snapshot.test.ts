@@ -21,14 +21,14 @@ describe('director snapshot', () => {
     expect(directorFromSnapshot({ director: show }).sourceText).toBe('You woke up early.');
     expect(directorFromWorkflow({ director: show }).sourceText).toBe('You woke up early.');
     expect(directorFromSnapshot({}).clipLengthSec).toBe(20);
-    expect(directorFromSnapshot({}).adapterId).toBe('topview-auto');
+    expect(directorFromSnapshot({}).adapterId).toBe('muapi-video'); // [remix] MuAPI is the default video adapter
     expect(directorFromUnknown({
       sourceText: 'x',
       clipLengthSec: 20,
       breakdown: [],
       scenes: [],
       clips: [],
-    }).llmProvider).toBe('claude-code');
+    }).llmProvider).toBe('openai'); // [remix] OpenAI is the default Director LLM
     expect(directorFromUnknown({
       ...createEmptyDirectorShow(),
       llmProvider: 'gemini',
@@ -132,7 +132,7 @@ describe('director generate folders', () => {
     expect(prepared.asset.name).toMatch(/^9A · T01$/);
     expect(prepared.take.number).toBe(1);
     expect(prepared.request.params).not.toHaveProperty('multi_shots');
-    expect(prepared.request.provider).toBe('topview');
+    expect(prepared.request.provider).toBe('muapi');
     expect(prepared.request.params.duration).toBe(20);
   });
 });

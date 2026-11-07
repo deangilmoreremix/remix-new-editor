@@ -18,7 +18,7 @@ export interface DirectorVideoCapabilities {
 export interface DirectorGenerateRequest {
   adapterId: string;
   label: string;
-  provider: 'topview' | 'higgsfield' | 'artlist' | 'runpod' | 'fal' | 'kie';
+  provider: 'topview' | 'higgsfield' | 'artlist' | 'runpod' | 'fal' | 'kie' | 'muapi';
   modelId: string;
   outputType: 'video';
   prompt: string;
@@ -30,7 +30,7 @@ export interface DirectorGenerateRequest {
 export interface DirectorVideoAdapter {
   id: string;
   label: string;
-  provider: 'topview' | 'higgsfield' | 'artlist' | 'runpod' | 'fal' | 'kie';
+  provider: 'topview' | 'higgsfield' | 'artlist' | 'runpod' | 'fal' | 'kie' | 'muapi';
   modelId: string;
   capabilities: DirectorVideoCapabilities;
   buildRequest: (args: {
@@ -246,10 +246,42 @@ export const runpodLtx25Adapter: DirectorVideoAdapter = {
   },
 };
 
-const ADAPTERS: DirectorVideoAdapter[] = [topviewAutoAdapter, seedance25Adapter, artlistAutoAdapter, runpodLtx25Adapter];
+// [remix] Video generation on MuAPI (the user's own key): image-to-video when the clip has reference stills, text-to-video otherwise.
+export const muapiVideoAdapter: DirectorVideoAdapter = {
+  id: 'muapi-video',
+  label: 'MuAPI · Video',
+  provider: 'muapi',
+  modelId: 'auto',
+  capabilities: {
+    multiPrompt: true,
+    maxDurationSec: 10,
+    resolutions: ['480p', '720p', '1080p'],
+    aspectRatios: ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9'],
+    referenceInputs: true,
+    generateAudio: false,
+  },
+  buildRequest({ show, clip, variant, referenceImages = [] }) {
+    const compiled = compiledPrompt(show, clip, variant);
+    const medias = [...new Set(referenceImages.map((url) => url.trim()).filter(Boolean))]
+      .map((value) => ({ value, role: 'image' as const }));
+    return {
+      adapterId: this.id,
+      label: this.label,
+      provider: this.provider,
+      modelId: this.modelId,
+      outputType: 'video',
+      prompt: compiled.prompt,
+      durationSec: Math.min(compiled.durationSec, 10),
+      params: { aspect_ratio: show.aspectRatio, duration: compiled.durationSec, resolution: show.resolution },
+      ...(medias.length > 0 ? { medias } : {}),
+    };
+  },
+};
+
+const ADAPTERS: DirectorVideoAdapter[] = [muapiVideoAdapter];
 
 export function getDirectorAdapter(id: string | undefined): DirectorVideoAdapter {
-  return ADAPTERS.find((adapter) => adapter.id === id) ?? topviewAutoAdapter;
+  return ADAPTERS.find((adapter) => adapter.id === id) ?? muapiVideoAdapter;
 }
 
 export function listDirectorAdapters(): DirectorVideoAdapter[] {

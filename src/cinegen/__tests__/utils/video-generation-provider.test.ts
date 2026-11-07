@@ -8,8 +8,10 @@ import {
 describe('video generation provider setting', () => {
   beforeEach(() => localStorage.clear());
 
-  it('defaults to Topview and maps it to the live MCP adapter', () => {
-    expect(getVideoGenerationProvider()).toBe('topview');
+  // [remix] The web editor's default is MuAPI (the user's own key); the other providers stay mapped.
+  it('defaults to MuAPI and maps providers to their adapters', () => {
+    expect(getVideoGenerationProvider()).toBe('muapi');
+    expect(adapterIdForVideoProvider('muapi')).toBe('muapi-video');
     expect(adapterIdForVideoProvider('topview')).toBe('topview-auto');
     expect(adapterIdForVideoProvider('higgsfield')).toBe('seedance-2.5');
   });
@@ -34,11 +36,11 @@ describe('video generation provider setting', () => {
 
   it('falls back safely when an old or unknown provider value is stored', () => {
     localStorage.setItem('cinegen_settings', JSON.stringify({ videoGenerationProvider: 'unknown-provider' }));
-    expect(getVideoGenerationProvider()).toBe('topview');
+    expect(getVideoGenerationProvider()).toBe('muapi');
   });
 
-  it('migrates an old saved provider selection to the new Topview default once', () => {
+  it('migrates an old saved provider selection to the MuAPI default once', () => {
     localStorage.setItem('cinegen_settings', JSON.stringify({ videoGenerationProvider: 'higgsfield' }));
-    expect(getVideoGenerationProvider()).toBe('topview');
+    expect(getVideoGenerationProvider()).toBe('muapi');
   });
 });

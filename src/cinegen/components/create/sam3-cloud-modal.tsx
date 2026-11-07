@@ -477,7 +477,7 @@ function ImageSegmentationPane({
     (async () => {
       try {
         const apiKey = getApiKey();
-        if (!apiKey) throw new Error('Add your fal.ai API key in Settings before using SAM 3 cloud.');
+        if (!apiKey) throw new Error('Masking runs on your device.');
         const uploaded = await window.electronAPI.elements.uploadMediaSource(sourceUrl, apiKey);
         const img = await loadImageElement(sourceUrl);
         if (cancelled) return;
@@ -589,7 +589,7 @@ function ImageSegmentationPane({
 
     const apiKey = getApiKey();
     if (!apiKey) {
-      setError('Add your fal.ai API key in Settings before using SAM 3 cloud.');
+      setError('Masking runs on your device.');
       return false;
     }
 
@@ -627,7 +627,7 @@ function ImageSegmentationPane({
         apiKey,
         nodeId: 'sam3-cloud-image',
         nodeType: 'sam3-segment-cloud',
-        modelId: 'fal-ai/sam-3/image',
+        modelId: 'on-device-sam',
         inputs: {
           image_url: remoteSourceUrl,
           ...(textPromptValue ? { prompt: textPromptValue } : {}),
@@ -1181,7 +1181,7 @@ function VideoSegmentationPane({
     (async () => {
       try {
         const apiKey = getApiKey();
-        if (!apiKey) throw new Error('Add your fal.ai API key in Settings before using SAM 3 cloud.');
+        if (!apiKey) throw new Error('Masking runs on your device.');
         const uploaded = await window.electronAPI.elements.uploadMediaSource(sourceUrl, apiKey);
         if (cancelled) return;
         setRemoteSourceUrl(uploaded.url);
@@ -1243,7 +1243,7 @@ function VideoSegmentationPane({
     if (!remoteSourceUrl) return false;
     const apiKey = getApiKey();
     if (!apiKey) {
-      setError('Add your fal.ai API key in Settings before using SAM 3 cloud.');
+      setError('Masking runs on your device.');
       return false;
     }
 
@@ -1283,7 +1283,7 @@ function VideoSegmentationPane({
         apiKey,
         nodeId: 'sam3-cloud-video',
         nodeType: 'sam3-track-cloud',
-        modelId: 'fal-ai/sam-3/video',
+        modelId: 'unavailable',
         inputs: {
           video_url: remoteSourceUrl,
           ...(textPromptValue ? { prompt: textPromptValue } : {}),

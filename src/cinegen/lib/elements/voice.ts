@@ -48,6 +48,6 @@ export function elevenLabsVoiceBrief(name: string, voice: ElementVoice | undefin
     voice?.voiceId ? `Use ElevenLabs voice ID: ${voice.voiceId}.` : 'Let me listen to the voice previews and choose a voice before saving it.',
     voice?.sampleText ? `Sample dialogue (speak only this text): ${voice.sampleText}` : 'Use a short sample line suited to the character.',
     elementId ? `Read CineGen Element ${elementId}, then use cinegen_edit_element to save the chosen voice under patch.voice (description, provider: "elevenlabs", voiceId, voiceName, sampleText). Attach the audio with cinegen_audio action "attach", elementId "${elementId}" and the returned audioUrl.` : 'Save the character in CineGen first, then attach the chosen ElevenLabs voice and sample to its Element.',
-    'Use my ElevenLabs connection. Do not substitute fal.ai. If the audio is a local file, upload it into CineGen or provide a downloadable HTTPS URL before attaching it.',
+    'Use my ElevenLabs connection. If the audio is a local file, upload it into CineGen or provide a downloadable HTTPS URL before attaching it.',
   ].filter(Boolean).join('\n\n');
 }

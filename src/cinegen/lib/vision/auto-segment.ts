@@ -64,7 +64,7 @@ export async function detectAutoSegmentObjects(
 ): Promise<AutoSegmentObject[]> {
   const apiKey = getApiKey();
   if (!apiKey) {
-    throw new Error('Add your fal.ai API key in Settings before using Auto Segment.');
+    throw new Error('Auto Segment runs on your device.');
   }
 
   const result = await window.electronAPI.vision.detectObjects({

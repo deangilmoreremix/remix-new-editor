@@ -297,7 +297,7 @@ function imageDataToCanvas(imageData: ImageData): HTMLCanvasElement {
 
 async function uploadCanvasAsPng(canvas: HTMLCanvasElement, name: string): Promise<string> {
   const apiKey = getApiKey();
-  if (!apiKey) throw new Error('No fal.ai API key provided. Add one in Settings.');
+  if (!apiKey) throw new Error('No API key provided. Add your MuAPI / OpenAI key in Settings.');
 
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((nextBlob) => {
@@ -488,7 +488,7 @@ async function normalizeCloudTranscriptionInputs(
   if (typeof normalized.audio_url === 'string' && normalized.audio_url.startsWith('local-media://file')) {
     const apiKey = getApiKey();
     if (!apiKey) {
-      throw new Error('No fal.ai API key provided. Add one in Settings.');
+      throw new Error('No API key provided. Add your MuAPI / OpenAI key in Settings.');
     }
     const uploaded = await window.electronAPI.elements.uploadTranscriptionSource(normalized.audio_url, apiKey);
     normalized.audio_url = uploaded.url;
@@ -1022,7 +1022,7 @@ async function executeModelNode(
             ...items.map((item) => item.frontalImageUrl),
           ]).slice(0, 3);
         } else if (field.falParam === 'elements') {
-          // fal.ai Kling format: array of { frontal_image_url, reference_image_urls }
+          // Kling format: array of { frontal_image_url, reference_image_urls }
           // Kling allows max 3 reference images per element
           falInputs[field.falParam] = items.map((el) => ({
             frontal_image_url: el.frontalImageUrl,
@@ -1617,8 +1617,8 @@ async function executeModelNode(
             runpodEndpointId: '',
             podUrl: getPodUrl(),
             nodeId,
-            nodeType: 'layer-decompose-cloud',
-            modelId: 'fal-ai/sam-3/image',
+            nodeType: 'sam3-segment-cloud',
+            modelId: 'on-device-sam',
             inputs: {
               image_url: sourceImageUrl,
               prompt,
@@ -1709,8 +1709,9 @@ async function executeModelNode(
               runpodEndpointId: getRunpodEndpointId('runpod-qwen-image-edit'),
               podUrl: getPodUrl(),
               nodeId,
-              nodeType: 'layer-decompose-cloud',
-              modelId: 'fal-ai/qwen-image-edit-2511',
+              nodeType: 'gpt-image-2.6-sunburst',
+              modelId: 'gpt-image-2.6-sunburst',
+              outputType: 'image',
               inputs: {
                 image_urls: [extracted.backgroundPlateUrl],
                 prompt: inpaintPrompt,
@@ -1778,7 +1779,7 @@ async function executeModelNode(
             prompt: inpaintPrompt,
           };
           const modelId = inpainterSetting === 'qwen-edit-cloud'
-            ? 'fal-ai/qwen-image-edit-2511'
+            ? 'gpt-image-2.6-sunburst' // [remix] OpenAI Images 2.6 edit (was fal qwen)
             : 'runpod-qwen-image-edit';
           const qwenResult = await runWorkflow({
             apiKey: getApiKey(),
@@ -1919,7 +1920,7 @@ async function executeModelNode(
 
 /**
  * Replace @ElementName mentions in prompts.
- * fal.ai Kling: @Element1, @Element2, etc.
+ * Kling: @Element1, @Element2, etc.
  * kie.ai Kling: @element_name (snake_case matching kling_elements.name)
  */
 function resolveElementMentions(prompt: string, elements: ElementData[], useKieFormat = false): string {

@@ -55,20 +55,15 @@ type StoryboardMode = 'image' | 'video';
 const SHOT_COUNT_OPTIONS = [3, 6, 9, 12];
 
 const LLM_OPTIONS: Array<{ value: DirectorLlmProvider; label: string; transport: 'LOCAL' | 'CONNECTED' | 'CLOUD' }> = [
-  { value: 'claude-code', label: 'Claude Code', transport: 'LOCAL' },
-  { value: 'codex', label: 'Codex', transport: 'LOCAL' },
-  { value: 'gemini', label: 'Gemini CLI', transport: 'LOCAL' },
-  { value: 'luna', label: 'ChatGPT Luna', transport: 'CONNECTED' },
-  { value: 'openai', label: 'OpenAI Luna', transport: 'CLOUD' },
-  { value: 'fal', label: 'fal.ai · Gemini 2.5 Flash', transport: 'CLOUD' },
+  { value: 'openai', label: 'OpenAI', transport: 'CLOUD' }, // [remix] the web editor's only LLM
 ];
 
 function parseStoryboardLlm(value: unknown): DirectorLlmProvider {
   if (isDirectorLlmProvider(value)) return value;
   // Earlier Storyboarder builds stored a hosted model ID here. Preserve those
-  // projects by routing their planning jobs through the same fal.ai provider.
-  if (typeof value === 'string' && value.includes('/')) return 'fal';
-  return 'claude-code';
+  // projects by routing their planning jobs through the OpenAI provider.
+  if (typeof value === 'string' && value.includes('/')) return 'openai';
+  return 'openai';
 }
 
 const HEADER_HEIGHT = 52;

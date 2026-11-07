@@ -9,7 +9,7 @@ export const MODEL_PROVIDER_LABELS: Record<ModelProvider, string> = {
   muapi: 'MuAPI',
   topview: 'Topview AI',
   higgsfield: 'Higgsfield',
-  fal: 'fal.ai',
+  fal: 'Cloud',
   kie: 'kie.ai',
   local: 'Local',
   runpod: 'RunPod Serverless',

@@ -16,8 +16,8 @@ export type DefaultTranscriptionEngine = 'faster-whisper-local' | 'whisperx-loca
 export type VisionModel = string;
 
 const DEFAULT_TRANSCRIPTION_ENGINE: DefaultTranscriptionEngine = 'whisperx-local';
-const DEFAULT_BACKGROUND_VISION_MODEL = 'google/gemini-2.5-flash';
-const DEFAULT_CUT_VISION_MODEL = 'google/gemini-2.5-flash';
+const DEFAULT_BACKGROUND_VISION_MODEL = 'openai/gpt-5.6-sol';
+const DEFAULT_CUT_VISION_MODEL = 'openai/gpt-5.6-sol';
 const DEFAULT_MAX_CONCURRENT_VISION_JOBS = 2;
 
 // [remix] No fal. Generation runs on the user's own MuAPI / OpenAI keys, which the web adapters attach

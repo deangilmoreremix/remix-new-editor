@@ -27,12 +27,66 @@ export async function responsesChat(input: { system?: string; user: string; imag
   };
 }
 
+type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
+const transcriptionListeners = new Set<(e: TranscriptionEvent) => void>();
+const emitTranscription = (e: TranscriptionEvent) => transcriptionListeners.forEach((fn) => fn(e));
+
+/** Whisper words -> CineGen transcript segments (sentence-ish lines with word timings). */
+function toSegments(words: Array<{ text: string; start: number; end: number }>) {
+  const segments: Array<{ start: number; end: number; text: string; words: Array<{ word: string; start: number; end: number }> }> = [];
+  let cur: (typeof segments)[number] | null = null;
+  for (const w of words) {
+    const gap = cur ? w.start - cur.end : 0;
+    if (!cur || gap > 0.8 || cur.words.length >= 18 || /[.!?]$/.test(cur.text)) {
+      cur = { start: w.start, end: w.end, text: w.text, words: [{ word: w.text, start: w.start, end: w.end }] };
+      segments.push(cur);
+    } else {
+      cur.text += ` ${w.text}`;
+      cur.end = w.end;
+      cur.words.push({ word: w.text, start: w.start, end: w.end });
+    }
+  }
+  return segments;
+}
+
 export function registerWebApi() {
+  registerElectronApi('transcription', {
+    // On-device Whisper (Transformers.js). The engine CineGen asks for (cloud / python) is ignored on the web.
+    start: async (p: unknown) => {
+      const a = p as { assetId: string; filePath: string };
+      const jobId = `whisper-${Date.now().toString(36)}`;
+      const base = { jobId, assetId: a.assetId, engine: 'whisper-web' };
+      void (async () => {
+        try {
+          emitTranscription({ ...base, type: 'status', message: 'Loading speech model…' });
+          const { transcribe } = await import('../../lib/editor/ml/localAI.js');
+          const out = await transcribe(a.filePath, {
+            onProgress: (pr: { progress?: number }) => emitTranscription({ ...base, type: 'progress', message: `Transcribing ${Math.round((pr?.progress ?? 0) * 100)}%` }),
+          });
+          emitTranscription({ ...base, type: 'done', text: out.text, segments: toSegments(out.words), language: 'en' });
+        } catch (err) {
+          emitTranscription({ ...base, type: 'error', error: err instanceof Error ? err.message : String(err) });
+        }
+      })();
+      return { jobId };
+    },
+    onProgress: (cb: unknown) => {
+      const fn = cb as (e: TranscriptionEvent) => void;
+      transcriptionListeners.add(fn);
+      return () => transcriptionListeners.delete(fn);
+    },
+  });
   registerElectronApi('llm', {
     // CineGen's OpenAI path: { apiKey, model, systemPrompt, userMessage, imageUrls, jsonObject } -> { message, usage }
     openaiChat: async (p: unknown) => {
       const a = p as { systemPrompt?: string; userMessage: string; imageUrls?: string[]; jsonObject?: boolean };
       return responsesChat({ system: a.systemPrompt, user: a.userMessage, images: a.imageUrls, json: a.jsonObject !== false });
+    },
+    // LLM tab / skills chat: { apiKey, model, systemPrompt, messages, maxTokens, temperature } -> { message, usage }
+    chat: async (p: unknown) => {
+      const a = p as { systemPrompt?: string; messages: Array<{ role: string; content: string }>; userMessage?: string };
+      const turns = (a.messages ?? []).map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}:\n${m.content}`).join('\n\n');
+      return responsesChat({ system: a.systemPrompt, user: turns || a.userMessage || '' });
     },
     // Detected CLIs (Claude Code / Codex / Gemini) are desktop-only.
     cliDetect: async () => ({ providers: [] }),

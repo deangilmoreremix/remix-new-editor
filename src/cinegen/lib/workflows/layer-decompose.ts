@@ -18,7 +18,7 @@ export const LAYER_DECOMPOSE_STAGE_LABELS: Record<string, string> = {
   saving: 'Saving layers',
 };
 
-export const LAYER_DECOMPOSE_VISION_MODEL_ID = 'fal-ai/sa2va/4b/image';
+export const LAYER_DECOMPOSE_VISION_MODEL_ID = 'openai-vision';
 export const LAYER_DECOMPOSE_VISION_PROMPT = [
   'Analyze this image for automatic layer decomposition.',
   'Assume the goal is to separate every distinct foreground element in a flat graphic, poster, flyer, collage, or UI composition.',

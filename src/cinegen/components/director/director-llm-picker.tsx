@@ -15,7 +15,7 @@ export interface DirectorCliInfo {
 interface DirectorLlmPickerProps {
   provider: DirectorLlmProvider;
   providers: Record<CliLlmProviderId, DirectorCliInfo>;
-  /** True when a fal.ai API key is configured in Settings. */
+  /** Unused on the web editor. */
   falReady: boolean;
   /** True when an OpenAI API key is configured in Settings. */
   openaiReady: boolean;
@@ -105,7 +105,7 @@ export function DirectorLlmPicker({
             </button>
           ))}
           {!anyReady && (
-            <div className="dllm-menu-foot">Install Claude, Codex, or Gemini CLI — or add a fal.ai / OpenAI key.</div>
+            <div className="dllm-menu-foot">Add your OpenAI key in Settings.</div>
           )}
         </div>
       )}

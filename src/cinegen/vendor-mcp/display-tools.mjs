@@ -74,7 +74,7 @@ export const MEDIA_DOMAINS = [
   'https://firebasestorage.googleapis.com', 'https://storage.googleapis.com',
   'https://cinegen-film.vercel.app', 'https://cinegen-kappa.vercel.app',
   'https://cinegen-api.christopherjohnogden.workers.dev',
-  'https://*.cloudfront.net', 'https://*.topview.ai', 'https://*.higgsfield.ai',
+  'https://*.cloudfront.net',
   'https://*.fal.media',
 ];
 export function previewUrl(value) {

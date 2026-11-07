@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { DirectorClip } from '@cinegen/types/director';
 import { isolatedPrompt, rewritePrefixForIsolate } from '@cinegen/lib/director/isolate-prompt';
 import { compileClipBody, retimeClipToSeconds, validateClipTimings } from '@cinegen/lib/director/prompt-compiler';
-import { artlistAutoAdapter, runpodLtx25Adapter, seedance25Adapter, topviewAutoAdapter } from '@cinegen/lib/director/video-adapter';
+import { artlistAutoAdapter, muapiVideoAdapter, runpodLtx25Adapter, seedance25Adapter, topviewAutoAdapter } from '@cinegen/lib/director/video-adapter';
 import { createEmptyDirectorShow } from '@cinegen/lib/director/create-show';
 import { BREAKDOWN_AUDIT_SYSTEM_PROMPT, BREAKDOWN_IDENTIFY_SYSTEM_PROMPT, BREAKDOWN_SYSTEM_PROMPT, shotlistContinueSystemPrompt, shotlistSystemPrompt } from '@cinegen/lib/director/llm-jobs';
 
@@ -199,7 +199,7 @@ describe('Topview adapter', () => {
       ],
     });
 
-    expect(show.adapterId).toBe('topview-auto');
+    expect(show.adapterId).toBe('muapi-video'); // [remix] the web default (the Topview adapter itself is unchanged)
     expect(show.clipLengthSec).toBe(20);
     expect(request.provider).toBe('topview');
     expect(request.modelId).toBe('auto');
@@ -310,5 +310,17 @@ describe('BREAKDOWN_IDENTIFY_SYSTEM_PROMPT', () => {
     expect(BREAKDOWN_AUDIT_SYSTEM_PROMPT).toMatch(/JUNIOR BREAKDOWN/);
     expect(BREAKDOWN_AUDIT_SYSTEM_PROMPT).toMatch(/\[A#\] ACTION/);
     expect(BREAKDOWN_AUDIT_SYSTEM_PROMPT).not.toMatch(/actingProfile/i);
+  });
+});
+
+// [remix] The web editor's own Director adapter.
+describe('MuAPI adapter', () => {
+  it('keeps the compiled prompt, caps the clip at 10s and attaches reference stills for image-to-video', () => {
+    const show = createEmptyDirectorShow();
+    const request = muapiVideoAdapter.buildRequest({ show, clip, variant: { kind: 'full' }, referenceImages: ['https://cdn.example/a.png', 'https://cdn.example/a.png'] });
+    expect(request.provider).toBe('muapi');
+    expect(request.durationSec).toBeLessThanOrEqual(10);
+    expect(request.medias).toEqual([{ value: 'https://cdn.example/a.png', role: 'image' }]);
+    expect(request.prompt.length).toBeGreaterThan(20);
   });
 });

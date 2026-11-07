@@ -1,8 +1,9 @@
-export type VideoGenerationProvider = 'topview' | 'higgsfield' | 'artlist' | 'runpod';
+export type VideoGenerationProvider = 'muapi' | 'topview' | 'higgsfield' | 'artlist' | 'runpod'; // [remix] muapi added
 
-export const DEFAULT_VIDEO_GENERATION_PROVIDER: VideoGenerationProvider = 'topview';
+export const DEFAULT_VIDEO_GENERATION_PROVIDER: VideoGenerationProvider = 'muapi';
 export const VIDEO_GENERATION_PROVIDER_SETTINGS_VERSION = 1;
 export const VIDEO_PROVIDER_ADAPTERS: Record<VideoGenerationProvider, string> = {
+  muapi: 'muapi-video',
   topview: 'topview-auto',
   higgsfield: 'seedance-2.5',
   artlist: 'artlist-auto',
@@ -10,7 +11,7 @@ export const VIDEO_PROVIDER_ADAPTERS: Record<VideoGenerationProvider, string> = 
 };
 
 export function isVideoGenerationProvider(value: unknown): value is VideoGenerationProvider {
-  return value === 'topview' || value === 'higgsfield' || value === 'artlist' || value === 'runpod';
+  return value === 'muapi' || value === 'topview' || value === 'higgsfield' || value === 'artlist' || value === 'runpod';
 }
 
 export function getVideoGenerationProvider(): VideoGenerationProvider {

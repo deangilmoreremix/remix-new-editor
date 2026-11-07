@@ -252,6 +252,13 @@ export async function detectSilences(src, { fromSec = 0, toSec = Infinity, thres
 // ---------------------------------------------------------------------------
 
 /** Speaker turns (seconds, relative to fromSec). */
+/** Transcribe a clip's audio on-device (Whisper). @returns {{ text, words: [{ text, start, end }] }} */
+export async function transcribe(src, { fromSec = 0, toSec = Infinity, language, onProgress, signal } = {}) {
+  const audio = await decodeAudioAt(src, { sampleRate: 16000, fromSec, toSec, signal });
+  if (!audio.length) throw new Error('This clip has no audio');
+  return runLocalTask('asr.transcribe', { audio, language }, { transfer: [audio.buffer], onProgress, signal });
+}
+
 export async function diarize(src, { fromSec = 0, toSec = Infinity, onProgress, signal } = {}) {
   const audio = await decodeAudioAt(src, { sampleRate: 16000, fromSec, toSec, signal });
   if (!audio.length) throw new Error('This clip has no audio');

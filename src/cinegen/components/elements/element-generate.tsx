@@ -269,7 +269,7 @@ export function ElementGenerate({
     }
   }, [modelOptions, selectedModel, selectedProvider]);
 
-  // Get fal.ai URLs from uploaded reference images (filter out blob: URLs)
+  // Get public URLs from uploaded reference images (filter out blob: URLs)
   const uploadedRefUrls = useMemo(
     () => (referenceImages ?? []).map((img) => img.url).filter((u) => !u.startsWith('blob:')),
     [referenceImages],

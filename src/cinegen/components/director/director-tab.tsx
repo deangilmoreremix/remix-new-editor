@@ -2,6 +2,7 @@ import { registerMcpCommands } from '@cinegen/lib/mcp/app-commands';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DirectorBeatTime, DirectorBreakdownItem, DirectorMode, DirectorShow } from '@cinegen/types/director';
 import type { Element } from '@cinegen/types/elements';
+import { generateMuapiVideo } from '@cinegen/adapters/muapi-video'; // [remix]
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { DirectorStructureRail } from './director-structure-rail';
 import { DirectorScriptTab } from './director-script-tab';
@@ -1082,7 +1083,9 @@ export function DirectorTab() {
     }, clip.id, prepared.take));
 
     try {
-      const submitted = prepared.request.provider === 'runpod'
+      const submitted = prepared.request.provider === 'muapi'
+        ? await generateMuapiVideo(prepared.request) // [remix]
+        : prepared.request.provider === 'runpod'
         ? await generateLtx25AndWait({
             prompt: prepared.request.prompt,
             durationSec: prepared.request.durationSec,

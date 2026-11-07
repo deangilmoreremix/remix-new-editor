@@ -20,16 +20,15 @@ describe('director CLI picker', () => {
     await runDirectorTextJob('Canvas', 'What is happening?', provider, [], images);
     expect(invokeCliCopilotChat).toHaveBeenLastCalledWith(provider === 'luna' ? 'codex' : provider, expect.objectContaining({ images }));
   });
-  it('sends image data to hosted OpenAI and fal vision', async () => {
+  // [remix] fal vision is gone; the hosted Director LLM is OpenAI only.
+  it('sends image data to hosted OpenAI vision', async () => {
     const images = [{ label: 'Canvas image', dataUrl: 'data:image/jpeg;base64,preview' }];
     const openaiChat = vi.fn(async () => ({ message: 'Seen' }));
     const run = vi.fn(async () => ({ output: 'Seen' }));
     window.electronAPI = { llm: { openaiChat }, workflow: { run } } as unknown as typeof window.electronAPI;
     await runDirectorTextJob('Canvas', 'Describe it', 'openai', [], images);
     expect(openaiChat).toHaveBeenCalledWith(expect.objectContaining({ jsonObject: false, imageUrls: [images[0].dataUrl] }));
-    vi.mocked(getApiKey).mockReturnValueOnce('fal-test');
-    await runDirectorTextJob('Canvas', 'Describe it', 'fal', [], images);
-    expect(run).toHaveBeenCalledWith(expect.objectContaining({ modelId: 'fal-ai/any-llm/vision', inputs: expect.objectContaining({ image_urls: [images[0].dataUrl] }) }));
+    expect(run).not.toHaveBeenCalled(); // no fal workflow call
   });
   it('routes assistant chat to Codex with the account default', async () => {
     vi.mocked(invokeCliCopilotChat).mockClear();
@@ -41,7 +40,7 @@ describe('director CLI picker', () => {
   });
   it('keeps an installed pick and otherwise takes the first installed CLI', () => {
     expect(parseDirectorLlmProvider('gemini')).toBe('gemini');
-    expect(parseDirectorLlmProvider('nope')).toBe('claude-code');
+    expect(parseDirectorLlmProvider('nope')).toBe('openai'); // [remix] default is OpenAI on the web
     expect(pickInstalledDirectorLlm('codex', [
       { id: 'claude-code', installed: false },
       { id: 'codex', installed: false },

@@ -427,14 +427,9 @@ interface LLMTabProps {
   onCopilotResponseReadyWhileBackgrounded?: () => void;
 }
 
+// [remix] One cloud model: the OpenAI Responses API on the user's own key (served by /api/timeline-llm).
 const MODEL_SUGGESTIONS = [
-  'google/gemini-2.5-flash',
-  'anthropic/claude-sonnet-4.6',
-  'anthropic/claude-opus-4.6',
-  'anthropic/claude-sonnet-4.5',
-  'openai/gpt-4.1',
-  'openai/gpt-oss-120b',
-  'meta-llama/llama-4-maverick',
+  'openai/gpt-5.6-sol',
 ];
 
 const LOCAL_MODEL_DEFAULT = 'qwen3.5:latest';
@@ -547,7 +542,7 @@ function buildUnifiedModelOptions(params: {
     });
   }
 
-  const localModels = params.localModels.length > 0 ? params.localModels : [LOCAL_MODEL_DEFAULT];
+  const localModels = params.localModels; // [remix] no Ollama in the web editor unless models are detected
   for (const modelId of localModels) {
     options.push({
       key: getUnifiedModelKey('local', modelId),
@@ -981,7 +976,7 @@ export function LLMTab({
 
   const analyzeAssetAcoustics = useCallback(async (asset: Asset): Promise<void> => {
     if (!asset.fileRef) return;
-    // Primary transport is the local Gemini CLI (no key needed); the fal.ai key is an optional fallback.
+    // [remix] Web: the OpenAI Responses API on the user's key.
     const apiKey = getApiKey();
     const model = getCutVisionModel();
     const transcript = buildAcousticTranscript(asset);
@@ -1708,7 +1703,7 @@ export function LLMTab({
     });
 
     if (!backend) {
-      setError('Install a CLI, add a fal.ai API key, or select a local model to build skills with AI.');
+      setError('Add your OpenAI key in Settings to build skills with AI.');
       return;
     }
 
@@ -2277,7 +2272,7 @@ export function LLMTab({
     setFalKey(apiKey);
 
     if (!apiKey) {
-      setError('Add your fal.ai API key in Settings before using Cloud chat.');
+      setError('Add your OpenAI key in Settings before using chat.');
       return;
     }
 
@@ -3041,7 +3036,7 @@ export function LLMTab({
       const apiKey = getApiKey();
       setFalKey(apiKey);
       if (!apiKey) {
-        setError('Add your fal.ai API key in Settings before enhancing prompts.');
+        setError('Add your OpenAI key in Settings before enhancing prompts.');
         return;
       }
     } else if (isCliBackendMode(mode)) {
@@ -3878,7 +3873,7 @@ export function LLMTab({
   const enhancePromptTitle = !draft.trim()
     ? 'Type a prompt to enhance'
     : mode === 'cloud' && !falKey
-      ? 'Add a fal.ai API key in Settings'
+      ? 'Add your OpenAI key in Settings'
       : mode === 'local' && !localModel
         ? 'Select a local Ollama model'
         : isCliBackendMode(mode) && !cliProviders[mode].installed
@@ -4195,7 +4190,7 @@ export function LLMTab({
               {!falKey && (
                 <div className="copilot__alert copilot__alert--warn">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                  Add your fal.ai API key in Settings to use Cloud chat.
+                  Add your OpenAI key in Settings to use chat.
                 </div>
               )}
 
