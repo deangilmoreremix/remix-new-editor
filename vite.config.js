@@ -1014,6 +1014,7 @@ export default defineConfig({
             'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime.js'),
             'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime.js'),
             'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
+            '@cinegen': path.resolve(__dirname, 'src/cinegen'),
             '@smartvideo/ai-timeline-editor': path.resolve(__dirname, 'packages/ai-timeline-editor/src'),
             '@higgsfield/color-grading': path.resolve(__dirname, 'packages/color-grading/src'),
             '@higgsfield/audio-mixer': path.resolve(__dirname, 'packages/audio-mixer/src'),

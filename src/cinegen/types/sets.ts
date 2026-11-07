@@ -1,0 +1,118 @@
+/**
+ * A Set is a real location captured as a Gaussian splat, used to frame shots
+ * before generating them.
+ *
+ * The splat binary is never carried in here. `splatPath` is an absolute path on
+ * the machine that imported it, served to the renderer through Electron's
+ * `local-media` protocol. Project state is chunked and rewritten on every
+ * debounced save, so a Set stays small: marks and cameras only.
+ */
+
+/** A named floor position an actor stand-in snaps to — "doorway", "booth 3". */
+export interface SetMark {
+  id: string;
+  name: string;
+  /** Metres, in the Set's own ground plane. */
+  x: number;
+  z: number;
+  /** Radians. 0 faces -Z, matching three.js's default camera forward. */
+  facing: number;
+}
+
+/**
+ * A framing saved inside a Set. Self-contained on purpose: Director framings,
+ * Canvas nodes and regenerate-from-camera all replay this record without
+ * needing the viewer that produced it.
+ */
+export interface SetCamera {
+  id: string;
+  name: string;
+  createdAt: string;
+  /** Metres, world space. */
+  position: [number, number, number];
+  target: [number, number, number];
+  /** Camera up direction, including roll from the rotation rings. */
+  up?: [number, number, number];
+  focalMm: number;
+  sensorWidthMm: number;
+  sensorHeightMm: number;
+  /** The output aspect this was framed against, e.g. '16:9', '2.39:1', '9:16'. */
+  aspect: string;
+  /** Degrees. Derived from focal + sensor, stored so a replay never recomputes it differently. */
+  fovDiagonal: number;
+  /** Metres from camera to the subject it was framed on, when there was one. */
+  subjectDistance?: number;
+}
+
+export type SplatFormat = 'ply' | 'spz' | 'sog' | 'splat' | 'ksplat';
+
+/** Plane equation normal.dot(point) + constant = 0, in scan coordinates. */
+export interface SetFloorPlane {
+  normal: [number, number, number];
+  constant: number;
+  /** Editable grid/gizmo origin, in the same scan coordinates. */
+  origin?: [number, number, number];
+  /** Square floor guide width in scan units; does not resize the scan. */
+  size?: number;
+  /** In-plane grid X direction in scan coordinates, preserving its rotation. */
+  xAxis?: [number, number, number];
+}
+
+export interface SetStandIn {
+  /** Hidden stand-ins keep their placement but are omitted from the viewer and renders. */
+  visible?: boolean;
+  id: string;
+  heightM: number;
+  pose: 'standing' | 'sitting' | 'walking' | 'kneeling';
+  x: number;
+  z: number;
+  /** Full world-space feet position; x/z are retained for maps and legacy sets. */
+  position?: [number, number, number];
+  facing: number;
+  elementId?: string;
+  label?: string;
+}
+
+export type SetStartView = Pick<SetCamera, 'position' | 'target' | 'up'> & {
+  /** Optional vertical field of view, in degrees, from the capture camera. */
+  verticalFov?: number;
+  sourceImage?: string;
+};
+
+export interface ProjectSet {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  /** Absolute, desktop-local. Absent on a Set opened where the file does not live. */
+  splatPath?: string;
+  splatFormat?: SplatFormat;
+  /** A small orbit still, used as the library card's face. */
+  thumbnailUrl?: string;
+  /** Preferred opening pose in scan-local coordinates. */
+  startView?: SetStartView;
+  /** Which axis the capture treats as up. Scans vary; the viewer corrects on load. */
+  upAxis: 'y' | 'z';
+  /**
+   * Degrees of extra rotation applied after the up-axis preset.
+   *
+   * Scans come out of training at essentially arbitrary orientation — upside
+   * down, mirrored, or yawed — and no preset covers every case, so this is the
+   * trim the user dials in once per Set and never touches again.
+   */
+  rotationDeg?: [number, number, number];
+  /**
+   * Where the scan's floor sits on the Y axis, in metres, after orientation.
+   *
+   * Stand-ins are placed on the ground plane and camera height is reported
+   * against it, so a scan whose floor is not at the origin would otherwise
+   * float its mannequins and report negative eye heights.
+   */
+  groundY?: number;
+  floorPlane?: SetFloorPlane;
+  standIns?: SetStandIn[];
+  /** Multiplier taking the capture's units to metres. */
+  scaleToMeters: number;
+  marks: SetMark[];
+  cameras: SetCamera[];
+}
