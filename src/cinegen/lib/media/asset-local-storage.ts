@@ -83,7 +83,8 @@ export function assetNeedsGeneratedPersist(asset: Asset): boolean {
 
   const metadata = (asset.metadata ?? {}) as Record<string, unknown>;
   if (metadata.localPersistStatus === 'failed') return false;
-  if (metadata.localPersistStatus === 'ready' && asset.fileRef?.trim() && isGeneratedMediaPath(asset.fileRef)) {
+  // [remix] the web store has no /media/generated/ folder: a persisted asset is marked ready and kept as-is.
+  if (metadata.localPersistStatus === 'ready' && asset.fileRef?.trim()) {
     return false;
   }
 

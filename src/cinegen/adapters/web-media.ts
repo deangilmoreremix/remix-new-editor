@@ -203,6 +203,28 @@ export const webMediaApi = {
       return { outputPath: await trimToBlobUrl(a.inputPath, a.startTimeSec, a.startTimeSec + a.durationSec) };
     },
     downloadRemote: async (p: unknown) => ({ path: (p as { url: string }).url }), // the browser streams remote media; nothing to download
+    // CineGen web copies a generated/remote asset into the project's media folder; here it goes to the user's storage (same contract).
+    persistGeneratedAsset: async (p: unknown) => {
+      const a = p as { assetId: string; assetType: string; remoteUrl?: string; localPathHint?: string };
+      try {
+        if (a.remoteUrl && /^https?:/i.test(a.remoteUrl)) {
+          try {
+            const res = await fetch(a.remoteUrl);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+            const ext = (blob.type.split('/')[1] || (a.assetType === 'image' ? 'png' : a.assetType === 'audio' ? 'mp3' : 'mp4')).replace(/\+.*/, '');
+            const url = await durableUrl(new File([blob], `${a.assetId}.${ext}`, { type: blob.type }));
+            return { path: url, sourceUrl: a.remoteUrl, downloaded: true };
+          } catch {
+            return { path: a.remoteUrl, sourceUrl: a.remoteUrl, downloaded: false }; // cross-origin: the browser streams it
+          }
+        }
+        if (a.localPathHint) return { path: a.localPathHint, downloaded: false };
+        return { error: 'No source to persist.' };
+      } catch (error) {
+        return { error: error instanceof Error ? error.message : String(error) };
+      }
+    },
     writeTempImage: async (p: unknown) => ({ outputPath: (p as { dataUrl: string }).dataUrl }),
   },
   dialog: {
