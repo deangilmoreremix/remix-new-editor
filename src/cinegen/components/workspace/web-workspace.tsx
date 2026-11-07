@@ -13,6 +13,8 @@ import { ExportTab } from '@cinegen/components/export/export-tab';
 import { AssistantDrawer } from '@cinegen/components/assistant/assistant-drawer';
 import { VoiceDirectorOverlay } from '@cinegen/components/assistant/voice-director-overlay';
 import type { DirectorShow } from '@cinegen/types/director';
+import { HomeView } from '@cinegen/components/home/home-view';
+import { getLastProjectId, setLastProjectId } from '@cinegen/adapters/web-projects';
 import { SettingsPage } from '@cinegen/components/settings/settings-page';
 
 function Tabs({ onBack }: { onBack?: () => void }) {
@@ -77,12 +79,19 @@ function Tabs({ onBack }: { onBack?: () => void }) {
   );
 }
 
-export function WebWorkspace({ projectId = 'timeline-editor', onBack }: { projectId?: string; onBack?: () => void }) {
+export function WebWorkspace({ onExit }: { onExit?: () => void }) {
+  const [projectId, setProjectId] = useState<string>(() => getLastProjectId());
+  const [home, setHome] = useState(false);
+  const open = (id: string) => { setLastProjectId(id); setProjectId(id); setHome(false); };
   return (
     <div className="cinegen-root" style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'var(--bg-void)', color: 'var(--text-primary)', fontFamily: 'var(--font-display)', display: 'flex', flexDirection: 'column' }}>
-      <WorkspaceProvider projectId={projectId}>
-        <Tabs onBack={onBack} />
-      </WorkspaceProvider>
+      {home ? (
+        <HomeView onOpenProject={(id) => open(id)} />
+      ) : (
+        <WorkspaceProvider key={projectId} projectId={projectId}>
+          <Tabs onBack={() => setHome(true)} />
+        </WorkspaceProvider>
+      )}
     </div>
   );
 }

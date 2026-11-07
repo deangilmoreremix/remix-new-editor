@@ -14,8 +14,7 @@ export function CineGenEditorPage(): HTMLElement {
   const el = document.createElement('div');
   el.id = 'cinegen-editor-page';
   const root = createRoot(el);
-  const back = () => { window.location.hash = '#/home'; };
-  root.render(<WebWorkspace onBack={back} />);
+  root.render(<WebWorkspace />);
   (el as HTMLElement & { cleanup?: () => void }).cleanup = () => { setTimeout(() => root.unmount(), 0); };
   return el;
 }

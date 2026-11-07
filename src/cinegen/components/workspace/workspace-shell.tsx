@@ -125,15 +125,17 @@ const DERIVE_JOB_TYPES = ['generate_thumbnail', 'compute_waveform', 'generate_fi
 const mediaDebug = (..._args: unknown[]) => undefined;
 const mediaDebugError = (...args: unknown[]) => console.warn(...args);
 
-const STORE = 'remix.cinegen.workspace.v1';
+import { workspaceKey, touchProject } from '@cinegen/adapters/web-projects';
 // Everything that makes up a project. Sets (openSpaceIds etc.) are rebuilt on load.
 const PERSISTED = ['elements', 'elementFolders', 'assets', 'mediaFolders', 'timelines', 'activeTimelineId', 'spaces', 'activeSpaceId', 'nodes', 'edges', 'director', 'exports'] as const;
 
-function initial(): WorkspaceState {
+function initial(projectId: string): WorkspaceState {
   const base = createInitialWorkspaceState();
   base.activeTab = 'edit'; // the Timeline Editor opens on Edit
   try {
-    const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
+    // The first project keeps data saved before projects existed.
+    const raw = localStorage.getItem(workspaceKey(projectId)) ?? (projectId === 'timeline-editor' ? localStorage.getItem('remix.cinegen.workspace.v1') : null);
+    const saved = JSON.parse(raw || 'null');
     if (saved) {
       for (const k of PERSISTED) if (saved[k] !== undefined) (base as unknown as Record<string, unknown>)[k] = saved[k];
       const b = base as unknown as Record<string, unknown>;
@@ -146,7 +148,7 @@ function initial(): WorkspaceState {
 
 export function WorkspaceProvider({ projectId = 'timeline-editor', children, init }: { projectId?: string; children: ReactNode; init?: (s: WorkspaceState) => WorkspaceState }) {
   const [history, historyDispatch] = useReducer(historyReducer, undefined, (): HistoryState => ({
-    current: init ? init(initial()) : initial(),
+    current: init ? init(initial(projectId)) : initial(projectId),
     past: [],
     future: [],
     lastPushTime: 0,
@@ -183,11 +185,12 @@ export function WorkspaceProvider({ projectId = 'timeline-editor', children, ini
         for (const k of PERSISTED) out[k] = (state as unknown as Record<string, unknown>)[k];
         // blob: proxies die with the page; they are regenerated on demand.
         out.assets = state.assets.map((a) => (typeof a.proxyRef === 'string' && a.proxyRef.startsWith('blob:') ? { ...a, proxyRef: undefined } : a));
-        localStorage.setItem(STORE, JSON.stringify(out));
+        localStorage.setItem(workspaceKey(projectId), JSON.stringify(out));
+        touchProject(projectId, { assetCount: state.assets.length, elementCount: state.elements.length, thumbnail: state.assets.find((a) => a.thumbnailUrl?.startsWith('data:'))?.thumbnailUrl ?? null });
       } catch { /* quota */ }
     }, 800);
     return () => clearTimeout(t);
-  }, [state]);
+  }, [state, projectId]);
 
   /* ---- Media jobs (CineGen's handling, unchanged) ---- */
   const updateAssetProcessingJobs = useCallback((assetId: string, updater: (jobs: Set<string>) => void) => {
