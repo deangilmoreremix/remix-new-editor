@@ -18,11 +18,15 @@ describe('ElevenLabs on MuAPI', () => {
     const { voices } = await elevenLabs.voices('rachel');
     expect(voices.map((v) => v.name)).toEqual(['Rachel']);
   });
-  it('speech -> MuAPI elevenlabs-v4 with the chosen voice; the take completes', async () => {
+  it('premade voice -> MuAPI elevenlabs-tts-turbo-2-5; the take completes', async () => {
     const take = await elevenLabs.generate({ requestId: 'r1', kind: 'speech', text: 'Hello there', voiceId: 'VOICE1' });
-    expect(runTimelineMuapi).toHaveBeenCalledWith('generate', { model: 'elevenlabs-v4', inputs: { prompt: 'Hello there', voice_id: 'VOICE1' } }, expect.anything());
+    expect(runTimelineMuapi).toHaveBeenCalledWith('generate', { model: 'elevenlabs-tts-turbo-2-5', inputs: { prompt: 'Hello there', voice_id: 'VOICE1' } }, expect.anything());
     expect((await waitForElevenLabsAudio(take)).url).toBe('https://cdn.test/a.mp3');
     expect((await elevenLabs.job('r1')).status).toBe('complete');
+  });
+  it('v4 voices -> elevenlabs-v4', async () => {
+    await elevenLabs.generate({ requestId: 'r3', kind: 'speech', text: 'Hi', voiceId: 'voice_daniel' });
+    expect(runTimelineMuapi.mock.calls[0][1].model).toBe('elevenlabs-v4');
   });
   it('sound -> Suno sound effects', async () => {
     await elevenLabs.generate({ requestId: 'r2', kind: 'sound', text: 'Thunder rolls' });

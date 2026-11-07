@@ -9,11 +9,16 @@ import { responsesChat } from './llm-responses';
 import { audioEnhancePrompt, enhancedAudioText, type AudioEnhanceKind } from '@cinegen/lib/elevenlabs/enhance-prompt';
 import type { ElevenLabsAudioRequest, ElevenLabsAudioResult, ElevenLabsVoice } from '@cinegen/lib/elevenlabs/types';
 
-const SPEECH_MODEL = 'elevenlabs-v4';
+// ElevenLabs v4 on MuAPI only accepts its own two voice ids; the public premade ids work on the turbo model.
+const SPEECH_MODEL_PREMADE = 'elevenlabs-tts-turbo-2-5';
+const SPEECH_MODEL_V4 = 'elevenlabs-v4';
+const V4_VOICES = new Set(['voice_daniel', 'voice_liam']);
 const SOUND_MODEL = 'suno-generate-sounds';
 
 /** ElevenLabs' public premade voices (MuAPI's ElevenLabs models take a voice_id). */
 export const PREMADE_VOICES: ElevenLabsVoice[] = [
+  { id: 'voice_daniel', name: 'Daniel', description: 'ElevenLabs v4 — clear male narrator' },
+  { id: 'voice_liam', name: 'Liam', description: 'ElevenLabs v4 — warm male voice' },
   { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', description: 'Calm, young adult American female' },
   { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', description: 'Deep, narration-ready American male' },
   { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', description: 'Well-rounded, young adult male' },
@@ -47,8 +52,8 @@ export async function elevenLabsWeb(method: string, params?: unknown): Promise<u
       try {
         const inputs = r.kind === 'sound'
           ? { prompt: [text, r.direction].filter(Boolean).join('. ') }
-          : { prompt: r.direction ? `${r.direction}: ${text}` : text, voice_id: r.voiceId || PREMADE_VOICES[0].id };
-        const { url } = await runTimelineMuapi('generate', { model: r.kind === 'sound' ? SOUND_MODEL : SPEECH_MODEL, inputs }, { timeoutMs: 5 * 60_000 });
+          : { prompt: r.direction ? `${r.direction}: ${text}` : text, voice_id: r.voiceId || '21m00Tcm4TlvDq8ikWAM' };
+        const { url } = await runTimelineMuapi('generate', { model: r.kind === 'sound' ? SOUND_MODEL : V4_VOICES.has(String((inputs as { voice_id?: string }).voice_id)) ? SPEECH_MODEL_V4 : SPEECH_MODEL_PREMADE, inputs }, { timeoutMs: 5 * 60_000 });
         const done: ElevenLabsAudioResult = { ...result, status: 'complete', url };
         jobs.set(r.requestId, done);
         return done;
