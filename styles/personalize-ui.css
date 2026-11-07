@@ -68,7 +68,7 @@
   cursor: pointer;
   transition: all var(--pz-fast);
 }
-.pz-ui .pz-btn-primary { background: rgba(217, 255, 0, 0.10); color: #ffffff; border: 1px solid rgba(217, 255, 0, 0.35); }
+.pz-ui .pz-btn-primary { background: var(--pz-primary); color: var(--pz-on-primary); }
 .pz-ui .pz-btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 24px var(--pz-soft); }
 .pz-ui .pz-btn-secondary { background: var(--pz-panel); color: var(--pz-text); border-color: var(--pz-border); }
 .pz-ui .pz-btn-secondary:hover:not(:disabled) { border-color: var(--pz-primary); color: var(--pz-primary); }

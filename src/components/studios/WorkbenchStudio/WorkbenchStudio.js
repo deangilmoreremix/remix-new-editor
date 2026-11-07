@@ -162,7 +162,7 @@ export function WorkbenchStudio() {
     const grid = el('div', 'p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 overflow-y-auto');
     grid.append(el('div', 'col-span-full text-secondary text-sm', 'Loading…'));
     const foot = el('div', 'flex items-center justify-end gap-2 p-4 border-t border-white/10');
-    const addSel = el('button', 'px-4 py-2 rounded-xl bg-primary/10 border border-primary/30 text-white font-bold text-sm disabled:opacity-40', 'Add to timeline');
+    const addSel = el('button', 'px-4 py-2 rounded-xl bg-primary text-black font-bold text-sm disabled:opacity-40', 'Add to timeline');
     addSel.type = 'button';
     addSel.disabled = true;
     foot.append(addSel);
