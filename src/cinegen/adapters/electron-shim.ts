@@ -38,6 +38,9 @@ export function installElectronShim() {
   const w = window as unknown as { electronAPI?: unknown };
   if (w.electronAPI) return;
   w.electronAPI = new Proxy({}, {
-    get: (_t, ns: string | symbol) => (typeof ns === 'string' && ns !== 'then' ? namespace(ns) : undefined),
+    get: (_t, ns: string | symbol) => {
+      if (ns === 'platform') return 'web'; // string, not a namespace (CineGen reads it as an attribute)
+      return typeof ns === 'string' && ns !== 'then' ? namespace(ns) : undefined;
+    },
   });
 }

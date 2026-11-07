@@ -21,13 +21,20 @@ export function useWorkspace() {
 }
 
 const STORE = 'remix.cinegen.workspace.v1';
-const PERSISTED = ['elements', 'elementFolders'] as const;
+// Everything that makes up a project. Sets (openSpaceIds etc.) are rebuilt on load.
+const PERSISTED = ['elements', 'elementFolders', 'assets', 'mediaFolders', 'timelines', 'activeTimelineId', 'spaces', 'activeSpaceId', 'nodes', 'edges', 'director', 'exports'] as const;
 
 function initial(): WorkspaceState {
   const base = createInitialWorkspaceState();
+  base.activeTab = 'edit'; // the Timeline Editor opens on Edit
   try {
     const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
-    if (saved) for (const k of PERSISTED) if (saved[k]) (base as unknown as Record<string, unknown>)[k] = saved[k];
+    if (saved) {
+      for (const k of PERSISTED) if (saved[k] !== undefined) (base as unknown as Record<string, unknown>)[k] = saved[k];
+      const b = base as unknown as Record<string, unknown>;
+      b.openTimelineIds = new Set([base.activeTimelineId]);
+      b.openSpaceIds = new Set([base.activeSpaceId]);
+    }
   } catch { /* ignore */ }
   return base;
 }
@@ -41,7 +48,7 @@ export function WorkspaceProvider({ projectId = 'timeline-editor', children, ini
         for (const k of PERSISTED) out[k] = (state as unknown as Record<string, unknown>)[k];
         localStorage.setItem(STORE, JSON.stringify(out));
       } catch { /* quota */ }
-    }, 400);
+    }, 800);
     return () => clearTimeout(t);
   }, [state]);
   const value = useMemo(() => ({ state, dispatch, projectId }), [state, dispatch, projectId]);
