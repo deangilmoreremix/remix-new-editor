@@ -123,6 +123,7 @@
     "@remotion/player": "4.0.540",
     "@remotion/transitions": "4.0.540",
     "@remotion/web-renderer": "4.0.540",
+    "@sparkjsdev/spark": "^2.4.0",
     "@supabase/supabase-js": "^2.110.1",
     "@tailwindcss/postcss": "^4.3.2",
     "@tailwindcss/vite": "^4.3.2",
