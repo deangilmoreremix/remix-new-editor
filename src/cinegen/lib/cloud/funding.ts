@@ -19,10 +19,39 @@ export interface WorkflowRunParams {
 
 export interface WorkflowRunOptions { [key: string]: unknown }
 
+async function runOnDeviceSegment(inputs: Record<string, unknown>): Promise<unknown> {
+  const url = String(inputs.image_url ?? '');
+  if (!url) throw new Error('No frame to mask.');
+  const [{ grabFrame }, ai] = await Promise.all([import('../../../lib/editor/ml/frameGrab.js'), import('../../../lib/editor/ml/localAI.js')]);
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => resolve(i); i.onerror = () => reject(new Error('Could not load the frame.')); i.src = url;
+  });
+  const canvas = await grabFrame(url, 0, { image: true, maxSize: 2048 });
+  const k = canvas.width / (img.naturalWidth || canvas.width);
+  const pts = (Array.isArray(inputs.point_prompts) ? inputs.point_prompts : []) as Array<{ x: number; y: number; label?: number }>;
+  const boxes = (Array.isArray(inputs.box_prompts) ? inputs.box_prompts : []) as Array<{ x_min: number; y_min: number; x_max: number; y_max: number }>;
+  const text = String(inputs.prompt ?? '').trim();
+  const res = text && !pts.length && !boxes.length
+    ? await ai.maskFromText(canvas, text)
+    : await ai.maskFromPrompt(canvas, {
+        points: pts.map((p) => [p.x * k, p.y * k]),
+        labels: pts.map((p) => (p.label === 0 ? 0 : 1)),
+        box: boxes[0] ? [boxes[0].x_min * k, boxes[0].y_min * k, boxes[0].x_max * k, boxes[0].y_max * k] : undefined,
+      });
+  if (!res?.alpha) throw new Error('No object found for that prompt.');
+  const png = await ai.alphaToMaskPng(res.alpha, res.width, res.height);
+  return { masks: [{ url: URL.createObjectURL(png) }], boxes: [res.bbox ?? []], scores: [res.score ?? 1] };
+}
+
 const asArray = (v: unknown): string[] => (Array.isArray(v) ? v : v ? [v] : []).filter((x): x is string => typeof x === 'string');
 
 export async function runWorkflow(params: WorkflowRunParams, _options: WorkflowRunOptions = {}): Promise<unknown> {
   const inputs = params.inputs ?? {};
+  // SAM 3 (was fal) -> free on-device SlimSAM / Florence-2 in the browser (Transformers.js).
+  if (params.nodeType === 'sam3-segment-cloud') return runOnDeviceSegment(inputs);
+  if (params.nodeType === 'sam3-track-cloud') {
+    throw new Error('Tracking a mask across a video is not available in the web editor yet. Masks apply to the current frame.');
+  }
   const outputType = params.outputType ?? (params.nodeType === 'video' ? 'video' : params.nodeType === 'music' ? 'audio' : 'image');
   const [modelTag] = String(params.modelId || '').split('|');
 

@@ -907,7 +907,7 @@ export function SourceViewerMaskTool({ asset, clip, onAcceptMaskedVideo }: Sourc
 
   const extractCloudPreviewFrame = useCallback(async (): Promise<{ frameUrl: string; uploadUrl: string } | null> => {
     const apiKey = getApiKey();
-    if (!apiKey) throw new Error('Add your fal.ai API key in Settings.');
+    if (!apiKey) throw new Error('Masking runs on-device in your browser.'); // [remix] no fal key
 
     if (localInputPath) {
       const extracted = await window.electronAPI.media.extractFrame({
@@ -932,7 +932,7 @@ export function SourceViewerMaskTool({ asset, clip, onAcceptMaskedVideo }: Sourc
 
   const ensureCloudTrackingSource = useCallback(async (): Promise<{ url: string; sourceWasTrimmed: boolean } | null> => {
     const apiKey = getApiKey();
-    if (!apiKey) throw new Error('Add your fal.ai API key in Settings.');
+    if (!apiKey) throw new Error('Masking runs on-device in your browser.'); // [remix] no fal key
 
     if (remoteSourceUrl) {
       return { url: remoteSourceUrl, sourceWasTrimmed: Boolean(clip) };
@@ -1171,7 +1171,7 @@ export function SourceViewerMaskTool({ asset, clip, onAcceptMaskedVideo }: Sourc
 
   const previewCloudFrameHistory = useCallback(async (history: CloudPrompt[]): Promise<FramePreviewResult | null> => {
     const apiKey = getApiKey();
-    if (!apiKey) throw new Error('Add your fal.ai API key in Settings.');
+    if (!apiKey) throw new Error('Masking runs on-device in your browser.'); // [remix] no fal key
 
     const frameHistory = history.filter((prompt) => (
       prompt.kind === 'text'
