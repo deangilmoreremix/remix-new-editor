@@ -1,11 +1,23 @@
 import { aiService } from '../services/aiService.js';
+import { generateImages, DEFAULT_IMAGE_MODEL } from './ai/openaiImages.js';
+
+// Image models that run on the user's OpenAI key (Images 2.6) instead of MuAPI.
+const isOpenAIImageChoice = (m) => !m || m === 'flux-dev' || /^gpt-image-/.test(m);
 
 export class AiMuAPI {
   static async generateVideo(prompt, model = 'wan2.1-text-to-video', options = {}) {
     return aiService.generateVideo({ prompt, model }, options);
   }
 
-  static async generateImage(prompt, model = 'flux-dev', options = {}) {
+  static async generateImage(prompt, model = DEFAULT_IMAGE_MODEL, options = {}) {
+    // Default / legacy 'flux-dev' / gpt-image-* → OpenAI Images 2.6 (user's own key).
+    // Any other explicit model id chosen by the user stays on MuAPI.
+    if (isOpenAIImageChoice(model)) {
+      const openaiModel = /^gpt-image-/.test(model || '') ? model : DEFAULT_IMAGE_MODEL;
+      const { assets } = await generateImages(prompt, { model: openaiModel, aspectRatio: options.aspectRatio || '1:1', refs: options.refs || [] });
+      if (!assets.length) throw new Error('OpenAI returned no image');
+      return { url: assets[0].url, model: openaiModel, provider: 'openai' };
+    }
     return aiService.generateImage({ prompt, model }, options);
   }
 

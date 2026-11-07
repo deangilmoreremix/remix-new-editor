@@ -41,12 +41,12 @@ describe('aiTools — resolveFeatureRoute', () => {
     });
   });
 
-  it('maps generate-image to google-imagen4', () => {
+  it('maps generate-image to OpenAI Images 2.6 Flare (user OpenAI key, not MuAPI)', () => {
     const route = resolveFeatureRoute('generate-image');
     expect(route).toEqual({
-      provider: 'muapi',
+      provider: 'openai',
       operation: 'generate-image',
-      model: 'google-imagen4',
+      model: 'gpt-image-2.6-flare',
       mediaType: 'image',
     });
   });
@@ -76,12 +76,12 @@ describe('aiTools — resolveFeatureRoute', () => {
     });
   });
 
-  it('maps colorize to ai-color-photo', () => {
+  it('maps colorize to an OpenAI Images 2.6 Sunburst edit', () => {
     const route = resolveFeatureRoute('colorize');
     expect(route).toEqual({
-      provider: 'muapi',
-      operation: 'generate-image',
-      model: 'ai-color-photo',
+      provider: 'openai',
+      operation: 'edit-image',
+      model: 'gpt-image-2.6-sunburst',
       mediaType: 'image',
     });
   });

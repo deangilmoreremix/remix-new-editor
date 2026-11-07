@@ -8,8 +8,6 @@ import {
   providerFillGap,
   providerExtend,
   providerMusicGeneration,
-  providerElementCreate,
-  providerShotBoard,
   providerMaskTool,
   providerSAM3Segment,
   providerAudioSync,
@@ -26,11 +24,9 @@ const ALLOWED_TOOLS = new Set([
   'extend_clip',
   'music_generation',
   'mask_tool',
-  'element_create',
   'sam3_segment',
   'audio_sync',
   'layer_decompose',
-  'shot_board',
   'proxy_playback',
 ]);
 
@@ -65,7 +61,7 @@ function localFallback(tool, params) {
 }
 
 // Tools that call MuAPI: these need the user's own key (no platform-key fallback).
-const MUAPI_TOOLS = new Set(['fill_gap', 'gap_fill', 'extend', 'extend_clip', 'music_generation', 'element_create', 'shot_board', 'layer_decompose']);
+const MUAPI_TOOLS = new Set(['fill_gap', 'gap_fill', 'extend', 'extend_clip', 'music_generation', 'layer_decompose']);
 
 const PROVIDER_MAP = {
   fill_gap: providerFillGap,
@@ -74,11 +70,9 @@ const PROVIDER_MAP = {
   extend_clip: providerExtend,
   music_generation: providerMusicGeneration,
   mask_tool: providerMaskTool,
-  element_create: providerElementCreate,
   sam3_segment: providerSAM3Segment,
   audio_sync: providerAudioSync,
   layer_decompose: providerLayerDecompose,
-  shot_board: providerShotBoard,
   proxy_playback: providerProxyPlayback,
 };
 

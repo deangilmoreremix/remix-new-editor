@@ -645,7 +645,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // CineGen work: the on-device Mask tool, track delete/reorder, linked
     // clips, Track Forward, keyframe lanes and the Voice Director button;
     // the dead #cinegen* button listeners were removed. No upload call site changed.
-    ['src/components/TimelineEditorPage.jsx', '8896d77153b409afd58bdf111f2a43feea68269387bc530cab7b4d6b06ae39c2'],
+    ['src/components/TimelineEditorPage.jsx', '117568bc065a824bd9a37194ce8e1c14dda8b72a10ef80132258f00fa53ff59e'], // re-recorded: removed dead element_create/shot_board MuAPI result handlers (images now use Images 2.6 on the user's OpenAI key)
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -672,7 +672,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // Clerk session token and the user's own MuAPI key (X-MuAPI-Key), because
     // netlify/functions/cinegen.js no longer accepts anonymous calls or spends
     // the platform key. No upload-pipeline behaviour changed.
-    ['src/lib/cinegenIntegration.js', 'cac9ddf60add2a1c83814a55a6d91e15506c42612aca4cd537809ec8a7394024'],
+    ['src/lib/cinegenIntegration.js', 'bea97a4f3e167b0ffdc2af348ea7da0c747cee73ea0a63c4663b5116e6217e3d'], // re-recorded: dropped ELEMENT_CREATE/SHOT_BOARD tool constants (moved to Images 2.6)
     ['src/modules/CineGen/src/layout/CineGenLayout.tsx', 'b3b232c358d01931e066ddf5d779a80a7280de70a13c8ab6c72c93b31def9e3a'],
     ['src/components/elements/element-card.jsx', 'd6bcaa6ec593761739b590a6370241f280ef7fda6e30354eb07da03c6e779bf1'],
     ['src/components/elements/element-generate.jsx', '7fc3ab1fa298a640f20070f70f93c17fcf8fe9289523a343cd6cc4bb6c799525'],
@@ -712,7 +712,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // coverage in section 5.
     ['src/lib/editor/uploadSources.js', '8518c38c4bb2da9c28e7a1a0a99111c54625e6c0dbce0234a53f4cf2012b78b0'],
     ['src/lib/editor/mediaLibrary.js', '32caa774b2ee2e19fe849fa18fc4b3c03d065e9ee132e89a4355822d2d49ed84'],
-    ['src/lib/editor/aiTools.js', '3bb112b66ca30009f467353a22dc452fdf57bf480e5c067339c9178630e1ea19'],
+    ['src/lib/editor/aiTools.js', 'a1bd66cc044b82057d7f274d915348ce58c22d040aa23f3be6fdee493e9e45b6'], // re-recorded: generate-image/colorize now OpenAI Images 2.6 on the user's key (was MuAPI imagen4/ai-color-photo)
     // NEW entries — Timeline Editor internals that carry no upload call site
     // but are core to the protected Timeline Editor, and whose paired suites
     // were already byte-pinned below. Neither file has been touched by this

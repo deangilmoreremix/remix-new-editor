@@ -39,7 +39,10 @@
 import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
 const TIMEOUT_MS = 120_000;
 
-const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
+// Images 2.6 Flare (fast) is the default; callers may pin another model, and an
+// unpinned request falls back once to `gpt-image-2` if the account lacks 2.6.
+const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.6-flare';
+const FALLBACK_IMAGE_MODEL = 'gpt-image-2';
 const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
 
 /**
@@ -226,6 +229,7 @@ export async function handler(event) {
   let useResponsesApi = false;
   let responseId = null;
   let revisedPrompt = null;
+  let lastCall; // { fn, body } of the Images call, for the one-shot model fallback
 
   // Strategy:
   // - If context is provided (niche/scene), use Responses API with the
@@ -244,6 +248,7 @@ export async function handler(event) {
     };
     if (quality && quality !== 'auto') editBody.quality = quality;
     try {
+      lastCall = { fn: callImagesEditApi, body: editBody };
       imageRes = await callImagesEditApi(apiKey, editBody);
     } catch (e) {
       const msg = e?.name === 'AbortError' ? 'OpenAI Images API timed out' : `Network error: ${e.message}`;
@@ -297,6 +302,7 @@ export async function handler(event) {
     if (quality && quality !== 'auto') directBody.quality = quality;
 
     try {
+      lastCall = { fn: callImagesApi, body: directBody };
       imageRes = await callImagesApi(apiKey, directBody);
     } catch (e) {
       const msg = e?.name === 'AbortError' ? 'OpenAI Images API timed out' : `Network error: ${e.message}`;
@@ -313,10 +319,29 @@ export async function handler(event) {
     if (quality && quality !== 'auto') directBody.quality = quality;
 
     try {
+      lastCall = { fn: callImagesApi, body: directBody };
       imageRes = await callImagesApi(apiKey, directBody);
     } catch (e) {
       const msg = e?.name === 'AbortError' ? 'OpenAI Images API timed out' : `Network error: ${e.message}`;
       return jsonResponse(502, { ok: false, error: msg });
+    }
+  }
+
+  // Unpinned request on a 2.6 default that this account can't use: retry once on gpt-image-2.
+  let usedModel = imageModel;
+  if (!imageRes.ok && !model && lastCall && imageModel !== FALLBACK_IMAGE_MODEL
+      && (imageRes.status === 400 || imageRes.status === 404)) {
+    let msg = '';
+    try { msg = (await imageRes.clone().text()).toLowerCase(); } catch { /* ignore */ }
+    if (/model/.test(msg) && /(not found|does not exist|unsupported|unavailable|invalid|access)/.test(msg)) {
+      try {
+        lastCall.body.model = FALLBACK_IMAGE_MODEL;
+        imageRes = await lastCall.fn(apiKey, lastCall.body);
+        usedModel = FALLBACK_IMAGE_MODEL;
+      } catch (e) {
+        const m = e?.name === 'AbortError' ? 'OpenAI Images API timed out' : `Network error: ${e.message}`;
+        return jsonResponse(502, { ok: false, error: m });
+      }
     }
   }
 
@@ -348,7 +373,7 @@ export async function handler(event) {
         type: 'image',
         source: 'openai',
         provider: 'openai',
-        model: imageModel,
+        model: usedModel,
         name: prompt.slice(0, 60),
         url: `data:image/png;base64,${item.b64_json}`,
         thumbnail: `data:image/png;base64,${item.b64_json}`,
@@ -370,7 +395,7 @@ export async function handler(event) {
         type: 'image',
         source: 'openai',
         provider: 'openai',
-        model: imageModel,
+        model: usedModel,
         name: prompt.slice(0, 60),
         url: item.url,
         thumbnail: item.url,

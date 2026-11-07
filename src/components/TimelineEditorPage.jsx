@@ -1458,43 +1458,6 @@ export function TimelineEditorPage() {
         return;
       }
 
-      if (tool === 'element_create') {
-        const element = result.element || { name: 'Element', type: 'image', description: '', url };
-        state.mediaLibrary = state.mediaLibrary || [];
-        state.mediaLibrary.push({
-          id: 'element-' + Date.now(),
-          icon: element.type === 'image' ? '🖼️' : '🎬',
-          label: element.name || 'Generated Element',
-          type: element.type || 'image',
-          desc: element.description || 'AI-generated element',
-          src: element.url || url,
-          metadata: { cinegenProcessed: true, tool, requestId: result.requestId }
-        });
-        renderMedia();
-        debouncedSave(0);
-        showToast('Element added to media library', 'success');
-        return;
-      }
-
-      if (tool === 'shot_board') {
-        state.mediaLibrary = state.mediaLibrary || [];
-        (urls || []).forEach((shotUrl, idx) => {
-          state.mediaLibrary.push({
-            id: 'shot-' + Date.now() + '-' + idx,
-            icon: '🎬',
-            label: `Shot ${idx + 1}`,
-            type: 'image',
-            desc: 'AI-generated shot board frame',
-            src: shotUrl,
-            metadata: { cinegenProcessed: true, tool, requestId: result.requestId, shotIndex: idx }
-          });
-        });
-        renderMedia();
-        debouncedSave(0);
-        showToast(`${urls.length} shot board frames added to media library`, 'success');
-        return;
-      }
-
       if (tool === 'sam3_segment' && result.video?.url) {
         if (selectedClip) {
           selectedClip.metadata = selectedClip.metadata || {};
@@ -8668,7 +8631,7 @@ export function TimelineEditorPage() {
                 timelineData: prepareTimelineForVideoGeneration(),
                 cinegenTools: {
                   enabled: true,
-                  availableTools: ['gap_fill', 'extend', 'music_generation', 'mask_tool', 'element_create', 'llm_chat', 'fill_gap', 'extend_clip'],
+                  availableTools: ['gap_fill', 'extend', 'music_generation', 'mask_tool', 'llm_chat', 'fill_gap', 'extend_clip'],
                   structuredResults: true,
                   version: '1.1',
                   autoApply: true
