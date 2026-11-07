@@ -58,23 +58,40 @@ async function fetchClerkUser(userId, fetchImpl) {
   return res.json();
 }
 
-function isNotFound(error) {
+function isAlreadyRegistered(error) {
   const msg = String(error?.message || '').toLowerCase();
-  return error?.status === 404 || msg.includes('not found') || msg.includes('no user');
+  return (
+    error?.code === 'email_exists' ||
+    error?.code === 'user_already_exists' ||
+    msg.includes('already been registered') ||
+    msg.includes('already registered')
+  );
 }
 
-/** Generate a magic-link token for `email`, creating the auth user if needed. */
-async function issueMagicLink(admin, email, clerkUserId) {
-  let { data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email });
-  if (error && isNotFound(error)) {
-    const created = await admin.auth.admin.createUser({
-      email,
-      email_confirm: true,
-      app_metadata: { clerk_user_id: clerkUserId, source: 'smart-website-builder' },
-    });
-    if (created.error) throw created.error;
-    ({ data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email }));
-  }
+/**
+ * Create the Supabase auth user for a first-time builder visitor.
+ *
+ * This must happen BEFORE generateLink: generateLink({ type: 'magiclink' })
+ * silently creates unknown users itself, with no app_metadata. The main app's
+ * on_auth_user_created trigger (public.handle_new_user) then has no way to
+ * tell a builder login from any other and tries to add a row to public.users,
+ * which requires a Clerk id it never provides, so the insert (and the whole
+ * login) fails. The `source` marker lets that trigger skip builder logins
+ * (see supabase/migrations/20261106120000_website_builder_skip_main_users_row.sql).
+ * An address that already has a Supabase login (from another app) is reused.
+ */
+async function ensureAuthUser(admin, email, clerkUserId) {
+  const { error } = await admin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    app_metadata: { clerk_user_id: clerkUserId, source: 'smart-website-builder' },
+  });
+  if (error && !isAlreadyRegistered(error)) throw error;
+}
+
+/** Generate a one-time magic-link token for an existing Supabase auth user. */
+async function issueMagicLink(admin, email) {
+  const { data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email });
   if (error) throw error;
   const tokenHash = data?.properties?.hashed_token;
   const authUserId = data?.user?.id;
@@ -112,13 +129,24 @@ export function createHandler({ fetchImpl = fetch, createAdminClient } = {}) {
       : createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
     try {
-      const { tokenHash, authUserId } = await issueMagicLink(admin, email, userId);
+      // A returning builder user is matched by Clerk id, so a later change of
+      // their SmartVideo email never splits their projects across two logins.
+      const { data: existing, error: lookupError } = await admin
+        .from('wb_profiles')
+        .select('id, email')
+        .eq('clerk_user_id', userId)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+
+      const loginEmail = existing?.email || email;
+      if (!existing) await ensureAuthUser(admin, loginEmail, userId);
+      const { tokenHash, authUserId } = await issueMagicLink(admin, loginEmail);
 
       const fullName = [clerkUser.first_name, clerkUser.last_name].filter(Boolean).join(' ') || clerkUser.username || null;
       const { data: profile, error: profileError } = await admin
         .from('wb_profiles')
         .upsert(
-          { id: authUserId, email, clerk_user_id: userId, full_name: fullName, avatar_url: clerkUser.image_url || null },
+          { id: authUserId, email: loginEmail, clerk_user_id: userId, full_name: fullName, avatar_url: clerkUser.image_url || null },
           { onConflict: 'id' },
         )
         .select('suspended')
@@ -126,7 +154,7 @@ export function createHandler({ fetchImpl = fetch, createAdminClient } = {}) {
       if (profileError) throw profileError;
       if (profile?.suspended) return json(403, { error: 'suspended' });
 
-      return json(200, { token_hash: tokenHash, type: 'email', email });
+      return json(200, { token_hash: tokenHash, type: 'email', email: loginEmail });
     } catch (err) {
       console.error('[website-builder-session] session issue failed:', err?.message || err);
       return json(500, { error: 'session_failed' });
