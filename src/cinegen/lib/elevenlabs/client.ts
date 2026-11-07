@@ -1,8 +1,9 @@
 import type { ElevenLabsAudioRequest, ElevenLabsAudioResult, ElevenLabsPreview, ElevenLabsVoice } from './types';
-// [remix] CineGen reaches ElevenLabs through its own cloud account and backend, which this editor does not have.
-// Calls fail with a clear message instead of contacting that service.
-export async function elevenLabsRpc<T>(_method: string, _params?: unknown): Promise<T> {
-  throw new Error('ElevenLabs is not connected in this editor.');
+// [remix] CineGen reaches ElevenLabs through its own cloud account. Here the same client surface is served by MuAPI
+// (the user's own key): speech -> MuAPI ElevenLabs, sound effects -> Suno sounds, enhancer -> OpenAI. See adapters/web-elevenlabs.ts.
+export async function elevenLabsRpc<T>(method: string, params?: unknown): Promise<T> {
+  const { elevenLabsWeb } = await import('@cinegen/adapters/web-elevenlabs');
+  return await elevenLabsWeb(method, params) as T;
 }
 export const elevenLabs = {
   enhance: (params: { requestId: string; kind: 'voice' | 'direction' | 'sound'; text: string; feedback?: string }) => elevenLabsRpc<{ status: 'running' | 'complete' | 'error'; text?: string; error?: string }>('enhance', params),

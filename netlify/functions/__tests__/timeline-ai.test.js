@@ -56,3 +56,23 @@ describe('timeline-ai (MuAPI only)', () => {
     expect(bad.statusCode).toBe(400);
   });
 });
+
+describe('timeline-ai — generic generate with MuAPI\'s live catalog', () => {
+  it('runs a model that is not in the bundled snapshot (ElevenLabs TTS) and filters to its declared fields', async () => {
+    const live = [{ name: 'elevenlabs-v4', endpoint_url: 'elevenlabs-v4', required_fields: ['prompt'], input_fields: ['prompt', 'voice_id'], is_enabled: true }];
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify(live), { status: 200 }));
+    const post = vi.fn(async () => ({ request_id: 'req_tts1' }));
+    const res = await handle({ action: 'submit', tool: 'generate', params: { model: 'elevenlabs-v4', inputs: { prompt: 'Hello', voice_id: 'abc', bogus: 1 } } }, 'u3', { keys: { muapi: KEY }, post, fetchImpl });
+    expect(body(res)).toMatchObject({ ok: true, status: 'pending', requestId: 'req_tts1', model: 'elevenlabs-v4' });
+    expect(post).toHaveBeenCalledWith('/elevenlabs-v4', { prompt: 'Hello', voice_id: 'abc' }, undefined, KEY);
+  });
+  it('rejects an unknown model and a missing required field', async () => {
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify([{ name: 'elevenlabs-v4', endpoint_url: 'elevenlabs-v4', required_fields: ['prompt'], input_fields: ['prompt'] }]), { status: 200 }));
+    const post = vi.fn();
+    const a = await handle({ action: 'submit', tool: 'generate', params: { model: 'nope', inputs: {} } }, 'u4', { keys: { muapi: KEY }, post, fetchImpl });
+    expect(a.statusCode).toBe(400);
+    const b = await handle({ action: 'submit', tool: 'generate', params: { model: 'elevenlabs-v4', inputs: {} } }, 'u5', { keys: { muapi: KEY }, post, fetchImpl });
+    expect(b.statusCode).toBe(400);
+    expect(post).not.toHaveBeenCalled();
+  });
+});

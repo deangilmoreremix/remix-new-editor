@@ -16,6 +16,8 @@
 import { withClerkAuth } from './_shared/clerkAuth.js';
 import { userMuapiKey, NEED_MUAPI_KEY, BAD_MUAPI_KEY } from './_shared/byok.js';
 import { muapiPost } from './cinegenProviders.js';
+import { liveModel, buildLivePayload } from '../../src/lib/muapi/liveCatalog.js';
+import { findCatalogModel } from '../../src/lib/muapi/genericModels.js';
 import {
   buildFirstLastFramePayload,
   buildVideoExtendPayload,
@@ -68,12 +70,21 @@ export function buildSubmit(body = {}) {
   }
 }
 
-export async function handle(body, userId, { keys = {}, post = muapiPost } = {}) {
+export async function handle(body, userId, { keys = {}, post = muapiPost, fetchImpl } = {}) {
   if (!keys.muapi) return fail(401, 'need_key', NEED_MUAPI_KEY);
 
   if (body.action === 'submit') {
     if (rateLimited(userId || 'anon')) return fail(429, 'rate_limited', 'Too many AI requests — wait a few minutes.');
-    const req = buildSubmit(body);
+    let req;
+    if (body.tool === 'generate' && body.params?.model && !findCatalogModel(body.params.model)) {
+      // Not in the bundled snapshot: use MuAPI's live catalog (ElevenLabs, Whisper, Suno sounds, ...).
+      try {
+        const m = await liveModel(String(body.params.model), { fetchImpl });
+        req = m ? buildLivePayload(m, body.params.inputs) : { error: `Unknown model: ${body.params.model}` };
+      } catch (err) { req = { error: err?.message || 'Invalid request' }; }
+    } else {
+      req = buildSubmit(body);
+    }
     if (req.error) return fail(400, 'bad_request', req.error);
     try {
       const res = await post(req.endpoint, req.payload, undefined, keys.muapi);
