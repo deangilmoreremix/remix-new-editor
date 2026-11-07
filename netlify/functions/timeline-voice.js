@@ -40,7 +40,46 @@ export function buildSession({ voice, tools }) {
   };
 }
 
+const REALTIME_VOICES = new Set(['alloy', 'ash', 'ballad', 'coral', 'echo', 'sage', 'shimmer', 'verse', 'marin', 'cedar']);
+
+/**
+ * CineGen's Voice Director session (electron/ipc/openai-llm.ts `llm:openai-realtime-session`), server side:
+ * the browser sends its WebRTC offer; this adds the user's key and returns the answer SDP.
+ */
+export async function realtimeCall(body, { key, fetchImpl = fetch } = {}) {
+  if (!key) return fail(401, 'need_key', NEED_OPENAI_KEY);
+  const sdp = typeof body.sdp === 'string' ? body.sdp : '';
+  if (!sdp || sdp.length > 1_000_000) return fail(400, 'bad_request', 'Voice Director received an invalid audio session offer.');
+  const voice = REALTIME_VOICES.has(body.voice) ? body.voice : 'cedar';
+  const session = JSON.stringify({
+    type: 'realtime',
+    model: process.env.OPENAI_REALTIME_MODEL || 'gpt-realtime',
+    audio: {
+      input: { transcription: { model: 'gpt-4o-mini-transcribe' }, turn_detection: { type: 'semantic_vad', eagerness: 'auto', create_response: true, interrupt_response: true } },
+      output: { voice },
+    },
+  });
+  const form = new FormData();
+  form.set('sdp', sdp);
+  form.set('session', session);
+  try {
+    const res = await fetchImpl('https://api.openai.com/v1/realtime/calls', { method: 'POST', headers: { Authorization: `Bearer ${key}` }, body: form });
+    const answer = await res.text();
+    if (!res.ok) {
+      if (res.status === 401) return fail(401, 'bad_key', BAD_OPENAI_KEY);
+      if (res.status === 429) return fail(429, 'no_credit', OPENAI_NO_CREDIT);
+      let message = `OpenAI Realtime failed (${res.status}).`;
+      try { const parsed = JSON.parse(answer); if (parsed.error?.message) message = String(parsed.error.message).slice(0, 300); } catch { /* not JSON */ }
+      return fail(502, 'provider_error', message);
+    }
+    return json(200, { ok: true, sdp: answer });
+  } catch {
+    return fail(502, 'provider_error', 'The voice service is unreachable.');
+  }
+}
+
 export async function handle(body, { key, fetchImpl = fetch } = {}) {
+  if (body?.action === 'call') return realtimeCall(body, { key, fetchImpl });
   if (!key) return fail(401, 'need_key', NEED_OPENAI_KEY);
   try {
     const res = await fetchImpl('https://api.openai.com/v1/realtime/client_secrets', {

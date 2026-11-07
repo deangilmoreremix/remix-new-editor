@@ -40,7 +40,7 @@ const EMPTY_CLI: Record<CliLlmProviderId, DirectorCliInfo> = {
 };
 
 export function AssistantDrawer({ open, onClose, projectId, state, dispatch }: AssistantDrawerProps) {
-  const [provider, setProvider] = useState<DirectorLlmProvider>('claude-code');
+  const [provider, setProvider] = useState<DirectorLlmProvider>('openai') // [remix] OpenAI is the web provider;
   const [cliProviders, setCliProviders] = useState(EMPTY_CLI);
   const [falReady, setFalReady] = useState(false);
   const [openaiReady, setOpenaiReady] = useState(false);
@@ -251,7 +251,7 @@ export function AssistantDrawer({ open, onClose, projectId, state, dispatch }: A
               ? 'Claude Code is signed out. Sign in with “claude” in Terminal, then return here, or choose Codex.'
               : (provider === 'codex' || provider === 'luna') && cliProviders.codex.authenticated === false
                 ? 'Codex is signed out. Run “codex login” in Terminal, then return here.'
-                : 'Choose a signed-in assistant, or add a fal.ai / OpenAI key in Settings.'}</p>
+                : 'Add your OpenAI key in Settings to use the assistant.'}</p>
           )}
           <div className="asst-inputbox">
             <textarea

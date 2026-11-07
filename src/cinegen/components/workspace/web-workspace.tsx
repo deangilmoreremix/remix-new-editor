@@ -10,12 +10,20 @@ import { EditTab } from '@cinegen/components/edit/edit-tab';
 import { DirectorTab } from '@cinegen/components/director/director-tab';
 import { LLMTab } from '@cinegen/components/llm/llm-tab';
 import { ExportTab } from '@cinegen/components/export/export-tab';
+import { AssistantDrawer } from '@cinegen/components/assistant/assistant-drawer';
+import { VoiceDirectorOverlay } from '@cinegen/components/assistant/voice-director-overlay';
+import type { DirectorShow } from '@cinegen/types/director';
+import { SettingsPage } from '@cinegen/components/settings/settings-page';
 
 function Tabs({ onBack }: { onBack?: () => void }) {
   const { state, dispatch, projectId } = useWorkspace();
   const [llmThinking, setLlmThinking] = useState(false);
   const [unread, setUnread] = useState(false);
   const noop = useCallback(() => undefined, []);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [voiceDirectorOpen, setVoiceDirectorOpen] = useState(false);
+  const applyDirector = useCallback((director: DirectorShow) => dispatch({ type: 'SET_DIRECTOR', director }), [dispatch]);
+  const undo = useCallback(() => dispatch({ type: 'UNDO' } as never), [dispatch]);
   const onTab = useCallback((tab: ProjectTab) => {
     if (tab === 'llm') setUnread(false);
     dispatch({ type: 'SET_TAB', tab });
@@ -28,6 +36,10 @@ function Tabs({ onBack }: { onBack?: () => void }) {
         onBackToHome={onBack}
         showSkillsButton={false}
         llmCopilotStatus={{ isThinking: llmThinking, hasUnreadResponse: unread }}
+        assistantOpen={assistantOpen}
+        onToggleAssistant={() => { setVoiceDirectorOpen(false); setAssistantOpen((o) => !o); }}
+        voiceDirectorOpen={voiceDirectorOpen}
+        onToggleVoiceDirector={() => { setAssistantOpen(false); setVoiceDirectorOpen((o) => !o); }}
       />
       <main className="workspace-content">
         {state.activeTab === 'elements' && <ElementsTab />}
@@ -55,7 +67,12 @@ function Tabs({ onBack }: { onBack?: () => void }) {
           />
         </div>
         {state.activeTab === 'export' && <ExportTab />}
+        {state.activeTab === 'settings' && (
+          <SettingsPage projectId={projectId} useSqlite={false} onBack={() => dispatch({ type: 'SET_TAB', tab: 'edit' })} />
+        )}
       </main>
+      <AssistantDrawer open={assistantOpen} onClose={() => setAssistantOpen(false)} projectId={projectId} state={state} dispatch={dispatch as never} />
+      <VoiceDirectorOverlay open={voiceDirectorOpen} state={state} onClose={() => setVoiceDirectorOpen(false)} onApplyDirector={applyDirector} onUndo={undo} />
     </>
   );
 }

@@ -181,6 +181,8 @@ export function WorkspaceProvider({ projectId = 'timeline-editor', children, ini
       try {
         const out: Record<string, unknown> = {};
         for (const k of PERSISTED) out[k] = (state as unknown as Record<string, unknown>)[k];
+        // blob: proxies die with the page; they are regenerated on demand.
+        out.assets = state.assets.map((a) => (typeof a.proxyRef === 'string' && a.proxyRef.startsWith('blob:') ? { ...a, proxyRef: undefined } : a));
         localStorage.setItem(STORE, JSON.stringify(out));
       } catch { /* quota */ }
     }, 800);

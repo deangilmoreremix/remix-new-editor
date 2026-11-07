@@ -5,6 +5,8 @@ import { webMediaApi } from './web-media';
 import { uploadFileToStorage } from '../../lib/supabase.js';
 
 import { responsesChat } from './llm-responses';
+import { authHeader } from './llm-responses';
+import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 export { responsesChat };
 
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
@@ -168,6 +170,18 @@ export function registerWebApi() {
       const a = p as { systemPrompt?: string; messages: Array<{ role: string; content: string }>; userMessage?: string };
       const turns = (a.messages ?? []).map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}:\n${m.content}`).join('\n\n');
       return responsesChat({ system: a.systemPrompt, user: turns || a.userMessage || '' });
+    },
+    // Voice Director: CineGen's session logic, run server-side so the key stays off the page.
+    openaiRealtimeSession: async (p: unknown) => {
+      const a = p as { sdp: string; voice?: string };
+      const res = await fetch('/api/timeline-voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeader()), ...openaiKeyHeader() },
+        body: JSON.stringify({ action: 'call', sdp: a.sdp, voice: a.voice }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) throw new Error(data?.error?.message || 'Add your OpenAI key in Settings to use Voice Director.');
+      return { sdp: data.sdp as string };
     },
     // Detected CLIs (Claude Code / Codex / Gemini) are desktop-only.
     cliDetect: async () => ({ providers: [] }),

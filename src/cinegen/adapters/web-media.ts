@@ -112,7 +112,8 @@ async function runJob(assetId: string, url: string, jobType: string) {
       result = { peaks, peaksPath: `data:application/json,${encodeURIComponent(JSON.stringify(peaks.map((p) => Math.round(p * 1000) / 1000)))}` };
     }
     else if (jobType === 'generate_filmstrip') result = { frames: await extractFilmstripFrames(url) };
-    else result = {}; // generate_proxy: the browser plays the original
+    else if (jobType === 'generate_proxy') result = { outputPath: await proxyBlobUrl(url) };
+    else result = {};
     emitComplete({ jobId, assetId, jobType, result });
   } catch (error) {
     emitError({ jobId, assetId, jobType, error: error instanceof Error ? error.message : String(error) });
@@ -134,6 +135,22 @@ async function trimToBlobUrl(inputPath: string, startSec: number, endSec: number
   const url = URL.createObjectURL(blob);
   webFiles.set(url, { name: 'trim', type: blob.type, size: blob.size });
   return url;
+}
+
+/** A 640px-wide draft copy for smooth editing (CineGen's proxy playback), made with mediabunny. */
+async function proxyBlobUrl(url: string): Promise<string> {
+  const mb = await import('mediabunny');
+  const input = new mb.Input({ source: new mb.UrlSource(url), formats: mb.ALL_FORMATS });
+  const output = new mb.Output({ format: new mb.Mp4OutputFormat(), target: new mb.BufferTarget() });
+  const conversion = await mb.Conversion.init({ input, output, video: { width: 640, bitrate: 1_500_000, frameRate: 24 } });
+  if (!conversion.isValid) throw new Error('A proxy could not be made for this clip.');
+  await conversion.execute();
+  const buffer = (output.target as { buffer: ArrayBuffer | null }).buffer;
+  if (!buffer) throw new Error('The proxy produced no output.');
+  const blob = new Blob([buffer], { type: 'video/mp4' });
+  const out = URL.createObjectURL(blob);
+  webFiles.set(out, { name: 'proxy', type: blob.type, size: blob.size });
+  return out;
 }
 
 /** A public URL for media the model APIs must fetch: https passes through, local media is uploaded. */

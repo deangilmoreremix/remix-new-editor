@@ -1,18 +1,8 @@
 import type { ElevenLabsAudioRequest, ElevenLabsAudioResult, ElevenLabsPreview, ElevenLabsVoice } from './types';
-const BACKEND = 'https://cinegen-api.christopherjohnogden.workers.dev';
-export async function elevenLabsRpc<T>(method: string, params?: unknown): Promise<T> {
-  const { waitForCloudAuth } = await import('@cinegen/lib/cloud/firebase');
-  const user = await waitForCloudAuth();
-  if (!user) throw new Error('Sign in to CineGen to connect ElevenLabs and save audio.');
-  if (window.electronAPI?.elevenlabs) return await window.electronAPI.elevenlabs.request(method, params, await user.getIdToken()) as T;
-  // Both the web app and the Mac app use the same encrypted account connection.
-  const response = await fetch(`${BACKEND}/api/rpc/elevenlabs/${method}`, {
-    method: 'POST', headers: { 'content-type': 'application/json', 'x-cinegen-id-token': await user.getIdToken(), 'x-cinegen-origin': 'https://cinegen-film.vercel.app' },
-    body: JSON.stringify({ args: params === undefined ? [] : [params] }), signal: AbortSignal.timeout(method === 'generate' || method === 'design' || method === 'enhance' ? 240000 : 60000),
-  });
-  const data = await response.json();
-  if (!response.ok || !data.ok) throw new Error(data.error?.message || 'ElevenLabs could not complete this request.');
-  return data.result as T;
+// [remix] CineGen reaches ElevenLabs through its own cloud account and backend, which this editor does not have.
+// Calls fail with a clear message instead of contacting that service.
+export async function elevenLabsRpc<T>(_method: string, _params?: unknown): Promise<T> {
+  throw new Error('ElevenLabs is not connected in this editor.');
 }
 export const elevenLabs = {
   enhance: (params: { requestId: string; kind: 'voice' | 'direction' | 'sound'; text: string; feedback?: string }) => elevenLabsRpc<{ status: 'running' | 'complete' | 'error'; text?: string; error?: string }>('enhance', params),

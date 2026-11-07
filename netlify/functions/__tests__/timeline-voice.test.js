@@ -29,3 +29,20 @@ describe('timeline-voice (Realtime client secret, user key)', () => {
     expect(JSON.parse(bad.body).error.code).toBe('bad_key');
   });
 });
+
+describe('timeline-voice — Voice Director session (CineGen port)', () => {
+  it('forwards the WebRTC offer with the user key and returns the answer SDP', async () => {
+    const { realtimeCall } = await import('../timeline-voice.js');
+    const calls = [];
+    const fetchImpl = async (url, init) => { calls.push({ url, auth: init.headers.Authorization, form: init.body }); return new Response('v=0 answer', { status: 200 }); };
+    const r = await realtimeCall({ sdp: 'v=0 offer', voice: 'marin' }, { key: 'sk-user', fetchImpl });
+    expect(JSON.parse(r.body)).toEqual({ ok: true, sdp: 'v=0 answer' });
+    expect(calls[0].url).toBe('https://api.openai.com/v1/realtime/calls');
+    expect(calls[0].auth).toBe('Bearer sk-user');
+    expect(JSON.parse(calls[0].form.get('session')).audio.output.voice).toBe('marin');
+  });
+  it('needs the user key', async () => {
+    const { realtimeCall } = await import('../timeline-voice.js');
+    expect((await realtimeCall({ sdp: 'x' }, { key: '' })).statusCode).toBe(401);
+  });
+});
