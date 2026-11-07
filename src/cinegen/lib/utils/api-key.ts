@@ -1,3 +1,5 @@
+// @ts-expect-error plain JS key manager from the main app
+import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 function getSettingsValue(key: string): unknown {
   if (typeof window === 'undefined') return undefined;
   try {
@@ -30,7 +32,8 @@ export function getKieApiKey(): string | undefined {
 }
 
 export function getOpenAiApiKey(): string | undefined {
-  return 'byok'; // [remix] see getApiKey
+  // [remix] 'byok' when the user has added their own OpenAI key (the adapters attach the real key themselves).
+  try { return apiKeyManager.getOpenAIKey?.() ? 'byok' : undefined; } catch { return undefined; }
 }
 
 export function getRunpodApiKey(): string | undefined {

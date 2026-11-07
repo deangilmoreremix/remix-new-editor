@@ -55,33 +55,13 @@ export function DirectorLlmPicker({
     };
   }, [open]);
 
+  // [remix] Web: one LLM — OpenAI Responses API on the user's own key (CLI / fal / Luna options are desktop-only).
   const options: LlmOption[] = [
-    ...CLI_LLM_PROVIDER_IDS.map((id) => ({
-      id: id as DirectorLlmProvider,
-      name: getCliProviderLabel(id),
-      sub: !providers[id]?.installed ? 'Not installed'
-        : providers[id]?.authenticated === false ? 'Sign in required'
-        : providers[id]?.authenticated ? 'Signed in · Local CLI' : 'Local CLI',
-      disabled: !providers[id]?.installed || providers[id]?.authenticated === false,
-    })),
-    {
-      id: 'luna' as const,
-      name: 'ChatGPT Luna',
-      sub: !providers.codex?.installed ? 'Install Codex CLI'
-        : providers.codex.authenticated === false ? 'Sign in to Codex' : 'GPT-5.6 · ChatGPT Codex quota',
-      disabled: !providers.codex?.installed || providers.codex?.authenticated === false,
-    },
     {
       id: 'openai' as const,
-      name: 'OpenAI Luna',
-      sub: openaiReady ? 'GPT-5.6 · API · cheap' : 'Add OpenAI key in Settings',
+      name: 'OpenAI',
+      sub: openaiReady ? 'Responses API · your key' : 'Add your OpenAI key in Settings',
       disabled: !openaiReady,
-    },
-    {
-      id: 'fal' as const,
-      name: 'fal.ai',
-      sub: falReady ? 'Gemini 2.5 Flash · hosted' : 'Add fal key in Settings',
-      disabled: !falReady,
     },
   ];
   const current = options.find((option) => option.id === provider) ?? options[0];

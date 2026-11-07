@@ -92,6 +92,23 @@ const clip = (s, n) => String(s ?? '').slice(0, n);
 
 /** Build the OpenAI Responses request for a task. Exported for tests. */
 export function buildRequest(task, input = {}) {
+  // Free-form text / JSON-object call used by the CineGen workspace (Director, Elements, LLM tab).
+  if (task === 'raw') {
+    const system = clip(input.system, 60_000);
+    const user = clip(input.user, 120_000);
+    if (!user.trim()) return { error: 'user text is required' };
+    const images = (Array.isArray(input.images) ? input.images : []).slice(0, 6)
+      .filter((u) => /^(https:\/\/|data:image\/(?:jpeg|png|webp);base64,)/i.test(String(u)));
+    return {
+      body: {
+        model: MODEL,
+        ...(system ? { instructions: system } : {}),
+        input: [{ role: 'user', content: [{ type: 'input_text', text: user }, ...images.map((image_url) => ({ type: 'input_image', image_url }))] }],
+        text: { format: { type: input.json ? 'json_object' : 'text' } },
+        store: false,
+      },
+    };
+  }
   if (!SCHEMAS[task]) return { error: `Unknown task: ${task}` };
   let userText;
   if (task === 'chat') {
@@ -140,6 +157,13 @@ export function buildRequest(task, input = {}) {
 }
 
 /** Pull the JSON text out of a Responses API result. Exported for tests. */
+export function outputText(data) {
+  if (typeof data?.output_text === 'string' && data.output_text) return data.output_text;
+  return (Array.isArray(data?.output) ? data.output : [])
+    .filter((o) => o.type === 'message').flatMap((o) => o.content || [])
+    .filter((c) => c.type === 'output_text').map((c) => c.text).join('');
+}
+
 export function parseOutput(data) {
   let text = typeof data?.output_text === 'string' ? data.output_text : '';
   if (!text) {
@@ -173,8 +197,8 @@ export async function handle(body, { key, fetchImpl = fetch } = {}) {
       console.error('[timeline-llm] OpenAI error', res.status);
       return fail(502, 'provider_error', 'The AI service returned an error.');
     }
-    const out = parseOutput(data);
-    if (!out) return fail(502, 'bad_output', 'The AI returned an unreadable answer — try again.');
+    const out = body?.task === 'raw' ? { text: outputText(data) } : parseOutput(data);
+    if (!out || (body?.task === 'raw' && !out.text)) return fail(502, 'bad_output', 'The AI returned an unreadable answer — try again.');
     return json(200, { ok: true, task: body.task, data: out, usage: data.usage || null, model: data.model || MODEL });
   } catch (e) {
     return fail(e?.name === 'AbortError' ? 504 : 502, 'provider_error', e?.name === 'AbortError' ? 'The AI took too long.' : 'The AI service is unreachable.');

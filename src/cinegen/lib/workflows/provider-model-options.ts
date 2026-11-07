@@ -3,7 +3,10 @@ import type { ModelDefinition } from '@cinegen/types/workflow';
 
 export type ModelProvider = NonNullable<ModelDefinition['provider']>;
 
+// [remix] Web providers: MuAPI (video / music / image) and OpenAI Images 2.6, both on the user's own keys.
 export const MODEL_PROVIDER_LABELS: Record<ModelProvider, string> = {
+  openai: 'OpenAI',
+  muapi: 'MuAPI',
   topview: 'Topview AI',
   higgsfield: 'Higgsfield',
   fal: 'fal.ai',
@@ -14,13 +17,15 @@ export const MODEL_PROVIDER_LABELS: Record<ModelProvider, string> = {
 };
 
 const MODEL_PROVIDER_PRIORITY: Record<ModelProvider, number> = {
-  topview: 0,
-  higgsfield: 1,
-  fal: 2,
-  kie: 3,
-  runpod: 4,
-  pod: 5,
-  local: 6,
+  openai: 0,
+  muapi: 1,
+  topview: 90,
+  higgsfield: 91,
+  fal: 92,
+  kie: 93,
+  runpod: 94,
+  pod: 95,
+  local: 96,
 };
 
 export interface ProviderModelOption {
@@ -32,7 +37,7 @@ export interface ProviderModelOption {
 }
 
 export function modelProvider(model: ModelDefinition): ModelProvider {
-  return model.provider ?? 'fal';
+  return model.provider ?? 'muapi';
 }
 
 export function modelProviderLabel(model: ModelDefinition): string {

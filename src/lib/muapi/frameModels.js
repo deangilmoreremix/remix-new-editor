@@ -189,3 +189,6 @@ export function resultUrls(result) {
   [result.url, result.output?.url, result.video?.url, result.image?.url].forEach(push);
   return [...new Set(out)];
 }
+
+// Any catalog model (Spaces canvas nodes). Implementation lives in genericModels.js.
+export { buildGenericPayload } from './genericModels.js';

@@ -18,21 +18,17 @@ interface NodePaletteProps {
   sourcePortType?: PortType | null;
 }
 
-type Tab = 'all' | 'topview' | 'higgsfield' | 'cloud' | 'local' | 'runpod' | 'pod';
+type Tab = 'all' | 'openai' | 'muapi'; // [remix] providers this editor can run
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'all',        label: 'All'        },
-  { id: 'topview',    label: 'Topview'    },
-  { id: 'higgsfield', label: 'Higgsfield' },
-  { id: 'cloud',      label: 'Cloud'      },
-  { id: 'local',      label: 'Local'      },
-  { id: 'runpod',     label: 'RunPod'     },
-  { id: 'pod',        label: 'Pod'        },
+  { id: 'all',    label: 'All'    },
+  { id: 'openai', label: 'OpenAI' },
+  { id: 'muapi',  label: 'MuAPI'  },
 ];
 
 const PROVIDERS = Object.entries(MODEL_PROVIDER_LABELS) as [ModelProvider, string][];
 // Topview and Higgsfield already have their own tabs.
-const CLOUD_PROVIDERS_WITHOUT_TABS: ModelProvider[] = ['fal', 'kie'];
+const CLOUD_PROVIDERS_WITHOUT_TABS: ModelProvider[] = [];
 const HIDDEN_PROVIDERS_KEY = 'cinegen:canvas:hidden-providers';
 
 function loadHiddenProviders(): ModelProvider[] {
@@ -75,9 +71,7 @@ export function NodePalette({ position, onSelect, onClose, sourcePortType = null
   const listRef = useRef<HTMLDivElement>(null);
 
   const openAbove = position.y > window.innerHeight / 2;
-  const visibleTabs = TABS.filter(({ id }) => id === 'all' || (id === 'cloud'
-    ? CLOUD_PROVIDERS_WITHOUT_TABS.some(provider => !hiddenProviders.includes(provider))
-    : !hiddenProviders.includes(id)));
+  const visibleTabs = TABS.filter(({ id }) => id === 'all' || !hiddenProviders.includes(id));
   const activeTab = visibleTabs.some(({ id }) => id === tab) ? tab : 'all';
 
   useEffect(() => {
@@ -102,33 +96,13 @@ export function NodePalette({ position, onSelect, onClose, sourcePortType = null
         return false;
       }
       const modelDef = ALL_MODELS[n.type];
-      const provider = modelDef ? (modelDef.provider ?? 'fal') : null;
+      const provider = modelDef ? (modelDef.provider ?? 'muapi') : null;
       if (modelDef && isLegacyTopviewAutomaticModel(modelDef)) return false;
       if (provider && hiddenProviders.includes(provider)) return false;
 
-      if (activeTab === 'cloud') {
+      if (activeTab === 'openai' || activeTab === 'muapi') {
         if (!n.isModel) return false;
-        return provider === 'topview' || provider === 'fal' || provider === 'kie' || provider === 'higgsfield';
-      }
-      if (activeTab === 'topview') {
-        if (!n.isModel) return false;
-        return provider === 'topview';
-      }
-      if (activeTab === 'higgsfield') {
-        if (!n.isModel) return false;
-        return provider === 'higgsfield';
-      }
-      if (activeTab === 'local') {
-        if (!n.isModel) return false;
-        return provider === 'local';
-      }
-      if (activeTab === 'runpod') {
-        if (!n.isModel) return false;
-        return provider === 'runpod';
-      }
-      if (activeTab === 'pod') {
-        if (!n.isModel) return false;
-        return provider === 'pod';
+        return provider === activeTab;
       }
       // 'all': show everything
       return true;
@@ -326,7 +300,7 @@ export function NodePalette({ position, onSelect, onClose, sourcePortType = null
               {group.nodes.map((node) => {
                 const idx = flatList.indexOf(node);
                 const modelDef = ALL_MODELS[node.type];
-                const provider = modelDef ? (modelDef.provider ?? 'fal') : null;
+                const provider = modelDef ? (modelDef.provider ?? 'muapi') : null;
                 const providerLabel = provider ? MODEL_PROVIDER_LABELS[provider] ?? provider : null;
                 const typeBadge = node.isModel
                   ? modelTypeBadge(modelDef?.outputType ?? node.category)

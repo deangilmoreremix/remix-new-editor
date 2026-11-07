@@ -8,7 +8,7 @@ import {
  *  ChatGPT Luna (Codex CLI), or OpenAI Luna (API key, gpt-5.6-luna). */
 export type DirectorLlmProvider = CliLlmProviderId | 'luna' | 'openai' | 'fal' | 'higgsfield';
 
-export const DEFAULT_DIRECTOR_LLM: DirectorLlmProvider = 'claude-code';
+export const DEFAULT_DIRECTOR_LLM: DirectorLlmProvider = 'openai'; // [remix] OpenAI Responses API (was the Claude Code CLI)
 
 /** The any-llm model director jobs use when the provider is 'fal'. */
 export const FAL_DIRECTOR_LLM_MODEL = 'google/gemini-2.5-flash';

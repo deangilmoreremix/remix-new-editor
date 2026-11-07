@@ -63,7 +63,7 @@ export interface ModelDefinition {
   inputs: ModelInputField[];
   outputType: 'image' | 'video' | 'audio' | 'text' | 'model3d';
   outputs?: ModelOutputField[];
-  provider?: 'topview' | 'higgsfield' | 'fal' | 'kie' | 'local' | 'runpod' | 'pod';
+  provider?: 'topview' | 'higgsfield' | 'fal' | 'kie' | 'local' | 'runpod' | 'pod' | 'muapi' | 'openai'; // [remix] muapi/openai added
   runpodEndpointId?: string;
   podRoute?: string;  // e.g. 'sdxl', 'flux', 'qwen-edit', 'ltx', 'wan-t2v', 'wan-i2v'
   /** Present when a known provider tool cannot run through this connection. */

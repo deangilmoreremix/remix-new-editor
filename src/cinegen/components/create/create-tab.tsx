@@ -20,6 +20,7 @@ import {
   setVideoGenerationProvider,
   type VideoGenerationProvider,
 } from '@cinegen/lib/utils/video-generation-provider';
+import { ProviderKeysCard } from './provider-keys-card';
 import { requestProviderUsageRefresh } from '@cinegen/lib/providers/project-usage';
 import { renewalCountdown } from '@cinegen/lib/providers/renewal';
 import { placeStudioNodeOnCanvas, removeStudioNodeFromCanvas } from '@cinegen/lib/studio/canvas-placement';
@@ -478,7 +479,7 @@ export function CreateTab() {
                     );
                   })}
                 </nav>
-                <ProviderBudgetCard />
+                <ProviderKeysCard /> {/* [remix] MuAPI + OpenAI (BYOK) instead of Topview/Higgsfield credits */}
               </>
             )}
 

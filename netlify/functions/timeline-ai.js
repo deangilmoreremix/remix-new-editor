@@ -24,6 +24,7 @@ import {
   buildWatermarkPayload,
   buildImageToVideoPayload,
   buildMusicPayload,
+  buildGenericPayload,
   resultUrls,
 } from '../../src/lib/muapi/frameModels.js';
 
@@ -41,6 +42,7 @@ const BUILDERS = {
   watermark_remove: buildWatermarkPayload,
   shot_video: buildImageToVideoPayload,
   music: buildMusicPayload,
+  generate: buildGenericPayload, // any catalog model (Spaces)
 };
 
 // Light per-user throttle (per function instance).

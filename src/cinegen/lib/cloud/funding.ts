@@ -2,6 +2,7 @@
 // Same export surface (`runWorkflow`, `WorkflowRunParams`, `WorkflowRunOptions`); generation runs on the
 // user's own keys: images → OpenAI Images 2.6, video/audio → MuAPI (/api/timeline-ai). No fal, no Render.
 import { generateImages, DEFAULT_IMAGE_MODEL, DETAIL_IMAGE_MODEL } from '../../../lib/editor/ai/openaiImages.js';
+import { getModelDefinition } from '@cinegen/lib/fal/models';
 import { runTimelineMuapi } from '../../../lib/editor/ai/timelineMuapi.js';
 
 export interface WorkflowRunParams {
@@ -51,6 +52,14 @@ export async function runWorkflow(params: WorkflowRunParams, _options: WorkflowR
   if (params.nodeType === 'sam3-segment-cloud') return runOnDeviceSegment(inputs);
   if (params.nodeType === 'sam3-track-cloud') {
     throw new Error('Tracking a mask across a video is not available in the web editor yet. Masks apply to the current frame.');
+  }
+  // Any MuAPI catalog model (Spaces / Studio nodes): one generic request, validated server-side against the catalog.
+  const def = getModelDefinition(params.nodeType);
+  if (def?.provider === 'muapi') {
+    const { url, urls } = await runTimelineMuapi('generate', { model: def.nodeType, inputs });
+    if (def.outputType === 'audio') return { audio: { url }, url, resultUrls: urls };
+    if (def.outputType === 'image') return { images: urls.map((u) => ({ url: u })), image: { url }, url, resultUrls: urls };
+    return { video: { url }, video_url: url, url, resultUrls: urls };
   }
   const outputType = params.outputType ?? (params.nodeType === 'video' ? 'video' : params.nodeType === 'music' ? 'audio' : 'image');
   const [modelTag] = String(params.modelId || '').split('|');
