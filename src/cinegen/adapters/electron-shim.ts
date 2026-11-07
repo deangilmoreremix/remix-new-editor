@@ -37,6 +37,8 @@ function namespace(ns: string) {
 export function installElectronShim() {
   const w = window as unknown as { electronAPI?: unknown };
   if (w.electronAPI) return;
+  // Real implementations register lazily (web-api.ts imports this module).
+  void import('./web-api').then((m) => m.registerWebApi());
   w.electronAPI = new Proxy({}, {
     get: (_t, ns: string | symbol) => {
       if (ns === 'platform') return 'web'; // string, not a namespace (CineGen reads it as an attribute)

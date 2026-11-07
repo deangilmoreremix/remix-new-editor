@@ -336,7 +336,7 @@ export function MusicGenerationPopup({
           apiKey: getApiKey(),
           nodeId: 'timeline-music',
           nodeType: 'music',
-          modelId: 'fal-ai/elevenlabs/music',
+          modelId: 'muapi:suno-create-music', // [remix] MuAPI Suno (was fal ElevenLabs music)
           inputs: {
             prompt: promptWithDuration,
             music_length_ms: durationMs,

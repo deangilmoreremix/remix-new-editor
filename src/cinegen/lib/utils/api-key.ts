@@ -18,19 +18,19 @@ const DEFAULT_BACKGROUND_VISION_MODEL = 'google/gemini-2.5-flash';
 const DEFAULT_CUT_VISION_MODEL = 'google/gemini-2.5-flash';
 const DEFAULT_MAX_CONCURRENT_VISION_JOBS = 2;
 
+// [remix] No fal. Generation runs on the user's own MuAPI / OpenAI keys, which the web adapters attach
+// themselves (apiKeyManager + X-MuAPI-Key / X-OpenAI-Key). These return a sentinel so CineGen's
+// "is a key configured?" gates pass; a missing real key surfaces from the adapter with a clear message.
 export function getApiKey(): string | undefined {
-  const value = getSettingsValue('falKey');
-  return typeof value === 'string' && value.trim() ? value : undefined;
+  return 'byok';
 }
 
 export function getKieApiKey(): string | undefined {
-  const value = getSettingsValue('kieKey');
-  return typeof value === 'string' && value.trim() ? value : undefined;
+  return undefined; // [remix] Kie.ai is not used
 }
 
 export function getOpenAiApiKey(): string | undefined {
-  const value = getSettingsValue('openaiKey');
-  return typeof value === 'string' && value.trim() ? value : undefined;
+  return 'byok'; // [remix] see getApiKey
 }
 
 export function getRunpodApiKey(): string | undefined {

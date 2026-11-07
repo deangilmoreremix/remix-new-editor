@@ -6,42 +6,21 @@ import type { Clip } from '@cinegen/types/timeline';
 import { clipEffectiveDuration } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 
-/* ── Duration snap per model ── */
-const MODEL_DURATIONS: Record<string, number[]> = {
-  'kie-kling3':       [3, 5, 8, 10, 15],
-  'kling-3-image':    [3, 5, 8, 10, 15],
-  'kling-first-last': [5, 10],
-  'kie-wan':          [5, 10, 15],
-  'kie-seedance2':    [4, 5, 8, 12, 15],
-  'kie-runway':       [5, 10],
-  'ltx-2-video':      [6, 8, 10],
-};
+/* [remix] Extend on MuAPI: "after" animates from the clip's last frame (image-to-video),
+   "before" leads into the first frame (first/last-frame model). Replaces the fal/Kie model list. */
+import { IMAGE_TO_VIDEO_MODELS, FIRST_LAST_FRAME_MODELS, DEFAULT_IMAGE_TO_VIDEO_MODEL, DEFAULT_FILL_GAP_MODEL } from '../../../lib/muapi/frameModels.js';
 
-function snapDuration(sec: number, modelId: string): number {
-  if (modelId === 'sora-2') {
-    return Math.min(20, Math.max(2, Math.round(sec)));
-  }
-  if (modelId === 'wan-2-2') {
-    return 5;
-  }
-  const opts = MODEL_DURATIONS[modelId] ?? [5, 10];
-  for (const opt of opts) {
-    if (opt >= sec) return opt;
-  }
+const modelsFor = (direction: 'before' | 'after') => Object.entries((direction === 'before' ? FIRST_LAST_FRAME_MODELS : IMAGE_TO_VIDEO_MODELS) as Record<string, { label: string; durations: number[] }>)
+  .map(([id, m]) => ({ id: `muapi:${id}`, name: m.label, durations: m.durations }));
+
+function snapDuration(sec: number, modelId: string, direction: 'before' | 'after'): number {
+  const m = modelsFor(direction).find((x) => x.id === modelId);
+  const opts = m?.durations ?? [5, 10];
+  const [lo, hi] = opts.length === 2 && opts[1] - opts[0] > 2 && direction === 'before' ? opts : [opts[0], opts[opts.length - 1]];
+  if (direction === 'before') return Math.min(hi, Math.max(lo, Math.round(sec)));
+  for (const opt of opts) if (opt >= sec) return opt;
   return opts[opts.length - 1];
 }
-
-const EXTEND_MODELS = [
-  { id: 'kie-kling3',       name: 'Kling 3.0' },
-  { id: 'kling-3-image',    name: 'Kling 3 (fal)' },
-  { id: 'kling-first-last', name: 'Kling First & Last' },
-  { id: 'kie-wan',          name: 'Wan 2.6 Flash' },
-  { id: 'wan-2-2',          name: 'Wan 2.2' },
-  { id: 'kie-seedance2',    name: 'Seedance 2' },
-  { id: 'kie-runway',       name: 'Runway Gen-4' },
-  { id: 'sora-2',           name: 'Sora 2' },
-  { id: 'ltx-2-video',      name: 'LTX 2' },
-];
 
 function buildModelInputs(
   modelId: string,
@@ -50,46 +29,8 @@ function buildModelInputs(
   prompt: string,
   duration: number,
 ): Record<string, unknown> {
-  const base: Record<string, unknown> = { prompt: prompt.trim() };
-
-  if (modelId === 'wan-2-2') {
-    base.num_frames = 81;
-  } else if (modelId === 'sora-2') {
-    base.duration = duration;
-  } else {
-    base.duration = String(duration);
-  }
-
-  if (modelId !== 'wan-2-2' && modelId !== 'sora-2') {
-    base.aspect_ratio = '16:9';
-  }
-
-  if (direction === 'after') {
-    if (modelId === 'kie-kling3')           { base.image_urls = [frameUrl]; }
-    else if (modelId === 'kling-3-image')   { base.start_image_url = frameUrl; }
-    else if (modelId === 'kling-first-last') { base.image_url = frameUrl; }
-    else if (modelId === 'kie-wan')         { base.image_urls = [frameUrl]; }
-    else if (modelId === 'wan-2-2')         { base.image_url = frameUrl; }
-    else if (modelId === 'kie-seedance2')   { base.urls = [frameUrl]; }
-    else if (modelId === 'kie-runway')      { base.imageUrl = frameUrl; }
-    else if (modelId === 'sora-2')          { base.image_url = frameUrl; }
-    else if (modelId === 'ltx-2-video')     { base.image_url = frameUrl; }
-  } else {
-    if (modelId === 'kling-3-image')        { base.end_image_url = frameUrl; }
-    else if (modelId === 'kling-first-last') { base.tail_image_url = frameUrl; }
-    else if (modelId === 'kie-kling3')      { base.image_urls = [frameUrl]; }
-    else if (modelId === 'kie-wan')         { base.image_urls = [frameUrl]; }
-    else if (modelId === 'wan-2-2')         { base.image_url = frameUrl; }
-    else if (modelId === 'kie-seedance2')   { base.urls = [frameUrl]; }
-    else if (modelId === 'kie-runway')      { base.imageUrl = frameUrl; }
-    else if (modelId === 'sora-2')          { base.image_url = frameUrl; }
-    else if (modelId === 'ltx-2-video')     { base.image_url = frameUrl; }
-  }
-
-  if (modelId === 'kie-kling3')   { base.mode = 'pro'; base.sound = true; }
-  if (modelId === 'kling-3-image') { base.generate_audio = true; }
-
-  return base;
+  void modelId;
+  return { prompt: prompt.trim(), duration, image_urls: [frameUrl], direction };
 }
 
 function extractFrameAtTime(
@@ -174,7 +115,7 @@ export function ExtendModal({
 }: ExtendModalProps) {
   const direction = asset.metadata?.extendDirection === 'before' ? 'before' : 'after';
   const [prompt, setPrompt] = useState('');
-  const [modelId, setModelId] = useState(() => direction === 'before' ? 'kling-3-image' : 'kie-kling3');
+  const [modelId, setModelId] = useState(() => `muapi:${direction === 'before' ? DEFAULT_FILL_GAP_MODEL : DEFAULT_IMAGE_TO_VIDEO_MODEL}`);
   const [phase, setPhase] = useState<'input' | 'extracting' | 'uploading' | 'generating'>('input');
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -252,7 +193,7 @@ export function ExtendModal({
       }
 
       setPhase('generating');
-      const snappedDuration = snapDuration(placeholderDuration, modelId);
+      const snappedDuration = snapDuration(placeholderDuration, modelId, direction);
       const inputs = buildModelInputs(modelId, direction, frameUrl, prompt, snappedDuration);
 
       const generationPromise = (async (): Promise<{ url: string; durationSec: number }> => {
@@ -348,7 +289,7 @@ export function ExtendModal({
             onChange={(e) => setModelId(e.target.value)}
             disabled={isGenerating}
           >
-            {EXTEND_MODELS.map((m) => (
+            {modelsFor(direction).map((m) => (
               <option key={m.id} value={m.id}>{m.name}</option>
             ))}
           </select>

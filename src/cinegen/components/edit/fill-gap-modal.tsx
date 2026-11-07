@@ -232,7 +232,7 @@ export function FillGapModal({
 
       if (controller.signal.aborted) return;
 
-      // Step 2: Call Kling 3.0 via workflow API
+      // Step 2: first/last-frame video on MuAPI via the workflow adapter
       setPhase('generating');
 
       const inputs: Record<string, unknown> = {
@@ -256,7 +256,7 @@ export function FillGapModal({
           kieKey: getKieApiKey(),
           nodeId: 'timeline-fill-gap',
           nodeType: 'video',
-          modelId: 'kie-kling3',
+          modelId: 'muapi:vidu-q2-turbo-start-end-video', // [remix] MuAPI first/last-frame model (was kie Kling 3.0)
           inputs,
         }) as Record<string, unknown>;
 
