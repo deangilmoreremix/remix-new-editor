@@ -5,3 +5,8 @@ import type { Element } from '@cinegen/types/elements';
 export async function prepareElementReferences(element: Element, _projectId: string): Promise<Element> {
   return structuredClone(element);
 }
+
+/** [remix] CineGen's prepareAudioReference without cloud persistence: keeps the source URL. */
+export async function prepareAudioReference(source: string, _projectId: string, _assetId: string): Promise<string> {
+  return source;
+}

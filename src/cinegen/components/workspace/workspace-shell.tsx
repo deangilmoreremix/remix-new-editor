@@ -3,6 +3,7 @@
 // Elements / Edit / Director / Create / LLM tabs run unchanged. Persistence is browser storage.
 import { createContext, useContext, useEffect, useReducer, useMemo, type ReactNode } from 'react';
 import type { WorkspaceState } from '@cinegen/types/workspace';
+import type { Timeline } from '@cinegen/types/timeline';
 import { workspaceReducer, createInitialWorkspaceState, type WorkspaceAction } from '@cinegen/lib/mcp/workspace-state';
 
 interface WorkspaceContextValue {
@@ -45,4 +46,11 @@ export function WorkspaceProvider({ projectId = 'timeline-editor', children, ini
   }, [state]);
   const value = useMemo(() => ({ state, dispatch, projectId }), [state, dispatch, projectId]);
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
+}
+
+export { workspaceReducer } from '@cinegen/lib/mcp/workspace-state';
+export type { WorkspaceAction } from '@cinegen/lib/mcp/workspace-state';
+
+export function getActiveTimeline(state: WorkspaceState): Timeline {
+  return state.timelines.find((tl) => tl.id === state.activeTimelineId) ?? state.timelines[0];
 }
