@@ -8,6 +8,7 @@ import type { Asset } from '@cinegen/types/project';
 import type { Timeline } from '@cinegen/types/timeline';
 import { workspaceReducer, createInitialWorkspaceState, type WorkspaceAction } from '@cinegen/lib/mcp/workspace-state';
 import { useAssetMediaBackfill } from './use-asset-media-backfill';
+import { useVisualIndexing } from './use-visual-indexing';
 
 export { workspaceReducer } from '@cinegen/lib/mcp/workspace-state';
 export type { WorkspaceAction } from '@cinegen/lib/mcp/workspace-state';
@@ -468,6 +469,7 @@ export function WorkspaceProvider({ projectId = 'timeline-editor', children, ini
 
 
   useAssetMediaBackfill(state.assets, projectId, deriveInFlightRef, wrappedDispatch, updateAssetProcessingJobs);
+  useVisualIndexing(state.assets, wrappedDispatch);
 
   const value = useMemo(() => ({ state, dispatch: wrappedDispatch, projectId }), [state, wrappedDispatch, projectId]);
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

@@ -101,8 +101,8 @@ const DEFAULT_SETTINGS: Settings = {
   videoGenerationProvider: DEFAULT_VIDEO_GENERATION_PROVIDER,
   videoGenerationProviderSettingsVersion: VIDEO_GENERATION_PROVIDER_SETTINGS_VERSION,
   defaultTranscriptionEngine: 'faster-whisper-local',
-  autoVisualIndexing: false, // [remix] until the visual-index worker is ported
-  analyzeVisionOnImport: false,
+  autoVisualIndexing: true,
+  analyzeVisionOnImport: true,
   backgroundVisionModel: 'openai/gpt-5.6-sol',
   cutVisionModel: 'openai/gpt-5.6-sol',
   maxConcurrentVisionJobs: 2,

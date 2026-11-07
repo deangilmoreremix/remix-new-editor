@@ -37,6 +37,10 @@ const exportJobs = new Map<string, ExportJobState>();
 const batchListeners = new Set<(e: unknown) => void>();
 
 export function registerWebApi() {
+  registerElectronApi('vision', {
+    // CineGen's visual index: OpenAI vision on the user's key (adapters/main-process/vision.ts)
+    indexAsset: async (p: unknown) => (await import('./main-process/vision')).analyzeAssetVisualSummary(p as never),
+  });
   registerElectronApi('sync', {
     // CineGen's audio sync, in the browser (adapters/main-process/audio-sync.ts)
     computeOffset: async (p: unknown) => {
