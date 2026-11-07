@@ -40,6 +40,19 @@ export function registerWebApi() {
   registerElectronApi('vision', {
     // CineGen's visual index: OpenAI vision on the user's key (adapters/main-process/vision.ts)
     indexAsset: async (p: unknown) => (await import('./main-process/vision')).analyzeAssetVisualSummary(p as never),
+    detectObjects: async (p: unknown) => (await import('./main-process/vision')).detectObjectsInImage(p as never),
+  });
+  // [remix] Desktop-only Python runners (local SAM 3 server, local model runner): no browser equivalent.
+  // The web editor's Cloud/main mask mode and the model nodes run on-device or on MuAPI/OpenAI instead.
+  registerElectronApi('sam3', {
+    start: async () => { throw new Error('The local SAM 3 server is desktop-only. Use the default mode: it masks on your device in the browser.'); },
+  });
+  registerElectronApi('localModel', {
+    run: async () => { throw new Error('Local Python models are desktop-only. Pick the MuAPI or on-device version of this node.'); },
+    readTranscript: async () => null,
+  });
+  registerElectronApi('acoustic', {
+    analyzeAsset: async (p: unknown) => (await import('./main-process/acoustic')).analyzeAssetAcoustics(p as never),
   });
   registerElectronApi('sync', {
     // CineGen's audio sync, in the browser (adapters/main-process/audio-sync.ts)

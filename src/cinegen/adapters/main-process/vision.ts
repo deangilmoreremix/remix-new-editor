@@ -57,3 +57,30 @@ export async function analyzeAssetVisualSummary(params: { apiKey?: string; asset
     return { assetId: params.assetId, status: 'failed', model, error: 'Vision analysis returned unreadable JSON.' };
   }
 }
+
+// [remix] CineGen's vision.detectObjects (Auto Segment proposals) on-device: DETR in the browser (free, no key) instead of a
+// fal vision LLM. Same result shape: normalized [center_x, center_y, width, height] boxes with score + priority.
+export async function detectObjectsInImage(params: { imagePath: string; maxObjects?: number }): Promise<{
+  status: 'ready' | 'failed' | 'missing'; model: string; objects: Array<{ label: string; box: [number, number, number, number]; score: number; priority: number }>; error?: string;
+}> {
+  const model = 'detr-resnet-50 (on-device)';
+  try {
+    const [{ grabFrame, canvasImageData }, { runLocalTask }] = await Promise.all([
+      import('../../../lib/editor/ml/frameGrab.js'), import('../../../lib/editor/ml/mlClient.js'),
+    ]) as unknown as [{ grabFrame: (s: string, t: number, o: object) => Promise<HTMLCanvasElement>; canvasImageData: (c: HTMLCanvasElement) => ImageData },
+      { runLocalTask: (t: string, i: object, o: object) => Promise<Array<{ label: string; score: number; box: { xmin: number; ymin: number; xmax: number; ymax: number } }>> }];
+    if (!params.imagePath) return { status: 'missing', model, objects: [], error: 'No image was available for auto segmentation.' };
+    const canvas = await grabFrame(params.imagePath, 0, { image: true, maxSize: 768 });
+    const data = canvasImageData(canvas);
+    const pixels = new Uint8ClampedArray(data.data);
+    const dets = await runLocalTask('detr.detect', { image: { data: pixels, width: data.width, height: data.height }, threshold: 0.5 }, { transfer: [pixels.buffer] });
+    const max = Math.min(12, Math.max(1, Math.round(params.maxObjects ?? 6)));
+    const objects = dets.map((d) => {
+      const w = d.box.xmax - d.box.xmin; const h = d.box.ymax - d.box.ymin;
+      return { label: d.label, score: d.score, box: [d.box.xmin + w / 2, d.box.ymin + h / 2, w, h] as [number, number, number, number], priority: Math.min(1, d.score * (0.5 + Math.sqrt(w * h))) };
+    }).sort((a, b) => b.priority - a.priority).slice(0, max);
+    return { status: 'ready', model, objects };
+  } catch (error) {
+    return { status: 'failed', model, objects: [], error: error instanceof Error ? error.message : 'On-device detection failed.' };
+  }
+}

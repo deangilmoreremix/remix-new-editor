@@ -50,7 +50,7 @@ describe('runWorkflow (web providers)', () => {
     expect(out.video.url).toBe('https://cdn.test/out.mp4');
   });
 
-  it('video tracking masks are not offered (clear error)', async () => {
-    await expect(runWorkflow({ nodeId: 'n', nodeType: 'sam3-track-cloud', modelId: 'x', inputs: {} })).rejects.toThrow(/not available/i);
+  it('video tracking needs a video and a prompt (on-device tracker)', async () => {
+    await expect(runWorkflow({ nodeId: 'n', nodeType: 'sam3-track-cloud', modelId: 'x', inputs: {} })).rejects.toThrow(/No video to track/i);
   });
 });

@@ -44,6 +44,34 @@ async function runOnDeviceSegment(inputs: Record<string, unknown>): Promise<unkn
   return { masks: [{ url: URL.createObjectURL(png) }], boxes: [res.bbox ?? []], scores: [res.score ?? 1] };
 }
 
+// SAM 3 video tracking -> free on-device SlimSAM, propagated frame to frame (box follows the previous mask), written as alpha WebM.
+async function runOnDeviceTrack(inputs: Record<string, unknown>): Promise<unknown> {
+  const url = String(inputs.video_url ?? '');
+  if (!url) throw new Error('No video to track.');
+  const [{ grabFrame }, ai] = await Promise.all([import('../../../lib/editor/ml/frameGrab.js'), import('../../../lib/editor/ml/localAI.js')]);
+  const size = await new Promise<{ w: number; h: number }>((resolve, reject) => {
+    const v = document.createElement('video'); v.preload = 'metadata'; v.crossOrigin = 'anonymous';
+    v.onloadedmetadata = () => resolve({ w: v.videoWidth || 1, h: v.videoHeight || 1 }); v.onerror = () => reject(new Error('Could not read the clip.')); v.src = url;
+  });
+  const pts = (Array.isArray(inputs.point_prompts) ? inputs.point_prompts : []) as Array<{ x: number; y: number; label?: number }>;
+  const boxes = (Array.isArray(inputs.box_prompts) ? inputs.box_prompts : []) as Array<{ x_min: number; y_min: number; x_max: number; y_max: number }>;
+  const text = String(inputs.prompt ?? '').trim();
+  let boxNorm: number[] | undefined = boxes[0] ? [boxes[0].x_min / size.w, boxes[0].y_min / size.h, boxes[0].x_max / size.w, boxes[0].y_max / size.h] : undefined;
+  if (!boxNorm && !pts.length && text) {
+    const first = await grabFrame(url, 0, { maxSize: 960 });
+    const found = await ai.maskFromText(first, text);
+    if (!found?.bbox) throw new Error('No object found for that prompt in the first frame.');
+    boxNorm = [found.bbox[0] / first.width, found.bbox[1] / first.height, found.bbox[2] / first.width, found.bbox[3] / first.height];
+  }
+  if (!boxNorm && !pts.length) throw new Error('Add a text prompt, a click or a box to track something.');
+  const scale = Math.min(1, 960 / Math.max(size.w, size.h));
+  const blob = await ai.maskWholeClip(url, {
+    boxNorm, points: pts.map((p) => [p.x * scale, p.y * scale]), labels: pts.map((p) => (p.label === 0 ? 0 : 1)), every: 2, maxSize: 960,
+  });
+  const out = URL.createObjectURL(blob);
+  return { video: { url: out }, url: out };
+}
+
 const asArray = (v: unknown): string[] => (Array.isArray(v) ? v : v ? [v] : []).filter((x): x is string => typeof x === 'string');
 
 export async function runWorkflow(params: WorkflowRunParams, _options: WorkflowRunOptions = {}): Promise<unknown> {
@@ -57,7 +85,7 @@ export async function runWorkflow(params: WorkflowRunParams, _options: WorkflowR
   // SAM 3 (was fal) -> free on-device SlimSAM / Florence-2 in the browser (Transformers.js).
   if (params.nodeType === 'sam3-segment-cloud') return runOnDeviceSegment(inputs);
   if (params.nodeType === 'sam3-track-cloud') {
-    throw new Error('Tracking a mask across a video is not available in the web editor yet. Masks apply to the current frame.');
+    return runOnDeviceTrack(inputs);
   }
   // Any MuAPI catalog model (Spaces / Studio nodes): one generic request, validated server-side against the catalog.
   const def = getModelDefinition(params.nodeType);
