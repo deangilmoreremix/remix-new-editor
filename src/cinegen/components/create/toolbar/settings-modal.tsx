@@ -231,7 +231,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           <section className="settings-modal__section">
             <h3 className="settings-modal__section-title">CineGen Pod</h3>
             <p className="settings-modal__hint" style={{ marginBottom: 10 }}>
-              Your personal GPU pod running the CineGen server. Start/stop to control billing.
+              Your personal GPU pod running the Timeline Studio Editor server. Start/stop to control billing.
             </p>
             <label className="settings-modal__label">Pod ID</label>
             <input

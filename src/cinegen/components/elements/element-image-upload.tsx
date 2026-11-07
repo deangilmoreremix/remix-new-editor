@@ -62,7 +62,7 @@ export function ElementImageUpload({
     if (uploaded.length > 0) onUpload(uploaded);
     if (failed.length > 0) {
       setError(failed.length === imageFiles.length
-        ? 'CineGen could not upload these images. Check your connection and try again.'
+        ? 'Timeline Studio Editor could not upload these images. Check your connection and try again.'
         : `${failed.length} image${failed.length === 1 ? '' : 's'} could not be uploaded. The other files were added.`);
     }
     setUploading(0);

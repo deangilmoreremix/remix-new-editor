@@ -102,9 +102,9 @@ export async function submitTopviewCanvasAudio(args: {
   const { call, request, references } = args;
   assertTopviewCanvasPrompt(request.prompt, args.submitSchema);
   const listed = data(await call('list_topview_canvases', { limit: 50 }));
-  let canvasId = listed.canvases?.find((canvas: Data) => canvas.name === 'CineGen references')?.canvasId;
-  if (!canvasId) canvasId = data(await call('create_topview_canvas', { name: 'CineGen references' })).canvasId;
-  if (typeof canvasId !== 'string' || !canvasId) throw new Error('Topview did not return the CineGen Canvas ID.');
+  let canvasId = listed.canvases?.find((canvas: Data) => canvas.name === 'Timeline Studio Editor references')?.canvasId;
+  if (!canvasId) canvasId = data(await call('create_topview_canvas', { name: 'Timeline Studio Editor references' })).canvasId;
+  if (typeof canvasId !== 'string' || !canvasId) throw new Error('Topview did not return the Timeline Studio Editor Canvas ID.');
   const catalog = data(await call('get_topview_canvas_generation_capabilities', {
     canvasId, mediaType: 'video', include: ['schema'], refresh: true,
   }));
@@ -118,7 +118,7 @@ export async function submitTopviewCanvasAudio(args: {
     Number(node.y ?? node.position?.y ?? node.geometry?.y ?? 0) + Number(node.height ?? node.measured?.height ?? node.geometry?.height ?? 400)), -80) + 80;
   const inputs: Data[] = [];
   for (const [index, reference] of references.entries()) {
-    if (reference.value.startsWith('topview-file:')) throw new Error('Use the saved CineGen image URL for this audio-reference generation, rather than a temporary Topview upload ID.');
+    if (reference.value.startsWith('topview-file:')) throw new Error('Use the saved Timeline Studio Editor image URL for this audio-reference generation, rather than a temporary Topview upload ID.');
     const source = await args.load(reference);
     if (!source.bytes.byteLength) throw new Error('A reference file is empty.');
     if (request.omniReferenceTaskType === 'edit' && kind(reference) === 'video') assertClipEditVideo(source.bytes);

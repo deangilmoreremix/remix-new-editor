@@ -41,7 +41,7 @@ function uniqueIds(items: { id: string }[], kind: string) {
 export function createEditHandlers(host: McpHost): Record<string, McpToolHandler> {
   const state = () => host.getState();
   const app = (action: string, args: Record<string, unknown>) => {
-    if (!host.appAction) throw new McpToolError('This host does not support app commands. Open CineGen Desktop.');
+    if (!host.appAction) throw new McpToolError('This host does not support app commands. Open Timeline Studio Editor Desktop.');
     return host.appAction(action, args);
   };
   const space = (id?: unknown) => {

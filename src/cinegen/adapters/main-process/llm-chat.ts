@@ -484,7 +484,7 @@ async function inferEditorialBrief(params: {
 }): Promise<{ brief: EditorialBrief; clarifyingQuestions: ClarifyingQuestion[]; usage?: LLMUsageSummary }> {
   const fallback = fallbackEditorialBrief(params.request, params.index);
   const prompt = [
-    'You are CineGen\'s senior editorial strategist.',
+    'You are Timeline Studio Editor\'s senior editorial strategist.',
     'Infer the best editable cut brief for this request from the active project context.',
     'Return JSON only with this shape:',
     '{"pieceType":"...","deliverable":"...","audience":"...","tone":"...","pacing":"...","targetDurationSeconds":180,"variantCount":3,"persona":"documentary-editor","storyGoal":"...","hook":"...","formatNotes":"...","qualityGoal":"auto","referenceTimelineId":"optional","referenceTimelineName":"optional","useBrollPlaceholders":true,"confidence":0.84,"rationale":"...","clarifyingQuestions":[{"id":"...","question":"...","help":"...","allowCustom":true,"options":[{"id":"...","label":"...","description":"..."}]}]}',
@@ -645,7 +645,7 @@ async function generateCutVariants(params: {
   for (let index = 0; index < chosenStrategies.length; index += 1) {
     const strategyPrompt = chosenStrategies[index];
     const prompt = [
-      'You are CineGen\'s lead editor creating one high-quality cut proposal.',
+      'You are Timeline Studio Editor\'s lead editor creating one high-quality cut proposal.',
       `Generate exactly one editorial variant using this strategy: ${strategyPrompt}`,
       'Use the retrieved moments and visual findings as evidence. Do not invent content outside them.',
       'Use word-level source timings when possible and cut tighter than sentence edges when the request calls for it.',
@@ -733,7 +733,7 @@ async function judgeCutVariants(params: {
   if (params.variants.length === 0) return { variants: [] };
 
   const prompt = [
-    'You are CineGen\'s finishing editor and quality judge.',
+    'You are Timeline Studio Editor\'s finishing editor and quality judge.',
     'Score these variants against the brief. Prefer genuinely strong editorial structure over generic balance.',
     'Return JSON only with this shape:',
     '{"ranked_variant_ids":["variant_2","variant_1","variant_3"],"scorecards":[{"variant_id":"variant_2","overall":92,"storyArc":94,"pacing":90,"clarity":89,"visualFit":88,"completeness":91,"formatFit":93,"strengths":["..."],"cautions":["..."],"rationale":"..."}]}',

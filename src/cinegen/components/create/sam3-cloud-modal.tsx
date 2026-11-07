@@ -73,7 +73,7 @@ interface BoxCloudPrompt {
 type CloudPrompt = TextCloudPrompt | PointCloudPrompt | BoxCloudPrompt;
 
 const SEGMENT_COLORS = [
-  'rgba(212, 160, 84, 0.45)',
+  'rgba(34, 211, 238, 0.45)',
   'rgba(91, 143, 212, 0.45)',
   'rgba(92, 184, 122, 0.45)',
   'rgba(207, 125, 96, 0.45)',
@@ -82,7 +82,7 @@ const SEGMENT_COLORS = [
 ];
 
 const SEGMENT_SOLID_COLORS = [
-  '#d4a054',
+  '#22d3ee',
   '#5b8fd4',
   '#5cb87a',
   '#cf7d60',
@@ -1723,7 +1723,7 @@ function VideoSegmentationPane({
                 <div className="sam3__segment-list">
                   {promptHistory.map((prompt) => (
                     <div key={prompt.id} className="sam3__segment-item">
-                      <div className="sam3__segment-swatch" style={{ background: prompt.kind === 'text' ? '#d4a054' : (prompt.positive ? '#5cb87a' : '#cf7d60') }} />
+                      <div className="sam3__segment-swatch" style={{ background: prompt.kind === 'text' ? '#22d3ee' : (prompt.positive ? '#5cb87a' : '#cf7d60') }} />
                       <span className="sam3__segment-name">
                         {prompt.kind === 'text'
                           ? prompt.text

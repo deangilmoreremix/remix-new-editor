@@ -1,3 +1,4 @@
+import { ElevenLabsConnection } from '@cinegen/components/elevenlabs/connection';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { DefaultTranscriptionEngine } from '@cinegen/lib/utils/api-key';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +40,7 @@ type RunpodLtxSetupStatus =
 
 const APP_CATEGORIES: { id: AppCategory; label: string }[] = [
   { id: 'api-keys', label: 'API Keys' },
+  { id: 'elevenlabs', label: 'ElevenLabs' },
   { id: 'preferences', label: 'Preferences' },
 ];
 
@@ -309,9 +311,9 @@ function friendlyRunpodLtxError(cause: unknown): string {
 function friendlyRunpodLtxStatusCheckError(cause: unknown): string {
   const message = cause instanceof Error ? cause.message : String(cause ?? '');
   if (/401|403|unauthori|api key/i.test(message)) {
-    return 'CineGen could not refresh the session because RunPod rejected the API key. Automatic checks will continue.';
+    return 'Timeline Studio Editor could not refresh the session because RunPod rejected the API key. Automatic checks will continue.';
   }
-  return 'CineGen could not refresh the session status. Automatic checks will continue while the session starts.';
+  return 'Timeline Studio Editor could not refresh the session status. Automatic checks will continue while the session starts.';
 }
 
 /* -----------------------------------------------------------------------
@@ -793,6 +795,14 @@ export function SettingsPage({ onBack, projectId, useSqlite }: SettingsPageProps
                   placeholder="Paste your OpenAI key…"
                   onChange={(v) => { setOpenaiKey(v); void apiKeyManager.setOpenAIKey(v.trim()); window.dispatchEvent(new Event('cinegen:settings-changed')); }}
                 />
+              </section>
+
+              <section className="sp-card" id="sp-section-elevenlabs" aria-labelledby="elevenlabs-settings-title">
+                <h3 className="sp-card__title" id="elevenlabs-settings-title">ElevenLabs</h3>
+                <p className="sp-card__desc">
+                  Audio in Spaces and character voices, served through your MuAPI key (ElevenLabs speech models and Suno sounds). No separate account to connect.
+                </p>
+                <ElevenLabsConnection showVoices={false} />
               </section>
 
               <section className="sp-card" id="sp-section-preferences">

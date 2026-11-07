@@ -30,7 +30,7 @@ export function topviewMediaToolDefinitions(tools?: string[], apiKey = false): M
       unavailableReason: topviewMediaToolUnavailable(name, tools, apiKey),
       responseMapping: { path: 'url' },
       inputs: [
-        { id: 'prompt', portType: 'text', label: avatar ? 'Motion direction (optional)' : 'Notes (optional)', required: false, falParam: 'prompt', fieldType: 'port', description: avatar ? 'Expressions and movement, up to 600 characters. Dialogue comes from the audio.' : 'Notes are kept in CineGen.' },
+        { id: 'prompt', portType: 'text', label: avatar ? 'Motion direction (optional)' : 'Notes (optional)', required: false, falParam: 'prompt', fieldType: 'port', description: avatar ? 'Expressions and movement, up to 600 characters. Dialogue comes from the audio.' : 'Notes are kept in Timeline Studio Editor.' },
         { id: 'image_url', portType: 'media', label: videoInput ? 'Source video' : 'Source image', required: false, falParam: 'reference_images', fieldType: 'element-list', multiple: true, max: 1, maxItems: 1, mediaRole: 'image', description: `Choose exactly one ${videoInput ? 'video' : 'image'}.` },
         ...(audio ? [{ id: 'audio_references', portType: 'audio' as const, label: 'Dialogue audio', required: false, falParam: 'audio_urls', fieldType: 'port' as const, multiple: true, maxItems: 1, mediaRole: 'audio' as const, description: 'One audio file, including an ElevenLabs output.' }] : []),
       ],

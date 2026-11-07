@@ -641,7 +641,7 @@ export function DirectorTab() {
     if (!window.electronAPI?.higgsfield?.generateList) {
       setShow(patchClipStaging(current, clip.id, {
         status: 'failed',
-        error: 'Higgsfield generate is only available in the CineGen desktop app.',
+        error: 'Higgsfield generate is only available in the Timeline Studio Editor desktop app.',
       }, scene.label));
       return;
     }
@@ -696,7 +696,7 @@ export function DirectorTab() {
     }
     if (!window.electronAPI?.higgsfield?.generate) {
       setShow(patchClipStaging(current, clip.id, {
-        error: 'Higgsfield generate is only available in the CineGen desktop app.',
+        error: 'Higgsfield generate is only available in the Timeline Studio Editor desktop app.',
       }, scene.label));
       return;
     }
@@ -730,7 +730,7 @@ export function DirectorTab() {
         ? { url: submitted.url, jobId: submitted.jobId }
         : await pullStagingDiagram(submitted.jobId);
       if (!pulled?.url) {
-        throw new Error('Higgsfield finished the map, but CineGen missed the image URL. Use Load from Higgsfield.');
+        throw new Error('Higgsfield finished the map, but Timeline Studio Editor missed the image URL. Use Load from Higgsfield.');
       }
       commitStagingDiagram({
         clipId: clip.id,
@@ -1041,8 +1041,8 @@ export function DirectorTab() {
         : Boolean(window.electronAPI?.higgsfield?.generate);
     if (!canGenerate) {
       const message = adapter.provider === 'runpod'
-        ? 'RunPod LTX-2.5 generation is not available in this CineGen build.'
-        : `${adapter.label} generation is only available in the CineGen desktop app.`;
+        ? 'RunPod LTX-2.5 generation is not available in this Timeline Studio Editor build.'
+        : `${adapter.label} generation is only available in the Timeline Studio Editor desktop app.`;
       setShow({ ...current, jobStatus: { type: 'generate', message, error: true } });
       return message;
     }

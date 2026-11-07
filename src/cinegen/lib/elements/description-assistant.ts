@@ -4,7 +4,7 @@ const TYPE_DIRECTION: Record<ElementType, string> = {
   character: [
     'Lock a repeatable identity: approximate age, ancestry or skin tone when supplied, face shape, eyes, nose, mouth, hair, build, and height impression.',
     'Describe wardrobe as a fixed design with exact colors, materials, layers, footwear, accessories, wear, and signature details.',
-    'Do not prescribe a camera angle, pose, facial expression, action, or background; CineGen creates multiple reference-sheet views later.',
+    'Do not prescribe a camera angle, pose, facial expression, action, or background; Timeline Studio Editor creates multiple reference-sheet views later.',
   ].join(' '),
   location: [
     'Lock a repeatable place: period, geography, architecture, layout, scale, materials, palette, practical lighting, weathering, set dressing, and unmistakable landmarks.',
@@ -28,7 +28,7 @@ export function elementDescriptionSystemPrompt(params: {
   const name = params.name.trim() || `Untitled ${params.type}`;
   const current = params.currentDescription?.trim();
   return [
-    'You are CineGen\'s visual development assistant.',
+    'You are Timeline Studio Editor\'s visual development assistant.',
     `Help the user define a production-ready ${params.type} named "${name}" for consistent AI image and video generation.`,
     TYPE_DIRECTION[params.type],
     current ? `The current saved description is: ${current}` : 'There is no saved description yet.',

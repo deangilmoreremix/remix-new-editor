@@ -43,11 +43,11 @@ export function voiceElementsForPrompt(prompt: string, elements: Element[], expl
 
 export function elevenLabsVoiceBrief(name: string, voice: ElementVoice | undefined, elementId?: string): string {
   return [
-    `Use my ElevenLabs MCP to ${voice?.voiceId ? 'generate a voice sample' : 'design a voice'} for the CineGen character ${JSON.stringify(name || 'Untitled character')}.`,
+    `Use my ElevenLabs MCP to ${voice?.voiceId ? 'generate a voice sample' : 'design a voice'} for the Timeline Studio Editor character ${JSON.stringify(name || 'Untitled character')}.`,
     voice?.description ? `Voice direction: ${voice.description}` : 'Help me choose the character’s accent, tone, texture, pace and emotional delivery first.',
     voice?.voiceId ? `Use ElevenLabs voice ID: ${voice.voiceId}.` : 'Let me listen to the voice previews and choose a voice before saving it.',
     voice?.sampleText ? `Sample dialogue (speak only this text): ${voice.sampleText}` : 'Use a short sample line suited to the character.',
     elementId ? `Read CineGen Element ${elementId}, then use cinegen_edit_element to save the chosen voice under patch.voice (description, provider: "elevenlabs", voiceId, voiceName, sampleText). Attach the audio with cinegen_audio action "attach", elementId "${elementId}" and the returned audioUrl.` : 'Save the character in CineGen first, then attach the chosen ElevenLabs voice and sample to its Element.',
-    'Use my ElevenLabs connection. If the audio is a local file, upload it into CineGen or provide a downloadable HTTPS URL before attaching it.',
+    'Use my ElevenLabs connection. If the audio is a local file, upload it into Timeline Studio Editor or provide a downloadable HTTPS URL before attaching it.',
   ].filter(Boolean).join('\n\n');
 }

@@ -37,8 +37,11 @@ export async function elevenLabsWeb(method: string, params?: unknown): Promise<u
   switch (method) {
     case 'accountStatus':
       return { connected: Boolean(apiKeyManager.getMuapiKey?.()), connection: 'api-key' };
-    case 'authLogin': case 'authCancel': case 'authStatus': case 'connect': case 'disconnect':
-      return { connected: Boolean(apiKeyManager.getMuapiKey?.()) };
+    case 'authLogin': case 'authStatus': case 'connect': case 'authCancel': case 'disconnect': {
+      const connected = Boolean(apiKeyManager.getMuapiKey?.());
+      if (!connected && (method === 'authLogin' || method === 'connect')) throw new Error('Add your MuAPI key in Settings → API Keys. ElevenLabs audio runs through it.');
+      return { connected };
+    }
     case 'voices': {
       const q = String((params as { search?: string } | undefined)?.search ?? '').trim().toLowerCase();
       return { voices: PREMADE_VOICES.filter((v) => !q || `${v.name} ${v.description}`.toLowerCase().includes(q)) };

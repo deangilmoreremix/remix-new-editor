@@ -128,7 +128,7 @@ export function DirectorStagingFrame({
             <button
               type="button"
               className="director-tab__btn"
-              title="Pull a completed Nano Banana map from Higgsfield if CineGen missed the URL"
+              title="Pull a completed Nano Banana map from Higgsfield if Timeline Studio Editor missed the URL"
               onClick={onFetchDiagram}
             >
               {waiting ? 'Loading…' : 'Load from Higgsfield'}

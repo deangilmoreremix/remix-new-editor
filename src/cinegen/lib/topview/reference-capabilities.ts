@@ -13,7 +13,7 @@ export function assertTopviewCanvasPrompt(prompt: unknown, schema: unknown): voi
   const maximum = topviewPromptMaxCharacters(schema);
   const length = Array.from(String(prompt ?? '')).length;
   if (maximum !== undefined && length > maximum) {
-    throw new Error(`Topview's Canvas route accepts up to ${maximum.toLocaleString('en-US')} prompt characters; this prompt has ${length.toLocaleString('en-US')}. CineGen preserved the full prompt and did not submit a generation. Do not shorten or rewrite it without the user's approval.`);
+    throw new Error(`Topview's Canvas route accepts up to ${maximum.toLocaleString('en-US')} prompt characters; this prompt has ${length.toLocaleString('en-US')}. Timeline Studio Editor preserved the full prompt and did not submit a generation. Do not shorten or rewrite it without the user's approval.`);
   }
 }
 

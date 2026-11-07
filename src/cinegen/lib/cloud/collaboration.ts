@@ -123,7 +123,7 @@ function parseTeam(teamId: string, data: Record<string, unknown>): TeamAccess {
   const members = parseMembers(data.members);
   return {
     teamId,
-    name: String(data.name ?? 'CineGen Team'),
+    name: String(data.name ?? 'Timeline Studio Editor Team'),
     ownerId: String(data.ownerId ?? ''),
     members,
     memberIds: Array.isArray(data.memberIds) ? data.memberIds.map(String) : Object.keys(members),
@@ -178,7 +178,7 @@ export async function ensurePersonalTeam(user: User): Promise<TeamAccess> {
     const email = normalizedEmail(user.email ?? '');
     const team: TeamAccess = {
       teamId: id,
-      name: 'CineGen Team',
+      name: 'Timeline Studio Editor Team',
       ownerId: user.uid,
       members: { [user.uid]: 'owner' },
       memberIds: [user.uid],
@@ -333,10 +333,10 @@ async function targetIdentity(emailInput: string): Promise<{ uid: string; email:
   if (!email) throw new Error('Enter your teammate’s email address.');
   const directory = await getDoc(doc(cloudDb, 'emailIndex', await emailKey(email)));
   if (!directory.exists() || normalizedEmail(String(directory.data().email ?? '')) !== email) {
-    throw new Error('No CineGen account was found for that email. Ask them to sign in once, then try again.');
+    throw new Error('No Timeline Studio Editor account was found for that email. Ask them to sign in once, then try again.');
   }
   const uid = String(directory.data().uid ?? '');
-  if (!uid) throw new Error('That CineGen account is not ready for team access yet.');
+  if (!uid) throw new Error('That Timeline Studio Editor account is not ready for team access yet.');
   return { uid, email };
 }
 

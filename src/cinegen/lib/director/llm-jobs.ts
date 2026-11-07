@@ -213,7 +213,7 @@ CONTINUATION — clips for the START of this scene already exist and are listed 
 - Return ONLY the new clips in the same JSON shape (the "scenes" array may be empty). Keep "sceneId" the exact input value; new clip ids continue the letter sequence.`;
 }
 
-export const SCENE_NOTES_SYSTEM_PROMPT = `You revise Seedance clip data for CineGen Director from the director's notes on one scene.
+export const SCENE_NOTES_SYSTEM_PROMPT = `You revise Seedance clip data for Timeline Studio Editor Director from the director's notes on one scene.
 The input carries the scene, its clips as JSON (each tagged with its display label, e.g. [1A]), and the notes. Notes reference clips by label ("1A", "2B") or by title.
 
 RULES
@@ -235,7 +235,7 @@ ${CONSTRAINT_DOCTRINE}
 
 Return ONLY JSON: { "clips": [ ...changed clips only... ] }`;
 
-export const CLIP_NOTES_SYSTEM_PROMPT = `You revise ONE Seedance clip for CineGen Director from the director's notes on that clip.
+export const CLIP_NOTES_SYSTEM_PROMPT = `You revise ONE Seedance clip for Timeline Studio Editor Director from the director's notes on that clip.
 The input carries the scene, this clip as JSON, and the notes. Notes apply to THIS clip — they may name shots as S1, S2, or speak about the whole clip (framing, tone, coverage). Do not wait for a scene label like 1A.
 
 RULES

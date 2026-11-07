@@ -64,7 +64,7 @@ export function SetsView({ target, onSent }: { target?: ShapeShotTarget | null; 
       const fileName = (window as unknown as { __remixFileNames?: Map<string, string> }).__remixFileNames?.get(path) ?? path;
       const format = splatFormatFor(fileName);
       if (!format) {
-        setError('That file is not a splat scan CineGen can read.');
+        setError('That file is not a splat scan Timeline Studio Editor can read.');
         return;
       }
       const now = timestamp();

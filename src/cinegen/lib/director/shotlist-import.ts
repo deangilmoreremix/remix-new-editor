@@ -195,7 +195,7 @@ export function applyClaudeShotlistImport(show: DirectorShow, draft: ShotlistImp
 
 export function claudeShotlistImportPrompt(show: DirectorShow): string {
   return [
-    'Create a CineGen Director shotlist for the project below.',
+    'Create a Timeline Studio Editor Director shotlist for the project below.',
     'Return one raw JSON object only. Do not use Markdown fences, commentary, or ellipses.',
     'The result will be imported directly, so preserve every sceneId exactly and cover the script chronologically from first line to last.',
     '',

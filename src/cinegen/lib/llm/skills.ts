@@ -230,7 +230,7 @@ export function buildSkillSystemPromptAddition(activeSkillId: string | null | un
 export function buildSkillsCatalogPromptAddition(skills: LLMSkill[]): string {
   const sorted = sortSkills(skills);
   const lines = [
-    'CineGen SKILLS',
+    'Timeline Studio Editor SKILLS',
     'Saved skills for this project. When the user asks what skills exist, list these directly from this catalog.',
     'Do NOT invoke tools, the Skill tool, or say you will look skills up — they are already listed below.',
     'Users activate a skill in Copilot with Shift+Space or #skill-name in the composer.',

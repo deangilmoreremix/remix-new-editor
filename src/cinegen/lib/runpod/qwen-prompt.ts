@@ -106,6 +106,6 @@ export function qwenMultiImagePrompt(prompt: string, pictures: QwenPromptPicture
     'MULTI-PICTURE REFERENCE PLAN:',
     ...instructions,
     'Use every supplied picture for exactly its assigned role. Keep identities separate and do not merge, swap, omit, or duplicate referenced subjects.',
-    "Do not render CineGen's internal element names, mention tokens, Picture numbers, or this reference plan as visible typography. Only add visible text when the scene request explicitly asks for it.",
+    "Do not render Timeline Studio Editor's internal element names, mention tokens, Picture numbers, or this reference plan as visible typography. Only add visible text when the scene request explicitly asks for it.",
   ].join('\n');
 }

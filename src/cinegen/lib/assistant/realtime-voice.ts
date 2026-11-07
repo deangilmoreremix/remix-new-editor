@@ -77,7 +77,7 @@ export class VoiceDirectorSession {
       const createRealtimeSession = window.electronAPI?.llm?.openaiRealtimeSession;
       if (typeof createRealtimeSession !== 'function') {
         throw new Error(
-          'CineGen needs to restart once to finish installing Voice Director. Quit and reopen CineGen, then try again.',
+          'Timeline Studio Editor needs to restart once to finish installing Voice Director. Quit and reopen Timeline Studio Editor, then try again.',
         );
       }
 
@@ -264,7 +264,7 @@ export class VoiceDirectorSession {
     try {
       result = await this.options.onToolCall(name, args);
     } catch (error) {
-      result = { ok: false, message: error instanceof Error ? error.message : 'CineGen could not apply that change.' };
+      result = { ok: false, message: error instanceof Error ? error.message : 'Timeline Studio Editor could not apply that change.' };
     }
     this.options.onTranscript({
       id: `tool-${callId}`,

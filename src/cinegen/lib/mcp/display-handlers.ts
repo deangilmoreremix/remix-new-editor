@@ -36,7 +36,7 @@ const record = (value: unknown): Record<string, unknown> => value && typeof valu
 function mediaFields(value: unknown, thumbnail?: unknown) {
   const url = displayUrl(value), thumb = previewUrl(thumbnail);
   return { url, previewUrl: previewUrl(url), thumbnailUrl: thumb,
-    ...(!url && value ? { unavailableReason: 'This media is only available in CineGen. Sync or relink it to view it in chat.' } : {}) };
+    ...(!url && value ? { unavailableReason: 'This media is only available in Timeline Studio Editor. Sync or relink it to view it in chat.' } : {}) };
 }
 function dimensions(asset?: Asset, config: Record<string, unknown> = {}) {
   const width = positive(asset?.width ?? config.width), height = positive(asset?.height ?? config.height);
@@ -140,7 +140,7 @@ function elementCards(state: McpHostState, args: Record<string, unknown>): Displ
       galleryImages: images.filter(image => image.elementId === element.id && image.imageId),
       references: references.map(image => ({ id: image.id, imageId: image.imageId, variationId: image.variationId, elementId: element.id,
         title: image.title, kind: image.kind, url: image.url, previewUrl: image.previewUrl })),
-      ...(!ready ? { unavailableReason: references.length ? 'Sync this Element’s references in CineGen to use them in chat.' : 'This Element has no reference images yet.' } : {}) };
+      ...(!ready ? { unavailableReason: references.length ? 'Sync this Element’s references in Timeline Studio Editor to use them in chat.' : 'This Element has no reference images yet.' } : {}) };
   });
 }
 function libraryItems(state: McpHostState, args: Record<string, unknown>): DisplayItem[] {

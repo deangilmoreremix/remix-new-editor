@@ -174,7 +174,7 @@ async function seedOwnedCloudProject(
   useSqlite: boolean,
 ): Promise<void> {
   const user = await waitForCloudAuth();
-  if (!user) throw new Error('Sign in to CineGen Cloud before syncing a project.');
+  if (!user) throw new Error('Sign in to Timeline Studio Editor Cloud before syncing a project.');
   const details = projectDetails(state as Record<string, unknown>, projectId);
   await setDoc(doc(cloudDb, 'users', user.uid, 'projects', projectId), {
     ...details,
@@ -209,7 +209,7 @@ async function deleteRevision(uid: string, projectId: string, revision: string):
 
 async function performCloudSave(projectId: string, state: unknown, useSqlite: boolean): Promise<void> {
   const user = await waitForCloudAuth();
-  if (!user) throw new Error('Sign in to CineGen Cloud before syncing a project.');
+  if (!user) throw new Error('Sign in to Timeline Studio Editor Cloud before syncing a project.');
   const access = await ensureProjectAccess(projectId, user);
   const ownerId = access.ownerId;
 

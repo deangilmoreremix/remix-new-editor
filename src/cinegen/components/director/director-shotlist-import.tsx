@@ -60,7 +60,7 @@ export function DirectorShotlistImport({ show, disabled, onChange }: DirectorSho
               <div>
                 <span className="dsl-import__eyebrow">External shotlist</span>
                 <h2 id="dsl-import-title">Import from Claude</h2>
-                <p>Bring in a full show or one scene. CineGen matches scene numbers, checks every shot, then replaces only the included scenes.</p>
+                <p>Bring in a full show or one scene. Timeline Studio Editor matches scene numbers, checks every shot, then replaces only the included scenes.</p>
               </div>
               <button type="button" className="dsl-import__close" onClick={() => setOpen(false)} aria-label="Close shotlist import">Close</button>
             </header>

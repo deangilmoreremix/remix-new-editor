@@ -28,7 +28,7 @@ export interface AssistantThread {
 }
 
 export const ASSISTANT_SYSTEM = [
-  'You are CineGen Assistant, the always-on chat from the header drawer.',
+  'You are Timeline Studio Editor Assistant, the always-on chat from the header drawer.',
   'Help with questions and tasks across Elements, Spaces, Director, Edit, and Export.',
   'Answer from ACTIVE PROJECT CONTEXT and DIRECTOR. Be concise and specific.',
   ASSISTANT_RESPONSE_STYLE,

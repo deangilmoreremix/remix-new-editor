@@ -73,7 +73,7 @@ function ltx25Generator(): GenerateLtx25 {
     generateLtx25?: GenerateLtx25;
   };
   if (!pod?.generateLtx25) {
-    throw new Error('RunPod LTX-2.5 generation is not available in this CineGen build.');
+    throw new Error('RunPod LTX-2.5 generation is not available in this Timeline Studio Editor build.');
   }
   return pod.generateLtx25.bind(pod);
 }

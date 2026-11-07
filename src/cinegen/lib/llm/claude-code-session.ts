@@ -160,7 +160,7 @@ export function isClaudeMaxTurnsError(message: string): boolean {
 
 export const AGENTIC_DEFLECTION_RETRY_PROMPT = [
   'Your previous reply said you would look something up, load a skill, or use a tool.',
-  'Do NOT. Follow any ACTIVE SKILL instructions directly in chat and answer from ACTIVE PROJECT CONTEXT and the CineGen SKILLS catalog.',
+  'Do NOT. Follow any ACTIVE SKILL instructions directly in chat and answer from ACTIVE PROJECT CONTEXT and the Timeline Studio Editor SKILLS catalog.',
   'Never mention tools, Skill tool, slash commands, or searching.',
   'Original question:',
 ].join(' ');

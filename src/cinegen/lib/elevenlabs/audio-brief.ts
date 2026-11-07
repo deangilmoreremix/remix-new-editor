@@ -3,7 +3,7 @@ import type { Element } from '@cinegen/types/elements';
 export function elevenLabsAudioBrief(config: Record<string, unknown>, character?: Element, target?: { nodeId: string; spaceId?: string; projectId?: string }): string {
   const kind = String(config.kind || 'speech');
   return [
-    `Create ${kind === 'sound' ? 'a sound effect' : 'spoken audio'} inside CineGen using its connected ElevenLabs account.`,
+    `Create ${kind === 'sound' ? 'a sound effect' : 'spoken audio'} inside Timeline Studio Editor using its connected ElevenLabs account.`,
     character ? `Character: ${character.name}${character.voice?.voiceId ? `, ElevenLabs voice ID: ${character.voice.voiceId}` : ''}.` : '',
     character?.voice?.description ? `Character voice direction: ${character.voice.description}` : '',
     config.direction ? `Delivery / sound direction: ${config.direction}` : '',

@@ -557,7 +557,7 @@ function buildUnifiedModelOptions(params: {
 }
 
 const DEFAULT_SYSTEM_PROMPT = [
-  'You are CineGen’s production copilot. Help with prompts, scripts, shot plans, edit decisions, transcript analysis, and practical creative workflows. Keep answers concise, concrete, and production-minded.',
+  'You are Timeline Studio Editor’s production copilot. Help with prompts, scripts, shot plans, edit decisions, transcript analysis, and practical creative workflows. Keep answers concise, concrete, and production-minded.',
   ASSISTANT_RESPONSE_STYLE,
   'When listing timeline clips, use a single chronological numbered list with inline [timeline:Name / clip:ClipName @ time] citations — never markdown tables. If the user repeats a question, answer again in the same list format; do not switch to tables or say you already answered.',
 ].join(' ');
@@ -567,7 +567,7 @@ function joinCopilotSystemPrompt(parts: Array<string | undefined | null>): strin
 }
 
 const ENHANCE_PROMPT_INSTRUCTIONS = [
-  'You rewrite rough user requests into stronger CineGen Copilot prompts.',
+  'You rewrite rough user requests into stronger Timeline Studio Editor Copilot prompts.',
   'The user is still editing in the composer — this is NOT a chat turn and you must NOT answer the prompt.',
   'Do NOT look up or state project facts: no clip names, durations, asset IDs, transcript quotes, or conclusions.',
   'Preserve the user intent, /asset mentions, and @element mentions exactly as written.',
@@ -578,7 +578,7 @@ const ENHANCE_PROMPT_INSTRUCTIONS = [
 
 function buildEnhanceUserMessage(content: string): string {
   return [
-    'Rewrite the rough CineGen Copilot prompt below. Do NOT answer it.',
+    'Rewrite the rough Timeline Studio Editor Copilot prompt below. Do NOT answer it.',
     '',
     'Rough prompt:',
     content,

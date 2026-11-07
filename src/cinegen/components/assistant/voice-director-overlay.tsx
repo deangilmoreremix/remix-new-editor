@@ -125,9 +125,9 @@ export function VoiceDirectorOverlay({
         }
         if (name === 'undo_last_voice_change') {
           onUndo();
-          return { ok: true, message: 'Undid the most recent CineGen change.' };
+          return { ok: true, message: 'Undid the most recent Timeline Studio Editor change.' };
         }
-        return { ok: false, message: `CineGen does not expose the ${name} action.` };
+        return { ok: false, message: `Timeline Studio Editor does not expose the ${name} action.` };
       },
     });
     sessionRef.current = session;
@@ -203,7 +203,7 @@ export function VoiceDirectorOverlay({
           )}
           {turns.map((turn) => (
             <div key={`${turn.role}-${turn.id}`} className={`vdir__turn vdir__turn--${turn.role}`}>
-              <span>{turn.role === 'user' ? 'You' : turn.role === 'assistant' ? 'Director' : 'CineGen'}</span>
+              <span>{turn.role === 'user' ? 'You' : turn.role === 'assistant' ? 'Director' : 'Timeline Studio Editor'}</span>
               <p>{turn.text}</p>
             </div>
           ))}

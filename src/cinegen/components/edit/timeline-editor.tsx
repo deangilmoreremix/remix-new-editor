@@ -1330,7 +1330,7 @@ export function TimelineEditor({
     const marker: TimelineMarker = {
       id: generateId(),
       time,
-      color: '#f1c40f',
+      color: '#0fd7f1',
       label: '',
     };
     setTimeline({ ...tl, markers: [...(tl.markers ?? []), marker] });

@@ -379,7 +379,7 @@ export function buildHiggsfieldModelRegistry(
       outputs: [{ id: outputType, portType: outputType, label: outputType === 'model3d' ? '3D Model' : humanize(outputType) }],
       provider: 'higgsfield',
       ...(model.job_set_type === 'sync_so' && typeof window !== 'undefined' && ['darwin', 'win32', 'linux'].includes(window.electronAPI?.platform ?? '')
-        ? { unavailableReason: 'Sync Lipsync 3 is available in CineGen on the web and through MCP. The current Mac connection does not expose this model.' }
+        ? { unavailableReason: 'Sync Lipsync 3 is available in Timeline Studio Editor on the web and through MCP. The current Mac connection does not expose this model.' }
         : {}),
       responseMapping: { path: outputType === 'text' ? 'text' : 'output.url' },
     };

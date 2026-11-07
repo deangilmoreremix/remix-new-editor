@@ -137,7 +137,7 @@ function sessionImageGenerator(): GenerateSessionImage {
     generateSessionImage?: GenerateSessionImage;
   };
   if (!pod?.generateSessionImage) {
-    throw new Error('RunPod session image generation is not available in this CineGen build.');
+    throw new Error('RunPod session image generation is not available in this Timeline Studio Editor build.');
   }
   return pod.generateSessionImage.bind(pod);
 }

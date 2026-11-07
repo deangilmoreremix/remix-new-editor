@@ -309,7 +309,7 @@ function getTranscriptPayload(asset: Asset): {
 
 export function buildModeSystemPrompt(_mode?: LLMWorkMode): string {
   const lines = [
-    "You are CineGen\u2019s project copilot for the active project only.",
+    "You are Timeline Studio Editor\u2019s project copilot for the active project only.",
     "The user's timelines, clips, transcripts, and assets are provided in ACTIVE PROJECT CONTEXT — answer from that data directly.",
     "Never search the filesystem, source code, or database. Never say you will look for where project data is stored.",
     "Treat the provided project context as source-of-truth project memory for this response.",

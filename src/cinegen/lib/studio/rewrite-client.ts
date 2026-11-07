@@ -5,7 +5,7 @@ async function requestRewrite(input: StudioRewriteRequest, signal: AbortSignal):
   signal.throwIfAborted();
   if (window.electronAPI?.prompts) return window.electronAPI.prompts.rewrite(input, '');
   const token = '';
-  if (window.location.protocol === 'file:' || /Electron\//.test(navigator.userAgent)) throw new Error('Install the latest CineGen Mac build to use the AI prompt editor.');
+  if (window.location.protocol === 'file:' || /Electron\//.test(navigator.userAgent)) throw new Error('Install the latest Timeline Studio Editor Mac build to use the AI prompt editor.');
   const response = await fetch('https://cinegen-api.christopherjohnogden.workers.dev/api/rpc/prompts/rewrite', {
     method: 'POST', headers: { 'content-type': 'application/json', 'x-cinegen-id-token': token, 'x-cinegen-origin': 'https://cinegen-film.vercel.app' },
     body: JSON.stringify({ args: [input] }), signal: AbortSignal.any([signal, AbortSignal.timeout(240000)]),

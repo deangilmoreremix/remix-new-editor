@@ -40,7 +40,7 @@ async function providerRpc<T>(method: 'status' | 'save' | 'remove', value?: unkn
   });
   const payload = await response.json() as RpcEnvelope<T>;
   if (!response.ok || !payload.ok) {
-    throw new Error(payload.error?.message || 'CineGen could not update the team provider connection.');
+    throw new Error(payload.error?.message || 'Timeline Studio Editor could not update the team provider connection.');
   }
   return payload.result as T;
 }

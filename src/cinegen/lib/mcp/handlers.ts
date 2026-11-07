@@ -498,7 +498,7 @@ export function createMcpHandlers(host: McpHost): Record<string, McpToolHandler>
       ).slice(0, limit);
       if (selected.length === 0) throw new McpToolError('No matching shots to generate. Every shot already has a take, or the ids did not match.');
 
-      if (!host.appAction) throw new McpToolError('Director generation requires the CineGen desktop app.');
+      if (!host.appAction) throw new McpToolError('Director generation requires the Timeline Studio Editor desktop app.');
       return host.appAction('director', {
         action: 'generate', clipIds: selected.map(clip => clip.id),
         ...(str(args, 'model') ? { adapterId: str(args, 'model') } : {}),

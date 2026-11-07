@@ -341,7 +341,7 @@ export function ElementModal({ projectId, element, defaults, onSave, onDelete, o
                     </div>
                     <ElementImageUpload
                       onUpload={handleAddImages}
-                      title="Add the images you want CineGen to use"
+                      title="Add the images you want Timeline Studio Editor to use"
                       hint="Every uploaded image is saved in the approved reference pack below"
                     />
                   </div>

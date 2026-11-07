@@ -470,7 +470,7 @@ function WorkflowCanvasInner({ onSendToStudio }: WorkflowCanvasProps) {
         label: 'Group',
         config: {
           groupLabel: 'Group',
-          color: '#d4a054',
+          color: '#22d3ee',
           labelAlign: 'left',
           labelPosition: 'outside',
           labelSize: 16,

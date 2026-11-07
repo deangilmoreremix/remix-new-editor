@@ -278,7 +278,7 @@ export function voiceScreenplay(show: DirectorShow): Screenplay {
 export function applyVoiceDirectorChanges(show: DirectorShow, value: unknown): VoiceDirectorApplyResult {
   const changes = normalizeVoiceDirectorChanges(value);
   if (!changes) {
-    return { director: show, summary: 'No valid CineGen changes were provided.', appliedCount: 0, warnings: [] };
+    return { director: show, summary: 'No valid Timeline Studio Editor changes were provided.', appliedCount: 0, warnings: [] };
   }
 
   let director = structuredClone(show);
@@ -433,17 +433,17 @@ export function buildVoiceDirectorContext(state: WorkspaceState): string {
 
 export const VOICE_DIRECTOR_INSTRUCTIONS = `You are Voice Director inside CineGen, a concise, collaborative filmmaking partner.
 Have a natural spoken conversation about shots, blocking, coverage, pacing, performances, and scripts. Let the user brainstorm freely. Track the decisions you agree on across the conversation.
-The current CineGen project context is included below. Exact ids in that context are the only ids you may target.
+The current Timeline Studio Editor project context is included below. Exact ids in that context are the only ids you may target.
 NEVER change the project while merely brainstorming. Only call apply_director_changes after the user gives explicit execution language such as "execute it", "apply that", "make those changes", or an equally clear command.
 When execution is explicit, translate the agreed plan into one apply_director_changes call. Keep it atomic. Prefer updating the selected scene or clip. Use scriptEdits for screenplay lines, beatEdits for beat-sheet rows, clipUpdates for blocking and clip-level intent, shotUpdates for individual shots, and replaceShots when the shot flow changes structurally.
 When replacing shots, provide concrete filmable text, camera/framing, and positive integer durations. CineGen will retime them to the clip length.
-After a tool result, briefly say what CineGen applied. If the tool returns warnings, mention them. Never claim a change happened before the tool result confirms it.
+After a tool result, briefly say what Timeline Studio Editor applied. If the tool returns warnings, mention them. Never claim a change happened before the tool result confirms it.
 The user can interrupt you. Speak in short paragraphs and ask at most one question at a time.`;
 
 export const APPLY_DIRECTOR_CHANGES_TOOL = {
   type: 'function',
   name: 'apply_director_changes',
-  description: 'Apply an explicitly approved, undoable set of screenplay, beat-sheet, scene, clip, blocking, coverage, or shot changes to CineGen.',
+  description: 'Apply an explicitly approved, undoable set of screenplay, beat-sheet, scene, clip, blocking, coverage, or shot changes to Timeline Studio Editor.',
   parameters: {
     type: 'object',
     properties: {
@@ -591,7 +591,7 @@ export const APPLY_DIRECTOR_CHANGES_TOOL = {
 export const UNDO_VOICE_DIRECTOR_TOOL = {
   type: 'function',
   name: 'undo_last_voice_change',
-  description: 'Undo the most recent CineGen change after the user explicitly asks to undo it.',
+  description: 'Undo the most recent Timeline Studio Editor change after the user explicitly asks to undo it.',
   parameters: {
     type: 'object',
     properties: {

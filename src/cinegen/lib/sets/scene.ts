@@ -180,7 +180,7 @@ export async function createScene(options: CreateSceneOptions): Promise<SceneCon
     // exhaustion; do not claim that desktop acceleration is always disabled.
     const isDesktop = typeof window !== 'undefined' && Boolean(window.electronAPI);
     throw new Error(isDesktop
-      ? 'The 3D viewer could not start the graphics renderer. Restart CineGen and reopen this scan.'
+      ? 'The 3D viewer could not start the graphics renderer. Restart Timeline Studio Editor and reopen this scan.'
       : 'This browser could not open a WebGL context, which the 3D viewer needs.',
       { cause });
   }

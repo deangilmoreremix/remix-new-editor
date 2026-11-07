@@ -146,7 +146,7 @@ async function saveCloudLibrary(
   const expectedRevision = loadedRevisions.get(context.target.teamId);
   // Another device may already have saved this image after our local library was loaded.
   const snapshot = await getDoc(ref);
-  if (!snapshot.exists()) throw new Error('The CineGen team workspace was not found.');
+  if (!snapshot.exists()) throw new Error('The Timeline Studio Editor team workspace was not found.');
   const requested = restoreSavedElementReferences(library, readStoredLibrary(snapshot.data()));
   const durable = await prepareElementsLibraryForCloudMedia(
     requested,
@@ -158,7 +158,7 @@ async function saveCloudLibrary(
 
   await runTransaction(cloudDb, async (transaction) => {
     const snapshot = await transaction.get(ref);
-    if (!snapshot.exists()) throw new Error('The CineGen team workspace was not found.');
+    if (!snapshot.exists()) throw new Error('The Timeline Studio Editor team workspace was not found.');
     const data = snapshot.data() as Record<string, unknown>;
     const currentRevision = Number(data.elementsLibraryRevision ?? 0) || 0;
     const current = readStoredLibrary(data);
@@ -250,7 +250,7 @@ export async function prepareElementReferences(
     if (existing) { image.url = existing; continue; }
     const source = image.url;
     const api = window.electronAPI?.media?.persistGeneratedAsset;
-    if (!api) throw new Error('Project reference storage is unavailable. Sign in to the cloud or use CineGen Desktop.');
+    if (!api) throw new Error('Project reference storage is unavailable. Sign in to the cloud or use Timeline Studio Editor Desktop.');
     const remote = /^(https?:|data:)/i.test(source);
     const result = await api({ projectId, assetId: `${element.id}-reference-${image.id}`, assetType: image === durable.voice?.referenceAudio ? 'audio' : 'image', ...(remote ? { remoteUrl: source } : { localPathHint: source }) });
     if ('error' in result) throw new Error(result.error);

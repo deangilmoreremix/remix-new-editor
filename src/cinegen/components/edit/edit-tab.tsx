@@ -589,7 +589,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     const marker: TimelineMarker = {
       id: generateId(),
       time,
-      color: '#f1c40f',
+      color: '#0fd7f1',
       label: '',
     };
     dispatch({

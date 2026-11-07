@@ -32,8 +32,8 @@
 }
 
 .floor-plan__camera polygon {
-  fill: rgba(212, 160, 84, 0.18);
-  stroke: rgba(212, 160, 84, 0.5);
+  fill: rgba(34, 211, 238, 0.18);
+  stroke: rgba(34, 211, 238, 0.5);
   stroke-width: 0.5;
 }
 

@@ -227,7 +227,7 @@ export const WaveformCanvas = memo(function WaveformCanvas({
   trimEnd,
   duration,
   amplitudeScale = 1,
-  color = '#d4a054',
+  color = '#22d3ee',
   peaksUrl,
   sourceWidthPx,
   sourceOffsetPx = 0,

@@ -454,7 +454,7 @@ export function storyboardGenerationErrorMessage(
   const message = storyboardErrorText(error);
   if (isRetryableStoryboardError(error)) {
     return provider === 'runpod'
-      ? 'The RunPod session is still working, but CineGen could not read the result. Check the session in Settings, then retry this frame.'
+      ? 'The RunPod session is still working, but Timeline Studio Editor could not read the result. Check the session in Settings, then retry this frame.'
       : 'Higgsfield could not accept the request after three attempts. Its image service may be temporarily unavailable—wait a moment, then retry this frame or select GPT Image 2.';
   }
   if (!message) return 'Storyboard generation failed. Retry this frame.';

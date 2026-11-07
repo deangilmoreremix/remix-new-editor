@@ -46,7 +46,7 @@ const SKILL_DRAFT_PATTERN = /```cinegen-skill\s*\n([\s\S]*?)```/i;
 
 export function buildSkillAuthoringSystemPrompt(): string {
   return [
-    'You are CineGen\'s Skill Builder assistant. Help the user author a reusable Copilot skill in Claude/Cursor SKILL.md style.',
+    'You are Timeline Studio Editor\'s Skill Builder assistant. Help the user author a reusable Copilot skill in Claude/Cursor SKILL.md style.',
     '',
     'Each skill has:',
     '- name: lowercase letters, numbers, and hyphens only (max 64 chars)',
