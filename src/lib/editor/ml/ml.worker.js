@@ -123,14 +123,6 @@ const LOADERS = {
     const processor = await AutoProcessor.from_pretrained(modelId('florence'), { progress_callback });
     return { model, processor };
   }),
-  whisper: () => once('whisper', async () => {
-    const { device, gpu, progress_callback } = await common('whisper');
-    return pipeline('automatic-speech-recognition', modelId('whisper'), {
-      device,
-      dtype: gpu ? { encoder_model: 'fp32', decoder_model_merged: 'q4' } : 'q8',
-      progress_callback,
-    });
-  }),
   clap: () => once('clap', async () => {
     const { device, gpu, progress_callback } = await common('clap');
     return pipeline('zero-shot-audio-classification', modelId('clap'), { device: gpu ? device : 'wasm', dtype: 'q8', progress_callback });
@@ -286,21 +278,6 @@ const TASKS = {
     const parsed = processor.post_process_generation(text, task, raw.size);
     const caption = typeof parsed?.[task] === 'string' ? parsed[task] : String(Object.values(parsed || {})[0] || '');
     return { result: { text: caption.trim() } };
-  },
-
-  /** Speech to text (16 kHz mono). Returns { text, words: [{ text, start, end }] } with times in seconds. */
-  async 'asr.transcribe'({ audio, language }) {
-    const asr = await LOADERS.whisper();
-    const out = await asr(audio, {
-      return_timestamps: 'word',
-      chunk_length_s: 30,
-      stride_length_s: 5,
-      ...(language ? { language, task: 'transcribe' } : {}),
-    });
-    const words = (out.chunks || [])
-      .map((c) => ({ text: String(c.text || '').trim(), start: c.timestamp?.[0] ?? 0, end: c.timestamp?.[1] ?? c.timestamp?.[0] ?? 0 }))
-      .filter((w) => w.text);
-    return { result: { text: String(out.text || '').trim(), words } };
   },
 
   /** Zero-shot labels for consecutive windows of 48 kHz audio. */

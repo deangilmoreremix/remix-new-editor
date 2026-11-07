@@ -395,7 +395,7 @@ export function LeftPanel({
     const autoTranscribeAssetIds: string[] = [];
 
     for (const entry of imported) {
-      const fileName = entry.filePath.split('/').pop() || entry.filePath.split('\\').pop() || 'Untitled';
+      const fileName = (window as unknown as { __remixFileNames?: Map<string, string> }).__remixFileNames?.get(entry.filePath) /* [remix] real file name */ || entry.filePath.split('/').pop() || entry.filePath.split('\\').pop() || 'Untitled';
       const shouldAutoTranscribe = entry.type === 'video' || entry.type === 'audio';
       const shouldAutoVisualIndex = shouldQueueVisualIndexing && (entry.type === 'video' || entry.type === 'image');
       if (shouldAutoTranscribe) autoTranscribeAssetIds.push(entry.assetId);

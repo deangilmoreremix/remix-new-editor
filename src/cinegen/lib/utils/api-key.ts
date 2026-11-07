@@ -128,12 +128,12 @@ export function getDefaultTranscriptionEngine(): DefaultTranscriptionEngine {
 
 export function getAutoVisualIndexingEnabled(): boolean {
   const value = getSettingsValue('autoVisualIndexing');
-  return typeof value === 'boolean' ? value : true;
+  return typeof value === 'boolean' ? value : false; // [remix] the visual-index worker is not ported to the web yet
 }
 
 export function getAnalyzeVisionOnImportEnabled(): boolean {
   const value = getSettingsValue('analyzeVisionOnImport');
-  return typeof value === 'boolean' ? value : true;
+  return typeof value === 'boolean' ? value : false; // [remix] see above
 }
 
 export function getBackgroundVisionModel(): VisionModel {

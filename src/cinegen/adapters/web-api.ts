@@ -1,6 +1,7 @@
 // [remix] Real browser implementations of the parts of CineGen's `window.electronAPI` this editor needs.
 // Registered into the shim (electron-shim.ts) so CineGen's own code paths run unchanged.
 import { registerElectronApi } from './electron-shim';
+import { webMediaApi } from './web-media';
 import { uploadFileToStorage } from '../../lib/supabase.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 
@@ -49,7 +50,56 @@ function toSegments(words: Array<{ text: string; start: number; end: number }>) 
   return segments;
 }
 
+type ExportJobState = { id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; createdAt: string; completedAt?: string };
+const exportJobs = new Map<string, ExportJobState>();
+
 export function registerWebApi() {
+  for (const [ns, methods] of Object.entries(webMediaApi)) registerElectronApi(ns, methods as Record<string, (...a: unknown[]) => unknown>);
+  registerElectronApi('export', {
+    // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
+    start: async (p: unknown) => {
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string }>; totalDuration: number };
+      const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
+      const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
+      exportJobs.set(job.id, job);
+      void (async () => {
+        try {
+          const [{ timelineToComposition }, { exportModel, downloadBlob }] = await Promise.all([
+            import('../../lib/editor/remotion/timelineToComposition.js'),
+            import('../../lib/editor/remotion/exportClient.js'),
+          ]);
+          const item = (c: (typeof a.clips)[number], i: number) => ({
+            id: `c${i}`, type: c.type === 'audio' ? 'audio' : c.type === 'image' ? 'image' : 'video', src: c.inputPath,
+            start: c.startTime, end: c.startTime + c.duration, trimIn: c.trimStart, playbackRate: c.speed || 1, volume: c.volume ?? 1,
+          });
+          const state = {
+            timelineSeconds: Math.max(1, a.totalDuration),
+            tracks: [
+              { id: 'v', type: 'video', items: a.clips.filter((c) => c.type !== 'audio').map(item) },
+              { id: 'a', type: 'audio', items: a.clips.filter((c) => c.type === 'audio').map((c, i) => item(c, 1000 + i)) },
+            ],
+          };
+          const model = timelineToComposition(state, { fps: a.fps, quality });
+          const blob = await exportModel(model, { container: 'mp4', quality, onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
+          job.outputUrl = URL.createObjectURL(blob);
+          job.fileSize = blob.size;
+          job.progress = 100;
+          job.status = 'complete';
+          job.completedAt = new Date().toISOString();
+          downloadBlob(blob, 'cinegen-export.mp4');
+        } catch (err) {
+          job.status = 'failed';
+          job.error = err instanceof Error ? err.message : String(err);
+        }
+      })();
+      return { ...job };
+    },
+    poll: async (id: unknown) => {
+      const job = exportJobs.get(String(id));
+      if (!job) throw new Error('Unknown export');
+      return { ...job };
+    },
+  });
   registerElectronApi('transcription', {
     // On-device Whisper (Transformers.js). The engine CineGen asks for (cloud / python) is ignored on the web.
     start: async (p: unknown) => {
@@ -59,11 +109,15 @@ export function registerWebApi() {
       void (async () => {
         try {
           emitTranscription({ ...base, type: 'status', message: 'Loading speech model…' });
-          const { transcribe } = await import('../../lib/editor/ml/localAI.js');
-          const out = await transcribe(a.filePath, {
-            onProgress: (pr: { progress?: number }) => emitTranscription({ ...base, type: 'progress', message: `Transcribing ${Math.round((pr?.progress ?? 0) * 100)}%` }),
+          // The editor's existing in-browser Whisper (Transformers.js) — one implementation, not two.
+          const { transcribeInBrowser, WHISPER_MODELS } = await import('../../lib/editor/remotion/transcribe.js');
+          const model = (navigator as Navigator & { gpu?: unknown }).gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
+          const out = await transcribeInBrowser(a.filePath, {
+            model,
+            onProgress: (pr: { stage?: string; progress?: number }) => emitTranscription({ ...base, type: 'progress', message: `Transcribing ${Math.round((pr?.progress ?? 0) * 100)}%` }),
           });
-          emitTranscription({ ...base, type: 'done', text: out.text, segments: toSegments(out.words), language: 'en' });
+          const words = (out.captions as Array<{ text: string; startMs: number; endMs: number }>).map((c) => ({ text: c.text, start: c.startMs / 1000, end: c.endMs / 1000 }));
+          emitTranscription({ ...base, type: 'done', text: out.text, segments: toSegments(words), language: 'en' });
         } catch (err) {
           emitTranscription({ ...base, type: 'error', error: err instanceof Error ? err.message : String(err) });
         }
