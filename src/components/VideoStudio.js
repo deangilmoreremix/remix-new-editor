@@ -1649,7 +1649,7 @@ generateBtn.type = 'button';
 
     const publishBtn = document.createElement('button');
     publishBtn.type = 'button';
-    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition-all hover:shadow-glow';
+    publishBtn.className = 'btn-primary-modern px-6 py-2.5 rounded-2xl text-xs font-bold transition-all hover:shadow-glow';
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);

@@ -518,7 +518,7 @@ export function EditorPage() {
                         </div>
 
                         <!-- Generate Button -->
-                        <button id="generate-btn" class="w-full mt-4 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-bold rounded-lg hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+                        <button id="generate-btn" class="w-full mt-4 py-3 btn-primary-modern font-bold rounded-lg hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
                             <span class="text-lg">⚡</span>
                             Generate
                         </button>

@@ -420,9 +420,10 @@ export const enforceDesignSystem = () => {
 
       /* Enforce button styling */
       .${TIMELINE_DESIGN_SYSTEM.styles.buttons.primary} {
-        background: linear-gradient(to right, ${TIMELINE_DESIGN_SYSTEM.variables['--cyan']}, ${TIMELINE_DESIGN_SYSTEM.variables['--emerald']});
-        color: #03131a;
-        border: 1px solid ${TIMELINE_DESIGN_SYSTEM.variables['--border']};
+        background: transparent;
+        color: rgba(255,255,255,0.85);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-left: 2px solid #d9ff00;
         padding: 11px 14px;
         border-radius: 12px;
         cursor: pointer;

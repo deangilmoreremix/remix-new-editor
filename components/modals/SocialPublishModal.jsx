@@ -35,8 +35,8 @@ import { seedThumbnailFieldsFromSocialCopy } from '../../lib/socialPublisherThum
 
 const PLATFORM_BY_ID = Object.fromEntries(SOCIAL_PLATFORMS.map((p) => [p.id, p]));
 
-const APP_ACCENT = '#6d5efc';
-const APP_ACCENT2 = '#a855f7';
+const APP_ACCENT = '#d9ff00';
+const APP_ACCENT2 = '#c4e600';
 const GRAY_DARK = 'rgba(26,25,48,0.9)';
 
 const inputStyle = {
@@ -149,7 +149,7 @@ const enhanceBtnStyle = (active) => ({
   height: 36,
   borderRadius: 9,
   border: '1px solid rgba(255,255,255,0.15)',
-  background: active ? 'rgba(109,94,252,0.25)' : 'rgba(255,255,255,0.04)',
+  background: active ? 'rgba(217,255,0,0.10)' : 'rgba(255,255,255,0.04)',
   color: '#cbbcff',
   fontSize: 16,
   cursor: 'pointer',
@@ -323,13 +323,13 @@ function StepBar({ activeStep, completedSteps, onStep }) {
               fontWeight: 600,
               letterSpacing: 0.5,
               textTransform: 'uppercase',
-              color: active ? '#fff' : done ? '#bbb8e3' : 'rgba(255,255,255,0.4)',
+              color: active ? '#fff' : done ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)',
               borderRadius: 10,
-              border: `1px solid ${active ? APP_ACCENT : done ? 'rgba(166,150,255,0.4)' : 'rgba(255,255,255,0.12)'}`,
+              border: `1px solid ${active ? APP_ACCENT : done ? 'rgba(217,255,0,0.35)' : 'rgba(255,255,255,0.12)'}`,
               background: active
                 ? `linear-gradient(135deg,${APP_ACCENT}22,${APP_ACCENT2}11)`
                 : done
-                ? 'rgba(109,94,252,0.12)'
+                ? 'rgba(217,255,0,0.08)'
                 : 'rgba(255,255,255,0.03)',
               cursor: s.key === 'preview' ? 'default' : 'pointer',
               opacity: s.key === 'preview' ? 0.6 : 1,
@@ -951,7 +951,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       >
         <div style={{
           width: 34, height: 34, borderRadius: 9,
-          background: `linear-gradient(135deg,${APP_ACCENT},${APP_ACCENT2})`,
+          background: "rgba(217,255,0,0.12)", border: "1px solid rgba(217,255,0,0.35)",
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
         }}
         >📡</div>
@@ -986,7 +986,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                 onClick={() => setMediaType(t)}
                 style={{
                   ...ghostBtn,
-                  background: mediaType === t ? 'rgba(109,94,252,0.25)' : 'transparent',
+                  background: mediaType === t ? 'rgba(217,255,0,0.10)' : 'transparent',
                   borderColor: mediaType === t ? APP_ACCENT : 'rgba(255,255,255,0.15)',
                   textTransform: 'capitalize',
                 }}
@@ -1187,7 +1187,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '10px 12px', borderRadius: 10,
                     border: `1px solid ${checked ? APP_ACCENT : 'rgba(255,255,255,0.1)'}`,
-                    background: checked ? 'rgba(109,94,252,0.12)' : 'rgba(255,255,255,0.03)',
+                    background: checked ? 'rgba(217,255,0,0.08)' : 'rgba(255,255,255,0.03)',
                     opacity: compatible ? 1 : 0.45,
                   }}
                 >

@@ -35,7 +35,7 @@ export function SmartVideoScheduler() {
 
   const aiAssistBtn = document.createElement('button');
   aiAssistBtn.type = 'button';
-  aiAssistBtn.className = 'absolute top-8 right-4 md:right-8 z-20 flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold shadow-lg hover:shadow-violet-500/25 hover:scale-105 transition-all';
+  aiAssistBtn.className = 'absolute top-8 right-4 md:right-8 z-20 flex items-center gap-2 px-4 py-2 rounded-xl btn-primary-modern text-xs font-bold shadow-lg hover:shadow-violet-500/25 hover:scale-105 transition-all';
   aiAssistBtn.innerHTML = `${SVG_AI_ASSIST} AI Assist`;
   aiAssistBtn.onclick = () => {
     aiPanelOpen = !aiPanelOpen;

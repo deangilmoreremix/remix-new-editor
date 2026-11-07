@@ -1490,7 +1490,7 @@ const compareBtn = document.createElement('button');
       const publishFrameBtn = document.createElement('button');
       publishFrameBtn.type = 'button';
       publishFrameBtn.textContent = 'Publish to Social';
-      publishFrameBtn.className = 'w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2 rounded-lg text-xs font-bold hover:shadow-glow transition-all';
+      publishFrameBtn.className = 'w-full mt-2 btn-primary-modern py-2 rounded-lg text-xs font-bold hover:shadow-glow transition-all';
       publishFrameBtn.onclick = () => openSocialPublish({ mediaUrl: frame.imageUrl, mediaType: 'image' });
       card.appendChild(publishFrameBtn);
 

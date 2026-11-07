@@ -3074,7 +3074,7 @@ const firstChild = storyboardRoot.firstElementChild;
     const mediaType = currentTemplate?.outputType === 'video' ? 'video' : 'image';
     const publishBtn = document.createElement('button');
     publishBtn.type = 'button';
-    publishBtn.className = 'publish-social-btn px-4 py-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white text-sm font-bold rounded-lg hover:scale-105 transition-transform';
+    publishBtn.className = 'publish-social-btn px-4 py-2 btn-primary-modern text-sm font-bold rounded-lg hover:scale-105 transition-transform';
     publishBtn.textContent = 'Publish to Social';
     publishBtn.onclick = () => {
       const target = generationResult || resultMedia.src || '';
