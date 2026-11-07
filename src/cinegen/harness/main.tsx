@@ -47,10 +47,24 @@ function LlmScreen() {
   );
 }
 
+const now = new Date().toISOString();
+const DEMO = '/cinegen-demo/';
+function seedEdit(s: any) {
+  const tl = s.timelines[0];
+  const v1 = tl.tracks.find((t: any) => t.name === 'V1').id;
+  const a1 = tl.tracks.find((t: any) => t.name === 'A1').id;
+  const assets = [1, 2, 3].map((i) => ({ id: `v${i}`, name: `Storyboard shot ${i}`, type: 'video', url: `${DEMO}clip${i}.mp4`, thumbnailUrl: `${DEMO}thumb${i}.jpg`, duration: 5, width: 1280, height: 720, createdAt: now, status: 'online', metadata: { llmVisualSummaryStatus: 'ready' } }));
+  assets.push({ id: 'm1', name: 'Score', type: 'audio', url: `${DEMO}music.mp3`, duration: 12, createdAt: now, status: 'online' } as never);
+  const clips = [0, 1, 2].map((i) => ({ id: `c${i}`, assetId: `v${i + 1}`, trackId: v1, name: `Storyboard shot ${i + 1}`, startTime: i === 2 ? 12 : i * 5, duration: 5, trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1, flipH: false, flipV: false, keyframes: [] }));
+  clips.push({ id: 'ca', assetId: 'm1', trackId: a1, name: 'Score', startTime: 0, duration: 12, trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1, flipH: false, flipV: false, keyframes: [] });
+  return { ...s, assets, timelines: [{ ...tl, clips, duration: 17 }] };
+}
+const seeds: Record<string, (s: any) => any> = { edit: seedEdit };
+
 function App() {
   return (
     <div className="cinegen-root" style={{ height: '100vh', background: 'var(--bg-void)', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
-      <WorkspaceProvider init={(s) => ({ ...s, elements: demoElements })}>
+      <WorkspaceProvider init={(s) => { const base = { ...s, elements: demoElements }; return (seeds[screen] ? seeds[screen](base) : base) as never; }}>
         {screen === 'elements' && <ElementsTab />}
         {screen === 'edit' && <EditTab llmJumpRequest={null as never} />}
         {screen === 'director' && <DirectorTab />}

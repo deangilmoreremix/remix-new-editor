@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { ElementCard } from './element-card';
+import { WEB_KINDS, WebKindsPanel, newWebKind, type WebKind, type WebKindItem } from './web-kinds'; // [remix] List Builder / Lead Generator
 import { ElementModal } from './element-modal';
 import { ElementContextMenu } from './element-context-menu';
 import { ElementDeleteConfirm } from './element-delete-confirm';
@@ -34,6 +35,8 @@ function uniqueFolderName(existing: string[], base = 'New folder'): string {
 export function ElementsTab() {
   const { state, dispatch, projectId } = useWorkspace();
   const [typeFilter, setTypeFilter] = useState<ElementType | 'all'>('all');
+  const [webKind, setWebKind] = useState<WebKind | null>(null); // [remix]
+  const [webEditing, setWebEditing] = useState<WebKindItem | null>(null); // [remix]
   const [folder, setFolder] = useState<ElementFolderFilter>('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingElement, setEditingElement] = useState<Element | undefined>();
@@ -66,9 +69,10 @@ export function ElementsTab() {
   } = useElementSelection(orderedIds, blocked);
 
   const handleAdd = useCallback(() => {
+    if (webKind) { setWebEditing(newWebKind(webKind)); return; } // [remix]
     setEditingElement(undefined);
     setModalOpen(true);
-  }, []);
+  }, [webKind]);
 
   const handleSave = useCallback((data: {
     name: string;
@@ -169,10 +173,21 @@ export function ElementsTab() {
           <button
             key={f.id}
             type="button"
-            className={`elements-tab__filter ${typeFilter === f.id ? 'elements-tab__filter--active' : ''}`}
-            onClick={() => setTypeFilter(f.id)}
+            className={`elements-tab__filter ${!webKind && typeFilter === f.id ? 'elements-tab__filter--active' : ''}`}
+            onClick={() => { setTypeFilter(f.id); setWebKind(null); }}
           >
             {f.label}
+          </button>
+        ))}
+        {/* [remix] web-only element kinds */}
+        {WEB_KINDS.map((k) => (
+          <button
+            key={k.id}
+            type="button"
+            className={`elements-tab__filter ${webKind === k.id ? 'elements-tab__filter--active' : ''}`}
+            onClick={() => { setWebKind(k.id); setTypeFilter('all'); }}
+          >
+            {k.label}
           </button>
         ))}
         {selected.size > 0 && (
@@ -204,7 +219,9 @@ export function ElementsTab() {
         }}
       />
 
-      {filtered.length === 0 ? (
+      {webKind ? (
+        <WebKindsPanel kind={webKind} editing={webEditing} onEdit={setWebEditing} />
+      ) : filtered.length === 0 ? (
         <div className="elements-tab__empty">
           <span className="elements-tab__empty-icon" aria-hidden="true">
             <svg width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
