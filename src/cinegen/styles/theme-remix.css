@@ -1,20 +1,24 @@
-/* [remix] Our colour scheme on CineGen's layout: same variables, cyan accent instead of gold. */
+/* [remix] Our colour scheme on CineGen's layout. Values are the Timeline Editor's real tokens
+   (public/timeline-editor + TimelineEditorPage: --bg #050505, --emerald #c4e600, glass panels
+   rgba(255,255,255,.05), borders rgba(255,255,255,.1), Inter). CineGen's gold accent becomes our lime. */
 :root, .cinegen-root {
-  --bg-void: #05070b;
-  --bg-base: #080b11;
-  --bg-raised: #0c1118;
-  --bg-elevated: #111823;
-  --bg-overlay: #17202d;
-  --bg-input: #0a0e15;
-  --text-primary: #ffffff;
+  --bg-void: #050505;
+  --bg-base: #080808;
+  --bg-raised: #0d0d0d;
+  --bg-elevated: #131313;
+  --bg-overlay: #1a1a1a;
+  --bg-input: #0a0a0a;
+  --text-primary: rgba(255, 255, 255, 0.92);
   --text-secondary: rgba(255, 255, 255, 0.6);
   --text-tertiary: rgba(255, 255, 255, 0.4);
-  --accent: #22d3ee;
-  --accent-hover: #67e8f9;
-  --accent-dim: rgba(34, 211, 238, 0.16);
+  --accent: #c4e600;
+  --accent-hover: #d6f23a;
+  --accent-dim: rgba(196, 230, 0, 0.14);
   --success: #34d399;
-  --port-video: #22d3ee;
+  --port-video: #c4e600;
   --port-audio: #34d399;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.1);
   --font-display: Inter, ui-sans-serif, system-ui, sans-serif;
   --radius-md: 10px;
   --radius-lg: 16px;

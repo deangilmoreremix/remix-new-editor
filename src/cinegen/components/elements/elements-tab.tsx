@@ -2,7 +2,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { ElementCard } from './element-card';
-import { WEB_KINDS, WebKindsPanel, newWebKind, type WebKind, type WebKindItem } from './web-kinds'; // [remix] List Builder / Lead Generator
+import { WEB_KINDS, WebKindsPanel, openWebKind, type WebKind, type WebKindItem } from './web-kinds'; // [remix] List Builder / Lead Generator
 import { ElementModal } from './element-modal';
 import { ElementContextMenu } from './element-context-menu';
 import { ElementDeleteConfirm } from './element-delete-confirm';
@@ -69,7 +69,7 @@ export function ElementsTab() {
   } = useElementSelection(orderedIds, blocked);
 
   const handleAdd = useCallback(() => {
-    if (webKind) { setWebEditing(newWebKind(webKind)); return; } // [remix]
+    if (webKind) { openWebKind(webKind); return; } // [remix] opens the editor's existing UI
     setEditingElement(undefined);
     setModalOpen(true);
   }, [webKind]);
