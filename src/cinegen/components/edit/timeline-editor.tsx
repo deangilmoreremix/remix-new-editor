@@ -3,6 +3,9 @@
 import { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
+import { OverlayLane } from './overlay-lane';
+import { createOverlay } from '@cinegen/lib/overlays/overlays';
+import { selectOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
 import { MusicGenerationPopup } from './music-generation-popup';
@@ -3148,6 +3151,21 @@ export function TimelineEditor({
           </div>
         </div>
       </div>
+
+      {/* [remix] Overlays lane: Lead Generator, List Builder, CTA drawn over the video */}
+      <OverlayLane
+        overlays={state.overlays}
+        pxPerSecond={pxPerSecond}
+        scrollLeft={Math.max(0, rulerScrollLeft)}
+        labelWidth={LABEL_WIDTH}
+        sequenceDuration={sequenceDuration}
+        onAdd={(kind) => {
+          const overlay = createOverlay(kind, currentTime, Math.max(sequenceDuration, 10));
+          dispatch({ type: 'ADD_OVERLAY', overlay });
+          selectOverlay(overlay.id);
+        }}
+        onUpdate={(id, updates) => dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates })}
+      />
 
       {/* Global playhead — spans across all sections including divider */}
       <div className="timeline-editor__playhead-clip" style={{ left: LABEL_WIDTH }}>

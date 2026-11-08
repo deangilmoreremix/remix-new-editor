@@ -10,6 +10,8 @@ import { TimelineTabs } from './timeline-tabs';
 import { TimelineBottomBar } from './timeline-bottom-bar';
 import { ResizeHandle } from './resize-handle';
 import { ClipPropertiesPanel } from './clip-properties-panel';
+import { OverlaySettingsPanel } from './overlay-settings-panel';
+import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { useEditorLayout } from './use-editor-layout';
 import { usePlaybackEngine } from './use-playback-engine';
 import { useNativeVideoSurface } from './use-native-video-surface';
@@ -95,6 +97,8 @@ function persistEditView(projectId: string, view: PersistedEditView): void {
 
 export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpRequest | null }) {
   const { state, dispatch, projectId } = useWorkspace();
+  const selectedOverlayId = useSelectedOverlay();
+  const selectedOverlay = state.overlays.find((o) => o.id === selectedOverlayId) ?? null;
   const { layout, setLayout } = useEditorLayout();
   const [mobilePane, setMobilePane] = useState<'media' | 'viewer' | 'timeline' | 'inspector'>('viewer');
 
@@ -913,7 +917,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     <div
       className="edit-tab"
       data-panel-mode={isCompact ? 'compact' : 'full'}
-      data-right-panel={layout.inspectorVisible ? 'true' : undefined}
+      data-right-panel={layout.inspectorVisible || selectedOverlay ? 'true' : undefined}
       data-mobile-pane={mobilePane}
       style={{
         '--left-panel-width': `${layout.leftPanelWidth}px`,
@@ -1007,6 +1011,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           onDropAssetId={handleSourceDropAssetId}
           inspectorVisible={layout.inspectorVisible}
           onToggleInspector={handleToggleInspector}
+          overlays={state.overlays}
         />
       </div>
 
@@ -1073,15 +1078,25 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         </div>
       </div>
 
-      {/* Right panel: clip properties */}
-      {layout.inspectorVisible && (
+      {/* Right panel: clip properties (or the selected overlay's settings) */}
+      {(layout.inspectorVisible || selectedOverlay) && (
         <ResizeHandle
           direction="horizontal"
           onResize={handleRightPanelResize}
           className="edit-tab__right-resize"
         />
       )}
-      {layout.inspectorVisible && (
+      {selectedOverlay && (
+        <OverlaySettingsPanel
+          key={selectedOverlay.id}
+          overlay={selectedOverlay}
+          duration={sequenceDuration}
+          onUpdate={(updates) => dispatch({ type: 'UPDATE_OVERLAY', overlayId: selectedOverlay.id, updates })}
+          onRemove={() => { dispatch({ type: 'REMOVE_OVERLAY', overlayId: selectedOverlay.id }); selectOverlay(null); }}
+          onClose={() => selectOverlay(null)}
+        />
+      )}
+      {!selectedOverlay && layout.inspectorVisible && (
         <ClipPropertiesPanel
           clip={selectedClip}
           asset={selectedClipAsset}

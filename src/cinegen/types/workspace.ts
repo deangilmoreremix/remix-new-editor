@@ -18,6 +18,17 @@ export interface WorkflowSpace {
   edges: Edge[];
 }
 
+export type OverlayKind = 'lead-form' | 'list-builder' | 'click-to-call';
+/** [remix] One overlay on the video: timing in seconds plus the old add-on's own options (flat, as the old editor saved them). */
+export interface OverlayClip {
+  id: string;
+  type: OverlayKind;
+  name: string;
+  start: number;
+  end: number;
+  [option: string]: unknown;
+}
+
 export interface WorkspaceState {
   activeTab: ProjectTab;
   nodes: Node<WorkflowNodeData>[];
@@ -38,4 +49,6 @@ export interface WorkspaceState {
   director: DirectorShow;
   providerUsage: ProjectProviderUsage;
   sets: ProjectSet[];
+  /** [remix] Interactive overlays drawn over the video (Lead Generator, List Builder, CTA) — the old editor's add-on clips. */
+  overlays: OverlayClip[];
 }

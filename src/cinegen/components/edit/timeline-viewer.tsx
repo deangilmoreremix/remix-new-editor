@@ -5,6 +5,8 @@ import type { Asset } from '@cinegen/types/project';
 import { formatTimecode } from './time-ruler';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import type { PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
+import type { OverlayClip } from '@cinegen/types/workspace';
+import { OverlayLayer } from './overlay-layer';
 
 interface TimelineViewerProps {
   timeline?: Timeline;
@@ -26,6 +28,8 @@ interface TimelineViewerProps {
   onDropAssetId?: (assetId: string) => void;
   inspectorVisible: boolean;
   onToggleInspector: () => void;
+  /** [remix] Overlays drawn over the video (Lead Generator, List Builder, CTA). */
+  overlays?: OverlayClip[];
 }
 
 /* Reusable SVG transport icons */
@@ -45,7 +49,7 @@ const StepForwardIcon = () => <Ico><polyline points="9 6 15 12 9 18" /></Ico>;
 const FRAME_DURATION = 1 / 24;
 
 export function TimelineViewer({
-  timeline, assets = [], onOpenTimeline,
+  timeline, assets = [], onOpenTimeline, overlays = [],
   videoContainerRef,
   nativeSurfaceRef,
   nativeVideoEnabled = false,
@@ -192,6 +196,7 @@ export function TimelineViewer({
             draggable={false}
           />
         )}
+        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} />
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}
       <div className="viewer-scrubber" ref={scrubRef} onMouseDown={handleScrubDown}>

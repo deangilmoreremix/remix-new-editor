@@ -52,6 +52,7 @@ import { loadAvailableProject, saveAvailableProject, watchCloudProject } from '@
 import { loadAvailableElementsLibrary, saveAvailableElementsLibrary } from '@cinegen/lib/cloud/elements';
 import { setActiveFundingProject } from '@cinegen/lib/cloud/funding';
 import { normalizeProjectSets } from '@cinegen/lib/sets/normalize';
+import { normalizeOverlays } from '@cinegen/lib/overlays/overlays';
 import { startOwnerFundingRelay } from '@cinegen/lib/cloud/funding-relay';
 import {
   normalizeProjectProviderUsage,
@@ -1150,6 +1151,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
             : [];
           const providerUsage = normalizeProjectProviderUsage(workflowState.providerUsage);
           const sets = normalizeProjectSets(workflowState.sets);
+          const overlays = normalizeOverlays(workflowState.overlays);
           const assets = (dbState.assets as Record<string, unknown>[]).map(assetFromRow);
           const mediaFolders = (dbState.mediaFolders as Record<string, unknown>[]).map(folderFromRow);
 
@@ -1176,6 +1178,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
               director,
               providerUsage,
               sets,
+              overlays,
             },
           });
           loadElementsLibraryAfterProject();
@@ -1205,6 +1208,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
             : [];
           const providerUsage = normalizeProjectProviderUsage(snapshot.providerUsage);
           const sets = normalizeProjectSets(snapshot.sets);
+          const overlays = normalizeOverlays(snapshot.overlays);
           const AUDIO_EXTS = /\.(mp3|wav|ogg|aac|m4a|flac|webm)(\?|$)/i;
           const rawAssets = (snapshot.assets ?? []) as Asset[];
           // Migrate: fix audio assets that were saved as 'image' before audio type support
@@ -1226,6 +1230,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
               director,
               providerUsage,
               sets,
+              overlays,
             },
           });
           loadElementsLibraryAfterProject();
@@ -1267,6 +1272,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
           director: useSqlite ? directorFromWorkflow(workflow) : directorFromSnapshot(raw as unknown as ProjectSnapshot),
           providerUsage: normalizeProjectProviderUsage(useSqlite ? workflow.providerUsage : raw.providerUsage),
           sets: normalizeProjectSets(useSqlite ? workflow.sets : raw.sets),
+          overlays: normalizeOverlays(useSqlite ? workflow.overlays : raw.overlays),
         };
       };
       // Cancel a debounced closure containing the old workspace before advancing
@@ -1338,6 +1344,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
           director: state.director,
           providerUsage: state.providerUsage,
           sets: state.sets,
+          overlays: state.overlays,
         },
         elements: [],
         exports: state.exports.map((ex) => ({
@@ -1372,6 +1379,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         director: state.director,
         providerUsage: state.providerUsage,
         sets: state.sets,
+        overlays: state.overlays,
       }, false);
     }
   }, [state, hydrationComplete, hydrationError, projectId, useSqlite]);
@@ -1415,6 +1423,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
     state.director,
     state.providerUsage,
     state.sets,
+    state.overlays,
     hydrationComplete,
     hydrationError,
   ]);

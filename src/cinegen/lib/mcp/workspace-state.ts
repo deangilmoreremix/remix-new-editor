@@ -7,6 +7,7 @@ import type { WorkflowNodeData, WorkflowRun } from '@cinegen/types/workflow';
 import type { ExportJob } from '@cinegen/types/export';
 import type { Element, ElementFolder } from '@cinegen/types/elements';
 import type { ProjectSet } from '@cinegen/types/sets';
+import type { OverlayClip } from '@cinegen/types/workspace';
 import type { DirectorShow } from '@cinegen/types/director';
 import { createEmptyDirectorShow } from '@cinegen/lib/director/create-show';
 import { createDefaultTimeline } from '@cinegen/lib/editor/timeline-operations';
@@ -58,6 +59,9 @@ export type WorkspaceAction =
   | { type: 'ADD_SET'; set: ProjectSet }
   | { type: 'UPDATE_SET'; setId: string; updates: Partial<ProjectSet> }
   | { type: 'REMOVE_SET'; setId: string }
+  | { type: 'ADD_OVERLAY'; overlay: OverlayClip }
+  | { type: 'UPDATE_OVERLAY'; overlayId: string; updates: Partial<OverlayClip> }
+  | { type: 'REMOVE_OVERLAY'; overlayId: string }
   | { type: 'UPDATE_NODE_CONFIG'; nodeId: string; config: Record<string, unknown> }
   | { type: 'APPLY_ELEMENT_MENTION'; nodeId: string; elementId: string; config: Record<string, unknown> }
   | { type: 'HYDRATE'; payload: HydratePayload }
@@ -81,6 +85,7 @@ interface HydratePayload {
   director: DirectorShow;
   providerUsage: WorkspaceState['providerUsage'];
   sets: ProjectSet[];
+  overlays?: OverlayClip[];
 }
 
 function normalizeWorkflowNodes(nodes: Node<WorkflowNodeData>[]): Node<WorkflowNodeData>[] {
@@ -216,6 +221,7 @@ return {
   director: createEmptyDirectorShow(),
   providerUsage: {},
   sets: [],
+  overlays: [],
 };
 
 }
@@ -580,6 +586,16 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         sets: state.sets.map((set) => (set.id === action.setId ? { ...set, ...action.updates } : set)),
       };
 
+    case 'ADD_OVERLAY':
+      if (state.overlays.some((o) => o.id === action.overlay.id)) return state;
+      return { ...state, overlays: [...state.overlays, action.overlay] };
+
+    case 'UPDATE_OVERLAY':
+      return { ...state, overlays: state.overlays.map((o) => (o.id === action.overlayId ? { ...o, ...action.updates } : o)) };
+
+    case 'REMOVE_OVERLAY':
+      return { ...state, overlays: state.overlays.filter((o) => o.id !== action.overlayId) };
+
     case 'REMOVE_SET':
       return { ...state, sets: state.sets.filter((set) => set.id !== action.setId) };
 
@@ -611,6 +627,7 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         director: action.payload.director,
         providerUsage: action.payload.providerUsage,
         sets: action.payload.sets,
+        overlays: action.payload.overlays ?? [],
       };
     }
 
