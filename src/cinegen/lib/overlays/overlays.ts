@@ -6,6 +6,10 @@ import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
 import { createAddonClip } from '../../../lib/editor/addons/registry.js';
 // @ts-expect-error plain JS add-ons (registers lead-form / click-to-call)
 import '../../../lib/editor/addons/interactiveAddons.js';
+// @ts-expect-error plain JS add-ons (registers Smart Text, Text Mask, Image, Personalized Image, Stickers, Wrapper, Lower Thirds)
+import { getAddon } from '../../../lib/editor/addons/registry.js';
+// @ts-expect-error plain JS add-ons
+import '../../../lib/editor/addons/overlayAddons.js';
 // @ts-expect-error plain JS List Builder defaults
 import { defaultListBuilder } from '../../../lib/editor/addons/listBuilder.js';
 
@@ -13,9 +17,19 @@ export const OVERLAY_KINDS: Array<{ kind: OverlayKind; label: string; blurb: str
   { kind: 'lead-form', label: 'Lead Generator', blurb: 'Opt-in form over the video; pauses playback until the viewer submits or skips.' },
   { kind: 'list-builder', label: 'List Builder', blurb: 'Sign-up / personalizer form over the video.' },
   { kind: 'click-to-call', label: 'CTA', blurb: 'Call-to-action button that dials or opens a link.' },
+  { kind: 'overlay-text', label: 'Smart Text', blurb: 'Text over the video with personalization tokens and animations.' },
+  { kind: 'overlay-text-mask', label: 'Text Mask', blurb: 'Video shows through the letters.' },
+  { kind: 'overlay-image', label: 'Image', blurb: 'An image over the video.' },
+  { kind: 'overlay-personalized-image', label: 'Personalized Image', blurb: 'An image taken from each contact.' },
+  { kind: 'overlay-sticker', label: 'Stickers', blurb: 'Emoji, shapes and animated stickers.' },
+  { kind: 'overlay-background', label: 'Wrapper', blurb: 'A colour or gradient background behind the video.' },
+  { kind: 'overlay-lower-third', label: 'Lower Thirds', blurb: 'Name and title bars that animate in and out.' },
 ];
 
-const KINDS = new Set<string>(['lead-form', 'list-builder', 'click-to-call']);
+const KINDS = new Set<string>(OVERLAY_KINDS.map((k) => k.kind));
+
+/** Add-ons driven by the old registry's schema (options live under `addon`), as opposed to the flat forms. */
+export const isRegistryOverlay = (kind: string) => !['lead-form', 'list-builder', 'click-to-call'].includes(kind) && !!getAddon(kind);
 
 export function normalizeOverlays(value: unknown): OverlayClip[] {
   if (!Array.isArray(value)) return [];
@@ -31,6 +45,7 @@ export function createOverlay(kind: OverlayKind, startSec: number, timelineSecon
     return { id, type: kind, name: 'List Builder', start, end: start + length, config: defaultListBuilder('list-builder') };
   }
   const clip = createAddonClip(kind, { startSec, timelineSeconds, id }) as Record<string, unknown>;
+  if (isRegistryOverlay(kind)) clip.name = getAddon(kind).label;
   return { ...clip, id, type: kind, name: String(clip.name ?? kind), start: Number(clip.start), end: Number(clip.end) } as OverlayClip;
 }
 

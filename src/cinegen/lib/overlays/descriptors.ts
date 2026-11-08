@@ -1,6 +1,9 @@
 // [remix] Settings schemas for the overlay add-ons, in the format the old editor's settings renderer (`renderAddonEditor`) reads.
 // List Builder uses the old editor's own `listBuilderFields`; Lead Generator and CTA use the same option names the old add-on clips save.
 import type { OverlayClip } from '@cinegen/types/workspace';
+// @ts-expect-error plain JS add-on registry
+import { getAddon, addonOptions } from '../../../lib/editor/addons/registry.js';
+import { isRegistryOverlay } from './overlays';
 // @ts-expect-error plain JS
 import { listBuilderFields, FORM_FONTS } from '../../../lib/editor/addons/listBuilder.js';
 // @ts-expect-error plain JS
@@ -45,7 +48,11 @@ const CTA_FIELDS = [
 ];
 
 /** The schema + the option object the settings form edits for an overlay. */
-export function overlaySchema(overlay: OverlayClip): { fields?: unknown[]; fieldsFor?: (o: unknown) => unknown[]; options: Record<string, unknown> } {
+export function overlaySchema(overlay: OverlayClip): { fields?: unknown[]; fieldsFor?: (o: unknown) => unknown[]; options: Record<string, unknown>; onFieldChange?: (key: string, o: unknown) => unknown } {
+  if (isRegistryOverlay(overlay.type)) {
+    const addon = getAddon(overlay.type);
+    return { fields: addon.fields, onFieldChange: addon.onFieldChange, options: addonOptions(overlay) as Record<string, unknown> };
+  }
   if (overlay.type === 'list-builder') return { fieldsFor: (o) => listBuilderFields(o), options: (overlay.config ?? {}) as Record<string, unknown> };
   if (overlay.type === 'click-to-call') return { fields: CTA_FIELDS, options: overlay };
   return { fields: LEAD_FORM_FIELDS, options: overlay };

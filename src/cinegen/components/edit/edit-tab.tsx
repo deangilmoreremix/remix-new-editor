@@ -1012,6 +1012,10 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           inspectorVisible={layout.inspectorVisible}
           onToggleInspector={handleToggleInspector}
           overlays={state.overlays}
+          onOverlayGeometry={(id, geometry) => {
+            const o = state.overlays.find((x) => x.id === id);
+            if (o) dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates: { addon: { ...((o.addon as Record<string, unknown>) ?? {}), geometry } } });
+          }}
         />
       </div>
 

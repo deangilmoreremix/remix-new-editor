@@ -30,6 +30,7 @@ interface TimelineViewerProps {
   onToggleInspector: () => void;
   /** [remix] Overlays drawn over the video (Lead Generator, List Builder, CTA). */
   overlays?: OverlayClip[];
+  onOverlayGeometry?: (id: string, geometry: Record<string, number>) => void;
 }
 
 /* Reusable SVG transport icons */
@@ -49,7 +50,7 @@ const StepForwardIcon = () => <Ico><polyline points="9 6 15 12 9 18" /></Ico>;
 const FRAME_DURATION = 1 / 24;
 
 export function TimelineViewer({
-  timeline, assets = [], onOpenTimeline, overlays = [],
+  timeline, assets = [], onOpenTimeline, overlays = [], onOverlayGeometry,
   videoContainerRef,
   nativeSurfaceRef,
   nativeVideoEnabled = false,
@@ -196,7 +197,7 @@ export function TimelineViewer({
             draggable={false}
           />
         )}
-        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} />
+        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onGeometry={onOverlayGeometry} />
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}
       <div className="viewer-scrubber" ref={scrubRef} onMouseDown={handleScrubDown}>

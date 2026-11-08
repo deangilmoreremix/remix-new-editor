@@ -35,3 +35,18 @@ describe('overlays', () => {
     expect(normalizeOverlays(undefined)).toEqual([]);
   });
 });
+
+describe('registry overlay kinds', () => {
+  it('creates Smart Text, Lower Thirds and Stickers from the old add-on registry (options under `addon`)', () => {
+    const text = createOverlay('overlay-text', 1, 20) as unknown as { type: string; addon: { text: string; geometry: { width: number } } };
+    expect(text.type).toBe('overlay-text');
+    expect(text.addon.text).toBe('Enter Text Here');
+    expect(text.addon.geometry.width).toBeGreaterThan(0);
+    expect(createOverlay('overlay-lower-third', 0, 20).name).toBe('Lower Thirds');
+    expect(createOverlay('overlay-sticker', 0, 20).type).toBe('overlay-sticker');
+  });
+  it('keeps registry overlays when normalizing saved state', () => {
+    const o = createOverlay('overlay-image', 0, 10);
+    expect(normalizeOverlays([o])).toHaveLength(1);
+  });
+});

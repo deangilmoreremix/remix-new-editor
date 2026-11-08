@@ -5,6 +5,7 @@ import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS settings renderer from the main app
 import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
 import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
+import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 
 interface Props {
   overlay: OverlayClip;
@@ -23,9 +24,10 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
     if (!box.current) return;
     const schema = overlaySchema(latest.current);
     const editor = renderAddonEditor(box.current, {
-      fields: schema.fields, fieldsFor: schema.fieldsFor, options: schema.options, idPrefix: `ov-${overlay.id}`,
+      fields: schema.fields, fieldsFor: schema.fieldsFor, options: schema.options, onFieldChange: schema.onFieldChange, idPrefix: `ov-${overlay.id}`,
       onChange: (next: Record<string, unknown>) => {
         if (latest.current.type === 'list-builder') onUpdate({ config: next });
+        else if (isRegistryOverlay(latest.current.type)) onUpdate({ addon: next });
         else {
           const { id: _id, type: _type, start: _start, end: _end, ...rest } = next as Record<string, unknown>;
           void _id; void _type; void _start; void _end;

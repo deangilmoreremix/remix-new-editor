@@ -43,12 +43,11 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   return (
     <div className="overlay-lane" style={{ display: 'flex', height: 30, borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,.08))', background: 'var(--bg-surface, #0b0e14)', flex: '0 0 auto' }}>
       <div title="Overlays: forms and buttons drawn over the video" style={{ width: labelWidth, flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 3, padding: '0 6px', fontSize: 11, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-        {OVERLAY_KINDS.map((k) => (
-          <button key={k.kind} type="button" title={`Add ${k.label} at the playhead — ${k.blurb}`} onClick={() => onAdd(k.kind)}
-            style={{ border: '1px solid var(--border-medium, rgba(255,255,255,.18))', background: 'transparent', color: 'inherit', borderRadius: 6, fontSize: 10, padding: '2px 5px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            + {k.kind === 'lead-form' ? 'Lead' : k.kind === 'list-builder' ? 'List' : 'CTA'}
-          </button>
-        ))}
+        <select aria-label="Add overlay" title="Add an overlay at the playhead" value="" onChange={(e) => { if (e.target.value) onAdd(e.target.value as OverlayKind); }}
+          style={{ flex: 1, minWidth: 0, background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 11, padding: '3px 4px', cursor: 'pointer' }}>
+          <option value="">+ Add overlay…</option>
+          {OVERLAY_KINDS.map((k) => <option key={k.kind} value={k.kind} title={k.blurb}>{k.label}</option>)}
+        </select>
       </div>
       <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
         <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: Math.max(sequenceDuration, 1) * pxPerSecond, transform: `translateX(${-(scrollLeft)}px)` }}>
