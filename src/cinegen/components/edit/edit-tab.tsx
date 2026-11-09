@@ -10,6 +10,8 @@ import { TimelineTabs } from './timeline-tabs';
 import { TimelineBottomBar } from './timeline-bottom-bar';
 import { ResizeHandle } from './resize-handle';
 import { activeGlTransition } from '@cinegen/lib/occ/transitions';
+import { SoundLibraryPopup } from './sound-library-popup';
+import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
@@ -23,6 +25,7 @@ import {
   addTrack,
   createDefaultTimeline,
   updateClipProperties,
+  addClipToTrack,
   addKeyframe,
   removeKeyframe,
 } from '@cinegen/lib/editor/timeline-operations';
@@ -880,6 +883,20 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     return prev ? { clip: prev, asset: state.assets.find((a) => a.id === prev.assetId) ?? null } : null;
   }, [selectedClip, timeline.clips, timeline.tracks, state.assets]);
 
+  // [remix] OpenChatCut sound-effects library: asset into the pool, clip on an audio track at the playhead
+  const [soundLibrary, setSoundLibrary] = useState(false);
+  const handleAddSound = useCallback((effect: { id: string; name: string; seconds: number }) => {
+    const asset: Asset = { id: generateId(), name: effect.name, type: 'audio', url: soundEffectSrc(effect.id), duration: effect.seconds, createdAt: new Date().toISOString(), status: 'online', metadata: { source: 'openchatcut-sound-library', soundId: effect.id } };
+    dispatch({ type: 'ADD_ASSET', asset });
+    let tl = timeline;
+    let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
+    if (!track) {
+      track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
+      tl = { ...tl, tracks: [...tl.tracks, track] };
+    }
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, currentTime)) });
+  }, [dispatch, timeline, currentTime]);
+
   const selectedClipAsset = useMemo(() => {
     if (!selectedClip) return null;
     return state.assets.find((a) => a.id === selectedClip.assetId) ?? null;
@@ -1049,7 +1066,8 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
 
       {/* Timeline area */}
       <div className="edit-tab__timeline-area">
-        <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} />
+        <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} />
+        {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}
 
         <div className="edit-tab__timeline-content">
           <TimelineTabs

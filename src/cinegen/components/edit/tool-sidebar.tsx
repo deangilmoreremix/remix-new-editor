@@ -51,9 +51,11 @@ const TOOLS: ToolDef[] = [
 interface ToolSidebarProps {
   activeTool: ToolType;
   onToolChange: (tool: ToolType) => void;
+  /** [remix] opens the OpenChatCut sound-effects library */
+  onOpenSounds?: () => void;
 }
 
-export function ToolSidebar({ activeTool, onToolChange }: ToolSidebarProps) {
+export function ToolSidebar({ activeTool, onToolChange, onOpenSounds }: ToolSidebarProps) {
   const primaryTools = TOOLS.filter((t) => t.group === 'primary');
   const trimTools = TOOLS.filter((t) => t.group === 'trim');
   const generateTools = TOOLS.filter((t) => t.group === 'generate');
@@ -92,6 +94,11 @@ export function ToolSidebar({ activeTool, onToolChange }: ToolSidebarProps) {
           {tool.icon}
         </button>
       ))}
+      {onOpenSounds && (
+        <button className="tool-sidebar__btn" onClick={onOpenSounds} title="Sound effects library" aria-label="Sound effects library" data-testid="open-sound-library">
+          <Icon><path d="M11 5 6 9H2v6h4l5 4V5Z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 5.5a9 9 0 0 1 0 13" /></Icon>
+        </button>
+      )}
     </div>
   );
 }
