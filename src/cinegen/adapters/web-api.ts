@@ -113,7 +113,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -128,6 +128,7 @@ export function registerWebApi() {
             start: c.startTime, end: c.startTime + c.duration, trimIn: c.trimStart, playbackRate: c.speed || 1, volume: c.volume ?? 1,
             // [remix] OpenChatCut effects / LUT → burned in by the composition's GL layer
             occFx: occFxList(c),
+            ...(c.blendMode && c.blendMode !== 'normal' ? { blendMode: c.blendMode } : {}),
           });
           const state = {
             timelineSeconds: Math.max(1, a.totalDuration),

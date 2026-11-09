@@ -542,7 +542,10 @@ export function TimelineComposition({ model }) {
             }
             const content = (
               <KeyframeWrap layer={layer} seqFrom={from}>
-                <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />
+                {/* [remix] clip blend mode (CSS mix-blend-mode, burned into export) */}
+                <AbsoluteFill style={layer.clipBlend ? { mixBlendMode: layer.clipBlend } : undefined}>
+                  <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />
+                </AbsoluteFill>
               </KeyframeWrap>
             );
             return (
