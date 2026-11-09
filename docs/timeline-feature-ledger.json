@@ -225,18 +225,22 @@
    "sourcePaths": [
     "src/reframe/detect.ts"
    ],
-   "targetPaths": [],
-   "originalFunctionality": "Browser saliency/energy + FaceDetector auto-reframe",
+   "targetPaths": [
+    "src/openchatcut/reframe/detect.ts",
+    "src/cinegen/lib/occ/auto-reframe.ts",
+    "src/cinegen/components/edit/clip-zoom-section.tsx"
+   ],
+   "originalFunctionality": "Browser-native saliency/energy (+ optional FaceDetector) subject detection → reframe keyframes",
    "browserCompatibility": "canvas, optional FaceDetector",
    "backendDependencies": "none",
-   "status": "SOURCE_FOUND",
-   "uiIntegration": "none",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "",
-   "evidence": "",
-   "missing": "Not integrated: plan = detect → focal curve → zoom reframeCurve + target aspect",
+   "status": "PARTIAL",
+   "uiIntegration": "Zoom → Auto-reframe (follow subject)",
+   "persistence": "clip.zoom reframeCurve",
+   "preview": "browser: on a moving-subject clip the zoom focal point moved 49.7% → 60.6% → 74.0% across the clip (docs/evidence/transform/rf-1-autoreframe.png)",
+   "exportPublish": "same OccZoom reframeCurve path as follow-subject (export verified for that path in an earlier stage); an export frame for auto-reframe itself was not captured",
+   "testsPerformed": "occ-auto-reframe.test.ts (2); browser rf1",
+   "evidence": "this branch",
+   "missing": "Output canvas aspect (e.g. 9:16 vertical) is not selectable: the web export is fixed 16:9, so 'reframe to target aspect' is not possible yet — only subject-following zoom at a chosen magnification; no manual keyframe adjustment UI",
    "blocker": ""
   },
   {

@@ -8,12 +8,15 @@ import { ZOOM_SHAPE_ORDER, ZOOM_SHAPE_LABELS } from '../../../openchatcut/editor
 import { t } from '../../../openchatcut/i18n/t';
 import { usePluginPacks, pluginResourceItems } from '../../../openchatcut/library/pluginResources';
 import { getCustomZoom, zoomFromCustomDef } from '../../../openchatcut/editor/customZooms';
+import { autoReframe } from '@cinegen/lib/occ/auto-reframe';
 import { FollowSubjectDialog } from './follow-subject-dialog';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12 } as const;
 
 export function ClipZoomSection({ clip, asset, onUpdate }: { clip: Clip; asset: Asset | null; onUpdate: (u: { zoom?: ZoomEffect; transform?: import('@cinegen/lib/occ/transform').ClipTransform }) => void }) {
   const [follow, setFollow] = useState(false);
+  const [reframing, setReframing] = useState(false);
+  const [reframeMsg, setReframeMsg] = useState('');
   const pluginZooms = pluginResourceItems(usePluginPacks(), 'zoom');
   const z = clip.zoom;
   const set = (patch: Partial<ZoomEffect>) => onUpdate({ zoom: { ...(z ?? { magnification: 1.5, shape: 'hold' }), ...patch } });
@@ -52,6 +55,22 @@ export function ClipZoomSection({ clip, asset, onUpdate }: { clip: Clip; asset: 
         </>
       )}
       {asset?.type === 'video' && <div className="clip-properties-panel__row"><button className="clip-properties-panel__toggle-btn" onClick={() => setFollow(true)}>Follow subject…</button></div>}
+      {asset && asset.type === 'video' && (
+        <div className="clip-properties-panel__row">
+          <button className="clip-properties-panel__toggle-btn" data-testid="auto-reframe" disabled={reframing} onClick={async () => {
+            setReframing(true); setReframeMsg('Looking for the subject…');
+            try {
+              const video = document.createElement('video');
+              video.muted = true; video.crossOrigin = 'anonymous'; video.preload = 'auto'; video.src = toFileUrl(asset.fileRef || asset.url);
+              await new Promise<void>((res, rej) => { video.onloadeddata = () => res(); video.onerror = () => rej(new Error('This media could not be opened for analysis.')); });
+              const out = await autoReframe({ video }, clip, z?.magnification && z.magnification > 1 ? z.magnification : 1.6);
+              if (!out) setReframeMsg('Could not find a subject to follow.');
+              else { onUpdate({ zoom: out }); setReframeMsg(`Zoom now follows the detected subject (${out.reframeCurve!.keyframes.length} points).`); }
+            } catch (e) { setReframeMsg(e instanceof Error ? e.message : String(e)); } finally { setReframing(false); }
+          }}>{reframing ? 'Analysing…' : 'Auto-reframe (follow subject)'}</button>
+        </div>
+      )}
+      {reframeMsg && <div role="status" data-testid="auto-reframe-status" style={{ fontSize: 11, opacity: 0.8 }}>{reframeMsg}</div>}
       {follow && asset && <FollowSubjectDialog clip={clip} src={toFileUrl(asset.fileRef || asset.url)} width={asset.width} height={asset.height} onClose={() => setFollow(false)} onApply={(zoom) => onUpdate({ zoom })} onPin={(transform) => onUpdate({ transform })} />}
     </div>
   );

@@ -9,8 +9,8 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 | Status | Count |
 |---|---|
 | NOT_STARTED | 5 |
-| SOURCE_FOUND | 1 |
-| PARTIAL | 13 |
+| SOURCE_FOUND | 0 |
+| PARTIAL | 14 |
 | IMPLEMENTED_UNVERIFIED | 7 |
 | VERIFIED | 17 |
 | BLOCKED | 2 |
@@ -130,16 +130,16 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 
 ## Reframe
 
-### occ.reframe.auto — SOURCE_FOUND
+### occ.reframe.auto — PARTIAL
 
 - Source (0xsline/OpenChatCut): src/reframe/detect.ts
-- Target: —
-- Original: Browser saliency/energy + FaceDetector auto-reframe
+- Target: src/openchatcut/reframe/detect.ts, src/cinegen/lib/occ/auto-reframe.ts, src/cinegen/components/edit/clip-zoom-section.tsx
+- Original: Browser-native saliency/energy (+ optional FaceDetector) subject detection → reframe keyframes
 - Browser: canvas, optional FaceDetector · Backend: none
-- UI: none · Persistence: — · Preview: — · Export: —
-- Tests: —
-- Evidence: —
-- **Missing:** Not integrated: plan = detect → focal curve → zoom reframeCurve + target aspect
+- UI: Zoom → Auto-reframe (follow subject) · Persistence: clip.zoom reframeCurve · Preview: browser: on a moving-subject clip the zoom focal point moved 49.7% → 60.6% → 74.0% across the clip (docs/evidence/transform/rf-1-autoreframe.png) · Export: same OccZoom reframeCurve path as follow-subject (export verified for that path in an earlier stage); an export frame for auto-reframe itself was not captured
+- Tests: occ-auto-reframe.test.ts (2); browser rf1
+- Evidence: this branch
+- **Missing:** Output canvas aspect (e.g. 9:16 vertical) is not selectable: the web export is fixed 16:9, so 'reframe to target aspect' is not possible yet — only subject-following zoom at a chosen magnification; no manual keyframe adjustment UI
 
 ## Multicam
 
