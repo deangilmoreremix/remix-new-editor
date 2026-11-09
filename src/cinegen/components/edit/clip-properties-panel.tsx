@@ -2,11 +2,12 @@ import { useCallback } from 'react';
 import type { Clip } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import { clipEffectiveDuration } from '@cinegen/types/timeline';
+import { ClipEffectsSection } from './clip-effects-section';
 
 interface ClipPropertiesPanelProps {
   clip: Clip | null;
   asset: Asset | null;
-  onUpdateClip: (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV'>>) => void;
+  onUpdateClip: (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fx' | 'lut' | 'blendMode'>>) => void;
   onAddKeyframe: (clipId: string, property: 'opacity' | 'volume', time: number, value: number) => void;
   onRemoveKeyframe: (clipId: string, index: number) => void;
   onClose: () => void;
@@ -149,6 +150,9 @@ export function ClipPropertiesPanel({
           <span className="clip-properties-panel__value">{Math.round(clip.opacity * 100)}%</span>
         </div>
       </div>
+
+      {/* [remix] OpenChatCut effects / LUT / blend */}
+      {!isAudio && <ClipEffectsSection clip={clip} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 
       {/* Volume (audio only) */}
       {isAudio && (

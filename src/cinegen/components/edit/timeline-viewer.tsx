@@ -7,6 +7,8 @@ import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import type { PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
 import type { OverlayClip } from '@cinegen/types/workspace';
 import { OverlayLayer } from './overlay-layer';
+import { GlClipLayer } from './gl-clip-layer';
+import type { Clip } from '@cinegen/types/timeline';
 
 interface TimelineViewerProps {
   timeline?: Timeline;
@@ -16,6 +18,8 @@ interface TimelineViewerProps {
   nativeSurfaceRef?: (el: HTMLDivElement | null) => void;
   nativeVideoEnabled?: boolean;
   activeAsset: Asset | null;
+  /** [remix] clip under the playhead (for OpenChatCut fx preview) */
+  activeClip?: Clip | null;
   currentTime: number;
   duration: number;
   isPlaying: boolean;
@@ -55,6 +59,7 @@ export function TimelineViewer({
   nativeSurfaceRef,
   nativeVideoEnabled = false,
   activeAsset,
+  activeClip = null,
   currentTime,
   duration,
   isPlaying,
@@ -113,6 +118,7 @@ export function TimelineViewer({
 
   const scrubProgress = duration > 0 ? currentTime / duration : 0;
 
+  const [glContainer, setGlContainer] = useState<HTMLElement | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const dragCounter = useRef(0);
 
@@ -185,7 +191,7 @@ export function TimelineViewer({
           <span className="timeline-viewer__empty">No clip at playhead</span>
         )}
         <div
-          ref={nativeVideoEnabled ? nativeSurfaceRef : videoContainerRef}
+          ref={nativeVideoEnabled ? nativeSurfaceRef : (el) => { setGlContainer(el); videoContainerRef(el); }}
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         />
         {!nativeVideoEnabled && activeAsset?.type === 'image' && (
@@ -197,6 +203,7 @@ export function TimelineViewer({
             draggable={false}
           />
         )}
+        <GlClipLayer container={glContainer} clip={activeClip} assetId={activeAsset?.id ?? null} />
         <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onGeometry={onOverlayGeometry} />
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}

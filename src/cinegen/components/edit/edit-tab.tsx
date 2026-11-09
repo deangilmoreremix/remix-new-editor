@@ -856,10 +856,20 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   // -------------------------
 
   const selectedClip = useMemo(() => {
-    if (selectedClipIds.size !== 1) return null;
-    const clipId = [...selectedClipIds][0];
-    return timeline.clips.find((c) => c.id === clipId) ?? null;
-  }, [selectedClipIds, timeline.clips]);
+    if (selectedClipIds.size === 1) {
+      const clipId = [...selectedClipIds][0];
+      return timeline.clips.find((c) => c.id === clipId) ?? null;
+    }
+    // [remix] A linked video+audio pair is one selection (clicking a clip selects both): show the video clip so its
+    // Effects / LUT / Blend controls stay reachable. Any other multi-selection still shows no inspector.
+    if (selectedClipIds.size > 1) {
+      const picked = timeline.clips.filter((c) => selectedClipIds.has(c.id));
+      const trackKind = (c: Clip) => timeline.tracks.find((t) => t.id === c.trackId)?.kind;
+      const videos = picked.filter((c) => trackKind(c) === 'video');
+      if (videos.length === 1 && picked.every((c) => c.id === videos[0].id || (videos[0].linkedClipIds ?? []).includes(c.id))) return videos[0];
+    }
+    return null;
+  }, [selectedClipIds, timeline.clips, timeline.tracks]);
 
   const selectedClipAsset = useMemo(() => {
     if (!selectedClip) return null;
@@ -867,7 +877,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [selectedClip, state.assets]);
 
   const handleUpdateClipProps = useCallback(
-    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV'>>) => {
+    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fx' | 'lut' | 'blendMode'>>) => {
       const updated = updateClipProperties(timeline, clipId, updates);
       dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: updated });
     },
@@ -999,6 +1009,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           nativeSurfaceRef={timelineNativeSurfaceRef}
           nativeVideoEnabled={timelineNativeVideoEnabled}
           activeAsset={activeAsset}
+          activeClip={activeClip ? (timeline.clips.find((c) => c.id === activeClip.id) ?? activeClip) : null}
           currentTime={currentTime}
           duration={sequenceDuration}
           isPlaying={isPlaying}

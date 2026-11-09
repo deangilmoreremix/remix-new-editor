@@ -49,6 +49,17 @@ export interface Clip {
   flipV: boolean;
   keyframes: Keyframe[];
   linkedClipIds?: string[];  // linked video↔audio pairs (supports multiple linked clips)
+  // [remix] OpenChatCut effects: per-clip GL fx stack, LUT / look, blend mode (see src/openchatcut/gl).
+  fx?: ClipFx[];
+  lut?: { id: string; intensity: number };
+  blendMode?: string;
+}
+
+/** [remix] One OpenChatCut effect on a clip: id is an FX_EFFECTS key (builtin:fx-…), props = per-effect slider values. */
+export interface ClipFx {
+  id: string;
+  props: Record<string, number | number[]>;
+  enabled?: boolean;
 }
 
 export interface Keyframe {
@@ -63,6 +74,8 @@ export interface Transition {
   duration: number;
   clipAId: string;
   clipBId?: string;   // undefined for fades (single-clip)
+  /** [remix] OpenChatCut GLSL transition (replaces the plain dissolve in preview/export when set). */
+  glType?: string;
 }
 
 export interface TimelineMarker {

@@ -171,6 +171,21 @@ export function clipFromRow(
       if (Array.isArray(raw)) return raw as string[];
       return undefined;
     })(),
+    // [remix] OpenChatCut effects (stored as JSON columns; absent on rows saved before they existed).
+    ...(() => {
+      const out: Partial<Clip> = {};
+      const json = <T,>(v: unknown): T | undefined => {
+        if (!v) return undefined;
+        if (typeof v !== 'string') return v as T;
+        try { return JSON.parse(v) as T; } catch { return undefined; }
+      };
+      const fx = json<Clip['fx']>(row['fx_json']);
+      if (Array.isArray(fx) && fx.length) out.fx = fx;
+      const lut = json<Clip['lut']>(row['lut_json']);
+      if (lut && typeof lut.id === 'string') out.lut = lut;
+      if (typeof row['blend_mode'] === 'string' && row['blend_mode']) out.blendMode = row['blend_mode'] as string;
+      return out;
+    })(),
   };
 }
 
@@ -182,6 +197,7 @@ export function transitionFromRow(row: Record<string, unknown>): Transition {
     duration: num(row['duration']),
     clipAId: str(row['clip_a_id']),
     clipBId: optStr(row['clip_b_id']),
+    ...(typeof row['gl_type'] === 'string' && row['gl_type'] ? { glType: row['gl_type'] as string } : {}),
   };
 }
 
@@ -359,6 +375,10 @@ export function clipToRow(clip: Clip, timelineId: string): Record<string, unknow
     flip_h: clip.flipH ? 1 : 0,
     flip_v: clip.flipV ? 1 : 0,
     linked_clip_id: clip.linkedClipIds?.length ? JSON.stringify(clip.linkedClipIds) : null,
+    // [remix] OpenChatCut effects
+    fx_json: clip.fx?.length ? JSON.stringify(clip.fx) : null,
+    lut_json: clip.lut ? JSON.stringify(clip.lut) : null,
+    blend_mode: clip.blendMode ?? null,
   };
 }
 
@@ -374,5 +394,6 @@ export function transitionToRow(
     duration: transition.duration,
     clip_a_id: transition.clipAId || null,
     clip_b_id: transition.clipBId ?? null,
+    gl_type: transition.glType ?? null, // [remix] OpenChatCut GL transition
   };
 }
