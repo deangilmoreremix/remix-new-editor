@@ -7,6 +7,7 @@ import { normalizeSceneCandidates, DEFAULT_SCENE_THRESHOLD, DEFAULT_MIN_SCENE_MS
 import { detectSilentSpans, rmsEnvelope, type SilenceSpan } from '../../../openchatcut/audio/silence';
 import { integratedLoudnessFromSamples, gainForTarget } from '../../../openchatcut/audio/loudness';
 import { analyzeBeats, type BeatAnalysis } from '../../../openchatcut/audio/beats';
+import { findLag, downsample, TARGET_RATE } from '../../../openchatcut/multicam/align';
 import type { Clip, Timeline } from '@cinegen/types/timeline';
 
 export { describeScopeStats, DEFAULT_SCENE_THRESHOLD, DEFAULT_MIN_SCENE_MS, gainForTarget };
@@ -112,4 +113,12 @@ export function addMarkers(tl: Timeline, times: number[], label: string, color: 
   const fresh = times.filter((t) => !existing.some((m) => Math.abs(m.time - t) < 0.01))
     .map((time, i) => ({ id: `${label}-${Math.round(time * 1000)}-${i}`, time, color, label }));
   return fresh.length ? { ...tl, markers: [...existing, ...fresh] } : tl;
+}
+
+// ── multicam: align one clip's audio to another (OpenChatCut's cross-correlation) ──
+export async function audioLagSeconds(refSrc: string, otherSrc: string): Promise<{ lagSeconds: number; confidence: number }> {
+  const [a, b] = await Promise.all([decodeMono(refSrc), decodeMono(otherSrc)]);
+  const cap = (x: { samples: Float32Array; sampleRate: number }) => downsample(x.samples.subarray(0, Math.floor(x.sampleRate * 45)), x.sampleRate, TARGET_RATE);
+  const r = findLag(cap(a), cap(b));
+  return { lagSeconds: r.lagSeconds, confidence: r.confidence };
 }

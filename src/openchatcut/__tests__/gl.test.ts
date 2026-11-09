@@ -9,4 +9,5 @@ describe('OpenChatCut GL engine (upstream verify suites)', () => {
   it('loudness', async () => { await import('../audio/loudness.verify'); });
   it('beats', async () => { await import('../audio/beats.verify'); });
   it('silence core', async () => { await import('../audio/silence.verify'); });
+  it('multicam audio align', async () => { await import('../multicam/align.verify'); });
 });

@@ -17,6 +17,7 @@ interface ClipPropertiesPanelProps {
   /** [remix] lets Analyze add markers / split the clip */
   onTimelineEdit?: (edit: (tl: Timeline) => Timeline) => void;
   timeline?: Timeline;
+  syncTarget?: { clip: Clip; asset: Asset | null } | null;
 }
 
 export function ClipPropertiesPanel({
@@ -28,6 +29,7 @@ export function ClipPropertiesPanel({
   onClose,
   onTimelineEdit,
   timeline,
+  syncTarget,
 }: ClipPropertiesPanelProps) {
   const isAudio = asset?.type === 'audio';
 
@@ -164,7 +166,7 @@ export function ClipPropertiesPanel({
 
       {onTimelineEdit && timeline && !isAudio && <ClipTransitionSection clip={clip} timeline={timeline} onTimelineEdit={onTimelineEdit} />}
 
-      {onTimelineEdit && <ClipAnalyzeSection clip={clip} asset={asset} onTimelineEdit={onTimelineEdit} onUpdateClip={(u) => onUpdateClip(clip.id, u)} />}
+      {onTimelineEdit && <ClipAnalyzeSection syncTarget={syncTarget} clip={clip} asset={asset} onTimelineEdit={onTimelineEdit} onUpdateClip={(u) => onUpdateClip(clip.id, u)} />}
 
       {/* Volume (audio only) */}
       {isAudio && (

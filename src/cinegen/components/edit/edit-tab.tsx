@@ -872,6 +872,14 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     return null;
   }, [selectedClipIds, timeline.clips, timeline.tracks]);
 
+  // [remix] multicam: the video clip before the selected one (other camera), for OpenChatCut's audio alignment
+  const syncTarget = useMemo(() => {
+    if (!selectedClip) return null;
+    const prev = timeline.clips.filter((c) => c.id !== selectedClip.id && c.startTime < selectedClip.startTime && timeline.tracks.find((t) => t.id === c.trackId)?.kind === 'video')
+      .sort((a, b) => b.startTime - a.startTime)[0];
+    return prev ? { clip: prev, asset: state.assets.find((a) => a.id === prev.assetId) ?? null } : null;
+  }, [selectedClip, timeline.clips, timeline.tracks, state.assets]);
+
   const selectedClipAsset = useMemo(() => {
     if (!selectedClip) return null;
     return state.assets.find((a) => a.id === selectedClip.assetId) ?? null;
@@ -1122,6 +1130,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           onRemoveKeyframe={handleRemoveKeyframe}
           onClose={handleCloseRightPanel}
           timeline={timeline}
+          syncTarget={syncTarget}
           onTimelineEdit={(edit) => dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: edit(timeline) })}
         />
       )}

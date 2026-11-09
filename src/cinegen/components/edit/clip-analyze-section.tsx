@@ -12,11 +12,13 @@ interface Props {
   clip: Clip;
   asset: Asset | null;
   onTimelineEdit: (edit: (tl: Timeline) => Timeline) => void;
+  /** [remix] the other camera: the previous video clip on the timeline */
+  syncTarget?: { clip: Clip; asset: Asset | null } | null;
   onUpdateClip: (updates: Partial<Pick<Clip, 'volume' | 'fx'>>) => void;
 }
-type Job = 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats' | 'captions';
+type Job = 'sync' | 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats' | 'captions';
 
-export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip }: Props) {
+export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, syncTarget }: Props) {
   const [busy, setBusy] = useState<Job | null>(null);
   const [lines, setLines] = useState<string[]>([]);
   const [error, setError] = useState('');
@@ -36,6 +38,14 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip }
     <div className="clip-properties-panel__section" data-testid="clip-analyze">
       <div className="clip-properties-panel__section-title">Analyze</div>
       <div className="clip-properties-panel__toggle-row" style={{ flexWrap: 'wrap' }}>
+        {syncTarget?.asset && <button className="clip-properties-panel__toggle-btn" disabled={!!busy} onClick={() => run('sync', async () => {
+          const r = await A.audioLagSeconds(toFileUrl(syncTarget.asset!.fileRef || syncTarget.asset!.url), src);
+          if (r.confidence < 0.2) { setLines([`Audio match too weak (${r.confidence.toFixed(2)}): these clips do not seem to share sound.`]); return; }
+          const ref = syncTarget.clip;
+          const start = Math.max(0, ref.startTime - ref.trimStart + clip.trimStart - r.lagSeconds);
+          onTimelineEdit((tl) => ({ ...tl, clips: tl.clips.map((c) => (c.id === clip.id ? { ...c, startTime: start } : c)) }));
+          setLines([`Synced to “${ref.name}”: moved ${(start - clip.startTime).toFixed(2)}s (match ${r.confidence.toFixed(2)}).`]);
+        })}>{busy === 'sync' ? 'Matching…' : `Sync audio to “${syncTarget.clip.name}”`}</button>}
         {isVideo && <button className="clip-properties-panel__toggle-btn" disabled={!!busy} onClick={() => run('scopes', async () => {
           const s = await A.scopesAt(src, mid); const g = A.autoGradeFromScopes(s);
           setLines([...A.describeScopeStats(s), `auto-grade: brightness ${g.filters.brightness} · contrast ${g.filters.contrast} · saturation ${g.filters.saturate}${g.adjustments.length ? ` (${g.adjustments.join(', ')})` : ' (no change needed)'}`]);
