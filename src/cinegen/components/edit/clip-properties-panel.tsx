@@ -4,6 +4,7 @@ import type { Asset } from '@cinegen/types/project';
 import { clipEffectiveDuration } from '@cinegen/types/timeline';
 import { ClipEffectsSection } from './clip-effects-section';
 import { ClipAnalyzeSection } from './clip-analyze-section';
+import { ClipTransitionSection } from './clip-transition-section';
 import type { Timeline } from '@cinegen/types/timeline';
 
 interface ClipPropertiesPanelProps {
@@ -15,6 +16,7 @@ interface ClipPropertiesPanelProps {
   onClose: () => void;
   /** [remix] lets Analyze add markers / split the clip */
   onTimelineEdit?: (edit: (tl: Timeline) => Timeline) => void;
+  timeline?: Timeline;
 }
 
 export function ClipPropertiesPanel({
@@ -25,6 +27,7 @@ export function ClipPropertiesPanel({
   onRemoveKeyframe,
   onClose,
   onTimelineEdit,
+  timeline,
 }: ClipPropertiesPanelProps) {
   const isAudio = asset?.type === 'audio';
 
@@ -158,6 +161,8 @@ export function ClipPropertiesPanel({
 
       {/* [remix] OpenChatCut effects / LUT / blend */}
       {!isAudio && <ClipEffectsSection clip={clip} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+
+      {onTimelineEdit && timeline && !isAudio && <ClipTransitionSection clip={clip} timeline={timeline} onTimelineEdit={onTimelineEdit} />}
 
       {onTimelineEdit && <ClipAnalyzeSection clip={clip} asset={asset} onTimelineEdit={onTimelineEdit} onUpdateClip={(u) => onUpdateClip(clip.id, u)} />}
 

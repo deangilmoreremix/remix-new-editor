@@ -667,6 +667,7 @@ export class PlaybackEngine {
         }
       }
       video.dataset.assetId = source.assetId;
+      video.dataset.clipId = clipId; // [remix] lets the GL transition layer find each clip's element
       if (source.poster && video.poster !== source.poster) {
         video.poster = source.poster;
       } else if (!source.poster && video.poster) {
