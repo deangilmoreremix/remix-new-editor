@@ -9,9 +9,14 @@ import { authHeader } from './llm-responses';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 export { responsesChat };
 import { clipFxInstances } from '@cinegen/lib/occ/clip-fx';
+import { userLutTextSync } from '@cinegen/lib/occ/user-luts';
 // [remix] OpenChatCut effects + LUT of an export clip, as plain {id, overrides} for the composition's GL layer.
 const occFxList = (c: { fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }) =>
-  clipFxInstances(c as never).map(({ def, overrides }) => ({ id: def.id, overrides }));
+  clipFxInstances(c as never).map(({ def, overrides }) => ({
+    id: def.id, overrides,
+    // the sandboxed export runner has no IndexedDB: user .cube LUTs travel with the render
+    ...(def.id.startsWith('user:lut-') ? { name: def.name, cubeText: userLutTextSync(def.id) } : {}),
+  }));
 
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
 const transcriptionListeners = new Set<(e: TranscriptionEvent) => void>();

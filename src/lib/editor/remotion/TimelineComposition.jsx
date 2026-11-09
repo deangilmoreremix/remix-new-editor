@@ -34,6 +34,7 @@ import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './ke
 import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
+import { registerUserLut } from '../../../cinegen/lib/occ/user-luts';
 import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
 
 // ------------------------------------------------------------------ fonts
@@ -429,6 +430,7 @@ function MediaLayer({ layer, seqFrom }) {
   const mirror = layer.flip ? { transform: `scale(${layer.flip.h ? -1 : 1}, ${layer.flip.v ? -1 : 1})` } : {};
   // [remix] OpenChatCut effects / LUT: render through the GL pipeline (also during export, so they are burned in).
   if (layer.occFx?.length && (layer.kind === 'video' || layer.kind === 'image')) {
+    for (const e of layer.occFx) if (e.cubeText) registerUserLut({ id: e.id, name: e.name || e.id, text: e.cubeText });
     return (
       <AbsoluteFill style={mirror}>
         <OccClipFx

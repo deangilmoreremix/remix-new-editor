@@ -6,6 +6,7 @@ import type { Asset } from '@cinegen/types/project';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { splitClip } from '@cinegen/lib/editor/timeline-operations';
 import * as A from '@cinegen/lib/occ/analysis';
+import { TRANSLATION_LANGUAGES, phrasesFromWords, translateCues, toSrt } from '@cinegen/lib/occ/translate';
 
 interface Props {
   clip: Clip;
@@ -13,13 +14,14 @@ interface Props {
   onTimelineEdit: (edit: (tl: Timeline) => Timeline) => void;
   onUpdateClip: (updates: Partial<Pick<Clip, 'volume' | 'fx'>>) => void;
 }
-type Job = 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats';
+type Job = 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats' | 'captions';
 
 export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip }: Props) {
   const [busy, setBusy] = useState<Job | null>(null);
   const [lines, setLines] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [scenes, setScenes] = useState<A.SceneChange[]>([]);
+  const [lang, setLang] = useState<string>('Spanish');
   const [grade, setGrade] = useState<{ black: number; white: number } | null>(null);
   const src = asset ? toFileUrl(asset.fileRef || asset.url) : '';
   const isVideo = asset?.type === 'video' || asset?.type === 'image';
@@ -61,6 +63,25 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip }
           onTimelineEdit((tl) => A.addMarkers(tl, times, 'beat', '#22d3ee'));
           setLines([`${b.bpm.toFixed(0)} BPM (confidence ${b.confidence.toFixed(1)}) · ${times.length} bar markers added`]);
         })}>{busy === 'beats' ? 'Analyzing…' : 'Beat markers'}</button>
+      </div>
+      <div className="clip-properties-panel__row" style={{ marginTop: 8 }}>
+        <select aria-label="Caption language" value={lang} onChange={(e) => setLang(e.target.value)} style={{ flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12 }}>
+          {TRANSLATION_LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}
+        </select>
+        <button className="clip-properties-panel__toggle-btn" disabled={!!busy} onClick={() => run('captions', async () => {
+          setLines(['Transcribing (first run downloads the speech model)…']);
+          const { transcribeInBrowser, WHISPER_MODELS } = await import('../../../lib/editor/remotion/transcribe.js');
+          const model = (navigator as Navigator & { gpu?: unknown }).gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
+          const out = await transcribeInBrowser(src, { model, onProgress: () => {} });
+          const cues = phrasesFromWords(out.captions as Array<{ text: string; startMs: number; endMs: number }>);
+          if (!cues.length) { setLines(['No speech found to caption.']); return; }
+          setLines([`Translating ${cues.length} caption lines to ${lang}…`]);
+          const translated = await translateCues(cues, lang);
+          const url = URL.createObjectURL(new Blob([toSrt(translated)], { type: 'application/x-subrip' }));
+          const a = document.createElement('a'); a.href = url; a.download = `${(asset?.name ?? 'captions').replace(/\.[^.]+$/, '')}.${lang.split(' ')[0].toLowerCase()}.srt`; a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+          setLines([`${translated.length} ${lang} caption lines saved as .srt — ${translated[0].text}`]);
+        })}>{busy === 'captions' ? 'Working…' : 'Translate captions (.srt)'}</button>
       </div>
       {scenes.length > 0 && (
         <button className="clip-properties-panel__toggle-btn" style={{ marginTop: 6 }} onClick={() => {

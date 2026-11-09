@@ -53,3 +53,22 @@ describe('persistence rows', () => {
     expect(transitionFromRow(JSON.parse(JSON.stringify(transitionToRow(tr, 'tl')))).glType).toBe('page-curl');
   });
 });
+
+import { registerUserLut, userLutTextSync, USER_LUT_PREFIX } from '@cinegen/lib/occ/user-luts';
+describe('imported .cube LUTs', () => {
+  const cube = 'LUT_3D_SIZE 2\n0 0 0\n1 0 0\n0 1 0\n1 1 0\n0 0 1\n1 0 1\n0 1 1\n1 1 1\n';
+  it('registers as a selectable LUT that builds a pass with its 3D table', () => {
+    const id = `${USER_LUT_PREFIX}test`;
+    registerUserLut({ id, name: 'Mine', text: cube });
+    expect(ALL_FX[id].name).toBe('Mine');
+    expect(userLutTextSync(id)).toBe(cube);
+    const passes = clipFxPasses(clip({ lut: { id, intensity: 0.6 } }), 0);
+    expect(passes).toHaveLength(1);
+    expect(passes[0].lut3d?.size).toBe(2);
+    expect(passes[0].uniforms?.u_intensity).toBe(0.6);
+  });
+  it('rejects a file that is not a 3D cube', async () => {
+    const { importCubeFile } = await import('@cinegen/lib/occ/user-luts');
+    await expect(importCubeFile(new File(['LUT_1D_SIZE 2\n0 0 0\n1 1 1\n'], 'x.cube'))).rejects.toThrow();
+  });
+});

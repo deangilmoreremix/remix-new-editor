@@ -1,9 +1,10 @@
 // [remix] Effects / LUT / Blend section of the clip inspector. The effect catalog, defaults and slider ranges are
 // OpenChatCut's own (src/openchatcut/gl/fx); this only hosts them in CineGen's inspector.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Clip, ClipFx } from '@cinegen/types/timeline';
 import { ALL_FX, FX_IDS, LUT_IDS } from '../../../openchatcut/gl/fx/effects';
 import { primeClipLuts } from '@cinegen/lib/occ/clip-fx';
+import { importCubeFile, loadUserLuts, userLutIds } from '@cinegen/lib/occ/user-luts';
 import { t } from '../../../openchatcut/i18n/t';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12, fontFamily: 'inherit' } as const;
@@ -16,6 +17,10 @@ interface Props { clip: Clip; onUpdate: (updates: Updates) => void }
 
 export function ClipEffectsSection({ clip, onUpdate }: Props) {
   const [open, setOpen] = useState<number | null>(null);
+  const [, bump] = useState(0);
+  const [lutError, setLutError] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { void loadUserLuts().then((l) => l.length && bump((n) => n + 1)); }, []);
   const fx = clip.fx ?? [];
   const setFx = (next: ClipFx[]) => onUpdate({ fx: next.length ? next : undefined });
   const setLut = (id: string) => {
@@ -60,8 +65,18 @@ export function ClipEffectsSection({ clip, onUpdate }: Props) {
         <select aria-label="LUT" style={selectStyle} value={clip.lut?.id ?? ''} onChange={(e) => setLut(e.target.value)}>
           <option value="">None</option>
           {LUT_IDS.map((id) => <option key={id} value={id}>{t(ALL_FX[id].name)}</option>)}
+          {userLutIds().map((id) => <option key={id} value={id}>{ALL_FX[id].name} (imported)</option>)}
         </select>
       </div>
+      <div className="clip-properties-panel__row">
+        <input ref={fileRef} type="file" accept=".cube" hidden aria-label="Import .cube LUT" onChange={async (e) => {
+          const f = e.target.files?.[0]; e.target.value = '';
+          if (!f) return;
+          try { setLutError(''); const lut = await importCubeFile(f); bump((n) => n + 1); setLut(lut.id); } catch (err) { setLutError(err instanceof Error ? err.message : String(err)); }
+        }} />
+        <button className="clip-properties-panel__toggle-btn" onClick={() => fileRef.current?.click()}>Import .cube LUT…</button>
+      </div>
+      {lutError && <div style={{ color: '#f87171', fontSize: 11 }}>{lutError}</div>}
       {clip.lut && (
         <div className="clip-properties-panel__row">
           <span className="clip-properties-panel__label">Intensity</span>
