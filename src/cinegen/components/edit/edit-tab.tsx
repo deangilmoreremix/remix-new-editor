@@ -1170,6 +1170,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           onClose={handleCloseRightPanel}
           timeline={timeline}
           syncTarget={syncTarget}
+          currentTime={currentTime}
           onTimelineEdit={(edit) => dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: edit(timeline) })}
         />
       )}

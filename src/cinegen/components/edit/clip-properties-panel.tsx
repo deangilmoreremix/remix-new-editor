@@ -7,6 +7,7 @@ import { clipEffectiveDuration } from '@cinegen/types/timeline';
 import { ClipEffectsSection } from './clip-effects-section';
 import { ClipAnalyzeSection } from './clip-analyze-section';
 import { ClipCaptionsSection } from './clip-captions-section';
+import { ClipMulticamSection } from './clip-multicam-section';
 import { ClipTransformSection } from './clip-transform-section';
 import { ClipZoomSection } from './clip-zoom-section';
 import { ClipTransitionSection } from './clip-transition-section';
@@ -23,6 +24,8 @@ interface ClipPropertiesPanelProps {
   onTimelineEdit?: (edit: (tl: Timeline) => Timeline) => void;
   timeline?: Timeline;
   syncTarget?: { clip: Clip; asset: Asset | null } | null;
+  /** [remix] playhead, for camera switching */
+  currentTime?: number;
 }
 
 export function ClipPropertiesPanel({
@@ -35,6 +38,7 @@ export function ClipPropertiesPanel({
   onTimelineEdit,
   timeline,
   syncTarget,
+  currentTime,
 }: ClipPropertiesPanelProps) {
   const isAudio = asset?.type === 'audio';
 
@@ -202,6 +206,8 @@ export function ClipPropertiesPanel({
       {!isAudio && <ClipZoomSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 
       {onTimelineEdit && timeline && !isAudio && <ClipTransitionSection clip={clip} timeline={timeline} onTimelineEdit={onTimelineEdit} />}
+
+      {onTimelineEdit && timeline && !isAudio && currentTime !== undefined && <ClipMulticamSection clip={clip} timeline={timeline} currentTime={currentTime} onTimelineEdit={onTimelineEdit} />}
 
       {onTimelineEdit && <ClipAnalyzeSection syncTarget={syncTarget} clip={clip} asset={asset} onTimelineEdit={onTimelineEdit} onUpdateClip={(u) => onUpdateClip(clip.id, u)} />}
 

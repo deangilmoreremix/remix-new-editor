@@ -8,9 +8,9 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 
 | Status | Count |
 |---|---|
-| NOT_STARTED | 6 |
+| NOT_STARTED | 5 |
 | SOURCE_FOUND | 1 |
-| PARTIAL | 12 |
+| PARTIAL | 13 |
 | IMPLEMENTED_UNVERIFIED | 7 |
 | VERIFIED | 17 |
 | BLOCKED | 2 |
@@ -153,16 +153,16 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Tests: align.verify
 - Evidence: commit c6ae0deb
 
-### occ.multicam.switch — NOT_STARTED
+### occ.multicam.switch — PARTIAL
 
 - Source (0xsline/OpenChatCut): src/editor/camSwitch.ts, src/multicam/{groups,changeCam}.ts
-- Target: —
-- Original: Camera-switch planning over synced angles
+- Target: src/openchatcut/editor/camSwitch.ts, src/cinegen/lib/occ/cam-switch.ts, src/cinegen/components/edit/clip-multicam-section.tsx
+- Original: Camera switching: other cameras are split + removed in the switch interval (their planCamSwitch); persistent multicam groups/angle decisions
 - Browser: pure TS · Backend: none
-- UI: none · Persistence: — · Preview: — · Export: —
-- Tests: —
-- Evidence: —
-- **Missing:** Camera switching UI/logic not integrated
+- UI: Inspector → Multicam → Cut to this camera (length slider from playhead) · Persistence: ordinary clip edits (SET_TIMELINE history) · Preview: timeline UI verified in browser (two tracks) · Export: exported MP4: t=2.7s red (top camera), 4.5s SMPTE bars (selected lower camera), 7.6s green (top camera tail) — docs/evidence/multicam/
+- Tests: occ-cam-switch.test.ts (4); browser mc3
+- Evidence: docs/evidence/multicam/ (mc-strip frames), this branch
+- **Missing:** Their persistent multicam group / angle-decision model (groups.ts, changeCam.ts replaceAngleDecision) is not integrated: switching is a one-way destructive edit; undo/redo not separately tested; angles are not auto-grouped from audio sync
 
 ## Color
 

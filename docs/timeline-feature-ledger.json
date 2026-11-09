@@ -271,18 +271,22 @@
     "src/editor/camSwitch.ts",
     "src/multicam/{groups,changeCam}.ts"
    ],
-   "targetPaths": [],
-   "originalFunctionality": "Camera-switch planning over synced angles",
+   "targetPaths": [
+    "src/openchatcut/editor/camSwitch.ts",
+    "src/cinegen/lib/occ/cam-switch.ts",
+    "src/cinegen/components/edit/clip-multicam-section.tsx"
+   ],
+   "originalFunctionality": "Camera switching: other cameras are split + removed in the switch interval (their planCamSwitch); persistent multicam groups/angle decisions",
    "browserCompatibility": "pure TS",
    "backendDependencies": "none",
-   "status": "NOT_STARTED",
-   "uiIntegration": "none",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "",
-   "evidence": "",
-   "missing": "Camera switching UI/logic not integrated",
+   "status": "PARTIAL",
+   "uiIntegration": "Inspector → Multicam → Cut to this camera (length slider from playhead)",
+   "persistence": "ordinary clip edits (SET_TIMELINE history)",
+   "preview": "timeline UI verified in browser (two tracks)",
+   "exportPublish": "exported MP4: t=2.7s red (top camera), 4.5s SMPTE bars (selected lower camera), 7.6s green (top camera tail) — docs/evidence/multicam/",
+   "testsPerformed": "occ-cam-switch.test.ts (4); browser mc3",
+   "evidence": "docs/evidence/multicam/ (mc-strip frames), this branch",
+   "missing": "Their persistent multicam group / angle-decision model (groups.ts, changeCam.ts replaceAngleDecision) is not integrated: switching is a one-way destructive edit; undo/redo not separately tested; angles are not auto-grouped from audio sync",
    "blocker": ""
   },
   {
