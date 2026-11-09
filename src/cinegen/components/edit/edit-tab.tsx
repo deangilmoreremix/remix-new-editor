@@ -1119,6 +1119,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           onAddKeyframe={handleAddKeyframe}
           onRemoveKeyframe={handleRemoveKeyframe}
           onClose={handleCloseRightPanel}
+          onTimelineEdit={(edit) => dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: edit(timeline) })}
         />
       )}
     </div>
