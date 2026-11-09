@@ -33,6 +33,7 @@ import { stretchLowerThird } from '../addons/lowerThirds.js';
 import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './keyframes.js';
 import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
+import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
 import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
 
 // ------------------------------------------------------------------ fonts
@@ -422,9 +423,22 @@ function KeyframeWrap({ layer, seqFrom, origin, children }) {
 
 function MediaLayer({ layer, seqFrom }) {
   const t = useLayerTime(layer, seqFrom);
+  const { width: W, height: H } = useVideoConfig();
   const fit = layer.fit === 'contain' ? 'contain' : 'cover';
   const fx = useLayerEffects(layer, t);
   const mirror = layer.flip ? { transform: `scale(${layer.flip.h ? -1 : 1}, ${layer.flip.v ? -1 : 1})` } : {};
+  // [remix] OpenChatCut effects / LUT: render through the GL pipeline (also during export, so they are burned in).
+  if (layer.occFx?.length && (layer.kind === 'video' || layer.kind === 'image')) {
+    return (
+      <AbsoluteFill style={mirror}>
+        <OccClipFx
+          item={{ id: layer.id, kind: layer.kind, src: layer.src, trimBefore: layer.trimBefore || 0, playbackRate: layer.playbackRate || 1, effects: layer.occFx }}
+          fit={fit} width={W} height={H}
+        />
+        {layer.kind === 'video' && <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={Math.max(0, Math.min(1, layer.volume ?? 1))} />}
+      </AbsoluteFill>
+    );
+  }
   if (layer.kind === 'video') {
     const kfVolume = layer.keyframes?.volume?.length ? valueAt(layer.keyframes.volume, t, 1) : 1;
     const volume = Math.max(0, Math.min(1, (layer.volume ?? 1) * kfVolume));

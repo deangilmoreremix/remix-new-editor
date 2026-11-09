@@ -8,6 +8,10 @@ import { responsesChat } from './llm-responses';
 import { authHeader } from './llm-responses';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 export { responsesChat };
+import { clipFxInstances } from '@cinegen/lib/occ/clip-fx';
+// [remix] OpenChatCut effects + LUT of an export clip, as plain {id, overrides} for the composition's GL layer.
+const occFxList = (c: { fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }) =>
+  clipFxInstances(c as never).map(({ def, overrides }) => ({ id: def.id, overrides }));
 
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
 const transcriptionListeners = new Set<(e: TranscriptionEvent) => void>();
@@ -104,7 +108,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string }>; totalDuration: number };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -117,12 +121,14 @@ export function registerWebApi() {
           const item = (c: (typeof a.clips)[number], i: number) => ({
             id: `c${i}`, type: c.type === 'audio' ? 'audio' : c.type === 'image' ? 'image' : 'video', src: c.inputPath,
             start: c.startTime, end: c.startTime + c.duration, trimIn: c.trimStart, playbackRate: c.speed || 1, volume: c.volume ?? 1,
+            // [remix] OpenChatCut effects / LUT → burned in by the composition's GL layer
+            occFx: occFxList(c),
           });
           const state = {
             timelineSeconds: Math.max(1, a.totalDuration),
             tracks: [
-              { id: 'v', type: 'video', items: a.clips.filter((c) => c.type !== 'audio').map(item) },
-              { id: 'a', type: 'audio', items: a.clips.filter((c) => c.type === 'audio').map((c, i) => item(c, 1000 + i)) },
+              { id: 'v', type: 'video', items: a.clips.filter((c) => c.type !== 'audio' && c.trackKind !== 'audio').map(item) },
+              { id: 'a', type: 'audio', items: a.clips.filter((c) => c.type === 'audio' || c.trackKind === 'audio').map((c, i) => item({ ...c, type: 'audio' }, 1000 + i)) },
             ],
           };
           const model = timelineToComposition(state, { fps: a.fps, quality });

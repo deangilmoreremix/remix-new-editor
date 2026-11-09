@@ -27,9 +27,13 @@ export function ExportTab() {
         speed: clip.speed || 1,
         volume: clip.volume ?? 1,
         type: asset.type,
+        // [remix] a clip on an audio track plays sound only, even when its media file is a video
+        trackKind: activeTimeline.tracks.find((t) => t.id === clip.trackId)?.kind,
+        // [remix] OpenChatCut effects burned into the render
+        fx: clip.fx, lut: clip.lut,
       }];
     });
-  }, [activeTimeline.clips, state.assets]);
+  }, [activeTimeline.clips, activeTimeline.tracks, state.assets]);
   const hasClips = exportClips.length > 0;
   const totalDuration = Math.max(
     activeTimeline.duration,
