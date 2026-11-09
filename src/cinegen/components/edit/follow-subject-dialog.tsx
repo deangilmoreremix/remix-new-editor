@@ -9,6 +9,7 @@ import { analyzeMotion } from '../../../openchatcut/tracking/analyzeMotion';
 import { TrackingRegionPicker } from '../../../openchatcut/tracking/TrackingRegionPicker';
 import { TrackingError, type TrackingProgress, type TrackingRegion, type TrackingResult } from '../../../openchatcut/tracking/types';
 import { followZoomFromTrack, ZOOM_BASIS_FPS } from '@cinegen/lib/occ/follow-zoom';
+import { transformFromTrack, type ClipTransform } from '@cinegen/lib/occ/transform';
 import '../../../openchatcut/tracking/motion-tracking.css';
 
 const ERRORS: Record<string, string> = {
@@ -16,7 +17,7 @@ const ERRORS: Record<string, string> = {
   'flat-target': 'The box has too little texture — pick a target with clearer edges and detail.', 'invalid-region': 'The box is too small — draw it again.',
 };
 
-export function FollowSubjectDialog({ clip, src, width, height, onApply, onClose }: { clip: Clip; src: string; width?: number; height?: number; onApply: (zoom: ZoomEffect) => void; onClose: () => void }) {
+export function FollowSubjectDialog({ clip, src, width, height, onApply, onPin, onClose }: { clip: Clip; src: string; width?: number; height?: number; onApply: (zoom: ZoomEffect) => void; onPin?: (t: ClipTransform) => void; onClose: () => void }) {
   const [region, setRegion] = useState<TrackingRegion>({ x: 0.35, y: 0.3, width: 0.3, height: 0.4 });
   const [mag, setMag] = useState(2);
   const [minConfidence, setMinConfidence] = useState(0.68);
@@ -59,6 +60,7 @@ export function FollowSubjectDialog({ clip, src, width, height, onApply, onClose
         <footer><span /><div>
           {running ? <button type="button" onClick={() => abort.current?.abort()}>Cancel</button> : <button type="button" onClick={() => void run()}>{result ? 'Analyse again' : 'Start tracking'}</button>}
           <button type="button" className="primary" disabled={!result || result.points.length < 2} onClick={() => { onApply(followZoomFromTrack(result!.points, mag)); onClose(); }}>Apply follow zoom</button>
+          {onPin && <button type="button" data-testid="pin-subject" disabled={!result || result.points.length < 2} onClick={() => { onPin(transformFromTrack(result!.points, ZOOM_BASIS_FPS, clip.transform)); onClose(); }}>Pin subject to centre (transform)</button>}
         </div></footer>
       </section>
     </div>, document.body);

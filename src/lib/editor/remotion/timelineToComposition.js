@@ -141,6 +141,7 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
         ...(Array.isArray(clip.occFx) && clip.occFx.length ? { occFx: clip.occFx } : {}),
         ...(clip.blendMode && clip.blendMode !== 'normal' ? { clipBlend: clip.blendMode } : {}),
         ...(clip.zoom ? { clipZoom: clip.zoom } : {}),
+        ...(clip.transform ? { clipTransform: clip.transform } : {}),
         keyframes: clip.keyframes || null,
         // [remix] OpenChatCut clip fades (seconds)
         ...(clip.fadeIn > 0 ? { fadeIn: clip.fadeIn } : {}),

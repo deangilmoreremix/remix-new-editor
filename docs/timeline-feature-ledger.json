@@ -637,26 +637,52 @@
    "blocker": ""
   },
   {
-   "id": "occ.edit.transform-keyframes",
+   "id": "occ.edit.transform",
    "family": "Editing",
    "sourceRepo": "0xsline/OpenChatCut",
    "sourcePaths": [
-    "src/editor/{keyframes,keyframeRegistry,clipTypes}.ts"
+    "src/editor/{clipTypes,keyframes,keyframeRegistry}.ts (transform model)"
    ],
    "targetPaths": [
-    "src/openchatcut/editor/keyframes.ts"
+    "src/cinegen/lib/occ/transform.ts",
+    "src/cinegen/components/edit/clip-transform-section.tsx",
+    "src/lib/editor/remotion/TimelineComposition.jsx (OccTransform)"
    ],
-   "originalFunctionality": "Transform keyframes position/scale/rotation/opacity",
-   "browserCompatibility": "pure",
+   "originalFunctionality": "Clip position/scale/rotation (+ keyframes in their model)",
+   "browserCompatibility": "CSS transform",
    "backendDependencies": "none",
-   "status": "NOT_STARTED",
-   "uiIntegration": "opacity/volume keyframes only (CineGen)",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "",
-   "evidence": "",
-   "missing": "Clip has no position/scale/rotation transform in the CineGen model",
+   "status": "PARTIAL",
+   "uiIntegration": "Inspector → Transform sliders + Reset",
+   "persistence": "clip.transform_json",
+   "preview": "viewer wrapper css (computed style verified in browser)",
+   "exportPublish": "exported MP4 frame: clip scaled 0.5, rotated 15 deg, shifted 40% right, left quarter black (measured luma 0 vs control 151)",
+   "testsPerformed": "occ-transform.test.ts (3)",
+   "evidence": "docs/evidence/transform/ (tr-frame.png, tr-control.png, tr-1-preview.png); this branch",
+   "missing": "No keyframes UI for position/scale/rotation (only the tracked path); no undo-specific test beyond the shared SET_TIMELINE history; reload persistence covered by converter test only (not browser)",
+   "blocker": ""
+  },
+  {
+   "id": "occ.tracking.pin",
+   "family": "Tracking",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/tracking/*, src/editor/keyframeActions (stabilize idea)"
+   ],
+   "targetPaths": [
+    "src/cinegen/components/edit/follow-subject-dialog.tsx (Pin subject button)",
+    "src/cinegen/lib/occ/transform.ts (transformFromTrack)"
+   ],
+   "originalFunctionality": "Tracked subject pinned to frame centre via transform path",
+   "browserCompatibility": "canvas + CSS",
+   "backendDependencies": "none",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "Zoom → Follow subject → 'Pin subject to centre (transform)'",
+   "persistence": "clip.transform.path",
+   "preview": "same css as transform (verified)",
+   "exportPublish": "same OccTransform path (verified for static transform)",
+   "testsPerformed": "transformFromTrack unit tests",
+   "evidence": "this branch",
+   "missing": "The Pin button itself was not driven in the browser; path keys verified only in unit tests; tracking cannot yet pin overlays/graphics",
    "blocker": ""
   },
   {

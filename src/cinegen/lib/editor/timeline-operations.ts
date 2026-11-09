@@ -963,7 +963,7 @@ export function createSyncedTimeline(
 export function updateClipProperties(
   timeline: Timeline,
   clipId: string,
-  updates: Partial<Pick<Clip, 'speed' | 'fadeIn' | 'fadeOut' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>,
+  updates: Partial<Pick<Clip, 'speed' | 'fadeIn' | 'fadeOut' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>,
 ): Timeline {
   const clip = timeline.clips.find((c) => c.id === clipId);
   const linkedIds = new Set(getLinkedIds(clip));

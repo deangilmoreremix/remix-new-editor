@@ -12,7 +12,7 @@ import { FollowSubjectDialog } from './follow-subject-dialog';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12 } as const;
 
-export function ClipZoomSection({ clip, asset, onUpdate }: { clip: Clip; asset: Asset | null; onUpdate: (u: { zoom?: ZoomEffect }) => void }) {
+export function ClipZoomSection({ clip, asset, onUpdate }: { clip: Clip; asset: Asset | null; onUpdate: (u: { zoom?: ZoomEffect; transform?: import('@cinegen/lib/occ/transform').ClipTransform }) => void }) {
   const [follow, setFollow] = useState(false);
   const pluginZooms = pluginResourceItems(usePluginPacks(), 'zoom');
   const z = clip.zoom;
@@ -52,7 +52,7 @@ export function ClipZoomSection({ clip, asset, onUpdate }: { clip: Clip; asset: 
         </>
       )}
       {asset?.type === 'video' && <div className="clip-properties-panel__row"><button className="clip-properties-panel__toggle-btn" onClick={() => setFollow(true)}>Follow subject…</button></div>}
-      {follow && asset && <FollowSubjectDialog clip={clip} src={toFileUrl(asset.fileRef || asset.url)} width={asset.width} height={asset.height} onClose={() => setFollow(false)} onApply={(zoom) => onUpdate({ zoom })} />}
+      {follow && asset && <FollowSubjectDialog clip={clip} src={toFileUrl(asset.fileRef || asset.url)} width={asset.width} height={asset.height} onClose={() => setFollow(false)} onApply={(zoom) => onUpdate({ zoom })} onPin={(transform) => onUpdate({ transform })} />}
     </div>
   );
 }

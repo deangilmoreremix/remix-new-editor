@@ -8,14 +8,14 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 
 | Status | Count |
 |---|---|
-| NOT_STARTED | 7 |
+| NOT_STARTED | 6 |
 | SOURCE_FOUND | 1 |
-| PARTIAL | 11 |
-| IMPLEMENTED_UNVERIFIED | 6 |
+| PARTIAL | 12 |
+| IMPLEMENTED_UNVERIFIED | 7 |
 | VERIFIED | 17 |
 | BLOCKED | 2 |
 | NOT_APPLICABLE | 2 |
-| **All** | 46 |
+| **All** | 47 |
 
 ## Effects
 
@@ -116,6 +116,17 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Tests: vitest tracking verify; browser run
 - Evidence: commit a798c788
 - **Missing:** Result drives the zoom focal point only; no position/scale/rotation transform on clip, so tracking cannot yet pin overlays/graphics
+
+### occ.tracking.pin — IMPLEMENTED_UNVERIFIED
+
+- Source (0xsline/OpenChatCut): src/tracking/*, src/editor/keyframeActions (stabilize idea)
+- Target: src/cinegen/components/edit/follow-subject-dialog.tsx (Pin subject button), src/cinegen/lib/occ/transform.ts (transformFromTrack)
+- Original: Tracked subject pinned to frame centre via transform path
+- Browser: canvas + CSS · Backend: none
+- UI: Zoom → Follow subject → 'Pin subject to centre (transform)' · Persistence: clip.transform.path · Preview: same css as transform (verified) · Export: same OccTransform path (verified for static transform)
+- Tests: transformFromTrack unit tests
+- Evidence: this branch
+- **Missing:** The Pin button itself was not driven in the browser; path keys verified only in unit tests; tracking cannot yet pin overlays/graphics
 
 ## Reframe
 
@@ -329,16 +340,16 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Evidence: CineGen equivalents
 - **Missing:** Compare and fill gaps (overwrite, layouts) — not done
 
-### occ.edit.transform-keyframes — NOT_STARTED
+### occ.edit.transform — PARTIAL
 
-- Source (0xsline/OpenChatCut): src/editor/{keyframes,keyframeRegistry,clipTypes}.ts
-- Target: src/openchatcut/editor/keyframes.ts
-- Original: Transform keyframes position/scale/rotation/opacity
-- Browser: pure · Backend: none
-- UI: opacity/volume keyframes only (CineGen) · Persistence: — · Preview: — · Export: —
-- Tests: —
-- Evidence: —
-- **Missing:** Clip has no position/scale/rotation transform in the CineGen model
+- Source (0xsline/OpenChatCut): src/editor/{clipTypes,keyframes,keyframeRegistry}.ts (transform model)
+- Target: src/cinegen/lib/occ/transform.ts, src/cinegen/components/edit/clip-transform-section.tsx, src/lib/editor/remotion/TimelineComposition.jsx (OccTransform)
+- Original: Clip position/scale/rotation (+ keyframes in their model)
+- Browser: CSS transform · Backend: none
+- UI: Inspector → Transform sliders + Reset · Persistence: clip.transform_json · Preview: viewer wrapper css (computed style verified in browser) · Export: exported MP4 frame: clip scaled 0.5, rotated 15 deg, shifted 40% right, left quarter black (measured luma 0 vs control 151)
+- Tests: occ-transform.test.ts (3)
+- Evidence: docs/evidence/transform/ (tr-frame.png, tr-control.png, tr-1-preview.png); this branch
+- **Missing:** No keyframes UI for position/scale/rotation (only the tracked path); no undo-specific test beyond the shared SET_TIMELINE history; reload persistence covered by converter test only (not browser)
 
 ## Export
 

@@ -186,6 +186,8 @@ export function clipFromRow(
       if (typeof row['blend_mode'] === 'string' && row['blend_mode']) out.blendMode = row['blend_mode'] as string;
       if (typeof row['fade_in'] === 'number' && row['fade_in'] > 0) out.fadeIn = row['fade_in'] as number;
       if (typeof row['fade_out'] === 'number' && row['fade_out'] > 0) out.fadeOut = row['fade_out'] as number;
+      const transform = json<Clip['transform']>(row['transform_json']);
+      if (transform) out.transform = transform;
       const zoom = json<Clip['zoom']>(row['zoom_json']);
       if (zoom && typeof zoom === 'object') out.zoom = zoom;
       const captions = json<Clip['captions']>(row['captions_json']);
@@ -389,6 +391,7 @@ export function clipToRow(clip: Clip, timelineId: string): Record<string, unknow
     fade_in: clip.fadeIn ?? null,
     fade_out: clip.fadeOut ?? null,
     zoom_json: clip.zoom ? JSON.stringify(clip.zoom) : null,
+    transform_json: clip.transform ? JSON.stringify(clip.transform) : null,
     captions_json: clip.captions ? JSON.stringify(clip.captions) : null,
   };
 }

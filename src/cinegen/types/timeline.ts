@@ -56,6 +56,8 @@ export interface Clip {
   fx?: ClipFx[];
   lut?: { id: string; intensity: number; def?: import('../lib/occ/plugins').FxSnapshot };
   blendMode?: string;
+  /** [remix] position / scale / rotation (+ tracked path) of the clip in the frame. */
+  transform?: import('../lib/occ/transform').ClipTransform;
   /** [remix] OpenChatCut zoom / follow-subject reframe (their ZoomEffect). */
   zoom?: import('../../openchatcut/editor/types').ZoomEffect;
   /** [remix] OpenChatCut captions burned over this clip (words in timeline ms). */

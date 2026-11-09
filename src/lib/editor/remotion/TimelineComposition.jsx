@@ -35,6 +35,7 @@ import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
+import { clipTransformCss } from '../../../cinegen/lib/occ/transform';
 import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
 import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
 import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
@@ -445,6 +446,14 @@ function fadedVolume(layer, fps, base, kf) {
 }
 
 /** [remix] fade-in/out of a visual clip = opacity multiplier over the whole layer. */
+/** [remix] clip position / scale / rotation (+ tracked path): same CSS as the editor viewer (cinegen/lib/occ/transform.ts). */
+function OccTransform({ transform, children }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const css = clipTransformCss(transform, frame / fps);
+  return css ? <AbsoluteFill style={{ transform: css }}>{children}</AbsoluteFill> : children;
+}
+
 function MediaLayer(props) {
   const { layer, seqFrom } = props;
   const t = useLayerTime(layer, seqFrom);
@@ -574,9 +583,11 @@ export function TimelineComposition({ model }) {
               <KeyframeWrap layer={layer} seqFrom={from}>
                 {/* [remix] clip blend mode (CSS mix-blend-mode, burned into export) */}
                 <AbsoluteFill style={layer.clipBlend ? { mixBlendMode: layer.clipBlend } : undefined}>
+                  <OccTransform transform={layer.clipTransform}>
                   {layer.clipZoom
                     ? <OccZoom zoom={layer.clipZoom} durationInFrames={layer.durationInFrames}><MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} /></OccZoom>
                     : <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />}
+                  </OccTransform>
                 </AbsoluteFill>
               </KeyframeWrap>
             );

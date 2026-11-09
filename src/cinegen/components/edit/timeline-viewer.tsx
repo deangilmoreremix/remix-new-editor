@@ -9,6 +9,7 @@ import type { OverlayClip } from '@cinegen/types/workspace';
 import { OverlayLayer } from './overlay-layer';
 import { GlClipLayer } from './gl-clip-layer';
 import { CaptionsPreviewLayer } from './captions-preview-layer';
+import { clipTransformCss } from '@cinegen/lib/occ/transform';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
 import type { Clip } from '@cinegen/types/timeline';
 
@@ -164,6 +165,9 @@ export function TimelineViewer({
     return { transform: `scale(${z.magnification})`, transformOrigin: `${z.focalX * 100}% ${z.focalY * 100}%` };
   })();
 
+  // [remix] clip position / scale / rotation (+ tracked path), applied outside the zoom so both compose
+  const transformCss = activeClip ? clipTransformCss(activeClip.transform, Math.max(0, currentTime - activeClip.startTime)) : undefined;
+
   return (
     <div
       className={`timeline-viewer${dragOver ? ' timeline-viewer--drag-over' : ''}`}
@@ -202,6 +206,7 @@ export function TimelineViewer({
           <span className="timeline-viewer__empty">No clip at playhead</span>
         )}
         {/* [remix] OpenChatCut zoom / follow-subject (scale about the focal point, as in their media layer) */}
+        <div style={{ position: 'absolute', inset: 0, ...(transformCss ? { transform: transformCss } : {}) }} data-testid="clip-transform-wrap">
         <div style={{ position: 'absolute', inset: 0, ...zoomStyle }}>
         <div
           ref={nativeVideoEnabled ? nativeSurfaceRef : (el) => { setGlContainer(el); videoContainerRef(el); }}
@@ -217,6 +222,7 @@ export function TimelineViewer({
           />
         )}
         <GlClipLayer container={glContainer} clip={activeClip} assetId={activeAsset?.id ?? null} transition={glTransition} />
+        </div>
         </div>
         <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={activeAsset?.width && activeAsset?.height ? activeAsset.width / activeAsset.height : 16 / 9} />
         <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onGeometry={onOverlayGeometry} />
