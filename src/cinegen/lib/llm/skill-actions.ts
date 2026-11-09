@@ -28,6 +28,7 @@ import {
 import { bindPromptMentionsToGraph } from '@cinegen/lib/llm/prompt-elements';
 import { generateId, timestamp } from '@cinegen/lib/utils/ids';
 
+import { runAnalyzeClipStep } from '@cinegen/lib/llm/copilot-analyze';
 export { COPILOT_ACTIONS_GUIDE } from '@cinegen/lib/llm/copilot-actions-guide';
 
 export type SkillActionTab = ProjectTab | 'spaces';
@@ -90,6 +91,20 @@ export interface SkillGenerateMediaStep {
   refClipId?: string;
 }
 
+/** [remix] Analysis-backed tools ported from OpenChatCut. Run asynchronously (frames / on-device Whisper) once applied. */
+export interface SkillAnalyzeClipStep {
+  type: 'analyze_clip';
+  task: 'split_scenes' | 'captions';
+  clipId: string;
+  timelineId?: string;
+  /** split_scenes: 0.05–0.95 (their scene-detection threshold) */
+  threshold?: number;
+  /** captions */
+  template?: string;
+  motion?: string;
+  translateTo?: string;
+}
+
 export type SkillActionStep =
   | SkillNavigateStep
   | SkillCreateSpaceStep
@@ -97,7 +112,8 @@ export type SkillActionStep =
   | SkillUpdateNodeStep
   | SkillSaveElementsStep
   | SkillEditTimelineStep
-  | SkillGenerateMediaStep;
+  | SkillGenerateMediaStep
+  | SkillAnalyzeClipStep;
 
 export interface SkillActionPayload {
   label: string;
@@ -307,6 +323,41 @@ function normalizeTimelineOps(raw: unknown): TimelineEditOp[] {
           if (markers.length > 0) ops.push({ op: 'add_markers', markers });
         }
         break;
+      // [remix] ported OpenChatCut tools (names are resolved to catalog ids when applied)
+      case 'set_look':
+        if (typeof entry.clipId === 'string') {
+          const effects = Array.isArray(entry.effects)
+            ? entry.effects.flatMap((e) => (typeof e === 'string' ? [{ effect: e }] : isRecord(e) && typeof e.effect === 'string' ? [{ effect: e.effect, props: isRecord(e.props) ? Object.fromEntries(Object.entries(e.props).filter(([, v]) => typeof v === 'number')) as Record<string, number> : undefined }] : []))
+            : undefined;
+          ops.push({
+            op: 'set_look', clipId: entry.clipId, effects,
+            lut: typeof entry.lut === 'string' ? entry.lut : entry.lut === null ? null : undefined,
+            lutIntensity: typeof entry.lutIntensity === 'number' ? entry.lutIntensity : undefined,
+            blendMode: typeof entry.blendMode === 'string' ? entry.blendMode : entry.blendMode === null ? null : undefined,
+            clear: entry.clear === true ? true : undefined,
+          });
+        }
+        break;
+      case 'set_zoom':
+        if (typeof entry.clipId === 'string') {
+          ops.push({
+            op: 'set_zoom', clipId: entry.clipId, shape: typeof entry.shape === 'string' ? entry.shape : undefined,
+            magnification: typeof entry.magnification === 'number' ? entry.magnification : undefined,
+            focalX: typeof entry.focalX === 'number' ? entry.focalX : undefined, focalY: typeof entry.focalY === 'number' ? entry.focalY : undefined,
+            clear: entry.clear === true ? true : undefined,
+          });
+        }
+        break;
+      case 'add_transition':
+        if (typeof entry.fromClipId === 'string' && typeof entry.type === 'string') {
+          ops.push({ op: 'add_transition', fromClipId: entry.fromClipId, toClipId: typeof entry.toClipId === 'string' ? entry.toClipId : undefined, type: entry.type, duration: typeof entry.duration === 'number' ? entry.duration : undefined });
+        }
+        break;
+      case 'remove_transition':
+        if (typeof entry.fromClipId === 'string') {
+          ops.push({ op: 'remove_transition', fromClipId: entry.fromClipId, toClipId: typeof entry.toClipId === 'string' ? entry.toClipId : undefined });
+        }
+        break;
       default:
         break;
     }
@@ -442,6 +493,19 @@ function normalizeSkillActionPayload(raw: unknown): SkillActionPayload | null {
         timelineId: typeof step.timelineId === 'string' ? step.timelineId : undefined,
         ops,
       });
+    }
+    if (step.type === 'analyze_clip') {
+      if ((step.task === 'split_scenes' || step.task === 'captions') && typeof step.clipId === 'string') {
+        steps.push({
+          type: 'analyze_clip', task: step.task, clipId: step.clipId,
+          timelineId: typeof step.timelineId === 'string' ? step.timelineId : undefined,
+          threshold: typeof step.threshold === 'number' ? step.threshold : undefined,
+          template: typeof step.template === 'string' ? step.template : undefined,
+          motion: typeof step.motion === 'string' ? step.motion : undefined,
+          translateTo: typeof step.translateTo === 'string' ? step.translateTo : undefined,
+        });
+      }
+      continue;
     }
     if (step.type === 'generate_media') {
       const prompt = typeof step.prompt === 'string' ? step.prompt.trim() : '';
@@ -813,6 +877,12 @@ export function executeSkillAction(
         });
       }
       dispatch({ type: 'SET_TAB', tab: 'elements' });
+      continue;
+    }
+
+    if (step.type === 'analyze_clip') {
+      const timeline = resolveTimelineTarget(step.timelineId, context.timelines, context.activeTimelineId);
+      if (timeline) void runAnalyzeClipStep(step, timeline, context.assets, dispatch).catch((err) => console.error('[copilot] analyze_clip failed', err));
       continue;
     }
 

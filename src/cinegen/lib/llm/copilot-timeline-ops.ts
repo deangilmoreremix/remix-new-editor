@@ -5,13 +5,16 @@ import {
 } from '@cinegen/lib/editor/timeline-operations';
 import type { Timeline, TimelineMarker } from '@cinegen/types/timeline';
 import { generateId } from '@cinegen/lib/utils/ids';
+import { applyLookOp, type LookOp } from './copilot-look-ops';
 
 export type TimelineEditOp =
   | { op: 'split_clip'; clipId: string; time: number }
   | { op: 'trim_clip'; clipId: string; trimStart: number; trimEnd: number; startTime?: number }
   | { op: 'remove_clip'; clipId: string }
   | { op: 'close_gaps'; maxGapSec?: number; ripple?: boolean }
-  | { op: 'add_markers'; markers: Array<{ time: number; label: string; color?: string }> };
+  | { op: 'add_markers'; markers: Array<{ time: number; label: string; color?: string }> }
+  // [remix] ported OpenChatCut tools: effects / LUT looks / blend, zoom, GL transitions
+  | LookOp;
 
 function closeGapsOnTimeline(timeline: Timeline, maxGapSec = 0.5): Timeline {
   let nextTimeline = timeline;
@@ -79,6 +82,12 @@ export function applyTimelineEditOps(timeline: Timeline, ops: TimelineEditOp[]):
         };
         break;
       }
+      case 'set_look':
+      case 'set_zoom':
+      case 'add_transition':
+      case 'remove_transition':
+        nextTimeline = applyLookOp(nextTimeline, operation);
+        break;
       default:
         break;
     }

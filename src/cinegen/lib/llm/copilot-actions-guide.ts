@@ -1,3 +1,6 @@
+import { lookCatalogGuide } from './copilot-look-ops';
+const LOOK_CATALOG = lookCatalogGuide();
+
 export const COPILOT_ACTIONS_GUIDE = `
 When the user wants CineGen to apply changes in the app (not just chat), include ONE \`cinegen-skill-action\` JSON block:
 
@@ -11,7 +14,11 @@ When the user wants CineGen to apply changes in the app (not just chat), include
 - \`add_nodes\`: add node(s) to a workspace — \`spaceId\`: \`"active"\` or workspace name/id
 - \`update_node\`: patch the editable config of an existing Spaces node — \`{ "type": "update_node", "nodeId": "exact id from SELECTED SPACE NODE", "config": { "prompt": "replacement prompt" } }\`. Include only fields the user requested to change. Never put \`result\`, \`position\`, or generated media in this patch.
 - \`save_elements\`: \`{ "type": "save_elements", "items": [{ "kind": "character" | "location" | "prop" | "vehicle", "name": "...", "description": "..." }] }\`
-- \`edit_timeline\`: \`{ "type": "edit_timeline", "timelineId": "active", "ops": [...] }\` — ops: \`split_clip\`, \`trim_clip\`, \`remove_clip\`, \`close_gaps\`, \`add_markers\`
+- \`edit_timeline\`: \`{ "type": "edit_timeline", "timelineId": "active", "ops": [...] }\` — ops: \`split_clip\`, \`trim_clip\`, \`remove_clip\`, \`close_gaps\`, \`add_markers\`, plus the look tools: \`{ "op": "set_look", "clipId": "...", "effects": [{ "effect": "Vignette" }], "lut": "Teal & Orange", "lutIntensity": 0.8, "blendMode": "screen", "clear": false }\`, \`{ "op": "set_zoom", "clipId": "...", "shape": "Slow Push", "magnification": 1.8, "focalX": 0.5, "focalY": 0.4 }\` (\`clear\`: true removes), \`{ "op": "add_transition", "fromClipId": "...", "toClipId": "optional next clip", "type": "Page Curl", "duration": 0.5 }\` (needs spare footage at the cut), \`{ "op": "remove_transition", "fromClipId": "..." }\`
+- \`analyze_clip\`: runs on-device analysis then edits — \`{ "type": "analyze_clip", "task": "split_scenes", "clipId": "...", "threshold": 0.3 }\` splits the clip at scene changes; \`{ "type": "analyze_clip", "task": "captions", "clipId": "...", "template": "TikTok Pop", "motion": "pop", "translateTo": "Spanish" }\` adds burned-in captions (translateTo is optional and adds a translated second line).
+
+Look tool names (use these words; the app resolves them):
+${LOOK_CATALOG}
 - \`generate_media\`: generate an image/video via Higgsfield and place it — \`{ "type": "generate_media", "prompt": "...", "outputType": "image" | "video", "target": "timeline" | "bin", "refClipId": "optional clip id to seed from" }\`. Use when the user asks to generate/create media and add it (e.g. "make a rain b-roll and put it on my timeline"). \`outputType\` defaults to image, \`target\` to timeline.
 
 **Single prompt → Spaces:**

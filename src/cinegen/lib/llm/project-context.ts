@@ -520,6 +520,10 @@ export function buildProjectContext(params: {
         `  - Clip: ${clip.name} [${clip.id}]`,
         `    Asset: ${asset?.name ?? clip.assetId}; Track: ${track?.name ?? clip.trackId}; Timeline in/out: ${formatSeconds(clip.startTime)} to ${formatSeconds(clip.startTime + clipEffectiveDuration(clip))}`,
         `    Source trim: ${formatSeconds(sourceIn)} to ${formatSeconds(sourceOut)}; Speed: ${clip.speed}x; Volume: ${clip.volume}; Linked clips: ${clip.linkedClipIds?.join(', ') ?? 'none'}`,
+        // [remix] look / zoom / captions already on the clip (ported OpenChatCut tools), so the assistant can adjust or remove them
+        ...((clip.fx?.length || clip.lut || clip.blendMode || clip.zoom || clip.captions)
+          ? [`    Look: ${[clip.fx?.length ? `effects ${clip.fx.map((f) => f.id.replace(/^builtin:(fx-)?/, '')).join(', ')}` : '', clip.lut ? `LUT ${clip.lut.id.replace(/^builtin:(look-)?/, '')} ${Math.round(clip.lut.intensity * 100)}%` : '', clip.blendMode ? `blend ${clip.blendMode}` : '', clip.zoom ? 'zoom' : '', clip.captions ? `captions (${clip.captions.template})` : ''].filter(Boolean).join('; ')}`]
+          : []),
       ].join('\n');
     });
 

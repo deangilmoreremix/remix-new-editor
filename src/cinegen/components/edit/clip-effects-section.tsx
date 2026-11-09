@@ -10,8 +10,7 @@ import { t } from '../../../openchatcut/i18n/t';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12, fontFamily: 'inherit' } as const;
 
-// CSS blend modes (the OpenChatCut source in this repo has no blend feature; this is the browser's own list).
-export const BLEND_MODES = ['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity', 'plus-lighter'] as const;
+import { BLEND_MODES } from '@cinegen/lib/occ/blend';
 
 type Updates = Partial<Pick<Clip, 'fx' | 'lut' | 'blendMode'>>;
 interface Props { clip: Clip; onUpdate: (updates: Updates) => void }

@@ -113,7 +113,7 @@ export function canvasAssistantContext(
 }
 
 const APPLYABLE_STEPS = new Set([
-  'navigate', 'create_space', 'add_nodes', 'update_node', 'save_elements', 'edit_timeline',
+  'navigate', 'create_space', 'add_nodes', 'update_node', 'save_elements', 'edit_timeline', 'analyze_clip',
 ]);
 
 function compactNodeConfig(value: unknown, depth = 0): unknown {
