@@ -23,7 +23,7 @@ for (const f of ledger.features) {
 const count = {};
 for (const f of ledger.features) count[f.status] = (count[f.status] ?? 0) + 1;
 const lines = [];
-lines.push('# Timeline Studio Editor — feature completion ledger', '', `Generated from \`docs/timeline-feature-ledger.json\` by \`scripts/ledger-check.mjs\` (branch \`${ledger.branch}\`, OpenChatCut upstream \`${ledger.upstreamCommit.OpenChatCut.slice(0, 7)}\`).`, '', '**Never read PARTIAL / IMPLEMENTED_UNVERIFIED / BLOCKED as done.** Only VERIFIED rows have tests and evidence recorded.', '', '## Totals', '', '| Status | Count |', '|---|---|');
+lines.push('# Timeline Studio Editor — feature completion ledger', '', `Generated from \`docs/timeline-feature-ledger.json\` by \`scripts/ledger-check.mjs\` (branch \`${ledger.branch}\`, OpenChatCut upstream \`${ledger.upstreamCommit.OpenChatCut.slice(0, 7)}\`).`, '', '**Never read PARTIAL / IMPLEMENTED_UNVERIFIED / BLOCKED as done.** Only VERIFIED rows have tests and evidence recorded.', '', '## Regression record', '', ...Object.entries(ledger.regression ?? {}).map(([k, v]) => `- **${k}:** ${v}`), '', '## Totals', '', '| Status | Count |', '|---|---|');
 for (const s of ledger.statuses) lines.push(`| ${s} | ${count[s] ?? 0} |`);
 lines.push(`| **All** | ${ledger.features.length} |`, '');
 for (const fam of [...new Set(ledger.features.map((f) => f.family))]) {

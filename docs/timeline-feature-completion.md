@@ -4,6 +4,14 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 
 **Never read PARTIAL / IMPLEMENTED_UNVERIFIED / BLOCKED as done.** Only VERIFIED rows have tests and evidence recorded.
 
+## Regression record
+
+- **vitest:** 676 tests / 71 files passed (src/openchatcut, src/cinegen/__tests__)
+- **viteBuild:** npx vite build exit 0 (1m55s) at commit 2a5dab7f
+- **classicEditor:** not browser-smoke-tested in this stage (no changes made under src/lib/editor/addons or the classic route; composition files shared with export were edited)
+- **tsc:** not run: repo-wide tsc aborts on unrelated syntax errors in apps/director; a scoped check needs @cinegen path mapping (done once, not repeated)
+- **liveProviders:** no OpenAI/MuAPI live calls in this stage
+
 ## Totals
 
 | Status | Count |
