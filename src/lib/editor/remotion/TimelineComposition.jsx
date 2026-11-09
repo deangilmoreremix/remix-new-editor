@@ -35,6 +35,7 @@ import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
+import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
 import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
 import { registerUserLut } from '../../../cinegen/lib/occ/user-luts';
 import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
@@ -610,6 +611,12 @@ export function TimelineComposition({ model }) {
           }
           return null;
         })}
+        {/* [remix] OpenChatCut captions, burned into the render */}
+        {(m.occCaptions || []).map((c, i) => (
+          <Sequence key={`occ-cap-${i}`} from={0} durationInFrames={m.durationInFrames} layout="absolute-fill">
+            <OccCaptionsLayer captions={c} items={[]} />
+          </Sequence>
+        ))}
         {/* [remix] OpenChatCut GL transitions between CineGen clips */}
         {(m.glTransitions || []).map((g) => (
           <Sequence key={g.id} from={g.from} durationInFrames={g.durationInFrames} layout="absolute-fill">

@@ -55,6 +55,8 @@ export interface Clip {
   blendMode?: string;
   /** [remix] OpenChatCut zoom / follow-subject reframe (their ZoomEffect). */
   zoom?: import('../../openchatcut/editor/types').ZoomEffect;
+  /** [remix] OpenChatCut captions burned over this clip (words in timeline ms). */
+  captions?: import('../../openchatcut/captions/types').CaptionsData;
 }
 
 /** [remix] One OpenChatCut effect on a clip: id is an FX_EFFECTS key (builtin:fx-…), props = per-effect slider values. */

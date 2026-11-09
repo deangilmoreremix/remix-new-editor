@@ -8,6 +8,7 @@ import { responsesChat } from './llm-responses';
 import { authHeader } from './llm-responses';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 export { responsesChat };
+import { CAPTION_STYLE_BY_ID } from '../../openchatcut/captions/styles';
 import { clipFxInstances } from '@cinegen/lib/occ/clip-fx';
 import { userLutTextSync } from '@cinegen/lib/occ/user-luts';
 // [remix] OpenChatCut effects + LUT of an export clip, as plain {id, overrides} for the composition's GL layer.
@@ -113,7 +114,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; zoom?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -139,6 +140,9 @@ export function registerWebApi() {
             ],
           };
           const model = timelineToComposition(state, { fps: a.fps, quality });
+          // [remix] OpenChatCut captions (words already in timeline ms) → one caption layer per captioned clip
+          (model as { occCaptions?: unknown[] }).occCaptions = a.clips.flatMap((c) => (c.captions ? [c.captions] : []));
+          for (const c of a.clips) { const tpl = (c.captions as { template?: string } | undefined)?.template; const fam = tpl && CAPTION_STYLE_BY_ID[tpl as never]?.fontFamily; if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
           const byId = new Map(a.clips.map((c, i) => [c.id, { c, i }]));
           (model as { glTransitions?: unknown[] }).glTransitions = (a.transitions ?? []).flatMap((t) => {

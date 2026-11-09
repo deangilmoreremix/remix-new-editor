@@ -4,6 +4,7 @@ import type { Asset } from '@cinegen/types/project';
 import { clipEffectiveDuration } from '@cinegen/types/timeline';
 import { ClipEffectsSection } from './clip-effects-section';
 import { ClipAnalyzeSection } from './clip-analyze-section';
+import { ClipCaptionsSection } from './clip-captions-section';
 import { ClipZoomSection } from './clip-zoom-section';
 import { ClipTransitionSection } from './clip-transition-section';
 import type { Timeline } from '@cinegen/types/timeline';
@@ -11,7 +12,7 @@ import type { Timeline } from '@cinegen/types/timeline';
 interface ClipPropertiesPanelProps {
   clip: Clip | null;
   asset: Asset | null;
-  onUpdateClip: (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fx' | 'lut' | 'blendMode' | 'zoom'>>) => void;
+  onUpdateClip: (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>) => void;
   onAddKeyframe: (clipId: string, property: 'opacity' | 'volume', time: number, value: number) => void;
   onRemoveKeyframe: (clipId: string, index: number) => void;
   onClose: () => void;
@@ -164,6 +165,8 @@ export function ClipPropertiesPanel({
 
       {/* [remix] OpenChatCut effects / LUT / blend */}
       {!isAudio && <ClipEffectsSection clip={clip} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+
+      {!isAudio && <ClipCaptionsSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 
       {!isAudio && <ClipZoomSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 

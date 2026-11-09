@@ -949,7 +949,7 @@ export function createSyncedTimeline(
 export function updateClipProperties(
   timeline: Timeline,
   clipId: string,
-  updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fx' | 'lut' | 'blendMode' | 'zoom'>>,
+  updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>,
 ): Timeline {
   const clip = timeline.clips.find((c) => c.id === clipId);
   const linkedIds = new Set(getLinkedIds(clip));

@@ -8,6 +8,7 @@ import type { PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
 import type { OverlayClip } from '@cinegen/types/workspace';
 import { OverlayLayer } from './overlay-layer';
 import { GlClipLayer } from './gl-clip-layer';
+import { CaptionsPreviewLayer } from './captions-preview-layer';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
 import type { Clip } from '@cinegen/types/timeline';
 
@@ -217,6 +218,7 @@ export function TimelineViewer({
         )}
         <GlClipLayer container={glContainer} clip={activeClip} assetId={activeAsset?.id ?? null} transition={glTransition} />
         </div>
+        <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={activeAsset?.width && activeAsset?.height ? activeAsset.width / activeAsset.height : 16 / 9} />
         <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onGeometry={onOverlayGeometry} />
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}
