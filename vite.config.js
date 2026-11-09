@@ -1026,6 +1026,24 @@ export default defineConfig({
         },
     },
     plugins: [
+        // [remix] OpenChatCut's dev-only plugin (config/vite.config.ts `serveOrtWasmLoader`): serve the prebuilt onnxruntime loader
+        // module from public/models/silero-vad verbatim, since Vite refuses to import JS from /public.
+        {
+            name: 'openchatcut-ort-wasm-loader',
+            apply: 'serve',
+            enforce: 'pre',
+            configureServer(server) {
+                server.middlewares.use((req, res, next) => {
+                    const pathname = (req.url ?? '').split('?')[0];
+                    if (!/^\/models\/silero-vad\/.+\.mjs$/.test(pathname)) { next(); return; }
+                    const file = path.resolve(process.cwd(), 'public', pathname.replace(/^\//, ''));
+                    if (!fs.existsSync(file)) { next(); return; }
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'text/javascript');
+                    res.end(fs.readFileSync(file));
+                });
+            },
+        },
         publicAuditReportPlugin(),
         tailwindcss(),
         {

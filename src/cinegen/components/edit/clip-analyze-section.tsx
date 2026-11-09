@@ -16,7 +16,7 @@ interface Props {
   syncTarget?: { clip: Clip; asset: Asset | null } | null;
   onUpdateClip: (updates: Partial<Pick<Clip, 'volume' | 'fx'>>) => void;
 }
-type Job = 'sync' | 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats' | 'captions';
+type Job = 'vad' | 'sync' | 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats' | 'captions';
 
 export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, syncTarget }: Props) {
   const [busy, setBusy] = useState<Job | null>(null);
@@ -61,6 +61,13 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, 
           onTimelineEdit((tl) => A.addMarkers(tl, times, 'quiet', '#f59e0b'));
           setLines([spans.length ? `${spans.length} quiet stretch${spans.length === 1 ? '' : 'es'} marked (RMS only — check before cutting).` : 'No quiet stretches found.']);
         })}>{busy === 'quiet' ? 'Listening…' : 'Find quiet spans'}</button>
+        <button className="clip-properties-panel__toggle-btn" disabled={!!busy} title="Uses OpenChatCut's Silero voice-activity model, so speech is never marked as silence" onClick={() => run('vad', async () => {
+          const r = await A.speechAwareQuietSpans(src, asset?.id ?? clip.assetId);
+          if (r.status !== 'ok') { setLines([`Speech model unavailable: ${r.status}`]); return; }
+          const times = r.spans.flatMap((s) => [A.sourceToTimeline(clip, s.startMs / 1000), A.sourceToTimeline(clip, s.endMs / 1000)]).filter((t): t is number => t != null);
+          onTimelineEdit((tl) => A.addMarkers(tl, times, 'silence', '#f59e0b'));
+          setLines([r.spans.length ? `${r.spans.length} silent stretch${r.spans.length === 1 ? '' : 'es'} with no speech marked.` : 'No speech-free silences found.']);
+        })}>{busy === 'vad' ? 'Checking speech…' : 'Find silences (speech-aware)'}</button>
         <button className="clip-properties-panel__toggle-btn" disabled={!!busy} onClick={() => run('loudness', async () => {
           const lufs = await A.loudnessLufs(src); const gain = A.gainForTarget(lufs, -14);
           setLines([`loudness ≈ ${lufs.toFixed(1)} LUFS · gain to reach -14 LUFS: ×${gain.toFixed(2)}`]);

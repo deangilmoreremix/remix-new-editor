@@ -13,4 +13,6 @@ describe('OpenChatCut GL engine (upstream verify suites)', () => {
   it('FCPXML export', async () => { await import('../export/fcpxml.verify'); });
   it('caption motion', async () => { await import('../captions/captionMotion.verify'); });
   it('caption styles', async () => { await import('../captions/styles.verify'); });
+  it('silero VAD logic', async () => { await import('../audio/silero-vad.verify'); });
+  it('VAD evidence', async () => { await import('../audio/vad.verify'); });
 });

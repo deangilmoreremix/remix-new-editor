@@ -122,3 +122,15 @@ export async function audioLagSeconds(refSrc: string, otherSrc: string): Promise
   const r = findLag(cap(a), cap(b));
   return { lagSeconds: r.lagSeconds, confidence: r.confidence };
 }
+
+// ── speech-aware silences: OpenChatCut's Silero VAD (opt-in; downloads nothing at runtime, model ships in /models/silero-vad) ──
+import { installSileroVad } from '../../../openchatcut/audio/silero-vad';
+import { obtainVadEvidence, removableSilenceFromEvidence, VAD_MODEL, VAD_MODEL_VERSION } from '../../../openchatcut/audio/vad';
+export async function speechAwareQuietSpans(src: string, assetId: string): Promise<{ spans: SilenceSpan[]; status: string }> {
+  const { samples, sampleRate } = await decodeMono(src);
+  const rmsQuiet = detectSilentSpans(rmsEnvelope(samples, sampleRate, 50), 50);
+  installSileroVad();
+  const evidence = await obtainVadEvidence({ assetId, sourceRevision: 'v1', model: VAD_MODEL, modelVersion: VAD_MODEL_VERSION, threshold: 0.5 }, samples, sampleRate);
+  if (evidence.status !== 'ready') return { spans: [], status: evidence.reason };
+  return { spans: removableSilenceFromEvidence(rmsQuiet, evidence, { featureEnabled: true }), status: 'ok' };
+}
