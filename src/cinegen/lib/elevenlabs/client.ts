@@ -16,6 +16,8 @@ export const elevenLabs = {
   voices: (search = '', cursor?: string) => elevenLabsRpc<{ voices: ElevenLabsVoice[]; cursor?: string }>('voices', { search, cursor }),
   generate: (params: ElevenLabsAudioRequest) => elevenLabsRpc<ElevenLabsAudioResult>('generate', params),
   job: (requestId: string) => elevenLabsRpc<ElevenLabsAudioResult>('job', { requestId }),
+  // [remix] clone-based save voice (MuAPI minimax-voice-clone); CineGen's design flow has no MuAPI equivalent
+  cloneVoice: (params: { audioUrl: string; name: string; sampleText?: string; description?: string }) => elevenLabsRpc<ElevenLabsVoice>('cloneVoice', params),
   design: (description: string, text?: string, language?: string) => elevenLabsRpc<{ previews: ElevenLabsPreview[]; text: string }>('design', { description, text, language }),
   saveVoice: (id: string, name: string, description: string, viewStateId?: string) => elevenLabsRpc<ElevenLabsVoice>('saveVoice', { id, name, description, viewStateId }),
 };

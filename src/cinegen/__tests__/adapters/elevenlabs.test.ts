@@ -37,7 +37,33 @@ describe('ElevenLabs on MuAPI', () => {
     const r = await elevenLabs.enhance({ requestId: 'e1', kind: 'voice', text: 'warm narrator' });
     expect(r).toMatchObject({ status: 'complete' });
   });
-  it('voice design is reported as not offered', async () => {
-    await expect(elevenLabs.design('a gravelly voice')).rejects.toThrow(/not offered/);
+  it('voice design is reported as not offered and points to cloning', async () => {
+    await expect(elevenLabs.design('a gravelly voice')).rejects.toThrow(/not offered.*clone/i);
+  });
+  it('MiniMax / Fish / Gemini voices route to their own MuAPI models', async () => {
+    await elevenLabs.generate({ requestId: 'm1', kind: 'speech', text: 'Hi', voiceId: 'minimax:Friendly_Person', direction: 'happy' });
+    expect(runTimelineMuapi.mock.calls[0][1]).toEqual({ model: 'minimax-speech-2.6-hd', inputs: { prompt: 'Hi', voice_id: 'Friendly_Person', emotion: 'happy', format: 'mp3' } });
+    await elevenLabs.generate({ requestId: 'f1', kind: 'speech', text: 'Long text', voiceId: 'fish:voice_fish_narrator' });
+    expect(runTimelineMuapi.mock.calls[1][1]).toEqual({ model: 'fish-s2-1-pro', inputs: { prompt: 'Long text', voice_id: 'voice_fish_narrator' } });
+    await elevenLabs.generate({ requestId: 'g1', kind: 'speech', text: 'Hello', voiceId: 'gemini:Kore', direction: 'empathetic' });
+    expect(runTimelineMuapi.mock.calls[2][1]).toEqual({ model: 'gemini-3-1-flash-tts', inputs: { speakers: [{ speaker_id: 'Speaker 1', voice_name: 'Kore', accent: 'Neutral', style: 'Empathetic', pace: 'Natural' }], dialogue_turns: [{ speaker_id: 'Speaker 1', text: 'Hello' }] } });
+  });
+  it('Gemini only sends a delivery style MuAPI accepts', async () => {
+    await elevenLabs.generate({ requestId: 'g2', kind: 'speech', text: 'Hi', voiceId: 'gemini:Puck', direction: 'warm and friendly' });
+    expect(runTimelineMuapi.mock.calls[0][1].inputs.speakers[0]).toEqual({ speaker_id: 'Speaker 1', voice_name: 'Puck', accent: 'Neutral', pace: 'Natural' });
+  });
+  it('lists the extra voices', async () => {
+    const { voices } = await elevenLabs.voices('');
+    expect(voices.map((v) => v.id)).toEqual(expect.arrayContaining(['minimax:Friendly_Person', 'fish:voice_fish_narrator', 'gemini:Kore', 'gemini:Puck']));
+  });
+  it('clone-based save voice: minimax-voice-clone, saved voice then speaks through MiniMax', async () => {
+    localStorage.clear();
+    const v = await elevenLabs.cloneVoice({ audioUrl: 'https://cdn.test/sample.mp3', name: 'Ava', sampleText: 'Testing one two' });
+    expect(runTimelineMuapi.mock.calls[0][1]).toMatchObject({ model: 'minimax-voice-clone', inputs: { audio_url: 'https://cdn.test/sample.mp3', prompt: 'Testing one two', model: 'speech-2.6-hd' } });
+    expect(v.id).toMatch(/^clone:Clone[a-z0-9]{8,}/);
+    expect((await elevenLabs.voices('ava')).voices.map((x) => x.id)).toContain(v.id);
+    await elevenLabs.generate({ requestId: 'c1', kind: 'speech', text: 'Hi', voiceId: v.id });
+    expect(runTimelineMuapi.mock.calls[1][1]).toMatchObject({ model: 'minimax-speech-2.6-hd', inputs: { voice_id: v.id.slice(6) } });
+    await expect(elevenLabs.cloneVoice({ audioUrl: '', name: 'x' })).rejects.toThrow(/audio sample/);
   });
 });

@@ -46,6 +46,14 @@ export function ElementVoiceEditor({ name, voice, onChange, onBusy }: {
       setPreviews([]); setSampleRequest(undefined);
     }, 'Saving this voice…');
   }
+  async function clone() {
+    await work(async () => {
+      if (!voice?.referenceAudio?.url) throw new Error('Add an audio sample first.');
+      const saved = await elevenLabs.cloneVoice({ audioUrl: voice.referenceAudio.url, name: name.trim() || 'Character voice', sampleText: voice.sampleText, description: voice.description });
+      update({ provider: 'elevenlabs', voiceId: saved.id, voiceName: saved.name });
+      setSampleRequest(undefined);
+    }, 'Cloning this voice…');
+  }
   async function sample() {
     await work(async () => {
       const requestId = sampleRequest || crypto.randomUUID(); setSampleRequest(requestId);
@@ -74,6 +82,7 @@ export function ElementVoiceEditor({ name, voice, onChange, onBusy }: {
         <button className="character-voice__secondary" type="button" disabled={!voice?.description?.trim() || !voice.sampleText?.trim() || busy} onClick={() => void design()}>Design voices from description</button>
         <p className="character-voice__hint">Listen to previews and choose a voice here. For voice design, write 100–1,000 characters of sample dialogue and choose its language. Generation uses your ElevenLabs credits.</p>
         {previews.map((preview, index) => <div className="elevenlabs-voice-preview" key={preview.id}><span>Voice {index + 1}</span><audio controls preload="metadata" src={preview.url} aria-label={`Voice preview ${index + 1}`} /><button className="character-voice__primary" type="button" disabled={busy} onClick={() => void choose(preview)}>Use this voice</button></div>)}
+        {voice?.referenceAudio && !voice.voiceId?.startsWith('clone:') && <button className="character-voice__primary" type="button" disabled={busy} onClick={() => void clone()}>Clone voice from sample</button>}
         {voice?.referenceAudio && <div className="character-voice__sample"><audio controls preload="metadata" src={voice.referenceAudio.url} aria-label={`${name || 'Character'} voice sample`} /><button type="button" onClick={() => update({ referenceAudio: undefined })}>Remove sample</button></div>}
         <input ref={input} type="file" accept="audio/*,.mp3,.wav,.m4a" hidden onChange={e => { void upload(e.target.files?.[0]); e.target.value = ''; }} />
         <button type="button" className="character-voice__secondary" disabled={busy} onClick={() => input.current?.click()}>{voice?.referenceAudio ? 'Replace audio sample' : 'Use an audio file instead'}</button>

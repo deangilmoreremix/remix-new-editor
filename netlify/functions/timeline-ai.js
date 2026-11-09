@@ -78,7 +78,9 @@ export async function handle(body, userId, { keys = {}, post = muapiPost, fetchI
     let req;
     const bundled = body.tool === 'generate' && body.params?.model ? findCatalogModel(body.params.model) : null;
     // A bundled entry that declares no inputs (e.g. sync-lipsync) would drop every field, so it uses the live catalog too.
-    const bundledUsable = bundled && (Object.keys(bundled.model.inputs || {}).length || bundled.model.imageField || bundled.model.videoField || bundled.model.hasPrompt !== false);
+    // Speech / voice models need their own fields (voice_id, speakers, ...) that the bundled snapshot does not declare, so they always use the live catalog.
+    const liveFirst = /(^|-)(tts|speech|voice)(-|$)/.test(String(body.params?.model || ''));
+    const bundledUsable = !liveFirst && bundled && (Object.keys(bundled.model.inputs || {}).length || bundled.model.imageField || bundled.model.videoField || bundled.model.hasPrompt !== false);
     if (body.tool === 'generate' && body.params?.model && !bundledUsable) {
       // Not in the bundled snapshot (or it declares no fields): use MuAPI's live catalog (ElevenLabs, Whisper, Suno sounds, ...).
       try {

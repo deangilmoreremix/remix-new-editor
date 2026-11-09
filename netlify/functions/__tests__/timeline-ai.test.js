@@ -80,7 +80,7 @@ describe('timeline-ai — generic generate with MuAPI\'s live catalog', () => {
 describe('timeline-ai — endpoint matches MuAPI live catalog', () => {
   it('routes ai-image-upscaler to its real endpoint (was a 404)', async () => {
     const post = vi.fn(async () => ({ request_id: 'req_up1' }));
-    const res = await handle({ action: 'submit', tool: 'generate', params: { model: 'ai-image-upscaler', inputs: { image_url: 'https://x.test/a.jpg' } } }, 'u9', { keys: { muapi: KEY }, post });
+    const res = await handle({ action: 'submit', tool: 'generate', params: { model: 'ai-image-upscaler', inputs: { image_url: 'https://x.test/a.jpg' } } }, 'u9s', { keys: { muapi: KEY }, post });
     expect(body(res)).toMatchObject({ ok: true, requestId: 'req_up1' });
     expect(post).toHaveBeenCalledWith('/ai-image-upscale', expect.objectContaining({ image_url: 'https://x.test/a.jpg' }), undefined, KEY);
   });
@@ -96,5 +96,16 @@ describe('timeline-ai — bundled models without declared inputs', () => {
     const res = await handle({ action: 'submit', tool: 'generate', params: { model: 'sync-lipsync', inputs: { video_url: 'https://x.test/v.mp4', audio_url: 'https://x.test/a.mp3' } } }, 'u10', { keys: { muapi: KEY }, post, fetchImpl });
     expect(body(res)).toMatchObject({ ok: true });
     expect(post).toHaveBeenCalledWith('/sync-lipsync', { video_url: 'https://x.test/v.mp4', audio_url: 'https://x.test/a.mp3' }, undefined, KEY);
+  });
+
+  it('speech / voice models always use the live catalog fields (voice_id etc.), never the bundled prompt-only entry', async () => {
+    const { resetLiveCatalogCache } = await import('../../../src/lib/muapi/liveCatalog.js');
+    resetLiveCatalogCache();
+    const post = vi.fn(async () => ({ request_id: 'req_speech1' }));
+    const live = { name: 'minimax-speech-2.6-hd', endpoint_url: 'minimax-speech-2.6-hd', input_fields: ['prompt', 'voice_id', 'emotion', 'format'], required_fields: ['prompt', 'voice_id'] };
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify([live]), { status: 200 }));
+    const res = await handle({ action: 'submit', tool: 'generate', params: { model: 'minimax-speech-2.6-hd', inputs: { prompt: 'Hi', voice_id: 'Friendly_Person', format: 'mp3' } } }, 'u9s', { keys: { muapi: KEY }, post, fetchImpl });
+    expect(body(res)).toMatchObject({ ok: true, requestId: 'req_speech1' });
+    expect(post).toHaveBeenCalledWith('/minimax-speech-2.6-hd', { prompt: 'Hi', voice_id: 'Friendly_Person', format: 'mp3' }, undefined, KEY);
   });
 });

@@ -14,6 +14,38 @@ const SPEECH_MODEL_PREMADE = 'elevenlabs-tts-turbo-2-5';
 const SPEECH_MODEL_V4 = 'elevenlabs-v4';
 const V4_VOICES = new Set(['voice_daniel', 'voice_liam']);
 const SOUND_MODEL = 'suno-generate-sounds';
+// [remix] More MuAPI text-to-speech models (live catalog + MuAPI's text-to-speech page). Voice ids carry a prefix so one
+// voice picker can address every model; only voices MuAPI documents are listed (MiniMax Friendly_Person, Fish
+// voice_fish_narrator, Gemini Kore / Puck), plus the user's own cloned voices.
+const MINIMAX_SPEECH = 'minimax-speech-2.6-hd';
+const FISH_SPEECH = 'fish-s2-1-pro';
+const GEMINI_SPEECH = 'gemini-3-1-flash-tts';
+const MINIMAX_CLONE = 'minimax-voice-clone';
+// Gemini TTS delivery styles accepted by MuAPI (its API rejects anything else).
+const GEMINI_STYLES = ['Vocal Smile', 'Newscaster', 'Whisper', 'Empathetic', 'Promo/Hype', 'Deadpan'];
+const MINIMAX_EMOTIONS = ['happy', 'sad', 'angry', 'fearful', 'disgusted', 'surprised', 'neutral'];
+const CLONED_KEY = 'remix.muapi.clonedVoices';
+const loadCloned = (): ElevenLabsVoice[] => { try { return JSON.parse(localStorage.getItem(CLONED_KEY) || '[]'); } catch { return []; } };
+const saveCloned = (v: ElevenLabsVoice[]) => { try { localStorage.setItem(CLONED_KEY, JSON.stringify(v)); } catch { /* storage blocked */ } };
+
+/** Which MuAPI model + inputs speak this text in this voice. Exported for tests. */
+export function speechRequest(text: string, voiceId: string | undefined, direction?: string): { model: string; inputs: Record<string, unknown> } {
+  const prompt = direction ? `${direction}: ${text}` : text;
+  const id = voiceId || '21m00Tcm4TlvDq8ikWAM';
+  if (id.startsWith('minimax:') || id.startsWith('clone:')) {
+    const emotion = direction && MINIMAX_EMOTIONS.includes(direction.toLowerCase()) ? direction.toLowerCase() : undefined;
+    return { model: MINIMAX_SPEECH, inputs: { prompt: emotion ? text : prompt, voice_id: id.replace(/^(minimax|clone):/, ''), ...(emotion ? { emotion } : {}), format: 'mp3' } };
+  }
+  if (id.startsWith('fish:')) return { model: FISH_SPEECH, inputs: { prompt, voice_id: id.slice(5) } };
+  if (id.startsWith('gemini:')) {
+    const style = GEMINI_STYLES.find((x) => x.toLowerCase() === (direction || '').trim().toLowerCase());
+    return { model: GEMINI_SPEECH, inputs: {
+      speakers: [{ speaker_id: 'Speaker 1', voice_name: id.slice(7), accent: 'Neutral', ...(style ? { style } : {}), pace: 'Natural' }],
+      dialogue_turns: [{ speaker_id: 'Speaker 1', text }],
+    } };
+  }
+  return { model: V4_VOICES.has(id) ? SPEECH_MODEL_V4 : SPEECH_MODEL_PREMADE, inputs: { prompt, voice_id: id } };
+}
 
 /** ElevenLabs' public premade voices (MuAPI's ElevenLabs models take a voice_id). */
 export const PREMADE_VOICES: ElevenLabsVoice[] = [
@@ -23,6 +55,10 @@ export const PREMADE_VOICES: ElevenLabsVoice[] = [
   { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', description: 'Deep, narration-ready American male' },
   { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', description: 'Well-rounded, young adult male' },
   { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', description: 'Deep, young adult male' },
+  { id: 'minimax:Friendly_Person', name: 'MiniMax — Friendly Person', description: 'MiniMax Speech 2.6 HD (multilingual, supports emotion)' },
+  { id: 'fish:voice_fish_narrator', name: 'Fish — Narrator', description: 'Fish Audio S2.1 Pro, long-form narration' },
+  { id: 'gemini:Kore', name: 'Gemini — Kore', description: 'Gemini 3.1 Flash TTS' },
+  { id: 'gemini:Puck', name: 'Gemini — Puck', description: 'Gemini 3.1 Flash TTS' },
   { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', description: 'Crisp, middle-aged male' },
   { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', description: 'Strong, young adult female' },
   { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli', description: 'Emotional, young adult female' },
@@ -44,7 +80,7 @@ export async function elevenLabsWeb(method: string, params?: unknown): Promise<u
     }
     case 'voices': {
       const q = String((params as { search?: string } | undefined)?.search ?? '').trim().toLowerCase();
-      return { voices: PREMADE_VOICES.filter((v) => !q || `${v.name} ${v.description}`.toLowerCase().includes(q)) };
+      return { voices: [...PREMADE_VOICES, ...loadCloned()].filter((v) => !q || `${v.name} ${v.description}`.toLowerCase().includes(q)) };
     }
     case 'generate': {
       const r = params as ElevenLabsAudioRequest;
@@ -53,10 +89,10 @@ export async function elevenLabsWeb(method: string, params?: unknown): Promise<u
       const result: ElevenLabsAudioResult = { requestId: r.requestId, status: 'generating', assetId: `audio-${r.requestId}` };
       jobs.set(r.requestId, result);
       try {
-        const inputs = r.kind === 'sound'
-          ? { prompt: [text, r.direction].filter(Boolean).join('. ') }
-          : { prompt: r.direction ? `${r.direction}: ${text}` : text, voice_id: r.voiceId || '21m00Tcm4TlvDq8ikWAM' };
-        const { url } = await runTimelineMuapi('generate', { model: r.kind === 'sound' ? SOUND_MODEL : V4_VOICES.has(String((inputs as { voice_id?: string }).voice_id)) ? SPEECH_MODEL_V4 : SPEECH_MODEL_PREMADE, inputs }, { timeoutMs: 5 * 60_000 });
+        const req = r.kind === 'sound'
+          ? { model: SOUND_MODEL, inputs: { prompt: [text, r.direction].filter(Boolean).join('. ') } }
+          : speechRequest(text, r.voiceId, r.direction);
+        const { url } = await runTimelineMuapi('generate', req, { timeoutMs: 5 * 60_000 });
         const done: ElevenLabsAudioResult = { ...result, status: 'complete', url };
         jobs.set(r.requestId, done);
         return done;
@@ -80,8 +116,18 @@ export async function elevenLabsWeb(method: string, params?: unknown): Promise<u
       try { enhanced = JSON.parse(r.message); } catch { return { status: 'error', error: 'The enhancer returned an unreadable answer. Your text is unchanged.' }; }
       return { status: 'complete', text: enhancedAudioText(enhanced, a.kind) };
     }
-    case 'design': throw unavailable('Designing a voice');
-    case 'saveVoice': throw unavailable('Saving a designed voice');
+    case 'cloneVoice': {
+      // Clone-based "save voice": MuAPI has no model that designs a voice from a description, but it can clone one from a sample.
+      const a = params as { audioUrl: string; name: string; sampleText?: string; description?: string };
+      if (!a?.audioUrl) throw new Error('Add an audio sample of the voice first.');
+      const customId = `Clone${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
+      const { url } = await runTimelineMuapi('generate', { model: MINIMAX_CLONE, inputs: { prompt: a.sampleText?.trim() || 'Hello, this is my cloned voice.', audio_url: a.audioUrl, custom_voice_id: customId, model: 'speech-2.6-hd' } }, { timeoutMs: 5 * 60_000 });
+      const voice: ElevenLabsVoice = { id: `clone:${customId}`, name: a.name || 'Cloned voice', description: a.description || 'Cloned from your sample (MiniMax)', previewUrl: url };
+      saveCloned([...loadCloned(), voice]);
+      return voice;
+    }
+    case 'design': throw new Error('Designing a voice from a description is not offered by MuAPI. Upload an audio sample and use “Clone voice from sample” instead.');
+    case 'saveVoice': throw new Error('Saving a designed voice is not offered. Use “Clone voice from sample”.');
     default: throw new Error(`Unknown audio request: ${method}`);
   }
 }
