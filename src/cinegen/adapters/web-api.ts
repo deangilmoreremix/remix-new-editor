@@ -113,7 +113,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -137,6 +137,19 @@ export function registerWebApi() {
             ],
           };
           const model = timelineToComposition(state, { fps: a.fps, quality });
+          // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
+          const byId = new Map(a.clips.map((c, i) => [c.id, { c, i }]));
+          (model as { glTransitions?: unknown[] }).glTransitions = (a.transitions ?? []).flatMap((t) => {
+            const A = byId.get(t.clipAId); const B = byId.get(t.clipBId);
+            if (!A || !B) return [];
+            const start = B.c.startTime; const end = A.c.startTime + A.c.duration;
+            const from = Math.round(start * a.fps); const dur = Math.round((end - start) * a.fps);
+            if (dur < 2) return [];
+            const rate = (c: typeof A.c) => c.speed || 1;
+            return [{ id: `gl-${t.clipAId}-${t.clipBId}`, glType: t.glType, from, durationInFrames: dur,
+              out: { src: A.c.inputPath, trimBefore: Math.round((A.c.trimStart + (start - A.c.startTime) * rate(A.c)) * a.fps), playbackRate: rate(A.c) },
+              inn: { src: B.c.inputPath, trimBefore: Math.round(B.c.trimStart * a.fps), playbackRate: rate(B.c) } }];
+          });
           const blob = await exportModel(model, { container: 'mp4', quality, onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
           job.outputUrl = URL.createObjectURL(blob);
           job.fileSize = blob.size;

@@ -9,6 +9,7 @@ import { ToolSidebar } from './tool-sidebar';
 import { TimelineTabs } from './timeline-tabs';
 import { TimelineBottomBar } from './timeline-bottom-bar';
 import { ResizeHandle } from './resize-handle';
+import { activeGlTransition } from '@cinegen/lib/occ/transitions';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
@@ -1009,6 +1010,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           nativeSurfaceRef={timelineNativeSurfaceRef}
           nativeVideoEnabled={timelineNativeVideoEnabled}
           activeAsset={activeAsset}
+          glTransition={activeGlTransition(timeline, currentTime)}
           activeClip={activeClip ? (timeline.clips.find((c) => c.id === activeClip.id) ?? activeClip) : null}
           currentTime={currentTime}
           duration={sequenceDuration}

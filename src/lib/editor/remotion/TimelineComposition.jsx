@@ -34,6 +34,7 @@ import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './ke
 import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
+import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
 import { registerUserLut } from '../../../cinegen/lib/occ/user-luts';
 import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
 
@@ -594,6 +595,12 @@ export function TimelineComposition({ model }) {
           }
           return null;
         })}
+        {/* [remix] OpenChatCut GL transitions between CineGen clips */}
+        {(m.glTransitions || []).map((g) => (
+          <Sequence key={g.id} from={g.from} durationInFrames={g.durationInFrames} layout="absolute-fill">
+            <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} />
+          </Sequence>
+        ))}
       </FontGate>
       {(m.audio || []).map((a) => (
         <Sequence key={a.id} from={a.from} durationInFrames={a.durationInFrames}>

@@ -20,6 +20,7 @@ export function ExportTab() {
       const duration = clipEffectiveDuration(clip);
       if (!asset || !inputPath || duration <= 0) return [];
       return [{
+        id: clip.id,
         inputPath,
         startTime: clip.startTime,
         duration,
@@ -51,12 +52,14 @@ export function ExportTab() {
         fps,
         clips: exportClips,
         totalDuration,
+        // [remix] OpenChatCut GL transitions on dissolve cuts
+        transitions: (activeTimeline.transitions ?? []).filter((t) => t.glType && t.type === 'dissolve' && t.clipBId).map((t) => ({ glType: t.glType, clipAId: t.clipAId, clipBId: t.clipBId })),
       });
       dispatch({ type: 'ADD_EXPORT', exportJob: job });
     } catch (error) {
       console.error('Failed to start render:', error);
     }
-  }, [dispatch, exportClips, totalDuration]);
+  }, [dispatch, exportClips, totalDuration, activeTimeline.transitions]);
 
   useEffect(() => {
     if (!activeJob) {

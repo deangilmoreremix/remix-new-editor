@@ -20,6 +20,7 @@ interface TimelineViewerProps {
   activeAsset: Asset | null;
   /** [remix] clip under the playhead (for OpenChatCut fx preview) */
   activeClip?: Clip | null;
+  glTransition?: import('./gl-clip-layer').GlTransitionState | null;
   currentTime: number;
   duration: number;
   isPlaying: boolean;
@@ -60,6 +61,7 @@ export function TimelineViewer({
   nativeVideoEnabled = false,
   activeAsset,
   activeClip = null,
+  glTransition = null,
   currentTime,
   duration,
   isPlaying,
@@ -203,7 +205,7 @@ export function TimelineViewer({
             draggable={false}
           />
         )}
-        <GlClipLayer container={glContainer} clip={activeClip} assetId={activeAsset?.id ?? null} />
+        <GlClipLayer container={glContainer} clip={activeClip} assetId={activeAsset?.id ?? null} transition={glTransition} />
         <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onGeometry={onOverlayGeometry} />
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}
