@@ -6,10 +6,11 @@ import type { Clip } from '@cinegen/types/timeline';
 import { createGlRuntime } from '../../../openchatcut/gl/runtime';
 import type { GlRuntime } from '../../../openchatcut/gl/runtimeTypes';
 import { clipFxPasses, clipHasFx, primeClipLuts } from '@cinegen/lib/occ/clip-fx';
+import { resolveTransition } from '@cinegen/lib/occ/plugins';
 import { GLSL_TRANSITIONS } from '../../../openchatcut/gl/transitions';
 import type { GlslTransitionType } from '../../../openchatcut/types';
 
-export interface GlTransitionState { glType: string; outClipId: string; inClipId: string; progress: number }
+export interface GlTransitionState { glType: string; glDef?: import('../../../openchatcut/gl/customTransitions').CustomTransitionDef; outClipId: string; inClipId: string; progress: number }
 
 interface Props {
   container: HTMLElement | null;
@@ -47,12 +48,12 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
         const find = (id: string) => container.querySelector(`video[data-clip-id="${id}"]`) as HTMLVideoElement | null;
         const a = find(tr.outClipId); const b = find(tr.inClipId);
         if (!a || !b || a.readyState < 2 || b.readyState < 2 || !a.videoWidth) { canvas.style.visibility = 'hidden'; restore(); return; }
-        const def = GLSL_TRANSITIONS[tr.glType as GlslTransitionType];
+        const def = resolveTransition(tr.glType, tr.glDef);
         if (!def) { canvas.style.visibility = 'hidden'; restore(); return; }
         if (canvas.width !== a.videoWidth || canvas.height !== a.videoHeight) { canvas.width = a.videoWidth; canvas.height = a.videoHeight; }
         try {
           const time = performance.now() / 1000;
-          runtime!.render(def.frag, a, b, tr.progress, def.uniforms({ time, aspect: canvas.width / canvas.height, direction: 'left' }));
+          runtime!.render(def.frag, a, b, tr.progress, def.uniforms({ time, aspect: canvas.width / canvas.height }));
         } catch { canvas.style.visibility = 'hidden'; restore(); return; }
         canvas.style.visibility = 'visible';
         for (const v of [a, b]) { if (!hidden.includes(v)) hidden.push(v); v.style.visibility = 'hidden'; }

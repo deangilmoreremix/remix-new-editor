@@ -1,0 +1,1099 @@
+{
+ "generatedAt": "2026-11-09",
+ "branch": "claude/confident-fermi-3azaem",
+ "upstreamCommit": {
+  "OpenChatCut": "9242a95aea248ff3a8dab495514384e858320d47"
+ },
+ "statuses": [
+  "NOT_STARTED",
+  "SOURCE_FOUND",
+  "PARTIAL",
+  "IMPLEMENTED_UNVERIFIED",
+  "VERIFIED",
+  "BLOCKED",
+  "NOT_APPLICABLE"
+ ],
+ "features": [
+  {
+   "id": "occ.fx.shader-effects",
+   "family": "Effects",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/gl/fx/shaderEffects.ts",
+    "src/gl/fx/effects.ts",
+    "src/gl/fx/uniforms.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/gl/fx/shaderEffects.ts",
+    "src/cinegen/components/edit/clip-effects-section.tsx",
+    "src/cinegen/components/edit/gl-clip-layer.tsx"
+   ],
+   "originalFunctionality": "33 WebGL shader effects with prop schemas, stacking per clip",
+   "browserCompatibility": "WebGL2",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Edit → clip inspector Effects + Library modal (FxThumb)",
+   "persistence": "clip.fx JSON column",
+   "preview": "GlClipLayer over viewer video",
+   "exportPublish": "burned in via OccClipFx in Remotion composition",
+   "testsPerformed": "vitest: gl.test.ts (fx.verify, chroma-key.verify), occ-clip-fx.test.ts",
+   "evidence": "commits c2033b50, 4e19731c, 50400dcc; MP4 frame checks in session (no stored artefact)",
+   "missing": "Keyframed effect params (their keyframeRegistry) not wired to CineGen keyframes; effect reorder UI absent (order = add order)",
+   "blocker": ""
+  },
+  {
+   "id": "occ.fx.lut-looks",
+   "family": "Effects",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/gl/fx/lutEffects.ts",
+    "src/gl/fx/lut.frag.ts",
+    "assets/luts/*.cube"
+   ],
+   "targetPaths": [
+    "src/openchatcut/gl/fx/lutEffects.ts",
+    "public/luts/*.cube",
+    "src/cinegen/lib/occ/user-luts.ts"
+   ],
+   "originalFunctionality": "16 looks/LUTs: 14 formula looks + 2 camera-log .cube; import .cube",
+   "browserCompatibility": "WebGL2 sampler3D",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Effects → LUT / Look select, Library tab, Import .cube",
+   "persistence": "clip.lut + IndexedDB for imported cubes",
+   "preview": "GL layer",
+   "exportPublish": "burned in; imported cube text travels with render",
+   "testsPerformed": "vitest cube.verify; occ-clip-fx",
+   "evidence": "commit e5e4f9b7, c2033b50",
+   "missing": "",
+   "blocker": ""
+  },
+  {
+   "id": "occ.transitions.glsl",
+   "family": "Transitions",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/gl/transitions.ts",
+    "src/gl/shaders/*.frag.ts",
+    "src/gl/GlTransition.tsx"
+   ],
+   "targetPaths": [
+    "src/openchatcut/gl/transitions.ts",
+    "src/openchatcut/gl/GlTransitionLayer.tsx",
+    "src/cinegen/components/edit/clip-transition-section.tsx"
+   ],
+   "originalFunctionality": "16 GLSL transitions on cuts",
+   "browserCompatibility": "WebGL2",
+   "backendDependencies": "none",
+   "status": "PARTIAL",
+   "uiIntegration": "Cut inspector section (picker + length)",
+   "persistence": "transition.glType (gl_type column)",
+   "preview": "GL transition layer in viewer (implemented; live preview in browser NOT verified)",
+   "exportPublish": "verified: GL transition export MP4 (commit 6c6b07a3 notes)",
+   "testsPerformed": "vitest transitions in gl tests",
+   "evidence": "session evidence (export frame)",
+   "missing": "Live preview of the transition in a real browser tab not verified; direction/settings props not exposed",
+   "blocker": ""
+  },
+  {
+   "id": "occ.blend",
+   "family": "Blend",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "(no registry in source)"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/occ/blend.ts"
+   ],
+   "originalFunctionality": "Advertised 17 blend modes",
+   "browserCompatibility": "CSS mix-blend-mode",
+   "backendDependencies": "none",
+   "status": "PARTIAL",
+   "uiIntegration": "Effects → Blend select",
+   "persistence": "clip.blend_mode",
+   "preview": "CSS blend on GL canvas",
+   "exportPublish": "CSS mix-blend-mode in composition (commit 6c1ca460); frame check not recorded",
+   "testsPerformed": "",
+   "evidence": "commit 6c1ca460",
+   "missing": "OpenChatCut source contains NO blend-mode registry (only luma-blend transition + shader-local blends); the 17-mode list is CineGen/CSS standard modes, not upstream algorithms.",
+   "blocker": "Upstream has no blend registry to port; advertised 17 not reproducible from source"
+  },
+  {
+   "id": "occ.plugins.system",
+   "family": "Plugins",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/plugins/{types,validate,install,store}.ts",
+    "src/library/pluginResources.ts",
+    "src/editor/customZooms.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/plugins/*",
+    "src/cinegen/lib/occ/plugins.ts",
+    "src/cinegen/components/edit/occ-library-modal.tsx"
+   ],
+   "originalFunctionality": "openchatcut-plugin@1 packs: fx, LUT, transition, zoom, mg-template; validate, GLSL compile probe, install/uninstall/enable",
+   "browserCompatibility": "WebGL2 + IndexedDB",
+   "backendDependencies": "/api/plugins server (replaced by IndexedDB, their own offline path)",
+   "status": "VERIFIED",
+   "uiIntegration": "Edit → Browse library → Extensions tab (install file/URL, enable, remove); items appear in Effects/LUT/Transitions tabs and zoom select",
+   "persistence": "IndexedDB (openchatcut/kv) + per-clip/cut snapshots in project",
+   "preview": "applied fx previews via GL layer",
+   "exportPublish": "snapshots registered inside export runner (frame check: see evidence)",
+   "testsPerformed": "vitest occ-plugins.test.ts (18 incl. hostile packs); browser plug1/plug2",
+   "evidence": "docs/evidence/plugins/ (3 screenshots, demo-pack.json, plug-frame.png). Export: exported MP4 mean RGB 150,147,149 vs 107,107,109 un-effected control (invert fx) with the pack DISABLED at export time (snapshot path)",
+   "missing": "mg-template items are skipped (their sandboxed template runtime is not part of the editor); pack-with-only-templates is rejected",
+   "blocker": ""
+  },
+  {
+   "id": "occ.templates.mg",
+   "family": "Plugins",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/template-host.ts",
+    "src/library/TemplateBrowser.tsx",
+    "assets/templates/*.json"
+   ],
+   "targetPaths": [],
+   "originalFunctionality": "Motion-graphics templates that run template code in a sandbox",
+   "browserCompatibility": "iframe sandbox (browser)",
+   "backendDependencies": "none",
+   "status": "NOT_STARTED",
+   "uiIntegration": "none",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "Template runtime + template browser not integrated (3 template packs, 1.9 MB); the repo's classic editor has its own Remotion code layer (src/lib/editor/remotion/codeLayer.jsx) that could host them",
+   "blocker": ""
+  },
+  {
+   "id": "occ.zoom.presets",
+   "family": "Zoom",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/editor/zoom.ts",
+    "src/editor/customZooms.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/editor/zoom.ts",
+    "src/cinegen/components/edit/clip-zoom-section.tsx"
+   ],
+   "originalFunctionality": "Zoom shapes + custom zoom envelopes",
+   "browserCompatibility": "canvas/CSS",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Zoom select + amount/focus sliders; plugin zoom presets",
+   "persistence": "clip.zoom_json",
+   "preview": "CSS scale in viewer",
+   "exportPublish": "OccZoom in composition",
+   "testsPerformed": "zoom in gl tests",
+   "evidence": "commit a798c788",
+   "missing": "Custom zoom paths (envelope editor) only via plugins",
+   "blocker": ""
+  },
+  {
+   "id": "occ.tracking.follow",
+   "family": "Tracking",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/tracking/{analyzeMotion,templateMatch,types}.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/tracking/*",
+    "src/cinegen/components/edit/follow-subject-dialog.tsx",
+    "src/cinegen/lib/occ/follow-zoom.ts"
+   ],
+   "originalFunctionality": "Template-match tracker → zoom reframeCurve",
+   "browserCompatibility": "canvas",
+   "backendDependencies": "none",
+   "status": "PARTIAL",
+   "uiIntegration": "Zoom section → Follow subject dialog",
+   "persistence": "clip.zoom reframeCurve",
+   "preview": "preview follows subject",
+   "exportPublish": "export via OccZoom",
+   "testsPerformed": "vitest tracking verify; browser run",
+   "evidence": "commit a798c788",
+   "missing": "Result drives the zoom focal point only; no position/scale/rotation transform on clip, so tracking cannot yet pin overlays/graphics",
+   "blocker": ""
+  },
+  {
+   "id": "occ.reframe.auto",
+   "family": "Reframe",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/reframe/detect.ts"
+   ],
+   "targetPaths": [],
+   "originalFunctionality": "Browser saliency/energy + FaceDetector auto-reframe",
+   "browserCompatibility": "canvas, optional FaceDetector",
+   "backendDependencies": "none",
+   "status": "SOURCE_FOUND",
+   "uiIntegration": "none",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "Not integrated: plan = detect → focal curve → zoom reframeCurve + target aspect",
+   "blocker": ""
+  },
+  {
+   "id": "occ.multicam.align",
+   "family": "Multicam",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/multicam/align.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/multicam/align.ts",
+    "src/cinegen/components/edit/clip-analyze-section.tsx"
+   ],
+   "originalFunctionality": "Audio cross-correlation alignment",
+   "browserCompatibility": "WebAudio",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Analyze → Sync to clip",
+   "persistence": "timeline clip offsets",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "align.verify",
+   "evidence": "commit c6ae0deb",
+   "missing": "",
+   "blocker": ""
+  },
+  {
+   "id": "occ.multicam.switch",
+   "family": "Multicam",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/editor/camSwitch.ts",
+    "src/multicam/{groups,changeCam}.ts"
+   ],
+   "targetPaths": [],
+   "originalFunctionality": "Camera-switch planning over synced angles",
+   "browserCompatibility": "pure TS",
+   "backendDependencies": "none",
+   "status": "NOT_STARTED",
+   "uiIntegration": "none",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "Camera switching UI/logic not integrated",
+   "blocker": ""
+  },
+  {
+   "id": "occ.color.scopes-autograde",
+   "family": "Color",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/color/{scopes,autoGradeCore,autoGrade}.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/color/*",
+    "src/cinegen/lib/occ/analysis.ts"
+   ],
+   "originalFunctionality": "Scopes stats + auto-grade (server ffprobe in original)",
+   "browserCompatibility": "canvas",
+   "backendDependencies": "/api/auto-grade replaced by canvas sampling",
+   "status": "VERIFIED",
+   "uiIntegration": "Analyze → scopes, Auto grade",
+   "persistence": "fx on clip",
+   "preview": "",
+   "exportPublish": "burned in as fx",
+   "testsPerformed": "scopes.verify",
+   "evidence": "commit e2900891",
+   "missing": "Algorithm difference: sampled canvas stats instead of ffprobe signalstats",
+   "blocker": ""
+  },
+  {
+   "id": "occ.scene-detect",
+   "family": "Video intelligence",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/scene-detection/detect.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/scene/detect.ts",
+    "src/cinegen/lib/occ/analysis.ts"
+   ],
+   "originalFunctionality": "Scene cut detection (server FFmpeg scene filter in original)",
+   "browserCompatibility": "canvas",
+   "backendDependencies": "/api/detect-scenes replaced by histogram diff",
+   "status": "VERIFIED",
+   "uiIntegration": "Analyze → Detect scenes / Split",
+   "persistence": "markers + split clips",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "browser run",
+   "evidence": "commit e2900891",
+   "missing": "Browser histogram diff ≠ FFmpeg scene score; threshold normalisation reused",
+   "blocker": ""
+  },
+  {
+   "id": "occ.captions.styles",
+   "family": "Captions",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/captions/{styles,captionMotion,renderStyles,captionPages,CaptionsLayer}.ts*"
+   ],
+   "targetPaths": [
+    "src/openchatcut/captions/*",
+    "src/cinegen/components/edit/clip-captions-section.tsx",
+    "src/cinegen/components/edit/captions-preview-layer.tsx"
+   ],
+   "originalFunctionality": "22 caption styles, 5 motion options, word pages, karaoke",
+   "browserCompatibility": "Remotion",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Captions section: style, motion, brand style, font",
+   "persistence": "clip.captions_json",
+   "preview": "@remotion/player layer",
+   "exportPublish": "burned into MP4 (export frame verified)",
+   "testsPerformed": "occ-caption-cues.test.ts",
+   "evidence": "commits d4901164, 7fb4850f",
+   "missing": "Caption timeline lane, group move, clipboard, preview editor, style drag, preset store NOT integrated",
+   "blocker": ""
+  },
+  {
+   "id": "occ.captions.cue-editor",
+   "family": "Captions",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/captions/CaptionCueEditor.tsx",
+    "captionCues.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/captions/CaptionCueEditor.tsx"
+   ],
+   "originalFunctionality": "Sentence-by-sentence editing",
+   "browserCompatibility": "DOM",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Captions → Edit lines",
+   "persistence": "wordOverrides in captions JSON",
+   "preview": "preview text updated (browser)",
+   "exportPublish": "",
+   "testsPerformed": "occ-caption-cues.test.ts",
+   "evidence": "commit 7fb4850f; screenshot cue-3-edited",
+   "missing": "",
+   "blocker": ""
+  },
+  {
+   "id": "occ.captions.translate-srt",
+   "family": "Captions",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/captions/{translate,srt}.ts"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/occ/translate.ts"
+   ],
+   "originalFunctionality": "LLM translation + SRT",
+   "browserCompatibility": "fetch",
+   "backendDependencies": "OpenAI Responses (existing)",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "Captions → Add translation, SRT download",
+   "persistence": "captions.translation",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "occ-translate.test.ts",
+   "evidence": "commit e5e4f9b7",
+   "missing": "Live OpenAI translation not tested (no key in sandbox)",
+   "blocker": ""
+  },
+  {
+   "id": "occ.captions.fonts",
+   "family": "Typography",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/fonts/{googleFonts,googleFontCatalog,localFonts,projectFonts,systemFonts}.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/fonts/{googleFontCatalog,localFonts,systemFonts}.ts"
+   ],
+   "originalFunctionality": "Google/bundled/system/project fonts",
+   "browserCompatibility": "FontFace",
+   "backendDependencies": "none",
+   "status": "PARTIAL",
+   "uiIntegration": "Caption Font select (30 Google families)",
+   "persistence": "styleOverride.fontFamily",
+   "preview": "",
+   "exportPublish": "font name registered for export",
+   "testsPerformed": "occ-design-presets.test.ts",
+   "evidence": "commit 7fb4850f",
+   "missing": "User font import, system fonts (queryLocalFonts), bundled CJK fonts not wired",
+   "blocker": ""
+  },
+  {
+   "id": "occ.design-presets",
+   "family": "Design",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/editor/design-presets.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/editor/design-presets.ts",
+    "src/cinegen/lib/occ/design-style.ts"
+   ],
+   "originalFunctionality": "24 brand colour/font presets",
+   "browserCompatibility": "pure",
+   "backendDependencies": "none",
+   "status": "PARTIAL",
+   "uiIntegration": "Captions → Brand style",
+   "persistence": "styleOverride",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "occ-design-presets.test.ts",
+   "evidence": "commit 7fb4850f; screenshot cue-3-edited",
+   "missing": "Presets only restyle captions; layouts/backgroundFill/flexCrop/clipFit not integrated",
+   "blocker": ""
+  },
+  {
+   "id": "occ.audio.silence-vad",
+   "family": "Audio",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/audio/{silence,vad,silero-vad}.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/audio/*",
+    "public/models/silero-vad/*"
+   ],
+   "originalFunctionality": "RMS silence + Silero VAD speech-aware silence",
+   "browserCompatibility": "WebAudio + onnxruntime-web",
+   "backendDependencies": "none",
+   "status": "PARTIAL",
+   "uiIntegration": "Analyze → Find quiet spans (speech aware)",
+   "persistence": "markers",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vad.verify, silence.verify",
+   "evidence": "commit 51649c79",
+   "missing": "VAD run on a clip with no speech (no spans); no positive-speech sample verified; no opt-in model panel (model ships in public/)",
+   "blocker": ""
+  },
+  {
+   "id": "occ.audio.loudness-beats",
+   "family": "Audio",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/audio/{loudness,beats}.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/audio/*"
+   ],
+   "originalFunctionality": "LUFS loudness, beat markers",
+   "browserCompatibility": "WebAudio",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Analyze",
+   "persistence": "markers/volume",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "loudness.verify, beats.verify",
+   "evidence": "commit e2900891",
+   "missing": "",
+   "blocker": ""
+  },
+  {
+   "id": "occ.audio.beat-this-clap",
+   "family": "Audio",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/audio/intelligence/*"
+   ],
+   "targetPaths": [],
+   "originalFunctionality": "Beat This (≈83 MB via /api/hf-proxy), CLAP tagging",
+   "browserCompatibility": "onnxruntime-web workers",
+   "backendDependencies": "/api/hf-proxy",
+   "status": "NOT_STARTED",
+   "uiIntegration": "none",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "Needs opt-in model loader without hf-proxy (CORS/licence check)",
+   "blocker": ""
+  },
+  {
+   "id": "occ.audio.sound-library",
+   "family": "Audio",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/audio/soundLibrary.ts",
+    "assets/sound-effects/*.mp3"
+   ],
+   "targetPaths": [
+    "src/openchatcut/audio/soundLibrary.ts",
+    "public/sound-effects/*",
+    "src/cinegen/components/edit/sound-library-popup.tsx"
+   ],
+   "originalFunctionality": "Sound-effect library (39 files)",
+   "browserCompatibility": "audio",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Edit sidebar → Sound effects",
+   "persistence": "asset + audio clip",
+   "preview": "",
+   "exportPublish": "audio in export",
+   "testsPerformed": "browser add test",
+   "evidence": "commits 663e7637 + this branch (10 missing mp3 added)",
+   "missing": "",
+   "blocker": ""
+  },
+  {
+   "id": "occ.audio.recorder",
+   "family": "Audio",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/audio/recorder.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/audio/recorder.ts"
+   ],
+   "originalFunctionality": "Mic voice-over",
+   "browserCompatibility": "getUserMedia",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Edit sidebar mic button",
+   "persistence": "asset + clip",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "browser (fake mic)",
+   "evidence": "commit ec49002e; screenshot rec-2-after",
+   "missing": "Permissions-Policy changed to microphone=(self)",
+   "blocker": ""
+  },
+  {
+   "id": "occ.audio.fades",
+   "family": "Audio",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/editor/clipFade.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/editor/clipFade.ts"
+   ],
+   "originalFunctionality": "Clip fade in/out",
+   "browserCompatibility": "pure",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Inspector Fade",
+   "persistence": "clip.fade_in/out",
+   "preview": "preview opacity/volume",
+   "exportPublish": "MP4 luma ramp measured",
+   "testsPerformed": "timeline tests",
+   "evidence": "commit 7fb4850f",
+   "missing": "Transition audio (transitionAudio.ts) not integrated",
+   "blocker": ""
+  },
+  {
+   "id": "occ.edit.speed",
+   "family": "Editing",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/editor/rateStretch.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/editor/rateStretch.ts"
+   ],
+   "originalFunctionality": "0.1–8× speed",
+   "browserCompatibility": "pure",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Inspector Speed",
+   "persistence": "clip.speed",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "timeline-operations tests",
+   "evidence": "commit 7fb4850f",
+   "missing": "Speed curves not integrated",
+   "blocker": ""
+  },
+  {
+   "id": "occ.edit.ops",
+   "family": "Editing",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/editor/{split,slip,snap,overwrite,multiSelect,linkGroups,layouts}.ts"
+   ],
+   "targetPaths": [],
+   "originalFunctionality": "Edit operations on their model",
+   "browserCompatibility": "pure",
+   "backendDependencies": "none",
+   "status": "PARTIAL",
+   "uiIntegration": "CineGen already has split/slip/slide/ripple/roll/snap/link",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "CineGen equivalents",
+   "missing": "Compare and fill gaps (overwrite, layouts) — not done",
+   "blocker": ""
+  },
+  {
+   "id": "occ.edit.transform-keyframes",
+   "family": "Editing",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/editor/{keyframes,keyframeRegistry,clipTypes}.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/editor/keyframes.ts"
+   ],
+   "originalFunctionality": "Transform keyframes position/scale/rotation/opacity",
+   "browserCompatibility": "pure",
+   "backendDependencies": "none",
+   "status": "NOT_STARTED",
+   "uiIntegration": "opacity/volume keyframes only (CineGen)",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "Clip has no position/scale/rotation transform in the CineGen model",
+   "blocker": ""
+  },
+  {
+   "id": "occ.export.fcpxml",
+   "family": "Export",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/export/fcpxml.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/export/fcpxml.ts",
+    "src/cinegen/lib/occ/fcpxml.ts"
+   ],
+   "originalFunctionality": "FCPXML",
+   "browserCompatibility": "text",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "Export → Export FCPXML",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "fcpxml.verify",
+   "evidence": "commit 4420c88b; re-synced with upstream",
+   "missing": "",
+   "blocker": ""
+  },
+  {
+   "id": "occ.export.quality-bitrate",
+   "family": "Export",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/export/{quality,bitrate,autoQa}.ts",
+    "src/media/qualityPolicy.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/export/*",
+    "src/cinegen/lib/occ/export-qa.ts"
+   ],
+   "originalFunctionality": "Bitrate modes, master quality, export QA (FFmpeg server in original)",
+   "browserCompatibility": "canvas/WebAudio",
+   "backendDependencies": "/api/export-qa replaced by browser analysis",
+   "status": "VERIFIED",
+   "uiIntegration": "Export tab",
+   "persistence": "localStorage prefs",
+   "preview": "",
+   "exportPublish": "bitrate honoured (1 vs 20 Mbps files differ)",
+   "testsPerformed": "quality.verify, occ-export-bitrate",
+   "evidence": "commit ec49002e; screenshot qa-2-result",
+   "missing": "Browser QA ≠ FFmpeg detectors",
+   "blocker": ""
+  },
+  {
+   "id": "occ.export.jianying",
+   "family": "Export",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/export/jianyingDraftRequest.ts"
+   ],
+   "targetPaths": [],
+   "originalFunctionality": "JianYing draft export",
+   "browserCompatibility": "server external-agent",
+   "backendDependencies": "external-agent server endpoint",
+   "status": "BLOCKED",
+   "uiIntegration": "none",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "",
+   "blocker": "Uses an external-agent server endpoint; no verified serverless packaging"
+  },
+  {
+   "id": "occ.agent",
+   "family": "Agent",
+   "sourceRepo": "0xsline/OpenChatCut",
+   "sourcePaths": [
+    "src/agent/**"
+   ],
+   "targetPaths": [],
+   "originalFunctionality": "AI agent runtime",
+   "browserCompatibility": "server",
+   "backendDependencies": "Node server, Codex/Claude Code CLIs",
+   "status": "NOT_APPLICABLE",
+   "uiIntegration": "CineGen LLM tab replaces it",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "",
+   "blocker": "Server-only"
+  },
+  {
+   "id": "cg.project",
+   "family": "Project management",
+   "sourceRepo": "christopherjohnogden/CineGen",
+   "sourcePaths": [
+    "src/cinegen/WebApp.tsx, adapters/web-store.ts, adapters/legacy-import.ts"
+   ],
+   "targetPaths": [
+    "src/cinegen/WebApp.tsx, adapters/web-store.ts, adapters/legacy-import.ts"
+   ],
+   "originalFunctionality": "create/open/persist/reload/old-project import were browser-checked in earlier sessions but no evidence artefact was stored; re-verify in the final regression",
+   "browserCompatibility": "yes",
+   "backendDependencies": "MuAPI/OpenAI (adapted)",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest suites (584+)",
+   "evidence": "create/open/persist/reload/old-project import were browser-checked in earlier sessions but no evidence artefact was stored; re-verify in the final regression",
+   "missing": "Live provider verification pending",
+   "blocker": ""
+  },
+  {
+   "id": "cg.elements",
+   "family": "Elements",
+   "sourceRepo": "christopherjohnogden/CineGen",
+   "sourcePaths": [
+    "components/elements/*"
+   ],
+   "targetPaths": [
+    "components/elements/*"
+   ],
+   "originalFunctionality": "UI present and rendering; generation needs OpenAI key (not live-tested)",
+   "browserCompatibility": "yes",
+   "backendDependencies": "MuAPI/OpenAI (adapted)",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest suites (584+)",
+   "evidence": "UI present and rendering; generation needs OpenAI key (not live-tested)",
+   "missing": "Live provider verification pending",
+   "blocker": ""
+  },
+  {
+   "id": "cg.spaces",
+   "family": "Spaces",
+   "sourceRepo": "christopherjohnogden/CineGen",
+   "sourcePaths": [
+    "components/create/*"
+   ],
+   "targetPaths": [
+    "components/create/*"
+   ],
+   "originalFunctionality": "canvas/panels render; generation nodes need MuAPI/OpenAI credits (route checks only)",
+   "browserCompatibility": "yes",
+   "backendDependencies": "MuAPI/OpenAI (adapted)",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest suites (584+)",
+   "evidence": "canvas/panels render; generation nodes need MuAPI/OpenAI credits (route checks only)",
+   "missing": "Live provider verification pending",
+   "blocker": ""
+  },
+  {
+   "id": "cg.director",
+   "family": "Director",
+   "sourceRepo": "christopherjohnogden/CineGen",
+   "sourcePaths": [
+    "components/director/*"
+   ],
+   "targetPaths": [
+    "components/director/*"
+   ],
+   "originalFunctionality": "tabs render; LLM jobs need OpenAI key",
+   "browserCompatibility": "yes",
+   "backendDependencies": "MuAPI/OpenAI (adapted)",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest suites (584+)",
+   "evidence": "tabs render; LLM jobs need OpenAI key",
+   "missing": "Live provider verification pending",
+   "blocker": ""
+  },
+  {
+   "id": "cg.edit",
+   "family": "Edit tools",
+   "sourceRepo": "christopherjohnogden/CineGen",
+   "sourcePaths": [
+    "components/edit/*"
+   ],
+   "targetPaths": [
+    "components/edit/*"
+   ],
+   "originalFunctionality": "core editing, import, persistence browser-verified; Fill Gap/Extend/Music need MuAPI credits",
+   "browserCompatibility": "yes",
+   "backendDependencies": "MuAPI/OpenAI (adapted)",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest suites (584+)",
+   "evidence": "core editing, import, persistence browser-verified; Fill Gap/Extend/Music need MuAPI credits",
+   "missing": "Live provider verification pending",
+   "blocker": ""
+  },
+  {
+   "id": "cg.llm",
+   "family": "LLM tab + assistant",
+   "sourceRepo": "christopherjohnogden/CineGen",
+   "sourcePaths": [
+    "components/llm/*, components/assistant/*"
+   ],
+   "targetPaths": [
+    "components/llm/*, components/assistant/*"
+   ],
+   "originalFunctionality": "needs OpenAI key",
+   "browserCompatibility": "yes",
+   "backendDependencies": "MuAPI/OpenAI (adapted)",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest suites (584+)",
+   "evidence": "needs OpenAI key",
+   "missing": "Live provider verification pending",
+   "blocker": ""
+  },
+  {
+   "id": "cg.export",
+   "family": "Export",
+   "sourceRepo": "christopherjohnogden/CineGen",
+   "sourcePaths": [
+    "components/export/*"
+   ],
+   "targetPaths": [
+    "components/export/*"
+   ],
+   "originalFunctionality": "MP4 export verified incl. fx, captions, fades, plugin fx; docs/evidence/other/qa-2-result.png, commits d4901164 7fb4850f ec49002e",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest suites (584+)",
+   "evidence": "MP4 export verified incl. fx, captions, fades, plugin fx; docs/evidence/other/qa-2-result.png, commits d4901164 7fb4850f ec49002e",
+   "missing": "",
+   "blocker": ""
+  },
+  {
+   "id": "cg.desktop-only",
+   "family": "Desktop-only (Electron, cloud account, Claude MCP pages)",
+   "sourceRepo": "christopherjohnogden/CineGen",
+   "sourcePaths": [
+    "main.tsx, App.tsx, cloud-account.tsx, claude-mcp-connect.tsx, remote-mcp-connect.tsx"
+   ],
+   "targetPaths": [
+    "main.tsx, App.tsx, cloud-account.tsx, claude-mcp-connect.tsx, remote-mcp-connect.tsx"
+   ],
+   "originalFunctionality": "Electron/cloud only",
+   "browserCompatibility": "no",
+   "backendDependencies": "none",
+   "status": "NOT_APPLICABLE",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest suites (584+)",
+   "evidence": "Electron/cloud only",
+   "missing": "",
+   "blocker": ""
+  },
+  {
+   "id": "cg.voice-design",
+   "family": "Voice design",
+   "sourceRepo": "christopherjohnogden/CineGen",
+   "sourcePaths": [
+    "adapters/web-elevenlabs.ts"
+   ],
+   "targetPaths": [
+    "adapters/web-elevenlabs.ts"
+   ],
+   "originalFunctionality": "no MuAPI text-to-voice-design model",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "BLOCKED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest suites (584+)",
+   "evidence": "no MuAPI text-to-voice-design model",
+   "missing": "Live provider verification pending",
+   "blocker": "no provider model"
+  },
+  {
+   "id": "rm.overlays.lead-form",
+   "family": "Existing remix-new-editor features",
+   "sourceRepo": "deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)",
+   "sourcePaths": [
+    "src/lib/editor/addons/*, src/cinegen overlay lane"
+   ],
+   "targetPaths": [
+    "src/lib/editor/addons/*, src/cinegen overlay lane"
+   ],
+   "originalFunctionality": "Lead Generator overlay",
+   "browserCompatibility": "yes",
+   "backendDependencies": "existing Netlify/Supabase",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "saved with project (overlays)",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest overlays.test.ts",
+   "evidence": "commits a6065f71, f15abc1a, 49777772",
+   "missing": "overlay lane + renderer integrated (commit a6065f71); interactive publish path not re-verified",
+   "blocker": ""
+  },
+  {
+   "id": "rm.overlays.list-cta",
+   "family": "Existing remix-new-editor features",
+   "sourceRepo": "deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)",
+   "sourcePaths": [
+    "src/lib/editor/addons/*"
+   ],
+   "targetPaths": [
+    "src/lib/editor/addons/*"
+   ],
+   "originalFunctionality": "List Builder / CTA overlays",
+   "browserCompatibility": "yes",
+   "backendDependencies": "existing Netlify/Supabase",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "saved with project (overlays)",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest overlays.test.ts",
+   "evidence": "commits a6065f71, f15abc1a, 49777772",
+   "missing": "as above",
+   "blocker": ""
+  },
+  {
+   "id": "rm.overlays.text-image",
+   "family": "Existing remix-new-editor features",
+   "sourceRepo": "deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)",
+   "sourcePaths": [
+    "commit 49777772"
+   ],
+   "targetPaths": [
+    "commit 49777772"
+   ],
+   "originalFunctionality": "Smart Text, Text Mask, Image, Personalized Image, Stickers, Wrapper, Lower Thirds",
+   "browserCompatibility": "yes",
+   "backendDependencies": "existing Netlify/Supabase",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "saved with project (overlays)",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "vitest overlays.test.ts",
+   "evidence": "commits a6065f71, f15abc1a, 49777772",
+   "missing": "on the overlay lane, viewer verified earlier; export of overlays not burned into MP4 (interactive publish only)",
+   "blocker": ""
+  },
+  {
+   "id": "rm.end-screens",
+   "family": "Existing remix-new-editor features",
+   "sourceRepo": "deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)",
+   "sourcePaths": [
+    "src/components/modals/{EndScreen,Connect}*"
+   ],
+   "targetPaths": [
+    "src/components/modals/{EndScreen,Connect}*"
+   ],
+   "originalFunctionality": "End Screens / Connect Form",
+   "browserCompatibility": "yes",
+   "backendDependencies": "existing Netlify/Supabase",
+   "status": "NOT_STARTED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "not reconnected to the timeline",
+   "blocker": ""
+  },
+  {
+   "id": "rm.personalization",
+   "family": "Existing remix-new-editor features",
+   "sourceRepo": "deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)",
+   "sourcePaths": [
+    "src/components/personalize/*"
+   ],
+   "targetPaths": [
+    "src/components/personalize/*"
+   ],
+   "originalFunctionality": "Personalization / Tokens / Batch Generator",
+   "browserCompatibility": "yes",
+   "backendDependencies": "existing Netlify/Supabase",
+   "status": "NOT_STARTED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "not reconnected",
+   "blocker": ""
+  },
+  {
+   "id": "rm.share-publish",
+   "family": "Existing remix-new-editor features",
+   "sourceRepo": "deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)",
+   "sourcePaths": [
+    "src/lib/editor/publish/*"
+   ],
+   "targetPaths": [
+    "src/lib/editor/publish/*"
+   ],
+   "originalFunctionality": "Share / Publish",
+   "browserCompatibility": "yes",
+   "backendDependencies": "existing Netlify/Supabase",
+   "status": "NOT_STARTED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "",
+   "evidence": "",
+   "missing": "not reconnected",
+   "blocker": ""
+  }
+ ]
+}

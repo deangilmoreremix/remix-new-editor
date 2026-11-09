@@ -54,7 +54,7 @@ export interface Clip {
   linkedClipIds?: string[];  // linked video↔audio pairs (supports multiple linked clips)
   // [remix] OpenChatCut effects: per-clip GL fx stack, LUT / look, blend mode (see src/openchatcut/gl).
   fx?: ClipFx[];
-  lut?: { id: string; intensity: number };
+  lut?: { id: string; intensity: number; def?: import('../lib/occ/plugins').FxSnapshot };
   blendMode?: string;
   /** [remix] OpenChatCut zoom / follow-subject reframe (their ZoomEffect). */
   zoom?: import('../../openchatcut/editor/types').ZoomEffect;
@@ -65,6 +65,8 @@ export interface Clip {
 /** [remix] One OpenChatCut effect on a clip: id is an FX_EFFECTS key (builtin:fx-…), props = per-effect slider values. */
 export interface ClipFx {
   id: string;
+  /** plugin fx snapshot (openchatcut-plugin@1): keeps the project rendering without the pack installed */
+  def?: import('../lib/occ/plugins').FxSnapshot;
   props: Record<string, number | number[]>;
   enabled?: boolean;
 }
@@ -83,6 +85,8 @@ export interface Transition {
   clipBId?: string;   // undefined for fades (single-clip)
   /** [remix] OpenChatCut GLSL transition (replaces the plain dissolve in preview/export when set). */
   glType?: string;
+  /** plugin transition snapshot, used when the pack is not installed */
+  glDef?: import('../../openchatcut/gl/customTransitions').CustomTransitionDef;
 }
 
 export interface TimelineMarker {

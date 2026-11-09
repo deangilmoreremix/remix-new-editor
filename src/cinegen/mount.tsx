@@ -10,10 +10,12 @@ import { registerWebStore } from './adapters/web-store';
 import { importLegacyProjects } from './adapters/legacy-import';
 import { ErrorBoundary } from '@cinegen/components/error-boundary';
 import { WebApp } from './WebApp';
+import { hydratePlugins } from '@cinegen/lib/occ/plugins';
 
 export function CineGenEditorPage(): HTMLElement {
   installElectronShim();
   registerWebStore();
+  void hydratePlugins(); // [remix] OpenChatCut plugin packs installed earlier register their fx / LUTs / transitions / zoom presets
   registerWebApi(); // real implementations must be in place before the workspace subscribes to media events
   const el = document.createElement('div');
   el.id = 'cinegen-editor-page';

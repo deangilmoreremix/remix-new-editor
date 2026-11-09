@@ -7,6 +7,7 @@ import { Video as MediaVideo } from '@remotion/media';
 import { createGlRuntime, type GlRuntime } from './runtime';
 import { disposeRuntimeSlot, ensureRuntimeSlot } from './runtimeSlot';
 import { GLSL_TRANSITIONS } from './transitions';
+import { customTransitionUniforms, type CustomTransitionDef } from './customTransitions';
 import { buildTransitionShaderFrame } from './shaderFrame';
 import type { GlslTransitionType } from '../types';
 
@@ -22,7 +23,7 @@ function drawFit(ctx: CanvasRenderingContext2D, source: CanvasImageSource, fit: 
   ctx.drawImage(source, (W - nw * k) / 2, (H - nh * k) / 2, nw * k, nh * k);
 }
 
-export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'cover' }: { out: GlSource; inn: GlSource; glType: string; durationInFrames: number; fit?: 'contain' | 'cover' }) {
+export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'cover', customDef }: { out: GlSource; inn: GlSource; glType: string; durationInFrames: number; fit?: 'contain' | 'cover'; customDef?: CustomTransitionDef }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const env = useRemotionEnvironment();
@@ -33,7 +34,8 @@ export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'c
   const staged = useRef({ out: -1, inn: -1 });
   const mk = () => { const c = document.createElement('canvas'); c.width = width; c.height = height; return c; };
   const stage = useMemo(() => ({ out: mk(), inn: mk() }), [width, height]); // eslint-disable-line react-hooks/exhaustive-deps
-  const def = GLSL_TRANSITIONS[glType as GlslTransitionType];
+  // [remix] plugin (openchatcut-plugin@1) transitions arrive as a snapshot: same two-input fragment contract, props → u_<key> defaults
+  const def = GLSL_TRANSITIONS[glType as GlslTransitionType] ?? (customDef ? { frag: customDef.frag, uniforms: () => customTransitionUniforms(customDef) } : undefined);
 
   useEffect(() => {
     const canvas = glRef.current;

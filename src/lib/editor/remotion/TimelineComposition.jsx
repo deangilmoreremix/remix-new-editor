@@ -39,6 +39,7 @@ import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
 import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
 import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
 import { registerUserLut } from '../../../cinegen/lib/occ/user-luts';
+import { registerSnapshot } from '../../../cinegen/lib/occ/plugins';
 import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
 
 // ------------------------------------------------------------------ fonts
@@ -461,7 +462,7 @@ function MediaLayerBody({ layer, seqFrom }) {
   const mirror = layer.flip ? { transform: `scale(${layer.flip.h ? -1 : 1}, ${layer.flip.v ? -1 : 1})` } : {};
   // [remix] OpenChatCut effects / LUT: render through the GL pipeline (also during export, so they are burned in).
   if (layer.occFx?.length && (layer.kind === 'video' || layer.kind === 'image')) {
-    for (const e of layer.occFx) if (e.cubeText) registerUserLut({ id: e.id, name: e.name || e.id, text: e.cubeText });
+    for (const e of layer.occFx) { if (e.cubeText) registerUserLut({ id: e.id, name: e.name || e.id, text: e.cubeText }); if (e.def) registerSnapshot(e.def); }
     return (
       <AbsoluteFill style={mirror}>
         <OccClipFx
@@ -638,7 +639,7 @@ export function TimelineComposition({ model }) {
         {/* [remix] OpenChatCut GL transitions between CineGen clips */}
         {(m.glTransitions || []).map((g) => (
           <Sequence key={g.id} from={g.from} durationInFrames={g.durationInFrames} layout="absolute-fill">
-            <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} />
+            <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} customDef={g.customDef} />
           </Sequence>
         ))}
       </FontGate>

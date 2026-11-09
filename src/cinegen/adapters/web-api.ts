@@ -11,12 +11,15 @@ export { responsesChat };
 import { CAPTION_STYLE_BY_ID } from '../../openchatcut/captions/styles';
 import { clipFxInstances } from '@cinegen/lib/occ/clip-fx';
 import { userLutTextSync } from '@cinegen/lib/occ/user-luts';
+import { customTransitionDefSync, pluginFxSnapshotSync } from '@cinegen/lib/occ/plugins';
 // [remix] OpenChatCut effects + LUT of an export clip, as plain {id, overrides} for the composition's GL layer.
-const occFxList = (c: { fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }) =>
+const occFxList = (c: { fx?: Array<{ id: string; def?: import('@cinegen/lib/occ/plugins').FxSnapshot; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number; def?: import('@cinegen/lib/occ/plugins').FxSnapshot } }) =>
   clipFxInstances(c as never).map(({ def, overrides }) => ({
     id: def.id, overrides,
     // the sandboxed export runner has no IndexedDB: user .cube LUTs travel with the render
     ...(def.id.startsWith('user:lut-') ? { name: def.name, cubeText: userLutTextSync(def.id) } : {}),
+    // plugin fx / LUT: a self-contained snapshot travels with the render (the runner has no installed packs)
+    ...(def.id.startsWith('plugin:') ? { def: c.fx?.find((f) => f.id === def.id)?.def ?? (c.lut?.id === def.id ? c.lut.def : undefined) ?? pluginFxSnapshotSync(def.id) } : {}),
   }));
 
 type TranscriptionEvent = { type: 'status' | 'progress' | 'done' | 'error'; jobId: string; assetId: string; engine?: string; stage?: string; message?: string; text?: string; segments?: unknown[]; language?: string; error?: string };
@@ -121,7 +124,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; glDef?: unknown; clipAId: string; clipBId: string }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -161,7 +164,7 @@ export function registerWebApi() {
             const from = Math.round(start * a.fps); const dur = Math.round((end - start) * a.fps);
             if (dur < 2) return [];
             const rate = (c: typeof A.c) => c.speed || 1;
-            return [{ id: `gl-${t.clipAId}-${t.clipBId}`, glType: t.glType, from, durationInFrames: dur,
+            return [{ id: `gl-${t.clipAId}-${t.clipBId}`, glType: t.glType, customDef: t.glDef ?? customTransitionDefSync(t.glType), from, durationInFrames: dur,
               out: { src: A.c.inputPath, trimBefore: Math.round((A.c.trimStart + (start - A.c.startTime) * rate(A.c)) * a.fps), playbackRate: rate(A.c) },
               inn: { src: B.c.inputPath, trimBefore: Math.round(B.c.trimStart * a.fps), playbackRate: rate(B.c) } }];
           });

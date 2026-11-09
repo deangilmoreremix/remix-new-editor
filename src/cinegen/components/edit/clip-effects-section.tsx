@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Clip, ClipFx } from '@cinegen/types/timeline';
 import { ALL_FX, FX_IDS, LUT_IDS } from '../../../openchatcut/gl/fx/effects';
 import { primeClipLuts } from '@cinegen/lib/occ/clip-fx';
+import { snapshotFor } from '@cinegen/lib/occ/plugins';
 import { OccLibraryModal } from './occ-library-modal';
 import { importCubeFile, loadUserLuts, userLutIds } from '@cinegen/lib/occ/user-luts';
 import { t } from '../../../openchatcut/i18n/t';
@@ -24,12 +25,15 @@ export function ClipEffectsSection({ clip, onUpdate }: Props) {
   useEffect(() => { void loadUserLuts().then((l) => l.length && bump((n) => n + 1)); }, []);
   const fx = clip.fx ?? [];
   const setFx = (next: ClipFx[]) => onUpdate({ fx: next.length ? next : undefined });
-  const setLut = (id: string) => {
+  const setLut = async (id: string) => {
     if (!id) return onUpdate({ lut: undefined });
-    const next = { id, intensity: clip.lut?.intensity ?? 1 };
+    // plugin LUTs keep a self-contained snapshot in the project (renders without the pack installed)
+    const def = await snapshotFor(id);
+    const next = { id, intensity: clip.lut?.intensity ?? 1, ...(def ? { def } : {}) };
     void primeClipLuts({ lut: next });
     onUpdate({ lut: next });
   };
+  const addFx = async (id: string) => { const def = await snapshotFor(id); setFx([...fx, { id, props: {}, ...(def ? { def } : {}) }]); setOpen(fx.length); };
   return (
     <div className="clip-properties-panel__section" data-testid="clip-effects">
       <div className="clip-properties-panel__section-title">Effects</div>
@@ -58,7 +62,7 @@ export function ClipEffectsSection({ clip, onUpdate }: Props) {
       <div className="clip-properties-panel__row">
         <button className="clip-properties-panel__toggle-btn" onClick={() => setLibrary(true)}>Browse library…</button>
       </div>
-      {library && <OccLibraryModal onClose={() => setLibrary(false)} onPickFx={(id) => { setFx([...fx, { id, props: {} }]); setOpen(fx.length); setLibrary(false); }} onPickLut={(id) => { setLut(id); setLibrary(false); }} />}
+      {library && <OccLibraryModal onClose={() => setLibrary(false)} onPickFx={(id) => { void addFx(id); setLibrary(false); }} onPickLut={(id) => { void setLut(id); setLibrary(false); }} />}
       <div className="clip-properties-panel__row">
         <select aria-label="Add effect" style={selectStyle} value="" onChange={(e) => { if (e.target.value) { setFx([...fx, { id: e.target.value, props: {} }]); setOpen(fx.length); } }}>
           <option value="">+ Add effect…</option>
@@ -67,7 +71,7 @@ export function ClipEffectsSection({ clip, onUpdate }: Props) {
       </div>
       <div className="clip-properties-panel__section-title" style={{ marginTop: 8 }}>LUT / Look</div>
       <div className="clip-properties-panel__row">
-        <select aria-label="LUT" style={selectStyle} value={clip.lut?.id ?? ''} onChange={(e) => setLut(e.target.value)}>
+        <select aria-label="LUT" style={selectStyle} value={clip.lut?.id ?? ''} onChange={(e) => void setLut(e.target.value)}>
           <option value="">None</option>
           {LUT_IDS.map((id) => <option key={id} value={id}>{t(ALL_FX[id].name)}</option>)}
           {userLutIds().map((id) => <option key={id} value={id}>{ALL_FX[id].name} (imported)</option>)}

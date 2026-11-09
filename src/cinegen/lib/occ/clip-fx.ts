@@ -5,6 +5,7 @@ import { fxPasses } from '../../../openchatcut/gl/fx/uniforms';
 import { ensureCube } from '../../../openchatcut/gl/fx/cube';
 import type { FxPass } from '../../../openchatcut/gl/runtimeTypes';
 import type { Clip } from '@cinegen/types/timeline';
+import { registerSnapshot } from './plugins';
 
 type Overrides = Record<string, number | number[]>;
 
@@ -12,10 +13,12 @@ type Overrides = Record<string, number | number[]>;
 export function clipFxInstances(clip: Pick<Clip, 'fx' | 'lut'>): Array<{ def: FxDef; overrides: Overrides }> {
   const list: Array<{ def: FxDef; overrides: Overrides }> = [];
   for (const fx of clip.fx ?? []) {
+    if (fx.def) registerSnapshot(fx.def);
     const def = ALL_FX[fx.id];
     if (def && fx.enabled !== false) list.push({ def, overrides: fx.props ?? {} });
   }
   if (clip.lut) {
+    if (clip.lut.def) registerSnapshot(clip.lut.def);
     const def = ALL_FX[clip.lut.id];
     if (def) list.push({ def, overrides: { intensity: clip.lut.intensity } });
   }
