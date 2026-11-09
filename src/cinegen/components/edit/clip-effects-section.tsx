@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Clip, ClipFx } from '@cinegen/types/timeline';
 import { ALL_FX, FX_IDS, LUT_IDS } from '../../../openchatcut/gl/fx/effects';
 import { primeClipLuts } from '@cinegen/lib/occ/clip-fx';
+import { OccLibraryModal } from './occ-library-modal';
 import { importCubeFile, loadUserLuts, userLutIds } from '@cinegen/lib/occ/user-luts';
 import { t } from '../../../openchatcut/i18n/t';
 
@@ -19,6 +20,7 @@ export function ClipEffectsSection({ clip, onUpdate }: Props) {
   const [open, setOpen] = useState<number | null>(null);
   const [, bump] = useState(0);
   const [lutError, setLutError] = useState('');
+  const [library, setLibrary] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => { void loadUserLuts().then((l) => l.length && bump((n) => n + 1)); }, []);
   const fx = clip.fx ?? [];
@@ -54,6 +56,10 @@ export function ClipEffectsSection({ clip, onUpdate }: Props) {
           </div>
         );
       })}
+      <div className="clip-properties-panel__row">
+        <button className="clip-properties-panel__toggle-btn" onClick={() => setLibrary(true)}>Browse library…</button>
+      </div>
+      {library && <OccLibraryModal onClose={() => setLibrary(false)} onPickFx={(id) => { setFx([...fx, { id, props: {} }]); setOpen(fx.length); setLibrary(false); }} onPickLut={(id) => { setLut(id); setLibrary(false); }} />}
       <div className="clip-properties-panel__row">
         <select aria-label="Add effect" style={selectStyle} value="" onChange={(e) => { if (e.target.value) { setFx([...fx, { id: e.target.value, props: {} }]); setOpen(fx.length); } }}>
           <option value="">+ Add effect…</option>
