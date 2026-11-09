@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/library/TransitionThumb.tsx), vendored.
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import type { GlslTransitionType } from '../types';
+import type { GlslTransitionType } from '../editor/types';
 import { ensureSampleFrame } from '../gl/sampleFrames';
 import { GLSL_TRANSITIONS } from '../gl/transitions';
 import {

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/editor/sourceLimit.ts), vendored.
 // A clip cannot be longer than its source asset.
 //
 // There is always a srcInFrame bottom when cropping on the left side (the entry point cannot be negative), but there is no upper bound at all on the right side: move the right handle
@@ -6,8 +6,9 @@
 // Retime is executed uniformly - pointer drag and agent's cropping tools are all merged into that road.
 import type { MediaAsset, TimelineItem } from './types.js';
 import { hasOperationalTranscript } from '../transcript/types.js';
+import { isWindowedMotionGraphic } from './motionGraphicTime.js';
 
-type SourceItem = Pick<TimelineItem, 'kind' | 'src' | 'sourceAssetId' | 'playbackRate' | 'transcript' | 'transcriptStale'>;
+type SourceItem = Pick<TimelineItem, 'kind' | 'src' | 'sourceAssetId' | 'playbackRate' | 'transcript' | 'transcriptStale' | 'designDurationInFrames'>;
 export type SourceTimingItem = Pick<TimelineItem, 'srcInFrame' | 'playbackRate'>;
 export interface SourceFrameWindow {
   startFrame: number;
@@ -52,6 +53,10 @@ export function remainingSourceFrames(
   srcInFrame: number,
   assets: readonly MediaAsset[] | undefined,
 ): number | null {
+  // A split motion-graphic piece can run no further than the end of the design it is a window of.
+  if (isWindowedMotionGraphic(item)) {
+    return Math.max(1, Math.floor(item.designDurationInFrames! - Math.max(0, srcInFrame)));
+  }
   if (item.kind !== 'video' && item.kind !== 'audio') return null;
   if (item.kind === 'audio' && hasOperationalTranscript(item)) return null;
   if (!item.src || !assets?.length) return null;

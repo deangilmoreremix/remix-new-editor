@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/editor/rateStretch.ts), vendored.
+import { hasOperationalTranscript } from '../transcript/types';
 import { scaleItemKeyframes } from './keyframes';
 import { timelineFramesToSourceFrames } from './sourceLimit';
 import type { TimelineItem, TimelineState } from './types';
@@ -8,6 +9,11 @@ export type RateStretchEdge = 'left' | 'right';
 // [remix] exported so CineGen clamps clip speed to the same 0.1–8× range.
 export const MIN_RATE = 0.1;
 export const MAX_RATE = 8;
+
+/** Word-driven audio renders its edited stream at 1x and cannot be rate stretched. */
+export function canRateStretchItem(item: TimelineItem): boolean {
+  return item.kind === 'video' || (item.kind === 'audio' && !hasOperationalTranscript(item));
+}
 
 export function rateStretchGeometry(
   item: TimelineItem,
@@ -32,7 +38,7 @@ export function rateStretchItem(
   deltaFrames: number,
 ): TimelineState {
   const target = state.items.find((item) => item.id === itemId);
-  if (!target || !['video', 'audio'].includes(target.kind) || state.tracks?.[target.track]?.locked) return state;
+  if (!target || !canRateStretchItem(target) || state.tracks?.[target.track]?.locked) return state;
   const next = rateStretchGeometry(target, edge, deltaFrames);
   if (next.durationInFrames === target.durationInFrames) return state;
   const factor = next.durationInFrames / target.durationInFrames;

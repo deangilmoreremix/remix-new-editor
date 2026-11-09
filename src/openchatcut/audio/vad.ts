@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/audio/vad.ts), vendored.
 import {
   loadVadEvidence,
   saveVadEvidence,
@@ -34,12 +34,6 @@ let registeredRunner: VadRunner | undefined;
 /** Optional model adapter registration. Absence is explicit and never interpreted as silence. */
 export function registerVadRunner(runner: VadRunner | undefined): void {
   registeredRunner = runner;
-}
-
-export function vadSilenceRemovalEnabled(
-  value: unknown = import.meta.env?.VITE_ENABLE_VAD_SILENCE_REMOVAL,
-): boolean {
-  return value === true || value === 'true' || value === '1';
 }
 
 export async function obtainVadEvidence(

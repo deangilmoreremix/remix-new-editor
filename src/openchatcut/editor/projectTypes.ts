@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
-import type { CURRENT_PROJECT_VERSION } from '../shared/project-version.js';
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/editor/projectTypes.ts), vendored.
+import type { CURRENT_PROJECT_VERSION } from '../../shared/project-version.js';
 import type { DesignStyle } from './designTypes.js';
 import type { MediaAsset, MediaFolder } from './mediaTypes.js';
 import type { Timeline } from './timelineTypes.js';

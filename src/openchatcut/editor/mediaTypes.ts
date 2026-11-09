@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/editor/mediaTypes.ts), vendored.
 import type { TranscriptCarrier } from '../transcript/types.js';
 
 /** An imported media file in the project's media pool. */
@@ -74,6 +74,8 @@ export interface MediaAssetRelinkPatch {
   name?: string;
   /** Total replacement-source frames, not a request to resize timeline clips. */
   durationInFrames?: number;
+  /** Rate `durationInFrames` was counted at; a pool relink recounts it at the project rate. */
+  durationFps?: number;
   width?: number;
   height?: number;
   kind?: MediaAsset['kind'];

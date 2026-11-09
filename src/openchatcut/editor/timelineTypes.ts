@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/editor/timelineTypes.ts), vendored.
 import type { CaptionsData } from '../captions/types.js';
 import type { SerializableFxDef } from '../gl/fx/uniforms.js';
 import type { AspectFit } from './aspectTypes.js';
@@ -152,6 +152,25 @@ export function captionTrackEntries(s: TimelineState): Array<{ id: TrackId; capt
   return timelineTrackIds(s)
     .filter((id) => trackKind(s, id) === 'caption')
     .map((id) => ({ id, captions: captionsOnTrack(s, id) }));
+}
+
+/**
+ * Is the caption/text overlay showing?
+ *
+ * `captionsHidden` is the explicit toolbar toggle (字幕显示). When it has never
+ * been set, fall back to "is there anything overlay-ish in this project" —
+ * an enabled caption track OR any text/motion-graphic clip. The renderer and
+ * the toolbar MUST agree on this: they used to derive it separately, and the
+ * renderer's stricter version (enabled caption track only) meant that
+ * disabling a caption track silently hid every MG carrying a text or colour
+ * prop, while the toolbar still read "CC On" — picture missing with no
+ * explanation and no way to connect it to captions.
+ */
+export function captionOverlayVisible(s: TimelineState): boolean {
+  if (s.captionsHidden === true) return false;
+  if (s.captionsHidden === false) return true;
+  if (captionTrackEntries(s).some((entry) => entry.captions?.enabled)) return true;
+  return s.items.some((item) => item.kind === 'text' || item.kind === 'motion-graphic');
 }
 
 /** total timeline length = last item's end (min 1s). */

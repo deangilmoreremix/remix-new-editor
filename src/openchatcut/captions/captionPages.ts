@@ -1,15 +1,12 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/captions/captionPages.ts), vendored.
 import type { TimelineItem } from '../editor/types.js';
 import { isStableIdentity } from '../transcript/identity.js';
 import { isManualCaptionEntry } from './manualCaptions.js';
 import { effectivePreset } from './renderStyles.js';
 import {
   applyWordOverrides,
-  resolveCaptionWordIndices,
-  resolveCaptionWordRefs,
-  resolveCaptionWords,
-  resolveEntryWordRefs,
-  resolveEntryWords,
+  resolveCaptionProjection,
+  type CaptionProjection,
 } from './resolve.js';
 import { orderedCaptionSourceEntries } from './sourceOrder.js';
 import {
@@ -44,12 +41,10 @@ function lanePages(
   captions: CaptionsData,
   entry: CaptionSourceEntry,
   laneOrder: number,
-  items: TimelineItem[],
-  fps: number,
+  projection: CaptionProjection,
   globalIndexByRef: ReadonlyMap<string, number>,
 ): CaptionPageIdentity[] {
-  const words = resolveEntryWords(entry, items, fps);
-  const refs = resolveEntryWordRefs(entry, items, fps);
+  const { words, wordRefs: refs } = projection;
   // Stable source identity is authoritative. Numeric legacy positions are only
   const sourceIndices = refs.map((ref) => globalIndexByRef.get(ref) ?? -1);
   const indices = isStableIdentity(entry.id) ? sourceIndices.map(() => -1) : sourceIndices;
@@ -102,15 +97,14 @@ export function buildCaptionPages(captions: CaptionsData, items: TimelineItem[],
 }
 
 function computeCaptionPages(captions: CaptionsData, items: TimelineItem[], fps: number): CaptionPageIdentity[] {
+  const projection = resolveCaptionProjection(captions, items, fps);
   if (captions.sourceEntries?.length) {
     const entries = orderedCaptionSourceEntries(captions.sourceEntries).filter((entry) => entry.visible !== false);
-    const globalIndexByRef = new Map(resolveCaptionWordRefs(captions, items, fps).map((ref, index) => [ref, index]));
-    return entries.flatMap((entry, laneOrder) => lanePages(captions, entry, laneOrder, items, fps, globalIndexByRef))
+    const globalIndexByRef = new Map(projection.wordRefs.map((ref, index) => [ref, index]));
+    return entries.flatMap((entry, laneOrder) => lanePages(captions, entry, laneOrder, projection.entries!.get(entry)!, globalIndexByRef))
       .sort((left, right) => left.page.start - right.page.start || left.laneOrder - right.laneOrder || left.page.end - right.page.end || left.id.localeCompare(right.id));
   }
-  const words = resolveCaptionWords(captions, items, fps);
-  const refs = resolveCaptionWordRefs(captions, items, fps);
-  const applied = applyWordOverrides(words, resolveCaptionWordIndices(captions, items, fps), captions.wordOverrides, refs);
+  const applied = applyWordOverrides(projection.words, projection.indices, captions.wordOverrides, projection.wordRefs);
   const pages = paginate(applied.words, captions.pacing, effectivePreset(captions).wordsPerPage, applied.breakBefore, CAPTION_MAX_CHARS_PER_LINE, CAPTION_MAX_VISUAL_LINES);
   let cursor = 0;
   return pages.map((page) => {

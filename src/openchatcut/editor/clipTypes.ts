@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio), vendored.
+// SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/editor/clipTypes.ts), vendored.
 import type { TranscriptCarrier, TranscriptVariant } from '../transcript/types.js';
 import type { TrackId } from './trackTypes.js';
 
@@ -145,6 +145,13 @@ export interface TimelineItem extends TranscriptCarrier {
   templateId?: string;
   code?: string;
   props?: Record<string, unknown>;
+  /**
+   * Set on the pieces of a motion graphic that was split: the length of the whole design, which
+   * every piece plays a window of (starting at srcInFrame). Without it each piece restarted the
+   * animation from its intro and faded out at its own end, so a split showed the opening scene
+   * again instead of continuing. Absent on unsplit clips, which play from frame 0 as before.
+   */
+  designDurationInFrames?: number;
   /** natural box size the template designs against */
   width?: number;
   height?: number;
