@@ -140,6 +140,7 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
         // [remix] OpenChatCut GL effects / LUT ({ id, overrides }[]), burned in by <OccClipFx>
         ...(Array.isArray(clip.occFx) && clip.occFx.length ? { occFx: clip.occFx } : {}),
         ...(clip.blendMode && clip.blendMode !== 'normal' ? { clipBlend: clip.blendMode } : {}),
+        ...(clip.zoom ? { clipZoom: clip.zoom } : {}),
         keyframes: clip.keyframes || null,
       };
       const addon = getAddon(clip.type);

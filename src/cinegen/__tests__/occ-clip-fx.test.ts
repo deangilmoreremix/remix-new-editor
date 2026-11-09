@@ -72,3 +72,26 @@ describe('imported .cube LUTs', () => {
     await expect(importCubeFile(new File(['LUT_1D_SIZE 2\n0 0 0\n1 1 1\n'], 'x.cube'))).rejects.toThrow();
   });
 });
+
+import { followZoomFromTrack } from '@cinegen/lib/occ/follow-zoom';
+import { zoomAt } from '../../openchatcut/editor/zoom';
+describe('zoom + follow subject', () => {
+  it('zoom persists through the row converters', () => {
+    const c = clip({ zoom: { magnification: 2, shape: 'punch', focalPointX: 0.3, focalPointY: 0.6 } });
+    expect(clipFromRow(JSON.parse(JSON.stringify(clipToRow(c, 'tl')))).zoom).toEqual(c.zoom);
+  });
+  it('tracking points become a reframe curve their zoomAt follows', () => {
+    const pts = Array.from({ length: 11 }, (_, i) => ({ frame: i * 3, x: 0.2 + i * 0.05, y: 0.5, confidence: 0.9 }));
+    const z = followZoomFromTrack(pts, 2.5);
+    expect(z.reframeCurve!.keyframes[0]).toMatchObject({ frame: 0, focalPointX: 0.2, magnification: 2.5 });
+    const mid = zoomAt(z, 15, 30);
+    expect(mid.magnification).toBe(2.5);
+    expect(mid.focalX).toBeCloseTo(0.45, 2);
+    expect(zoomAt(z, 30, 30).focalX).toBeCloseTo(0.7, 2);
+  });
+  it('a plain shape zoom pushes in and settles', () => {
+    const z = { magnification: 2, shape: 'hold' as const };
+    expect(zoomAt(z, 0, 90).magnification).toBeCloseTo(1, 1);
+    expect(zoomAt(z, 45, 90).magnification).toBe(2);
+  });
+});

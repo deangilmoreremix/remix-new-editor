@@ -8,6 +8,7 @@ import type { PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
 import type { OverlayClip } from '@cinegen/types/workspace';
 import { OverlayLayer } from './overlay-layer';
 import { GlClipLayer } from './gl-clip-layer';
+import { zoomAt } from '../../../openchatcut/editor/zoom';
 import type { Clip } from '@cinegen/types/timeline';
 
 interface TimelineViewerProps {
@@ -155,6 +156,13 @@ export function TimelineViewer({
     }
   }, [onDropAssetId]);
 
+  const zoomStyle: React.CSSProperties = (() => {
+    if (!activeClip?.zoom) return {};
+    const dur = ((activeClip.duration - activeClip.trimStart - activeClip.trimEnd) / (activeClip.speed || 1)) * 30;
+    const z = zoomAt(activeClip.zoom, Math.max(0, (currentTime - activeClip.startTime) * 30), Math.max(1, dur));
+    return { transform: `scale(${z.magnification})`, transformOrigin: `${z.focalX * 100}% ${z.focalY * 100}%` };
+  })();
+
   return (
     <div
       className={`timeline-viewer${dragOver ? ' timeline-viewer--drag-over' : ''}`}
@@ -192,6 +200,8 @@ export function TimelineViewer({
         {!activeAsset && (
           <span className="timeline-viewer__empty">No clip at playhead</span>
         )}
+        {/* [remix] OpenChatCut zoom / follow-subject (scale about the focal point, as in their media layer) */}
+        <div style={{ position: 'absolute', inset: 0, ...zoomStyle }}>
         <div
           ref={nativeVideoEnabled ? nativeSurfaceRef : (el) => { setGlContainer(el); videoContainerRef(el); }}
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
@@ -206,6 +216,7 @@ export function TimelineViewer({
           />
         )}
         <GlClipLayer container={glContainer} clip={activeClip} assetId={activeAsset?.id ?? null} transition={glTransition} />
+        </div>
         <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onGeometry={onOverlayGeometry} />
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}

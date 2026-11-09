@@ -184,6 +184,8 @@ export function clipFromRow(
       const lut = json<Clip['lut']>(row['lut_json']);
       if (lut && typeof lut.id === 'string') out.lut = lut;
       if (typeof row['blend_mode'] === 'string' && row['blend_mode']) out.blendMode = row['blend_mode'] as string;
+      const zoom = json<Clip['zoom']>(row['zoom_json']);
+      if (zoom && typeof zoom === 'object') out.zoom = zoom;
       return out;
     })(),
   };
@@ -379,6 +381,7 @@ export function clipToRow(clip: Clip, timelineId: string): Record<string, unknow
     fx_json: clip.fx?.length ? JSON.stringify(clip.fx) : null,
     lut_json: clip.lut ? JSON.stringify(clip.lut) : null,
     blend_mode: clip.blendMode ?? null,
+    zoom_json: clip.zoom ? JSON.stringify(clip.zoom) : null,
   };
 }
 

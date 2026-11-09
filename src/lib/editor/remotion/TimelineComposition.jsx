@@ -34,6 +34,7 @@ import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './ke
 import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
+import { zoomAt } from '../../../openchatcut/editor/zoom';
 import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
 import { registerUserLut } from '../../../cinegen/lib/occ/user-luts';
 import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
@@ -423,6 +424,15 @@ function KeyframeWrap({ layer, seqFrom, origin, children }) {
   return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
 }
 
+/** [remix] OpenChatCut zoom / follow-subject reframe: scale about the focal point (their TimelineMediaLayer transform). */
+function OccZoom({ zoom, durationInFrames, children }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  // zoom frames are authored on a 30 fps basis (editor preview), so convert to this render's fps
+  const z = zoomAt(zoom, (frame * 30) / fps, Math.max(1, (durationInFrames * 30) / fps));
+  return <AbsoluteFill style={{ transform: `scale(${z.magnification})`, transformOrigin: `${z.focalX * 100}% ${z.focalY * 100}%` }}>{children}</AbsoluteFill>;
+}
+
 function MediaLayer({ layer, seqFrom }) {
   const t = useLayerTime(layer, seqFrom);
   const { width: W, height: H } = useVideoConfig();
@@ -544,7 +554,9 @@ export function TimelineComposition({ model }) {
               <KeyframeWrap layer={layer} seqFrom={from}>
                 {/* [remix] clip blend mode (CSS mix-blend-mode, burned into export) */}
                 <AbsoluteFill style={layer.clipBlend ? { mixBlendMode: layer.clipBlend } : undefined}>
-                  <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />
+                  {layer.clipZoom
+                    ? <OccZoom zoom={layer.clipZoom} durationInFrames={layer.durationInFrames}><MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} /></OccZoom>
+                    : <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />}
                 </AbsoluteFill>
               </KeyframeWrap>
             );
