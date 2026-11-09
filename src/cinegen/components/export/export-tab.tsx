@@ -32,7 +32,7 @@ export function ExportTab() {
         // [remix] a clip on an audio track plays sound only, even when its media file is a video
         trackKind: activeTimeline.tracks.find((t) => t.id === clip.trackId)?.kind,
         // [remix] OpenChatCut effects burned into the render
-        fx: clip.fx, lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions,
+        fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, fx: clip.fx, lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions,
       }];
     });
   }, [activeTimeline.clips, activeTimeline.tracks, state.assets]);

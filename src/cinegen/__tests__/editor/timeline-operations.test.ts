@@ -739,10 +739,10 @@ describe('updateClipProperties', () => {
     expect(result.clips[0].speed).toBe(2);
   });
 
-  it('clamps speed to 0.25-4 range', () => {
+  it('clamps speed to the OpenChatCut 0.1-8 range [remix]', () => {
     const tl = makeTimeline({ clips: [makeClip({ speed: 1 })] });
-    expect(updateClipProperties(tl, 'clip-1', { speed: 0.1 }).clips[0].speed).toBe(0.25);
-    expect(updateClipProperties(tl, 'clip-1', { speed: 10 }).clips[0].speed).toBe(4);
+    expect(updateClipProperties(tl, 'clip-1', { speed: 0.01 }).clips[0].speed).toBe(0.1);
+    expect(updateClipProperties(tl, 'clip-1', { speed: 10 }).clips[0].speed).toBe(8);
   });
 
   it('clamps opacity to 0-1', () => {

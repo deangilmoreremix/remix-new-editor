@@ -142,6 +142,9 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
         ...(clip.blendMode && clip.blendMode !== 'normal' ? { clipBlend: clip.blendMode } : {}),
         ...(clip.zoom ? { clipZoom: clip.zoom } : {}),
         keyframes: clip.keyframes || null,
+        // [remix] OpenChatCut clip fades (seconds)
+        ...(clip.fadeIn > 0 ? { fadeIn: clip.fadeIn } : {}),
+        ...(clip.fadeOut > 0 ? { fadeOut: clip.fadeOut } : {}),
       };
       const addon = getAddon(clip.type);
 
@@ -183,8 +186,8 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
       const flip = clip.flipH || clip.flipV ? { flip: { h: !!clip.flipH, v: !!clip.flipV } } : {};
       const volume = Math.max(0, Math.min(1, clip.volume ?? 1));
       const trimBefore = toFrame(Number(clip.trimIn ?? clip.sourceStart ?? 0));
-      // Playback speed (0.25–4×); omitted at normal speed so models stay unchanged.
-      const rate = Math.max(0.25, Math.min(4, Number(clip.playbackRate ?? clip.speed ?? 1) || 1));
+      // Playback speed (0.1–8×); omitted at normal speed so models stay unchanged.
+      const rate = Math.max(0.1, Math.min(8, Number(clip.playbackRate ?? clip.speed ?? 1) || 1));
       const speed = Math.abs(rate - 1) > 1e-3 ? { playbackRate: rate } : {};
       if ((clip.type === 'audio' || isAudioTrack(track)) && clip.type !== 'video') {
         if (src) audio.push({ ...base, kind: 'audio', src, trimBefore, ...speed, volume: audible.has(track.id) ? volume : 0 });

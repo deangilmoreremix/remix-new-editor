@@ -42,12 +42,15 @@ export interface Clip {
   duration: number;
   trimStart: number;
   trimEnd: number;
-  speed: number;          // 0.25–4, default 1
+  speed: number;          // 0.1–8 (OpenChatCut range), default 1
   opacity: number;        // 0–1, default 1
   volume: number;         // 0–2, default 1 (1 = unity, >1 = boost)
   flipH: boolean;
   flipV: boolean;
   keyframes: Keyframe[];
+  /** [remix] OpenChatCut clip fade-in / fade-out, seconds (opacity on video, volume on audio; editor/clipFade.ts). */
+  fadeIn?: number;
+  fadeOut?: number;
   linkedClipIds?: string[];  // linked video↔audio pairs (supports multiple linked clips)
   // [remix] OpenChatCut effects: per-clip GL fx stack, LUT / look, blend mode (see src/openchatcut/gl).
   fx?: ClipFx[];

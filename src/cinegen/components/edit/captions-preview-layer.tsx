@@ -12,7 +12,7 @@ function Comp({ captions }: { captions: CaptionsData }) { return <CaptionsLayer 
 
 export function CaptionsPreviewLayer({ captions, currentTime, aspect }: { captions: CaptionsData | null; currentTime: number; aspect: number }) {
   const ref = useRef<PlayerRef>(null);
-  const font = captions ? CAPTION_STYLE_BY_ID[captions.template]?.fontFamily : undefined;
+  const font = captions ? (captions.styleOverride?.fontFamily ?? CAPTION_STYLE_BY_ID[captions.template]?.fontFamily) : undefined;
   useEffect(() => { if (font) void (registerGoogleFonts as (f: string[]) => Promise<unknown>)([font]); }, [font]);
   useEffect(() => { ref.current?.seekTo(Math.max(0, Math.round(currentTime * FPS))); }, [currentTime, captions]);
   const props = useMemo(() => ({ captions: captions as CaptionsData }), [captions]);

@@ -1,4 +1,7 @@
 import type { Timeline, Track, Clip, TrackKind, Keyframe, Transition } from '@cinegen/types/timeline';
+// [remix] OpenChatCut speed range (editor/rateStretch.ts): 0.1–8×.
+import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
+import { MIN_RATE as OCC_MIN_RATE, MAX_RATE as OCC_MAX_RATE } from '../../../openchatcut/editor/rateStretch';
 import { clipEffectiveDuration, clipEndTime, TRACK_COLORS, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
 import { generateId } from '@cinegen/lib/utils/ids';
 import type { Asset } from '@cinegen/types/project';
@@ -679,6 +682,17 @@ export function interpolateProperty(
   property: 'opacity' | 'volume',
   clipTime: number,
 ): number {
+  const value = interpolateKeyframes(clip, property, clipTime);
+  // [remix] OpenChatCut fade-in/out multiplier (editor/clipFade.ts), seconds as the unit
+  if (!clip.fadeIn && !clip.fadeOut) return value;
+  return value * clipFadeFactor(clipTime, clipEffectiveDuration(clip), clip.fadeIn ?? 0, clip.fadeOut ?? 0);
+}
+
+function interpolateKeyframes(
+  clip: Clip,
+  property: 'opacity' | 'volume',
+  clipTime: number,
+): number {
   const kfs = clip.keyframes
     .filter((k) => k.property === property)
     .sort((a, b) => a.time - b.time);
@@ -949,27 +963,30 @@ export function createSyncedTimeline(
 export function updateClipProperties(
   timeline: Timeline,
   clipId: string,
-  updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>,
+  updates: Partial<Pick<Clip, 'speed' | 'fadeIn' | 'fadeOut' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>,
 ): Timeline {
   const clip = timeline.clips.find((c) => c.id === clipId);
   const linkedIds = new Set(getLinkedIds(clip));
   // Only propagate speed to linked clips (not visual props like opacity/flip)
-  const linkedUpdates: Partial<Pick<Clip, 'speed'>> = {};
+  const linkedUpdates: Partial<Pick<Clip, 'speed' | 'fadeIn' | 'fadeOut'>> = {};
   if (updates.speed !== undefined) linkedUpdates.speed = updates.speed;
+  // [remix] fades apply to the linked video + audio pair (opacity / volume respectively)
+  if (updates.fadeIn !== undefined) linkedUpdates.fadeIn = updates.fadeIn;
+  if (updates.fadeOut !== undefined) linkedUpdates.fadeOut = updates.fadeOut;
 
   return withDuration({
     ...timeline,
     clips: timeline.clips.map((c) => {
       if (c.id === clipId) {
         const merged = { ...c, ...updates };
-        merged.speed = Math.max(0.25, Math.min(4, merged.speed));
+        merged.speed = Math.max(OCC_MIN_RATE, Math.min(OCC_MAX_RATE, merged.speed));
         merged.opacity = Math.max(0, Math.min(1, merged.opacity));
         merged.volume = Math.max(0, Math.min(4, merged.volume));
         return merged;
       }
       if (linkedIds.has(c.id) && Object.keys(linkedUpdates).length > 0) {
         const merged = { ...c, ...linkedUpdates };
-        merged.speed = Math.max(0.25, Math.min(4, merged.speed));
+        merged.speed = Math.max(OCC_MIN_RATE, Math.min(OCC_MAX_RATE, merged.speed));
         return merged;
       }
       return c;

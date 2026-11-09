@@ -35,6 +35,7 @@ import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
+import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
 import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
 import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
 import { registerUserLut } from '../../../cinegen/lib/occ/user-luts';
@@ -434,9 +435,27 @@ function OccZoom({ zoom, durationInFrames, children }) {
   return <AbsoluteFill style={{ transform: `scale(${z.magnification})`, transformOrigin: `${z.focalX * 100}% ${z.focalY * 100}%` }}>{children}</AbsoluteFill>;
 }
 
-function MediaLayer({ layer, seqFrom }) {
+/** [remix] OpenChatCut clip fades: volume (number or per-frame function) with the fade-in/out multiplier applied. */
+function fadedVolume(layer, fps, base, kf) {
+  const fi = layer.fadeIn || 0; const fo = layer.fadeOut || 0;
+  if (!fi && !fo && !kf?.length) return base;
+  const dur = layer.durationInFrames / fps;
+  return (f) => Math.max(0, Math.min(1, base * (kf?.length ? valueAt(kf, f / fps, 1) : 1) * clipFadeFactor(f / fps, dur, fi, fo)));
+}
+
+/** [remix] fade-in/out of a visual clip = opacity multiplier over the whole layer. */
+function MediaLayer(props) {
+  const { layer, seqFrom } = props;
   const t = useLayerTime(layer, seqFrom);
-  const { width: W, height: H } = useVideoConfig();
+  const { fps } = useVideoConfig();
+  if (!layer.fadeIn && !layer.fadeOut) return <MediaLayerBody {...props} />;
+  const f = clipFadeFactor(t, layer.durationInFrames / fps, layer.fadeIn || 0, layer.fadeOut || 0);
+  return <AbsoluteFill style={{ opacity: f }}><MediaLayerBody {...props} /></AbsoluteFill>;
+}
+
+function MediaLayerBody({ layer, seqFrom }) {
+  const t = useLayerTime(layer, seqFrom);
+  const { width: W, height: H, fps } = useVideoConfig();
   const fit = layer.fit === 'contain' ? 'contain' : 'cover';
   const fx = useLayerEffects(layer, t);
   const mirror = layer.flip ? { transform: `scale(${layer.flip.h ? -1 : 1}, ${layer.flip.v ? -1 : 1})` } : {};
@@ -449,13 +468,12 @@ function MediaLayer({ layer, seqFrom }) {
           item={{ id: layer.id, kind: layer.kind, src: layer.src, trimBefore: layer.trimBefore || 0, playbackRate: layer.playbackRate || 1, effects: layer.occFx }}
           fit={fit} width={W} height={H}
         />
-        {layer.kind === 'video' && <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={Math.max(0, Math.min(1, layer.volume ?? 1))} />}
+        {layer.kind === 'video' && <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={fadedVolume(layer, fps, Math.max(0, Math.min(1, layer.volume ?? 1)), layer.keyframes?.volume)} />}
       </AbsoluteFill>
     );
   }
   if (layer.kind === 'video') {
-    const kfVolume = layer.keyframes?.volume?.length ? valueAt(layer.keyframes.volume, t, 1) : 1;
-    const volume = Math.max(0, Math.min(1, (layer.volume ?? 1) * kfVolume));
+    const volume = fadedVolume(layer, fps, Math.max(0, Math.min(1, layer.volume ?? 1)), layer.keyframes?.volume);
     return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%', ...mirror }} />;
   }
   return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...mirror }} />;
@@ -478,7 +496,7 @@ export function AudioLayer({ layer }) {
   const { fps } = useVideoConfig();
   const kf = layer.keyframes?.volume;
   const base = Math.max(0, Math.min(1, layer.volume ?? 1));
-  const volume = kf?.length ? (f) => Math.max(0, Math.min(1, base * valueAt(kf, f / fps, 1))) : base;
+  const volume = fadedVolume(layer, fps, base, kf);
   return <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} />;
 }
 

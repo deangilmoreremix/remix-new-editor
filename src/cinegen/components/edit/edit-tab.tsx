@@ -903,7 +903,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [selectedClip, state.assets]);
 
   const handleUpdateClipProps = useCallback(
-    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>) => {
+    (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>) => {
       const updated = updateClipProperties(timeline, clipId, updates);
       dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: updated });
     },

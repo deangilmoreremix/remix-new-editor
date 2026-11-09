@@ -1,11 +1,17 @@
 // [remix] Captions section of the clip inspector: OpenChatCut's caption styles (CAPTION_STYLES) and motion presets,
 // words from the on-device Whisper transcript, optional bilingual line via OpenAI translation.
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Clip } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import type { CaptionMotionPreset, CaptionsData, CaptionTemplate } from '../../../openchatcut/captions/types';
 import { CAPTION_STYLES } from '../../../openchatcut/captions/styles';
+// [remix] OpenChatCut's own sentence-by-sentence editor (captions/CaptionCueEditor.tsx) + its CSS
+import { backfillCueIdentities } from '../../../openchatcut/transcript/identity';
+import { DESIGN_STYLE_PRESETS } from '../../../openchatcut/editor/design-presets';
+import { CAPTION_FONT_FAMILIES, presetCaptionOverride } from '@cinegen/lib/occ/design-style';
+import { CaptionCueEditor } from '../../../openchatcut/captions/CaptionCueEditor';
+import '../../../openchatcut/captions/captionEditor.css';
 import { phrasesFromWords, translateCues, TRANSLATION_LANGUAGES } from '@cinegen/lib/occ/translate';
 
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12 } as const;
@@ -15,7 +21,13 @@ export function ClipCaptionsSection({ clip, asset, onUpdate }: { clip: Clip; ass
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [lang, setLang] = useState('Spanish');
-  const c = clip.captions;
+  const c = useMemo(() => {
+    const cur = clip.captions;
+    if (!cur?.words?.length) return cur;
+    const words = backfillCueIdentities(cur.words, clip.id);
+    return words === cur.words ? cur : { ...cur, words };
+  }, [clip.captions, clip.id]);
+  const noItems = useMemo(() => [], []);
   const patch = (p: Partial<CaptionsData>) => c && onUpdate({ captions: { ...c, ...p } });
   const generate = async () => {
     if (!asset) return;
@@ -29,7 +41,7 @@ export function ClipCaptionsSection({ clip, asset, onUpdate }: { clip: Clip; ass
         .map((w) => ({ text: w.text, start: Math.round(clip.startTime * 1000 + (w.startMs - clip.trimStart * 1000) / sp), end: Math.round(clip.startTime * 1000 + (w.endMs - clip.trimStart * 1000) / sp) }))
         .filter((w) => w.end > clip.startTime * 1000 && w.start < (clip.startTime + (clip.duration - clip.trimStart - clip.trimEnd) / sp) * 1000);
       if (!words.length) { setMsg('No speech found.'); return; }
-      onUpdate({ captions: { enabled: true, template: 'tiktok', pacing: 'phrase', motionPreset: 'pop', words, offsetFrames: 0 } });
+      onUpdate({ captions: { enabled: true, template: 'tiktok', pacing: 'phrase', motionPreset: 'pop', words: backfillCueIdentities(words, clip.id), offsetFrames: 0 } });
       setMsg(`${words.length} words captioned.`);
     } catch (e) { setMsg(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
   };
@@ -55,6 +67,18 @@ export function ClipCaptionsSection({ clip, asset, onUpdate }: { clip: Clip; ass
             </select>
           </div>
           <div className="clip-properties-panel__row">
+            <select aria-label="Brand style" data-testid="caption-brand-style" style={selectStyle} value="" onChange={(e) => { const p = DESIGN_STYLE_PRESETS.find((x) => x.id === e.target.value); if (p) patch({ styleOverride: { ...c.styleOverride, ...presetCaptionOverride(p.style) } }); }}>
+              <option value="">Brand style…</option>
+              {DESIGN_STYLE_PRESETS.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div className="clip-properties-panel__row">
+            <select aria-label="Caption font" data-testid="caption-font" style={selectStyle} value={c.styleOverride?.fontFamily ?? ''} onChange={(e) => { const { fontFamily: _f, ...rest } = c.styleOverride ?? {}; patch({ styleOverride: e.target.value ? { ...rest, fontFamily: e.target.value } : rest }); }}>
+              <option value="">Font: style default</option>
+              {CAPTION_FONT_FAMILIES.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
+          <div className="clip-properties-panel__row">
             <select aria-label="Caption motion" style={selectStyle} value={c.motionPreset ?? 'none'} onChange={(e) => patch({ motionPreset: e.target.value as CaptionMotionPreset })}>
               {MOTIONS.map((m) => <option key={m} value={m}>{m === 'none' ? 'No motion' : m}</option>)}
             </select>
@@ -63,6 +87,7 @@ export function ClipCaptionsSection({ clip, asset, onUpdate }: { clip: Clip; ass
             <select aria-label="Bilingual language" style={selectStyle} value={lang} onChange={(e) => setLang(e.target.value)}>{TRANSLATION_LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}</select>
             <button className="clip-properties-panel__toggle-btn" disabled={busy} onClick={bilingual}>Add translation</button>
           </div>
+          <div className="cc-cap-host" data-testid="caption-cue-editor"><CaptionCueEditor captions={c} items={noItems} fps={30} onUpdate={patch} /></div>
           <div className="clip-properties-panel__row">
             <button className="clip-properties-panel__toggle-btn" onClick={() => patch({ enabled: !c.enabled })}>{c.enabled ? 'Hide captions' : 'Show captions'}</button>
             <button className="clip-properties-panel__toggle-btn" onClick={() => onUpdate({ captions: undefined })}>Remove</button>

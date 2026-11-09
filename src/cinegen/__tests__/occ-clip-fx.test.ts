@@ -111,3 +111,22 @@ describe('FCPXML export', () => {
     expect(xml).not.toMatch(/undefined|NaN/);
   });
 });
+
+// [remix] OpenChatCut clip fades (editor/clipFade.ts) in the CineGen timeline model
+import { interpolateProperty } from '@cinegen/lib/editor/timeline-operations';
+describe('clip fades', () => {
+  const clip: any = { id: 'a', assetId: 'x', trackId: 't', name: 'a', startTime: 0, duration: 10, trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1, flipH: false, flipV: false, keyframes: [], fadeIn: 2, fadeOut: 2 };
+  it('ramps in, holds, ramps out (opacity and volume)', () => {
+    expect(interpolateProperty(clip, 'opacity', 0)).toBe(0);
+    expect(interpolateProperty(clip, 'opacity', 1)).toBeCloseTo(0.5);
+    expect(interpolateProperty(clip, 'volume', 5)).toBe(1);
+    expect(interpolateProperty(clip, 'volume', 9)).toBeCloseTo(0.5);
+  });
+  it('propagates fades to the linked clip', () => {
+    const a = { ...clip, id: 'a', linkedClipIds: ['b'], fadeIn: undefined, fadeOut: undefined };
+    const b = { ...clip, id: 'b', linkedClipIds: ['a'], fadeIn: undefined, fadeOut: undefined };
+    const tl: any = { id: 't', clips: [a, b], tracks: [], duration: 10, markers: [], transitions: [] };
+    const out = updateClipProperties(tl, 'a', { fadeIn: 1.5 });
+    expect(out.clips.find((c: any) => c.id === 'b').fadeIn).toBe(1.5);
+  });
+});

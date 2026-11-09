@@ -46,6 +46,13 @@ const exportJobs = new Map<string, ExportJobState>();
 
 const batchListeners = new Set<(e: unknown) => void>();
 
+/** [remix] CineGen opacity/volume keyframes ({time,value}) → composition keyframes ({t,v}) per property. */
+function kfToComposition(kf: Array<{ time: number; property: string; value: number }>) {
+  const out: Record<string, Array<{ t: number; v: number }>> = {};
+  for (const k of kf) (out[k.property] ??= []).push({ t: k.time, v: k.value });
+  return out;
+}
+
 export function registerWebApi() {
   registerElectronApi('vision', {
     // CineGen's visual index: OpenAI vision on the user's key (adapters/main-process/vision.ts)
@@ -114,7 +121,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -126,10 +133,12 @@ export function registerWebApi() {
           ]);
           const item = (c: (typeof a.clips)[number], i: number) => ({
             id: `c${i}`, type: c.type === 'audio' ? 'audio' : c.type === 'image' ? 'image' : 'video', src: c.inputPath,
-            start: c.startTime, end: c.startTime + c.duration, trimIn: c.trimStart, playbackRate: c.speed || 1, volume: c.volume ?? 1,
+            start: c.startTime, end: c.startTime + c.duration, trimIn: c.trimStart, playbackRate: c.speed || 1, volume: c.kf?.some((k) => k.property === 'volume') ? 1 : (c.volume ?? 1),
             // [remix] OpenChatCut effects / LUT → burned in by the composition's GL layer
             occFx: occFxList(c),
             ...(c.zoom ? { zoom: c.zoom } : {}),
+            ...(c.fadeIn ? { fadeIn: c.fadeIn } : {}), ...(c.fadeOut ? { fadeOut: c.fadeOut } : {}),
+            ...(c.kf?.length ? { keyframes: kfToComposition(c.kf) } : {}),
             ...(c.blendMode && c.blendMode !== 'normal' ? { blendMode: c.blendMode } : {}),
           });
           const state = {
@@ -142,7 +151,7 @@ export function registerWebApi() {
           const model = timelineToComposition(state, { fps: a.fps, quality });
           // [remix] OpenChatCut captions (words already in timeline ms) → one caption layer per captioned clip
           (model as { occCaptions?: unknown[] }).occCaptions = a.clips.flatMap((c) => (c.captions ? [c.captions] : []));
-          for (const c of a.clips) { const tpl = (c.captions as { template?: string } | undefined)?.template; const fam = tpl && CAPTION_STYLE_BY_ID[tpl as never]?.fontFamily; if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }
+          for (const c of a.clips) { const cap = c.captions as { template?: string; styleOverride?: { fontFamily?: string } } | undefined; const tpl = cap?.template; const fam = cap?.styleOverride?.fontFamily || (tpl && CAPTION_STYLE_BY_ID[tpl as never]?.fontFamily); if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
           const byId = new Map(a.clips.map((c, i) => [c.id, { c, i }]));
           (model as { glTransitions?: unknown[] }).glTransitions = (a.transitions ?? []).flatMap((t) => {

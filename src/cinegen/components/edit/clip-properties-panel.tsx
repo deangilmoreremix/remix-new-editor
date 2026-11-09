@@ -1,4 +1,6 @@
 import { useCallback } from 'react';
+// [remix] OpenChatCut speed range 0.1–8×.
+import { MIN_RATE as OCC_MIN_RATE, MAX_RATE as OCC_MAX_RATE } from '../../../openchatcut/editor/rateStretch';
 import type { Clip } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import { clipEffectiveDuration } from '@cinegen/types/timeline';
@@ -12,7 +14,7 @@ import type { Timeline } from '@cinegen/types/timeline';
 interface ClipPropertiesPanelProps {
   clip: Clip | null;
   asset: Asset | null;
-  onUpdateClip: (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>) => void;
+  onUpdateClip: (clipId: string, updates: Partial<Pick<Clip, 'speed' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>) => void;
   onAddKeyframe: (clipId: string, property: 'opacity' | 'volume', time: number, value: number) => void;
   onRemoveKeyframe: (clipId: string, index: number) => void;
   onClose: () => void;
@@ -135,9 +137,9 @@ export function ClipPropertiesPanel({
           <input
             type="range"
             className="clip-properties-panel__slider"
-            min={0.25}
-            max={4}
-            step={0.25}
+            min={OCC_MIN_RATE}
+            max={OCC_MAX_RATE}
+            step={0.05}
             value={clip.speed}
             onChange={handleSpeedChange}
           />
@@ -161,6 +163,32 @@ export function ClipPropertiesPanel({
           />
           <span className="clip-properties-panel__value">{Math.round(clip.opacity * 100)}%</span>
         </div>
+      </div>
+
+      {/* [remix] OpenChatCut clip fades (editor/clipFade.ts): opacity on video, volume on audio */}
+      <div className="clip-properties-panel__section">
+        <div className="clip-properties-panel__section-title">Fade</div>
+        {(['fadeIn', 'fadeOut'] as const).map((key) => {
+          const len = Math.max(0.1, (clip.duration - clip.trimStart - clip.trimEnd) / (clip.speed || 1));
+          const other = key === 'fadeIn' ? (clip.fadeOut ?? 0) : (clip.fadeIn ?? 0);
+          const max = Math.max(0, Math.min(10, len - other));
+          return (
+            <div className="clip-properties-panel__row" key={key}>
+              <span className="clip-properties-panel__label">{key === 'fadeIn' ? 'In' : 'Out'}</span>
+              <input
+                type="range"
+                className="clip-properties-panel__slider"
+                data-testid={`clip-${key}`}
+                min={0}
+                max={max}
+                step={0.05}
+                value={Math.min(clip[key] ?? 0, max)}
+                onChange={(e) => onUpdateClip(clip.id, { [key]: Number(e.target.value) })}
+              />
+              <span className="clip-properties-panel__value">{(clip[key] ?? 0).toFixed(2)}s</span>
+            </div>
+          );
+        })}
       </div>
 
       {/* [remix] OpenChatCut effects / LUT / blend */}
