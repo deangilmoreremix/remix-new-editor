@@ -95,3 +95,19 @@ describe('zoom + follow subject', () => {
     expect(zoomAt(z, 45, 90).magnification).toBe(2);
   });
 });
+
+import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
+describe('FCPXML export', () => {
+  it('writes a valid FCPXML for a CineGen timeline (video + linked audio, trims, speed)', () => {
+    const t = { id: 'tl', name: 'My <cut>', duration: 6, transitions: [], markers: [],
+      tracks: [{ id: 'tv', name: 'V1', kind: 'video', color: '', muted: false, solo: false, locked: false, visible: true, volume: 1 }, { id: 'ta', name: 'A1', kind: 'audio', color: '', muted: false, solo: false, locked: false, visible: true, volume: 1 }],
+      clips: [clip({ id: 'v', trackId: 'tv', startTime: 1, duration: 5, trimStart: 1, speed: 1 }), clip({ id: 'a', trackId: 'ta', startTime: 1, duration: 5, trimStart: 1 })] } as unknown as Timeline;
+    const xml = cinegenFcpxml(t, [{ id: 'a', name: 'shot.mp4', type: 'video', url: 'blob:x', createdAt: '', status: 'ready' } as never]);
+    expect(xml.startsWith('<?xml')).toBe(true);
+    expect(xml).toContain('<spine>');
+    expect(xml).toContain('My &lt;cut&gt;');
+    expect((xml.match(/<asset-clip/g) ?? []).length).toBe(2);
+    expect(xml).toContain('lane="-1"');
+    expect(xml).not.toMatch(/undefined|NaN/);
+  });
+});

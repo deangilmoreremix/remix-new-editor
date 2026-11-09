@@ -10,4 +10,5 @@ describe('OpenChatCut GL engine (upstream verify suites)', () => {
   it('beats', async () => { await import('../audio/beats.verify'); });
   it('silence core', async () => { await import('../audio/silence.verify'); });
   it('multicam audio align', async () => { await import('../multicam/align.verify'); });
+  it('FCPXML export', async () => { await import('../export/fcpxml.verify'); });
 });

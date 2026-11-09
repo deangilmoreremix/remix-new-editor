@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { ExportSettings } from './export-settings';
 import { RenderProgress } from './render-progress';
+import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 
@@ -101,6 +102,16 @@ export function ExportTab() {
         </p>
 
         <ExportSettings hasClips={hasClips} onRender={handleRender} />
+        {/* [remix] OpenChatCut FCPXML export (Final Cut Pro / Premiere / DaVinci Resolve) */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
+          <button type="button" disabled={!hasClips} data-testid="export-fcpxml" onClick={() => {
+            const xml = cinegenFcpxml(activeTimeline, state.assets, { title: activeTimeline.name });
+            const url = URL.createObjectURL(new Blob([xml], { type: 'application/xml' }));
+            const a = document.createElement('a'); a.href = url; a.download = `${activeTimeline.name || 'timeline'}.fcpxml`; a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+          }}>Export FCPXML</button>
+          <span style={{ fontSize: 11, opacity: 0.65 }}>For Final Cut Pro, Premiere and DaVinci Resolve. Relink the media after import.</span>
+        </div>
 
         {latestJob && (
           <div className="export-tab__progress">
