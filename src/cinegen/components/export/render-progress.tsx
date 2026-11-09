@@ -53,6 +53,24 @@ export function RenderProgress({ job, onCancel }: RenderProgressProps) {
           <span className="render-progress__error">{job.error}</span>
         )}
       </div>
+
+      {/* [remix] OpenChatCut export QA (quality.ts assessExportQuality) on the rendered file */}
+      {job.qaStatus && <p data-testid="export-qa-status" style={{ fontSize: 12, opacity: 0.75, marginTop: 8 }}>{job.qaStatus}</p>}
+      {job.qa && (
+        <div data-testid="export-qa-report" style={{ marginTop: 10, fontSize: 12 }}>
+          <div style={{ fontWeight: 600, color: job.qa.ok ? '#34d399' : '#f87171' }}>
+            {job.qa.issues.length === 0 ? 'Export check passed' : `Export check: ${job.qa.summary.errors} error${job.qa.summary.errors === 1 ? '' : 's'}, ${job.qa.summary.warnings} warning${job.qa.summary.warnings === 1 ? '' : 's'}`}
+          </div>
+          <div style={{ opacity: 0.7, marginTop: 2 }}>
+            {job.qa.width}×{job.qa.height} · {job.qa.durationSeconds.toFixed(2)}s{job.qa.hasAudio ? ` · audio${job.qa.maxVolumeDb != null ? ` peak ${job.qa.maxVolumeDb.toFixed(1)} dBFS` : ''}` : ' · no audio'}
+          </div>
+          {job.qa.issues.map((i, k) => (
+            <div key={k} style={{ marginTop: 4, color: i.severity === 'error' ? '#f87171' : '#f59e0b' }}>
+              {i.severity === 'error' ? '✕' : '▲'} {i.message}{i.startSeconds != null ? ` (${i.startSeconds.toFixed(1)}s–${(i.endSeconds ?? i.startSeconds).toFixed(1)}s)` : ''}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

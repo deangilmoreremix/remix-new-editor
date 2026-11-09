@@ -70,7 +70,8 @@ async function render(id, rawModel, options = {}) {
       inputProps: { model },
       container,
       videoCodec: options.videoCodec || (container === 'webm' ? 'vp9' : 'h264'),
-      videoBitrate: BITRATE[options.quality] || 'high',
+      // [remix] explicit bitrate (OpenChatCut export/bitrate.ts) overrides the quality preset
+      videoBitrate: Number.isFinite(options.videoBitrate) ? options.videoBitrate : (BITRATE[options.quality] || 'high'),
       signal: controller.signal,
       licenseKey: 'free-license',
       onProgress: (p) => post({ type: 'progress', id, progress: p.progress, encodedFrames: p.encodedFrames }),

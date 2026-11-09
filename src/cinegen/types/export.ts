@@ -9,6 +9,10 @@ export interface ExportJob {
   fps: 24 | 30 | 60;
   outputUrl?: string;
   fileSize?: number;
+  /** [remix] OpenChatCut export QA (browser analysis of the rendered file) */
+  qa?: import('../../openchatcut/export/quality').ExportQaReport;
+  qaStatus?: string;
+  videoBitrateBps?: number;
   error?: string;
   createdAt: string;
   completedAt?: string;

@@ -639,6 +639,8 @@ export interface ElectronAPI {
   };
   media: {
     import: (params: { filePaths: string[]; projectId: string; mode: 'link' | 'copy' }) => Promise<Array<{ assetId: string; jobId: string; filePath: string; type: 'video' | 'audio' | 'image' }>>;
+    /** [remix] recorded / generated Blob → media-pool entry */
+    importBlob: (params: { blob: Blob; name: string }) => Promise<{ assetId: string; filePath: string; type: 'audio' }>;
     submitJob: (job: unknown) => Promise<unknown>;
     cancelJob: (jobId: string) => Promise<void>;
     queueProcessing: (params: {

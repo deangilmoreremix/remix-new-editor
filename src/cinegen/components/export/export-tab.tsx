@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
-import { ExportSettings } from './export-settings';
+import { ExportSettings, type ExportExtras } from './export-settings';
 import { RenderProgress } from './render-progress';
 import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
@@ -46,13 +46,15 @@ export function ExportTab() {
   );
   const latestJob = state.exports[state.exports.length - 1];
 
-  const handleRender = useCallback(async (preset: ExportPreset, fps: 24 | 30 | 60) => {
+  const handleRender = useCallback(async (preset: ExportPreset, fps: 24 | 30 | 60, extras?: ExportExtras) => {
     try {
       const job = await window.electronAPI.export.start({
         preset,
         fps,
         clips: exportClips,
         totalDuration,
+        // [remix] OpenChatCut export bitrate + render check
+        videoBitrate: extras?.videoBitrate, qa: extras?.qa,
         // [remix] OpenChatCut GL transitions on dissolve cuts
         transitions: (activeTimeline.transitions ?? []).filter((t) => t.glType && t.type === 'dissolve' && t.clipBId).map((t) => ({ glType: t.glType, clipAId: t.clipAId, clipBId: t.clipBId })),
       });
@@ -81,6 +83,8 @@ export function ExportTab() {
             fileSize: updated.fileSize,
             error: updated.error,
             completedAt: updated.completedAt,
+            qa: updated.qa,
+            qaStatus: updated.qaStatus,
           },
         });
       } catch {

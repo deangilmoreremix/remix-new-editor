@@ -2,15 +2,29 @@
 
 import { useState } from 'react';
 import type { ExportPreset } from '@cinegen/types/export';
+// [remix] OpenChatCut export bitrate modes (export/bitrate.ts) and auto-QA preference (export/autoQa.ts)
+import { DEFAULT_CUSTOM_BITRATE_MBPS, MAX_VIDEO_BITRATE_MBPS, MIN_VIDEO_BITRATE_MBPS, requestedVideoBitrateBps, type VideoBitrateMode } from '../../../openchatcut/export/bitrate';
+// [remix] OpenChatCut master-quality policy (media/qualityPolicy.ts): master → high default bitrate
+import { defaultBitrateModeForQuality, getQualityMode, setQualityMode } from '../../../openchatcut/media/qualityPolicy';
+import { loadExportAutoQaPreference, saveExportAutoQaPreference } from '../../../openchatcut/export/autoQa';
+
+export interface ExportExtras { videoBitrate?: number; qa: boolean }
+const PRESET_SIZE: Record<ExportPreset, [number, number]> = { draft: [1280, 720], standard: [1920, 1080], high: [3840, 2160] };
 
 interface ExportSettingsProps {
   hasClips: boolean;
-  onRender: (preset: ExportPreset, fps: 24 | 30 | 60) => void;
+  onRender: (preset: ExportPreset, fps: 24 | 30 | 60, extras: ExportExtras) => void;
 }
 
 export function ExportSettings({ hasClips, onRender }: ExportSettingsProps) {
   const [preset, setPreset] = useState<ExportPreset>('standard');
   const [fps, setFps] = useState<24 | 30 | 60>(30);
+  const [bitrateMode, setBitrateMode] = useState<VideoBitrateMode>(() => defaultBitrateModeForQuality());
+  const [master, setMaster] = useState(() => getQualityMode() === 'master');
+  const [customMbps, setCustomMbps] = useState(DEFAULT_CUSTOM_BITRATE_MBPS);
+  const [qa, setQa] = useState(() => loadExportAutoQaPreference().enabled);
+  const [w, h] = PRESET_SIZE[preset];
+  const requested = requestedVideoBitrateBps({ mode: bitrateMode, width: w, height: h, fps, customMbps });
 
   const presets: { value: ExportPreset; label: string; resolution: string }[] = [
     { value: 'draft', label: 'Draft', resolution: '720p' },
@@ -49,10 +63,36 @@ export function ExportSettings({ hasClips, onRender }: ExportSettingsProps) {
         </select>
       </div>
 
+      <div className="export-settings__section">
+        <div className="export-settings__label">Video bitrate</div>
+        <select className="export-settings__fps-select" data-testid="export-bitrate-mode" value={bitrateMode} onChange={(e) => setBitrateMode(e.target.value as VideoBitrateMode)}>
+          <option value="auto">Auto</option>
+          <option value="compact">Compact (smaller file)</option>
+          <option value="recommended">Recommended</option>
+          <option value="high">High (larger file)</option>
+          <option value="custom">Custom…</option>
+        </select>
+        {bitrateMode === 'custom' && (
+          <input className="export-settings__fps-select" type="number" data-testid="export-bitrate-custom" min={MIN_VIDEO_BITRATE_MBPS} max={MAX_VIDEO_BITRATE_MBPS} value={customMbps} onChange={(e) => setCustomMbps(Number(e.target.value))} style={{ width: 90, marginLeft: 8 }} />
+        )}
+        {requested ? <span style={{ fontSize: 11, opacity: 0.65, marginLeft: 8 }}>{(requested / 1_000_000).toFixed(1)} Mbps</span> : null}
+      </div>
+
+      <div className="export-settings__section">
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, marginBottom: 6 }}>
+          <input type="checkbox" data-testid="export-master-quality" checked={master} onChange={(e) => { const m = e.target.checked ? 'master' : 'balanced'; setMaster(e.target.checked); setQualityMode(m); setBitrateMode(defaultBitrateModeForQuality(m)); }} />
+          Master quality (higher default bitrate)
+        </label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12 }}>
+          <input type="checkbox" data-testid="export-auto-qa" checked={qa} onChange={(e) => { setQa(e.target.checked); saveExportAutoQaPreference({ enabled: e.target.checked }); }} />
+          Check the finished export (duration, size, black / frozen frames, silence, peak level)
+        </label>
+      </div>
+
       <button
         className="export-settings__render-btn"
         disabled={!hasClips}
-        onClick={() => onRender(preset, fps)}
+        onClick={() => onRender(preset, fps, { videoBitrate: requested, qa })}
         title={hasClips ? undefined : 'Add clips to the timeline first'}
       >
         Render

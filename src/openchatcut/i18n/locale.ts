@@ -10,6 +10,9 @@ export const translate: TFn = (zh, vars) => {
   return vars ? s.replace(/\{(\w+)\}/g, (_, k: string) => (k in vars ? String(vars[k]) : `{${k}}`)) : s;
 };
 
+// [remix] `t` as a plain function (their locale.ts exports it too)
+export const t = translate;
+
 export function useT(): TFn {
   return translate;
 }

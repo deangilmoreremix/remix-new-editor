@@ -182,6 +182,17 @@ export const webMediaApi = {
         return { assetId, filePath, type };
       });
     },
+    // [remix] a recorded / generated Blob becomes a media-pool entry the same way a picked file does (stored durably when signed in)
+    importBlob: async (p: unknown) => {
+      const { blob, name } = p as { blob: Blob; name: string };
+      const file = new File([blob], name, { type: blob.type });
+      const url = await durableUrl(file);
+      webFiles.set(url, { name, type: file.type, size: file.size });
+      (window as unknown as { __remixFileNames: Map<string, string> }).__remixFileNames.set(url, name);
+      const assetId = `asset-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+      setTimeout(() => { for (const job of ['extract_metadata', 'compute_waveform']) void runJob(assetId, url, job); }, 0);
+      return { assetId, filePath: url, type: 'audio' as const };
+    },
     queueProcessing: async (p: unknown) => {
       const a = p as { assetId: string; inputPath: string; includeThumbnail?: boolean; includeWaveform?: boolean; includeFilmstrip?: boolean; needsProxy?: boolean };
       const jobs = [a.includeThumbnail && 'generate_thumbnail', a.includeWaveform && 'compute_waveform', a.includeFilmstrip && 'generate_filmstrip', a.needsProxy && 'generate_proxy'].filter(Boolean) as string[];

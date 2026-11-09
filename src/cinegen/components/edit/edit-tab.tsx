@@ -10,6 +10,7 @@ import { TimelineTabs } from './timeline-tabs';
 import { TimelineBottomBar } from './timeline-bottom-bar';
 import { ResizeHandle } from './resize-handle';
 import { activeGlTransition } from '@cinegen/lib/occ/transitions';
+import { useRecorder } from '../../../openchatcut/audio/recorder';
 import { SoundLibraryPopup } from './sound-library-popup';
 import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
@@ -885,6 +886,24 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
 
   // [remix] OpenChatCut sound-effects library: asset into the pool, clip on an audio track at the playhead
   const [soundLibrary, setSoundLibrary] = useState(false);
+  // [remix] OpenChatCut voice-over recorder: mic → one Blob → media pool + audio clip at the playhead (where recording started)
+  const recordStartRef = useRef(0);
+  const handleRecorded = useCallback(async (blob: Blob) => {
+    const name = `Voice-over ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}.${blob.type.includes('ogg') ? 'ogg' : blob.type.includes('mp4') ? 'm4a' : 'webm'}`;
+    const imported = await window.electronAPI.media.importBlob({ blob, name }) as { assetId: string; filePath: string };
+    let seconds = 1;
+    try { const ac = new AudioContext(); seconds = (await ac.decodeAudioData(await blob.arrayBuffer())).duration; void ac.close(); } catch { /* duration is refreshed by the metadata job */ }
+    const asset: Asset = { id: imported.assetId, name, type: 'audio', url: imported.filePath, fileRef: imported.filePath, duration: seconds, createdAt: new Date().toISOString(), status: 'processing', metadata: { source: 'openchatcut-recorder', processingJobs: ['extract_metadata', 'compute_waveform'] } };
+    dispatch({ type: 'ADD_ASSET', asset });
+    let tl = timeline;
+    let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
+    if (!track) {
+      track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
+      tl = { ...tl, tracks: [...tl.tracks, track] };
+    }
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, recordStartRef.current) });
+  }, [dispatch, timeline]);
+  const recorder = useRecorder((blob) => { void handleRecorded(blob); });
   const handleAddSound = useCallback((effect: { id: string; name: string; seconds: number }) => {
     const asset: Asset = { id: generateId(), name: effect.name, type: 'audio', url: soundEffectSrc(effect.id), duration: effect.seconds, createdAt: new Date().toISOString(), status: 'online', metadata: { source: 'openchatcut-sound-library', soundId: effect.id } };
     dispatch({ type: 'ADD_ASSET', asset });
@@ -1066,7 +1085,9 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
 
       {/* Timeline area */}
       <div className="edit-tab__timeline-area">
-        <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} />
+        <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} recording={recorder.recording} onToggleRecording={() => { if (!recorder.recording) recordStartRef.current = Math.max(0, currentTime); recorder.toggle(); }} />
+        {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
+        {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
         {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}
 
         <div className="edit-tab__timeline-content">

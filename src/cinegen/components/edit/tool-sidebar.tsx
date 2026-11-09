@@ -53,9 +53,12 @@ interface ToolSidebarProps {
   onToolChange: (tool: ToolType) => void;
   /** [remix] opens the OpenChatCut sound-effects library */
   onOpenSounds?: () => void;
+  /** [remix] OpenChatCut voice-over recorder (audio/recorder.ts) */
+  recording?: boolean;
+  onToggleRecording?: () => void;
 }
 
-export function ToolSidebar({ activeTool, onToolChange, onOpenSounds }: ToolSidebarProps) {
+export function ToolSidebar({ activeTool, onToolChange, onOpenSounds, recording, onToggleRecording }: ToolSidebarProps) {
   const primaryTools = TOOLS.filter((t) => t.group === 'primary');
   const trimTools = TOOLS.filter((t) => t.group === 'trim');
   const generateTools = TOOLS.filter((t) => t.group === 'generate');
@@ -97,6 +100,11 @@ export function ToolSidebar({ activeTool, onToolChange, onOpenSounds }: ToolSide
       {onOpenSounds && (
         <button className="tool-sidebar__btn" onClick={onOpenSounds} title="Sound effects library" aria-label="Sound effects library" data-testid="open-sound-library">
           <Icon><path d="M11 5 6 9H2v6h4l5 4V5Z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 5.5a9 9 0 0 1 0 13" /></Icon>
+        </button>
+      )}
+      {onToggleRecording && (
+        <button className={`tool-sidebar__btn${recording ? ' tool-sidebar__btn--active' : ''}`} onClick={onToggleRecording} title={recording ? 'Stop recording' : 'Record a voice-over at the playhead'} aria-label={recording ? 'Stop recording' : 'Record voice-over'} aria-pressed={!!recording} data-testid="record-voiceover" style={recording ? { color: '#f87171' } : undefined}>
+          <Icon><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></Icon>
         </button>
       )}
     </div>

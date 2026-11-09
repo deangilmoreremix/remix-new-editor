@@ -481,9 +481,10 @@ function securityHeaders() {
                 res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
                 
                 // Permissions Policy
+                // [remix] microphone=(self): the timeline's voice-over recorder and Voice Director use the mic (same origin only)
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=()'
+                    'camera=(), microphone=(self)'
                 );
                 
                 next();

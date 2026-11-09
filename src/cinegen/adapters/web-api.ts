@@ -121,7 +121,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; clipAId: string; clipBId: string }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -165,13 +165,26 @@ export function registerWebApi() {
               out: { src: A.c.inputPath, trimBefore: Math.round((A.c.trimStart + (start - A.c.startTime) * rate(A.c)) * a.fps), playbackRate: rate(A.c) },
               inn: { src: B.c.inputPath, trimBefore: Math.round(B.c.trimStart * a.fps), playbackRate: rate(B.c) } }];
           });
-          const blob = await exportModel(model, { container: 'mp4', quality, onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
+          const blob = await exportModel(model, { container: 'mp4', quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
           job.outputUrl = URL.createObjectURL(blob);
           job.fileSize = blob.size;
           job.progress = 100;
+          downloadBlob(blob, 'cinegen-export.mp4');
+          // [remix] OpenChatCut export QA, run on the rendered blob in the browser (their server FFmpeg step replaced)
+          if (a.qa !== false) {
+            job.qaStatus = 'Checking the render…';
+            try {
+              const { runExportQaInBrowser } = await import('@cinegen/lib/occ/export-qa');
+              const model2 = model as { width: number; height: number; durationInFrames: number; fps: number };
+              job.qa = await runExportQaInBrowser(blob, {
+                durationSeconds: model2.durationInFrames / model2.fps, width: model2.width, height: model2.height, fps: model2.fps,
+                expectsAudio: a.clips.some((c) => (c.volume ?? 1) > 0 && c.type !== 'image'),
+              });
+              job.qaStatus = undefined;
+            } catch (qaErr) { job.qaStatus = `Render check unavailable: ${qaErr instanceof Error ? qaErr.message : String(qaErr)}`; }
+          }
           job.status = 'complete';
           job.completedAt = new Date().toISOString();
-          downloadBlob(blob, 'cinegen-export.mp4');
         } catch (err) {
           job.status = 'failed';
           job.error = err instanceof Error ? err.message : String(err);
