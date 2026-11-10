@@ -900,12 +900,10 @@ export class TemplateGeneratorModal extends BaseModal {
     const backBtn = this.overlay.querySelector('#tg-back');
     const nextBtn = this.overlay.querySelector('#tg-next');
 
-    if (backBtn) {
-      backBtn.addEventListener('click', () => this.goBack());
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => this.goNext());
-    }
+    // onclick (not addEventListener): the nav buttons live outside the step content and survive refresh(), so a listener added on every
+    // refresh would make one click advance several steps.
+    if (backBtn) backBtn.onclick = () => this.goBack();
+    if (nextBtn) nextBtn.onclick = () => this.goNext();
 
     this.setupStepListeners();
   }
@@ -1708,8 +1706,16 @@ export class TemplateGeneratorModal extends BaseModal {
       const content = this.overlay.querySelector('#tg-step-content');
       if (content) {
         content.innerHTML = this.renderStep();
+        // the progress pills, "Step N of 9", Back/Next live outside the step content: keep them in step
+        const bar = this.overlay.querySelector('.tg-progress-bar');
+        if (bar) bar.innerHTML = this.renderProgressSteps();
+        const info = this.overlay.querySelector('.tg-step-info');
+        if (info) info.textContent = `Step ${this.step} of ${this.maxStep}`;
+        const back = this.overlay.querySelector('#tg-back');
+        if (back) back.disabled = this.step === 1;
+        const nxt = this.overlay.querySelector('#tg-next');
+        if (nxt) nxt.textContent = this.step === this.maxStep ? 'Add to Timeline' : 'Next →';
         this.setupStepListeners();
-        this.setupEventListeners();
         // Re-attach video events if we're on the preview step
         if (this.step === 8) {
           setTimeout(() => this._attachVideoEvents(), 50);
