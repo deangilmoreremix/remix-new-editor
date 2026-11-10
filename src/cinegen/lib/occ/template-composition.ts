@@ -43,7 +43,8 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
         // wizard overlay kinds → the matching overlay-lane kind (defaults from the overlay's own descriptor)
         const kind = { cta: 'click-to-call', 'lead-form': 'lead-form', 'lower-third': 'overlay-lower-third', sticker: 'overlay-sticker' }[c.type] as 'click-to-call';
         const o = createOverlay(kind, start, T + dur);
-        overlays.push({ ...o, start, end: start + dur });
+        // a wizard call button sits low in the frame so it does not cover the text overlay (both default to the centre)
+        overlays.push({ ...o, start, end: start + dur, ...(kind === 'click-to-call' ? { style: { ...((o.style as Record<string, unknown>) ?? {}), posTop: 72 } } : {}) });
       } else if (c.text) {
         const o = createOverlay('overlay-text', start, T + dur);
         const addon = { ...((o.addon as Record<string, unknown>) ?? {}), text: c.text };

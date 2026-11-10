@@ -13,6 +13,8 @@ import { postWebhooksDirect, webhookUrlsFor } from '../../../lib/editor/addons/l
 import { buildOverlayElement, finishOverlayElement, destroyOverlayElement, syncOverlayTime, setOverlayPlaying } from '../../../lib/editor/addons/overlayRender.js';
 // @ts-expect-error plain JS drag / resize handles
 import { attachDragResize } from '../../../lib/editor/addons/dragResize.js';
+// @ts-expect-error plain JS: the same CTA box helper the export uses
+import { ctaBox } from '../../../lib/editor/addons/ctaLottie.js';
 import { mgOverlayLayer } from '@cinegen/lib/occ/mg-templates';
 import { overlaysAt, isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { useSelectedOverlay, selectOverlay } from '@cinegen/lib/overlays/selection';
@@ -70,8 +72,12 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onGeom
         a.textContent = String(o.buttonText ?? 'Call Now');
         a.href = phone ? `tel:${phone}` : /^https?:\/\//i.test(link) ? link : '#';
         if (!phone && link) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+        // same box the export draws (ctaBox: centre posLeft/posTop, width posWidth, 3:1 button), so preview and MP4 agree
+        const box = ctaBox((o.style ?? {}) as Record<string, unknown>, frame.width / frame.height);
         Object.assign(a.style, {
-          alignSelf: 'flex-end', margin: '0 0 12% 0', padding: '12px 28px', borderRadius: '999px', fontWeight: '700', textDecoration: 'none',
+          position: 'absolute', left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box',
+          borderRadius: '999px', fontWeight: '700', textDecoration: 'none', fontSize: `${Math.max(10, box.height * 0.34 * (host.clientHeight || 400) / 100)}px`,
           background: style.buttonColor || '#eb5054', color: String(o.textColor ?? '#fff'), fontFamily: `"${o.fontFamily ?? 'Montserrat'}", system-ui, sans-serif`,
         });
         host.appendChild(a);

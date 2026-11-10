@@ -27,3 +27,16 @@ describe('wizard overlay kinds', () => {
     expect(r.overlays.map((o) => o.type).sort()).toEqual(['click-to-call', 'lead-form', 'overlay-lower-third', 'overlay-sticker']);
   });
 });
+
+describe('wizard text overlay reaches the exported composition', () => {
+  it('renders as an overlay-text layer carrying its text', async () => {
+    await import('../../lib/editor/addons/index.js');
+    const { timelineToComposition } = await import('../../lib/editor/remotion/timelineToComposition.js');
+    const comp = buildCompositionFromState({ media: [m(1, 8)], overlays: [{ type: 'text', kind: 'text', name: 'Text', duration: 4, startTime: 0, text: 'Your text here' }], transitions: [] }) as never;
+    const r = applyComposition(createDefaultTimeline('T'), comp);
+    const model = timelineToComposition({ timelineSeconds: 20, tracks: [{ id: 'ov', type: 'text', items: r.overlays }] }, { quality: '720p' }) as { layers: Array<{ type?: string; options?: { text?: string }; o?: { text?: string } }> };
+    const layer = model.layers.find((l) => l.type === 'overlay-text');
+    expect(layer).toBeTruthy();
+    expect(JSON.stringify(layer)).toContain('Your text here');
+  });
+});
