@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } fr
 import { createPortal } from 'react-dom';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { OverlayLane } from './overlay-lane';
+import { CaptionLane } from './caption-lane';
 import { createOverlay, createTemplateOverlays } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
@@ -3151,6 +3152,22 @@ export function TimelineEditor({
           </div>
         </div>
       </div>
+
+      {/* [remix] Caption lane: cues of every captioned clip, editable on the timeline (OpenChatCut CaptionTrackLane behaviour) */}
+      <CaptionLane
+        clips={timeline.clips}
+        pxPerSecond={pxPerSecond}
+        scrollLeft={Math.max(0, rulerScrollLeft)}
+        labelWidth={LABEL_WIDTH}
+        sequenceDuration={sequenceDuration}
+        currentTime={currentTime}
+        snapEnabled={snapEnabled}
+        markers={timeline.markers}
+        selectedClipIds={selectedClipIds}
+        onSeek={_onSeek}
+        onSelectClip={(id) => onSelectClips(new Set([id]))}
+        onUpdateCaptions={(clipId, captions) => dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: { ...timeline, clips: timeline.clips.map((c) => (c.id === clipId ? { ...c, captions } : c)) } })}
+      />
 
       {/* [remix] Overlays lane: Lead Generator, List Builder, CTA drawn over the video */}
       <OverlayLane
