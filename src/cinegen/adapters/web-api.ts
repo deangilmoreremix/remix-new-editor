@@ -1,5 +1,7 @@
 // [remix] Real browser implementations of the parts of CineGen's `window.electronAPI` this editor needs.
 // Registered into the shim (electron-shim.ts) so CineGen's own code paths run unchanged.
+// @ts-expect-error plain JS interactive player helper
+import { stripUnresolvedTokens } from '../../lib/editor/publish/interactivePlayer.js';
 import { LEGACY_FIT } from '@cinegen/lib/occ/frame-geometry';
 import { registerElectronApi } from './electron-shim';
 import { webMediaApi } from './web-media';
@@ -158,6 +160,8 @@ export function registerWebApi() {
             ],
           };
           const model = timelineToComposition(state, { fps: a.fps, quality, aspect: a.aspect });
+          // [remix] a generic export has no contact profile: unfilled {{tokens}} are removed from text, as the published player does
+          (model as { layers: unknown[] }).layers = stripUnresolvedTokens((model as { layers: unknown[] }).layers) as unknown[];
           // [remix] OpenChatCut motion-graphics templates → code layers on top (the sandboxed renderer runs them; the code gate still applies)
           {
             const { mgOverlayLayer } = await import('@cinegen/lib/occ/mg-templates');
