@@ -7,6 +7,7 @@ import { clipEffectiveDuration } from '@cinegen/types/timeline';
 import { ClipEffectsSection } from './clip-effects-section';
 import { ClipAnalyzeSection } from './clip-analyze-section';
 import { ClipCaptionsSection } from './clip-captions-section';
+import { ClipLayoutSection } from './clip-layout-section';
 import { ClipMulticamSection } from './clip-multicam-section';
 import { ClipTransformSection } from './clip-transform-section';
 import { ClipZoomSection } from './clip-zoom-section';
@@ -209,6 +210,8 @@ export function ClipPropertiesPanel({
       {!isAudio && <ClipZoomSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 
       {onTimelineEdit && timeline && !isAudio && <ClipTransitionSection clip={clip} timeline={timeline} onTimelineEdit={onTimelineEdit} />}
+
+      {onTimelineEdit && timeline && !isAudio && currentTime !== undefined && <ClipLayoutSection clip={clip} timeline={timeline} currentTime={currentTime} onTimelineEdit={onTimelineEdit} />}
 
       {onTimelineEdit && timeline && !isAudio && currentTime !== undefined && <ClipMulticamSection clip={clip} timeline={timeline} currentTime={currentTime} onTimelineEdit={onTimelineEdit} />}
 

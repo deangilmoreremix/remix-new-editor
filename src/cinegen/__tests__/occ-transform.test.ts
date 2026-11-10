@@ -25,3 +25,14 @@ describe('clip transform', () => {
     expect(back.transform).toEqual(clip.transform);
   });
 });
+
+import { placeInSlot, layoutSlots } from '../../openchatcut/editor/layouts';
+import { clipTransformClipPath } from '@cinegen/lib/occ/transform';
+describe('layouts', () => {
+  it('2-up fill: each slot gets a half-width crop and an offset toward its half', () => {
+    const [l, r] = Object.values(layoutSlots('2up-horizontal')).map((s) => placeInSlot(s, 'cover'));
+    expect(l.crop).toBeTruthy(); expect(r.crop).toBeTruthy();
+    expect((l.x ?? 0)).toBeLessThan(0); expect((r.x ?? 0)).toBeGreaterThan(0);
+    expect(clipTransformClipPath({ x: 0, y: 0, scale: 1, rotation: 0, crop: l.crop })).toMatch(/^inset\(/);
+  });
+});

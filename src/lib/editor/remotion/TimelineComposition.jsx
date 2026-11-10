@@ -35,7 +35,7 @@ import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
-import { clipTransformCss } from '../../../cinegen/lib/occ/transform';
+import { clipTransformCss, clipTransformClipPath } from '../../../cinegen/lib/occ/transform';
 import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
 import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
 import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
@@ -463,7 +463,8 @@ function OccTransform({ transform, children }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const css = clipTransformCss(transform, frame / fps);
-  return css ? <AbsoluteFill style={{ transform: css }}>{children}</AbsoluteFill> : children;
+  const clipPath = clipTransformClipPath(transform);
+  return css || clipPath ? <AbsoluteFill style={{ ...(css ? { transform: css } : {}), ...(clipPath ? { clipPath } : {}) }}>{children}</AbsoluteFill> : children;
 }
 
 function MediaLayer(props) {

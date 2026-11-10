@@ -1,6 +1,7 @@
 import type { Timeline, Clip, Track } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
+import { clipTransformCss, clipTransformClipPath } from '@cinegen/lib/occ/transform';
 import { interpolateProperty } from './timeline-operations';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { mediaDebug, mediaDebugWarn } from '@cinegen/lib/debug/media-debug';
@@ -749,7 +750,10 @@ export class PlaybackEngine {
       // Flip transforms
       const scaleX = entry.clip.flipH ? -1 : 1;
       const scaleY = entry.clip.flipV ? -1 : 1;
-      el.style.transform = `scale(${scaleX}, ${scaleY})`;
+      // [remix] clip position / scale / rotation / crop (and tracked path) per video element, so layouts with several visible clips work
+      const tcss = clipTransformCss(entry.clip.transform, clipTime);
+      el.style.transform = `scale(${scaleX}, ${scaleY})${tcss ? ` ${tcss}` : ''}`;
+      el.style.clipPath = clipTransformClipPath(entry.clip.transform) ?? '';
 
       el.style.opacity = String(opacity);
       el.style.zIndex = String(z++);
