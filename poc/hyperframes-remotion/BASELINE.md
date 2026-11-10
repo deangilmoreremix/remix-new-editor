@@ -28,7 +28,23 @@ All of these fail or pass identically with or without this PoC, because nothing 
 - Classic editor: `timelineToComposition()` model -> `exportClient.js` -> sandboxed `export-runner` iframe -> `renderMediaOnWeb` (WebCodecs), download as blob.
 - New editor: `src/cinegen/adapters/web-api.ts` `export.start` builds the same model with the same `timelineToComposition.js` and `exportClient.js`, so it also renders in the browser with no FFmpeg and no server. Its Export tab then runs an in-browser QA pass.
 
+## Real exports from both editors (VERIFIED; scripts `baseline/classic-import.mjs`, `baseline/new-import.mjs`)
+Sample media: a 6 s 1280x720 clip built from the images you attached (3 images x 2 s) with a 1 s beep tone. No API key was needed.
+
+| | Classic editor (this branch) | New editor (`confident-fermi`) |
+|---|---|---|
+| Media in the export | **No**: the sample import did not reach the timeline (see below), so this is the built-in 45 s placeholder project (the dialog warns "the background will be black") | **Yes**: sample imported, dragged onto Video 1 with its linked audio |
+| Export settings | MP4 H.264, 720p | Draft 720p |
+| Result | 1280x720, H.264, 1350 frames, 45.0 s, AAC 45.01 s | 1280x720, H.264, 195 frames, 6.5 s, AAC 6.51 s |
+| Evidence | `out/baseline-classic/classic-export-720p-empty.mp4` | `out/baseline-new-import/new-editor-export-720p.mp4` |
+| Editor's own check | n/a | "0 errors, 3 warnings": still/frozen spans (expected: the sample is three still images), peak -2.1 dBFS |
+| Independent check | frame/audio durations match the 45 s timeline | image order correct; video image boundaries and audio beeps both sit exactly 0.5 s later than in the source (the clip was dropped 0.5 s into the timeline), so **audio and video stay in sync** |
+
+Why the classic import did not land: `src/lib/media-worker-manager.js` fetches `./lib/media-worker.js`, which **does not exist in this repo** (the repo's own `e2e/upload-boundary.spec.js` documents this and stubs it); the dev server answers with the HTML fallback, which is the `SyntaxError: Unexpected token '<'` seen in the console. With the same stub applied through request interception, the worker error disappears, but the metadata library's `MediaInfoModule.wasm` is also served as HTML in dev, so the clip is not added. This is a **pre-existing** issue on that branch, not caused by this work, and it was not changed. The same "Unexpected token '<' ... is not valid JSON" wording as in your SmartVideo GO key-dialog screenshot means an HTML page came back where JSON was expected; that screenshot's HTML starts with uppercase `<HTML><HE`, which looks like a gateway or proxy error page rather than the dev server's fallback, but I have not reproduced or diagnosed the GO case.
+
+Other pre-existing observations on the new-editor branch: `[popcorn-init]` and `[ModalSystem]` module errors on load (`templateGenerator.js` does not provide an export named `entitie...`).
+
 ## NOT completed (stated plainly)
-- A real MP4 export from either editor was **not** produced. Both need a project with media (no media in this environment, and media/AI generation needs the user's own API keys). Status: **NOT TESTED**.
-- Editing behaviour was inventoried (controls, tabs) but no scripted editing session was recorded.
-- No before/after screenshot comparison is possible yet because no app file has changed (diff is empty). A re-capture after any future integration is still required.
+- A classic-editor export that contains real media: **NOT TESTED** (blocked by the missing worker file and wasm in dev).
+- Scripted editing beyond import, drag-to-timeline and export: **NOT TESTED** (controls and tabs were inventoried only).
+- No before/after screenshot comparison is possible yet because no app file has changed (the diff is empty). A re-capture after any future integration is still required.
