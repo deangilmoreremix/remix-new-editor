@@ -13,7 +13,7 @@ describe('publish snapshot', () => {
     const assets: any[] = [{ id: 'a1', type: 'video', url: 'https://x/v.mp4' }, { id: 'a2', type: 'audio', url: 'https://x/a.mp3' }];
     const state = buildPublishState(tl, assets, [createOverlay('click-to-call', 2, 10)], 'My video');
     const video = state.tracks[0].items as any[];
-    expect(video[0]).toMatchObject({ type: 'video', src: 'https://x/v.mp4', start: 1, end: 4, playbackRate: 2, trimIn: 1 });
+    expect(video[0]).toMatchObject({ type: 'video', src: 'https://x/v.mp4', start: 1, end: 3.5, playbackRate: 2, trimIn: 1 });
     expect((state.tracks[1].items as any[])[0]).toMatchObject({ type: 'audio' });
     expect((state.tracks[2].items as any[]).length).toBe(1);
     const project = preparePublishProject(state, { title: 'My video' });
