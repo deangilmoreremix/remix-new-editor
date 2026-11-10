@@ -540,7 +540,6 @@ export class TemplateGeneratorModal extends BaseModal {
     ];
     const picked = new Set(this.data.overlays.map(o => o.type));
     const tr = this.data.transitions[0]?.type || '';
-    const boundary = this.data.overlays.some(o => o.placement === 'boundary');
     return `
       <h3>Add Overlays</h3>
       <p class="tg-step-desc">Enhance your video with text, branding, and interactive elements.</p>
@@ -553,7 +552,6 @@ export class TemplateGeneratorModal extends BaseModal {
             <option value="fadeToBlack" ${tr === 'fadeToBlack' ? 'selected' : ''}>Fade through black</option>
           </select>
         </div>
-        <label class="tg-toggle"><input type="checkbox" id="tg-transition-overlay" ${boundary ? 'checked' : ''}><span>Transition overlay centred on each cut</span></label>
       </div>
       <div class="tg-overlay-grid">
         ${overlayTypes.map(o => `
@@ -949,10 +947,6 @@ export class TemplateGeneratorModal extends BaseModal {
         });
         this.overlay.querySelector('#tg-transition-type')?.addEventListener('change', (e) => {
           this.data.transitions = e.target.value ? [{ type: e.target.value, duration: 1 }] : [];
-        });
-        this.overlay.querySelector('#tg-transition-overlay')?.addEventListener('change', (e) => {
-          const rest = this.data.overlays.filter(o => o.placement !== 'boundary');
-          this.data.overlays = e.target.checked ? [...rest, { placement: 'boundary', type: 'overlay', name: 'Transition overlay', duration: 2 }] : rest;
         });
         break;
       case 7:
