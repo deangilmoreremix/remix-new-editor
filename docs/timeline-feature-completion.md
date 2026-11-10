@@ -6,7 +6,7 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 
 ## Regression record
 
-- **vitest:** 171 files / 1312 passed, 27 skipped
+- **vitest:** 172 files passed (incl. 557 upstream CineGen tests), skipped tests documented
 - **viteBuild:** npx vite build exit 0 (1m55s) at commit 2a5dab7f
 - **classicEditor:** not browser-smoke-tested in this stage (no changes made under src/lib/editor/addons or the classic route; composition files shared with export were edited)
 - **tsc:** not run: repo-wide tsc aborts on unrelated syntax errors in apps/director; a scoped check needs @cinegen path mapping (done once, not repeated)
@@ -21,10 +21,10 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 | SOURCE_FOUND | 0 |
 | PARTIAL | 21 |
 | IMPLEMENTED_UNVERIFIED | 4 |
-| VERIFIED | 19 |
+| VERIFIED | 20 |
 | BLOCKED | 2 |
 | NOT_APPLICABLE | 2 |
-| **All** | 53 |
+| **All** | 54 |
 
 ## Effects
 
@@ -625,7 +625,7 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - UI: — · Persistence: — · Preview: — · Export: —
 - Tests: components/workspace 20 upstream tests pass; reload persistence checked for clip fx/transform in converter tests
 - Evidence: earlier session browser runs (no stored artefact)
-- **Missing:** Project reload in a browser not re-verified in this run; export aspect ratio missing
+- **Missing:** Project reload in a browser not re-verified in this run
 
 ## CineGen server services
 
@@ -664,3 +664,16 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Tests: documentation
 - Evidence: docs/cinegen-services-classification.md (commit of this stage)
 - **Blocker:** Electron / native / Python / CLI-based; not allowed in the browser app
+
+## CineGen Export
+
+### cg.export.aspect — VERIFIED
+
+- Source (christopherjohnogden/CineGen@769f148): src/components/export/export-settings.tsx
+- Target: src/cinegen/components/export/export-settings.tsx, src/lib/editor/remotion/timelineToComposition.js (frameForAspect)
+- Original: Export presets + aspect ratio / resolution
+- Browser: yes · Backend: none (Remotion web renderer)
+- UI: Export tab: aspect select (16:9, 9:16, 1:1, 4:5, 21:9) with the resulting frame size shown · Persistence: per export, not stored · Preview: size label · Export: 9:16 at the Draft preset exported as 720x1280 (ffprobe)
+- Tests: occ-export-aspect.test.ts (2); browser export
+- Evidence: docs/evidence/export/aspect-selector.png; ffprobe 720,1280; commit of this stage
+- **Missing:** Clips use cover fit, so a 16:9 clip in a 9:16 frame is centre-cropped (reposition with Transform/zoom); viewer preview stays 16:9; no custom resolution entry

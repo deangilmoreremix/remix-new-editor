@@ -109,8 +109,19 @@ function overlayLayer(clip, opts, profile, base) {
  * options.proxies: Map(src → low-res proxy URL) used by the editor preview
  * when proxy playback is on. Never pass it for export.
  */
-export function timelineToComposition(state, { fps = 30, quality = '1080p', profile = null, proxies = null } = {}) {
-  const { width, height } = QUALITY_PRESETS[quality] || QUALITY_PRESETS['1080p'];
+/** [remix] output frame for a quality preset and aspect ratio ("16:9" default): the preset's short edge is kept, the long edge follows the ratio. */
+export function frameForAspect(quality, aspect) {
+  const base = QUALITY_PRESETS[quality] || QUALITY_PRESETS['1080p'];
+  const m = /^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/.exec(String(aspect || '16:9'));
+  const a = m ? Number(m[1]) / Number(m[2]) : 16 / 9;
+  if (!(a > 0)) return base;
+  const short = Math.min(base.width, base.height);
+  const even = (n) => Math.max(2, Math.round(n / 2) * 2);
+  return a >= 1 ? { width: even(short * a), height: short } : { width: short, height: even(short / a) };
+}
+
+export function timelineToComposition(state, { fps = 30, quality = '1080p', aspect = '16:9', profile = null, proxies = null } = {}) {
+  const { width, height } = frameForAspect(quality, aspect);
   const T = Number(state?.timelineSeconds) || 60;
   const tracks = Array.isArray(state?.tracks) ? state.tracks : [];
   const audible = audibleTracks(tracks);

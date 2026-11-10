@@ -1,6 +1,6 @@
 {
  "regression": {
-  "vitest": "171 files / 1312 passed, 27 skipped",
+  "vitest": "172 files passed (incl. 557 upstream CineGen tests), skipped tests documented",
   "viteBuild": "npx vite build exit 0 (1m55s) at commit 2a5dab7f",
   "classicEditor": "not browser-smoke-tested in this stage (no changes made under src/lib/editor/addons or the classic route; composition files shared with export were edited)",
   "tsc": "not run: repo-wide tsc aborts on unrelated syntax errors in apps/director; a scoped check needs @cinegen path mapping (done once, not repeated)",
@@ -1226,7 +1226,7 @@
    "exportPublish": "",
    "testsPerformed": "components/workspace 20 upstream tests pass; reload persistence checked for clip fx/transform in converter tests",
    "evidence": "earlier session browser runs (no stored artefact)",
-   "missing": "Project reload in a browser not re-verified in this run; export aspect ratio missing",
+   "missing": "Project reload in a browser not re-verified in this run",
    "blocker": ""
   },
   {
@@ -1300,6 +1300,30 @@
    "evidence": "docs/cinegen-services-classification.md (commit of this stage)",
    "missing": "",
    "blocker": "Electron / native / Python / CLI-based; not allowed in the browser app"
+  },
+  {
+   "id": "cg.export.aspect",
+   "family": "CineGen Export",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/components/export/export-settings.tsx"
+   ],
+   "targetPaths": [
+    "src/cinegen/components/export/export-settings.tsx",
+    "src/lib/editor/remotion/timelineToComposition.js (frameForAspect)"
+   ],
+   "originalFunctionality": "Export presets + aspect ratio / resolution",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none (Remotion web renderer)",
+   "status": "VERIFIED",
+   "uiIntegration": "Export tab: aspect select (16:9, 9:16, 1:1, 4:5, 21:9) with the resulting frame size shown",
+   "persistence": "per export, not stored",
+   "preview": "size label",
+   "exportPublish": "9:16 at the Draft preset exported as 720x1280 (ffprobe)",
+   "testsPerformed": "occ-export-aspect.test.ts (2); browser export",
+   "evidence": "docs/evidence/export/aspect-selector.png; ffprobe 720,1280; commit of this stage",
+   "missing": "Clips use cover fit, so a 16:9 clip in a 9:16 frame is centre-cropped (reposition with Transform/zoom); viewer preview stays 16:9; no custom resolution entry",
+   "blocker": ""
   }
  ]
 }

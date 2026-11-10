@@ -54,7 +54,7 @@ export function ExportTab() {
         clips: exportClips,
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
-        videoBitrate: extras?.videoBitrate, qa: extras?.qa,
+        videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
         // [remix] OpenChatCut GL transitions on dissolve cuts
         transitions: (activeTimeline.transitions ?? []).filter((t) => t.glType && t.type === 'dissolve' && t.clipBId).map((t) => ({ glType: t.glType, glDef: t.glDef, clipAId: t.clipAId, clipBId: t.clipBId })),
       });

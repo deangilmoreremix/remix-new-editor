@@ -8,7 +8,13 @@ import { DEFAULT_CUSTOM_BITRATE_MBPS, MAX_VIDEO_BITRATE_MBPS, MIN_VIDEO_BITRATE_
 import { defaultBitrateModeForQuality, getQualityMode, setQualityMode } from '../../../openchatcut/media/qualityPolicy';
 import { loadExportAutoQaPreference, saveExportAutoQaPreference } from '../../../openchatcut/export/autoQa';
 
-export interface ExportExtras { videoBitrate?: number; qa: boolean }
+export interface ExportExtras { videoBitrate?: number; qa: boolean; aspect?: string }
+const ASPECTS: Array<[string, string]> = [['16:9', '16:9 landscape'], ['9:16', '9:16 vertical'], ['1:1', '1:1 square'], ['4:5', '4:5 portrait'], ['21:9', '21:9 cinema']];
+function aspectFrame(w: number, h: number, aspect: string): [number, number] {
+  const [a, b] = aspect.split(':').map(Number); const r = a / b; const short = Math.min(w, h);
+  const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
+  return r >= 1 ? [even(short * r), short] : [short, even(short / r)];
+}
 const PRESET_SIZE: Record<ExportPreset, [number, number]> = { draft: [1280, 720], standard: [1920, 1080], high: [3840, 2160] };
 
 interface ExportSettingsProps {
@@ -19,11 +25,13 @@ interface ExportSettingsProps {
 export function ExportSettings({ hasClips, onRender }: ExportSettingsProps) {
   const [preset, setPreset] = useState<ExportPreset>('standard');
   const [fps, setFps] = useState<24 | 30 | 60>(30);
+  const [aspect, setAspect] = useState('16:9');
   const [bitrateMode, setBitrateMode] = useState<VideoBitrateMode>(() => defaultBitrateModeForQuality());
   const [master, setMaster] = useState(() => getQualityMode() === 'master');
   const [customMbps, setCustomMbps] = useState(DEFAULT_CUSTOM_BITRATE_MBPS);
   const [qa, setQa] = useState(() => loadExportAutoQaPreference().enabled);
-  const [w, h] = PRESET_SIZE[preset];
+  const [pw, ph] = PRESET_SIZE[preset];
+  const [w, h] = aspectFrame(pw, ph, aspect);
   const requested = requestedVideoBitrateBps({ mode: bitrateMode, width: w, height: h, fps, customMbps });
 
   const presets: { value: ExportPreset; label: string; resolution: string }[] = [
@@ -64,6 +72,14 @@ export function ExportSettings({ hasClips, onRender }: ExportSettingsProps) {
       </div>
 
       <div className="export-settings__section">
+        <div className="export-settings__label">Aspect ratio</div>
+        <select className="export-settings__fps-select" data-testid="export-aspect" value={aspect} onChange={(e) => setAspect(e.target.value)}>
+          {ASPECTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+        <span style={{ fontSize: 11, opacity: 0.65, marginLeft: 8 }}>{w}×{h}</span>
+      </div>
+
+      <div className="export-settings__section">
         <div className="export-settings__label">Video bitrate</div>
         <select className="export-settings__fps-select" data-testid="export-bitrate-mode" value={bitrateMode} onChange={(e) => setBitrateMode(e.target.value as VideoBitrateMode)}>
           <option value="auto">Auto</option>
@@ -92,7 +108,7 @@ export function ExportSettings({ hasClips, onRender }: ExportSettingsProps) {
       <button
         className="export-settings__render-btn"
         disabled={!hasClips}
-        onClick={() => onRender(preset, fps, { videoBitrate: requested, qa })}
+        onClick={() => onRender(preset, fps, { videoBitrate: requested, qa, aspect })}
         title={hasClips ? undefined : 'Add clips to the timeline first'}
       >
         Render
