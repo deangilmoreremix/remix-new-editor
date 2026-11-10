@@ -92,6 +92,12 @@ export async function beatThisOf(src: string, onProgress?: (p: number) => void, 
   const { analyzeBeatThis } = await import('../../../openchatcut/audio/intelligence/beatThisClient');
   return analyzeBeatThis(samples, sampleRate, onProgress, signal);
 }
+/** CLAP music tagging (OpenChatCut clapClient + their prototype profile): genre / mood / instrument / usage tags. */
+export async function clapTagsOf(src: string, onProgress?: (p: number) => void, signal?: AbortSignal) {
+  const { samples, sampleRate } = await decodeMono(src);
+  const [{ embedMusicAudio }, { tagsFromClapEmbedding }] = await Promise.all([import('../../../openchatcut/audio/intelligence/clapClient'), import('../../../openchatcut/audio/intelligence/clapProfile')]);
+  return tagsFromClapEmbedding(await embedMusicAudio(samples, sampleRate, onProgress, signal));
+}
 /** Quiet stretches (RMS only: candidates, not a verdict that nobody is speaking). */
 export async function quietSpans(src: string): Promise<SilenceSpan[]> {
   const { samples, sampleRate } = await decodeMono(src);

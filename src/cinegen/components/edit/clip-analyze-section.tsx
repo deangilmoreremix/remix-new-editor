@@ -16,7 +16,7 @@ interface Props {
   syncTarget?: { clip: Clip; asset: Asset | null } | null;
   onUpdateClip: (updates: Partial<Pick<Clip, 'volume' | 'fx'>>) => void;
 }
-type Job = 'beatthis' | 'vad' | 'sync' | 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats' | 'captions';
+type Job = 'clap' | 'beatthis' | 'vad' | 'sync' | 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats' | 'captions';
 
 export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, syncTarget }: Props) {
   const [busy, setBusy] = useState<Job | null>(null);
@@ -85,7 +85,15 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, 
             setLines([`${r.bpm ? r.bpm.toFixed(0) : '?'} BPM · ${r.meter ?? '?'}/4 · ${beats.length} beats, ${downs.length} downbeats added as markers`]);
           });
         }}>{busy === 'beatthis' ? 'Beat This…' : 'Beat This (neural, optional)'}</button>
-        {busy === 'beatthis' && <button className="clip-properties-panel__toggle-btn" onClick={() => abortRef.current?.abort()}>Cancel</button>}
+        <button className="clip-properties-panel__toggle-btn" data-testid="clap-tags" disabled={!!busy} title="CLAP audio tagging (genre, mood, instruments, usage). Optional: downloads a model from Hugging Face the first time." onClick={() => {
+          if (!window.confirm('CLAP needs a quantized audio model (tens of MB) from Hugging Face, downloaded once and cached by your browser. Download and tag this audio?')) return;
+          const ac = new AbortController(); abortRef.current = ac;
+          void run('clap', async () => {
+            const tags = await A.clapTagsOf(src, (p) => setLines([`CLAP: ${Math.round(p * 100)}%`]), ac.signal);
+            setLines(tags.length ? [`Tags: ${tags.map((t) => `${t.label} (${t.kind})`).join(', ')}`] : ['No confident tags for this audio.']);
+          });
+        }}>{busy === 'clap' ? 'Tagging…' : 'Tag audio (CLAP, optional)'}</button>
+        {(busy === 'beatthis' || busy === 'clap') && <button className="clip-properties-panel__toggle-btn" onClick={() => abortRef.current?.abort()}>Cancel</button>}
         <button className="clip-properties-panel__toggle-btn" disabled={!!busy} onClick={() => run('beats', async () => {
           const b = await A.beatsOf(src);
           if (!b.bpm) { setLines(['No steady beat found.']); return; }
