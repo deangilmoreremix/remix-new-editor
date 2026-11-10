@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { OverlayLane } from './overlay-lane';
 import { CaptionLane } from './caption-lane';
-import { createOverlay, createTemplateOverlays } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
@@ -44,6 +44,8 @@ import unlinkSvg from '@cinegen/assets/unlink.svg';
 import type { Timeline, Clip as TimelineClip, ToolType, Keyframe, TimelineMarker } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import type { WorkflowNodeData } from '@cinegen/types/workflow';
+import { applyComposition, type Composition } from '@cinegen/lib/occ/template-composition';
+import { openSmartSpeech } from '@cinegen/lib/occ/smart-speech';
 import { MgTemplatesModal } from './mg-templates-modal';
 import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
 import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
@@ -885,6 +887,44 @@ export function TimelineEditor({
     },
     [setTimeline],
   );
+
+  // [remix] Smart Speech (classic editor's modal): generated audio → asset + audio clip at the playhead, settings kept on the clip
+  const handleOpenSpeech = useCallback(() => {
+    openSmartSpeech({
+      clips: () => timelineRef.current.clips,
+      add: ({ url, duration, tts, name }) => {
+        const asset: Asset = { id: generateId(), name, type: 'audio', url, duration, createdAt: new Date().toISOString() };
+        dispatch({ type: 'ADD_ASSET', asset });
+        const tl = timelineRef.current;
+        const track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked) ?? tl.tracks.find((t) => t.kind === 'audio');
+        if (!track) return;
+        const next = addClipToTrack(tl, track.id, asset, currentTime);
+        const added = next.clips.find((c) => c.assetId === asset.id);
+        setTimeline({ ...next, clips: next.clips.map((c) => (c === added ? { ...c, tts } : c)) });
+      },
+    });
+  }, [dispatch, setTimeline, currentTime]);
+
+  // [remix] Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
+  const handleOpenGenerator = useCallback(async () => {
+    const { TemplateGeneratorModal } = await import('../../../components/modals/TemplateGeneratorModal.jsx');
+    const modal = new TemplateGeneratorModal({
+      onConfirm: (result: { composition?: Composition }) => {
+        if (!result?.composition) return;
+        const applied = applyComposition(timelineRef.current, result.composition);
+        applied.assets.forEach((asset) => dispatch({ type: 'ADD_ASSET', asset }));
+        applied.overlays.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+        setTimeline(applied.timeline);
+      },
+    });
+    modal.open();
+  }, [dispatch, setTimeline]);
+
+  // [remix] Personalization hub (contacts, tokens, per-contact generation) — the classic editor's own window
+  const handleOpenPersonalization = useCallback(async () => {
+    const { VideoPersonalizationHub } = await import('../../../components/modals/VideoPersonalizationHub.jsx');
+    new VideoPersonalizationHub({ onComplete: () => {}, onError: (e: unknown) => console.warn('Personalization error', e) }).open();
+  }, []);
 
   // Throttled trim
   const trimRafRef = useRef<number | null>(null);
@@ -3217,8 +3257,13 @@ export function TimelineEditor({
           selectOverlay(overlay.id);
         }}
         onBrowseMotion={() => setMgOpen(true)}
+        onOpenSpeech={handleOpenSpeech}
+        onOpenGenerator={handleOpenGenerator}
+        onOpenPersonalization={handleOpenPersonalization}
         onAddTemplate={(templateId) => {
-          const made = createTemplateOverlays(templateId, currentTime, Math.max(sequenceDuration, 10));
+          // Connect Form is click-to-call: ask for the number the buttons should dial
+          const phone = isConnectTemplate(templateId) ? (window.prompt('Phone number to call (with area code, e.g. 212 555 0147)', '') ?? '').trim() : '';
+          const made = createTemplateOverlays(templateId, currentTime, Math.max(sequenceDuration, 10), phone ? { phone } : undefined);
           made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
           if (made[0]) selectOverlay(made[made.length - 1].id);
         }}

@@ -51,7 +51,7 @@ export function createOverlay(kind: OverlayKind, startSec: number, timelineSecon
 
 // [remix] End Screens and Connect Form template libraries (the old editor's windows → items on the overlay lane)
 // @ts-expect-error plain JS template library
-import { TEMPLATE_LIBRARIES, getTemplate, templateStart } from '../../../lib/editor/addons/templateLibrary.js';
+import { TEMPLATE_LIBRARIES, getTemplate, templateStart, applyCallSetup } from '../../../lib/editor/addons/templateLibrary.js';
 // @ts-expect-error plain JS preset → clips
 import { presetToClips } from '../../../lib/editor/addons/overlayPresets.js';
 
@@ -60,9 +60,11 @@ export const overlayTemplates = (): OverlayTemplateEntry[] => (Object.values(TEM
   .flatMap((lib) => lib.templates.map((t) => ({ id: t.id, name: `${lib.title}: ${t.name}`, description: t.description, library: lib.id })));
 
 /** The overlay clips of an End Screen / Connect Form template, placed at the timeline end (end screens) or the playhead. */
-export function createTemplateOverlays(templateId: string, playheadSec: number, timelineSeconds: number): OverlayClip[] {
-  const tpl = getTemplate(templateId);
-  if (!tpl) return [];
+export function createTemplateOverlays(templateId: string, playheadSec: number, timelineSeconds: number, call?: { phone: string; country?: string; buttonText?: string; notify?: string }): OverlayClip[] {
+  const found = getTemplate(templateId);
+  if (!found) return [];
+  // Connect Form = click-to-call: the user's own number replaces the placeholder in every call button
+  const tpl = call?.phone ? applyCallSetup(found, call) : found;
   const anchor = (Object.values(TEMPLATE_LIBRARIES) as Array<{ anchor: string; templates: Array<{ id: string }> }>).find((l) => l.templates.some((t) => t.id === templateId))?.anchor ?? 'playhead';
   const start = templateStart(tpl, anchor, { playheadSec, timelineSeconds });
   const base = Date.now();
@@ -70,5 +72,7 @@ export function createTemplateOverlays(templateId: string, playheadSec: number, 
     .map((c, i) => ({ ...c, id: `ov-${base.toString(36)}-${i}`, start: Number(c.start), end: Number(c.end), name: String(c.name ?? c.type) }) as unknown as OverlayClip)
     .filter((o) => KINDS.has(o.type));
 }
+
+export const isConnectTemplate = (templateId: string): boolean => !!(TEMPLATE_LIBRARIES.connect as { templates: Array<{ id: string }> }).templates.some((t) => t.id === templateId);
 
 export const overlaysAt = (overlays: OverlayClip[], time: number) => overlays.filter((o) => time >= o.start && time < o.end);

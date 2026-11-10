@@ -56,6 +56,8 @@ export interface Clip {
   fx?: ClipFx[];
   lut?: { id: string; intensity: number; def?: import('../lib/occ/plugins').FxSnapshot };
   blendMode?: string;
+  /** [remix] Smart Speech settings (text, provider, voice, per-contact variants) kept next to the generated audio so it can be regenerated */
+  tts?: Record<string, unknown>;
   /** [remix] set on clips materialised from a multicam group */
   multicam?: { groupId: string; angleId: string };
   /** [remix] position / scale / rotation (+ tracked path) of the clip in the frame. */
