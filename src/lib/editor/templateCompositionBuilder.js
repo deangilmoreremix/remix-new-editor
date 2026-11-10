@@ -262,7 +262,20 @@ export function buildCompositionFromState(state) {
   // 5. Add content overlays as dedicated tracks.
   if (state.overlays && state.overlays.length > 0) {
     const overlayTracks = new Map(); // type -> track
+    // Original Template Generator rule: a transition overlay (placement 'boundary') is centred on every cut between consecutive
+    // media clips (start = clip end − duration / 2), on its own layer above the footage; the last clip has no boundary.
+    const mediaClips = baseTracks[0]?.clips || [];
+    const expanded = [];
     for (const overlay of state.overlays) {
+      if (overlay.placement !== 'boundary' || overlay.startTime !== undefined) { expanded.push(overlay); continue; }
+      const dur = overlay.duration || DEFAULT_CLIP_DURATION;
+      mediaClips.forEach((clip, i) => {
+        if (i >= mediaClips.length - 1) return;
+        const end = clip.startTime + (clip.duration || DEFAULT_CLIP_DURATION);
+        expanded.push({ ...overlay, startTime: Math.max(0, end - dur / 2), duration: dur, trackName: overlay.trackName || 'Transitions' });
+      });
+    }
+    for (const overlay of expanded) {
       const kind = overlay.kind || 'overlay';
       const type = overlay.type || (kind === 'text' || kind === 'caption' ? 'caption' : 'overlay');
       const trackName = overlay.trackName || type.charAt(0).toUpperCase() + type.slice(1);
