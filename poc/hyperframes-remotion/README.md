@@ -33,4 +33,10 @@ no server, Node, Chromium or FFmpeg on the customer's side.
 - **WebGL needs `preserveDrawingBuffer: true`** so the canvas can be read back.
 - **Not covered yet:** Firefox/Safari, 1080p, HyperFrames audio tracks, `<video>` elements inside compositions, real
   registry blocks (only hand-written contract-style compositions were tested), SSIM against the HyperFrames CLI render.
-- **Licensing:** the renderer logs a Remotion license-key warning. Whether to pass `licenseKey` is a business decision, not made here.
+
+## Catalog blocks (in progress)
+`src/BlockClip.jsx` runs unmodified HyperFrames registry blocks; `setup-blocks.mjs` installs them, `run-blocks.mjs` renders stills, `compare.py` scores them against native `hyperframes snapshot` frames.
+- PARTIALLY VERIFIED: 3 blocks run so far (code-diff 0.966-0.969, bar-chart-race ~0.98, camcorder-hud ~0.97 SSIM vs native). code-diff lacks the thin left border bar on diff lines.
+- A 0.71 SSIM seen earlier was a harness artifact (GPU flag combination made blurred layers transparent), not an adapter fault. Runner now uses default Chromium flags.
+- Must use `useDelayRender()` (not the standalone `delayRender`) or the web renderer unmounts the component before async mounts finish.
+- NOT TESTED: the other 207 blocks, 1080p, audio/video inside blocks, Firefox/Safari, SDK, Player, sandboxing. The adapter still uses `eval`/`innerHTML` and is dev-only; it must not run customer content.

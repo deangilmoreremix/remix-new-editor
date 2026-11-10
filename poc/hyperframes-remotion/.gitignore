@@ -2,3 +2,5 @@ out/
 node_modules/
 dist/
 public/footage.mp4
+public/blocks/
+.hf-cache/
