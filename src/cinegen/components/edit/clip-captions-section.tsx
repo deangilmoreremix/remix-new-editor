@@ -21,7 +21,7 @@ import { phrasesFromWords, translateCues, TRANSLATION_LANGUAGES } from '@cinegen
 const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d1218)', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 4, padding: '3px 6px', fontSize: 12 } as const;
 const MOTIONS: CaptionMotionPreset[] = ['none', 'fade-up', 'pop', 'word-pop', 'karaoke-pulse'];
 
-export function ClipCaptionsSection({ clip, asset, onUpdate }: { clip: Clip; asset: Asset | null; onUpdate: (u: { captions?: CaptionsData }) => void }) {
+export function ClipCaptionsSection({ clip, asset, onUpdate, onSeek }: { clip: Clip; asset: Asset | null; onUpdate: (u: { captions?: CaptionsData }) => void; onSeek?: (time: number) => void }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [lang, setLang] = useState('Spanish');
@@ -115,7 +115,7 @@ export function ClipCaptionsSection({ clip, asset, onUpdate }: { clip: Clip; ass
             <button className="clip-properties-panel__toggle-btn" data-testid="caption-export-srt" onClick={() => download(`${clip.name || 'captions'}.srt`, captionsToSrt(c, noItems, 30), 'application/x-subrip')}>Export .srt</button>
             <button className="clip-properties-panel__toggle-btn" onClick={() => download(`${clip.name || 'captions'}.txt`, captionsToTxt(c, noItems, 30), 'text/plain')}>.txt</button>
           </div>
-          <div className="cc-cap-host" data-testid="caption-cue-editor"><CaptionCueEditor captions={c} items={noItems} fps={30} onUpdate={patch} /></div>
+          <div className="cc-cap-host" data-testid="caption-cue-editor"><CaptionCueEditor captions={c} items={noItems} fps={30} onUpdate={patch} onSeekMs={onSeek ? (ms) => onSeek(ms / 1000) : undefined} /></div>
           <div className="clip-properties-panel__row">
             <button className="clip-properties-panel__toggle-btn" onClick={() => patch({ enabled: !c.enabled })}>{c.enabled ? 'Hide captions' : 'Show captions'}</button>
             <button className="clip-properties-panel__toggle-btn" onClick={() => onUpdate({ captions: undefined })}>Remove</button>

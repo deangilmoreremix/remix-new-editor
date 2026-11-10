@@ -86,6 +86,12 @@ async function decodeMono(src: string): Promise<{ samples: Float32Array; sampleR
   for (let ch = 0; ch < buf.numberOfChannels; ch++) { const d = buf.getChannelData(ch); for (let i = 0; i < buf.length; i++) out[i] += d[i] / buf.numberOfChannels; }
   return { samples: out, sampleRate: buf.sampleRate };
 }
+/** Beat This (OpenChatCut's neural beat/downbeat tracker, ≈83 MB ONNX model downloaded on demand from Hugging Face; WebGPU with WASM fallback). */
+export async function beatThisOf(src: string, onProgress?: (p: number) => void, signal?: AbortSignal) {
+  const { samples, sampleRate } = await decodeMono(src);
+  const { analyzeBeatThis } = await import('../../../openchatcut/audio/intelligence/beatThisClient');
+  return analyzeBeatThis(samples, sampleRate, onProgress, signal);
+}
 /** Quiet stretches (RMS only: candidates, not a verdict that nobody is speaking). */
 export async function quietSpans(src: string): Promise<SilenceSpan[]> {
   const { samples, sampleRate } = await decodeMono(src);

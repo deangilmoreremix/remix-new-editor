@@ -1,6 +1,6 @@
 // [remix] "Analyze" section of the clip inspector: OpenChatCut's colour scopes, auto-grade, scene detection, quiet-span,
 // loudness and beat analysis, run in the browser on the selected clip's media.
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Clip, Timeline } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
@@ -16,7 +16,7 @@ interface Props {
   syncTarget?: { clip: Clip; asset: Asset | null } | null;
   onUpdateClip: (updates: Partial<Pick<Clip, 'volume' | 'fx'>>) => void;
 }
-type Job = 'vad' | 'sync' | 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats' | 'captions';
+type Job = 'beatthis' | 'vad' | 'sync' | 'scopes' | 'scenes' | 'quiet' | 'loudness' | 'beats' | 'captions';
 
 export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, syncTarget }: Props) {
   const [busy, setBusy] = useState<Job | null>(null);
@@ -25,6 +25,7 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, 
   const [scenes, setScenes] = useState<A.SceneChange[]>([]);
   const [lang, setLang] = useState<string>('Spanish');
   const [grade, setGrade] = useState<{ black: number; white: number } | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const src = asset ? toFileUrl(asset.fileRef || asset.url) : '';
   const isVideo = asset?.type === 'video' || asset?.type === 'image';
 
@@ -73,6 +74,18 @@ export function ClipAnalyzeSection({ clip, asset, onTimelineEdit, onUpdateClip, 
           setLines([`loudness ≈ ${lufs.toFixed(1)} LUFS · gain to reach -14 LUFS: ×${gain.toFixed(2)}`]);
           onUpdateClip({ volume: Math.round(clip.volume * gain * 100) / 100 });
         })}>{busy === 'loudness' ? 'Measuring…' : 'Normalize to -14 LUFS'}</button>
+        <button className="clip-properties-panel__toggle-btn" data-testid="beat-this" disabled={!!busy} title="Neural beat + downbeat tracker. Optional: downloads an ≈83 MB model from Hugging Face the first time." onClick={() => {
+          if (!window.confirm('Beat This needs an ≈83 MB model file from Hugging Face (downloaded once, then cached by your browser). Download and analyze?')) return;
+          const ac = new AbortController(); abortRef.current = ac;
+          void run('beatthis', async () => {
+            const r = await A.beatThisOf(src, (p) => setLines([`Beat This: ${p < 0.4 ? 'downloading model' : 'analyzing'} ${Math.round(p * 100)}%`]), ac.signal);
+            const toTl = (ms: number[]) => ms.map((m) => A.sourceToTimeline(clip, m / 1000)).filter((t): t is number => t != null);
+            const downs = toTl(r.downbeatsMs); const beats = toTl(r.beatsMs);
+            onTimelineEdit((tl) => A.addMarkers(A.addMarkers(tl, beats, 'beat', '#22d3ee'), downs, 'downbeat', '#34d399'));
+            setLines([`${r.bpm ? r.bpm.toFixed(0) : '?'} BPM · ${r.meter ?? '?'}/4 · ${beats.length} beats, ${downs.length} downbeats added as markers`]);
+          });
+        }}>{busy === 'beatthis' ? 'Beat This…' : 'Beat This (neural, optional)'}</button>
+        {busy === 'beatthis' && <button className="clip-properties-panel__toggle-btn" onClick={() => abortRef.current?.abort()}>Cancel</button>}
         <button className="clip-properties-panel__toggle-btn" disabled={!!busy} onClick={() => run('beats', async () => {
           const b = await A.beatsOf(src);
           if (!b.bpm) { setLines(['No steady beat found.']); return; }

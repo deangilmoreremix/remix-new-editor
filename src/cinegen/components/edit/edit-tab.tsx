@@ -1057,6 +1057,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           glTransition={activeGlTransition(timeline, currentTime)}
           activeClip={activeClip ? (timeline.clips.find((c) => c.id === activeClip.id) ?? activeClip) : null}
           currentTime={currentTime}
+          onSeek={seek}
           duration={sequenceDuration}
           isPlaying={isPlaying}
           onPlayPause={togglePlayPause}

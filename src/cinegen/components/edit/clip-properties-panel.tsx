@@ -26,6 +26,8 @@ interface ClipPropertiesPanelProps {
   syncTarget?: { clip: Clip; asset: Asset | null } | null;
   /** [remix] playhead, for camera switching */
   currentTime?: number;
+  /** [remix] move the playhead (caption cue timecodes) */
+  onSeek?: (time: number) => void;
 }
 
 export function ClipPropertiesPanel({
@@ -39,6 +41,7 @@ export function ClipPropertiesPanel({
   timeline,
   syncTarget,
   currentTime,
+  onSeek,
 }: ClipPropertiesPanelProps) {
   const isAudio = asset?.type === 'audio';
 
@@ -199,7 +202,7 @@ export function ClipPropertiesPanel({
       {/* [remix] OpenChatCut effects / LUT / blend */}
       {!isAudio && <ClipEffectsSection clip={clip} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 
-      {!isAudio && <ClipCaptionsSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      {!isAudio && <ClipCaptionsSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} onSeek={onSeek} />}
 
       {!isAudio && <ClipTransformSection clip={clip} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 
