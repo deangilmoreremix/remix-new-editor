@@ -45,6 +45,16 @@ export const GradSyntax = () => (
     {box({ backgroundImage: 'linear-gradient(135deg,#ff4d6d,#3b82f6)' }, 'W: div twin of video box', 430, 250)}
   </AbsoluteFill>
 );
+export const IframeCapture = () => (
+  <AbsoluteFill style={{ background: '#0b0f17' }}>
+    <div style={{ position: 'absolute', left: 20, top: 20, color: '#fff', font: '16px sans-serif' }}>host DOM text (should be visible)</div>
+    <iframe title="nested" srcDoc={'<body style="margin:0;background:#f5b335"><div style="font:32px sans-serif;color:#111;padding:20px">INSIDE IFRAME</div></body>'}
+      style={{ position: 'absolute', left: 20, top: 70, width: 400, height: 150, border: '2px solid #58a6ff' }} />
+    <iframe title="sandboxed" sandbox="allow-scripts" srcDoc={'<body style="margin:0;background:#3fb950"><div style="font:32px sans-serif;color:#111;padding:20px">SANDBOXED IFRAME</div></body>'}
+      style={{ position: 'absolute', left: 20, top: 240, width: 400, height: 100, border: '2px solid #58a6ff' }} />
+  </AbsoluteFill>
+);
 export const DIAG = {
+  'iframe-capture': { id: 'iframe-capture', component: IframeCapture, width: 640, height: 360, fps: 30, durationInFrames: 2 },
   'grad-syntax': { id: 'grad-syntax', component: GradSyntax, width: 640, height: 360, fps: 30, durationInFrames: 2 },
   'css3d-gradients': { id: 'css3d-gradients', component: Css3dAndGradients, width: 640, height: 360, fps: 30, durationInFrames: 2 }, 'inset-shadow': { id: 'inset-shadow', component: InsetShadow, width: 640, height: 360, fps: 30, durationInFrames: 2 } };

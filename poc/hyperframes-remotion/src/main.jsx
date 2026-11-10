@@ -4,9 +4,20 @@ import { Player } from '@remotion/player';
 import { renderMediaOnWeb, renderStillOnWeb } from '@remotion/web-renderer';
 import { COMPOSITIONS } from './compositions.jsx';
 import { BlockClip } from './BlockClip.jsx';
+// DEV ONLY: the dev page is not sandboxed. The sandbox runner never sets this flag.
+if (!new URLSearchParams(location.search).has('strict')) window.__HF_ALLOW_UNSANDBOXED = true;
 import { DIAG } from './diag.jsx';
 Object.assign(COMPOSITIONS, DIAG);
 
+import { AbsoluteFill } from 'remotion';
+import { Video } from '@remotion/media';
+const FootageBlock = ({ src, name, width, height }) => (
+  <AbsoluteFill style={{ background: '#000' }}>
+    <Video src={src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    <BlockClip name={name} width={width} height={height} />
+  </AbsoluteFill>
+);
+const footageComp = (src, name, width, height, seconds, fps = 30) => ({ id: 'ftg-' + name, component: FootageBlock, defaultProps: { src, name, width, height }, width, height, fps, durationInFrames: Math.round(seconds * fps) });
 const blockComp = (name, width, height, seconds, fps = 30) => ({
   id: 'blk-' + name, component: () => <BlockClip name={name} width={width} height={height} />,
   width, height, fps, durationInFrames: Math.max(2, Math.round(seconds * fps)),
@@ -38,6 +49,15 @@ window.__poc = {
       } catch (e) { frames.push({ t, frame, error: String(e).slice(0, 300) }); }
     }
     return { frames, errors: [...new Set(window.__hfErrors)].slice(0, 6) };
+  },
+  // Generic export used by run-exports.mjs: { name, width, height, duration, scale, frameRange, container, footage }
+  async exportSpec(sp) {
+    window.__hfErrors = [];
+    const comp = sp.footage ? footageComp(sp.footage, sp.name, sp.width, sp.height, sp.duration) : blockComp(sp.name, sp.width, sp.height, sp.duration);
+    const t0 = performance.now();
+    const res = await renderMediaOnWeb({ composition: comp, inputProps: comp.defaultProps ?? {}, container: sp.container || 'mp4', scale: sp.scale || 1, frameRange: sp.frameRange || null, muted: !!sp.muted, hardwareAcceleration: 'prefer-software', logLevel: 'error', delayRenderTimeoutInMilliseconds: 60000 });
+    const blob = await res.getBlob();
+    return { ms: Math.round(performance.now() - t0), bytes: blob.size, type: blob.type, b64: await b64(blob), errors: [...new Set(window.__hfErrors)].slice(0, 6) };
   },
   async blockVideo(name, { width, height, duration, fps = 30 }) {
     window.__hfErrors = [];

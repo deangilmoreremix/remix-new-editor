@@ -40,3 +40,6 @@ no server, Node, Chromium or FFmpeg on the customer's side.
 - A 0.71 SSIM seen earlier was a harness artifact (GPU flag combination made blurred layers transparent), not an adapter fault. Runner now uses default Chromium flags.
 - Must use `useDelayRender()` (not the standalone `delayRender`) or the web renderer unmounts the component before async mounts finish.
 - NOT TESTED: the other 207 blocks, 1080p, audio/video inside blocks, Firefox/Safari, SDK, Player, sandboxing. The adapter still uses `eval`/`innerHTML` and is dev-only; it must not run customer content.
+
+## Results
+See `REPORT.md` (final report), `MATRIX.md` (30-component matrix), `BASELINE.md` (baseline record) and `evidence/` (small image/MP4/JSON set).

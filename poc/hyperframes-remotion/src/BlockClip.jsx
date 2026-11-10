@@ -13,9 +13,8 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { useCurrentFrame, useVideoConfig, useDelayRender } from 'remotion';
 import { gsap } from 'gsap';
+import { validateAssetUrl, stripUnsafeAttributes } from './security.js';
 
-window.gsap = gsap;
-const indirectEval = eval; // eslint-disable-line no-eval
 let cdnMapPromise;
 const cdnMap = () => (cdnMapPromise ||= fetch('/blocks/_cdn/map.json').then((r) => r.json()).catch(() => ({})));
 
@@ -70,11 +69,19 @@ export function applyInsetBars(host, bars) {
  * Injected into the app page those URLs would resolve against the app root, so they are re-based onto
  * /blocks/. Only plain relative paths are touched (no scheme, no leading slash, no `..`).
  */
+export const stats = { rebased: 0 };
 export const rebaseUrl = (u) => (/^(?:[a-z][a-z0-9+.-]*:|\/|#)/i.test(u) || u.split('/').includes('..') ? u : `/blocks/${u.replace(/^\.\//, '')}`);
 export const rebaseCssUrls = (css) => css.replace(/url\(\s*(['"]?)([^)'"]+)\1\s*\)/g, (_, q, u) => `url(${q}${rebaseUrl(u.trim())}${q})`);
 export function rebaseElementUrls(root) {
   for (const el of root.querySelectorAll('[src],[poster],[href],image')) {
-    for (const a of ['src', 'poster', 'href', 'xlink:href']) { const v = el.getAttribute(a); if (v && !/^<|\s/.test(v)) { const r = rebaseUrl(v); if (r !== v) el.setAttribute(a, r); } }
+    for (const a of ['src', 'poster', 'href', 'xlink:href']) {
+      const v = el.getAttribute(a); if (!v || /^<|\s/.test(v)) continue;
+      if (a === 'src' || a === 'poster') { // asset policy: relative, blob:, small data images, allow-listed https only
+        const chk = validateAssetUrl(v, { allowHosts: window.__HF_ALLOW_HOSTS || [], allowSvgData: true });
+        if (!chk.ok && !v.startsWith('/blocks/')) { el.setAttribute(a, ''); report('blocked-url', a, `${chk.reason}: ${v.slice(0, 60)}`); continue; }
+      }
+      const r = rebaseUrl(v); if (r !== v) { el.setAttribute(a, r); stats.rebased++; }
+    }
   }
   for (const el of root.querySelectorAll('[style*="url("]')) el.setAttribute('style', rebaseCssUrls(el.getAttribute('style')));
 }
@@ -233,33 +240,111 @@ export async function paintVideos(videos, t) {
   }
 }
 
+/**
+ * Fonts: HyperFrames' own renderer embeds the fonts a composition names; in the browser they must be
+ * loaded explicitly or text falls back to a default face (visible in the Player-vs-native comparison).
+ * Families named in the block's CSS are fetched from Google Fonts ONLY (host allow-list), injected as
+ * @font-face and awaited before the block's scripts measure layout.
+ */
+const GENERIC = /^(sans-serif|serif|monospace|cursive|fantasy|system-ui|ui-[a-z-]+|inherit|initial|unset|emoji|math|-apple-system|blinkmacsystemfont)$/i;
+export function fontFamiliesIn(cssAndStyles) {
+  const out = new Set();
+  for (const m of cssAndStyles.matchAll(/font-family\s*:\s*([^;}{]+)/gi)) for (const f of m[1].split(',')) { const n = f.replace(/!important/i, '').replace(/["']/g, '').trim(); if (n && !GENERIC.test(n) && !n.startsWith('var(') && /^[A-Za-z0-9 _-]+$/.test(n)) out.add(n); }
+  return [...out];
+}
+const fontCache = new Map();
+export async function loadGoogleFonts(families, hostEl) {
+  const loaded = [];
+  for (const fam of families) {
+    if (!fontCache.has(fam)) {
+      fontCache.set(fam, (async () => {
+        for (const spec of [':wght@100;200;300;400;500;600;700;800;900', ':wght@400;700', '']) {
+          const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fam).replace(/%20/g, '+')}${spec}&display=block`;
+          if (new URL(url).hostname !== 'fonts.googleapis.com') return null; // allow-list
+          try { const r = await fetch(url); if (r.ok) return await r.text(); } catch { /* try next */ }
+        }
+        return null;
+      })());
+    }
+    const css = await fontCache.get(fam);
+    if (css) { const st = document.createElement('style'); st.setAttribute('data-hf-font', fam); st.textContent = css; hostEl.prepend(st); loaded.push(fam); }
+  }
+  try { await Promise.race([Promise.all(loaded.map((f) => document.fonts.load(`16px "${f}"`))), new Promise((r) => setTimeout(r, 4000))]); } catch { /* ignore */ }
+  return loaded;
+}
+
+/** Block scripts are trusted catalog code but still only run inside an opaque-origin sandbox (window.origin === 'null'). */
+export const isSandboxed = () => window.origin === 'null';
+export const scriptsAllowed = () => isSandboxed() || window.__HF_ALLOW_UNSANDBOXED === true;
+
 const report = (kind, name, err) => {
   (window.__hfErrors ||= []).push(`${kind} ${name}: ${err?.message || err}`);
 };
 
-async function runScripts(doc, name) {
+/**
+ * Per-instance script scope (JS-level isolation, NOT a security boundary: the sandboxed iframe is).
+ * Block scripts run through `with (scope)` so bare `document`/`window`/`self` resolve to per-instance
+ * proxies: DOM lookups are confined to this block's host, `window.__timelines` and any globals the scripts
+ * define live in a per-instance store, and DOMContentLoaded/load callbacks fire without patching the real
+ * document/window. Everything not overridden falls through to the real globals.
+ */
+export function createScope(host) {
+  const store = { __timelines: {} };
+  const cleanups = [];
+  const q = (sel) => host.querySelector(sel);
+  const qa = (sel) => host.querySelectorAll(sel);
+  const fire = (cb) => queueMicrotask(() => { try { typeof cb === 'function' ? cb(new Event('load')) : cb?.handleEvent?.(new Event('load')); } catch (e) { report('load-handler', '', e); } });
+  const docOverrides = {
+    getElementById: (id) => host.querySelector(`[id="${String(id).replace(/"/g, '\\"')}"]`),
+    querySelector: q, querySelectorAll: qa,
+    createElement: (tag, o) => { const e = document.createElement(tag, o); if (/^(img|video|audio)$/i.test(String(tag))) e.crossOrigin = 'anonymous'; return e; },
+    getElementsByClassName: (c) => host.getElementsByClassName(c), getElementsByTagName: (t) => host.getElementsByTagName(t),
+    addEventListener: (t, cb, o) => { if (t === 'DOMContentLoaded' || t === 'readystatechange') return fire(cb); document.addEventListener(t, cb, o); cleanups.push(() => document.removeEventListener(t, cb, o)); },
+    removeEventListener: (t, cb, o) => document.removeEventListener(t, cb, o),
+    body: host, documentElement: host, head: host, readyState: 'complete', currentScript: null,
+  };
+  const docProxy = new Proxy(document, {
+    get: (t, p) => (p in docOverrides ? docOverrides[p] : (() => { const v = Reflect.get(t, p, t); return typeof v === 'function' ? v.bind(t) : v; })()),
+    set: (t, p, v) => { store[p] = v; return true; },
+  });
+  const winOverrides = {
+    document: docProxy,
+    Image: function (w, h) { const i = new Image(w, h); i.crossOrigin = 'anonymous'; return i; },
+    addEventListener: (t, cb, o) => { if (t === 'load') return fire(cb); window.addEventListener(t, cb, o); cleanups.push(() => window.removeEventListener(t, cb, o)); },
+    removeEventListener: (t, cb, o) => window.removeEventListener(t, cb, o),
+  };
+  let winProxy;
+  winProxy = new Proxy(window, {
+    get: (t, p) => { if (p === 'window' || p === 'self' || p === 'globalThis' || p === 'top' || p === 'parent') return winProxy; if (p in store) return store[p]; if (p in winOverrides) return winOverrides[p]; const v = Reflect.get(t, p, t); return typeof v === 'function' && !/^[A-Z]/.test(String(p)) ? v.bind(t) : v; },
+    set: (t, p, v) => { store[p] = v; return true; },
+    has: () => true,
+    deleteProperty: (t, p) => delete store[p],
+  });
+  const scope = new Proxy({}, {
+    has: (t, p) => typeof p === 'string' && p !== 'eval' && p !== 'arguments' && (p in store || p in winOverrides || p === 'window' || p === 'self' || p === 'globalThis' || p === 'document' || p in window),
+    get: (t, p) => (p === Symbol.unscopables ? undefined : winProxy[p]),
+    set: (t, p, v) => { store[p] = v; return true; },
+  });
+  const run = (code, label) => new Function('__scope', `with (__scope) {\n${code}\n}\n//# sourceURL=hf-block/${label}`)(scope);
+  return { run, store, dispose: () => { cleanups.splice(0).forEach((f) => f()); } };
+}
+
+async function runScripts(doc, name, scope) {
   const map = await cdnMap();
   for (const s of doc.querySelectorAll('script')) {
-    if (s.type && !/javascript|module|^$/.test(s.type)) continue;
-    let code;
-    let label;
+    if (s.type && !/javascript|^$/.test(s.type)) continue; // module scripts are not supported
+    let code; let label;
     const src = s.getAttribute('src');
     if (src) {
       if (/gsap@[^/]+\/dist\/gsap(\.min)?\.js/.test(src)) continue; // bundled
       label = src;
-      const url = /^https?:/.test(src) ? (map[src] ? `/blocks/${map[src]}` : src) : `/blocks/${src}`;
-      try { code = await (await fetch(url)).text(); } catch (e) { report('fetch', src, e); continue; }
+      // Remote script URLs are never fetched: only the vendored copies (setup-blocks.mjs) or the block's own folder.
+      const local = /^https?:/.test(src) ? map[src] : src;
+      if (!local || local.includes('..') || /^[a-z][a-z0-9+.-]*:/i.test(local)) { report('blocked-script', src, 'not vendored'); continue; }
+      try { code = await (await fetch(`/blocks/${local}`)).text(); } catch (e) { report('fetch', src, e); continue; }
     } else { code = s.textContent; label = `${name}#inline`; }
-    try { indirectEval(`${code}\n//# sourceURL=hf-block/${label}`); } catch (e) { report('script', label, e); }
+    try { scope.run(code, label); } catch (e) { report('script', label, e); }
   }
-}
-
-function withLoadShims(fn) {
-  const origDoc = document.addEventListener, origWin = window.addEventListener;
-  const fire = (cb) => queueMicrotask(() => { try { typeof cb === 'function' ? cb(new Event('load')) : cb?.handleEvent?.(new Event('load')); } catch (e) { report('load-handler', '', e); } });
-  document.addEventListener = function (t, cb, o) { if (t === 'DOMContentLoaded') return fire(cb); if (t === 'readystatechange') return fire(cb); return origDoc.call(this, t, cb, o); };
-  window.addEventListener = function (t, cb, o) { if (t === 'load') return fire(cb); return origWin.call(this, t, cb, o); };
-  return fn().finally(() => { document.addEventListener = origDoc; window.addEventListener = origWin; });
 }
 
 const applyClipVisibility = (host, t) => {
@@ -299,25 +384,28 @@ export function BlockClip({ name, width, height }) {
         state.current.bars = extractInsetBars(css);
         el.innerHTML = `<style>.hf-hidden{visibility:hidden!important}${css}</style>`;
         for (const l of doc.querySelectorAll('link[rel=stylesheet]')) el.appendChild(l.cloneNode());
+        doc.querySelectorAll('img,image,source').forEach((x) => x.tagName.toLowerCase() === 'image' ? null : x.setAttribute('crossorigin', 'anonymous'));
         for (const n of doc.body.childNodes) if (n.nodeName !== 'SCRIPT') el.appendChild(document.importNode(n, true));
         rebaseElementUrls(el);
+        stripUnsafeAttributes(el);
         convertVideos(el);
         // Script-built nodes (innerHTML from block scripts) get the same relative-URL rebasing.
-        const rebaseNode = (n) => { if (n.nodeType !== 1) return; for (const a of ['src', 'poster', 'href']) { const v = n.getAttribute(a); if (v && !/^<|\s/.test(v)) { const r = rebaseUrl(v); if (r !== v) n.setAttribute(a, r); } } rebaseElementUrls(n); };
+        const rebaseNode = (n) => { if (n.nodeType !== 1) return; for (const im of (n.tagName === 'IMG' ? [n] : n.querySelectorAll?.('img') || [])) if (!im.crossOrigin) im.crossOrigin = 'anonymous'; for (const a of ['src', 'poster', 'href']) { const v = n.getAttribute(a); if (v && !/^<|\s/.test(v)) { const r = rebaseUrl(v); if (r !== v) n.setAttribute(a, r); } } rebaseElementUrls(n); };
         observer = new MutationObserver((muts) => { for (const m of muts) { if (m.type === 'attributes') rebaseNode(m.target); else for (const n of m.addedNodes) rebaseNode(n); } });
         observer.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'poster', 'href'] });
         const root = el.querySelector('[data-composition-id]');
         const id = root?.getAttribute('data-composition-id');
-        (window.__timelines ||= {});
-        if (id) delete window.__timelines[id];
-        await withLoadShims(() => runScripts(doc, name));
+        const scope = createScope(el); scope.store.gsap = gsap; state.current.scope = scope;
+        const fams = fontFamiliesIn(css + ' ' + [...doc.querySelectorAll('[style]')].map((n) => n.getAttribute('style')).join(';'));
+        state.current.fonts = await loadGoogleFonts(fams, el);
+        if (scriptsAllowed()) await runScripts(doc, name, scope); else report('refused', name, 'scripts not run: not in an opaque-origin sandbox');
         let tl = null;
         for (let i = 0; i < 120 && !cancelled; i++) {
-          tl = (id && window.__timelines[id]) || null;
+          tl = (id && scope.store.__timelines[id]) || null;
           if (tl) break;
           await new Promise((r) => setTimeout(r, 50));
         }
-        if (!tl) report('timeline', name, 'no window.__timelines entry' + (root?.hasAttribute('data-no-timeline') ? ' (data-no-timeline block)' : ''));
+        if (!tl) report('timeline', name, 'no __timelines entry' + (root?.hasAttribute('data-no-timeline') ? ' (data-no-timeline block)' : ''));
         else {
           tl.pause(); state.current.tl = tl;
           const st = await settleTimeline(tl);
@@ -329,7 +417,7 @@ export function BlockClip({ name, width, height }) {
         state.current.layers = explodeMultiGradients(el);
         await Promise.all([...el.querySelectorAll('img[data-hf-layer]')].map((i) => i.decode().catch(() => {})));
         state.current.videos = collectVideos(el);
-        Object.assign((window.__hfInfo ||= {})[name] ||= {}, { rasters: state.current.rasters, layersSplit: state.current.layers, videos: state.current.videos.length });
+        Object.assign((window.__hfInfo ||= {})[name] ||= {}, { rebased: stats.rebased, bars: (state.current.bars || []).length, fonts: state.current.fonts, rasters: state.current.rasters, layersSplit: state.current.layers, videos: state.current.videos.length });
         if (state.current.videos.length) await paintVideos(state.current.videos, frame / fps);
         (window.__hfInfo[name] ||= {}).vdbg = state.current.videos.map((v) => ({ w: v.el.offsetWidth, h: v.el.offsetHeight, rs: v.ghost.readyState, vw: v.ghost.videoWidth, ct: v.ghost.currentTime, bg: (v.el.style.backgroundImage || '').slice(0, 30), src: (v.el.getAttribute('src') || '').slice(0, 40), start: v.start, dur: v.dur }));
         state.current.ready = true;
@@ -341,7 +429,7 @@ export function BlockClip({ name, width, height }) {
       } catch (e) { report('mount', name, e); }
       finally { if (!cancelled) continueRender(handle.current); }
     })();
-    return () => { ev('cleanup'); cancelled = true; observer?.disconnect(); state.current.tl?.kill?.(); };
+    return () => { ev('cleanup'); cancelled = true; observer?.disconnect(); state.current.scope?.dispose(); state.current.tl?.kill?.(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name]);
 

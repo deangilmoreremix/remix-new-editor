@@ -30,7 +30,8 @@ async function worker() {
       rmSync(`out/blocks/${name}`, { recursive: true, force: true }); // never leave stale PNGs from earlier runs
       mkdirSync(`out/blocks/${name}`, { recursive: true });
       for (const f of r.frames) if (f.png) { writeFileSync(`out/blocks/${name}/t${f.t}.png`, Buffer.from(f.png, 'base64')); delete f.png; }
-      results[name] = { ...r, pageErrors: [...new Set(pageErrors)].slice(0, 4) };
+      const info = await page.evaluate((n) => (window.__hfInfo || {})[n] || null, name).catch(() => null);
+      results[name] = { ...r, hfInfo: info, pageErrors: [...new Set(pageErrors)].slice(0, 4) };
     } catch (e) { results[name] = { fatal: String(e).slice(0, 300), pageErrors }; }
     await page.close();
     console.log(`[${Object.keys(results).length}/${only.length}] ${name}`, results[name].fatal || results[name].errors?.join(' | ') || 'ok');

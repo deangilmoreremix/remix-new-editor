@@ -4,3 +4,4 @@ dist/
 public/footage.mp4
 public/blocks/
 .hf-cache/
+dbg*.mjs

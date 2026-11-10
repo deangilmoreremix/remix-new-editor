@@ -1,0 +1,65 @@
+# HyperFrames + Remotion proof of concept: final report
+
+Scope: everything here lives in `poc/hyperframes-remotion/`. No app file was changed (`git diff --name-only 3c9134e3 HEAD` outside `poc/` is empty). No backend added. Nothing merged or deployed. Customer-facing timeline integration has **not** been started and needs your authorization.
+
+Status words: **VERIFIED** = measured in a real browser in this environment. **PARTIAL** = works with stated gaps. **FAILED** = tried, did not work. **NOT TESTED** = not run.
+
+## 1. Architecture audit (read from source on both branches)
+- Classic editor (`TimelineEditorPage.jsx`, on this branch `#/timeline`, on the new branch `#/timeline-classic`): mutable state object, `timelineToComposition()` JSON model, one Remotion composition for preview and export, export in a sandboxed opaque-origin iframe (`export-runner`) using `renderMediaOnWeb`.
+- New editor ("Timeline Studio Editor", `origin/claude/confident-fermi-3azaem`, not in production): vendored CineGen (`src/cinegen/`). Its Export tab calls `adapters/web-api.ts`, which builds the same model with the same `timelineToComposition.js` and `exportClient.js`: it also renders in the browser, with no FFmpeg and no server. Remotion 4.0.540 on both branches.
+- Consequence: one future `hyperframes` layer kind (model branch, composition branch, runner support) would serve **both** editors. Not implemented, by instruction.
+- Personalization / Motion Director also render in-browser (`webExport.ts`, `webRenderer.ts`). The only server-side Remotion render in the repo is `apps/video-agent-studio` (its own Node/Electron server).
+
+## 2. HyperFrames packages and APIs actually verified (0.9.28)
+Installed and exercised: `@hyperframes/sdk` (exports verified: `openComposition`, `createMemoryAdapter`, `createHistory`, `createIframePreviewAdapter`, `ORIGIN_*`, others), `@hyperframes/player` (`<hyperframes-player>`), `hyperframes` CLI (`catalog`, `add`, `snapshot`, `init`). Producer/engine/core were read from docs and npm metadata only (Node-only: puppeteer + FFmpeg); **no browser-only render mode exists** in HyperFrames. Registry: 448 items (210 blocks, 238 components).
+
+## 3. SDK results (`sdk-test.mjs`, `evidence/sdk-results.json`): VERIFIED, 15/15
+One master (`lt-clean-bar`) personalized for two businesses in embedded/override mode. Each override set is 3 keys, ~120 bytes (master is 3,325 bytes). Restored from JSON read back from disk. The master file hash was unchanged after every operation. A and B outputs differ and do not leak each other's text. Undo/redo worked; a persist adapter stored the edited HTML and version. Both personalized outputs render in Remotion and natively (SSIM 0.98 full frame), with business-specific text and accent colour (`evidence/sdk-two-businesses.png`). **Not done**: a custom `PersistAdapter` over the app's real project store (poc-local only); `createIframePreviewAdapter` drag/select (NOT TESTED).
+SDK input handling (probed): rejects `onclick`, `javascript:` href, neutralises HTML in `setText` and `<script>` in `addElement`; **accepts remote image `src` and `addElement` fragments containing `<img onerror>`**. `src/security.js` covers this (see 8).
+
+## 4. Player results: PARTIAL
+`<hyperframes-player srcdoc=...>` loaded the personalized composition, fired `ready`, `seek(2.4)` gave `currentTime=2.4`, `duration=4.8`. Three-way crop comparison (`evidence/lt-A_3way.jpg`): Player and Remotion show identical content; native differs by **font** (native embeds Montserrat, the Player does not fetch fonts). Transparent areas show black in the Player vs transparent/white elsewhere, so only a card-region comparison is meaningful and tight-crop SSIM is low (0.4-0.7, dominated by font and 1-2 px offsets). NOT TESTED: play/pause, `timeupdate`, preview scaling, drag, inspector sync.
+
+## 5. Real catalog compatibility: see `MATRIX.md` (30 real components, unmodified)
+29/30 render; 29/30 export as 1080p-class H.264 MP4 (first 2 s each, ffprobe-verified). **14 DIRECT, 13 GENERIC ADAPTER, 1 SPECIAL HANDLING (vfx-liquid-glass, SSIM 0.74), 2 UNSUPPORTED** (`camera-dolly-zoom`: CSS 3D `perspective`/`translateZ` is flattened; `vfx-shatter`: needs the experimental `drawElementImage`, native also fails). Median of per-component minimum SSIM is 0.976 (29 scored components). Components with a lowest sample under 0.95 are marked partial in the matrix with notes; several early or late frame mismatches are **not diagnosed** (carousel-circle-1 0.90, carousel-path-2 0.85, ai-answer-rank 0.92).
+Reusable adapter transforms found and implemented (each verified in isolation in `src/diag.jsx` first): relative asset URL rebasing (incl. script-built nodes), timeline settle wait, inset-shadow bars, off-centre/stacked radial gradients rasterized to `<img>`, `<video>`-to-div frame bridge, Google Fonts loading, CORS-mode images, scoped script execution.
+Renderer facts established (verified): ignores inset `box-shadow`, pseudo-elements, `background-size`, px gradient stops, off-centre radial gradients, `url()` backgrounds (paints `<img>`), CSS `filter: blur()`, CSS 3D, and **does not capture iframe content** (same-origin or sandboxed).
+
+## 6. Browser rendering results
+- 1080p and 720p H.264 MP4 (`scale: 0.6667` gives 1280x720): VERIFIED. 720p frame vs downscaled 1080p: SSIM 0.998.
+- Exported MP4 frame vs native (glitch, 1080p, t=2s): 0.986 (the still scored 0.983). VERIFIED.
+- Audio sync: beep onsets in the exported file at 1.00002 / 2.00002 / 3.00002 s, identical to the source. VERIFIED (one clip, one tone).
+- Transparent overlay over real footage: personalized lower third over footage, footage frame counter exact at 2.4 s (`evidence/footage-overlay-frame2.4.jpg`). VERIFIED. H.264 carries no alpha, so a *transparent export* was NOT TESTED.
+- Deterministic scrubbing (forward, backward, repeat; 4 blocks; same timestamp gives byte-identical frames across mounts): VERIFIED. In-place seeking inside a single mounted composition is covered only by the sequential MP4 exports.
+- Browsers: Chromium 153 only. **Firefox and WebKit: NOT TESTED** (not installed; installing was not permitted). WebCodecs `VideoEncoder`/`AudioEncoder` present in Chromium.
+- NOT TESTED: 4K, HDR, long durations (full-length exports done only for a few short blocks), `<audio>` elements inside blocks, GPU hardware encoding.
+
+## 7. Preview/export accuracy (measured)
+Remotion still vs native, three timestamps per component: 0.95-1.00 for most (matrix). Player vs Remotion vs native: content identical, font differs in Player. Sandboxed vs unsandboxed Remotion renders: 3/5 blocks pixel-identical (1.000, 1.000, 0.99995), slack 0.934 and heygen 0.899 differ (heygen shows a different serif face in the sandbox and slightly different video frames; **not diagnosed**).
+
+## 8. Security findings
+Implemented and tested: `src/security.js` (asset URL allow-list: relative, `blob:`, small raster `data:`, allow-listed https only; rejects `javascript:`, `file:`, `http:`, protocol-relative, traversal, backslashes, oversize data; colour/text validators; `validateOverrides` allow-list gate for customer data; `stripUnsafeAttributes`), 6/6 unit tests including prototype pollution and smuggled whole-element keys (`security.test.mjs`). Real SDK override output passes the gate.
+Adapter hardening: no `eval`, no global listener patching, no shared `window.__timelines`; scripts run through a per-instance `with(scope)` proxy for `window`/`document`; remote script URLs are never fetched (vendored copies only); remote `src` blocked by default; inline handlers stripped; scripts refuse to run outside an opaque-origin sandbox (verified).
+**Isolation together with capture (VERIFIED, 16/16, `sandbox-test.mjs`)**: the renderer and the block scripts run inside one `<iframe sandbox="allow-scripts">` with a strict CSP. Inside it: origin is `null`; cannot read the parent document or location or cookies; cannot fetch an external site; cannot load a remote script; cannot open windows; cannot navigate the top page; injected inline handlers do not execute. 5 blocks rendered and an MP4 exported from inside the sandbox. A nested iframe per block does **not** work: Remotion cannot capture iframe content (verified), so the isolation boundary has to be the one frame around renderer and blocks.
+Caveats (must not be glossed): `with`/`new Function` scoping is *not* a security boundary (a determined script can escape it); the opaque-origin iframe plus CSP is. The CSP needs `'unsafe-eval'`. Block scripts are trusted catalog code; **customer-authored scripts must never be accepted**. `drawElementImage`, WebGPU and some blocks (`captureBackdrop`) remain unsupported. Fonts come from Google Fonts at render time (CSP allow-listed); a production build should vendor fonts instead. No penetration test or third-party review was done.
+
+## 9. Recommendations for SmartVideo AI and SmartVideo GO AI
+1. Treat HyperFrames as an additional, flag-gated layer kind that rides the existing `timelineToComposition` -> sandboxed export-runner path, for both the classic and the new editor. Exact files it would touch are listed in section 12 (proposal only).
+2. Start with the 24 components that are direct or generic-adapter and score at or above 0.95 at every sampled time; hold back the other 6 until their gaps are diagnosed.
+3. Personalize with the SDK `OverrideSet` (store ~120 byte deltas per business over one master) and gate every value with `validateOverrides` plus an asset-host allow-list.
+4. Do not use the Player as the accuracy reference (it lacks fonts); preview through the same Remotion path used for export.
+5. Keep Remotion the default renderer and keep HyperFrames Cloud/Producer out of scope unless a component truly cannot render in the browser.
+(Remotion's licence terms are outside this report by your instruction.)
+
+## 10. Remaining work before production (not done)
+Firefox/WebKit/Safari and mobile runs; 4K and long-duration exports; `<audio>` in blocks; transparent (alpha) export; diagnosing the undiagnosed mismatches above (carousel early frames, ai-answer-rank, heygen/slack sandbox differences, vfx-liquid-glass); remaining ~400 catalog items untested; vendored fonts and a build-time vendor/hash pipeline for catalog blocks; a real `PersistAdapter` over the project store; Player-driven drag/select; recording an end-to-end export from each real editor (baseline export was NOT TESTED); a before/after screenshot and export regression once any integration exists; accessibility and performance budgets for large compositions; a security review of the CSP and the `with` scope.
+
+## 11. Baseline regression (details in `BASELINE.md`)
+Classic: 446/451 files, 7,974 passed, **5 pre-existing failures** (settings modal, protected-file hash, blend library, legacy motion cards, upload auth). New-editor branch: **193 pre-existing failures**, 165 of them one acceptance spec; its own `src/cinegen` suite 1,247 passed / 0 failed. No app file changed, so these are identical before and after. Screenshots captured for the classic editor and all six new-editor tabs; classic at 390 px is a blank page (not investigated). Baseline **export** NOT TESTED.
+
+## 12. File-change report
+Modified outside `poc/`: **none**. All changes are in `poc/hyperframes-remotion/` (new package, not a workspace member, not imported by the app). A temporary `git worktree` of the new-editor branch was used for capture and removed; nothing was committed or pushed there.
+Files: `src/BlockClip.jsx` (adapter), `src/HyperFramesClip.jsx`, `src/compositions.jsx`, `src/diag.jsx`, `src/main.jsx`, `src/security.js`, `src/sandbox-runner.jsx`, `src/sandbox-host.js`, `src/sandbox-shims.js`, `src/player.js`, `index.html`, `player.html`, `sandbox-runner.html`, `sandbox-host.html`, `vite.config.js`, `package.json`; scripts `setup-blocks.mjs`, `run-blocks.mjs`, `run-exports.mjs`, `run-poc.mjs`, `sdk-test.mjs`, `sandbox-test.mjs`, `scrub-test.mjs`, `security.test.mjs`, `player-compare.mjs`, `diag-run.mjs`, `compare.py`, `pair.py`, `sweep-report.py`, `build-matrix.py`, `three-way.sh`, `baseline/*.mjs`; documents `README.md`, `BASELINE.md`, `MATRIX.md`, `REPORT.md`; `evidence/` (36 small files). Why each was needed: the adapter, diagnostics and runners are the PoC itself; the security/sandbox files implement and test the isolation design; baseline scripts are capture-only.
+
+## 13. Unfinished or failed (explicit)
+FAILED: `vfx-shatter` (unsupported API), `camera-dolly-zoom` (CSS 3D), nested-iframe capture, per-component Player/native/Remotion three-way for all 30 (done for one). PARTIAL: vfx-liquid-glass, carousel-circle-1/path-2, ai-answer-rank, sandbox-vs-unsandboxed parity for slack/heygen, Player integration. NOT TESTED: Firefox, WebKit, Safari, mobile, 4K, alpha export, `<audio>` in blocks, baseline export from either editor, `createIframePreviewAdapter` drag/select, ~400 other catalog items.

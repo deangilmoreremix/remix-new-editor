@@ -1,0 +1,480 @@
+[
+ {
+  "name": "lt-clean-bar",
+  "category": "lower third",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.998,
+   0.997,
+   0.997
+  ],
+  "ssim_min": 0.997,
+  "motion": 0.0,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "lt-bold-block",
+  "category": "lower third",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.997,
+   0.999,
+   0.999
+  ],
+  "ssim_min": 0.997,
+  "motion": 0.0,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "lt-neon-border",
+  "category": "lower third",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.971,
+   0.987,
+   0.985
+  ],
+  "ssim_min": 0.971,
+  "motion": 7.1,
+  "alpha_min": 8,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "yt-lower-third",
+  "category": "lower third",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.993,
+   0.993,
+   1.0
+  ],
+  "ssim_min": 0.993,
+  "motion": 10.7,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "hw-title",
+  "category": "kinetic typography",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.958,
+   0.987,
+   0.974
+  ],
+  "ssim_min": 0.958,
+  "motion": 2.6,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "hw-write-title",
+  "category": "kinetic typography",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.997,
+   0.987,
+   0.974
+  ],
+  "ssim_min": 0.974,
+  "motion": 0.0,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "apple-money-count",
+  "category": "kinetic typography",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.967,
+   0.969,
+   0.95
+  ],
+  "ssim_min": 0.95,
+  "motion": 15.6,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "caption-kinetic-slam",
+  "category": "animated captions",
+  "type": "component",
+  "dims": "1920x1080",
+  "ssim": [
+   0.993,
+   0.967,
+   0.97
+  ],
+  "ssim_min": 0.967,
+  "motion": 11.3,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "caption-pill-karaoke",
+  "category": "animated captions",
+  "type": "component",
+  "dims": "1920x1080",
+  "ssim": [
+   0.98,
+   0.995,
+   0.998
+  ],
+  "ssim_min": 0.98,
+  "motion": 15.4,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "caption-highlight",
+  "category": "animated captions",
+  "type": "component",
+  "dims": "1920x1080",
+  "ssim": [
+   0.988,
+   0.991,
+   0.993
+  ],
+  "ssim_min": 0.988,
+  "motion": 8.3,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "caption-neon-glow",
+  "category": "animated captions",
+  "type": "component",
+  "dims": "1920x1080",
+  "ssim": [
+   0.984,
+   0.992,
+   0.989
+  ],
+  "ssim_min": 0.984,
+  "motion": 13.0,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "instagram-follow",
+  "category": "social overlay",
+  "type": "block",
+  "dims": "1080x1920",
+  "ssim": [
+   0.983,
+   0.983,
+   1.0
+  ],
+  "ssim_min": 0.983,
+  "motion": 2.5,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "tiktok-follow",
+  "category": "social overlay",
+  "type": "block",
+  "dims": "1080x1920",
+  "ssim": [
+   0.985,
+   0.985,
+   1.0
+  ],
+  "ssim_min": 0.985,
+  "motion": 2.9,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "reddit-post",
+  "category": "social overlay",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.987,
+   0.987,
+   1.0
+  ],
+  "ssim_min": 0.987,
+  "motion": 6.3,
+  "alpha_min": 0,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "spotify-card",
+  "category": "social overlay",
+  "type": "block",
+  "dims": "1080x1920",
+  "ssim": [
+   0.986,
+   0.986,
+   0.986
+  ],
+  "ssim_min": 0.986,
+  "motion": 2.0,
+  "alpha_min": 69,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "ai-answer-rank",
+  "category": "business promo",
+  "type": "block",
+  "dims": "1080x1080",
+  "ssim": [
+   0.986,
+   0.99,
+   0.923
+  ],
+  "ssim_min": 0.923,
+  "motion": 1.5,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "slack-notification-ad",
+  "category": "business promo",
+  "type": "block",
+  "dims": "1080x1920",
+  "ssim": [
+   0.954,
+   0.956,
+   0.953
+  ],
+  "ssim_min": 0.953,
+  "motion": 3.9,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "heygen-avatar-promo-card",
+  "category": "business promo",
+  "type": "block",
+  "dims": "1080x1920",
+  "ssim": [
+   0.976,
+   0.978,
+   0.979
+  ],
+  "ssim_min": 0.976,
+  "motion": 36.3,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "carousel-circle-1",
+  "category": "image animation",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.896,
+   0.983,
+   0.988
+  ],
+  "ssim_min": 0.896,
+  "motion": 11.5,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "carousel-path-2",
+  "category": "image animation",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.848,
+   0.973,
+   0.976
+  ],
+  "ssim_min": 0.848,
+  "motion": 21.0,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "cinemagraph",
+  "category": "image animation",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.955,
+   0.954,
+   0.955
+  ],
+  "ssim_min": 0.954,
+  "motion": 0.4,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "chromatic-radial-split",
+  "category": "transition",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.987,
+   0.987,
+   0.987
+  ],
+  "ssim_min": 0.987,
+  "motion": 30.0,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "flash-through-white",
+  "category": "transition",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.956,
+   0.955,
+   0.955
+  ],
+  "ssim_min": 0.955,
+  "motion": 154.4,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "glitch",
+  "category": "transition",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.993,
+   0.993,
+   0.993
+  ],
+  "ssim_min": 0.993,
+  "motion": 32.5,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "bar-chart-race",
+  "category": "GSAP animation",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.98,
+   0.981,
+   0.979
+  ],
+  "ssim_min": 0.979,
+  "motion": 4.2,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "code-diff",
+  "category": "GSAP animation",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.952,
+   0.95,
+   0.95
+  ],
+  "ssim_min": 0.95,
+  "motion": 1.7,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "vfx-liquid-glass",
+  "category": "canvas animation",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.744,
+   0.751,
+   0.75
+  ],
+  "ssim_min": 0.744,
+  "motion": 20.3,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "vfx-shatter",
+  "category": "canvas animation",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [],
+  "ssim_min": null,
+  "motion": 0.0,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": [
+   "mount vfx-shatter: ctxA.drawElementImage is not a function"
+  ]
+ },
+ {
+  "name": "code-3d-extrude",
+  "category": "WebGL effect",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "ssim_min": 1.0,
+  "motion": 3.2,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ },
+ {
+  "name": "camera-dolly-zoom",
+  "category": "WebGL effect",
+  "type": "block",
+  "dims": "1920x1080",
+  "ssim": [
+   0.497,
+   0.519,
+   0.513
+  ],
+  "ssim_min": 0.497,
+  "motion": 0.0,
+  "alpha_min": 255,
+  "stills_ok": "3/3",
+  "errors": []
+ }
+]

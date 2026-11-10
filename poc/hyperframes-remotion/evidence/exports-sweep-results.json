@@ -1,0 +1,616 @@
+[
+ {
+  "label": "sweep-lt-clean-bar",
+  "ok": true,
+  "ms": 1713,
+  "bytes": 81693,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-lt-bold-block",
+  "ok": true,
+  "ms": 2017,
+  "bytes": 74161,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-lt-neon-border",
+  "ok": true,
+  "ms": 4984,
+  "bytes": 233940,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-yt-lower-third",
+  "ok": true,
+  "ms": 1782,
+  "bytes": 135253,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-hw-title",
+  "ok": true,
+  "ms": 1876,
+  "bytes": 370883,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-hw-write-title",
+  "ok": true,
+  "ms": 1860,
+  "bytes": 28003,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-apple-money-count",
+  "ok": true,
+  "ms": 2930,
+  "bytes": 534891,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-caption-kinetic-slam",
+  "ok": true,
+  "ms": 1563,
+  "bytes": 326788,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-caption-pill-karaoke",
+  "ok": true,
+  "ms": 2364,
+  "bytes": 99886,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-caption-highlight",
+  "ok": true,
+  "ms": 11457,
+  "bytes": 332977,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-caption-neon-glow",
+  "ok": true,
+  "ms": 1907,
+  "bytes": 300798,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-instagram-follow",
+  "ok": true,
+  "ms": 2106,
+  "bytes": 182705,
+  "video": {
+   "codec": "h264",
+   "w": 1080,
+   "h": 1920,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-tiktok-follow",
+  "ok": true,
+  "ms": 1915,
+  "bytes": 165781,
+  "video": {
+   "codec": "h264",
+   "w": 1080,
+   "h": 1920,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-reddit-post",
+  "ok": true,
+  "ms": 3288,
+  "bytes": 250904,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-spotify-card",
+  "ok": true,
+  "ms": 2867,
+  "bytes": 321468,
+  "video": {
+   "codec": "h264",
+   "w": 1080,
+   "h": 1920,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-ai-answer-rank",
+  "ok": true,
+  "ms": 3509,
+  "bytes": 147860,
+  "video": {
+   "codec": "h264",
+   "w": 1080,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-slack-notification-ad",
+  "ok": true,
+  "ms": 3519,
+  "bytes": 535822,
+  "video": {
+   "codec": "h264",
+   "w": 1080,
+   "h": 1920,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-heygen-avatar-promo-card",
+  "ok": true,
+  "ms": 8510,
+  "bytes": 816182,
+  "video": {
+   "codec": "h264",
+   "w": 1080,
+   "h": 1920,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-carousel-circle-1",
+  "ok": true,
+  "ms": 2475,
+  "bytes": 804008,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-carousel-path-2",
+  "ok": true,
+  "ms": 2285,
+  "bytes": 805682,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-cinemagraph",
+  "ok": true,
+  "ms": 2045,
+  "bytes": 125061,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-chromatic-radial-split",
+  "ok": true,
+  "ms": 4959,
+  "bytes": 199643,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-flash-through-white",
+  "ok": true,
+  "ms": 4163,
+  "bytes": 202062,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-glitch",
+  "ok": true,
+  "ms": 4316,
+  "bytes": 371049,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-bar-chart-race",
+  "ok": true,
+  "ms": 2858,
+  "bytes": 389309,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-code-diff",
+  "ok": true,
+  "ms": 6151,
+  "bytes": 329498,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-vfx-liquid-glass",
+  "ok": true,
+  "ms": 112920,
+  "bytes": 810152,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-vfx-shatter",
+  "ok": false,
+  "error": "page.evaluate: TypeError: ctxA.drawElementImage is not a function\n    at renderFrame (hf-block/vfx-shatter#inline:539:9)\n    at Tween2.onUpdate [as _onUpdate] (hf-block/vfx-shatter#inline:625:13)\n    "
+ },
+ {
+  "label": "sweep-code-3d-extrude",
+  "ok": true,
+  "ms": 3282,
+  "bytes": 826237,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ },
+ {
+  "label": "sweep-camera-dolly-zoom",
+  "ok": true,
+  "ms": 17585,
+  "bytes": 47468,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 60,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 2
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 2.005333
+  },
+  "errors": []
+ }
+]
