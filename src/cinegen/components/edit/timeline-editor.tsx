@@ -917,8 +917,12 @@ export function TimelineEditor({
         setTimeline(applied.timeline);
       },
     });
+    // "My Media" in the wizard lists the project's own clips and images (as it listed the classic editor's media)
+    (modal as unknown as { data: { media: unknown[] } }).data.media = state.assets
+      .filter((x) => x.type === 'video' || x.type === 'image')
+      .map((x) => ({ id: x.id, assetId: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height }));
     modal.open();
-  }, [dispatch, setTimeline]);
+  }, [dispatch, setTimeline, state.assets]);
 
   // [remix] Personalization hub (contacts, tokens, per-contact generation) — the classic editor's own window
   const handleOpenPersonalization = useCallback(async () => {
