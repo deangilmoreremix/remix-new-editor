@@ -11,6 +11,7 @@ export { responsesChat };
 import { CAPTION_STYLE_BY_ID } from '../../openchatcut/captions/styles';
 import { clipFxInstances } from '@cinegen/lib/occ/clip-fx';
 import { userLutTextSync } from '@cinegen/lib/occ/user-luts';
+import { userFontsFor } from '@cinegen/lib/occ/user-fonts';
 import { customTransitionDefSync, pluginFxSnapshotSync } from '@cinegen/lib/occ/plugins';
 // [remix] OpenChatCut effects + LUT of an export clip, as plain {id, overrides} for the composition's GL layer.
 const occFxList = (c: { fx?: Array<{ id: string; def?: import('@cinegen/lib/occ/plugins').FxSnapshot; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number; def?: import('@cinegen/lib/occ/plugins').FxSnapshot } }) =>
@@ -156,6 +157,8 @@ export function registerWebApi() {
           // [remix] OpenChatCut captions (words already in timeline ms) → one caption layer per captioned clip
           (model as { occCaptions?: unknown[] }).occCaptions = a.clips.flatMap((c) => (c.captions ? [c.captions] : []));
           for (const c of a.clips) { const cap = c.captions as { template?: string; styleOverride?: { fontFamily?: string } } | undefined; const tpl = cap?.template; const fam = cap?.styleOverride?.fontFamily || (tpl && CAPTION_STYLE_BY_ID[tpl as never]?.fontFamily); if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }
+          // [remix] imported caption fonts travel with the render
+          (model as { userFonts?: unknown[] }).userFonts = userFontsFor(a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily));
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
           const byId = new Map(a.clips.map((c, i) => [c.id, { c, i }]));
           (model as { glTransitions?: unknown[] }).glTransitions = (a.transitions ?? []).flatMap((t) => {

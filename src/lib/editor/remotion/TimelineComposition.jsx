@@ -64,7 +64,18 @@ export function registerGoogleFonts(families = []) {
   return Promise.all(families.map(registerGoogleFont));
 }
 
+/** [remix] user-imported fonts (TTF/OTF/WOFF2 chosen in the caption font control). Registered through the same Remotion loader; the export
+ *  carries the font bytes as a data URL because the sandboxed runner has no access to the editor's IndexedDB. */
+const userFontPromises = new Map();
+export function registerUserFont({ family, dataUrl }) {
+  if (!userFontPromises.has(family)) {
+    userFontPromises.set(family, loadFont({ family, url: dataUrl, weight: '100 900' }).catch(() => null).then(() => { registeredDone.add(family); }));
+  }
+  return userFontPromises.get(family);
+}
+
 export function registerGoogleFont(family) {
+  if (userFontPromises.has(family)) return userFontPromises.get(family);
   if (registered.has(family)) return registered.get(family);
   const p = fetch(googleFontHref(family))
     .then((r) => (r.ok ? r.text() : ''))
@@ -87,7 +98,8 @@ export function registerGoogleFont(family) {
 }
 
 /** Load the Google fonts the timeline uses before any text is measured or drawn. */
-function FontGate({ fonts, children }) {
+function FontGate({ fonts, userFonts, children }) {
+  (userFonts || []).forEach(registerUserFont);
   // The export runner registers fonts before rendering starts, so this is
   // normally ready immediately; the delayRender path covers the Player.
   const initiallyReady = !fonts?.length || fonts.every((f) => registeredDone.has(f));
@@ -564,7 +576,7 @@ export function TimelineComposition({ model }) {
 
   return (
     <AbsoluteFill style={{ backgroundColor: m.background || '#000' }}>
-      <FontGate fonts={m.fonts}>
+      <FontGate fonts={m.fonts} userFonts={m.userFonts}>
         {(m.layers || []).map((layer) => {
           if (layer.kind === 'video' || layer.kind === 'image') {
             const outTr = byOutgoing.get(layer.id);
