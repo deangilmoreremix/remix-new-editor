@@ -1,5 +1,18 @@
 # HyperFrames in the Timeline Studio Editor (flag-gated, additive)
 
+> **Completion pass (supersedes the counts below where they differ).** Full matrix: `docs/hyperframes-compatibility-matrix.md`. Evidence: `docs/evidence-hyperframes/`.
+>
+> | Item | Result |
+> |---|---|
+> | Blocks enabled for customers | **49** (86 verified; 41 adapter-compatible; 32 specialized; 51 unsupported) |
+> | Editable fields exposed | 214, each one measured to change the rendered output |
+> | Components verified against a native reference | **0** of 238 (146 render and animate in the production path, 53 static, 34 adapter errors, 5 blank; none enabled) |
+> | Starter projects verified | **0** of 9 (not enabled; need a nested-composition loader, 5 use `<video>`/`<audio>` placeholders, 1 is a WebGL path tracer) |
+>
+> What changed in the adapter (all generic, no per-block code): `var CONFIG = {...}` overrides (`cfg.<path>`), declared composition variables (`var.<id>`, `data-var-text`/`data-var-src`, `__hyperframes.getVariables()`), `<template>`-wrapped compositions, vendored fonts inlined as data URLs (sandbox CSP), script elements removed from the mounted DOM, block-local `gsap` copies treated as bundled, adapter errors surfaced with `console.warn("[hyperframes] ...")`. `gsap@3.14.2` is now an exact-pinned dependency in `package.json` (it was previously an undeclared import that the dev build silently stubbed).
+>
+> Corrections to earlier reporting: (1) "32 blocks failed MP4 export" was a classification bug: 31 of them were never exported (their SSIM was < 0.85, so they are `specialized`), 1 real export timeout; (2) 12 blocks were blocked for "remote images" because of `<link rel=preconnect href=fonts.gstatic.com>`; the manifest builder now ignores preconnect links; (3) `lower-third-bild`, `share-sheet-carousel`, `split-flap-board`, `freeze-frame-dressing` were removed from the enabled list because their built-in text cannot be edited, or edits had no measured effect, or the production-path render differed from native (SSIM 0.823).
+
 Status: integration branch `claude/hyperframes-timeline-integration`, based on `origin/claude/confident-fermi-3azaem` (d50eeb167). Not merged, not deployed. **OFF by default.**
 
 ## Feature flag and rollback
@@ -39,3 +52,27 @@ Only catalog ids in `catalog.enabled.json` load; id regex; fetched bytes verifie
 
 ## Limitations
 Components (238) and starter projects (9) not integrated; 40 adapter-compatible blocks (SSIM 0.85-0.95) shown as not offered; WebGL/three/WebGPU excluded; nested compositions, composition variables (`data-composition-variables`), playback rates, media offsets not implemented; no duplicate-overlay action; Firefox/WebKit not tested; A/V sync with HyperFrames audio not tested (audio blocks excluded); long repeated-export soak not done; saved project opened with flag OFF not tested in a browser.
+
+## Completion-pass results
+
+### Saved projects / flag / repeated exports (real browser, flag ON then OFF then ON)
+- Project with 3 overlays (2x Clean Bar with different text, Neon Border with start 1 / end 4): all overlay ids, `blockId`, `props`, start/end persisted in the project record after reload.
+- Flag OFF: "HyperFrames animations…" entry gone; the 3 overlays still present with identical data and still render in export (SSIM 0.9875 vs the flag-on export). Flag ON again: data unchanged. Four consecutive exports without re-importing media: SSIM 0.9875-0.9877 vs the first export.
+- Footage after reload: the editor stores a media file as a durable URL only when `uploadFileToStorage` (Supabase storage) succeeds (`src/cinegen/adapters/web-media.ts: durableUrl`); when upload is unavailable (offline / unconfigured storage, as in the test sandbox) it falls back to a session-scoped `blob:` URL that dies on reload. This is existing behaviour of the editor (the pristine build behaves the same), not related to HyperFrames, and customers with working storage keep their footage. Persistence tests therefore used a test-harness route that emulates storage (no app code changed). Not changed in this branch.
+
+### Security review (what was tested)
+Real-browser negative tests through the actual sandboxed preview frame (`security-negative-tests.json`): tampered block file refused (sha256 mismatch), non-allow-listed host / `javascript:` URL / disallowed style property rejected, `__proto__` config path rejected, HTML and script payloads in text overrides rendered as inert text, config strings treated as JSON data (no payload executed, no `postMessage` escaped), invalid or unlisted block ids render nothing. Unit tests: validators, config patching, variable resolution.
+Outside this testing: no independent audit, no fuzzing, no WebGL/GPU isolation analysis (excluded by policy), no server-side concerns (none added), supply-chain review of GSAP beyond the exact version pin, behaviour of non-Chromium browsers.
+Browsers: only Chromium is installed in this environment; Firefox and WebKit are **not tested**.
+
+### Regression (flag OFF/ON vs pristine `d50eeb167`)
+- Full vitest: pristine 193 failing tests / 8 files; integration identical failing set, 0 new failures, +25 passing tests.
+- Flag-off Timeline Studio export vs pristine: SSIM 0.98865 (pristine vs pristine 0.98864). Edit-tab screenshot after import: 0 differing pixels (>24). Classic editor route (`#/timeline-classic`): 0 differing pixels.
+- Flag-on exports: 1080p with three overlays (2x Clean Bar, Neon Border) H.264/AAC, 255 frames.
+- Not re-run in this pass: keyboard-shortcut walkthrough, LUT/effect/transition library walkthrough, captions and audio tool walkthrough (no code in those areas changed; covered only by the unchanged test suite and the screenshot equality above).
+
+### Performance
+Production-path stills: 50 blocks rendered (~6 s each in the sandboxed frame including mount). Export throughput of enabled blocks was >= 8 fps in the research harness (policy gate); the 8 blocks below that are not enabled.
+
+### Remaining blockers for production
+Components and starter projects not integrated; no native-reference verification for components; Firefox/WebKit untested; remaining unmeasured editable fields (119 of 292 measured edits showed no visible change at the three sample times, so they are hidden rather than shown); no visible in-editor compatibility warning when a block reports an adapter error (errors go to console only); footage durability depends on storage upload (pre-existing); WebGL / three.js / WebGPU excluded.

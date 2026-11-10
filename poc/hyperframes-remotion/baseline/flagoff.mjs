@@ -10,7 +10,7 @@ p.on('console', (m) => { if (m.type() === 'error') console.log('console.error', 
 const text = () => p.evaluate(() => document.body.innerText);
 await p.goto(`${BASE}/#/timeline`, { waitUntil: 'load' });
 for (let i = 0; i < 40 && !(await text()).includes('set up your API keys'); i++) await p.waitForTimeout(1000);
-await p.mouse.click(883, 75); await p.waitForTimeout(1500);
+await p.evaluate(() => { const m = document.querySelector('div.fixed.inset-0.z-\\[100\\]'); [...(m?.querySelectorAll('button') || [])].find((x) => /Skip for now/.test(x.textContent))?.click(); }); await p.waitForTimeout(1500);
 for (let i = 0; i < 60 && !/Project Manager|Projects/.test(await text()); i++) await p.waitForTimeout(2000);
 await p.getByRole('button', { name: 'New Project' }).last().click(); await p.waitForTimeout(3500);
 await p.getByPlaceholder('Project name...').fill('baseline-import'); await p.getByRole('button', { name: 'Create' }).click(); await p.waitForTimeout(4000);

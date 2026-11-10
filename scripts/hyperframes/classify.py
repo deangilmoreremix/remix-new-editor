@@ -24,10 +24,16 @@ SSIM_VERIFIED, SSIM_ADAPTER = 0.95, 0.85
 
 ap = argparse.ArgumentParser()
 for k in ('manifest', 'stills', 'compare', 'exports', 'editables', 'out-classification', 'out-enabled'): ap.add_argument('--' + k, required=True)
+ap.add_argument('--prod-results', default=None, help='per-block {logs, fatal} from the production renders; any adapter error blocks enablement')
+ap.add_argument('--effect', default=None, help='measure-effect.py output: editables without a measured visible effect are dropped')
+ap.add_argument('--prod-compare', default=None, help='SSIM of the PRODUCTION adapter path (sandboxed preview frame) vs native; when given, a block must also reach SSIM_VERIFIED there')
 a = ap.parse_args()
 man = json.load(open(a.manifest)); stills = json.load(open(a.stills)); cmp_ = json.load(open(a.compare))
 exp = {r['label'].replace('sweep-', ''): r for r in json.load(open(a.exports))}
 edit = json.load(open(a.editables)) if os.path.exists(a.editables) else {}
+prod = json.load(open(a.prod_compare)) if a.prod_compare else None
+effect = json.load(open(a.effect)) if a.effect else None
+prodres = json.load(open(a.prod_results)) if a.prod_results else {}
 cdn_map = json.load(open(os.path.join(os.path.dirname(a.stills), '..', 'public', 'blocks', '_cdn', 'map.json'))) if os.path.exists(os.path.join(os.path.dirname(a.stills), '..', 'public', 'blocks', '_cdn', 'map.json')) else None
 
 def policy_block(it):
@@ -35,6 +41,7 @@ def policy_block(it):
     for k, label in (('webgl', 'WebGL'), ('three', 'three.js'), ('webgpu', 'WebGPU'), ('htmlInCanvas', 'HTML-in-canvas API'), ('video', 'video element'), ('audio', 'audio element'), ('subcomposition', 'sub-composition'), ('unseededRandom', 'unseeded Math.random'), ('infiniteRepeat', 'infinite GSAP repeat')):
         if f.get(k): why.append(label)
     if f.get('remoteImages'): why.append('remote image URL')
+    if d.get('remoteAssetFiles'): why.append('asset files hosted remotely (not pinned/vendored)')
     if cdn_map is not None and any(s.startswith('http') and s not in cdn_map for s in d['scripts']): why.append('external script not vendored')
     return why
 
@@ -57,22 +64,42 @@ for it in man['items']:
             rec.update(status='unsupported', reason=str((errs[0] if errs else {'error': 'no frames'}).get('error'))[:160])
         elif not ss:
             rec.update(status='not-tested', reason='renders, but the native HyperFrames reference could not be produced here, so fidelity is unverified')
-        elif e is None or not e.get('ok'):
-            rec.update(status='unsupported', reason='MP4 export failed: ' + str((e or {}).get('error', 'not run'))[:120])
+        elif e is None:  # no export attempted (the sweep only exported blocks that rendered well): do not call that an export failure
+            m = min(ss)
+            if m < SSIM_ADAPTER: rec.update(status='specialized', reason=f'renders, but worst-sample SSIM {m:.3f}: content differs from native (export not attempted)')
+            else: rec.update(status='not-tested', reason=f'worst-sample SSIM {m:.3f}; MP4 export not attempted')
+        elif not e.get('ok'):
+            rec.update(status='unsupported', reason='MP4 export failed: ' + str(e.get('error', 'unknown'))[:120])
         else:
             m = min(ss)
             if m >= SSIM_VERIFIED: rec.update(status='verified-export', reason=f'SSIM >= {SSIM_VERIFIED} at all samples; MP4 export OK')
             elif m >= SSIM_ADAPTER: rec.update(status='adapter-compatible', reason=f'worst-sample SSIM {m:.3f}; exports, with visible differences')
             else: rec.update(status='specialized', reason=f'worst-sample SSIM {m:.3f}: content differs from native')
+        if prod is not None and rec['status'] == 'verified-export' and n in prod:
+            pv = [x for x in (prod.get(n) or {}).values() if x is not None]
+            ev['prodSsimMin'] = round(min(pv), 3) if pv else None
+            if pv and min(pv) < SSIM_VERIFIED: rec.update(status='adapter-compatible' if min(pv) >= SSIM_ADAPTER else 'specialized', reason=f'production adapter path worst-sample SSIM {min(pv):.3f} (research harness reached {min(ss):.3f})')
         if rec['status'] == 'verified-export':
             blocked = policy_block(it)
             if ev['export'] and ev['export']['fps'] < MIN_FPS: blocked.append(f"export throughput {ev['export']['fps']} fps < {MIN_FPS}")
             ed = edit.get(n, {}).get('editables', [])
-            if not ed: blocked.append('no editable fields detected')
+            if effect is not None and n in effect:  # keep only fields whose edit visibly changes the render
+                dropped = [e['key'] for e in ed if not effect[n].get(e['key'], {}).get('effective', False) and e['target']['kind'] != 'attr']
+                had = len(ed); ed = [e for e in ed if e['key'] not in dropped]; rec['droppedIneffective'] = dropped
+                if had and not ed: blocked.append('no editable field with a measured visible effect')
+            vt = edit.get(n, {}).get('visibleText')  # text nodes present in the rendered block (None = not analysed)
+            has_text_ed = any(e['type'] == 'text' and e['target']['kind'] in ('text', 'cfg', 'var') for e in ed)
+            if not ed:
+                if vt is not None and len(vt) == 0: rec['readyToUse'] = True  # pure effect/background: nothing customer-specific to edit
+                else: blocked.append('no editable fields detected')
+            elif vt and not has_text_ed:
+                blocked.append('shows built-in text that cannot be edited')
+            if prodres.get(n, {}).get('logs') or prodres.get(n, {}).get('fatal'): blocked.append('adapter reported errors in the production render')
+            if prod is not None and ev.get('prodSsimMin') is None: blocked.append('not yet rendered through the production adapter path')
             rec['enabledBlockedBy'] = blocked; rec['enabled'] = not blocked
             if rec['enabled']:
-                enabled.append({'id': n, 'title': it['title'], 'description': it['description'], 'tags': it['tags'], 'category': (it['tags'][0] if it['tags'] else 'other'),
-                                'dimensions': it['dimensions'], 'duration': it['duration'], 'sourceSha256': it['sourceSha256'],
+                enabled.append({'id': n, 'type': 'block', 'title': it['title'], 'description': it['description'], 'tags': it['tags'], 'category': (it['tags'][0] if it['tags'] else 'other'),
+                                'dimensions': it['dimensions'], 'duration': it['duration'], 'sourceSha256': it['sourceSha256'], 'readyToUse': bool(rec.get('readyToUse')),
                                 'files': [{'path': f['path'], 'target': f['target'], 'sha256': f['sha256']} for f in it['files']], 'editables': ed})
     elif it['type'] == 'component':
         rec['reason'] = 'components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept'

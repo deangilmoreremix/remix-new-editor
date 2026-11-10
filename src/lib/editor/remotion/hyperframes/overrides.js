@@ -28,6 +28,7 @@ export function applyOverrides(root, overrides, { allowHosts = [], onReject } = 
   const { cleaned, rejected } = validateOverrides(overrides, { allowHosts });
   let applied = 0;
   for (const [key, value] of Object.entries(cleaned)) {
+    if (key.startsWith('cfg.')) continue; // script-config overrides are applied by BlockClip.runScripts via patchConfig
     const m = /^(?<id>.+?)\.(?<rest>text|style\.[A-Za-z]+|attr\.(?:src|alt))$/.exec(key);
     if (!m) continue;
     const el = findById(root, m.groups.id); if (!el) { rejected.push({ key, reason: 'element not found in block' }); continue; }

@@ -6,9 +6,10 @@ import type { OverlayClip } from '@cinegen/types/workspace';
 import enabledJson from '../../../lib/hyperframes/catalog.enabled.json';
 
 export interface HfEditable {
-  key: string; label: string; type: 'text' | 'color'; defaultValue: string;
-  /** Where the value goes in the block, as an SDK-style OverrideSet entry: `<hfId>.text`, `<hfId>.style.<prop>`, `<hfId>.attr.<name>`. */
-  target: { hfId: string; kind: 'text' | 'style' | 'attr'; prop?: string };
+  key: string; label: string; type: 'text' | 'color' | 'number' | 'boolean' | 'select'; defaultValue: string | number | boolean;
+  min?: number; max?: number; step?: number; options?: Array<string | { value: string; label?: string }>;
+  /** Where the value goes in the block, as an OverrideSet entry: `<hfId>.text`, `<hfId>.style.<prop>`, `<hfId>.attr.<name>`, or `cfg.<path>` (a leaf of the block's published `var CONFIG` object), or `var.<id>` (a declared composition variable). */
+  target: { hfId?: string; kind: 'text' | 'style' | 'attr' | 'cfg' | 'var'; prop?: string; path?: string; id?: string };
 }
 export interface HfItem {
   id: string; title: string; description: string; tags: string[]; category: string;
@@ -27,23 +28,26 @@ export function searchHyperframes(items: HfItem[], query: string, tag = 'all'): 
 export function createHyperframesOverlay(item: HfItem, startSec: number): OverlayClip {
   const id = `hf-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
   const start = Math.max(0, startSec);
-  const props: Record<string, string> = {};
+  const props: Record<string, string | number | boolean> = {};
   for (const e of item.editables) props[e.key] = e.defaultValue;
   return {
     id, type: 'hyperframes', name: item.title, start, end: start + Math.max(1, item.duration),
     blockId: item.id, hfSchema: 1, props,
-    propSchema: item.editables.map((e) => ({ key: e.key, label: e.label, type: e.type, defaultValue: e.defaultValue })),
+    propSchema: item.editables.map((e) => ({ key: e.key, label: e.label, type: e.type, defaultValue: e.defaultValue, min: e.min, max: e.max, step: e.step, options: e.options })),
     blockWidth: item.dimensions.width, blockHeight: item.dimensions.height,
   };
 }
 
 /** Sparse OverrideSet from the overlay's edited props (only values that differ from the master's defaults). */
-export function overridesFromProps(item: HfItem, props: Record<string, unknown>): Record<string, string> {
-  const out: Record<string, string> = {};
+export function overridesFromProps(item: HfItem, props: Record<string, unknown>): Record<string, string | number | boolean> {
+  const out: Record<string, string | number | boolean> = {};
   for (const e of item.editables) {
     const v = props[e.key];
-    if (typeof v !== 'string' || v === e.defaultValue) continue;
-    const { hfId, kind, prop } = e.target;
+    if (v === undefined || v === e.defaultValue || typeof v !== typeof e.defaultValue) continue;
+    const { hfId, kind, prop, path, id } = e.target;
+    if (kind === 'var') { if (id) out[`var.${id}`] = v as string | number | boolean; continue; }
+    if (kind === 'cfg') { if (path) out[`cfg.${path}`] = v as string | number | boolean; continue; }
+    if (typeof v !== 'string' || !hfId) continue;
     out[kind === 'text' ? `${hfId}.text` : kind === 'style' ? `${hfId}.style.${prop}` : `${hfId}.attr.${prop}`] = v;
   }
   return out;

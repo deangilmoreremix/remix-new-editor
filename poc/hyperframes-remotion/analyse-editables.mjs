@@ -35,13 +35,14 @@ for (const id of ids) {
           if (area > 400 && area < frameArea * 0.25 && cs.backgroundColor && !/gradient/.test(cs.backgroundImage)) out.color.push({ hfId, bg: cs.backgroundColor });
         }
       }
+      out.visibleText = []; const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); for (let n; (n = walker.nextNode());) { const t = n.textContent.trim(); if (t.length >= 2 && !['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(n.parentElement.tagName)) out.visibleText.push(t.slice(0, 60)); }
       return out;
     }, [stamped, m.dims.width, m.dims.height]);
     const editables = [];
     res.text.slice(0, 6).forEach((t, i) => editables.push({ key: `t${i + 1}`, label: `Text ${i + 1}: ${t.text.length > 28 ? t.text.slice(0, 27) + '…' : t.text}`, type: 'text', defaultValue: t.text, target: { hfId: t.hfId, kind: 'text' } }));
     res.color.map((c) => ({ ...c, hex: hex(c.bg) })).filter((c) => c.hex).slice(0, 2).forEach((c, i) => editables.push({ key: `c${i + 1}`, label: `Color ${i + 1}`, type: 'color', defaultValue: c.hex, target: { hfId: c.hfId, kind: 'style', prop: 'backgroundColor' } }));
     res.img.slice(0, 2).forEach((im, i) => editables.push({ key: `i${i + 1}`, label: `Image ${i + 1} URL`, type: 'text', defaultValue: im.src, target: { hfId: im.hfId, kind: 'attr', prop: 'src' } }));
-    out[id] = { editables };
+    out[id] = { editables, visibleText: res.visibleText.slice(0, 20) };
   } catch (e) { out[id] = { editables: [], error: String(e).slice(0, 120) }; }
   await ctx.close();
 }

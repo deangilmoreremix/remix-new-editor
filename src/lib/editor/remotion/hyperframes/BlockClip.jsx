@@ -13,8 +13,10 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { useCurrentFrame, useVideoConfig, useDelayRender } from 'remotion';
 import { gsap } from 'gsap';
-import { validateAssetUrl, stripUnsafeAttributes } from './security.js';
+import { validateAssetUrl, stripUnsafeAttributes, validateOverrides } from './security.js';
 import { applyOverrides, stampHfIds } from './overrides.js';
+import { patchConfig } from './config.js';
+import { parseVariableDecls, resolveVariables, bindVariables } from './variables.js';
 
 let cdnMapPromise;
 export const HF_BASE = '/hyperframes/blocks';
@@ -77,6 +79,22 @@ export function applyInsetBars(host, bars) {
 export const stats = { rebased: 0 };
 export const rebaseUrl = (u) => (/^(?:[a-z][a-z0-9+.-]*:|\/|#)/i.test(u) || u.split('/').includes('..') ? u : `${HF_BASE}/${u.replace(/^\.\//, '')}`);
 export const rebaseCssUrls = (css) => css.replace(/url\(\s*(['"]?)([^)'"]+)\1\s*\)/g, (_, q, u) => `url(${q}${rebaseUrl(u.trim())}${q})`);
+/** The sandbox frames' CSP only allows fonts from fonts.gstatic.com and data:, so a block's own vendored font files are inlined as data: URLs
+ *  (sha256 of the block bundle is already verified; only files under this block bundle and font extensions are read, 3 MB cap). */
+export async function inlineBlockFonts(css) {
+  const re = /url\(\s*(['"]?)(\/hyperframes\/blocks\/[^)'"]+\.(?:woff2?|ttf|otf))\1\s*\)/gi;
+  const found = [...new Set([...css.matchAll(re)].map((m) => m[2]))];
+  const data = {};
+  await Promise.all(found.map(async (u) => {
+    if (u.split('/').includes('..')) return;
+    try {
+      const buf = await (await fetch(u)).arrayBuffer(); if (buf.byteLength > 3 * 1024 * 1024) return;
+      let bin = ''; const b = new Uint8Array(buf); for (let i = 0; i < b.length; i += 0x8000) bin += String.fromCharCode(...b.subarray(i, i + 0x8000));
+      data[u] = `data:font/${u.split('.').pop().toLowerCase()};base64,${btoa(bin)}`;
+    } catch { /* font stays unresolved; the block falls back to its fallback font */ }
+  }));
+  return css.replace(re, (all, q, u) => (data[u] ? `url(${q}${data[u]}${q})` : all));
+}
 export function rebaseElementUrls(root) {
   for (const el of root.querySelectorAll('[src],[poster],[href],image')) {
     for (const a of ['src', 'poster', 'href', 'xlink:href']) {
@@ -311,7 +329,9 @@ const errors = [];
 /** Problems seen while mounting blocks (blocked URLs, failed scripts). Read and cleared by the renderer pages. */
 export const takeHyperframesErrors = () => errors.splice(0).slice(0, 20);
 const report = (kind, name, err) => {
-  errors.push(`${kind} ${name}: ${err?.message || err}`);
+  const msg = `${kind} ${name}: ${err?.message || err}`;
+  if (!errors.includes(msg)) console.warn(`[hyperframes] ${msg}`); // surfaced for diagnostics; also returned by takeHyperframesErrors()
+  errors.push(msg);
 };
 
 /**
@@ -362,22 +382,25 @@ export function createScope(host) {
   return { run, store, dispose: () => { cleanups.splice(0).forEach((f) => f()); } };
 }
 
-async function runScripts(doc, name, scope) {
+async function runScripts(doc, name, scope, cfg = {}) {
+  let cfgUsed = false;
   const map = await cdnMap();
   for (const s of doc.querySelectorAll('script')) {
     if (s.type && !/javascript|^$/.test(s.type)) continue; // module scripts are not supported
     let code; let label;
     const src = s.getAttribute('src');
     if (src) {
-      if (/gsap@[^/]+\/dist\/gsap(\.min)?\.js/.test(src)) continue; // bundled
+      if (/gsap@[^/]+\/dist\/gsap(\.min)?\.js/.test(src) || /(^|\/)gsap(-[\d.]+)?(\.min)?\.js$/.test(src)) continue; // core gsap is bundled (CDN or a block-local copy)
       label = src;
       // Remote script URLs are never fetched: only the vendored copies (setup-blocks.mjs) or the block's own folder.
       const local = /^https?:/.test(src) ? map[src] : src;
       if (!local || local.includes('..') || /^[a-z][a-z0-9+.-]*:/i.test(local)) { report('blocked-script', src, 'not vendored'); continue; }
       try { code = await (await fetch(`${HF_BASE}/${local}`)).text(); } catch (e) { report('fetch', src, e); continue; }
     } else { code = s.textContent; label = `${name}#inline`; }
+    if (Object.keys(cfg).length && !cfgUsed) { const patched = patchConfig(code, cfg); if (patched !== null) { code = patched; cfgUsed = true; } }
     try { scope.run(code, label); } catch (e) { report('script', label, e); }
   }
+  if (Object.keys(cfg).length && !cfgUsed) report('override-rejected', name, 'block has no CONFIG object; cfg overrides ignored');
 }
 
 const applyClipVisibility = (host, t) => {
@@ -395,6 +418,27 @@ const BLOCK_ID = /^[a-z0-9][a-z0-9-]{0,80}$/;
 const sha256Hex = async (buf) => { const d = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); };
 
 /** `expectedSha256` pins the block's source: a block whose bytes do not match is never executed. */
+/** Catalog components (and some blocks) follow the "mount contract": the composition id / variables / duration sit on <html> and the
+ *  fragment lives in a <template> that a host clones into a full-frame box. Mounting it here equals a full-frame host composition. */
+export function unwrapTemplate(doc, width, height) {
+  const tpl = [...doc.body.children].find((c) => c.tagName === 'TEMPLATE');
+  const html = doc.documentElement; const id = html.getAttribute('data-composition-id');
+  if (!tpl || doc.body.querySelector('[data-composition-id]')) return false;
+  if (!id) { // the composition root itself sits inside the template: mount its content as the body
+    if (!tpl.content.querySelector('[data-composition-id]')) return false;
+    doc.body.replaceChildren(...[...tpl.content.childNodes].map((n) => doc.importNode(n, true)));
+    return true;
+  }
+  const wrap = doc.createElement('div');
+  wrap.setAttribute('data-composition-id', id); wrap.setAttribute('data-start', '0');
+  wrap.setAttribute('data-duration', html.getAttribute('data-composition-duration') || html.getAttribute('data-duration') || '5');
+  const vars = html.getAttribute('data-composition-variables'); if (vars) wrap.setAttribute('data-composition-variables', vars);
+  wrap.setAttribute('style', `position:relative;width:${width || 1920}px;height:${height || 1080}px;overflow:hidden`);
+  for (const n of [...tpl.content.childNodes]) wrap.appendChild(doc.importNode(n, true));
+  doc.body.replaceChildren(wrap);
+  return true;
+}
+
 export function BlockClip({ name, width, height, overrides, expectedSha256 }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -420,13 +464,15 @@ export function BlockClip({ name, width, height, overrides, expectedSha256 }) {
         }
         const html = new TextDecoder().decode(bytes);
         const doc = new DOMParser().parseFromString(html, 'text/html');
+        unwrapTemplate(doc, width, height);
         stampHfIds(doc.body);
-        const css = [...doc.querySelectorAll('style')].map((s) => rebaseCssUrls(scopeCss(s.textContent))).join('\n');
+        const css = await inlineBlockFonts([...doc.querySelectorAll('style')].map((s) => rebaseCssUrls(scopeCss(s.textContent))).join('\n'));
         state.current.bars = extractInsetBars(css);
         el.innerHTML = `<style>.hf-hidden{visibility:hidden!important}${css}</style>`;
         for (const l of doc.querySelectorAll('link[rel=stylesheet]')) el.appendChild(l.cloneNode());
         doc.querySelectorAll('img,image,source').forEach((x) => x.tagName.toLowerCase() === 'image' ? null : x.setAttribute('crossorigin', 'anonymous'));
         for (const n of doc.body.childNodes) if (n.nodeName !== 'SCRIPT') el.appendChild(document.importNode(n, true));
+        el.querySelectorAll('script').forEach((x) => x.remove()); // scripts run from the parsed source below, never from the mounted DOM
         stripUnsafeAttributes(el);
         if (overrides) applyOverrides(el, overrides, { allowHosts, onReject: (r) => report('override-rejected', name, r.map((x) => `${x.key}: ${x.reason}`).join('; ')) });
         rebaseElementUrls(el);
@@ -438,9 +484,13 @@ export function BlockClip({ name, width, height, overrides, expectedSha256 }) {
         const root = el.querySelector('[data-composition-id]');
         const id = root?.getAttribute('data-composition-id');
         const scope = createScope(el); scope.store.gsap = gsap; state.current.scope = scope;
+        const cleanedOv = validateOverrides(overrides || {}, { allowHosts }).cleaned;
+        const varValues = resolveVariables(parseVariableDecls(root), cleanedOv, { allowHosts, onReject: (r) => report('override-rejected', name, `${r.key}: ${r.reason}`) });
+        scope.store.__hyperframes = { getVariables: () => ({ ...varValues }) };
+        bindVariables(el, varValues);
         const fams = fontFamiliesIn(css + ' ' + [...doc.querySelectorAll('[style]')].map((n) => n.getAttribute('style')).join(';'));
         state.current.fonts = await loadGoogleFonts(fams, el);
-        if (scriptsAllowed()) await runScripts(doc, name, scope); else report('refused', name, 'scripts not run: not in an opaque-origin sandbox');
+        if (scriptsAllowed()) await runScripts(doc, name, scope, Object.fromEntries(Object.entries(validateOverrides(overrides || {}, { allowHosts }).cleaned).filter(([k]) => k.startsWith('cfg.')))); else report('refused', name, 'scripts not run: not in an opaque-origin sandbox');
         let tl = null;
         for (let i = 0; i < 120 && !cancelled; i++) {
           tl = (id && scope.store.__timelines[id]) || null;

@@ -32,7 +32,7 @@ function analyse(html) {
       three: scripts.some((s) => /three/i.test(s)) || has(/THREE\./),
       video: has(/<video/i), audio: has(/<audio/i), subcomposition: has(/data-composition-src/),
       unseededRandom: has(/Math\.random\(/), infiniteRepeat: has(/repeat\s*:\s*-1/), htmlInCanvas: has(/drawElementImage/),
-      remoteImages: [...html.matchAll(/(?:src|href)=["'](https?:\/\/[^"']+)["']/g)].map((m) => m[1]).filter((u) => !/\.js(\?|$)|fonts\.googleapis/.test(u)).slice(0, 5),
+      remoteImages: [...html.replace(/<link[^>]*rel=["'](?:preconnect|dns-prefetch)["'][^>]*>/gi, '').matchAll(/(?:src|href)=["'](https?:\/\/[^"']+)["']/g)].map((m) => m[1]).filter((u) => !/\.js(\?|$)|fonts\.googleapis|fonts\.gstatic\.com\/?$/.test(u)).slice(0, 5),
     },
   };
 }

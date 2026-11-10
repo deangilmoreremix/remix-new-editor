@@ -7,16 +7,18 @@
   "minExportFps": 8.0
  },
  "totals": {
-  "adapter-compatible": 40,
-  "verified-export": 88,
-  "unsupported": 82,
+  "adapter-compatible": 41,
+  "verified-export": 86,
+  "unsupported": 51,
+  "specialized": 32,
   "not-tested": 247
  },
  "byType": {
   "block": {
-   "adapter-compatible": 40,
-   "verified-export": 88,
-   "unsupported": 82
+   "adapter-compatible": 41,
+   "verified-export": 86,
+   "unsupported": 51,
+   "specialized": 32
   },
   "component": {
    "not-tested": 238
@@ -27,23 +29,27 @@
  },
  "verifiedButNotEnabled": {
   "export throughput 5.1 fps < 8.0": 2,
-  "no editable fields detected": 58,
+  "not yet rendered through the production adapter path": 34,
   "audio element": 2,
+  "no editable fields detected": 19,
   "WebGL": 22,
   "three.js": 7,
-  "remote image URL": 12,
   "video element": 2,
   "unseeded Math.random": 1,
   "export throughput 5.6 fps < 8.0": 1,
   "export throughput 2.9 fps < 8.0": 1,
   "sub-composition": 1,
   "export throughput 5.9 fps < 8.0": 1,
+  "asset files hosted remotely (not pinned/vendored)": 1,
   "export throughput 7.8 fps < 8.0": 2,
+  "shows built-in text that cannot be edited": 6,
   "HTML-in-canvas API": 2,
   "export throughput 7.0 fps < 8.0": 1,
+  "adapter reported errors in the production render": 1,
+  "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 30,
+ "enabledCount": 49,
  "items": {
   "ai-answer-rank": {
    "type": "block",
@@ -89,7 +95,7 @@
    "enabled": false,
    "enabledBlockedBy": [
     "export throughput 5.1 fps < 8.0",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "app-showcase": {
@@ -161,15 +167,22 @@
      "frames": 60,
      "fps": 19.1,
      "bytes": 388215
-    }
+    },
+    "prodSsimMin": 0.993
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2",
+    "t4",
+    "var_accent"
+   ]
   },
   "beat-freeze-cut": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.792: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -218,7 +231,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "audio element",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "camcorder-hud": {
@@ -238,15 +252,20 @@
      "frames": 60,
      "fps": 41.3,
      "bytes": 34041
-    }
+    },
+    "prodSsimMin": 0.997
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t3",
+    "c1"
+   ]
   },
   "camera-dolly-zoom": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.497: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -283,8 +302,7 @@
    "enabledBlockedBy": [
     "WebGL",
     "three.js",
-    "remote image URL",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "carousel-circle-1": {
@@ -333,8 +351,8 @@
   },
   "carousel-circle-3": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.815: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -350,8 +368,8 @@
   },
   "carousel-circle-4": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.786: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -367,8 +385,8 @@
   },
   "carousel-circle-5": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.586: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -384,8 +402,8 @@
   },
   "carousel-orbit-1": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.834: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -401,8 +419,8 @@
   },
   "carousel-orbit-2": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.837: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -418,8 +436,8 @@
   },
   "carousel-orbit-3": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.792: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -435,8 +453,8 @@
   },
   "carousel-orbit-4": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.796: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -474,8 +492,8 @@
   },
   "carousel-path-1": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.850: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -491,8 +509,8 @@
   },
   "carousel-path-2": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.848: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -508,8 +526,8 @@
   },
   "carousel-path-3": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.785: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -525,8 +543,8 @@
   },
   "carousel-path-4": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.837: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -542,8 +560,8 @@
   },
   "carousel-path-5": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.827: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -603,8 +621,8 @@
   },
   "carousel-text-circle-3": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.746: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -642,8 +660,8 @@
   },
   "carousel-text-circle-5": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.665: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -659,8 +677,8 @@
   },
   "carousel-vision-1": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.776: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -676,8 +694,8 @@
   },
   "carousel-vision-2": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.762: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -693,8 +711,8 @@
   },
   "carousel-vision-3": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.759: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -710,8 +728,8 @@
   },
   "carousel-vision-4": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.783: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -727,8 +745,8 @@
   },
   "carousel-vision-5": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.537: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -786,7 +804,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "chrome-orb": {
@@ -825,7 +844,8 @@
    "enabledBlockedBy": [
     "video element",
     "unseeded Math.random",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "cinematic-zoom": {
@@ -851,7 +871,8 @@
    "enabledBlockedBy": [
     "WebGL",
     "export throughput 5.6 fps < 8.0",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "claude-exchange": {
@@ -899,7 +920,8 @@
    "enabledBlockedBy": [
     "WebGL",
     "three.js",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "code-diff": {
@@ -991,7 +1013,8 @@
    "enabledBlockedBy": [
     "WebGL",
     "three.js",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "code-scroll": {
@@ -1039,7 +1062,8 @@
    "enabledBlockedBy": [
     "WebGL",
     "three.js",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "code-slice-hero": {
@@ -1076,10 +1100,12 @@
      "frames": 60,
      "fps": 8.9,
      "bytes": 61703
-    }
+    },
+    "prodSsimMin": 0.974
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "code-snippet-dark-2026": {
    "type": "block",
@@ -1173,7 +1199,7 @@
    "enabledBlockedBy": [
     "WebGL",
     "export throughput 2.9 fps < 8.0",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "cross-warp-morph": {
@@ -1198,7 +1224,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "cuboid-carousel": {
@@ -1262,7 +1289,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "editorial-flash-overlay": {
@@ -1282,12 +1310,12 @@
      "frames": 60,
      "fps": 49.5,
      "bytes": 28050
-    }
+    },
+    "prodSsimMin": 1.0
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "readyToUse": true
   },
   "exploded-stack": {
    "type": "block",
@@ -1313,8 +1341,8 @@
   },
   "extruded-logo": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.839: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1363,7 +1391,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "flowchart": {
@@ -1438,8 +1467,8 @@
   },
   "freeze-frame-dressing": {
    "type": "block",
-   "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "status": "specialized",
+   "reason": "production adapter path worst-sample SSIM 0.823 (research harness reached 0.977)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1453,12 +1482,11 @@
      "frames": 60,
      "fps": 34.7,
      "bytes": 198257
-    }
+    },
+    "prodSsimMin": 0.823
    },
    "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
-   ]
+   "enabledBlockedBy": []
   },
   "frost": {
    "type": "block",
@@ -1523,13 +1551,13 @@
     "WebGL",
     "three.js",
     "sub-composition",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "glass-hero": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.838: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1582,7 +1610,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "godrays": {
@@ -1633,7 +1662,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "export throughput 5.9 fps < 8.0",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "gravitational-lens": {
@@ -1680,7 +1710,7 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "heatmap": {
@@ -1719,8 +1749,9 @@
    "enabledBlockedBy": [
     "video element",
     "audio element",
+    "asset files hosted remotely (not pinned/vendored)",
     "export throughput 7.8 fps < 8.0",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "hologram": {
@@ -1751,8 +1782,8 @@
   },
   "hw-frame": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.663: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1783,11 +1814,13 @@
      "frames": 60,
      "fps": 28.0,
      "bytes": 28051
-    }
+    },
+    "prodSsimMin": 0.991
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "cfg_animationOut"
    ]
   },
   "hw-pipeline": {
@@ -1811,7 +1844,8 @@
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "no editable fields detected"
+    "shows built-in text that cannot be edited",
+    "not yet rendered through the production adapter path"
    ]
   },
   "hw-scribble-transition": {
@@ -1875,11 +1909,14 @@
      "frames": 60,
      "fps": 30.8,
      "bytes": 370956
-    }
+    },
+    "prodSsimMin": 0.957
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "cfg_animationIn",
+    "cfg_animationOut"
    ]
   },
   "hw-write-title": {
@@ -1899,11 +1936,13 @@
      "frames": 60,
      "fps": 31.5,
      "bytes": 28001
-    }
+    },
+    "prodSsimMin": 0.996
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "cfg_animationOut"
    ]
   },
   "instagram-follow": {
@@ -1923,13 +1962,12 @@
      "frames": 60,
      "fps": 30.0,
      "bytes": 180991
-    }
+    },
+    "prodSsimMin": 0.986
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "ios26-liquid-glass": {
    "type": "block",
@@ -1956,7 +1994,8 @@
     "three.js",
     "HTML-in-canvas API",
     "export throughput 7.0 fps < 8.0",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "lens-flare": {
@@ -2071,13 +2110,12 @@
      "frames": 60,
      "fps": 32.7,
      "bytes": 164813
-    }
+    },
+    "prodSsimMin": 1.0
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lottie-character-walk": {
    "type": "block",
@@ -2096,12 +2134,16 @@
      "frames": 60,
      "fps": 45.1,
      "bytes": 39205
-    }
+    },
+    "prodSsimMin": 0.996
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
+    "adapter reported errors in the production render"
+   ],
+   "droppedIneffective": [
+    "var_title",
+    "var_body"
    ]
   },
   "lower-third-bild": {
@@ -2121,10 +2163,12 @@
      "frames": 60,
      "fps": 41.1,
      "bytes": 39693
-    }
+    },
+    "prodSsimMin": 1.0
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lt-accent-underline": {
    "type": "block",
@@ -2143,10 +2187,12 @@
      "frames": 60,
      "fps": 39.8,
      "bytes": 95325
-    }
+    },
+    "prodSsimMin": 0.997
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lt-bold-block": {
    "type": "block",
@@ -2165,10 +2211,12 @@
      "frames": 60,
      "fps": 33.1,
      "bytes": 74450
-    }
+    },
+    "prodSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lt-clean-bar": {
    "type": "block",
@@ -2187,10 +2235,12 @@
      "frames": 60,
      "fps": 38.9,
      "bytes": 81575
-    }
+    },
+    "prodSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lt-color-block": {
    "type": "block",
@@ -2209,10 +2259,12 @@
      "frames": 60,
      "fps": 37.9,
      "bytes": 133187
-    }
+    },
+    "prodSsimMin": 0.973
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lt-dark-card": {
    "type": "block",
@@ -2231,10 +2283,12 @@
      "frames": 60,
      "fps": 40.0,
      "bytes": 78919
-    }
+    },
+    "prodSsimMin": 0.998
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lt-kicker-name": {
    "type": "block",
@@ -2253,10 +2307,12 @@
      "frames": 60,
      "fps": 35.4,
      "bytes": 67435
-    }
+    },
+    "prodSsimMin": 0.998
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lt-mask-reveal": {
    "type": "block",
@@ -2275,10 +2331,14 @@
      "frames": 60,
      "fps": 41.8,
      "bytes": 62052
-    }
+    },
+    "prodSsimMin": 0.996
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "c1"
+   ]
   },
   "lt-neon-border": {
    "type": "block",
@@ -2297,10 +2357,15 @@
      "frames": 60,
      "fps": 12.5,
      "bytes": 233306
-    }
+    },
+    "prodSsimMin": 0.957
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2"
+   ]
   },
   "lt-side-rule": {
    "type": "block",
@@ -2319,10 +2384,12 @@
      "frames": 60,
      "fps": 37.5,
      "bytes": 135401
-    }
+    },
+    "prodSsimMin": 0.997
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lt-soft-pill": {
    "type": "block",
@@ -2341,10 +2408,12 @@
      "frames": 60,
      "fps": 35.0,
      "bytes": 103006
-    }
+    },
+    "prodSsimMin": 0.993
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "lt-stack-bars": {
    "type": "block",
@@ -2363,10 +2432,12 @@
      "frames": 60,
      "fps": 35.7,
      "bytes": 39173
-    }
+    },
+    "prodSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "macos-notification": {
    "type": "block",
@@ -2385,12 +2456,14 @@
      "frames": 60,
      "fps": 30.3,
      "bytes": 107608
-    }
+    },
+    "prodSsimMin": 0.997
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t3"
    ]
   },
   "macos-tahoe-liquid-glass": {
@@ -2480,11 +2553,18 @@
      "frames": 60,
      "fps": 29.3,
      "bytes": 160281
-    }
+    },
+    "prodSsimMin": 1.0
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "cfg_animationIn",
+    "cfg_animationOut",
+    "cfg_drift",
+    "cfg_blob1_opacity",
+    "cfg_blob2_opacity",
+    "cfg_frostBlur"
    ]
   },
   "mk-callout-highlight": {
@@ -2504,11 +2584,14 @@
      "frames": 60,
      "fps": 38.5,
      "bytes": 219073
-    }
+    },
+    "prodSsimMin": 0.992
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "cfg_animationIn",
+    "cfg_animationOut"
    ]
   },
   "mk-clone-wall-transition": {
@@ -2532,7 +2615,8 @@
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "no editable fields detected"
+    "shows built-in text that cannot be edited",
+    "not yet rendered through the production adapter path"
    ]
   },
   "mk-line-graph": {
@@ -2556,7 +2640,8 @@
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "no editable fields detected"
+    "shows built-in text that cannot be edited",
+    "not yet rendered through the production adapter path"
    ]
   },
   "mk-placeholder-grid": {
@@ -2576,11 +2661,13 @@
      "frames": 60,
      "fps": 24.0,
      "bytes": 325218
-    }
+    },
+    "prodSsimMin": 0.995
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "cfg_animationOut"
    ]
   },
   "mk-progress-stat": {
@@ -2600,10 +2687,16 @@
      "frames": 60,
      "fps": 43.9,
      "bytes": 96063
-    }
+    },
+    "prodSsimMin": 0.994
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "cfg_animationIn",
+    "cfg_animationOut"
+   ]
   },
   "mk-specs-list": {
    "type": "block",
@@ -2626,7 +2719,8 @@
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "no editable fields detected"
+    "shows built-in text that cannot be edited",
+    "not yet rendered through the production adapter path"
    ]
   },
   "nebula": {
@@ -2708,7 +2802,7 @@
    "enabled": false,
    "enabledBlockedBy": [
     "export throughput 5.1 fps < 8.0",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "notification-cascade": {
@@ -2728,10 +2822,27 @@
      "frames": 60,
      "fps": 16.7,
      "bytes": 786946
-    }
+    },
+    "prodSsimMin": 0.967
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t2",
+    "t3",
+    "t5",
+    "t6",
+    "var_notifTitle",
+    "var_message1",
+    "var_message2",
+    "var_message3",
+    "var_message4",
+    "var_appName",
+    "var_headlineTop",
+    "var_headlineAccent",
+    "var_footerText",
+    "var_brandLogo"
+   ]
   },
   "nyc-paris-flight": {
    "type": "block",
@@ -2787,8 +2898,8 @@
   },
   "organic-light-leak-overlay": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.733: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -2819,10 +2930,15 @@
      "frames": 60,
      "fps": 15.2,
      "bytes": 817635
-    }
+    },
+    "prodSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t3",
+    "var_dataSeries"
+   ]
   },
   "plasma": {
    "type": "block",
@@ -2908,7 +3024,7 @@
    "enabledBlockedBy": [
     "WebGL",
     "export throughput 7.8 fps < 8.0",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "reddit-post": {
@@ -2928,13 +3044,12 @@
      "frames": 60,
      "fps": 19.1,
      "bytes": 248136
-    }
+    },
+    "prodSsimMin": 0.998
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "ridged-burn": {
    "type": "block",
@@ -2958,7 +3073,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "ripple-waves": {
@@ -2983,7 +3099,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "ripples": {
@@ -3038,10 +3155,30 @@
      "frames": 60,
      "fps": 10.4,
      "bytes": 615754
-    }
+    },
+    "prodSsimMin": 0.997
    },
-   "enabled": true,
-   "enabledBlockedBy": []
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ],
+   "droppedIneffective": [
+    "t1",
+    "t2",
+    "t3",
+    "t4",
+    "var_shareTitle",
+    "var_senderName",
+    "var_itemLabel",
+    "var_stripText",
+    "var_acceptLabel",
+    "var_declineLabel",
+    "var_slideImage1",
+    "var_slideImage2",
+    "var_slideImage3",
+    "var_slideImage4",
+    "var_brandLogo"
+   ]
   },
   "sine-wave": {
    "type": "block",
@@ -3073,10 +3210,30 @@
      "frames": 60,
      "fps": 17.1,
      "bytes": 536932
-    }
+    },
+    "prodSsimMin": 0.966
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t4",
+    "var_request1Title",
+    "var_request1Text",
+    "var_request2Title",
+    "var_request2Text",
+    "var_request3Title",
+    "var_request3Text",
+    "var_request4Title",
+    "var_request4Text",
+    "var_request5Title",
+    "var_request5Text",
+    "var_request6Title",
+    "var_request6Text",
+    "var_request7Title",
+    "var_request7Text",
+    "var_request8Title",
+    "var_request8Text"
+   ]
   },
   "snow": {
    "type": "block",
@@ -3095,12 +3252,12 @@
      "frames": 60,
      "fps": 25.9,
      "bytes": 478198
-    }
+    },
+    "prodSsimMin": 0.985
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "spain-map": {
    "type": "block",
@@ -3119,13 +3276,12 @@
      "frames": 60,
      "fps": 24.4,
      "bytes": 184326
-    }
+    },
+    "prodSsimMin": 1.0
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "spiral": {
    "type": "block",
@@ -3163,7 +3319,7 @@
    "enabledBlockedBy": [
     "WebGL",
     "three.js",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "split-flap-board": {
@@ -3183,17 +3339,26 @@
      "frames": 60,
      "fps": 10.8,
      "bytes": 464795
-    }
+    },
+    "prodSsimMin": 0.995
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "no editable fields detected"
-   ]
+    "no editable field with a measured visible effect"
+   ],
+   "droppedIneffective": [
+    "var_boardText",
+    "var_flapAlphabet",
+    "var_flipDuration",
+    "var_cellStagger",
+    "var_cellCount"
+   ],
+   "readyToUse": true
   },
   "spotify-card": {
    "type": "block",
-   "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "status": "adapter-compatible",
+   "reason": "production adapter path worst-sample SSIM 0.929 (research harness reached 0.986)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3207,13 +3372,11 @@
      "frames": 60,
      "fps": 17.3,
      "bytes": 325346
-    }
+    },
+    "prodSsimMin": 0.929
    },
    "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
-   ]
+   "enabledBlockedBy": []
   },
   "starfield": {
    "type": "block",
@@ -3232,11 +3395,14 @@
      "frames": 60,
      "fps": 17.1,
      "bytes": 96205
-    }
+    },
+    "prodSsimMin": 0.993
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "var_tone",
+    "var_speed"
    ]
   },
   "strands": {
@@ -3313,7 +3479,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "thermal-distortion": {
@@ -3338,7 +3505,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "thin-film": {
@@ -3388,13 +3556,12 @@
      "frames": 60,
      "fps": 33.7,
      "bytes": 165681
-    }
+    },
+    "prodSsimMin": 0.987
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "transitions-3d": {
    "type": "block",
@@ -3435,10 +3602,16 @@
      "frames": 60,
      "fps": 22.1,
      "bytes": 39921
-    }
+    },
+    "prodSsimMin": 0.998
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2",
+    "t3"
+   ]
   },
   "transitions-cover": {
    "type": "block",
@@ -3457,10 +3630,17 @@
      "frames": 60,
      "fps": 20.9,
      "bytes": 150001
-    }
+    },
+    "prodSsimMin": 0.998
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2",
+    "t5",
+    "t6"
+   ]
   },
   "transitions-destruction": {
    "type": "block",
@@ -3501,10 +3681,17 @@
      "frames": 60,
      "fps": 21.8,
      "bytes": 39974
-    }
+    },
+    "prodSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2",
+    "t3",
+    "t6"
+   ]
   },
   "transitions-distortion": {
    "type": "block",
@@ -3523,10 +3710,16 @@
      "frames": 60,
      "fps": 24.4,
      "bytes": 170219
-    }
+    },
+    "prodSsimMin": 0.997
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2",
+    "t5"
+   ]
   },
   "transitions-grid": {
    "type": "block",
@@ -3545,10 +3738,16 @@
      "frames": 60,
      "fps": 23.9,
      "bytes": 137497
-    }
+    },
+    "prodSsimMin": 0.998
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t3",
+    "t4",
+    "t5"
+   ]
   },
   "transitions-light": {
    "type": "block",
@@ -3567,10 +3766,17 @@
      "frames": 60,
      "fps": 19.2,
      "bytes": 144611
-    }
+    },
+    "prodSsimMin": 0.998
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2",
+    "t5",
+    "t6"
+   ]
   },
   "transitions-mechanical": {
    "type": "block",
@@ -3611,10 +3817,16 @@
      "frames": 60,
      "fps": 21.3,
      "bytes": 40015
-    }
+    },
+    "prodSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2",
+    "t3"
+   ]
   },
   "transitions-push": {
    "type": "block",
@@ -3633,10 +3845,17 @@
      "frames": 60,
      "fps": 22.6,
      "bytes": 39956
-    }
+    },
+    "prodSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2",
+    "t3",
+    "t6"
+   ]
   },
   "transitions-radial": {
    "type": "block",
@@ -3655,10 +3874,15 @@
      "frames": 60,
      "fps": 21.1,
      "bytes": 40313
-    }
+    },
+    "prodSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t1",
+    "t2"
+   ]
   },
   "transitions-scale": {
    "type": "block",
@@ -3684,8 +3908,8 @@
   },
   "ui-3d-reveal": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.825: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3723,8 +3947,8 @@
   },
   "us-map-bubble": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.769: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3740,8 +3964,8 @@
   },
   "us-map-flow": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.803: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3772,12 +3996,13 @@
      "frames": 60,
      "fps": 28.7,
      "bytes": 309334
-    }
+    },
+    "prodSsimMin": 0.996
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "t4"
    ]
   },
   "vfx-anamorphic-flare": {
@@ -3797,11 +4022,13 @@
      "frames": 60,
      "fps": 16.7,
      "bytes": 522419
-    }
+    },
+    "prodSsimMin": 1.0
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "var_tint"
    ]
   },
   "vfx-iphone-device": {
@@ -3840,8 +4067,8 @@
   },
   "vfx-liquid-glass": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.744: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3878,13 +4105,14 @@
    "enabledBlockedBy": [
     "WebGL",
     "HTML-in-canvas API",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "vfx-portal": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.000: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -4009,11 +4237,14 @@
      "frames": 60,
      "fps": 22.5,
      "bytes": 184314
-    }
+    },
+    "prodSsimMin": 0.991
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no editable fields detected"
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "var_rows",
+    "var_rows_max"
    ]
   },
   "weight-wave": {
@@ -4060,7 +4291,8 @@
    "enabled": false,
    "enabledBlockedBy": [
     "WebGL",
-    "no editable fields detected"
+    "no editable fields detected",
+    "not yet rendered through the production adapter path"
    ]
   },
   "wireframe-portal-title": {
@@ -4087,8 +4319,8 @@
   },
   "world-map": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "MP4 export failed: not run",
+   "status": "specialized",
+   "reason": "renders, but worst-sample SSIM 0.688: content differs from native (export not attempted)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -4132,13 +4364,12 @@
      "frames": 60,
      "fps": 15.3,
      "bytes": 264938
-    }
+    },
+    "prodSsimMin": 0.992
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "yt-comment-card": {
    "type": "block",
@@ -4161,7 +4392,8 @@
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "no editable fields detected"
+    "shows built-in text that cannot be edited",
+    "not yet rendered through the production adapter path"
    ]
   },
   "yt-lcd-background": {
@@ -4203,10 +4435,19 @@
      "frames": 60,
      "fps": 13.7,
      "bytes": 381101
-    }
+    },
+    "prodSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "droppedIneffective": [
+    "cfg_logoType",
+    "cfg_lines_enabled",
+    "cfg_animationIn",
+    "cfg_animationOut",
+    "cfg_lines_count",
+    "cfg_lines_distort"
+   ]
   },
   "yt-lower-third": {
    "type": "block",
@@ -4225,13 +4466,12 @@
      "frames": 60,
      "fps": 32.7,
      "bytes": 135263
-    }
+    },
+    "prodSsimMin": 0.999
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "remote image URL",
-    "no editable fields detected"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "droppedIneffective": []
   },
   "yt-prism-title": {
    "type": "block",
@@ -4277,7 +4517,7 @@
    "enabled": false,
    "enabledBlockedBy": [
     "export throughput 4.6 fps < 8.0",
-    "no editable fields detected"
+    "not yet rendered through the production adapter path"
    ]
   },
   "agent-cursor": {

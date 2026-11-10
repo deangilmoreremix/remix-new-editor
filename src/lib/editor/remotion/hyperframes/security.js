@@ -1,3 +1,4 @@
+import { isCfgKey } from './config.js';
 /**
  * Security policy for HyperFrames content in the browser renderer (PoC).
  *
@@ -82,8 +83,15 @@ export function validateOverrides(set, opts = {}) {
       if (key.endsWith('.attr.alt')) { const t = sanitizeText(value, 120); t === null ? no('alt must be a string') : (cleaned[key] = t); continue; }
       const r = validateAssetUrl(value, opts); r.ok ? (cleaned[key] = r.url) : no(`image url: ${r.reason}`); continue;
     }
+    if (key.startsWith('cfg.')) {
+      if (!isCfgKey(key)) { no('config path not allowed'); continue; }
+      if (typeof value === 'string') { const t = sanitizeText(value, 200); t === null ? no('config text rejected') : (cleaned[key] = t); continue; }
+      if (typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 100000) { cleaned[key] = value; continue; }
+      if (typeof value === 'boolean') { cleaned[key] = value; continue; }
+      no('config value type not allowed'); continue;
+    }
     if ((m = /^var\.(?<id>[A-Za-z0-9_-]+)$/.exec(key))) {
-      if (typeof value === 'string') { cleaned[key] = sanitizeText(value); continue; }
+      if (typeof value === 'string') { value.length <= 2100000 ? (cleaned[key] = value) : no('variable text too long'); continue; } // per-type checks (length, range, enum, asset allow-list) happen in resolveVariables against the declaration
       if (typeof value === 'number' || typeof value === 'boolean') { cleaned[key] = value; continue; }
       if (value && typeof value === 'object' && typeof value.url === 'string') { const r = validateAssetUrl(value.url, opts); r.ok ? (cleaned[key] = { url: r.url, ...(value.alt ? { alt: sanitizeText(value.alt, 120) } : {}) }) : no(`image url: ${r.reason}`); continue; }
       no('variable value type not allowed'); continue;

@@ -3,6 +3,7 @@
  "items": [
   {
    "id": "bar-chart-race",
+   "type": "block",
    "title": "Bar Chart Race",
    "description": "Ranked bars grow and overtake each other as a time series advances, with the axis rescaling as values climb and the accent handing over to whoever leads",
    "tags": [
@@ -18,6 +19,7 @@
    },
    "duration": 12,
    "sourceSha256": "5ce62fd8178c61a09dc7fdac0ad810268edbb68b5321a08698a205579ccfe895",
+   "readyToUse": false,
    "files": [
     {
      "path": "bar-chart-race.html",
@@ -27,42 +29,12 @@
    ],
    "editables": [
     {
-     "key": "t1",
-     "label": "Text 1: Streaming Subscribers by Se\u2026",
-     "type": "text",
-     "defaultValue": "Streaming Subscribers by Service",
-     "target": {
-      "hfId": "hf-6",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t2",
-     "label": "Text 2: Ranked by reported subscrib\u2026",
-     "type": "text",
-     "defaultValue": "Ranked by reported subscribers",
-     "target": {
-      "hfId": "hf-7",
-      "kind": "text"
-     }
-    },
-    {
      "key": "t3",
      "label": "Text 3: Period",
      "type": "text",
      "defaultValue": "Period",
      "target": {
       "hfId": "hf-9",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t4",
-     "label": "Text 4: 2019",
-     "type": "text",
-     "defaultValue": "2019",
-     "target": {
-      "hfId": "hf-10",
       "kind": "text"
      }
     },
@@ -75,11 +47,111 @@
       "hfId": "hf-13",
       "kind": "text"
      }
+    },
+    {
+     "key": "var_title",
+     "label": "Title",
+     "target": {
+      "kind": "var",
+      "id": "title"
+     },
+     "type": "text",
+     "defaultValue": "Streaming Subscribers by Service"
+    },
+    {
+     "key": "var_subtitle",
+     "label": "Subtitle",
+     "target": {
+      "kind": "var",
+      "id": "subtitle"
+     },
+     "type": "text",
+     "defaultValue": "Ranked by reported subscribers"
+    },
+    {
+     "key": "var_periods",
+     "label": "Period labels (comma separated)",
+     "target": {
+      "kind": "var",
+      "id": "periods"
+     },
+     "type": "text",
+     "defaultValue": "2019, 2020, 2021, 2022, 2023, 2024"
+    },
+    {
+     "key": "var_series",
+     "label": "Series (one per line: Name: v1, v2, ...)",
+     "target": {
+      "kind": "var",
+      "id": "series"
+     },
+     "type": "text",
+     "defaultValue": "Northwind: 42, 58, 71, 96, 118, 131\nCobalt: 30, 46, 68, 92, 126, 168\nFerry: 55, 62, 66, 70, 74, 79\nMarlow: 18, 33, 52, 61, 88, 104\nAster: 25, 28, 44, 58, 63, 72\nPell: 12, 20, 39, 47, 55, 90\nQuill: 8, 11, 15, 24, 40, 66\nDunmore: 35, 37, 38, 40, 42, 44"
+    },
+    {
+     "key": "var_valuePrefix",
+     "label": "Value prefix",
+     "target": {
+      "kind": "var",
+      "id": "valuePrefix"
+     },
+     "type": "text",
+     "defaultValue": "$"
+    },
+    {
+     "key": "var_valueSuffix",
+     "label": "Value suffix",
+     "target": {
+      "kind": "var",
+      "id": "valueSuffix"
+     },
+     "type": "text",
+     "defaultValue": "M"
+    },
+    {
+     "key": "var_barCount",
+     "label": "Bars shown",
+     "target": {
+      "kind": "var",
+      "id": "barCount"
+     },
+     "type": "number",
+     "defaultValue": 6,
+     "min": 3,
+     "max": 12,
+     "step": 1
+    },
+    {
+     "key": "var_periodDuration",
+     "label": "Seconds per period",
+     "target": {
+      "kind": "var",
+      "id": "periodDuration"
+     },
+     "type": "number",
+     "defaultValue": 2,
+     "min": 0.4,
+     "max": 6,
+     "step": 0.1
+    },
+    {
+     "key": "var_valueDecimals",
+     "label": "Value decimals",
+     "target": {
+      "kind": "var",
+      "id": "valueDecimals"
+     },
+     "type": "number",
+     "defaultValue": 0,
+     "min": 0,
+     "max": 3,
+     "step": 1
     }
    ]
   },
   {
    "id": "camcorder-hud",
+   "type": "block",
    "title": "Camcorder HUD",
    "description": "Responsive REC, battery, editable date placeholder, and timeline-driven counter overlay for creator-camera and camcorder treatments",
    "tags": [
@@ -98,6 +170,7 @@
    },
    "duration": 4,
    "sourceSha256": "f7e1b992a4ad93195ada7dc0ecb3ed0beb3916c8a40ac7a518b7745bf5f8810b",
+   "readyToUse": false,
    "files": [
     {
      "path": "camcorder-hud.html",
@@ -125,32 +198,12 @@
       "hfId": "hf-10",
       "kind": "text"
      }
-    },
-    {
-     "key": "t3",
-     "label": "Text 3: 00:00:00",
-     "type": "text",
-     "defaultValue": "00:00:00",
-     "target": {
-      "hfId": "hf-11",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "c1",
-     "label": "Color 1",
-     "type": "color",
-     "defaultValue": "#f12c2c",
-     "target": {
-      "hfId": "hf-4",
-      "kind": "style",
-      "prop": "backgroundColor"
-     }
     }
    ]
   },
   {
    "id": "code-snippet-apple-terminal-pro",
+   "type": "block",
    "title": "Code Snippet - Apple Terminal Pro",
    "description": "Apple Terminal Pro profile: black background with grey text and lime green cursor, per-character typing animation of a shell session.",
    "tags": [
@@ -168,6 +221,7 @@
    },
    "duration": 12,
    "sourceSha256": "597133c12cbba8c7f282ab02e6dc62e20301955bc72f7ef848706d42bbf57417",
+   "readyToUse": false,
    "files": [
     {
      "path": "code-snippet-apple-terminal-pro.html",
@@ -239,7 +293,617 @@
    ]
   },
   {
+   "id": "editorial-flash-overlay",
+   "type": "block",
+   "title": "Editorial Flash Overlay",
+   "description": "Finite neutral-warm light layers for a seek-safe camera-flash cut or social reveal",
+   "tags": [
+    "flash",
+    "editorial",
+    "social",
+    "light",
+    "transition",
+    "overlay",
+    "media-treatment-overlay"
+   ],
+   "category": "flash",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "0730392042a50c077c7eb3808bf6d76ddc0bcec6b6272fb2ce300007bd26478f",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "editorial-flash-overlay.html",
+     "target": "compositions/editorial-flash-overlay.html",
+     "sha256": "0730392042a50c077c7eb3808bf6d76ddc0bcec6b6272fb2ce300007bd26478f"
+    }
+   ],
+   "editables": []
+  },
+  {
+   "id": "hw-path-text",
+   "type": "block",
+   "title": "Text Along a Path",
+   "description": "Handwriting flowing along any SVG path with a per-character reveal; the path is the only geometry input",
+   "tags": [
+    "handwritten",
+    "typography",
+    "path",
+    "overlay"
+   ],
+   "category": "handwritten",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "0641285d5248335fa7ef69dabcbcf960c792614d13fc5105568879224e1b3d92",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "hw-path-text.html",
+     "target": "compositions/hw-path-text.html",
+     "sha256": "0641285d5248335fa7ef69dabcbcf960c792614d13fc5105568879224e1b3d92"
+    },
+    {
+     "path": "assets/fonts/Caveat-700-latin.woff2",
+     "target": "assets/fonts/Caveat-700-latin.woff2",
+     "sha256": "891951df5e8b5b0f0bc760d31375405e795c666b5add70437de12d4a6482b33f"
+    }
+   ],
+   "editables": [
+    {
+     "key": "cfg_text",
+     "label": "Text",
+     "defaultValue": "come on this wild journey with me...",
+     "target": {
+      "kind": "cfg",
+      "path": "text"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_showGuide",
+     "label": "Show Guide",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "showGuide"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_boil_enabled",
+     "label": "Boil \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_fontSize",
+     "label": "Font Size",
+     "defaultValue": 92,
+     "target": {
+      "kind": "cfg",
+      "path": "fontSize"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 276,
+     "step": 1
+    },
+    {
+     "key": "cfg_typeCharDelay",
+     "label": "Type Char Delay",
+     "defaultValue": 0.05,
+     "target": {
+      "kind": "cfg",
+      "path": "typeCharDelay"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05
+    },
+    {
+     "key": "cfg_boil_amp",
+     "label": "Boil \u203a amp",
+     "defaultValue": 1.4,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.amp"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 0.1
+    },
+    {
+     "key": "cfg_boil_rot",
+     "label": "Boil \u203a rot",
+     "defaultValue": 0.3,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.rot"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05
+    },
+    {
+     "key": "cfg_boil_frameDrop",
+     "label": "Boil \u203a frame Drop",
+     "defaultValue": 3,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.frameDrop"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 1
+    }
+   ]
+  },
+  {
+   "id": "hw-title",
+   "type": "block",
+   "title": "Handwritten Title",
+   "description": "Handwritten display text with a scalar-driven word-by-word highlight sweep and a seeded squiggle underline sized to the text; boils",
+   "tags": [
+    "handwritten",
+    "typography",
+    "title-card",
+    "overlay"
+   ],
+   "category": "handwritten",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "4ced2ce725fde59d21f5d34a4b4787bb5dd778b8a9267852a4dac587d6e296e8",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "hw-title.html",
+     "target": "compositions/hw-title.html",
+     "sha256": "4ced2ce725fde59d21f5d34a4b4787bb5dd778b8a9267852a4dac587d6e296e8"
+    },
+    {
+     "path": "assets/fonts/Caveat-700-latin.woff2",
+     "target": "assets/fonts/Caveat-700-latin.woff2",
+     "sha256": "891951df5e8b5b0f0bc760d31375405e795c666b5add70437de12d4a6482b33f"
+    }
+   ],
+   "editables": [
+    {
+     "key": "cfg_text",
+     "label": "Text",
+     "defaultValue": "shine like the star you are",
+     "target": {
+      "kind": "cfg",
+      "path": "text"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_scheme",
+     "label": "Scheme",
+     "defaultValue": "chalk",
+     "target": {
+      "kind": "cfg",
+      "path": "scheme"
+     },
+     "type": "select",
+     "options": [
+      "chalk",
+      "ink"
+     ]
+    },
+    {
+     "key": "cfg_sweep_enabled",
+     "label": "Sweep \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "sweep.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_underline_enabled",
+     "label": "Underline \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "underline.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_boil_enabled",
+     "label": "Boil \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_fontSize",
+     "label": "Font Size",
+     "defaultValue": 120,
+     "target": {
+      "kind": "cfg",
+      "path": "fontSize"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 360,
+     "step": 1
+    },
+    {
+     "key": "cfg_sweep_start",
+     "label": "Sweep \u203a start",
+     "defaultValue": 0.8,
+     "target": {
+      "kind": "cfg",
+      "path": "sweep.start"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05
+    },
+    {
+     "key": "cfg_sweep_end",
+     "label": "Sweep \u203a end",
+     "defaultValue": 3.2,
+     "target": {
+      "kind": "cfg",
+      "path": "sweep.end"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 0.1
+    },
+    {
+     "key": "cfg_underline_wobble",
+     "label": "Underline \u203a wobble",
+     "defaultValue": 6,
+     "target": {
+      "kind": "cfg",
+      "path": "underline.wobble"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 18,
+     "step": 1
+    },
+    {
+     "key": "cfg_boil_amp",
+     "label": "Boil \u203a amp",
+     "defaultValue": 1.4,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.amp"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 0.1
+    },
+    {
+     "key": "cfg_boil_rot",
+     "label": "Boil \u203a rot",
+     "defaultValue": 0.3,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.rot"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05
+    },
+    {
+     "key": "cfg_boil_frameDrop",
+     "label": "Boil \u203a frame Drop",
+     "defaultValue": 3,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.frameDrop"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 1
+    }
+   ]
+  },
+  {
+   "id": "hw-write-title",
+   "type": "block",
+   "title": "Handwritten Write-On Title",
+   "description": "True glyph write-on: filled Caveat letterforms revealed by baked per-glyph centerline strokes traced in real stroke order with a curvature-adaptive pen-velocity ease (fast on straights, slow into curves, inter-stroke pen lifts); optional squiggle underline; boils",
+   "tags": [
+    "handwritten",
+    "typography",
+    "title-card",
+    "write-on",
+    "overlay"
+   ],
+   "category": "handwritten",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "da7375c1acedf86f3cf5839f6bc75ef3817d674752aaf462a9e0d0e471ac7e90",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "hw-write-title.html",
+     "target": "compositions/hw-write-title.html",
+     "sha256": "da7375c1acedf86f3cf5839f6bc75ef3817d674752aaf462a9e0d0e471ac7e90"
+    },
+    {
+     "path": "assets/baked/caveat-pen.js",
+     "target": "assets/baked/caveat-pen.js",
+     "sha256": "d7fff8f92e60c6901b3db8b9c0e0f5e1ea4df81f1ea5075b4b8224bbf12b5b0a"
+    },
+    {
+     "path": "assets/fonts/Caveat-700-latin.woff2",
+     "target": "assets/fonts/Caveat-700-latin.woff2",
+     "sha256": "891951df5e8b5b0f0bc760d31375405e795c666b5add70437de12d4a6482b33f"
+    }
+   ],
+   "editables": [
+    {
+     "key": "cfg_text",
+     "label": "Text",
+     "defaultValue": "write it on",
+     "target": {
+      "kind": "cfg",
+      "path": "text"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_scheme",
+     "label": "Scheme",
+     "defaultValue": "chalk",
+     "target": {
+      "kind": "cfg",
+      "path": "scheme"
+     },
+     "type": "select",
+     "options": [
+      "chalk",
+      "ink",
+      "chalk"
+     ]
+    },
+    {
+     "key": "cfg_boil",
+     "label": "Boil",
+     "defaultValue": "calm",
+     "target": {
+      "kind": "cfg",
+      "path": "boil"
+     },
+     "type": "select",
+     "options": [
+      "off",
+      "calm",
+      "lively"
+     ]
+    },
+    {
+     "key": "cfg_writeOn",
+     "label": "Write On",
+     "defaultValue": "trace",
+     "target": {
+      "kind": "cfg",
+      "path": "writeOn"
+     },
+     "type": "select",
+     "options": [
+      "trace",
+      "reveal",
+      "off"
+     ]
+    },
+    {
+     "key": "cfg_animationIn",
+     "label": "Animation In",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "animationIn"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_underline",
+     "label": "Underline",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "underline"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_fontSize",
+     "label": "Font Size",
+     "defaultValue": 170,
+     "target": {
+      "kind": "cfg",
+      "path": "fontSize"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 510,
+     "step": 1
+    }
+   ]
+  },
+  {
+   "id": "instagram-follow",
+   "type": "block",
+   "title": "Instagram Follow",
+   "description": "Animated Instagram follow overlay with profile card and follow button",
+   "tags": [
+    "social",
+    "overlay",
+    "instagram"
+   ],
+   "category": "social",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "duration": 4.5,
+   "sourceSha256": "3809353c3d7ebf495931b874ae2d67f985bc051f1f92bddebc51a5a2dd6e1b6f",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "instagram-follow.html",
+     "target": "compositions/instagram-follow.html",
+     "sha256": "3809353c3d7ebf495931b874ae2d67f985bc051f1f92bddebc51a5a2dd6e1b6f"
+    },
+    {
+     "path": "assets/avatar.jpg",
+     "target": "assets/avatar.jpg",
+     "sha256": "a300f59c31d2ea16195a2ff9a9af50b29c6aecc05d505d69f2a2132a53b99032"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: HeyGen",
+     "type": "text",
+     "defaultValue": "HeyGen",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: @heygen_official",
+     "type": "text",
+     "defaultValue": "@heygen_official",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: 47.5K followers",
+     "type": "text",
+     "defaultValue": "47.5K followers",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Follow",
+     "type": "text",
+     "defaultValue": "Follow",
+     "target": {
+      "hfId": "hf-14",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Following",
+     "type": "text",
+     "defaultValue": "Following",
+     "target": {
+      "hfId": "hf-16",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "i1",
+     "label": "Image 1 URL",
+     "type": "text",
+     "defaultValue": "assets/avatar.jpg",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "attr",
+      "prop": "src"
+     }
+    }
+   ]
+  },
+  {
+   "id": "logo-outro",
+   "type": "block",
+   "title": "Logo Outro",
+   "description": "Cinematic logo reveal with piece-by-piece assembly, glow bloom, tagline fade-in, and URL pill",
+   "tags": [
+    "branding",
+    "outro",
+    "logo"
+   ],
+   "category": "branding",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "b3ed1e2dbdbe1f4a36bcf11e8a75f1f7eca7c29e5f75e86628fd8922629364ff",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "logo-outro.html",
+     "target": "compositions/logo-outro.html",
+     "sha256": "b3ed1e2dbdbe1f4a36bcf11e8a75f1f7eca7c29e5f75e86628fd8922629364ff"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Nothing great is made alone.",
+     "type": "text",
+     "defaultValue": "Nothing great is made alone.",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: figma.com",
+     "type": "text",
+     "defaultValue": "figma.com",
+     "target": {
+      "hfId": "hf-14",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
    "id": "lower-third-bild",
+   "type": "block",
    "title": "Lower Third \u2014 BILD Style",
    "description": "News-style lower third with tight-fit text boxes: white headline bar with red drop-shadow, red sub-line with white drop-shadow.",
    "tags": [
@@ -255,6 +919,7 @@
    },
    "duration": 8,
    "sourceSha256": "e336778dd191bbac725aea6831c047d6ff6ca830f0705489b38ec0c7f80217f8",
+   "readyToUse": false,
    "files": [
     {
      "path": "lower-third-bild.html",
@@ -294,11 +959,32 @@
       "kind": "style",
       "prop": "backgroundColor"
      }
+    },
+    {
+     "key": "var_TXT_MAIN_1_Line",
+     "label": "Main line",
+     "target": {
+      "kind": "var",
+      "id": "TXT_MAIN_1_Line"
+     },
+     "type": "text",
+     "defaultValue": "BILD EXKLUSIV"
+    },
+    {
+     "key": "var_TXT_SUB",
+     "label": "Sub line",
+     "target": {
+      "kind": "var",
+      "id": "TXT_SUB"
+     },
+     "type": "text",
+     "defaultValue": "Sonderbericht"
     }
    ]
   },
   {
    "id": "lt-accent-underline",
+   "type": "block",
    "title": "Lower Third \u2014 Accent Underline",
    "description": "Cardless lower third for footage overlay: name rises, an accent rule draws left-to-right, role fades in; text-shadowed for legibility",
    "tags": [
@@ -315,6 +1001,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "08e62fd35e14b99dd35e658b941f2b33781ff1cadb428d7b9626d69cfe3c4fe7",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-accent-underline.html",
@@ -347,6 +1034,7 @@
   },
   {
    "id": "lt-bold-block",
+   "type": "block",
    "title": "Lower Third \u2014 Bold Block",
    "description": "High-energy podcast lower third: solid dark block wipes in, uppercase name slams up, accent tag pops",
    "tags": [
@@ -363,6 +1051,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "76a8470adf0bb1a8f3b2738efd206dfb151110b5fe65a3506a7d1852f804fce2",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-bold-block.html",
@@ -395,6 +1084,7 @@
   },
   {
    "id": "lt-clean-bar",
+   "type": "block",
    "title": "Lower Third \u2014 Clean Bar",
    "description": "Minimal white-card lower third for podcasts/interviews: accent tab, name + role, clip-wipe entrance",
    "tags": [
@@ -410,6 +1100,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "6648b428ea74128368545a5cdf8d83a82e75dc468e9d3bbbac933e1463df5a67",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-clean-bar.html",
@@ -442,6 +1133,7 @@
   },
   {
    "id": "lt-color-block",
+   "type": "block",
    "title": "Lower Third \u2014 Color Block",
    "description": "High-energy lower third: bold accent-color block slides in with overshoot, condensed name + mono role",
    "tags": [
@@ -458,6 +1150,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "6fd10042c2bfb1998566f5626d1f301d0d87244d19c793ca4c30d7b8562fa640",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-color-block.html",
@@ -490,6 +1183,7 @@
   },
   {
    "id": "lt-dark-card",
+   "type": "block",
    "title": "Lower Third \u2014 Dark Card",
    "description": "Charcoal card lower third for bright footage: name, drawn accent underline, role; slide-up entrance",
    "tags": [
@@ -506,6 +1200,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "b0386837dd6eccb06613a18b06d2ac9b17b3db755b80874d0e6c0d1aaa084bb7",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-dark-card.html",
@@ -538,6 +1233,7 @@
   },
   {
    "id": "lt-kicker-name",
+   "type": "block",
    "title": "Lower Third \u2014 Kicker Name",
    "description": "Cardless lower third with an accent eyebrow/kicker tag, heavy name, and a drawn baseline; for footage",
    "tags": [
@@ -554,6 +1250,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "d802508401c2a14fb532fc6a71043f7daa908a4d8570bcda0fa2712cf2d2ead3",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-kicker-name.html",
@@ -586,6 +1283,7 @@
   },
   {
    "id": "lt-mask-reveal",
+   "type": "block",
    "title": "Lower Third \u2014 Mask Reveal",
    "description": "Cardless lower third: an accent sweep crosses and clip-path-reveals a heavy name, role fades up; for footage",
    "tags": [
@@ -602,6 +1300,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "7f348ec3124e211f7ec8e7241f21220134504ab713143e3f9dc10e016892e2e3",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-mask-reveal.html",
@@ -629,22 +1328,12 @@
       "hfId": "hf-7",
       "kind": "text"
      }
-    },
-    {
-     "key": "c1",
-     "label": "Color 1",
-     "type": "color",
-     "defaultValue": "#ffd23f",
-     "target": {
-      "hfId": "hf-6",
-      "kind": "style",
-      "prop": "backgroundColor"
-     }
     }
    ]
   },
   {
    "id": "lt-neon-border",
+   "type": "block",
    "title": "Neon Border",
    "description": "Two arcs of light travel the edge of a rounded panel and snap corner to corner, trailing a soft three-layer bloom. A lower third for a name and role.",
    "tags": [
@@ -660,6 +1349,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "073000c8a2b634ff71a9509733293f17e8cde3f19094f4bf2407710bccbfbecb",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-neon-border.html",
@@ -669,29 +1359,125 @@
    ],
    "editables": [
     {
-     "key": "t1",
-     "label": "Text 1: Dr. Maya Chen",
-     "type": "text",
-     "defaultValue": "Dr. Maya Chen",
+     "key": "var_name",
+     "label": "Name",
      "target": {
-      "hfId": "hf-16",
-      "kind": "text"
-     }
+      "kind": "var",
+      "id": "name"
+     },
+     "type": "text",
+     "defaultValue": "Dr. Maya Chen"
     },
     {
-     "key": "t2",
-     "label": "Text 2: Host \u00b7 Neuroscientist",
-     "type": "text",
-     "defaultValue": "Host \u00b7 Neuroscientist",
+     "key": "var_role",
+     "label": "Role",
      "target": {
-      "hfId": "hf-17",
-      "kind": "text"
-     }
+      "kind": "var",
+      "id": "role"
+     },
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist"
+    },
+    {
+     "key": "var_accent",
+     "label": "Accent",
+     "target": {
+      "kind": "var",
+      "id": "accent"
+     },
+     "type": "color",
+     "defaultValue": "#cc9149"
+    },
+    {
+     "key": "var_movement",
+     "label": "Movement",
+     "target": {
+      "kind": "var",
+      "id": "movement"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "step",
+       "label": "Step (snap at corners)"
+      },
+      {
+       "value": "glide",
+       "label": "Glide (smooth)"
+      }
+     ],
+     "defaultValue": "step"
+    },
+    {
+     "key": "var_speed",
+     "label": "Speed",
+     "target": {
+      "kind": "var",
+      "id": "speed"
+     },
+     "type": "number",
+     "defaultValue": 1.6,
+     "min": 0.2,
+     "max": 6,
+     "step": 0.1
+    },
+    {
+     "key": "var_cornerRadius",
+     "label": "Corner radius",
+     "target": {
+      "kind": "var",
+      "id": "cornerRadius"
+     },
+     "type": "number",
+     "defaultValue": 26,
+     "min": 0,
+     "max": 90,
+     "step": 1
+    },
+    {
+     "key": "var_thickness",
+     "label": "Thickness",
+     "target": {
+      "kind": "var",
+      "id": "thickness"
+     },
+     "type": "number",
+     "defaultValue": 5,
+     "min": 1,
+     "max": 16,
+     "step": 1
+    },
+    {
+     "key": "var_arcLength",
+     "label": "Arc length",
+     "target": {
+      "kind": "var",
+      "id": "arcLength"
+     },
+     "type": "number",
+     "defaultValue": 22,
+     "min": 5,
+     "max": 100,
+     "step": 1
+    },
+    {
+     "key": "var_glow",
+     "label": "Glow",
+     "target": {
+      "kind": "var",
+      "id": "glow"
+     },
+     "type": "number",
+     "defaultValue": 1,
+     "min": 0,
+     "max": 2,
+     "step": 0.05
     }
    ]
   },
   {
    "id": "lt-side-rule",
+   "type": "block",
    "title": "Lower Third \u2014 Side Rule",
    "description": "Cardless lower third with a vertical accent bar; condensed display name + mono role, text-shadowed for footage",
    "tags": [
@@ -708,6 +1494,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "faa20504273f478a470bb1fa99fc5ea81fb5709b279a9acee8b15b4996917527",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-side-rule.html",
@@ -740,6 +1527,7 @@
   },
   {
    "id": "lt-soft-pill",
+   "type": "block",
    "title": "Lower Third \u2014 Soft Pill",
    "description": "Rounded white pill lower third for podcasts/interviews: status dot, name + role, scale-pop entrance",
    "tags": [
@@ -756,6 +1544,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "e1f14e3b482622e6005beec80678bc70ad661e15f3db3e3461fae414a81d5c83",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-soft-pill.html",
@@ -788,6 +1577,7 @@
   },
   {
    "id": "lt-stack-bars",
+   "type": "block",
    "title": "Lower Third \u2014 Stack Bars",
    "description": "Two stacked bars: a dark name bar wipes from the left, an accent role bar wipes from the right",
    "tags": [
@@ -804,6 +1594,7 @@
    },
    "duration": 4.8,
    "sourceSha256": "ff98825092de17e862c8c24bd8acca839840548ef64b7fcbbb2710fe6dc130cf",
+   "readyToUse": false,
    "files": [
     {
      "path": "lt-stack-bars.html",
@@ -835,7 +1626,407 @@
    ]
   },
   {
+   "id": "macos-notification",
+   "type": "block",
+   "title": "macOS Notification",
+   "description": "Animated macOS-style notification banner with app icon and message",
+   "tags": [
+    "social",
+    "overlay",
+    "notification"
+   ],
+   "category": "social",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5,
+   "sourceSha256": "bd6547f25f1c80c0d7dbdef0344627e92d57ace5e31237610928700b0a664d85",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "macos-notification.html",
+     "target": "compositions/macos-notification.html",
+     "sha256": "bd6547f25f1c80c0d7dbdef0344627e92d57ace5e31237610928700b0a664d85"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t2",
+     "label": "Text 2: HyperFrames",
+     "type": "text",
+     "defaultValue": "HyperFrames",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Prompt to replace this title",
+     "type": "text",
+     "defaultValue": "Prompt to replace this title",
+     "target": {
+      "hfId": "hf-15",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "mk-background",
+   "type": "block",
+   "title": "Minimal Gradient Background",
+   "description": "Procedural soft-blob gradient backdrop in a minimalist presentation style: two radial blobs drifting over a base color, with an animatable rounded-card bar mask and optional frosted-glass mode",
+   "tags": [
+    "background",
+    "gradient",
+    "minimal",
+    "professional",
+    "presentation"
+   ],
+   "category": "background",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 10,
+   "sourceSha256": "c6c46792306476f850ccff6e2bd792e57a3cc8f0e8d9c8ac9866aa9d8f05d8da",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "mk-background.html",
+     "target": "compositions/mk-background.html",
+     "sha256": "c6c46792306476f850ccff6e2bd792e57a3cc8f0e8d9c8ac9866aa9d8f05d8da"
+    }
+   ],
+   "editables": [
+    {
+     "key": "cfg_scheme",
+     "label": "Scheme",
+     "defaultValue": "light",
+     "target": {
+      "kind": "cfg",
+      "path": "scheme"
+     },
+     "type": "select",
+     "options": [
+      "light",
+      "dark"
+     ]
+    },
+    {
+     "key": "cfg_bar_demo",
+     "label": "Bar \u203a demo",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "bar.demo"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_blob1_r",
+     "label": "Blob1 \u203a r",
+     "defaultValue": 950,
+     "target": {
+      "kind": "cfg",
+      "path": "blob1.r"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 2850,
+     "step": 1
+    },
+    {
+     "key": "cfg_blob2_r",
+     "label": "Blob2 \u203a r",
+     "defaultValue": 1100,
+     "target": {
+      "kind": "cfg",
+      "path": "blob2.r"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 3300,
+     "step": 1
+    },
+    {
+     "key": "cfg_bar_width",
+     "label": "Bar \u203a width",
+     "defaultValue": 1440,
+     "target": {
+      "kind": "cfg",
+      "path": "bar.width"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 4320,
+     "step": 1
+    },
+    {
+     "key": "cfg_bar_height",
+     "label": "Bar \u203a height",
+     "defaultValue": 800,
+     "target": {
+      "kind": "cfg",
+      "path": "bar.height"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 2400,
+     "step": 1
+    },
+    {
+     "key": "cfg_bar_roundness",
+     "label": "Bar \u203a roundness",
+     "defaultValue": 40,
+     "target": {
+      "kind": "cfg",
+      "path": "bar.roundness"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 120,
+     "step": 1
+    },
+    {
+     "key": "cfg_contentOpacity",
+     "label": "Content Opacity",
+     "defaultValue": 1,
+     "target": {
+      "kind": "cfg",
+      "path": "contentOpacity"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05
+    }
+   ]
+  },
+  {
+   "id": "mk-callout-highlight",
+   "type": "block",
+   "title": "Word-Sweep Highlight",
+   "description": "A sentence whose word-by-word emphasis is driven by a single scalar \u2014 tween it to sync the highlight with a voiceover",
+   "tags": [
+    "typography",
+    "karaoke",
+    "captions",
+    "minimal"
+   ],
+   "category": "typography",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8,
+   "sourceSha256": "230f62094dc65caf30b116ada699cc4fabbe4ce41784463feb5361ab34ef9591",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "mk-callout-highlight.html",
+     "target": "compositions/mk-callout-highlight.html",
+     "sha256": "230f62094dc65caf30b116ada699cc4fabbe4ce41784463feb5361ab34ef9591"
+    }
+   ],
+   "editables": [
+    {
+     "key": "cfg_text",
+     "label": "Text",
+     "defaultValue": "Functionality was our goal from the very beginning",
+     "target": {
+      "kind": "cfg",
+      "path": "text"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_scheme",
+     "label": "Scheme",
+     "defaultValue": "light",
+     "target": {
+      "kind": "cfg",
+      "path": "scheme"
+     },
+     "type": "select",
+     "options": [
+      "light",
+      "dark"
+     ]
+    },
+    {
+     "key": "cfg_fontSize",
+     "label": "Font Size",
+     "defaultValue": 60,
+     "target": {
+      "kind": "cfg",
+      "path": "fontSize"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 180,
+     "step": 1
+    },
+    {
+     "key": "cfg_lineHeight",
+     "label": "Line Height",
+     "defaultValue": 1.3,
+     "target": {
+      "kind": "cfg",
+      "path": "lineHeight"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 0.1
+    },
+    {
+     "key": "cfg_maxWidth",
+     "label": "Max Width",
+     "defaultValue": 700,
+     "target": {
+      "kind": "cfg",
+      "path": "maxWidth"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 2100,
+     "step": 1
+    },
+    {
+     "key": "cfg_sweep_start",
+     "label": "Sweep \u203a start",
+     "defaultValue": 1.2,
+     "target": {
+      "kind": "cfg",
+      "path": "sweep.start"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 0.1
+    },
+    {
+     "key": "cfg_sweep_end",
+     "label": "Sweep \u203a end",
+     "defaultValue": 6.2,
+     "target": {
+      "kind": "cfg",
+      "path": "sweep.end"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 19,
+     "step": 0.1
+    }
+   ]
+  },
+  {
+   "id": "mk-placeholder-grid",
+   "type": "block",
+   "title": "Rounded Media Grid",
+   "description": "N-up rounded-corner media grid (2-up, 3-up, 4-up, 3x2, hero plus two): per-cell inside-scale framing, staggered box-in entrance, slow settle",
+   "tags": [
+    "placeholder",
+    "media",
+    "grid",
+    "minimal"
+   ],
+   "category": "placeholder",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8,
+   "sourceSha256": "52dfb41de653657021a21a1039fcdd0a0a9439acc10b850dc767cef02b7dedc9",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "mk-placeholder-grid.html",
+     "target": "compositions/mk-placeholder-grid.html",
+     "sha256": "52dfb41de653657021a21a1039fcdd0a0a9439acc10b850dc767cef02b7dedc9"
+    }
+   ],
+   "editables": [
+    {
+     "key": "cfg_kenBurns",
+     "label": "Ken Burns",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "kenBurns"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_animationIn",
+     "label": "Animation In",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "animationIn"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_margin",
+     "label": "Margin",
+     "defaultValue": 120,
+     "target": {
+      "kind": "cfg",
+      "path": "margin"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 360,
+     "step": 1
+    },
+    {
+     "key": "cfg_gap",
+     "label": "Gap",
+     "defaultValue": 40,
+     "target": {
+      "kind": "cfg",
+      "path": "gap"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 120,
+     "step": 1
+    },
+    {
+     "key": "cfg_radius",
+     "label": "Radius",
+     "defaultValue": 40,
+     "target": {
+      "kind": "cfg",
+      "path": "radius"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 120,
+     "step": 1
+    },
+    {
+     "key": "cfg_stagger",
+     "label": "Stagger",
+     "defaultValue": 0.15,
+     "target": {
+      "kind": "cfg",
+      "path": "stagger"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05
+    }
+   ]
+  },
+  {
    "id": "mk-progress-stat",
+   "type": "block",
    "title": "Count-Up Stat Card",
    "description": "Big-numeral statistic with count-up, label, thin progress track filling to value/max, and caption; light and dark schemes",
    "tags": [
@@ -850,6 +2041,7 @@
    },
    "duration": 7,
    "sourceSha256": "2c6d9e0dedf250a8e25b53c87057b511ae20545f30e7c1b1ec27b366bec74178",
+   "readyToUse": false,
    "files": [
     {
      "path": "mk-progress-stat.html",
@@ -859,19 +2051,83 @@
    ],
    "editables": [
     {
-     "key": "t1",
-     "label": "Text 1: 0",
-     "type": "text",
-     "defaultValue": "0",
+     "key": "cfg_label",
+     "label": "Label",
+     "defaultValue": "Goals reached",
      "target": {
-      "hfId": "hf-3",
-      "kind": "text"
-     }
+      "kind": "cfg",
+      "path": "label"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_caption",
+     "label": "Caption",
+     "defaultValue": "Great job, we are getting closer!",
+     "target": {
+      "kind": "cfg",
+      "path": "caption"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_scheme",
+     "label": "Scheme",
+     "defaultValue": "light",
+     "target": {
+      "kind": "cfg",
+      "path": "scheme"
+     },
+     "type": "select",
+     "options": [
+      "light",
+      "dark"
+     ]
+    },
+    {
+     "key": "cfg_value",
+     "label": "Value",
+     "defaultValue": 22,
+     "target": {
+      "kind": "cfg",
+      "path": "value"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 66,
+     "step": 1
+    },
+    {
+     "key": "cfg_max",
+     "label": "Max",
+     "defaultValue": 30,
+     "target": {
+      "kind": "cfg",
+      "path": "max"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 90,
+     "step": 1
+    },
+    {
+     "key": "cfg_trackWidth",
+     "label": "Track Width",
+     "defaultValue": 480,
+     "target": {
+      "kind": "cfg",
+      "path": "trackWidth"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1440,
+     "step": 1
     }
    ]
   },
   {
    "id": "notification-cascade",
+   "type": "block",
    "title": "Notification Cascade",
    "description": "Phone notifications land one after another and stack up the screen, each banner pushing the pile down as it arrives, before the whole stack lifts away into a closing card",
    "tags": [
@@ -888,6 +2144,7 @@
    },
    "duration": 14,
    "sourceSha256": "9bb3a62e358ff2b66c2afa6b9bd6110bfc3e834c8ff4c543c52cfc368c0db1d9",
+   "readyToUse": false,
    "files": [
     {
      "path": "notification-cascade.html",
@@ -922,52 +2179,12 @@
      }
     },
     {
-     "key": "t2",
-     "label": "Text 2: New render",
-     "type": "text",
-     "defaultValue": "New render",
-     "target": {
-      "hfId": "hf-20",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t3",
-     "label": "Text 3: Launch video is ready.",
-     "type": "text",
-     "defaultValue": "Launch video is ready.",
-     "target": {
-      "hfId": "hf-21",
-      "kind": "text"
-     }
-    },
-    {
      "key": "t4",
      "label": "Text 4: NOW",
      "type": "text",
      "defaultValue": "NOW",
      "target": {
       "hfId": "hf-22",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t5",
-     "label": "Text 5: HyperFrames",
-     "type": "text",
-     "defaultValue": "HyperFrames",
-     "target": {
-      "hfId": "hf-23",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t6",
-     "label": "Text 6: New render",
-     "type": "text",
-     "defaultValue": "New render",
-     "target": {
-      "hfId": "hf-28",
       "kind": "text"
      }
     },
@@ -997,6 +2214,7 @@
   },
   {
    "id": "oscilloscope-trace",
+   "type": "block",
    "title": "Oscilloscope Trace",
    "description": "CRT oscilloscope beam sweeping a waveform across a 10x8 graticule, with closed-form phosphor persistence: the tail decays as exp(-age/tau) and brightens where the beam slows",
    "tags": [
@@ -1012,6 +2230,7 @@
    },
    "duration": 6,
    "sourceSha256": "4ae7ce79f0bd29aa6764206101f776aced12d5ca212af4b2cb9f3e3f9c1445ea",
+   "readyToUse": false,
    "files": [
     {
      "path": "oscilloscope-trace.html",
@@ -1037,16 +2256,6 @@
      "defaultValue": "SOURCE",
      "target": {
       "hfId": "hf-8",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t3",
-     "label": "Text 3: SINE",
-     "type": "text",
-     "defaultValue": "SINE",
-     "target": {
-      "hfId": "hf-9",
       "kind": "text"
      }
     },
@@ -1079,153 +2288,190 @@
       "hfId": "hf-17",
       "kind": "text"
      }
+    },
+    {
+     "key": "var_phosphorColor",
+     "label": "Phosphor colour",
+     "target": {
+      "kind": "var",
+      "id": "phosphorColor"
+     },
+     "type": "color",
+     "defaultValue": "#5dff8f"
+    },
+    {
+     "key": "var_waveform",
+     "label": "Waveform",
+     "target": {
+      "kind": "var",
+      "id": "waveform"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "sine",
+       "label": "Sine"
+      },
+      {
+       "value": "square",
+       "label": "Square"
+      },
+      {
+       "value": "triangle",
+       "label": "Triangle"
+      },
+      {
+       "value": "data",
+       "label": "Data series"
+      }
+     ],
+     "defaultValue": "sine"
+    },
+    {
+     "key": "var_frequency",
+     "label": "Signal frequency",
+     "target": {
+      "kind": "var",
+      "id": "frequency"
+     },
+     "type": "number",
+     "defaultValue": 12,
+     "min": 0.1,
+     "max": 200,
+     "step": 0.1
+    },
+    {
+     "key": "var_amplitude",
+     "label": "Amplitude",
+     "target": {
+      "kind": "var",
+      "id": "amplitude"
+     },
+     "type": "number",
+     "defaultValue": 3,
+     "min": 0.1,
+     "max": 4,
+     "step": 0.1
+    },
+    {
+     "key": "var_persistenceMs",
+     "label": "Phosphor persistence (tau)",
+     "target": {
+      "kind": "var",
+      "id": "persistenceMs"
+     },
+     "type": "number",
+     "defaultValue": 100,
+     "min": 1,
+     "max": 1000,
+     "step": 1
+    },
+    {
+     "key": "var_sweepRate",
+     "label": "Sweep rate",
+     "target": {
+      "kind": "var",
+      "id": "sweepRate"
+     },
+     "type": "number",
+     "defaultValue": 5,
+     "min": 0.25,
+     "max": 60,
+     "step": 0.25
     }
    ]
   },
   {
-   "id": "share-sheet-carousel",
-   "title": "Share-Sheet Carousel",
-   "description": "A share sheet springs up from the bottom of the phone and cycles previews inside its card on a fast cut rhythm while the blurred ground swaps behind it, ending on an accept tap",
+   "id": "reddit-post",
+   "type": "block",
+   "title": "Reddit Post Card",
+   "description": "Animated Reddit post card overlay with upvotes and comments",
    "tags": [
-    "showcase",
-    "mock-ui",
-    "share-sheet",
-    "vertical",
-    "ad-template"
+    "social",
+    "overlay",
+    "reddit"
    ],
-   "category": "showcase",
+   "category": "social",
    "dimensions": {
-    "width": 1080,
-    "height": 1920
+    "width": 1920,
+    "height": 1080
    },
-   "duration": 7.2333,
-   "sourceSha256": "c51358e4dcfc77d61b79c4e72540f30d01104066a7b278d5bece98cb902ebea7",
+   "duration": 5,
+   "sourceSha256": "83f0b5cbf84a7365bab9e5bab1144b48e78a091611c8f078ebd9713361c4ea31",
+   "readyToUse": false,
    "files": [
     {
-     "path": "share-sheet-carousel.html",
-     "target": "compositions/share-sheet-carousel.html",
-     "sha256": "c51358e4dcfc77d61b79c4e72540f30d01104066a7b278d5bece98cb902ebea7"
-    },
-    {
-     "path": "assets/slide-01.jpg",
-     "target": "assets/slide-01.jpg",
-     "sha256": "b027e8df2ebc91b860b212d46ad7893454a2c875372455406ee1f974af483fb3"
-    },
-    {
-     "path": "assets/slide-02.jpg",
-     "target": "assets/slide-02.jpg",
-     "sha256": "e0afd7322aaec59a72d7424ac07659972471fb3eb63cbfbc4b8bc3fd76ef5c29"
-    },
-    {
-     "path": "assets/slide-03.jpg",
-     "target": "assets/slide-03.jpg",
-     "sha256": "cd908527295c4367e67690212848742d69f45b7d7934410ba8a3f79fbe8fd037"
-    },
-    {
-     "path": "assets/slide-04.jpg",
-     "target": "assets/slide-04.jpg",
-     "sha256": "734322e45db3b243fcc2e75aa1264bbbc122aa686ebde0d17b7a79f584078ad1"
-    },
-    {
-     "path": "assets/hyperframes-logo-black.svg",
-     "target": "assets/hyperframes-logo-black.svg",
-     "sha256": "dc156e7c21b474746c2ff3b651b96c90eb44745cc88252f0f36c140faf63cb59"
-    },
-    {
-     "path": "TEMPLATE.md",
-     "target": "TEMPLATE.md",
-     "sha256": "d9258bee9a425c2249c33255a020f78edcd6807f3a6a95692b76e004ea222f4d"
+     "path": "reddit-post.html",
+     "target": "compositions/reddit-post.html",
+     "sha256": "83f0b5cbf84a7365bab9e5bab1144b48e78a091611c8f078ebd9713361c4ea31"
     }
    ],
    "editables": [
     {
      "key": "t1",
-     "label": "Text 1: Share",
+     "label": "Text 1: r/",
      "type": "text",
-     "defaultValue": "Share",
+     "defaultValue": "r/",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: r/hyperframes",
+     "type": "text",
+     "defaultValue": "r/hyperframes",
      "target": {
       "hfId": "hf-9",
       "kind": "text"
      }
     },
     {
-     "key": "t2",
-     "label": "Text 2: OPEN-SOURCE VIDEO ENGINE \u00b7 \u2026",
-     "type": "text",
-     "defaultValue": "OPEN-SOURCE VIDEO ENGINE \u00b7 SHIP FROM HTML",
-     "target": {
-      "hfId": "hf-19",
-      "kind": "text"
-     }
-    },
-    {
      "key": "t3",
-     "label": "Text 3: Decline",
+     "label": "Text 3: u/placeholder_user \u00b7 3h",
      "type": "text",
-     "defaultValue": "Decline",
+     "defaultValue": "u/placeholder_user \u00b7 3h",
      "target": {
-      "hfId": "hf-23",
+      "hfId": "hf-10",
       "kind": "text"
      }
     },
     {
      "key": "t4",
-     "label": "Text 4: Accept",
+     "label": "Text 4: Prompt to change this title\u2026",
      "type": "text",
-     "defaultValue": "Accept",
+     "defaultValue": "Prompt to change this title to whatever you want",
      "target": {
-      "hfId": "hf-24",
+      "hfId": "hf-11",
       "kind": "text"
      }
     },
     {
-     "key": "c1",
-     "label": "Color 1",
-     "type": "color",
-     "defaultValue": "#dfdfdf",
-     "target": {
-      "hfId": "hf-20",
-      "kind": "style",
-      "prop": "backgroundColor"
-     }
-    },
-    {
-     "key": "c2",
-     "label": "Color 2",
-     "type": "color",
-     "defaultValue": "#e9e9e9",
-     "target": {
-      "hfId": "hf-21",
-      "kind": "style",
-      "prop": "backgroundColor"
-     }
-    },
-    {
-     "key": "i1",
-     "label": "Image 1 URL",
+     "key": "t5",
+     "label": "Text 5: 4.2k",
      "type": "text",
-     "defaultValue": "assets/slide-01.jpg",
+     "defaultValue": "4.2k",
      "target": {
-      "hfId": "hf-3",
-      "kind": "attr",
-      "prop": "src"
+      "hfId": "hf-18",
+      "kind": "text"
      }
     },
     {
-     "key": "i2",
-     "label": "Image 2 URL",
+     "key": "t6",
+     "label": "Text 6: 328",
      "type": "text",
-     "defaultValue": "assets/slide-02.jpg",
+     "defaultValue": "328",
      "target": {
-      "hfId": "hf-4",
-      "kind": "attr",
-      "prop": "src"
+      "hfId": "hf-25",
+      "kind": "text"
      }
     }
    ]
   },
   {
    "id": "slack-notification-ad",
+   "type": "block",
    "title": "Slack Notification Ad",
    "description": "A portrait lock screen fills with escalating Slack video requests before HeyGen delivers the payoff",
    "tags": [
@@ -1242,6 +2488,7 @@
    },
    "duration": 12,
    "sourceSha256": "ca74f84b1270c52d77b3fa12b5fc30320a1e6e0d908945e5748c41dc06a637c0",
+   "readyToUse": false,
    "files": [
     {
      "path": "slack-notification-ad.html",
@@ -1316,16 +2563,6 @@
      }
     },
     {
-     "key": "t4",
-     "label": "Text 4: 9:45",
-     "type": "text",
-     "defaultValue": "9:45",
-     "target": {
-      "hfId": "hf-hfp6",
-      "kind": "text"
-     }
-    },
-    {
      "key": "t5",
      "label": "Text 5: 9:51",
      "type": "text",
@@ -1349,7 +2586,313 @@
    ]
   },
   {
+   "id": "snow",
+   "type": "block",
+   "title": "Snow",
+   "description": "Seek-safe falling-snow overlay: sparse or dense flakes drift down with size, speed and opacity correlated per flake for depth, radial-masked so the frame center stays clear",
+   "tags": [
+    "snow",
+    "snowfall",
+    "winter",
+    "weather",
+    "overlay",
+    "ambient",
+    "particles",
+    "media-treatment-overlay",
+    "loopable"
+   ],
+   "category": "snow",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "40ab276706377dd4d35d155ae80da818129f0f1d324db01b54b17448c8f67879",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "snow.html",
+     "target": "compositions/snow.html",
+     "sha256": "40ab276706377dd4d35d155ae80da818129f0f1d324db01b54b17448c8f67879"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_density",
+     "label": "Density",
+     "target": {
+      "kind": "var",
+      "id": "density"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "sparse",
+       "label": "Sparse"
+      },
+      {
+       "value": "dense",
+       "label": "Dense"
+      }
+     ],
+     "defaultValue": "sparse"
+    },
+    {
+     "key": "var_speed",
+     "label": "Fall speed",
+     "target": {
+      "kind": "var",
+      "id": "speed"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "calm",
+       "label": "Calm"
+      },
+      {
+       "value": "gust",
+       "label": "Gust"
+      }
+     ],
+     "defaultValue": "calm"
+    }
+   ]
+  },
+  {
+   "id": "spain-map",
+   "type": "block",
+   "title": "Spain Map",
+   "description": "Animated Spain choropleth by autonomous community with staggered reveals and gradient legend \u2014 D3 conic conformal projection",
+   "tags": [
+    "data",
+    "map",
+    "geography",
+    "spain",
+    "europe",
+    "choropleth"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 12,
+   "sourceSha256": "9b3a1303ef9c9648f35c552a7fa4696040ca436581e45a339ea3e633de569201",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "spain-map.html",
+     "target": "compositions/spain-map.html",
+     "sha256": "9b3a1303ef9c9648f35c552a7fa4696040ca436581e45a339ea3e633de569201"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: PIB per c\u00e1pita por Comunida\u2026",
+     "type": "text",
+     "defaultValue": "PIB per c\u00e1pita por Comunidad Aut\u00f3noma",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Producto Interior Bruto per\u2026",
+     "type": "text",
+     "defaultValue": "Producto Interior Bruto per c\u00e1pita, estimaci\u00f3n 2024",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Bajo",
+     "type": "text",
+     "defaultValue": "Bajo",
+     "target": {
+      "hfId": "hf-10",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Alto",
+     "type": "text",
+     "defaultValue": "Alto",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Fuente: Instituto Nacional \u2026",
+     "type": "text",
+     "defaultValue": "Fuente: Instituto Nacional de Estad\u00edstica",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "starfield",
+   "type": "block",
+   "title": "Starfield",
+   "description": "Seek-safe night-sky overlay: sparse or dense stars in three size tiers that twinkle and drift in two parallax layers, radial-masked to keep the frame center clear",
+   "tags": [
+    "starfield",
+    "night-sky",
+    "stars",
+    "twinkle",
+    "sky",
+    "weather",
+    "overlay",
+    "ambient",
+    "particles",
+    "media-treatment-overlay",
+    "loopable"
+   ],
+   "category": "starfield",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "3465d75b46e12c5e770b4caaf65fa81e7fd0b88aefed9ff5c56a37d64ae6b199",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "starfield.html",
+     "target": "compositions/starfield.html",
+     "sha256": "3465d75b46e12c5e770b4caaf65fa81e7fd0b88aefed9ff5c56a37d64ae6b199"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_density",
+     "label": "Density",
+     "target": {
+      "kind": "var",
+      "id": "density"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "sparse",
+       "label": "Sparse"
+      },
+      {
+       "value": "dense",
+       "label": "Dense"
+      }
+     ],
+     "defaultValue": "sparse"
+    }
+   ]
+  },
+  {
+   "id": "tiktok-follow",
+   "type": "block",
+   "title": "TikTok Follow",
+   "description": "Animated TikTok follow overlay with profile card and follow button",
+   "tags": [
+    "social",
+    "overlay",
+    "tiktok"
+   ],
+   "category": "social",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "duration": 4.5,
+   "sourceSha256": "c38bdcf769d4674b197e6c625e4a3222895fdbaec20b79f2579848cc152718a1",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "tiktok-follow.html",
+     "target": "compositions/tiktok-follow.html",
+     "sha256": "c38bdcf769d4674b197e6c625e4a3222895fdbaec20b79f2579848cc152718a1"
+    },
+    {
+     "path": "assets/avatar.jpg",
+     "target": "assets/avatar.jpg",
+     "sha256": "a300f59c31d2ea16195a2ff9a9af50b29c6aecc05d505d69f2a2132a53b99032"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: HeyGen",
+     "type": "text",
+     "defaultValue": "HeyGen",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: @heygen.com",
+     "type": "text",
+     "defaultValue": "@heygen.com",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: 1,999 followers",
+     "type": "text",
+     "defaultValue": "1,999 followers",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Follow",
+     "type": "text",
+     "defaultValue": "Follow",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Following",
+     "type": "text",
+     "defaultValue": "Following",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "i1",
+     "label": "Image 1 URL",
+     "type": "text",
+     "defaultValue": "assets/avatar.jpg",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "attr",
+      "prop": "src"
+     }
+    }
+   ]
+  },
+  {
    "id": "transitions-blur",
+   "type": "block",
    "title": "Blur Transitions",
    "description": "Showcase of blur-based transitions between scenes",
    "tags": [
@@ -1363,6 +2906,7 @@
    },
    "duration": 20,
    "sourceSha256": "d493c347a9399f33cf02f7be887d67555681af48fe9f102c5247884d1c0518c3",
+   "readyToUse": false,
    "files": [
     {
      "path": "transitions-blur.html",
@@ -1371,36 +2915,6 @@
     }
    ],
    "editables": [
-    {
-     "key": "t1",
-     "label": "Text 1: TRANSITION CATALOG",
-     "type": "text",
-     "defaultValue": "TRANSITION CATALOG",
-     "target": {
-      "hfId": "hf-3",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t2",
-     "label": "Text 2: Blur Transitions",
-     "type": "text",
-     "defaultValue": "Blur Transitions",
-     "target": {
-      "hfId": "hf-4",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t3",
-     "label": "Text 3: 3 transitions",
-     "type": "text",
-     "defaultValue": "3 transitions",
-     "target": {
-      "hfId": "hf-5",
-      "kind": "text"
-     }
-    },
     {
      "key": "t4",
      "label": "Text 4: ONE",
@@ -1435,6 +2949,7 @@
   },
   {
    "id": "transitions-cover",
+   "type": "block",
    "title": "Cover Transitions",
    "description": "Showcase of cover/uncover slide transitions",
    "tags": [
@@ -1448,6 +2963,7 @@
    },
    "duration": 21,
    "sourceSha256": "d5e701cccd3b60993484b51d2e054298b7f136177f34cbebce4c1de448c59006",
+   "readyToUse": false,
    "files": [
     {
      "path": "transitions-cover.html",
@@ -1456,26 +2972,6 @@
     }
    ],
    "editables": [
-    {
-     "key": "t1",
-     "label": "Text 1: Cover Transitions",
-     "type": "text",
-     "defaultValue": "Cover Transitions",
-     "target": {
-      "hfId": "hf-3",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t2",
-     "label": "Text 2: 3 transition styles",
-     "type": "text",
-     "defaultValue": "3 transition styles",
-     "target": {
-      "hfId": "hf-4",
-      "kind": "text"
-     }
-    },
     {
      "key": "t3",
      "label": "Text 3: ONE",
@@ -1495,31 +2991,12 @@
       "hfId": "hf-7",
       "kind": "text"
      }
-    },
-    {
-     "key": "t5",
-     "label": "Text 5: TWO",
-     "type": "text",
-     "defaultValue": "TWO",
-     "target": {
-      "hfId": "hf-12",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t6",
-     "label": "Text 6: SCENE B",
-     "type": "text",
-     "defaultValue": "SCENE B",
-     "target": {
-      "hfId": "hf-13",
-      "kind": "text"
-     }
     }
    ]
   },
   {
    "id": "transitions-dissolve",
+   "type": "block",
    "title": "Dissolve Transitions",
    "description": "Showcase of dissolve and fade transitions",
    "tags": [
@@ -1534,6 +3011,7 @@
    },
    "duration": 24,
    "sourceSha256": "be35ea72f94bcf20ce5b4e4b4c39f99c9f734d6aa8d2244f33ff247439f31afb",
+   "readyToUse": false,
    "files": [
     {
      "path": "transitions-dissolve.html",
@@ -1542,36 +3020,6 @@
     }
    ],
    "editables": [
-    {
-     "key": "t1",
-     "label": "Text 1: TRANSITION CATALOG",
-     "type": "text",
-     "defaultValue": "TRANSITION CATALOG",
-     "target": {
-      "hfId": "hf-3",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t2",
-     "label": "Text 2: Dissolve Transitions",
-     "type": "text",
-     "defaultValue": "Dissolve Transitions",
-     "target": {
-      "hfId": "hf-4",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t3",
-     "label": "Text 3: 4 transitions",
-     "type": "text",
-     "defaultValue": "4 transitions",
-     "target": {
-      "hfId": "hf-5",
-      "kind": "text"
-     }
-    },
     {
      "key": "t4",
      "label": "Text 4: ONE",
@@ -1591,21 +3039,12 @@
       "hfId": "hf-9",
       "kind": "text"
      }
-    },
-    {
-     "key": "t6",
-     "label": "Text 6: TWO",
-     "type": "text",
-     "defaultValue": "TWO",
-     "target": {
-      "hfId": "hf-12",
-      "kind": "text"
-     }
     }
    ]
   },
   {
    "id": "transitions-distortion",
+   "type": "block",
    "title": "Distortion Transitions",
    "description": "Showcase of warp and distortion transitions",
    "tags": [
@@ -1619,6 +3058,7 @@
    },
    "duration": 21,
    "sourceSha256": "1ed8fd8308a10f749fc920ce9d77df7985a1b024bfc66ed8555bbd4d25e5ad84",
+   "readyToUse": false,
    "files": [
     {
      "path": "transitions-distortion.html",
@@ -1627,26 +3067,6 @@
     }
    ],
    "editables": [
-    {
-     "key": "t1",
-     "label": "Text 1: Distortion Transitions",
-     "type": "text",
-     "defaultValue": "Distortion Transitions",
-     "target": {
-      "hfId": "hf-3",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t2",
-     "label": "Text 2: Glitch \u2022 Chromatic \u2022 Ripple",
-     "type": "text",
-     "defaultValue": "Glitch \u2022 Chromatic \u2022 Ripple",
-     "target": {
-      "hfId": "hf-4",
-      "kind": "text"
-     }
-    },
     {
      "key": "t3",
      "label": "Text 3: ONE",
@@ -1668,16 +3088,6 @@
      }
     },
     {
-     "key": "t5",
-     "label": "Text 5: TWO",
-     "type": "text",
-     "defaultValue": "TWO",
-     "target": {
-      "hfId": "hf-11",
-      "kind": "text"
-     }
-    },
-    {
      "key": "t6",
      "label": "Text 6: Scene B",
      "type": "text",
@@ -1691,6 +3101,7 @@
   },
   {
    "id": "transitions-grid",
+   "type": "block",
    "title": "Grid Transitions",
    "description": "Showcase of grid-based tile transitions",
    "tags": [
@@ -1704,6 +3115,7 @@
    },
    "duration": 11,
    "sourceSha256": "abb3c444c9d73e97973a93f4fa810babc2deb80f575ebefb9b628599f8c94211",
+   "readyToUse": false,
    "files": [
     {
      "path": "transitions-grid.html",
@@ -1733,36 +3145,6 @@
      }
     },
     {
-     "key": "t3",
-     "label": "Text 3: ONE",
-     "type": "text",
-     "defaultValue": "ONE",
-     "target": {
-      "hfId": "hf-7",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t4",
-     "label": "Text 4: Scene A",
-     "type": "text",
-     "defaultValue": "Scene A",
-     "target": {
-      "hfId": "hf-8",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t5",
-     "label": "Text 5: TWO",
-     "type": "text",
-     "defaultValue": "TWO",
-     "target": {
-      "hfId": "hf-11",
-      "kind": "text"
-     }
-    },
-    {
      "key": "t6",
      "label": "Text 6: Scene B",
      "type": "text",
@@ -1776,6 +3158,7 @@
   },
   {
    "id": "transitions-light",
+   "type": "block",
    "title": "Light Transitions",
    "description": "Showcase of light-based glow and flash transitions",
    "tags": [
@@ -1789,6 +3172,7 @@
    },
    "duration": 21,
    "sourceSha256": "74b04f50a317191dc30ae8b849819bc51c24ec045b094fa553d9cc92d2a8ab74",
+   "readyToUse": false,
    "files": [
     {
      "path": "transitions-light.html",
@@ -1797,26 +3181,6 @@
     }
    ],
    "editables": [
-    {
-     "key": "t1",
-     "label": "Text 1: Light Transitions",
-     "type": "text",
-     "defaultValue": "Light Transitions",
-     "target": {
-      "hfId": "hf-3",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t2",
-     "label": "Text 2: 3 transition styles",
-     "type": "text",
-     "defaultValue": "3 transition styles",
-     "target": {
-      "hfId": "hf-4",
-      "kind": "text"
-     }
-    },
     {
      "key": "t3",
      "label": "Text 3: ONE",
@@ -1836,31 +3200,12 @@
       "hfId": "hf-7",
       "kind": "text"
      }
-    },
-    {
-     "key": "t5",
-     "label": "Text 5: TWO",
-     "type": "text",
-     "defaultValue": "TWO",
-     "target": {
-      "hfId": "hf-12",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t6",
-     "label": "Text 6: SCENE B",
-     "type": "text",
-     "defaultValue": "SCENE B",
-     "target": {
-      "hfId": "hf-13",
-      "kind": "text"
-     }
     }
    ]
   },
   {
    "id": "transitions-other",
+   "type": "block",
    "title": "Other Transitions",
    "description": "Showcase of miscellaneous creative transitions",
    "tags": [
@@ -1874,6 +3219,7 @@
    },
    "duration": 20,
    "sourceSha256": "e77fcfaa70bde8e9a5bcc57f7295b6ed37aef9661ed1d0472cf94e981671bac1",
+   "readyToUse": false,
    "files": [
     {
      "path": "transitions-other.html",
@@ -1882,36 +3228,6 @@
     }
    ],
    "editables": [
-    {
-     "key": "t1",
-     "label": "Text 1: TRANSITION CATALOG",
-     "type": "text",
-     "defaultValue": "TRANSITION CATALOG",
-     "target": {
-      "hfId": "hf-3",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t2",
-     "label": "Text 2: Other Transitions",
-     "type": "text",
-     "defaultValue": "Other Transitions",
-     "target": {
-      "hfId": "hf-4",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t3",
-     "label": "Text 3: 3 transitions",
-     "type": "text",
-     "defaultValue": "3 transitions",
-     "target": {
-      "hfId": "hf-5",
-      "kind": "text"
-     }
-    },
     {
      "key": "t4",
      "label": "Text 4: ONE",
@@ -1946,6 +3262,7 @@
   },
   {
    "id": "transitions-push",
+   "type": "block",
    "title": "Push Transitions",
    "description": "Showcase of push and slide transitions",
    "tags": [
@@ -1959,6 +3276,7 @@
    },
    "duration": 24,
    "sourceSha256": "6e94839890101bbcbf14cfe76c5d41d06738fa70b6d1c423e3b41692d52c8441",
+   "readyToUse": false,
    "files": [
     {
      "path": "transitions-push.html",
@@ -1967,36 +3285,6 @@
     }
    ],
    "editables": [
-    {
-     "key": "t1",
-     "label": "Text 1: TRANSITION CATALOG",
-     "type": "text",
-     "defaultValue": "TRANSITION CATALOG",
-     "target": {
-      "hfId": "hf-3",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t2",
-     "label": "Text 2: Push Transitions",
-     "type": "text",
-     "defaultValue": "Push Transitions",
-     "target": {
-      "hfId": "hf-4",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t3",
-     "label": "Text 3: 4 transitions",
-     "type": "text",
-     "defaultValue": "4 transitions",
-     "target": {
-      "hfId": "hf-5",
-      "kind": "text"
-     }
-    },
     {
      "key": "t4",
      "label": "Text 4: ONE",
@@ -2016,21 +3304,12 @@
       "hfId": "hf-9",
       "kind": "text"
      }
-    },
-    {
-     "key": "t6",
-     "label": "Text 6: TWO",
-     "type": "text",
-     "defaultValue": "TWO",
-     "target": {
-      "hfId": "hf-12",
-      "kind": "text"
-     }
     }
    ]
   },
   {
    "id": "transitions-radial",
+   "type": "block",
    "title": "Radial Transitions",
    "description": "Showcase of radial wipe and reveal transitions",
    "tags": [
@@ -2044,6 +3323,7 @@
    },
    "duration": 20,
    "sourceSha256": "2e723ae75e92e6e4c1c51e6c596122bb43df8c2fef1ff4363ed787588bec4111",
+   "readyToUse": false,
    "files": [
     {
      "path": "transitions-radial.html",
@@ -2052,26 +3332,6 @@
     }
    ],
    "editables": [
-    {
-     "key": "t1",
-     "label": "Text 1: Radial Transitions",
-     "type": "text",
-     "defaultValue": "Radial Transitions",
-     "target": {
-      "hfId": "hf-3",
-      "kind": "text"
-     }
-    },
-    {
-     "key": "t2",
-     "label": "Text 2: 3 Transitions",
-     "type": "text",
-     "defaultValue": "3 Transitions",
-     "target": {
-      "hfId": "hf-4",
-      "kind": "text"
-     }
-    },
     {
      "key": "t3",
      "label": "Text 3: ONE",
@@ -2115,7 +3375,384 @@
    ]
   },
   {
+   "id": "us-map-hex",
+   "type": "block",
+   "title": "US Hex Grid Map",
+   "description": "Animated hexagonal tile grid map \u2014 each state as an equal-weight hex with data fill and abbreviation label",
+   "tags": [
+    "data",
+    "map",
+    "geography",
+    "usa",
+    "hexgrid",
+    "tilegrid"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 10,
+   "sourceSha256": "55825b6c64bdab3f4f54bda3e54bddbbc68f1cf73c7a93e94183be5ab10a1d7e",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "us-map-hex.html",
+     "target": "compositions/us-map-hex.html",
+     "sha256": "55825b6c64bdab3f4f54bda3e54bddbbc68f1cf73c7a93e94183be5ab10a1d7e"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Median Household Income by \u2026",
+     "type": "text",
+     "defaultValue": "Median Household Income by State",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: American Community Survey, \u2026",
+     "type": "text",
+     "defaultValue": "American Community Survey, 2024",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: $52k",
+     "type": "text",
+     "defaultValue": "$52k",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Source: U.S. Census Bureau,\u2026",
+     "type": "text",
+     "defaultValue": "Source: U.S. Census Bureau, American Community Survey 2024",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "vfx-anamorphic-flare",
+   "type": "block",
+   "title": "Anamorphic Streak Flare",
+   "description": "A drifting field of bright points, each one throwing the long horizontal blue-violet streak a real anamorphic cinema lens produces. Built from the measured filter constants: a 0.3 high-pass, 80 horizontal taps at quarter resolution, a samples/3 gain and a 0x7a8aff tint.",
+   "tags": [
+    "vfx",
+    "background",
+    "showcase",
+    "optical",
+    "canvas"
+   ],
+   "category": "vfx",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 10,
+   "sourceSha256": "8a9f23c1e90fecfc28798c3710078e803307132e4dcd1b9647d4b10cb1a34c70",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "vfx-anamorphic-flare.html",
+     "target": "compositions/vfx-anamorphic-flare.html",
+     "sha256": "8a9f23c1e90fecfc28798c3710078e803307132e4dcd1b9647d4b10cb1a34c70"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_backdrop",
+     "label": "Backdrop",
+     "target": {
+      "kind": "var",
+      "id": "backdrop"
+     },
+     "type": "color",
+     "defaultValue": "#04040a"
+    },
+    {
+     "key": "var_intensity",
+     "label": "Streak intensity",
+     "target": {
+      "kind": "var",
+      "id": "intensity"
+     },
+     "type": "number",
+     "defaultValue": 5,
+     "min": 0,
+     "max": 20,
+     "step": 0.1
+    },
+    {
+     "key": "var_threshold",
+     "label": "High-pass threshold",
+     "target": {
+      "kind": "var",
+      "id": "threshold"
+     },
+     "type": "number",
+     "defaultValue": 0.3,
+     "min": 0,
+     "max": 1,
+     "step": 0.01
+    },
+    {
+     "key": "var_streakLength",
+     "label": "Streak length gain",
+     "target": {
+      "kind": "var",
+      "id": "streakLength"
+     },
+     "type": "number",
+     "defaultValue": 1,
+     "min": 0.1,
+     "max": 6,
+     "step": 0.05
+    },
+    {
+     "key": "var_bloomRadius",
+     "label": "Bloom radius",
+     "target": {
+      "kind": "var",
+      "id": "bloomRadius"
+     },
+     "type": "number",
+     "defaultValue": 0,
+     "min": 0,
+     "max": 80,
+     "step": 1
+    },
+    {
+     "key": "var_timeScale",
+     "label": "Drift rate",
+     "target": {
+      "kind": "var",
+      "id": "timeScale"
+     },
+     "type": "number",
+     "defaultValue": 0.5,
+     "min": 0,
+     "max": 3,
+     "step": 0.05
+    },
+    {
+     "key": "var_emitters",
+     "label": "Emitter count",
+     "target": {
+      "kind": "var",
+      "id": "emitters"
+     },
+     "type": "number",
+     "defaultValue": 140,
+     "min": 1,
+     "max": 400,
+     "step": 1
+    }
+   ]
+  },
+  {
+   "id": "week-in-merges",
+   "type": "block",
+   "title": "Week in Merges",
+   "description": "Each author's avatar bounces across their row at a speed set by how many pull requests they merged",
+   "tags": [
+    "data",
+    "chart",
+    "ranking",
+    "leaderboard"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1080,
+    "height": 1350
+   },
+   "duration": 16,
+   "sourceSha256": "f6a989512c338008950615189d3036395e990eed684003d26359e51997fd6026",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "week-in-merges.html",
+     "target": "compositions/week-in-merges.html",
+     "sha256": "f6a989512c338008950615189d3036395e990eed684003d26359e51997fd6026"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_eyebrow",
+     "label": "Eyebrow",
+     "target": {
+      "kind": "var",
+      "id": "eyebrow"
+     },
+     "type": "text",
+     "defaultValue": "ACME / WEEK IN MERGES"
+    },
+    {
+     "key": "var_title",
+     "label": "Title",
+     "target": {
+      "kind": "var",
+      "id": "title"
+     },
+     "type": "text",
+     "defaultValue": "Pull requests merged this week"
+    },
+    {
+     "key": "var_period",
+     "label": "Period",
+     "target": {
+      "kind": "var",
+      "id": "period"
+     },
+     "type": "text",
+     "defaultValue": "1 September - 7 September 2026 \u00b7 America/Los_Angeles"
+    },
+    {
+     "key": "var_total",
+     "label": "Total",
+     "target": {
+      "kind": "var",
+      "id": "total"
+     },
+     "type": "text",
+     "defaultValue": "12 PRs"
+    },
+    {
+     "key": "var_footer",
+     "label": "Footer",
+     "target": {
+      "kind": "var",
+      "id": "footer"
+     },
+     "type": "text",
+     "defaultValue": "Speed proportional to merges \u00b7 By PR author"
+    },
+    {
+     "key": "var_source",
+     "label": "Source line",
+     "target": {
+      "kind": "var",
+      "id": "source"
+     },
+     "type": "text",
+     "defaultValue": "Example org \u00b7 1 repo \u00b7 Bots \u00b7 0"
+    },
+    {
+     "key": "var_overflow",
+     "label": "Overflow line",
+     "target": {
+      "kind": "var",
+      "id": "overflow"
+     },
+     "type": "text",
+     "defaultValue": ""
+    }
+   ]
+  },
+  {
+   "id": "x-post",
+   "type": "block",
+   "title": "X Post Card",
+   "description": "Animated X/Twitter post card overlay with engagement metrics",
+   "tags": [
+    "social",
+    "overlay",
+    "twitter"
+   ],
+   "category": "social",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5,
+   "sourceSha256": "b515cb899491b5171f9cabdccdac2a2d133241f36eda934f232430095fd83e29",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "x-post.html",
+     "target": "compositions/x-post.html",
+     "sha256": "b515cb899491b5171f9cabdccdac2a2d133241f36eda934f232430095fd83e29"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Hyperframes",
+     "type": "text",
+     "defaultValue": "Hyperframes",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: @hyperframes",
+     "type": "text",
+     "defaultValue": "@hyperframes",
+     "target": {
+      "hfId": "hf-16",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: #YourHashtag",
+     "type": "text",
+     "defaultValue": "#YourHashtag",
+     "target": {
+      "hfId": "hf-21",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: 1:10 PM \u00b7 Apr 7, 2026",
+     "type": "text",
+     "defaultValue": "1:10 PM \u00b7 Apr 7, 2026",
+     "target": {
+      "hfId": "hf-22",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: 34",
+     "type": "text",
+     "defaultValue": "34",
+     "target": {
+      "hfId": "hf-29",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: 2.3K",
+     "type": "text",
+     "defaultValue": "2.3K",
+     "target": {
+      "hfId": "hf-34",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
    "id": "yt-logo-intro",
+   "type": "block",
    "title": "Logo Intro Sequence",
    "description": "Logo stamp pops on a lined board, a kicker line gives way to the title with an accent arrow chip; seeded line distortion",
    "tags": [
@@ -2130,6 +3767,7 @@
    },
    "duration": 6,
    "sourceSha256": "75941ae117c487b1648db6a8efb8d7ab53bb2567161d5730ad02c9143d7bc2df",
+   "readyToUse": false,
    "files": [
     {
      "path": "yt-logo-intro.html",
@@ -2147,6 +3785,134 @@
       "hfId": "hf-4",
       "kind": "style",
       "prop": "backgroundColor"
+     }
+    },
+    {
+     "key": "cfg_kicker",
+     "label": "Kicker",
+     "defaultValue": "LET'S DIVE IN",
+     "target": {
+      "kind": "cfg",
+      "path": "kicker"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_title",
+     "label": "Title",
+     "defaultValue": "yt-logo-intro",
+     "target": {
+      "kind": "cfg",
+      "path": "title"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_scheme",
+     "label": "Scheme",
+     "defaultValue": "light",
+     "target": {
+      "kind": "cfg",
+      "path": "scheme"
+     },
+     "type": "select",
+     "options": [
+      "light",
+      "dark"
+     ]
+    },
+    {
+     "key": "cfg_arrow_enabled",
+     "label": "Arrow \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "arrow.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_dropShadow",
+     "label": "Drop Shadow",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "dropShadow"
+     },
+     "type": "boolean"
+    }
+   ]
+  },
+  {
+   "id": "yt-lower-third",
+   "type": "block",
+   "title": "YouTube Lower Third",
+   "description": "Animated YouTube subscribe lower third with avatar and channel info",
+   "tags": [
+    "social",
+    "overlay",
+    "youtube"
+   ],
+   "category": "social",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.5,
+   "sourceSha256": "35c8eaf005a39a52a68a2944f063628c77f5890f265da9c26de4683fcd904ba2",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "yt-lower-third.html",
+     "target": "compositions/yt-lower-third.html",
+     "sha256": "35c8eaf005a39a52a68a2944f063628c77f5890f265da9c26de4683fcd904ba2"
+    },
+    {
+     "path": "assets/avatar.jpg",
+     "target": "assets/avatar.jpg",
+     "sha256": "a300f59c31d2ea16195a2ff9a9af50b29c6aecc05d505d69f2a2132a53b99032"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: HeyGen",
+     "type": "text",
+     "defaultValue": "HeyGen",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: 82.2K subscribers",
+     "type": "text",
+     "defaultValue": "82.2K subscribers",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Subscribe",
+     "type": "text",
+     "defaultValue": "Subscribe",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "i1",
+     "label": "Image 1 URL",
+     "type": "text",
+     "defaultValue": "assets/avatar.jpg",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "attr",
+      "prop": "src"
      }
     }
    ]

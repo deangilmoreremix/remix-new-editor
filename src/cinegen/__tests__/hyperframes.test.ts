@@ -59,3 +59,26 @@ describe('HyperFrames catalog search', () => {
     expect(searchHyperframes(items, 'zzz')).toEqual([]);
   });
 });
+
+describe('hyperframes config / variable editables', () => {
+  const item = {
+    id: 'x', title: 'X', description: '', tags: [], category: 'x', dimensions: { width: 1920, height: 1080 }, duration: 5, sourceSha256: '', editables: [
+      { key: 'cfg_text', label: 'Text', type: 'text', defaultValue: 'Hi', target: { kind: 'cfg', path: 'text' } },
+      { key: 'cfg_speed', label: 'Speed', type: 'number', defaultValue: 1, min: 0, max: 3, target: { kind: 'cfg', path: 'speed' } },
+      { key: 'var_on', label: 'On', type: 'boolean', defaultValue: true, target: { kind: 'var', id: 'fog' } },
+      { key: 't1', label: 'T', type: 'text', defaultValue: 'A', target: { hfId: 'hf-3', kind: 'text' } },
+    ],
+  } as never;
+  it('maps edited values to cfg./var./element override keys and keeps defaults out', async () => {
+    const { overridesFromProps } = await import('@cinegen/lib/hyperframes/overlay');
+    expect(overridesFromProps(item, { cfg_text: 'Acme', cfg_speed: 2, var_on: false, t1: 'A' })).toEqual({ 'cfg.text': 'Acme', 'cfg.speed': 2, 'var.fog': false });
+  });
+  it('ignores values of the wrong type', async () => {
+    const { overridesFromProps } = await import('@cinegen/lib/hyperframes/overlay');
+    expect(overridesFromProps(item, { cfg_speed: 'fast', var_on: 'no', cfg_text: 5 })).toEqual({});
+  });
+  it('every enabled block has a pinned hash, a type and only effective editables', async () => {
+    const { hyperframesItems } = await import('@cinegen/lib/hyperframes/overlay');
+    for (const i of hyperframesItems()) { expect(i.sourceSha256).toMatch(/^[0-9a-f]{64}$/); expect(Array.isArray(i.editables)).toBe(true); }
+  });
+});

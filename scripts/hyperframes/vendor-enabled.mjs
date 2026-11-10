@@ -19,7 +19,7 @@ mkdirSync(join(out, '_cdn'), { recursive: true });
 const urls = new Set(); let files = 0;
 for (const item of enabled.items) {
   for (const f of item.files) {
-    const src = join(up, 'registry', 'blocks', item.id, f.path);
+    const src = join(up, 'registry', item.type === 'component' ? 'components' : 'blocks', item.id, f.path);
     const buf = readFileSync(src);
     if (sha256(buf) !== f.sha256) throw new Error(`${item.id}/${f.path}: sha256 does not match the manifest`);
     const isMain = f.path === item.id + '.html';
