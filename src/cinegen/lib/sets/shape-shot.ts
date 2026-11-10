@@ -1,6 +1,5 @@
 import type { SetCamera, SetStandIn } from '@cinegen/types/sets';
-// [remix] set-viewer is not vendored (Sets unavailable on web)
-type SetViewerHandle = any;
+import type { SetViewerHandle } from '@cinegen/components/sets/set-viewer';
 import type { PassKind } from './scene';
 import { buildCameraPrompt, REFERENCE_TAGS, MANNEQUIN_EXCLUSION } from './camera-prompt';
 import { aspectRatio, renderSize, type SensorSize } from './optics';

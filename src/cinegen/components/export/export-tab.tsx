@@ -1,5 +1,6 @@
 
 
+import { resolveFit, DEFAULT_ASPECT } from '@cinegen/lib/occ/frame-geometry';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { SharePanel } from './share-panel';
@@ -33,7 +34,7 @@ export function ExportTab() {
         // [remix] a clip on an audio track plays sound only, even when its media file is a video
         trackKind: activeTimeline.tracks.find((t) => t.id === clip.trackId)?.kind,
         // [remix] OpenChatCut effects burned into the render
-        fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, transform: clip.transform, fx: clip.fx, lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions,
+        fadeIn: clip.fadeIn, fadeOut: clip.fadeOut, kf: clip.keyframes, transform: clip.transform, fit: resolveFit(clip, activeTimeline), fx: clip.fx, lut: clip.lut, blendMode: clip.blendMode, zoom: clip.zoom, captions: clip.captions,
       }];
     });
   }, [activeTimeline.clips, activeTimeline.tracks, state.assets]);
@@ -108,7 +109,7 @@ export function ExportTab() {
           Render your timeline as an MP4 video
         </p>
 
-        <ExportSettings hasClips={hasClips} onRender={handleRender} />
+        <ExportSettings hasClips={hasClips} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
         {/* [remix] OpenChatCut FCPXML export (Final Cut Pro / Premiere / DaVinci Resolve) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
           <button type="button" disabled={!hasClips} data-testid="export-fcpxml" onClick={() => {

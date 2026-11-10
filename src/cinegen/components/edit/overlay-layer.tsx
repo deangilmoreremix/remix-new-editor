@@ -19,7 +19,7 @@ import { useSelectedOverlay, selectOverlay } from '@cinegen/lib/overlays/selecti
 import '../../../../styles/timeline-addons.css';
 import '../../../../styles/watch.css';
 
-interface Props { overlays: OverlayClip[]; currentTime: number; isPlaying: boolean; onPause: () => void; onGeometry?: (id: string, geometry: Record<string, number>) => void }
+interface Props { overlays: OverlayClip[]; currentTime: number; isPlaying: boolean; onPause: () => void; onGeometry?: (id: string, geometry: Record<string, number>) => void; frame?: { width: number; height: number } }
 
 const GATES = new Set(['lead-form', 'list-builder']);
 
@@ -35,7 +35,7 @@ async function sendLead(o: OverlayClip, data: Record<string, unknown>) {
   return { ok: true };
 }
 
-export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onGeometry }: Props) {
+export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onGeometry, frame = { width: 1280, height: 720 } }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const addonRef = useRef<HTMLDivElement>(null);
   const selected = useSelectedOverlay();
@@ -122,7 +122,7 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onGeom
   const mgRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<{ update: (m: unknown) => Promise<void>; frame: (f: number) => void; destroy: () => void } | null>(null);
   const mgOverlays = overlays.filter((o) => o.type === 'mg-template');
-  const mgKey = JSON.stringify(mgOverlays.map((o) => [o.id, o.start, o.end, o.code, o.props]));
+  const mgKey = JSON.stringify([frame.width, frame.height, mgOverlays.map((o) => [o.id, o.start, o.end, o.code, o.props])]);
   useEffect(() => {
     const host = mgRef.current;
     if (!host) return;
@@ -133,7 +133,7 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onGeom
       previewRef.current ??= createCodePreview(host);
       const fps = 30;
       const layers = mgOverlays.map((o) => mgOverlayLayer(o, fps));
-      void previewRef.current.update({ version: 1, fps, width: 1280, height: 720, durationInFrames: Math.max(1, ...layers.map((l) => l.from + l.durationInFrames)), background: 'transparent', layers, audio: [], transitions: [], fonts: [] });
+      void previewRef.current.update({ version: 1, fps, width: frame.width, height: frame.height, durationInFrames: Math.max(1, ...layers.map((l) => l.from + l.durationInFrames)), background: 'transparent', layers, audio: [], transitions: [], fonts: [] });
     });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps

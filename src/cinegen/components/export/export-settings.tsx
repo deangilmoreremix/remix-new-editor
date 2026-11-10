@@ -5,11 +5,11 @@ import type { ExportPreset } from '@cinegen/types/export';
 // [remix] OpenChatCut export bitrate modes (export/bitrate.ts) and auto-QA preference (export/autoQa.ts)
 import { DEFAULT_CUSTOM_BITRATE_MBPS, MAX_VIDEO_BITRATE_MBPS, MIN_VIDEO_BITRATE_MBPS, requestedVideoBitrateBps, type VideoBitrateMode } from '../../../openchatcut/export/bitrate';
 // [remix] OpenChatCut master-quality policy (media/qualityPolicy.ts): master → high default bitrate
+import { ASPECTS } from '@cinegen/lib/occ/frame-geometry';
 import { defaultBitrateModeForQuality, getQualityMode, setQualityMode } from '../../../openchatcut/media/qualityPolicy';
 import { loadExportAutoQaPreference, saveExportAutoQaPreference } from '../../../openchatcut/export/autoQa';
 
 export interface ExportExtras { videoBitrate?: number; qa: boolean; aspect?: string }
-const ASPECTS: Array<[string, string]> = [['16:9', '16:9 landscape'], ['9:16', '9:16 vertical'], ['1:1', '1:1 square'], ['4:5', '4:5 portrait'], ['21:9', '21:9 cinema']];
 function aspectFrame(w: number, h: number, aspect: string): [number, number] {
   const [a, b] = aspect.split(':').map(Number); const r = a / b; const short = Math.min(w, h);
   const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
@@ -18,14 +18,17 @@ function aspectFrame(w: number, h: number, aspect: string): [number, number] {
 const PRESET_SIZE: Record<ExportPreset, [number, number]> = { draft: [1280, 720], standard: [1920, 1080], high: [3840, 2160] };
 
 interface ExportSettingsProps {
+  /** [remix] project frame ratio (Timeline.aspect): shared with the viewer */
+  aspect?: string;
+  onAspect?: (aspect: string) => void;
   hasClips: boolean;
   onRender: (preset: ExportPreset, fps: 24 | 30 | 60, extras: ExportExtras) => void;
 }
 
-export function ExportSettings({ hasClips, onRender }: ExportSettingsProps) {
+export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect }: ExportSettingsProps) {
   const [preset, setPreset] = useState<ExportPreset>('standard');
   const [fps, setFps] = useState<24 | 30 | 60>(30);
-  const [aspect, setAspect] = useState('16:9');
+  const setAspect = (a: string) => onAspect?.(a);
   const [bitrateMode, setBitrateMode] = useState<VideoBitrateMode>(() => defaultBitrateModeForQuality());
   const [master, setMaster] = useState(() => getQualityMode() === 'master');
   const [customMbps, setCustomMbps] = useState(DEFAULT_CUSTOM_BITRATE_MBPS);

@@ -71,6 +71,12 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
       canvas.style.visibility = 'visible';
       if (hidden[0] !== video) { restore(); hidden = [video]; }
       video.style.visibility = 'hidden';
+      // [remix] same resolved geometry as the hidden <video> (fit, transform, crop, stacking, opacity)
+      canvas.style.objectFit = video.style.objectFit || 'contain';
+      canvas.style.transform = video.style.transform;
+      canvas.style.clipPath = video.style.clipPath;
+      canvas.style.zIndex = video.style.zIndex;
+      canvas.style.opacity = video.style.opacity;
       canvas.style.mixBlendMode = c.blendMode && c.blendMode !== 'normal' ? c.blendMode : '';
     };
     raf = requestAnimationFrame(tick);

@@ -112,6 +112,9 @@ export interface Timeline {
   markers: TimelineMarker[];
   /** [remix] persistent multicam groups (OpenChatCut group + angle-decision concepts, see lib/occ/multicam-groups.ts) */
   multicam?: import('../lib/occ/multicam-groups').McGroup[];
+  /** [remix] project frame ratio (absent = 16:9) and default picture fit (absent = contain); see lib/occ/frame-geometry.ts */
+  aspect?: string;
+  fit?: 'contain' | 'cover';
 }
 
 /** Effective duration of a clip (what plays on the timeline). */

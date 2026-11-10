@@ -1,6 +1,7 @@
 import type { Timeline, Clip, Track } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
+import { resolveFit } from '@cinegen/lib/occ/frame-geometry';
 import { clipTransformCss, clipTransformClipPath, fillCss } from '@cinegen/lib/occ/transform';
 import { interpolateProperty } from './timeline-operations';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
@@ -774,7 +775,7 @@ export class PlaybackEngine {
       const tcss = clipTransformCss(entry.clip.transform, clipTime);
       el.style.transform = `scale(${scaleX}, ${scaleY})${tcss ? ` ${tcss}` : ''}`;
       el.style.clipPath = clipTransformClipPath(entry.clip.transform) ?? '';
-      el.style.objectFit = entry.clip.transform?.fit ?? 'contain';
+      el.style.objectFit = resolveFit(entry.clip, this.timeline);
       this.syncFill(entry.clip.id, el, entry.clip.transform, opacity);
 
       el.style.opacity = String(opacity);

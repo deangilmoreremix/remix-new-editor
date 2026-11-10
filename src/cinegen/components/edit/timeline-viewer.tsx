@@ -7,6 +7,7 @@ import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import type { PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
 import type { OverlayClip } from '@cinegen/types/workspace';
 import { OverlayLayer } from './overlay-layer';
+import { resolveFit, aspectRatio, frameFor } from '@cinegen/lib/occ/frame-geometry';
 import { GlClipLayer } from './gl-clip-layer';
 import { CaptionsPreviewLayer } from './captions-preview-layer';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
@@ -198,10 +199,12 @@ export function TimelineViewer({
           </button>
         )}
       </div>
-      <div className="timeline-viewer__content">
+      <div className="timeline-viewer__content" style={{ containerType: 'size' }}>
         {!activeAsset && (
           <span className="timeline-viewer__empty">No clip at playhead</span>
         )}
+        {/* [remix] project frame: the stage takes the project aspect (absent = 16:9), letterboxed inside the viewer */}
+        <div className="timeline-viewer__stage" data-testid="viewer-stage" style={{ position: 'absolute', inset: 0, margin: 'auto', width: `min(100cqw, ${aspectRatio(timeline?.aspect)} * 100cqh)`, height: `min(100cqh, 100cqw / ${aspectRatio(timeline?.aspect)})`, overflow: 'hidden', background: '#000' }}>
         {/* [remix] OpenChatCut zoom / follow-subject (scale about the focal point, as in their media layer) */}
         <div style={{ position: 'absolute', inset: 0, }} data-testid="clip-transform-wrap">
         <div style={{ position: 'absolute', inset: 0, ...zoomStyle }}>
@@ -214,15 +217,16 @@ export function TimelineViewer({
           <img
             src={toFileUrl(activeAsset.fileRef || activeAsset.url)}
             alt={activeAsset.name}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: resolveFit(activeClip, timeline) }}
             draggable={false}
           />
         )}
         <GlClipLayer container={glContainer} clip={activeClip} assetId={activeAsset?.id ?? null} transition={glTransition} />
         </div>
         </div>
-        <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={activeAsset?.width && activeAsset?.height ? activeAsset.width / activeAsset.height : 16 / 9} />
-        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onGeometry={onOverlayGeometry} />
+        <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />
+        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
+        </div>
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}
       <div className="viewer-scrubber" ref={scrubRef} onMouseDown={handleScrubDown}>
