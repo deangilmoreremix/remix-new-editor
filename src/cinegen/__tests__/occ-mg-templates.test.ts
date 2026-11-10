@@ -45,6 +45,7 @@ describe('template names are shown in English', () => {
     try {
       const all = await loadMgTemplates();
       expect(all.length).toBe(235);
+      expect(all.filter((x) => !x.usable).map((x) => x.id.slice(0, 8)).sort()).toEqual(['935cd0e3', '9d2bedfe', 'f11ec59a']); // two inject raw HTML (not repairable); one repair could not be proven identical — all hidden from the catalog
       expect(all.filter((x) => /[一-鿿]/.test(x.name))).toHaveLength(0);
     } finally { globalThis.fetch = orig; }
   });

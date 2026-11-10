@@ -13,6 +13,8 @@ export interface MgTemplate { id: string; name: string; category: string; descri
 
 const PACKS = ['social-shorts-templates', 'koubo-scenes-templates', 'openchatcut-templates'];
 let cache: Promise<MgTemplate[]> | null = null;
+/** Templates the code gate rejected only because of spelling (a variable named `top`, string `+` chains) load from the repaired pack made by scripts/repair-mg-templates.mjs; the gate still checks the repaired code. */
+const REPAIRED = 'repaired';
 
 /** Wrap an upstream template so it runs as the sandbox's `Animation({ props })`. */
 export function mgCode(code: string): string {
@@ -28,11 +30,11 @@ export function gateTemplate(code: string): { ok: boolean; why?: string } {
 }
 
 export function loadMgTemplates(base = '/occ-templates'): Promise<MgTemplate[]> {
-  cache ??= Promise.all(PACKS.map(async (p) => {
+  cache ??= Promise.all([Promise.all(PACKS.map(async (p) => {
     try { const r = await fetch(`${base}/${p}.json`); return r.ok ? ((await r.json()) as Array<Record<string, unknown>>) : []; } catch { return []; }
-  })).then((packs) => packs.flat().map((tpl) => {
+  })), (async () => { try { const r = await fetch(`${base}/${REPAIRED}.json`); return r.ok ? ((await r.json()) as Record<string, string>) : {}; } catch { return {}; } })()]).then(([packs, fixed]) => packs.flat().map((tpl) => {
     const t = tpl;
-    const code = String(t.code ?? '');
+    const code = fixed[String(t.id)] ?? String(t.code ?? '');
     const g = gateTemplate(code);
     // OpenChatCut keys its UI strings by the Chinese original and ships an English dictionary: names, labels and sample text use it where it has an entry
     const en = (v: unknown) => (typeof v === 'string' ? mgEn(t_(v)) : v);

@@ -7,8 +7,9 @@ export function MgTemplatesModal({ onClose, onPick }: { onClose: () => void; onP
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
   useEffect(() => { void loadMgTemplates().then(setAll); }, []);
-  const cats = useMemo(() => ['all', ...new Set((all ?? []).map((t) => t.category))], [all]);
-  const list = (all ?? []).filter((t) => (cat === 'all' || t.category === cat) && (!q || `${t.name} ${t.description ?? ''}`.toLowerCase().includes(q.toLowerCase())));
+  const cats = useMemo(() => ['all', ...new Set((all ?? []).filter((t) => t.usable).map((t) => t.category))], [all]);
+  // templates the code gate still rejects are not offered at all
+  const list = (all ?? []).filter((t) => t.usable && (cat === 'all' || t.category === cat) && (!q || `${t.name} ${t.description ?? ''}`.toLowerCase().includes(q.toLowerCase())));
   const blocked = (all ?? []).filter((t) => !t.usable).length;
   return (
     <div role="dialog" aria-label="Motion graphics templates" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
@@ -31,7 +32,7 @@ export function MgTemplatesModal({ onClose, onPick }: { onClose: () => void; onP
             </button>
           ))}
         </div>
-        {all && <div style={{ fontSize: 11, opacity: 0.65, marginTop: 8 }}>{all.length - blocked} of {all.length} templates pass the sandbox code gate{blocked ? `; ${blocked} are blocked and cannot be added.` : '.'}</div>}
+        {all && <div style={{ fontSize: 11, opacity: 0.65, marginTop: 8 }}>{all.length - blocked} templates available{blocked ? ` (${blocked} excluded: raw HTML injection is not allowed in the sandbox, or the repair could not be verified)` : ''}.</div>}
       </div>
     </div>
   );
