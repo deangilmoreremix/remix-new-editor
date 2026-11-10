@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } fr
 import { createPortal } from 'react-dom';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { OverlayLane } from './overlay-lane';
-import { createOverlay } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, createTemplateOverlays } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
@@ -3163,6 +3163,11 @@ export function TimelineEditor({
           const overlay = createOverlay(kind, currentTime, Math.max(sequenceDuration, 10));
           dispatch({ type: 'ADD_OVERLAY', overlay });
           selectOverlay(overlay.id);
+        }}
+        onAddTemplate={(templateId) => {
+          const made = createTemplateOverlays(templateId, currentTime, Math.max(sequenceDuration, 10));
+          made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+          if (made[0]) selectOverlay(made[made.length - 1].id);
         }}
         onUpdate={(id, updates) => dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates })}
       />

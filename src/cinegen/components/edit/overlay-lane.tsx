@@ -2,7 +2,7 @@
 // move it, drag its edges to trim, click to select (opens its settings), and add new ones at the playhead from the lane header.
 import { useRef } from 'react';
 import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
-import { OVERLAY_KINDS } from '@cinegen/lib/overlays/overlays';
+import { OVERLAY_KINDS, overlayTemplates } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
 
 interface Props {
@@ -12,12 +12,14 @@ interface Props {
   labelWidth: number;
   sequenceDuration: number;
   onAdd: (kind: OverlayKind) => void;
+  /** End Screen / Connect Form template (adds several overlays) */
+  onAddTemplate?: (templateId: string) => void;
   onUpdate: (id: string, updates: Partial<OverlayClip>) => void;
 }
 
 const MIN = 0.5;
 
-export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onAdd, onUpdate }: Props) {
+export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onAdd, onAddTemplate, onUpdate }: Props) {
   const selected = useSelectedOverlay();
   const drag = useRef<{ id: string; mode: 'move' | 'start' | 'end'; x: number; start: number; end: number } | null>(null);
 
@@ -43,10 +45,11 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   return (
     <div className="overlay-lane" style={{ display: 'flex', height: 30, borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,.08))', background: 'var(--bg-surface, #0b0e14)', flex: '0 0 auto' }}>
       <div title="Overlays: forms and buttons drawn over the video" style={{ width: labelWidth, flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 3, padding: '0 6px', fontSize: 11, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-        <select aria-label="Add overlay" title="Add an overlay at the playhead" value="" onChange={(e) => { if (e.target.value) onAdd(e.target.value as OverlayKind); }}
+        <select aria-label="Add overlay" title="Add an overlay at the playhead" value="" onChange={(e) => { if (!e.target.value) return; if (e.target.value.startsWith('tpl:')) onAddTemplate?.(e.target.value.slice(4)); else onAdd(e.target.value as OverlayKind); }}
           style={{ flex: 1, minWidth: 0, background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 11, padding: '3px 4px', cursor: 'pointer' }}>
           <option value="">+ Add overlay…</option>
           {OVERLAY_KINDS.map((k) => <option key={k.kind} value={k.kind} title={k.blurb}>{k.label}</option>)}
+          {onAddTemplate && <optgroup label="End screens and connect forms">{overlayTemplates().map((t) => <option key={t.id} value={`tpl:${t.id}`} title={t.description}>{t.name}</option>)}</optgroup>}
         </select>
       </div>
       <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>

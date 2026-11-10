@@ -50,3 +50,17 @@ describe('registry overlay kinds', () => {
     expect(normalizeOverlays([o])).toHaveLength(1);
   });
 });
+
+import { createTemplateOverlays, overlayTemplates } from '@cinegen/lib/overlays/overlays';
+describe('end screen / connect templates on the overlay lane', () => {
+  it('lists the old editor libraries and turns a template into overlay clips', () => {
+    const list = overlayTemplates();
+    expect(list.some((t) => t.library === 'endScreens')).toBe(true);
+    expect(list.some((t) => t.library === 'connect')).toBe(true);
+    const made = createTemplateOverlays('es-thanks', 0, 30);
+    expect(made.length).toBeGreaterThan(1);
+    expect(made.every((o) => o.end > o.start)).toBe(true);
+    expect(Math.max(...made.map((o) => o.end))).toBeLessThanOrEqual(30);
+    expect(Math.min(...made.map((o) => o.start))).toBeGreaterThan(20); // end screens sit at the end
+  });
+});
