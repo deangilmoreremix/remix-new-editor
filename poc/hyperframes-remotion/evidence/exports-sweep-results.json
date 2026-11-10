@@ -2,8 +2,8 @@
  {
   "label": "sweep-lt-clean-bar",
   "ok": true,
-  "ms": 1713,
-  "bytes": 81693,
+  "ms": 1637,
+  "bytes": 81530,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -23,8 +23,8 @@
  {
   "label": "sweep-lt-bold-block",
   "ok": true,
-  "ms": 2017,
-  "bytes": 74161,
+  "ms": 1968,
+  "bytes": 74198,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -44,8 +44,8 @@
  {
   "label": "sweep-lt-neon-border",
   "ok": true,
-  "ms": 4984,
-  "bytes": 233940,
+  "ms": 4571,
+  "bytes": 234472,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -65,8 +65,8 @@
  {
   "label": "sweep-yt-lower-third",
   "ok": true,
-  "ms": 1782,
-  "bytes": 135253,
+  "ms": 1830,
+  "bytes": 135392,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -86,8 +86,8 @@
  {
   "label": "sweep-hw-title",
   "ok": true,
-  "ms": 1876,
-  "bytes": 370883,
+  "ms": 1809,
+  "bytes": 370403,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -107,7 +107,7 @@
  {
   "label": "sweep-hw-write-title",
   "ok": true,
-  "ms": 1860,
+  "ms": 1911,
   "bytes": 28003,
   "video": {
    "codec": "h264",
@@ -128,8 +128,8 @@
  {
   "label": "sweep-apple-money-count",
   "ok": true,
-  "ms": 2930,
-  "bytes": 534891,
+  "ms": 3251,
+  "bytes": 536299,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -149,8 +149,8 @@
  {
   "label": "sweep-caption-kinetic-slam",
   "ok": true,
-  "ms": 1563,
-  "bytes": 326788,
+  "ms": 1772,
+  "bytes": 325024,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -170,8 +170,8 @@
  {
   "label": "sweep-caption-pill-karaoke",
   "ok": true,
-  "ms": 2364,
-  "bytes": 99886,
+  "ms": 2164,
+  "bytes": 99958,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -191,8 +191,8 @@
  {
   "label": "sweep-caption-highlight",
   "ok": true,
-  "ms": 11457,
-  "bytes": 332977,
+  "ms": 11541,
+  "bytes": 336036,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -212,8 +212,8 @@
  {
   "label": "sweep-caption-neon-glow",
   "ok": true,
-  "ms": 1907,
-  "bytes": 300798,
+  "ms": 1923,
+  "bytes": 302407,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -233,8 +233,8 @@
  {
   "label": "sweep-instagram-follow",
   "ok": true,
-  "ms": 2106,
-  "bytes": 182705,
+  "ms": 2053,
+  "bytes": 181273,
   "video": {
    "codec": "h264",
    "w": 1080,
@@ -254,8 +254,8 @@
  {
   "label": "sweep-tiktok-follow",
   "ok": true,
-  "ms": 1915,
-  "bytes": 165781,
+  "ms": 1699,
+  "bytes": 166182,
   "video": {
    "codec": "h264",
    "w": 1080,
@@ -275,8 +275,8 @@
  {
   "label": "sweep-reddit-post",
   "ok": true,
-  "ms": 3288,
-  "bytes": 250904,
+  "ms": 3022,
+  "bytes": 247940,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -296,8 +296,8 @@
  {
   "label": "sweep-spotify-card",
   "ok": true,
-  "ms": 2867,
-  "bytes": 321468,
+  "ms": 3057,
+  "bytes": 325878,
   "video": {
    "codec": "h264",
    "w": 1080,
@@ -317,8 +317,8 @@
  {
   "label": "sweep-ai-answer-rank",
   "ok": true,
-  "ms": 3509,
-  "bytes": 147860,
+  "ms": 3225,
+  "bytes": 148595,
   "video": {
    "codec": "h264",
    "w": 1080,
@@ -338,8 +338,8 @@
  {
   "label": "sweep-slack-notification-ad",
   "ok": true,
-  "ms": 3519,
-  "bytes": 535822,
+  "ms": 3446,
+  "bytes": 537322,
   "video": {
    "codec": "h264",
    "w": 1080,
@@ -359,8 +359,8 @@
  {
   "label": "sweep-heygen-avatar-promo-card",
   "ok": true,
-  "ms": 8510,
-  "bytes": 816182,
+  "ms": 7426,
+  "bytes": 818160,
   "video": {
    "codec": "h264",
    "w": 1080,
@@ -380,8 +380,8 @@
  {
   "label": "sweep-carousel-circle-1",
   "ok": true,
-  "ms": 2475,
-  "bytes": 804008,
+  "ms": 2187,
+  "bytes": 806256,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -401,8 +401,8 @@
  {
   "label": "sweep-carousel-path-2",
   "ok": true,
-  "ms": 2285,
-  "bytes": 805682,
+  "ms": 2446,
+  "bytes": 805871,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -422,8 +422,8 @@
  {
   "label": "sweep-cinemagraph",
   "ok": true,
-  "ms": 2045,
-  "bytes": 125061,
+  "ms": 1905,
+  "bytes": 124487,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -443,8 +443,8 @@
  {
   "label": "sweep-chromatic-radial-split",
   "ok": true,
-  "ms": 4959,
-  "bytes": 199643,
+  "ms": 4825,
+  "bytes": 199082,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -464,8 +464,8 @@
  {
   "label": "sweep-flash-through-white",
   "ok": true,
-  "ms": 4163,
-  "bytes": 202062,
+  "ms": 4241,
+  "bytes": 202354,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -485,8 +485,8 @@
  {
   "label": "sweep-glitch",
   "ok": true,
-  "ms": 4316,
-  "bytes": 371049,
+  "ms": 4225,
+  "bytes": 360923,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -506,8 +506,8 @@
  {
   "label": "sweep-bar-chart-race",
   "ok": true,
-  "ms": 2858,
-  "bytes": 389309,
+  "ms": 2712,
+  "bytes": 389019,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -527,8 +527,8 @@
  {
   "label": "sweep-code-diff",
   "ok": true,
-  "ms": 6151,
-  "bytes": 329498,
+  "ms": 4432,
+  "bytes": 328295,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -548,8 +548,8 @@
  {
   "label": "sweep-vfx-liquid-glass",
   "ok": true,
-  "ms": 112920,
-  "bytes": 810152,
+  "ms": 111358,
+  "bytes": 815684,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -574,8 +574,8 @@
  {
   "label": "sweep-code-3d-extrude",
   "ok": true,
-  "ms": 3282,
-  "bytes": 826237,
+  "ms": 3046,
+  "bytes": 823281,
   "video": {
    "codec": "h264",
    "w": 1920,
@@ -595,8 +595,8 @@
  {
   "label": "sweep-camera-dolly-zoom",
   "ok": true,
-  "ms": 17585,
-  "bytes": 47468,
+  "ms": 17353,
+  "bytes": 45513,
   "video": {
    "codec": "h264",
    "w": 1920,

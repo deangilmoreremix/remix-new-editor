@@ -28,22 +28,25 @@ console.log('url after import:', p.url());
 await p.screenshot({ path: `${out}/01-after-import.png` });
 console.log('pool text:', JSON.stringify((await text()).split('\n').filter((l) => /sample|\.mp4|clips|assets/i.test(l)).slice(0, 8)));
 // Place the clip: drag the pool asset onto the Video 1 track with real mouse events.
-await p.mouse.move(176, 146); await p.mouse.down(); await p.mouse.move(260, 300, { steps: 8 }); await p.mouse.move(470, 690, { steps: 14 }); await p.mouse.move(445, 698, { steps: 4 }); await p.mouse.up();
+await p.mouse.move(176, 146); await p.mouse.down(); await p.mouse.move(260, 300, { steps: 8 }); await p.mouse.move(470, 690, { steps: 14 }); await p.mouse.move(+(process.env.DROP_X || 445), 698, { steps: 4 }); await p.mouse.up();
 await p.waitForTimeout(4000);
+if (process.env.SNAP_TO_ZERO) { // drag the placed clip left; Snap pulls its start to exactly 00:00:00
+  await p.mouse.move(700, 716); await p.mouse.down(); await p.mouse.move(640, 716, { steps: 6 }); await p.mouse.move(585, 716, { steps: 8 }); await p.mouse.up(); await p.waitForTimeout(2500);
+}
 await p.screenshot({ path: `${out}/02-after-drag.png` });
 console.log('timeline text:', JSON.stringify((await text()).split('\n').filter((l) => /clip|sample|00:00:0[1-9]/i.test(l)).slice(0, 8)));
 // Export tab: Draft 720p -> RENDER
 await p.evaluate(() => { const el = [...document.querySelectorAll('button,[role=tab]')].find((e) => e.offsetParent && e.getBoundingClientRect().x > 90 && e.textContent.trim() === 'Export'); el?.click(); });
 await p.waitForTimeout(2500);
-await p.getByText('Draft', { exact: false }).first().click().catch((e) => console.log('draft click failed')); await p.waitForTimeout(800);
+console.log('preset click:', await p.evaluate(() => { const el = [...document.querySelectorAll('button,div')].filter((e) => e.offsetParent && /^Draft\s*720p$/.test(e.textContent.trim().replace(/\s+/g, ' ')))[0]; if (el) { el.click(); return true; } return false; })); await p.waitForTimeout(1000);
 await p.screenshot({ path: `${out}/03-export-tab.png` });
 const dl = p.waitForEvent('download', { timeout: 270000 }).catch(() => null);
-await p.getByRole('button', { name: /^render$/i }).click().catch((e) => console.log('render click failed', String(e).slice(0, 80)));
+console.log('render click:', await p.evaluate(() => { const el = [...document.querySelectorAll('button')].find((e) => e.offsetParent && e.textContent.trim().toUpperCase() === 'RENDER'); if (el) { el.click(); return true; } return false; }));
 const t0 = Date.now(); let last = '';
 for (let i = 0; i < 100; i++) { await p.waitForTimeout(2500); const t = (await text()).split('\n').filter((l) => /%|render|check|black|silence|frozen|done|fail|error/i.test(l)).slice(0, 6).join(' | '); if (t !== last) { console.log(`[${Math.round((Date.now() - t0) / 1000)}s]`, t.slice(0, 220)); last = t; } if (await Promise.race([dl.then((d) => !!d), new Promise((r) => setTimeout(() => r(false), 10))])) break; }
 const d = await Promise.race([dl, new Promise((r) => setTimeout(() => r(null), 8000))]);
 await p.waitForTimeout(6000); // let the in-browser QA text appear
 console.log('final text:', JSON.stringify((await text()).split('\n').filter((l) => /duration|size|black|frozen|silence|peak|QA|check/i.test(l)).slice(0, 8)));
 await p.screenshot({ path: `${out}/04-after-render.png` });
-if (d) { await d.saveAs(`${out}/new-editor-export-720p.mp4`); console.log('DOWNLOADED', d.suggestedFilename()); } else console.log('no download event');
+if (d) { await d.saveAs(`${out}/${process.env.OUT_NAME || 'new-editor-export-720p'}.mp4`); console.log('DOWNLOADED', d.suggestedFilename()); } else console.log('no download event');
 await b.close();

@@ -405,11 +405,11 @@
   "type": "block",
   "dims": "1920x1080",
   "ssim": [
-   0.952,
    0.95,
-   0.95
+   0.947,
+   0.947
   ],
-  "ssim_min": 0.95,
+  "ssim_min": 0.947,
   "motion": 1.7,
   "alpha_min": 255,
   "stills_ok": "3/3",

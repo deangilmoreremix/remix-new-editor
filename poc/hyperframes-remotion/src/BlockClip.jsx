@@ -169,6 +169,31 @@ export function splitLayers(bg) {
   if (cur.trim()) out.push(cur.trim());
   return out;
 }
+/**
+ * Compat transform: the renderer applies `filter: blur()` but CLIPS it to the element's border box (verified in
+ * src/diag.jsx), so large glows look hard-edged. Simple leaf shapes (solid colour, no children or text, positioned)
+ * are rasterized with canvas 2D onto a padded canvas and shown as a child <img> that may overflow the box.
+ */
+export function rasterBlurShapes(host) {
+  let n = 0;
+  for (const el of host.querySelectorAll('*')) {
+    if (el.dataset?.hfBlur || el.children.length || el.textContent.trim()) continue;
+    const cs = getComputedStyle(el); const m = /^blur\(([\d.]+)px\)$/.exec(cs.filter);
+    if (!m || cs.position === 'static' || (cs.backgroundImage && cs.backgroundImage !== 'none')) continue;
+    const w = el.offsetWidth, h = el.offsetHeight, sigma = parseFloat(m[1]); if (!w || !h || !sigma) continue;
+    const color = cs.backgroundColor; if (!color || color === 'rgba(0, 0, 0, 0)') continue;
+    const pad = Math.min(600, Math.ceil(sigma * 3));
+    const c = document.createElement('canvas'); c.width = w + pad * 2; c.height = h + pad * 2; const g = c.getContext('2d');
+    g.filter = `blur(${sigma}px)`; g.fillStyle = color;
+    const br = cs.borderTopLeftRadius; const r = br.endsWith('%') ? (parseFloat(br) / 100) * Math.min(w, h) : parseFloat(br) || 0;
+    g.beginPath(); g.roundRect(pad, pad, w, h, r); g.fill();
+    const img = document.createElement('img'); img.setAttribute('data-hf-layer', ''); img.src = c.toDataURL('image/png');
+    img.style.cssText = `position:absolute;left:${-pad}px;top:${-pad}px;width:${w + pad * 2}px;height:${h + pad * 2}px;pointer-events:none;max-width:none`;
+    el.dataset.hfBlur = '1'; el.style.filter = 'none'; el.style.backgroundColor = 'transparent'; el.append(img); n++;
+  }
+  return n;
+}
+
 export function explodeMultiGradients(host) {
   let n = 0;
   for (const el of host.querySelectorAll('*')) {
@@ -413,11 +438,12 @@ export function BlockClip({ name, width, height }) {
         }
         (window.__hfInfo ||= {})[name] = { id, hasTl: !!tl, dur: tl && tl.duration(), kids: tl && tl.getChildren().length, hostW: el.offsetWidth, hostH: el.offsetHeight, rootW: root && root.offsetWidth, rootH: root && root.offsetHeight, rootDisplay: root && getComputedStyle(root).display };
         await Promise.all([...el.querySelectorAll('img')].map((i) => (i.decode ? i.decode().catch(() => {}) : null)));
+        state.current.blurs = rasterBlurShapes(el);
         state.current.rasters = rasterRadials(el);
         state.current.layers = explodeMultiGradients(el);
         await Promise.all([...el.querySelectorAll('img[data-hf-layer]')].map((i) => i.decode().catch(() => {})));
         state.current.videos = collectVideos(el);
-        Object.assign((window.__hfInfo ||= {})[name] ||= {}, { rebased: stats.rebased, bars: (state.current.bars || []).length, fonts: state.current.fonts, rasters: state.current.rasters, layersSplit: state.current.layers, videos: state.current.videos.length });
+        Object.assign((window.__hfInfo ||= {})[name] ||= {}, { blurs: state.current.blurs, rebased: stats.rebased, bars: (state.current.bars || []).length, fonts: state.current.fonts, rasters: state.current.rasters, layersSplit: state.current.layers, videos: state.current.videos.length });
         if (state.current.videos.length) await paintVideos(state.current.videos, frame / fps);
         (window.__hfInfo[name] ||= {}).vdbg = state.current.videos.map((v) => ({ w: v.el.offsetWidth, h: v.el.offsetHeight, rs: v.ghost.readyState, vw: v.ghost.videoWidth, ct: v.ghost.currentTime, bg: (v.el.style.backgroundImage || '').slice(0, 30), src: (v.el.getAttribute('src') || '').slice(0, 40), start: v.start, dur: v.dur }));
         state.current.ready = true;

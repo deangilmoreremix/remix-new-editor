@@ -4,7 +4,7 @@ Measured with Remotion `@remotion/web-renderer` 4.0.540 in headless Chromium 153
 
 **Classification rules** (applied by `build-matrix.py` from recorded data):
 - **DIRECT**: no compatibility transform engaged (a block may still load its Google Fonts).
-- **GENERIC ADAPTER**: one or more reusable transforms engaged (`rebased` relative assets, `bars` inset-shadow bars, `rasters` off-centre radial gradients, `layersSplit` stacked gradients, `videos` video bridge). No per-block code.
+- **GENERIC ADAPTER**: one or more reusable transforms engaged (`rebased` relative assets, `blurs` box-clipped blur shapes, `bars` inset-shadow bars, `blurs` box-clipped blur shapes, `rasters` off-centre radial gradients, `layersSplit` stacked gradients, `videos` video bridge). No per-block code.
 - **(partial)**: lowest of the three SSIM samples is below 0.95.
 - **SPECIAL HANDLING NEEDED**: renders but content differs; needs component-specific work.
 - **UNSUPPORTED**: cannot render, or key visuals missing, with a verified cause.
@@ -38,7 +38,7 @@ SSIM column = three samples. `motion` = largest frame-to-frame change across sam
 | flash-through-white | transition | block | 1920x1080 | 0.96/0.95/0.95 | 154.4 | 255 | 60f 1920x1080 | layersSplit | Space Mono, Bebas Neue, JetBrains Mono, Lato | **GENERIC ADAPTER** |  |
 | glitch | transition | block | 1920x1080 | 0.99/0.99/0.99 | 32.5 | 255 | 60f 1920x1080 | layersSplit | Space Mono, Bebas Neue, JetBrains Mono, Lato | **GENERIC ADAPTER** |  |
 | bar-chart-race | GSAP animation | block | 1920x1080 | 0.98/0.98/0.98 | 4.2 | 255 | 60f 1920x1080 | - | Inter | **DIRECT** |  |
-| code-diff | GSAP animation | block | 1920x1080 | 0.95/0.95/0.95 | 1.7 | 255 | 60f 1920x1080 | bars, rasters, layersSplit | JetBrains Mono | **GENERIC ADAPTER** | Needed the inset-shadow bar transform. `filter: blur()` glows draw hard-edged (renderer ignores CSS blur) -> 0.95. |
+| code-diff | GSAP animation | block | 1920x1080 | 0.95/0.95/0.95 | 1.7 | 255 | 60f 1920x1080 | bars, rasters, layersSplit, blurs | JetBrains Mono | **GENERIC ADAPTER (partial)** | Needed the inset-shadow bar and blurred-shape transforms (renderer clips `filter: blur()` to the element box). Residual: PSNR 31.4 dB, mean abs diff 3.1/255, 0.54% of pixels off by >16 levels (low-amplitude gradient differences). |
 | vfx-liquid-glass | canvas animation | block | 1920x1080 | 0.74/0.75/0.75 | 20.3 | 255 | 60f 1920x1080 | - | Inter | **SPECIAL HANDLING NEEDED** | three.js glass renders but the captured backdrop content differs from native (different text shown). Not diagnosed. |
 | vfx-shatter | canvas animation | block | 1920x1080 | n/a | 0.0 | 255 | FAIL | - | Inter | **UNSUPPORTED** | Needs experimental drawElementImage (HTML-in-canvas); absent in this Chromium and native HyperFrames fails too. No reference. |
 | code-3d-extrude | WebGL effect | block | 1920x1080 | 1.00/1.00/1.00 | 3.2 | 255 | 60f 1920x1080 | - | - | **DIRECT** | WebGL slab matches (1.0). |

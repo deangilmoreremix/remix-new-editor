@@ -5,7 +5,7 @@ T = {r['name']: r for r in json.load(open('out/sweep-table.json'))}
 B = json.load(open('out/blocks.json'))
 E = {r['label'].replace('sweep-', ''): r for r in json.load(open('out/exports/results-sweep.json'))}
 NOTES = {
- 'code-diff': 'Needed the inset-shadow bar transform. `filter: blur()` glows draw hard-edged (renderer ignores CSS blur) -> 0.95.',
+ 'code-diff': 'Needed the inset-shadow bar and blurred-shape transforms (renderer clips `filter: blur()` to the element box). Residual: PSNR 31.4 dB, mean abs diff 3.1/255, 0.54% of pixels off by >16 levels (low-amplitude gradient differences).',
  'slack-notification-ad': 'Needed timeline-settle wait, radial-gradient rasterizing (wallpaper) and CORS images. Fixed from 0.002 to 0.95.',
  'heygen-avatar-promo-card': 'Needed the <video> bridge (3 of 5 tiles are video). Frames match closely; tiny pose offsets from seek precision.',
  'vfx-liquid-glass': 'three.js glass renders but the captured backdrop content differs from native (different text shown). Not diagnosed.',
@@ -23,7 +23,7 @@ UNSUP = {'vfx-shatter', 'camera-dolly-zoom'}; SPECIAL = {'vfx-liquid-glass'}
 rows = []
 for n, t in T.items():
     info = (B.get(n) or {}).get('hfInfo') or {}
-    eng = [k for k in ('rebased', 'bars', 'rasters', 'layersSplit', 'videos') if info.get(k)]
+    eng = [k for k in ('rebased', 'bars', 'rasters', 'layersSplit', 'videos', 'blurs') if info.get(k)]
     fonts = info.get('fonts') or []
     smin = min(t['ssim']) if t['ssim'] else None
     if n in UNSUP: cls = 'UNSUPPORTED'
@@ -37,7 +37,7 @@ out = ["# 30-component compatibility matrix (real HyperFrames 0.9.28 catalog sou
  "Measured with Remotion `@remotion/web-renderer` 4.0.540 in headless Chromium 153 (default flags) against native `hyperframes snapshot` frames at identical timestamps (15% / 50% / 90% of each duration). MP4 column = first 2 s exported at the component's native size, H.264 + AAC, verified with ffprobe.\n",
  "**Classification rules** (applied by `build-matrix.py` from recorded data):",
  "- **DIRECT**: no compatibility transform engaged (a block may still load its Google Fonts).",
- "- **GENERIC ADAPTER**: one or more reusable transforms engaged (`rebased` relative assets, `bars` inset-shadow bars, `rasters` off-centre radial gradients, `layersSplit` stacked gradients, `videos` video bridge). No per-block code.",
+ "- **GENERIC ADAPTER**: one or more reusable transforms engaged (`rebased` relative assets, `blurs` box-clipped blur shapes, `bars` inset-shadow bars, `blurs` box-clipped blur shapes, `rasters` off-centre radial gradients, `layersSplit` stacked gradients, `videos` video bridge). No per-block code.",
  "- **(partial)**: lowest of the three SSIM samples is below 0.95.",
  "- **SPECIAL HANDLING NEEDED**: renders but content differs; needs component-specific work.",
  "- **UNSUPPORTED**: cannot render, or key visuals missing, with a verified cause.\n",

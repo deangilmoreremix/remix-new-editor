@@ -54,7 +54,18 @@ export const IframeCapture = () => (
       style={{ position: 'absolute', left: 20, top: 240, width: 400, height: 100, border: '2px solid #58a6ff' }} />
   </AbsoluteFill>
 );
+export const BlurDiag = () => (
+  <AbsoluteFill style={{ background: '#0b0f17' }}>
+    <div style={{ position: 'absolute', left: 20, top: 40, width: 140, height: 140, borderRadius: '50%', background: '#3b82f6' }} />
+    <div style={{ position: 'absolute', left: 190, top: 40, width: 140, height: 140, borderRadius: '50%', background: '#3b82f6', filter: 'blur(24px)' }} />
+    <div style={{ position: 'absolute', left: 360, top: 40, width: 140, height: 140, borderRadius: '50%', background: '#3b82f6', opacity: 0.4 }} />
+    <div style={{ position: 'absolute', left: 20, top: 210, width: 140, height: 140, borderRadius: '50%', background: '#3b82f655', filter: 'blur(24px)', opacity: 0.5 }} />
+    <div style={{ position: 'absolute', left: 190, top: 210, width: 140, height: 140, background: '#f5b335', filter: 'drop-shadow(0 0 20px #f5b335)' }} />
+    <div style={{ position: 'absolute', left: 360, top: 210, width: 140, height: 140, background: '#ef4444', backdropFilter: 'blur(8px)' }} />
+  </AbsoluteFill>
+);
 export const DIAG = {
+  'blur-diag': { id: 'blur-diag', component: BlurDiag, width: 640, height: 360, fps: 30, durationInFrames: 2 },
   'iframe-capture': { id: 'iframe-capture', component: IframeCapture, width: 640, height: 360, fps: 30, durationInFrames: 2 },
   'grad-syntax': { id: 'grad-syntax', component: GradSyntax, width: 640, height: 360, fps: 30, durationInFrames: 2 },
   'css3d-gradients': { id: 'css3d-gradients', component: Css3dAndGradients, width: 640, height: 360, fps: 30, durationInFrames: 2 }, 'inset-shadow': { id: 'inset-shadow', component: InsetShadow, width: 640, height: 360, fps: 30, durationInFrames: 2 } };
