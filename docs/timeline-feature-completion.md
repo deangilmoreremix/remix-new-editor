@@ -17,14 +17,14 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 
 | Status | Count |
 |---|---|
-| NOT_STARTED | 5 |
+| NOT_STARTED | 4 |
 | SOURCE_FOUND | 0 |
 | PARTIAL | 21 |
-| IMPLEMENTED_UNVERIFIED | 4 |
+| IMPLEMENTED_UNVERIFIED | 11 |
 | VERIFIED | 20 |
 | BLOCKED | 2 |
 | NOT_APPLICABLE | 2 |
-| **All** | 54 |
+| **All** | 60 |
 
 ## Effects
 
@@ -233,6 +233,17 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Evidence: commit e5e4f9b7
 - **Missing:** Live OpenAI translation not tested (no key in sandbox)
 
+### occ.captions.srt-presets-fonts — IMPLEMENTED_UNVERIFIED
+
+- Source (0xsline/OpenChatCut@9242a95): src/captions/{srt,exportCaptions,presetStore}.ts
+- Target: src/openchatcut/captions/*, src/cinegen/components/edit/clip-captions-section.tsx, src/cinegen/lib/occ/user-fonts.ts
+- Original: SRT import/export, saved caption looks, user font import (carried into exports as data URLs)
+- Browser: yes · Backend: none
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: compiled; unit tests where noted
+- Evidence: this branch (commits after d684a343)
+- **Missing:** Not browser-run: SRT/preset/font UI and the font hand-off to the export runner; occ-caption-srt.test.ts covers the SRT round trip only
+
 ## Typography
 
 ### occ.captions.fonts — PARTIAL
@@ -325,6 +336,28 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Evidence: commit 7fb4850f
 - **Missing:** Transition audio (transitionAudio.ts) not integrated
 
+### occ.audio.beat-this — IMPLEMENTED_UNVERIFIED
+
+- Source (0xsline/OpenChatCut@9242a95): src/audio/intelligence/{beatThis.worker,beatThisClient,beatThisPreprocess,audioDecode,types,sections}.ts
+- Target: src/openchatcut/audio/intelligence/*, src/cinegen/lib/occ/analysis.ts beatThisOf, Analyze → Beat This
+- Original: Neural beat/downbeat tracker, opt-in ≈83 MB Hugging Face download (their /api/hf-proxy removed), progress + cancel
+- Browser: yes · Backend: none
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: compiled; unit tests where noted
+- Evidence: this branch (commits after d684a343)
+- **Missing:** Model never downloaded or run here; modules compile in the dev server; WebGPU→WASM fallback is their code
+
+### occ.audio.clap — IMPLEMENTED_UNVERIFIED
+
+- Source (0xsline/OpenChatCut@9242a95): src/audio/intelligence/{clap.worker,clapClient,clapProfile,clapTypes}.ts, clap-prototypes.json
+- Target: src/openchatcut/audio/intelligence/*, Analyze → Tag audio (CLAP)
+- Original: CLAP music tagging, opt-in download
+- Browser: yes · Backend: none
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: compiled; unit tests where noted
+- Evidence: this branch (commits after d684a343)
+- **Missing:** Model never downloaded or run here
+
 ## Editing
 
 ### occ.edit.speed — VERIFIED
@@ -359,6 +392,28 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Tests: occ-transform.test.ts (3)
 - Evidence: docs/evidence/transform/ (tr-frame.png, tr-control.png, tr-1-preview.png); this branch
 - **Missing:** No keyframes UI for position/scale/rotation (only the tracked path); no undo-specific test beyond the shared SET_TIMELINE history; reload persistence covered by converter test only (not browser)
+
+### occ.edit.layouts — IMPLEMENTED_UNVERIFIED
+
+- Source (0xsline/OpenChatCut@9242a95): src/editor/layouts.ts
+- Target: src/openchatcut/editor/layouts.ts, src/cinegen/components/edit/clip-layout-section.tsx, src/cinegen/lib/occ/transform.ts (crop)
+- Original: Split screen / grid / picture-in-picture slot placement
+- Browser: yes · Backend: none
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: compiled; unit tests where noted
+- Evidence: this branch (commits after d684a343)
+- **Missing:** Per-element transform+crop in preview verified for transform only; layout apply not driven in a browser; export applies clip-path crop but not frame-checked
+
+### occ.edit.transform-keyframes — IMPLEMENTED_UNVERIFIED
+
+- Source (0xsline/OpenChatCut@9242a95): src/editor/keyframes.ts (idea)
+- Target: src/cinegen/lib/occ/transform.ts, clip-transform-section.tsx
+- Original: Position/scale/rotation keyframes
+- Browser: yes · Backend: none
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: compiled; unit tests where noted
+- Evidence: this branch (commits after d684a343)
+- **Missing:** Interpolation unit-tested; keyframe UI not browser-driven; no easing options
 
 ## Export
 
@@ -501,16 +556,27 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Evidence: —
 - **Missing:** not reconnected
 
-### rm.share-publish — NOT_STARTED
+### rm.end-screens-connect — IMPLEMENTED_UNVERIFIED
 
-- Source (deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)): src/lib/editor/publish/*
-- Target: src/lib/editor/publish/*
-- Original: Share / Publish
-- Browser: yes · Backend: existing Netlify/Supabase
+- Source (0xsline/OpenChatCut@9242a95): src/lib/editor/addons/templateLibrary.js
+- Target: src/cinegen/lib/overlays/overlays.ts createTemplateOverlays, overlay lane menu
+- Original: End Screens and Connect Form template libraries as overlays
+- Browser: yes · Backend: none
 - UI: — · Persistence: — · Preview: — · Export: —
-- Tests: —
-- Evidence: —
-- **Missing:** not reconnected
+- Tests: compiled; unit tests where noted
+- Evidence: this branch (commits after d684a343)
+- **Missing:** Unit test only; not seen rendering in the viewer
+
+### rm.share-publish — IMPLEMENTED_UNVERIFIED
+
+- Source (0xsline/OpenChatCut@9242a95): src/lib/editor/publish/{sharePanel,publishClient}.js
+- Target: src/cinegen/components/export/share-panel.tsx
+- Original: Share / publish interactive video from the CineGen timeline + overlays
+- Browser: yes · Backend: none
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: compiled; unit tests where noted
+- Evidence: this branch (commits after d684a343)
+- **Missing:** Snapshot builder unit-tested; publishing needs a signed-in session and the published_videos table — not run; personal links / contacts not wired
 
 ## CineGen Elements
 

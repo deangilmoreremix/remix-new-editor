@@ -36,3 +36,16 @@ describe('layouts', () => {
     expect(clipTransformClipPath({ x: 0, y: 0, scale: 1, rotation: 0, crop: l.crop })).toMatch(/^inset\(/);
   });
 });
+
+import { transformValuesAt, upsertKey } from '@cinegen/lib/occ/transform';
+describe('transform keyframes', () => {
+  it('interpolates between keys and replaces a key at the same time', () => {
+    let t = upsertKey(IDENTITY_TRANSFORM, 0, { x: 0, y: 0, scale: 1, rotation: 0 });
+    t = upsertKey(t, 2, { x: 20, y: -10, scale: 2, rotation: 90 });
+    expect(transformValuesAt(t, 1)).toEqual({ x: 10, y: -5, scale: 1.5, rotation: 45 });
+    expect(transformValuesAt(t, 5).scale).toBe(2);
+    t = upsertKey(t, 2, { x: 0, y: 0, scale: 1, rotation: 0 });
+    expect(t.keys).toHaveLength(2);
+    expect(clipTransformCss(t, 1)).toContain('scale(1)');
+  });
+});

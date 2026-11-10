@@ -205,7 +205,7 @@ export function ClipPropertiesPanel({
 
       {!isAudio && <ClipCaptionsSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} onSeek={onSeek} />}
 
-      {!isAudio && <ClipTransformSection clip={clip} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      {!isAudio && <ClipTransformSection clip={clip} currentTime={currentTime} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 
       {!isAudio && <ClipZoomSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 

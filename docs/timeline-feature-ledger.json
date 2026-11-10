@@ -977,29 +977,6 @@
    "blocker": ""
   },
   {
-   "id": "rm.share-publish",
-   "family": "Existing remix-new-editor features",
-   "sourceRepo": "deangilmoreremix/remix-new-editor (own code / upstream strategic-limited/remix-new-editor)",
-   "sourcePaths": [
-    "src/lib/editor/publish/*"
-   ],
-   "targetPaths": [
-    "src/lib/editor/publish/*"
-   ],
-   "originalFunctionality": "Share / Publish",
-   "browserCompatibility": "yes",
-   "backendDependencies": "existing Netlify/Supabase",
-   "status": "NOT_STARTED",
-   "uiIntegration": "",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "",
-   "evidence": "",
-   "missing": "not reconnected",
-   "blocker": ""
-  },
-  {
    "id": "cg.elements.logic",
    "family": "CineGen Elements",
    "sourceRepo": "christopherjohnogden/CineGen@769f148",
@@ -1323,6 +1300,177 @@
    "testsPerformed": "occ-export-aspect.test.ts (2); browser export",
    "evidence": "docs/evidence/export/aspect-selector.png; ffprobe 720,1280; commit of this stage",
    "missing": "Clips use cover fit, so a 16:9 clip in a 9:16 frame is centre-cropped (reposition with Transform/zoom); viewer preview stays 16:9; no custom resolution entry",
+   "blocker": ""
+  },
+  {
+   "id": "occ.captions.srt-presets-fonts",
+   "family": "Captions",
+   "sourceRepo": "0xsline/OpenChatCut@9242a95",
+   "sourcePaths": [
+    "src/captions/{srt,exportCaptions,presetStore}.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/captions/*",
+    "src/cinegen/components/edit/clip-captions-section.tsx",
+    "src/cinegen/lib/occ/user-fonts.ts"
+   ],
+   "originalFunctionality": "SRT import/export, saved caption looks, user font import (carried into exports as data URLs)",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "compiled; unit tests where noted",
+   "evidence": "this branch (commits after d684a343)",
+   "missing": "Not browser-run: SRT/preset/font UI and the font hand-off to the export runner; occ-caption-srt.test.ts covers the SRT round trip only",
+   "blocker": ""
+  },
+  {
+   "id": "occ.audio.beat-this",
+   "family": "Audio",
+   "sourceRepo": "0xsline/OpenChatCut@9242a95",
+   "sourcePaths": [
+    "src/audio/intelligence/{beatThis.worker,beatThisClient,beatThisPreprocess,audioDecode,types,sections}.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/audio/intelligence/*",
+    "src/cinegen/lib/occ/analysis.ts beatThisOf",
+    "Analyze → Beat This"
+   ],
+   "originalFunctionality": "Neural beat/downbeat tracker, opt-in ≈83 MB Hugging Face download (their /api/hf-proxy removed), progress + cancel",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "compiled; unit tests where noted",
+   "evidence": "this branch (commits after d684a343)",
+   "missing": "Model never downloaded or run here; modules compile in the dev server; WebGPU→WASM fallback is their code",
+   "blocker": ""
+  },
+  {
+   "id": "occ.audio.clap",
+   "family": "Audio",
+   "sourceRepo": "0xsline/OpenChatCut@9242a95",
+   "sourcePaths": [
+    "src/audio/intelligence/{clap.worker,clapClient,clapProfile,clapTypes}.ts",
+    "clap-prototypes.json"
+   ],
+   "targetPaths": [
+    "src/openchatcut/audio/intelligence/*",
+    "Analyze → Tag audio (CLAP)"
+   ],
+   "originalFunctionality": "CLAP music tagging, opt-in download",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "compiled; unit tests where noted",
+   "evidence": "this branch (commits after d684a343)",
+   "missing": "Model never downloaded or run here",
+   "blocker": ""
+  },
+  {
+   "id": "occ.edit.layouts",
+   "family": "Editing",
+   "sourceRepo": "0xsline/OpenChatCut@9242a95",
+   "sourcePaths": [
+    "src/editor/layouts.ts"
+   ],
+   "targetPaths": [
+    "src/openchatcut/editor/layouts.ts",
+    "src/cinegen/components/edit/clip-layout-section.tsx",
+    "src/cinegen/lib/occ/transform.ts (crop)"
+   ],
+   "originalFunctionality": "Split screen / grid / picture-in-picture slot placement",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "compiled; unit tests where noted",
+   "evidence": "this branch (commits after d684a343)",
+   "missing": "Per-element transform+crop in preview verified for transform only; layout apply not driven in a browser; export applies clip-path crop but not frame-checked",
+   "blocker": ""
+  },
+  {
+   "id": "occ.edit.transform-keyframes",
+   "family": "Editing",
+   "sourceRepo": "0xsline/OpenChatCut@9242a95",
+   "sourcePaths": [
+    "src/editor/keyframes.ts (idea)"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/occ/transform.ts",
+    "clip-transform-section.tsx"
+   ],
+   "originalFunctionality": "Position/scale/rotation keyframes",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "compiled; unit tests where noted",
+   "evidence": "this branch (commits after d684a343)",
+   "missing": "Interpolation unit-tested; keyframe UI not browser-driven; no easing options",
+   "blocker": ""
+  },
+  {
+   "id": "rm.end-screens-connect",
+   "family": "Existing remix-new-editor features",
+   "sourceRepo": "0xsline/OpenChatCut@9242a95",
+   "sourcePaths": [
+    "src/lib/editor/addons/templateLibrary.js"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/overlays/overlays.ts createTemplateOverlays",
+    "overlay lane menu"
+   ],
+   "originalFunctionality": "End Screens and Connect Form template libraries as overlays",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "compiled; unit tests where noted",
+   "evidence": "this branch (commits after d684a343)",
+   "missing": "Unit test only; not seen rendering in the viewer",
+   "blocker": ""
+  },
+  {
+   "id": "rm.share-publish",
+   "family": "Existing remix-new-editor features",
+   "sourceRepo": "0xsline/OpenChatCut@9242a95",
+   "sourcePaths": [
+    "src/lib/editor/publish/{sharePanel,publishClient}.js"
+   ],
+   "targetPaths": [
+    "src/cinegen/components/export/share-panel.tsx"
+   ],
+   "originalFunctionality": "Share / publish interactive video from the CineGen timeline + overlays",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "compiled; unit tests where noted",
+   "evidence": "this branch (commits after d684a343)",
+   "missing": "Snapshot builder unit-tested; publishing needs a signed-in session and the published_videos table — not run; personal links / contacts not wired",
    "blocker": ""
   }
  ]

@@ -1,6 +1,6 @@
-// [remix] Position / scale / rotation of the clip in the frame, and the tracked path made by OpenChatCut's tracker (Zoom → Follow subject → Pin).
+// [remix] Position / scale / rotation of the clip in the frame (with keyframes), and the tracked path made by OpenChatCut's tracker (Zoom → Follow subject → Pin).
 import type { Clip } from '@cinegen/types/timeline';
-import { IDENTITY_TRANSFORM, hasTransform, type ClipTransform } from '@cinegen/lib/occ/transform';
+import { IDENTITY_TRANSFORM, hasTransform, transformValuesAt, upsertKey, type ClipTransform } from '@cinegen/lib/occ/transform';
 
 const ROWS: Array<{ key: 'x' | 'y' | 'scale' | 'rotation'; label: string; min: number; max: number; step: number; unit: string }> = [
   { key: 'x', label: 'Position X', min: -100, max: 100, step: 0.5, unit: '%' },
@@ -9,22 +9,32 @@ const ROWS: Array<{ key: 'x' | 'y' | 'scale' | 'rotation'; label: string; min: n
   { key: 'rotation', label: 'Rotation', min: -180, max: 180, step: 1, unit: '°' },
 ];
 
-export function ClipTransformSection({ clip, onUpdate }: { clip: Clip; onUpdate: (u: { transform?: ClipTransform }) => void }) {
+export function ClipTransformSection({ clip, currentTime = 0, onUpdate }: { clip: Clip; currentTime?: number; onUpdate: (u: { transform?: ClipTransform }) => void }) {
   const tr = clip.transform ?? IDENTITY_TRANSFORM;
-  const set = (patch: Partial<ClipTransform>) => { const next = { ...tr, ...patch }; onUpdate({ transform: hasTransform(next) ? next : undefined }); };
+  const t = Math.max(0, Math.min(currentTime - clip.startTime, (clip.duration - clip.trimStart - clip.trimEnd) / (clip.speed || 1)));
+  const cur = transformValuesAt(tr, t);
+  const keyed = !!tr.keys?.length;
+  const commit = (next: ClipTransform) => onUpdate({ transform: hasTransform(next) ? next : undefined });
+  // with keyframes, moving a slider edits the key at the playhead; without, it edits the base value
+  const set = (patch: Partial<typeof cur>) => commit(keyed ? upsertKey(tr, t, { ...cur, ...patch }) : { ...tr, ...patch });
+  const atKey = !!tr.keys?.some((k) => Math.abs(k.t - t) <= 0.02);
   return (
     <div className="clip-properties-panel__section" data-testid="clip-transform">
       <div className="clip-properties-panel__section-title">Transform</div>
       {ROWS.map((r) => (
         <div className="clip-properties-panel__row" key={r.key}>
           <span className="clip-properties-panel__label">{r.label}</span>
-          <input type="range" className="clip-properties-panel__slider" data-testid={`transform-${r.key}`} min={r.min} max={r.max} step={r.step} value={tr[r.key]} onChange={(e) => set({ [r.key]: parseFloat(e.target.value) })} />
-          <span className="clip-properties-panel__value">{tr[r.key].toFixed(r.key === 'scale' ? 2 : 1)}{r.unit}</span>
+          <input type="range" className="clip-properties-panel__slider" data-testid={`transform-${r.key}`} min={r.min} max={r.max} step={r.step} value={cur[r.key]} onChange={(e) => set({ [r.key]: parseFloat(e.target.value) })} />
+          <span className="clip-properties-panel__value">{cur[r.key].toFixed(r.key === 'scale' ? 2 : 1)}{r.unit}</span>
         </div>
       ))}
       <div className="clip-properties-panel__row">
+        <button className="clip-properties-panel__toggle-btn" data-testid="transform-key" title="Record the current values as a keyframe at the playhead" onClick={() => commit(upsertKey(tr, t, cur))}>{atKey ? '◆ Update keyframe' : '◇ Add keyframe'}</button>
+        {keyed && <button className="clip-properties-panel__toggle-btn" onClick={() => commit({ ...tr, keys: undefined, ...(tr.keys?.length ? { x: cur.x, y: cur.y, scale: cur.scale, rotation: cur.rotation } : {}) })}>Clear {tr.keys!.length} key{tr.keys!.length === 1 ? '' : 's'}</button>}
+      </div>
+      <div className="clip-properties-panel__row">
         {tr.path?.length ? <span style={{ fontSize: 11, opacity: 0.75, flex: 1 }}>Tracked path: {tr.path.length} keys</span> : <span style={{ flex: 1 }} />}
-        {tr.path?.length ? <button className="clip-properties-panel__toggle-btn" onClick={() => set({ path: undefined, scale: 1 })}>Clear track</button> : null}
+        {tr.path?.length ? <button className="clip-properties-panel__toggle-btn" onClick={() => commit({ ...tr, path: undefined, scale: 1 })}>Clear track</button> : null}
         <button className="clip-properties-panel__toggle-btn" disabled={!hasTransform(clip.transform)} onClick={() => onUpdate({ transform: undefined })}>Reset</button>
       </div>
     </div>
