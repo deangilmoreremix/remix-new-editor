@@ -4,6 +4,8 @@ import { Player } from '@remotion/player';
 import { renderMediaOnWeb, renderStillOnWeb } from '@remotion/web-renderer';
 import { COMPOSITIONS } from './compositions.jsx';
 import { BlockClip } from './BlockClip.jsx';
+import { DIAG } from './diag.jsx';
+Object.assign(COMPOSITIONS, DIAG);
 
 const blockComp = (name, width, height, seconds, fps = 30) => ({
   id: 'blk-' + name, component: () => <BlockClip name={name} width={width} height={height} />,

@@ -23,6 +23,8 @@ mkdirSync('public/blocks', { recursive: true });
 cpSync(comp, 'public/blocks', { recursive: true });
 if (existsSync(join(src, 'assets'))) cpSync(join(src, 'assets'), 'public/blocks/assets', { recursive: true });
 
+// Catalog *components* (e.g. caption styles) are self-contained fragments installed under compositions/components/.
+if (existsSync(join(comp, 'components'))) for (const f of readdirSync(join(comp, 'components')).filter((f) => f.endsWith('.html'))) cpSync(join(comp, 'components', f), join('public/blocks', f));
 const urls = new Set();
 for (const f of readdirSync('public/blocks').filter((f) => f.endsWith('.html'))) {
   for (const m of readFileSync(join('public/blocks', f), 'utf8').matchAll(/<script[^>]*\ssrc="(https?:[^"]+)"/g)) urls.add(m[1]);
