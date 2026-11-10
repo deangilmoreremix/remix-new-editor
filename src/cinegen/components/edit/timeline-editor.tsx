@@ -895,9 +895,12 @@ export function TimelineEditor({
       add: ({ url, duration, tts, name }) => {
         const asset: Asset = { id: generateId(), name, type: 'audio', url, duration, createdAt: new Date().toISOString() };
         dispatch({ type: 'ADD_ASSET', asset });
-        const tl = timelineRef.current;
-        const track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked) ?? tl.tracks.find((t) => t.kind === 'audio');
-        if (!track) return;
+        let tl = timelineRef.current;
+        // a free audio track at the playhead (the narration must not sit on top of the footage's own audio); add one when none is free
+        const dur = asset.duration ?? 3;
+        const free = (t: { id: string; kind: string; locked?: boolean }) => t.kind === 'audio' && !t.locked && !tl.clips.some((c) => c.trackId === t.id && c.startTime < currentTime + dur && clipEndTime(c) > currentTime);
+        let track = tl.tracks.find(free);
+        if (!track) { tl = addTrack(tl, 'audio'); track = tl.tracks[tl.tracks.length - 1]; }
         const next = addClipToTrack(tl, track.id, asset, currentTime);
         const added = next.clips.find((c) => c.assetId === asset.id);
         setTimeline({ ...next, clips: next.clips.map((c) => (c === added ? { ...c, tts } : c)) });
