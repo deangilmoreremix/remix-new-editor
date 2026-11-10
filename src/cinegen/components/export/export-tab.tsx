@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
+import { SharePanel } from './share-panel';
 import { ExportSettings, type ExportExtras } from './export-settings';
 import { RenderProgress } from './render-progress';
 import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
@@ -115,6 +116,13 @@ export function ExportTab() {
             setTimeout(() => URL.revokeObjectURL(url), 5000);
           }}>Export FCPXML</button>
           <span style={{ fontSize: 11, opacity: 0.65 }}>For Final Cut Pro, Premiere and DaVinci Resolve. Relink the media after import.</span>
+        </div>
+
+        {/* [remix] Share / Publish the interactive video (old editor's share panel) */}
+        <div style={{ marginTop: 16 }}>
+          <div className="export-settings__label">Share as an interactive video</div>
+          <p className="export-tab__hint" style={{ marginTop: 4 }}>Forms, buttons and end screens on the overlay lane play on the shared page; the MP4 above is plain video.</p>
+          <SharePanel timeline={activeTimeline} assets={state.assets} overlays={state.overlays ?? []} projectKey={String((state as { projectId?: string }).projectId ?? 'project')} />
         </div>
 
         {latestJob && (
