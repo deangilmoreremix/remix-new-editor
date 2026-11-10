@@ -201,7 +201,7 @@ export function ClipPropertiesPanel({
       </div>
 
       {/* [remix] OpenChatCut effects / LUT / blend */}
-      {!isAudio && <ClipEffectsSection clip={clip} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
+      {!isAudio && <ClipEffectsSection clip={clip} currentTime={currentTime} onUpdate={(u) => onUpdateClip(clip.id, u)} />}
 
       {!isAudio && <ClipCaptionsSection clip={clip} asset={asset} onUpdate={(u) => onUpdateClip(clip.id, u)} onSeek={onSeek} />}
 

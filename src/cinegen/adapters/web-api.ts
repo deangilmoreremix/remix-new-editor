@@ -15,8 +15,8 @@ import { userFontsFor } from '@cinegen/lib/occ/user-fonts';
 import { customTransitionDefSync, pluginFxSnapshotSync } from '@cinegen/lib/occ/plugins';
 // [remix] OpenChatCut effects + LUT of an export clip, as plain {id, overrides} for the composition's GL layer.
 const occFxList = (c: { fx?: Array<{ id: string; def?: import('@cinegen/lib/occ/plugins').FxSnapshot; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number; def?: import('@cinegen/lib/occ/plugins').FxSnapshot } }) =>
-  clipFxInstances(c as never).map(({ def, overrides }) => ({
-    id: def.id, overrides,
+  clipFxInstances(c as never).map(({ def, overrides, keys }) => ({
+    id: def.id, overrides, ...(keys ? { keys } : {}),
     // the sandboxed export runner has no IndexedDB: user .cube LUTs travel with the render
     ...(def.id.startsWith('user:lut-') ? { name: def.name, cubeText: userLutTextSync(def.id) } : {}),
     // plugin fx / LUT: a self-contained snapshot travels with the render (the runner has no installed packs)

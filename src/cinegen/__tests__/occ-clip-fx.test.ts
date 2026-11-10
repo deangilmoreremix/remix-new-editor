@@ -130,3 +130,19 @@ describe('clip fades', () => {
     expect(out.clips.find((c: any) => c.id === 'b').fadeIn).toBe(1.5);
   });
 });
+
+import { sampledFxProps } from '@cinegen/lib/occ/clip-fx';
+describe('keyframed effect properties', () => {
+  const clip: any = { fx: [{ id: 'builtin:fx-vignette', props: { intensity: 0.2 }, keys: { intensity: [{ frame: 0, value: 0 }, { frame: 30, value: 1 }] } }] };
+  it('interpolates keyed properties over the clip time and leaves static ones', () => {
+    expect(sampledFxProps({ intensity: 0.2, other: 3 }, clip.fx[0].keys, 0.5).intensity).toBeCloseTo(0.5);
+    expect(sampledFxProps({ intensity: 0.2, other: 3 }, clip.fx[0].keys, 0.5).other).toBe(3);
+    expect(sampledFxProps({ intensity: 0.2 }, clip.fx[0].keys, 5).intensity).toBe(1);
+    expect(sampledFxProps({ intensity: 0.2 }, undefined, 5).intensity).toBe(0.2);
+  });
+  it('clipFxInstances returns the sampled overrides for the playhead time', () => {
+    const id = Object.keys(ALL_FX).find((k) => /vignette/.test(k))!;
+    const c: any = { fx: [{ id, props: {}, keys: { intensity: [{ frame: 0, value: 0 }, { frame: 60, value: 1 }] } }] };
+    expect(clipFxInstances(c, 1)[0].overrides.intensity).toBeCloseTo(0.5);
+  });
+});

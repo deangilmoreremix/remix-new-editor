@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Clip, ClipFx } from '@cinegen/types/timeline';
 import { ALL_FX, FX_IDS, LUT_IDS } from '../../../openchatcut/gl/fx/effects';
-import { primeClipLuts } from '@cinegen/lib/occ/clip-fx';
+import { primeClipLuts, FX_KEY_FPS, sampledFxProps } from '@cinegen/lib/occ/clip-fx';
+import { upsertKeyframe } from '../../../openchatcut/editor/keyframes';
 import { snapshotFor } from '@cinegen/lib/occ/plugins';
 import { OccLibraryModal } from './occ-library-modal';
 import { importCubeFile, loadUserLuts, userLutIds } from '@cinegen/lib/occ/user-luts';
@@ -14,9 +15,12 @@ const selectStyle = { flex: 1, minWidth: 0, background: 'var(--cg-surface-2, #0d
 import { BLEND_MODES } from '@cinegen/lib/occ/blend';
 
 type Updates = Partial<Pick<Clip, 'fx' | 'lut' | 'blendMode'>>;
-interface Props { clip: Clip; onUpdate: (updates: Updates) => void }
+interface Props { clip: Clip; currentTime?: number; onUpdate: (updates: Updates) => void }
 
-export function ClipEffectsSection({ clip, onUpdate }: Props) {
+export function ClipEffectsSection({ clip, currentTime = 0, onUpdate }: Props) {
+  // [remix] animated effect properties: ◆ records the slider value at the playhead (OpenChatCut upsertKeyframe / sampleKeyframes)
+  const clipT = Math.max(0, Math.min(currentTime - clip.startTime, (clip.duration - clip.trimStart - clip.trimEnd) / (clip.speed || 1)));
+  const frameNow = Math.round(clipT * FX_KEY_FPS);
   const [open, setOpen] = useState<number | null>(null);
   const [, bump] = useState(0);
   const [lutError, setLutError] = useState('');
@@ -47,15 +51,24 @@ export function ClipEffectsSection({ clip, onUpdate }: Props) {
               <button className="clip-properties-panel__toggle-btn" aria-label={`${f.enabled === false ? 'Enable' : 'Disable'} ${def.name}`} onClick={() => setFx(fx.map((x, j) => (j === i ? { ...x, enabled: x.enabled === false } : x)))}>{f.enabled === false ? 'Off' : 'On'}</button>
               <button className="clip-properties-panel__toggle-btn" aria-label={`Remove ${def.name}`} onClick={() => setFx(fx.filter((_, j) => j !== i))}>×</button>
             </div>
-            {open === i && def.props.map((p) => p.kind === 'color' ? null : (
-              <div className="clip-properties-panel__row" key={p.key}>
-                <span className="clip-properties-panel__label">{t(p.label)}</span>
-                <input type="range" className="clip-properties-panel__slider" min={p.min} max={p.max} step={p.step ?? 0.01}
-                  value={typeof f.props[p.key] === 'number' ? (f.props[p.key] as number) : p.default}
-                  onChange={(e) => setFx(fx.map((x, j) => (j === i ? { ...x, props: { ...x.props, [p.key]: parseFloat(e.target.value) } } : x)))} />
-                <span className="clip-properties-panel__value">{(typeof f.props[p.key] === 'number' ? (f.props[p.key] as number) : p.default).toFixed(2)}</span>
-              </div>
-            ))}
+            {open === i && def.props.map((p) => {
+              if (p.kind === 'color') return null;
+              const keyed = !!f.keys?.[p.key]?.length;
+              const shown = sampledFxProps(f.props, f.keys, clipT)[p.key];
+              const value = typeof shown === 'number' ? shown : p.default;
+              const setKey = (v: number) => setFx(fx.map((x, j) => (j === i ? { ...x, keys: { ...(x.keys ?? {}), [p.key]: upsertKeyframe(x.keys?.[p.key], frameNow, v) } } : x)));
+              const atKey = !!f.keys?.[p.key]?.some((k) => k.frame === frameNow);
+              return (
+                <div className="clip-properties-panel__row" key={p.key}>
+                  <span className="clip-properties-panel__label">{t(p.label)}</span>
+                  <input type="range" className="clip-properties-panel__slider" min={p.min} max={p.max} step={p.step ?? 0.01} value={value}
+                    onChange={(e) => { const v = parseFloat(e.target.value); if (keyed) setKey(v); else setFx(fx.map((x, j) => (j === i ? { ...x, props: { ...x.props, [p.key]: v } } : x))); }} />
+                  <span className="clip-properties-panel__value">{value.toFixed(2)}</span>
+                  <button className="clip-properties-panel__toggle-btn" data-testid={`fx-key-${p.key}`} aria-label={`${atKey ? 'Update' : 'Add'} keyframe for ${p.label}`} title={atKey ? 'Update the keyframe at the playhead' : 'Add a keyframe at the playhead'} style={{ padding: '0 5px', color: keyed ? '#22d3ee' : undefined }} onClick={() => setKey(value)}>{atKey ? '◆' : '◇'}</button>
+                  {keyed && <button className="clip-properties-panel__toggle-btn" aria-label={`Clear keyframes for ${p.label}`} title="Clear all keyframes of this property (keeps the value at the playhead)" style={{ padding: '0 5px' }} onClick={() => setFx(fx.map((x, j) => { if (j !== i) return x; const { [p.key]: _drop, ...rest } = x.keys ?? {}; return { ...x, props: { ...x.props, [p.key]: value }, keys: Object.keys(rest).length ? rest : undefined }; }))}>✕</button>}
+                </div>
+              );
+            })}
           </div>
         );
       })}

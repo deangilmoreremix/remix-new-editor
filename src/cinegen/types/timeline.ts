@@ -73,6 +73,8 @@ export interface ClipFx {
   def?: import('../lib/occ/plugins').FxSnapshot;
   props: Record<string, number | number[]>;
   enabled?: boolean;
+  /** [remix] animated effect properties: prop key → OpenChatCut Keyframe[] (frame at 30 fps from the clip start, value, easing) */
+  keys?: Record<string, import('../../openchatcut/editor/clipTypes').Keyframe[]>;
 }
 
 export interface Keyframe {

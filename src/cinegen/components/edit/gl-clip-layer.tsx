@@ -67,7 +67,7 @@ export function GlClipLayer({ container, clip, assetId, transition = null }: Pro
       if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
         canvas.width = video.videoWidth; canvas.height = video.videoHeight;
       }
-      try { runtime!.renderFxChain(clipFxPasses(c, video.currentTime), video); } catch { canvas.style.visibility = 'hidden'; restore(); return; }
+      try { runtime!.renderFxChain(clipFxPasses(c, video.currentTime, Math.max(0, (video.currentTime - c.trimStart) / (c.speed || 1))), video); } catch { canvas.style.visibility = 'hidden'; restore(); return; }
       canvas.style.visibility = 'visible';
       if (hidden[0] !== video) { restore(); hidden = [video]; }
       video.style.visibility = 'hidden';

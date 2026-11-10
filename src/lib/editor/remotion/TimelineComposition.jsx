@@ -36,6 +36,7 @@ import { CodeLayer } from './codeLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
 import { clipTransformCss, clipTransformClipPath } from '../../../cinegen/lib/occ/transform';
+import { sampleKeyframes as sampleFxKey } from '../../../openchatcut/editor/keyframes';
 import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
 import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
 import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
@@ -488,7 +489,9 @@ function MediaLayerBody({ layer, seqFrom }) {
     return (
       <AbsoluteFill style={mirror}>
         <OccClipFx
-          item={{ id: layer.id, kind: layer.kind, src: layer.src, trimBefore: layer.trimBefore || 0, playbackRate: layer.playbackRate || 1, effects: layer.occFx }}
+          item={{ id: layer.id, kind: layer.kind, src: layer.src, trimBefore: layer.trimBefore || 0, playbackRate: layer.playbackRate || 1,
+            // [remix] animated effect properties: keyframed values (30 fps from the clip start) override the static sliders each frame
+            effects: layer.occFx.map((e) => (e.keys ? { ...e, overrides: { ...(e.overrides || {}), ...Object.fromEntries(Object.entries(e.keys).filter(([, l]) => l?.length).map(([k, l]) => [k, sampleFxKey(l, t * 30)])) } } : e)) }}
           fit={fit} width={W} height={H}
         />
         {layer.kind === 'video' && <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={fadedVolume(layer, fps, Math.max(0, Math.min(1, layer.volume ?? 1)), layer.keyframes?.volume)} />}
