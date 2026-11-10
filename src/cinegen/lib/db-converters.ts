@@ -257,6 +257,8 @@ export function timelineFromRows(
     clips,
     transitions,
     markers,
+    ...(tlRow['fit'] === 'contain' || tlRow['fit'] === 'cover' ? { fit: tlRow['fit'] as 'contain' | 'cover' } : {}),
+    ...(typeof tlRow['aspect'] === 'string' ? { aspect: tlRow['aspect'] as string } : {}),
   };
 }
 

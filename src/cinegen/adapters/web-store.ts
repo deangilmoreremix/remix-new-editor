@@ -90,6 +90,7 @@ function createDefaultProjectState(name) {
       duration: 0,
       created_at: now,
       markers: '[]',
+      fit: 'contain', // [remix] new timelines store their fit; older ones have none and keep Cover
       tracks: [
         {
           id: videoTrackId,

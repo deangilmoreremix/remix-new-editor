@@ -109,7 +109,7 @@ export function ExportTab() {
           Render your timeline as an MP4 video
         </p>
 
-        <ExportSettings hasClips={hasClips} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
+        <ExportSettings hasClips={hasClips} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
         {/* [remix] OpenChatCut FCPXML export (Final Cut Pro / Premiere / DaVinci Resolve) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
           <button type="button" disabled={!hasClips} data-testid="export-fcpxml" onClick={() => {

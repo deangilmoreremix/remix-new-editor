@@ -1,3 +1,4 @@
+import { NEW_TIMELINE_FIT } from '@cinegen/lib/occ/frame-geometry';
 import type { Timeline, Track, Clip, TrackKind, Keyframe, Transition } from '@cinegen/types/timeline';
 // [remix] OpenChatCut speed range (editor/rateStretch.ts): 0.1–8×.
 import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
@@ -498,6 +499,7 @@ export function createDefaultTimeline(name: string): Timeline {
     duration: 0,
     transitions: [],
     markers: [],
+    fit: NEW_TIMELINE_FIT,
   };
 }
 

@@ -1,6 +1,6 @@
 // [remix] Real browser implementations of the parts of CineGen's `window.electronAPI` this editor needs.
 // Registered into the shim (electron-shim.ts) so CineGen's own code paths run unchanged.
-import { DEFAULT_FIT } from '@cinegen/lib/occ/frame-geometry';
+import { LEGACY_FIT } from '@cinegen/lib/occ/frame-geometry';
 import { registerElectronApi } from './electron-shim';
 import { webMediaApi } from './web-media';
 import { uploadFileToStorage } from '../../lib/supabase.js';
@@ -143,7 +143,7 @@ export function registerWebApi() {
             occFx: occFxList(c),
             ...(c.zoom ? { zoom: c.zoom } : {}),
             ...(c.transform ? { transform: c.transform } : {}),
-            fit: c.fit ?? DEFAULT_FIT,
+            fit: c.fit ?? LEGACY_FIT,
             ...(c.fadeIn ? { fadeIn: c.fadeIn } : {}), ...(c.fadeOut ? { fadeOut: c.fadeOut } : {}),
             ...(c.kf?.length ? { keyframes: kfToComposition(c.kf) } : {}),
             ...(c.blendMode && c.blendMode !== 'normal' ? { blendMode: c.blendMode } : {}),

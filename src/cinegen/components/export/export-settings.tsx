@@ -21,11 +21,14 @@ interface ExportSettingsProps {
   /** [remix] project frame ratio (Timeline.aspect): shared with the viewer */
   aspect?: string;
   onAspect?: (aspect: string) => void;
+  /** [remix] picture fit saved on the timeline (absent = legacy Cover) */
+  fit?: 'contain' | 'cover';
+  onFit?: (fit: 'contain' | 'cover') => void;
   hasClips: boolean;
   onRender: (preset: ExportPreset, fps: 24 | 30 | 60, extras: ExportExtras) => void;
 }
 
-export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect }: ExportSettingsProps) {
+export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect, fit = 'cover', onFit }: ExportSettingsProps) {
   const [preset, setPreset] = useState<ExportPreset>('standard');
   const [fps, setFps] = useState<24 | 30 | 60>(30);
   const setAspect = (a: string) => onAspect?.(a);
@@ -80,6 +83,10 @@ export function ExportSettings({ hasClips, onRender, aspect = '16:9', onAspect }
           {ASPECTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
         <span style={{ fontSize: 11, opacity: 0.65, marginLeft: 8 }}>{w}×{h}</span>
+        <select className="export-settings__fps-select" data-testid="export-fit" title="How pictures fill the frame (clips can override this)" style={{ marginLeft: 8 }} value={fit} onChange={(e) => onFit?.(e.target.value as 'contain' | 'cover')}>
+          <option value="contain">Contain (whole picture)</option>
+          <option value="cover">Cover (fill frame)</option>
+        </select>
       </div>
 
       <div className="export-settings__section">

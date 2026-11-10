@@ -7,13 +7,15 @@ import { backgroundFillAppearance } from '../../../openchatcut/editor/background
 import { clipTransformCss, clipTransformClipPath, fillCss, type ClipTransform } from './transform';
 
 export type Fit = 'contain' | 'cover';
-/** Shared fallback for clips (and projects) that never stored a fit — preview and export both use it. */
-export const DEFAULT_FIT: Fit = 'contain';
+/** Timelines saved before fit existed (no `Timeline.fit`) keep the Cover framing they always exported — preview and export both use it. */
+export const LEGACY_FIT: Fit = 'cover';
+/** New timelines store this explicitly. */
+export const NEW_TIMELINE_FIT: Fit = 'contain';
 export const DEFAULT_ASPECT = '16:9';
 export const ASPECTS: Array<[string, string]> = [['16:9', '16:9 landscape'], ['9:16', '9:16 vertical'], ['1:1', '1:1 square'], ['4:5', '4:5 portrait'], ['21:9', '21:9 cinema']];
 
 export function resolveFit(clip?: { transform?: { fit?: Fit } | null } | null, project?: { fit?: Fit } | null): Fit {
-  return clip?.transform?.fit ?? project?.fit ?? DEFAULT_FIT;
+  return clip?.transform?.fit ?? project?.fit ?? LEGACY_FIT;
 }
 
 export function aspectRatio(aspect?: string): number {
