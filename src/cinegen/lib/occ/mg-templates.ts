@@ -4,6 +4,8 @@
 // so templates the gate rejects are listed as unavailable instead of being run.
 // @ts-expect-error plain JS gate shared with the export runner
 import { checkAnimationCode } from '../../../lib/editor/agent/codeGate.js';
+import { t as t_ } from '../../../openchatcut/i18n/t';
+import { mgEn } from './mg-templates-en';
 import type { OverlayClip } from '@cinegen/types/workspace';
 
 export interface MgPropField { key: string; type: string; defaultValue?: unknown; label?: string; min?: number; max?: number; step?: number; options?: Array<string | { value: string; label?: string }> }
@@ -16,6 +18,7 @@ let cache: Promise<MgTemplate[]> | null = null;
 export function mgCode(code: string): string {
   const m = code.match(/(?:^|\n)\s*(?:const|let|var|function)\s+([A-Za-z_$][\w$]*)/);
   const name = m?.[1] ?? 'Template';
+  code = code.replace(/第 \{chapter\} 点/g, 'Point {chapter}'); // the one on-screen string that lives in code rather than in props
   return `${code}\nfunction Animation({ props }) { const { width, height } = useVideoConfig(); return <${name} item={{ props, width, height }} />; }`;
 }
 
@@ -27,11 +30,16 @@ export function gateTemplate(code: string): { ok: boolean; why?: string } {
 export function loadMgTemplates(base = '/occ-templates'): Promise<MgTemplate[]> {
   cache ??= Promise.all(PACKS.map(async (p) => {
     try { const r = await fetch(`${base}/${p}.json`); return r.ok ? ((await r.json()) as Array<Record<string, unknown>>) : []; } catch { return []; }
-  })).then((packs) => packs.flat().map((t) => {
+  })).then((packs) => packs.flat().map((tpl) => {
+    const t = tpl;
     const code = String(t.code ?? '');
     const g = gateTemplate(code);
-    return { ...(t as object), width: Number(t.width) || 1920, height: Number(t.height) || 1080, fps: Number(t.fps) || 30, durationInFrames: Number(t.durationInFrames) || 90,
-      props: (t.props as Record<string, unknown>) ?? {}, propSchema: (t.propSchema as MgPropField[]) ?? [], usable: g.ok, why: g.why } as MgTemplate;
+    // OpenChatCut keys its UI strings by the Chinese original and ships an English dictionary: names, labels and sample text use it where it has an entry
+    const en = (v: unknown) => (typeof v === 'string' ? mgEn(t_(v)) : v);
+    const schema = ((t.propSchema as MgPropField[]) ?? []).map((f) => ({ ...f, label: en(f.label) as string, defaultValue: en(f.defaultValue), options: f.options?.map((o) => (typeof o === 'string' ? mgEn(t_(o)) : { ...o, label: en(o.label) as string })) }));
+    const props = Object.fromEntries(Object.entries((t.props as Record<string, unknown>) ?? {}).map(([k, v]) => [k, en(v)]));
+    return { ...(t as object), name: en(t.name) as string, description: en(t.description) as string, category: en(t.category) as string, width: Number(t.width) || 1920, height: Number(t.height) || 1080, fps: Number(t.fps) || 30, durationInFrames: Number(t.durationInFrames) || 90,
+      props, propSchema: schema, usable: g.ok, why: g.why } as MgTemplate;
   }));
   return cache;
 }

@@ -35,3 +35,17 @@ describe('overlay-lane items reach the exported composition', () => {
     expect(model.layers.some((l: { type?: string }) => l.type === 'lead-form')).toBe(false);
   });
 });
+
+describe('template names are shown in English', () => {
+  it('uses OpenChatCut\'s English dictionary for the Chinese-keyed names and prop labels', async () => {
+    const fsm = await import('node:fs');
+    const { loadMgTemplates } = await import('@cinegen/lib/occ/mg-templates');
+    const orig = globalThis.fetch;
+    globalThis.fetch = (async (u: string) => ({ ok: true, json: async () => JSON.parse(fsm.readFileSync(`public${String(u)}`, 'utf8')) })) as never;
+    try {
+      const all = await loadMgTemplates();
+      expect(all.length).toBe(235);
+      expect(all.filter((x) => /[一-鿿]/.test(x.name))).toHaveLength(0);
+    } finally { globalThis.fetch = orig; }
+  });
+});
