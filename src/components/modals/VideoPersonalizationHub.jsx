@@ -4,6 +4,7 @@
  * Following Timeline Design System with consistent styling
  */
 
+import '../../../styles/personalization-hub.css';
 import { BaseModal } from './BaseModal.jsx';
 
 export class VideoPersonalizationHub extends BaseModal {
