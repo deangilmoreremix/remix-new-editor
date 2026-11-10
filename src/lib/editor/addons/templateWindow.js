@@ -5,7 +5,7 @@
  * template". Plain DOM, styled with the timeline tokens (timeline-addons.css).
  */
 import '../../../../styles/watch.css'; // the viewer's lead form, shown over form templates
-import { TEMPLATE_LIBRARIES, templatePreviewProject } from './templateLibrary.js';
+import { TEMPLATE_LIBRARIES, templatePreviewProject, applyCallSetup } from './templateLibrary.js';
 import { presetToClips } from './overlayPresets.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -42,6 +42,12 @@ export function openTemplateWindow({ library = 'endScreens', onUse, buildModel, 
           <div class="tpl-win__frame"><div class="tpl-win__stage"></div><div class="tpl-win__layer"></div></div>
           <div class="tpl-win__meta">
             <div><strong class="tpl-win__name"></strong><p class="tpl-win__desc"></p></div>
+            ${lib.callSetup ? `<div class="tpl-win__call" aria-label="Call setup">
+              <label>Country code <input class="tpl-win__cc" type="text" inputmode="numeric" value="1" size="4"></label>
+              <label>Phone number <input class="tpl-win__phone" type="tel" placeholder="234 567 8900"></label>
+              <label>Button text <input class="tpl-win__btn" type="text" placeholder="Call Now"></label>
+              <label>Email to notify about call attempts <input class="tpl-win__notify" type="email" placeholder="you@example.com"></label>
+            </div>` : ''}
             <button type="button" class="tpl-win__use">Use template</button>
           </div>
         </div>
@@ -122,7 +128,11 @@ export function openTemplateWindow({ library = 'endScreens', onUse, buildModel, 
     const item = e.target.closest('[data-tpl]');
     if (item) { select(item.dataset.tpl); return; }
     if (e.target.closest('.tpl-win__use') && current) {
-      const tpl = current;
+      let tpl = current;
+      if (lib.callSetup) {
+        const q = (c) => backdrop.querySelector(c)?.value || '';
+        tpl = applyCallSetup(tpl, { phone: q('.tpl-win__phone'), country: q('.tpl-win__cc').replace(/\D/g, '') || '1', buttonText: q('.tpl-win__btn').trim(), notify: q('.tpl-win__notify').trim() });
+      }
       close();
       onUse?.(tpl, lib);
     }

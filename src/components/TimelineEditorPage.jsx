@@ -81,6 +81,7 @@ import { whisperService } from '../services/whisper-client.js';
 import { EndScreenModal } from './modals/EndScreenModal.jsx';
 import { SaveProjectModal } from './modals/SaveProjectModal.jsx';
 import { SettingsModal } from './modals/SettingsModal.jsx';
+import { endScreenClips } from '../lib/editor/addons/endScreenClips.js';
 import { ConnectModal } from './modals/ConnectModal.jsx';
 import { PreviewMediaModal } from './modals/PreviewMediaModal.jsx';
 import { VideoPlayerModal } from './modals/VideoPlayerModal.jsx';
@@ -2330,20 +2331,16 @@ export function TimelineEditorPage() {
     }
 
     function addEndScreenToTimeline(endScreenData, state) {
-      // Classic End Screen modal result: its elements go on the Titles
-      // track, timed to finish at the end of the video.
+      // Classic End Screen modal result: its buttons AND its style (background, text colour, duration) become editable clips on the
+      // End Screen track, timed to finish at the end of the video (see addons/endScreenClips.js).
       const T = state.timelineSeconds || 60;
-      (endScreenData?.buttons || []).forEach((button, i) => {
-        const dur = Math.min(T, Math.max(1, Number(button.duration) || 5));
-        insertClipIntoTrack({
-          ...button,
-          id: Date.now() + i,
-          name: button.text || 'End Screen Element',
-          type: button.type || 'text',
-          start: T - dur,
-          end: T,
-        }, 'text');
-      });
+      const trackName = 'End Screen';
+      if (!state.tracks.some((t) => t.name === trackName)) {
+        state.tracks.push({ id: `track-endScreens-${Date.now().toString(36)}`, type: 'text', name: trackName, muted: false, solo: false, locked: false, items: [] });
+      }
+      saveStateSnapshot(state);
+      endScreenClips(endScreenData, T).forEach(({ trackName: _ignored, ...clip }) => insertClipIntoTrack(clip, trackName));
+      scheduleEngineUpdate();
       debouncedSave();
     }
 
