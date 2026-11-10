@@ -2,7 +2,6 @@
 // These keep the Timeline Editor's EXISTING designs and logic: the Elements tab only lists and launches them.
 //  - List Builder  -> the editor's List Builder settings panel (Interactive panel, renderListBuilderSettings)
 //  - Lead Generator -> the editor's Lead Generator add-on (Interactive panel, `lead-form`: the form overlay + Fields/Style/Integrations settings)
-// The host page listens for `remix:open-element-kind` and opens the existing UI (see TimelineEditorPage).
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import type { OverlayKind } from '@cinegen/types/workspace';
 import { createOverlay } from '@cinegen/lib/overlays/overlays';
@@ -17,11 +16,15 @@ export const WEB_KINDS: Array<{ id: WebKind; label: string; blurb: string }> = [
 
 export function newWebKind(kind: WebKind): WebKindItem { return { id: `wk-${kind}`, kind }; }
 
-export function openWebKind(kind: WebKind) {
-  window.dispatchEvent(new CustomEvent('remix:open-element-kind', { detail: { kind } }));
-}
-
 const OVERLAY_TYPE: Record<WebKind, OverlayKind> = { 'list-builder': 'list-builder', 'lead-generator': 'lead-form' };
+
+/** "+ New" on these cards: add the overlay at the start of the timeline and open it in Edit (no host event involved). */
+export function openWebKind(kind: WebKind, dispatch: (a: { type: 'ADD_OVERLAY'; overlay: ReturnType<typeof createOverlay> } | { type: 'SET_TAB'; tab: 'edit' }) => void) {
+  const overlay = createOverlay(OVERLAY_TYPE[kind], 0, 10);
+  dispatch({ type: 'ADD_OVERLAY', overlay });
+  selectOverlay(overlay.id);
+  dispatch({ type: 'SET_TAB', tab: 'edit' });
+}
 
 /** Lead Generator / List Builder are overlays on the video: here you add one at the start of the timeline or open an existing one. */
 export function WebKindsPanel({ kind, onEdit }: { kind: WebKind; editing?: WebKindItem | null; onEdit: (item: WebKindItem | null) => void }) {

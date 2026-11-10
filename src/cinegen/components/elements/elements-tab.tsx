@@ -69,10 +69,10 @@ export function ElementsTab() {
   } = useElementSelection(orderedIds, blocked);
 
   const handleAdd = useCallback(() => {
-    if (webKind) { openWebKind(webKind); return; } // [remix] opens the editor's existing UI
+    if (webKind) { openWebKind(webKind, dispatch as never); return; } // [remix] adds the overlay and opens it in Edit
     setEditingElement(undefined);
     setModalOpen(true);
-  }, [webKind]);
+  }, [webKind, dispatch]);
 
   const handleSave = useCallback((data: {
     name: string;
