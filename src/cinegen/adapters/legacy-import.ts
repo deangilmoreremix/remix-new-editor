@@ -27,7 +27,7 @@ function toDbState(projectId: string, name: string, s: Legacy) {
     mediaFolders: (s.mediaFolders ?? []).map((f: any) => ({ id: f.id, project_id: projectId, name: f.name, parent_id: f.parentId ?? null, created_at: f.createdAt ?? '' })),
     timelines,
     activeTimelineId: s.activeTimelineId,
-    workflow: { nodes: s.nodes ?? [], edges: s.edges ?? [], spaces, activeSpaceId: s.activeSpaceId, openSpaceIds: s.openSpaceIds ?? spaces.map((x: any) => x.id), director: s.director },
+    workflow: { nodes: s.nodes ?? [], edges: s.edges ?? [], spaces, activeSpaceId: s.activeSpaceId, openSpaceIds: s.openSpaceIds ?? spaces.map((x: any) => x.id), director: s.director, overlays: s.overlays ?? [] },
     elements: s.elements ?? [],
     exports: [],
   };
