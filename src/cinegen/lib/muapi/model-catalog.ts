@@ -82,5 +82,23 @@ export function buildMuapiRegistry(): Record<string, ModelDefinition> {
     if (!LIVE_OUT[m.group] || registry[m.name]) continue;
     registry[m.name] = toDefinition(liveEntry(m) as Parameters<typeof toDefinition>[0]);
   }
+  addReferencePorts(registry);
   return registry;
+}
+
+/** MuAPI ships reference-image generation as a separate `<model>-edit` endpoint. CineGen's image nodes take Element references
+ * directly, so a text-to-image model that has such a sibling gets an optional multi-image port; the request is routed to the sibling
+ * when references are attached (see referenceSibling + cloud/funding.runWorkflow). */
+export const REFERENCE_PORT_ID = 'images_list';
+export function referenceSibling(reg: Record<string, ModelDefinition>, nodeType: string): string | undefined {
+  const sib = reg[`${nodeType}-edit`];
+  return sib && sib.outputType === 'image' && sib.inputs.some((f) => f.id === REFERENCE_PORT_ID && f.fieldType === 'port') ? sib.nodeType : undefined;
+}
+function addReferencePorts(reg: Record<string, ModelDefinition>): void {
+  for (const def of Object.values(reg)) {
+    if (def.provider !== 'muapi' || def.outputType !== 'image' || def.nodeType.endsWith('-edit')) continue;
+    if (def.inputs.some((f) => f.fieldType === 'port' && (f.portType === 'image' || f.portType === 'media'))) continue;
+    if (!referenceSibling(reg, def.nodeType)) continue;
+    def.inputs = [...def.inputs, { id: REFERENCE_PORT_ID, portType: 'image', label: 'Reference images', required: false, falParam: REFERENCE_PORT_ID, fieldType: 'port', multiple: true, mediaRole: 'image', schemaType: 'array' }];
+  }
 }

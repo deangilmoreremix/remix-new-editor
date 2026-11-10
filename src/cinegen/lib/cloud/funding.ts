@@ -2,7 +2,8 @@
 // Same export surface (`runWorkflow`, `WorkflowRunParams`, `WorkflowRunOptions`); generation runs on the
 // user's own keys: images → OpenAI Images 2.6, video/audio → MuAPI (/api/timeline-ai). No fal, no Render.
 import { generateImages, DEFAULT_IMAGE_MODEL, DETAIL_IMAGE_MODEL } from '../../../lib/editor/ai/openaiImages.js';
-import { getModelDefinition } from '@cinegen/lib/fal/models';
+import { ALL_MODELS, getModelDefinition } from '@cinegen/lib/fal/models';
+import { REFERENCE_PORT_ID, referenceSibling } from '@cinegen/lib/muapi/model-catalog';
 import { runTimelineMuapi } from '../../../lib/editor/ai/timelineMuapi.js';
 
 export interface WorkflowRunParams {
@@ -90,7 +91,10 @@ export async function runWorkflow(params: WorkflowRunParams, _options: WorkflowR
   // Any MuAPI catalog model (Spaces / Studio nodes): one generic request, validated server-side against the catalog.
   const def = getModelDefinition(params.nodeType);
   if (def?.provider === 'muapi') {
-    const { url, urls } = await runTimelineMuapi('generate', { model: def.nodeType, inputs });
+    // Element / image references on a text-to-image model → its `<model>-edit` sibling (same family, takes images_list)
+    const refs = asArray(inputs[REFERENCE_PORT_ID]).filter(Boolean);
+    const sibling = refs.length && def.outputType === 'image' ? referenceSibling(ALL_MODELS, def.nodeType) : undefined;
+    const { url, urls } = await runTimelineMuapi('generate', { model: sibling ?? def.nodeType, inputs });
     if (def.outputType === 'audio') return { audio: { url }, url, resultUrls: urls };
     if (def.outputType === 'image') return { images: urls.map((u) => ({ url: u })), image: { url }, url, resultUrls: urls };
     return { video: { url }, video_url: url, url, resultUrls: urls };

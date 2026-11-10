@@ -6,11 +6,12 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 
 ## Regression record
 
-- **vitest:** 676 tests / 71 files passed (src/openchatcut, src/cinegen/__tests__)
+- **vitest:** 171 files / 1312 passed, 27 skipped
 - **viteBuild:** npx vite build exit 0 (1m55s) at commit 2a5dab7f
 - **classicEditor:** not browser-smoke-tested in this stage (no changes made under src/lib/editor/addons or the classic route; composition files shared with export were edited)
 - **tsc:** not run: repo-wide tsc aborts on unrelated syntax errors in apps/director; a scoped check needs @cinegen path mapping (done once, not repeated)
 - **liveProviders:** no OpenAI/MuAPI live calls in this stage
+- **upstreamCineGenTests:** CineGen tests/ ported to src/cinegen/__tests__/upstream: 557 passed, 27 skipped (documented), 0 failed; EXCLUDED.md lists every skipped/removed test with its reason
 
 ## Totals
 
@@ -18,12 +19,12 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 |---|---|
 | NOT_STARTED | 5 |
 | SOURCE_FOUND | 0 |
-| PARTIAL | 14 |
-| IMPLEMENTED_UNVERIFIED | 7 |
-| VERIFIED | 17 |
+| PARTIAL | 21 |
+| IMPLEMENTED_UNVERIFIED | 4 |
+| VERIFIED | 19 |
 | BLOCKED | 2 |
 | NOT_APPLICABLE | 2 |
-| **All** | 47 |
+| **All** | 53 |
 
 ## Effects
 
@@ -429,83 +430,6 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Evidence: create/open/persist/reload/old-project import were browser-checked in earlier sessions but no evidence artefact was stored; re-verify in the final regression
 - **Missing:** Live provider verification pending
 
-## Elements
-
-### cg.elements — IMPLEMENTED_UNVERIFIED
-
-- Source (christopherjohnogden/CineGen): components/elements/*
-- Target: components/elements/*
-- Original: UI present and rendering; generation needs OpenAI key (not live-tested)
-- Browser: yes · Backend: MuAPI/OpenAI (adapted)
-- UI: — · Persistence: — · Preview: — · Export: —
-- Tests: vitest suites (584+)
-- Evidence: UI present and rendering; generation needs OpenAI key (not live-tested)
-- **Missing:** Live provider verification pending
-
-## Spaces
-
-### cg.spaces — IMPLEMENTED_UNVERIFIED
-
-- Source (christopherjohnogden/CineGen): components/create/*
-- Target: components/create/*
-- Original: canvas/panels render; generation nodes need MuAPI/OpenAI credits (route checks only)
-- Browser: yes · Backend: MuAPI/OpenAI (adapted)
-- UI: — · Persistence: — · Preview: — · Export: —
-- Tests: vitest suites (584+)
-- Evidence: canvas/panels render; generation nodes need MuAPI/OpenAI credits (route checks only)
-- **Missing:** Live provider verification pending
-
-## Director
-
-### cg.director — IMPLEMENTED_UNVERIFIED
-
-- Source (christopherjohnogden/CineGen): components/director/*
-- Target: components/director/*
-- Original: tabs render; LLM jobs need OpenAI key
-- Browser: yes · Backend: MuAPI/OpenAI (adapted)
-- UI: — · Persistence: — · Preview: — · Export: —
-- Tests: vitest suites (584+)
-- Evidence: tabs render; LLM jobs need OpenAI key
-- **Missing:** Live provider verification pending
-
-## Edit tools
-
-### cg.edit — PARTIAL
-
-- Source (christopherjohnogden/CineGen): components/edit/*
-- Target: components/edit/*
-- Original: core editing, import, persistence browser-verified; Fill Gap/Extend/Music need MuAPI credits
-- Browser: yes · Backend: MuAPI/OpenAI (adapted)
-- UI: — · Persistence: — · Preview: — · Export: —
-- Tests: vitest suites (584+)
-- Evidence: core editing, import, persistence browser-verified; Fill Gap/Extend/Music need MuAPI credits
-- **Missing:** Live provider verification pending
-
-## LLM tab + assistant
-
-### cg.llm — IMPLEMENTED_UNVERIFIED
-
-- Source (christopherjohnogden/CineGen): components/llm/*, components/assistant/*
-- Target: components/llm/*, components/assistant/*
-- Original: needs OpenAI key
-- Browser: yes · Backend: MuAPI/OpenAI (adapted)
-- UI: — · Persistence: — · Preview: — · Export: —
-- Tests: vitest suites (584+)
-- Evidence: needs OpenAI key
-- **Missing:** Live provider verification pending
-
-## Desktop-only (Electron, cloud account, Claude MCP pages)
-
-### cg.desktop-only — NOT_APPLICABLE
-
-- Source (christopherjohnogden/CineGen): main.tsx, App.tsx, cloud-account.tsx, claude-mcp-connect.tsx, remote-mcp-connect.tsx
-- Target: main.tsx, App.tsx, cloud-account.tsx, claude-mcp-connect.tsx, remote-mcp-connect.tsx
-- Original: Electron/cloud only
-- Browser: no · Backend: none
-- UI: — · Persistence: — · Preview: — · Export: —
-- Tests: vitest suites (584+)
-- Evidence: Electron/cloud only
-
 ## Voice design
 
 ### cg.voice-design — BLOCKED
@@ -587,3 +511,156 @@ Generated from `docs/timeline-feature-ledger.json` by `scripts/ledger-check.mjs`
 - Tests: —
 - Evidence: —
 - **Missing:** not reconnected
+
+## CineGen Elements
+
+### cg.elements.logic — PARTIAL
+
+- Source (christopherjohnogden/CineGen@769f148): src/lib/elements/*, src/components/elements/*
+- Target: src/cinegen/lib/elements/*, src/cinegen/components/elements/*
+- Original: Element model, reference panels (7 per category), angles, folders, voice, mentions in prompts
+- Browser: yes · Backend: OpenAI Images 2.6 for panel generation
+- UI: Elements tab renders (screenshots in earlier sessions) · Persistence: IndexedDB ProjectStore · Preview: — · Export: —
+- Tests: upstream tests ported: components/elements 7, lib/llm (prompt-elements) pass; occ-muapi-references.test.ts (3)
+- Evidence: src/cinegen/__tests__/upstream/EXCLUDED.md; this commit
+- **Missing:** Panel generation, per-panel regeneration, variations and active-variation selection were not run against a live provider; reference panels per category (7) not re-counted in a browser run; element voice assignment/saved voices not browser-tested
+
+### cg.elements.references-to-generation — VERIFIED
+
+- Source (christopherjohnogden/CineGen@769f148): src/lib/llm/prompt-elements.ts, src/lib/workflows/execute.ts
+- Target: src/cinegen/lib/muapi/model-catalog.ts (reference ports), src/cinegen/lib/cloud/funding.ts
+- Original: Element mentions/references reach the generation request
+- Browser: yes · Backend: MuAPI (request mocked)
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: occ-muapi-references.test.ts (3, provider mocked): text-to-image model gets a reference port, @mention wires the Element into it, request with references routes to the -edit sibling
+- Evidence: this commit; found by CineGen's own prompt-elements tests
+- **Missing:** Live MuAPI request with a real reference was not run (mocked provider); identity preservation is whatever the MuAPI -edit model does, not guaranteed here
+
+## CineGen Spaces / Studio
+
+### cg.spaces.logic — PARTIAL
+
+- Source (christopherjohnogden/CineGen@769f148): src/lib/workflows/*, src/lib/studio/*, src/components/create/*
+- Target: src/cinegen/lib/workflows/*, src/cinegen/lib/studio/*, src/cinegen/components/create/*
+- Original: Node registry, port compatibility, topo ordering, execution, Studio recipes/presets/clips
+- Browser: yes · Backend: MuAPI/OpenAI for generation
+- UI: rendered in earlier browser runs · Persistence: workflow/studio state in ProjectStore · Preview: — · Export: —
+- Tests: CineGen's own tests ported and passing: lib/studio 78, lib/workflows 23, components/create 100 (node/palette/canvas/studio components)
+- Evidence: src/cinegen/__tests__/upstream/
+- **Missing:** Provider-specific workflow tests (Higgsfield/Topview/RunPod) are excluded; full-graph execution against live MuAPI not run; studio/recipe.ts covered only by the ported studio tests; Studio→Edit transfer not browser-tested
+
+## CineGen Sets
+
+### cg.sets.logic — PARTIAL
+
+- Source (christopherjohnogden/CineGen@769f148): src/lib/sets/*, src/components/sets/*, src/types/sets.ts
+- Target: src/cinegen/lib/sets/*, src/cinegen/components/sets/*
+- Original: 3D scene planning: camera, floor plan, placement, Shape Shot, packaging, camera prompts
+- Browser: yes · Backend: browser WebGL
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: CineGen's own tests ported and passing: lib/sets 105, components/sets 11
+- Evidence: src/cinegen/__tests__/upstream/
+- **Missing:** Camera manipulation, Shape Shot capture and use of a captured reference in a generation workflow were NOT driven in a browser; no splat/scene file exercised in sandbox
+
+## CineGen Director
+
+### cg.director.logic — PARTIAL
+
+- Source (christopherjohnogden/CineGen@769f148): src/lib/director/*, src/components/director/*
+- Target: src/cinegen/lib/director/*, src/cinegen/components/director/*
+- Original: Script import (fountain/FDX), breakdown, Look Bible, shotlist, takes, notes, generation
+- Browser: yes · Backend: OpenAI + MuAPI
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: earlier ported director tests (src/cinegen/__tests__/director) + upstream components/director 19 passing
+- Evidence: src/cinegen/__tests__/upstream/
+- **Missing:** Script→shotlist→generation→timeline flow not run (no provider keys); Topview/Higgsfield/RunPod provider switching tests excluded by design; keep/discard and take rejoin UI not browser-tested
+
+## CineGen Edit
+
+### cg.edit.logic — PARTIAL
+
+- Source (christopherjohnogden/CineGen@769f148): src/lib/editor/*, src/components/edit/*
+- Target: src/cinegen/lib/editor/*, src/cinegen/components/edit/*
+- Original: 10 tools, tracks, keyframes, transitions, sync, proxy, generated clips
+- Browser: yes · Backend: none for editing; MuAPI for Fill Gap/Extend/Music
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: editor unit tests (timeline-operations etc.) + upstream components/edit 1; browser: import, drag, trim/split basics, fades, transform, multicam cut, recorder
+- Evidence: src/cinegen/__tests__/upstream/
+- **Missing:** Each of the 10 tools was not individually driven in a browser against real clips (Blade/Ripple/Roll/Slip/Slide/Mask/Music/Fill Gap/Extend); dual-viewer/source viewer, mute/solo/lock, batch sync, proxy playback not re-verified in this run
+
+## CineGen LLM / Assistant / skills
+
+### cg.llm.logic — PARTIAL
+
+- Source (christopherjohnogden/CineGen@769f148): src/lib/llm/*, src/lib/assistant/*, src/components/llm/*, src/components/assistant/*
+- Target: src/cinegen/lib/llm/*, src/cinegen/lib/assistant/*, src/cinegen/components/llm/*
+- Original: Ask/Search/Cut/Timeline, skills, skill-actions, canvas visual context
+- Browser: yes · Backend: OpenAI Responses
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: CineGen's own tests ported and passing: lib/llm 113, lib/assistant 30, components/assistant 1; copilot-looks.test.ts
+- Evidence: src/cinegen/__tests__/upstream/
+- **Missing:** No live OpenAI conversation was run; skill-actions that create video model nodes differ (provider registry) and those 2 tests are skipped; undo of AI-created nodes not browser-tested
+
+## CineGen MCP / project control
+
+### cg.mcp — PARTIAL
+
+- Source (christopherjohnogden/CineGen@769f148): src/lib/mcp/*, mcp/*.mjs
+- Target: src/cinegen/lib/mcp/*
+- Original: MCP tools exposing project state
+- Browser: yes · Backend: desktop MCP launcher (not used)
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: upstream lib/mcp 30 tests pass (handlers/state); catalog/stdio/viewer-launcher tests excluded
+- Evidence: src/cinegen/__tests__/upstream/
+- **Missing:** The stdio MCP server and viewer launcher are desktop-only
+
+## CineGen persistence / migration
+
+### cg.persistence — IMPLEMENTED_UNVERIFIED
+
+- Source (christopherjohnogden/CineGen@769f148): src/lib/cloud/*, electron/ipc/project.ts
+- Target: src/cinegen/adapters/web-store.ts, src/cinegen/adapters/legacy-import.ts
+- Original: Project store, autosave, undo/redo, migration
+- Browser: yes · Backend: IndexedDB
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: components/workspace 20 upstream tests pass; reload persistence checked for clip fx/transform in converter tests
+- Evidence: earlier session browser runs (no stored artefact)
+- **Missing:** Project reload in a browser not re-verified in this run; export aspect ratio missing
+
+## CineGen server services
+
+### cg.services — VERIFIED
+
+- Source (christopherjohnogden/CineGen@769f148): web/server/services/*, electron/ipc/*
+- Target: src/cinegen/adapters/*
+- Original: Classification of each service
+- Browser: yes · Backend: none
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: documentation audit
+- Evidence: docs/cinegen-services-classification.md (commit of this stage)
+
+## CineGen settings page
+
+### cg.settings-parity — PARTIAL
+
+- Source (christopherjohnogden/CineGen@769f148): src/components/settings/settings-page.tsx
+- Target: src/cinegen/components/settings/settings-page.tsx
+- Original: Settings: providers, ElevenLabs, preferences, resolution/frame/aspect
+- Browser: yes · Backend: none
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: upstream components/settings tests excluded (provider cards removed)
+- Evidence: src/cinegen/__tests__/upstream/EXCLUDED.md
+- **Missing:** 962-line divergence from upstream: fal/RunPod/Topview/Higgsfield/team provider sections removed; MCP-connect pages removed; not re-diffed section by section in this run
+
+## Desktop-only (Electron, cloud account, MCP pages, local models, CLI LLMs)
+
+### cg.desktop-only — NOT_APPLICABLE
+
+- Source (christopherjohnogden/CineGen@769f148): main.tsx, App.tsx, components/cloud/cloud-account.tsx, components/settings/{claude,remote}-mcp-connect.tsx, electron/ipc/{local-models,codex-cli,gemini-cli,claude-code,cli-llm-*,sam3-server}.ts
+- Target: —
+- Original: Native/desktop features
+- Browser: no · Backend: desktop
+- UI: — · Persistence: — · Preview: — · Export: —
+- Tests: documentation
+- Evidence: docs/cinegen-services-classification.md (commit of this stage)
+- **Blocker:** Electron / native / Python / CLI-based; not allowed in the browser app

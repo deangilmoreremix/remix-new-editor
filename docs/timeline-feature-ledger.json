@@ -1,10 +1,11 @@
 {
  "regression": {
-  "vitest": "676 tests / 71 files passed (src/openchatcut, src/cinegen/__tests__)",
+  "vitest": "171 files / 1312 passed, 27 skipped",
   "viteBuild": "npx vite build exit 0 (1m55s) at commit 2a5dab7f",
   "classicEditor": "not browser-smoke-tested in this stage (no changes made under src/lib/editor/addons or the classic route; composition files shared with export were edited)",
   "tsc": "not run: repo-wide tsc aborts on unrelated syntax errors in apps/director; a scoped check needs @cinegen path mapping (done once, not repeated)",
-  "liveProviders": "no OpenAI/MuAPI live calls in this stage"
+  "liveProviders": "no OpenAI/MuAPI live calls in this stage",
+  "upstreamCineGenTests": "CineGen tests/ ported to src/cinegen/__tests__/upstream: 557 passed, 27 skipped (documented), 0 failed; EXCLUDED.md lists every skipped/removed test with its reason"
  },
  "generatedAt": "2026-11-09",
  "branch": "claude/confident-fermi-3azaem",
@@ -815,121 +816,6 @@
    "blocker": ""
   },
   {
-   "id": "cg.elements",
-   "family": "Elements",
-   "sourceRepo": "christopherjohnogden/CineGen",
-   "sourcePaths": [
-    "components/elements/*"
-   ],
-   "targetPaths": [
-    "components/elements/*"
-   ],
-   "originalFunctionality": "UI present and rendering; generation needs OpenAI key (not live-tested)",
-   "browserCompatibility": "yes",
-   "backendDependencies": "MuAPI/OpenAI (adapted)",
-   "status": "IMPLEMENTED_UNVERIFIED",
-   "uiIntegration": "",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "vitest suites (584+)",
-   "evidence": "UI present and rendering; generation needs OpenAI key (not live-tested)",
-   "missing": "Live provider verification pending",
-   "blocker": ""
-  },
-  {
-   "id": "cg.spaces",
-   "family": "Spaces",
-   "sourceRepo": "christopherjohnogden/CineGen",
-   "sourcePaths": [
-    "components/create/*"
-   ],
-   "targetPaths": [
-    "components/create/*"
-   ],
-   "originalFunctionality": "canvas/panels render; generation nodes need MuAPI/OpenAI credits (route checks only)",
-   "browserCompatibility": "yes",
-   "backendDependencies": "MuAPI/OpenAI (adapted)",
-   "status": "IMPLEMENTED_UNVERIFIED",
-   "uiIntegration": "",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "vitest suites (584+)",
-   "evidence": "canvas/panels render; generation nodes need MuAPI/OpenAI credits (route checks only)",
-   "missing": "Live provider verification pending",
-   "blocker": ""
-  },
-  {
-   "id": "cg.director",
-   "family": "Director",
-   "sourceRepo": "christopherjohnogden/CineGen",
-   "sourcePaths": [
-    "components/director/*"
-   ],
-   "targetPaths": [
-    "components/director/*"
-   ],
-   "originalFunctionality": "tabs render; LLM jobs need OpenAI key",
-   "browserCompatibility": "yes",
-   "backendDependencies": "MuAPI/OpenAI (adapted)",
-   "status": "IMPLEMENTED_UNVERIFIED",
-   "uiIntegration": "",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "vitest suites (584+)",
-   "evidence": "tabs render; LLM jobs need OpenAI key",
-   "missing": "Live provider verification pending",
-   "blocker": ""
-  },
-  {
-   "id": "cg.edit",
-   "family": "Edit tools",
-   "sourceRepo": "christopherjohnogden/CineGen",
-   "sourcePaths": [
-    "components/edit/*"
-   ],
-   "targetPaths": [
-    "components/edit/*"
-   ],
-   "originalFunctionality": "core editing, import, persistence browser-verified; Fill Gap/Extend/Music need MuAPI credits",
-   "browserCompatibility": "yes",
-   "backendDependencies": "MuAPI/OpenAI (adapted)",
-   "status": "PARTIAL",
-   "uiIntegration": "",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "vitest suites (584+)",
-   "evidence": "core editing, import, persistence browser-verified; Fill Gap/Extend/Music need MuAPI credits",
-   "missing": "Live provider verification pending",
-   "blocker": ""
-  },
-  {
-   "id": "cg.llm",
-   "family": "LLM tab + assistant",
-   "sourceRepo": "christopherjohnogden/CineGen",
-   "sourcePaths": [
-    "components/llm/*, components/assistant/*"
-   ],
-   "targetPaths": [
-    "components/llm/*, components/assistant/*"
-   ],
-   "originalFunctionality": "needs OpenAI key",
-   "browserCompatibility": "yes",
-   "backendDependencies": "MuAPI/OpenAI (adapted)",
-   "status": "IMPLEMENTED_UNVERIFIED",
-   "uiIntegration": "",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "vitest suites (584+)",
-   "evidence": "needs OpenAI key",
-   "missing": "Live provider verification pending",
-   "blocker": ""
-  },
-  {
    "id": "cg.export",
    "family": "Export",
    "sourceRepo": "christopherjohnogden/CineGen",
@@ -949,29 +835,6 @@
    "exportPublish": "",
    "testsPerformed": "vitest suites (584+)",
    "evidence": "MP4 export verified incl. fx, captions, fades, plugin fx; docs/evidence/other/qa-2-result.png, commits d4901164 7fb4850f ec49002e",
-   "missing": "",
-   "blocker": ""
-  },
-  {
-   "id": "cg.desktop-only",
-   "family": "Desktop-only (Electron, cloud account, Claude MCP pages)",
-   "sourceRepo": "christopherjohnogden/CineGen",
-   "sourcePaths": [
-    "main.tsx, App.tsx, cloud-account.tsx, claude-mcp-connect.tsx, remote-mcp-connect.tsx"
-   ],
-   "targetPaths": [
-    "main.tsx, App.tsx, cloud-account.tsx, claude-mcp-connect.tsx, remote-mcp-connect.tsx"
-   ],
-   "originalFunctionality": "Electron/cloud only",
-   "browserCompatibility": "no",
-   "backendDependencies": "none",
-   "status": "NOT_APPLICABLE",
-   "uiIntegration": "",
-   "persistence": "",
-   "preview": "",
-   "exportPublish": "",
-   "testsPerformed": "vitest suites (584+)",
-   "evidence": "Electron/cloud only",
    "missing": "",
    "blocker": ""
   },
@@ -1135,6 +998,308 @@
    "evidence": "",
    "missing": "not reconnected",
    "blocker": ""
+  },
+  {
+   "id": "cg.elements.logic",
+   "family": "CineGen Elements",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/lib/elements/*",
+    "src/components/elements/*"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/elements/*",
+    "src/cinegen/components/elements/*"
+   ],
+   "originalFunctionality": "Element model, reference panels (7 per category), angles, folders, voice, mentions in prompts",
+   "browserCompatibility": "yes",
+   "backendDependencies": "OpenAI Images 2.6 for panel generation",
+   "status": "PARTIAL",
+   "uiIntegration": "Elements tab renders (screenshots in earlier sessions)",
+   "persistence": "IndexedDB ProjectStore",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "upstream tests ported: components/elements 7, lib/llm (prompt-elements) pass; occ-muapi-references.test.ts (3)",
+   "evidence": "src/cinegen/__tests__/upstream/EXCLUDED.md; this commit",
+   "missing": "Panel generation, per-panel regeneration, variations and active-variation selection were not run against a live provider; reference panels per category (7) not re-counted in a browser run; element voice assignment/saved voices not browser-tested",
+   "blocker": ""
+  },
+  {
+   "id": "cg.elements.references-to-generation",
+   "family": "CineGen Elements",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/lib/llm/prompt-elements.ts",
+    "src/lib/workflows/execute.ts"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/muapi/model-catalog.ts (reference ports)",
+    "src/cinegen/lib/cloud/funding.ts"
+   ],
+   "originalFunctionality": "Element mentions/references reach the generation request",
+   "browserCompatibility": "yes",
+   "backendDependencies": "MuAPI (request mocked)",
+   "status": "VERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "occ-muapi-references.test.ts (3, provider mocked): text-to-image model gets a reference port, @mention wires the Element into it, request with references routes to the -edit sibling",
+   "evidence": "this commit; found by CineGen's own prompt-elements tests",
+   "missing": "Live MuAPI request with a real reference was not run (mocked provider); identity preservation is whatever the MuAPI -edit model does, not guaranteed here",
+   "blocker": ""
+  },
+  {
+   "id": "cg.spaces.logic",
+   "family": "CineGen Spaces / Studio",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/lib/workflows/*",
+    "src/lib/studio/*",
+    "src/components/create/*"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/workflows/*",
+    "src/cinegen/lib/studio/*",
+    "src/cinegen/components/create/*"
+   ],
+   "originalFunctionality": "Node registry, port compatibility, topo ordering, execution, Studio recipes/presets/clips",
+   "browserCompatibility": "yes",
+   "backendDependencies": "MuAPI/OpenAI for generation",
+   "status": "PARTIAL",
+   "uiIntegration": "rendered in earlier browser runs",
+   "persistence": "workflow/studio state in ProjectStore",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "CineGen's own tests ported and passing: lib/studio 78, lib/workflows 23, components/create 100 (node/palette/canvas/studio components)",
+   "evidence": "src/cinegen/__tests__/upstream/",
+   "missing": "Provider-specific workflow tests (Higgsfield/Topview/RunPod) are excluded; full-graph execution against live MuAPI not run; studio/recipe.ts covered only by the ported studio tests; Studio→Edit transfer not browser-tested",
+   "blocker": ""
+  },
+  {
+   "id": "cg.sets.logic",
+   "family": "CineGen Sets",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/lib/sets/*",
+    "src/components/sets/*",
+    "src/types/sets.ts"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/sets/*",
+    "src/cinegen/components/sets/*"
+   ],
+   "originalFunctionality": "3D scene planning: camera, floor plan, placement, Shape Shot, packaging, camera prompts",
+   "browserCompatibility": "yes",
+   "backendDependencies": "browser WebGL",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "CineGen's own tests ported and passing: lib/sets 105, components/sets 11",
+   "evidence": "src/cinegen/__tests__/upstream/",
+   "missing": "Camera manipulation, Shape Shot capture and use of a captured reference in a generation workflow were NOT driven in a browser; no splat/scene file exercised in sandbox",
+   "blocker": ""
+  },
+  {
+   "id": "cg.director.logic",
+   "family": "CineGen Director",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/lib/director/*",
+    "src/components/director/*"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/director/*",
+    "src/cinegen/components/director/*"
+   ],
+   "originalFunctionality": "Script import (fountain/FDX), breakdown, Look Bible, shotlist, takes, notes, generation",
+   "browserCompatibility": "yes",
+   "backendDependencies": "OpenAI + MuAPI",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "earlier ported director tests (src/cinegen/__tests__/director) + upstream components/director 19 passing",
+   "evidence": "src/cinegen/__tests__/upstream/",
+   "missing": "Script→shotlist→generation→timeline flow not run (no provider keys); Topview/Higgsfield/RunPod provider switching tests excluded by design; keep/discard and take rejoin UI not browser-tested",
+   "blocker": ""
+  },
+  {
+   "id": "cg.edit.logic",
+   "family": "CineGen Edit",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/lib/editor/*",
+    "src/components/edit/*"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/editor/*",
+    "src/cinegen/components/edit/*"
+   ],
+   "originalFunctionality": "10 tools, tracks, keyframes, transitions, sync, proxy, generated clips",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none for editing; MuAPI for Fill Gap/Extend/Music",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "editor unit tests (timeline-operations etc.) + upstream components/edit 1; browser: import, drag, trim/split basics, fades, transform, multicam cut, recorder",
+   "evidence": "src/cinegen/__tests__/upstream/",
+   "missing": "Each of the 10 tools was not individually driven in a browser against real clips (Blade/Ripple/Roll/Slip/Slide/Mask/Music/Fill Gap/Extend); dual-viewer/source viewer, mute/solo/lock, batch sync, proxy playback not re-verified in this run",
+   "blocker": ""
+  },
+  {
+   "id": "cg.llm.logic",
+   "family": "CineGen LLM / Assistant / skills",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/lib/llm/*",
+    "src/lib/assistant/*",
+    "src/components/llm/*",
+    "src/components/assistant/*"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/llm/*",
+    "src/cinegen/lib/assistant/*",
+    "src/cinegen/components/llm/*"
+   ],
+   "originalFunctionality": "Ask/Search/Cut/Timeline, skills, skill-actions, canvas visual context",
+   "browserCompatibility": "yes",
+   "backendDependencies": "OpenAI Responses",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "CineGen's own tests ported and passing: lib/llm 113, lib/assistant 30, components/assistant 1; copilot-looks.test.ts",
+   "evidence": "src/cinegen/__tests__/upstream/",
+   "missing": "No live OpenAI conversation was run; skill-actions that create video model nodes differ (provider registry) and those 2 tests are skipped; undo of AI-created nodes not browser-tested",
+   "blocker": ""
+  },
+  {
+   "id": "cg.mcp",
+   "family": "CineGen MCP / project control",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/lib/mcp/*",
+    "mcp/*.mjs"
+   ],
+   "targetPaths": [
+    "src/cinegen/lib/mcp/*"
+   ],
+   "originalFunctionality": "MCP tools exposing project state",
+   "browserCompatibility": "yes",
+   "backendDependencies": "desktop MCP launcher (not used)",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "upstream lib/mcp 30 tests pass (handlers/state); catalog/stdio/viewer-launcher tests excluded",
+   "evidence": "src/cinegen/__tests__/upstream/",
+   "missing": "The stdio MCP server and viewer launcher are desktop-only",
+   "blocker": ""
+  },
+  {
+   "id": "cg.persistence",
+   "family": "CineGen persistence / migration",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/lib/cloud/*",
+    "electron/ipc/project.ts"
+   ],
+   "targetPaths": [
+    "src/cinegen/adapters/web-store.ts",
+    "src/cinegen/adapters/legacy-import.ts"
+   ],
+   "originalFunctionality": "Project store, autosave, undo/redo, migration",
+   "browserCompatibility": "yes",
+   "backendDependencies": "IndexedDB",
+   "status": "IMPLEMENTED_UNVERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "components/workspace 20 upstream tests pass; reload persistence checked for clip fx/transform in converter tests",
+   "evidence": "earlier session browser runs (no stored artefact)",
+   "missing": "Project reload in a browser not re-verified in this run; export aspect ratio missing",
+   "blocker": ""
+  },
+  {
+   "id": "cg.services",
+   "family": "CineGen server services",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "web/server/services/*",
+    "electron/ipc/*"
+   ],
+   "targetPaths": [
+    "src/cinegen/adapters/*"
+   ],
+   "originalFunctionality": "Classification of each service",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "VERIFIED",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "documentation audit",
+   "evidence": "docs/cinegen-services-classification.md (commit of this stage)",
+   "missing": "",
+   "blocker": ""
+  },
+  {
+   "id": "cg.settings-parity",
+   "family": "CineGen settings page",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "src/components/settings/settings-page.tsx"
+   ],
+   "targetPaths": [
+    "src/cinegen/components/settings/settings-page.tsx"
+   ],
+   "originalFunctionality": "Settings: providers, ElevenLabs, preferences, resolution/frame/aspect",
+   "browserCompatibility": "yes",
+   "backendDependencies": "none",
+   "status": "PARTIAL",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "upstream components/settings tests excluded (provider cards removed)",
+   "evidence": "src/cinegen/__tests__/upstream/EXCLUDED.md",
+   "missing": "962-line divergence from upstream: fal/RunPod/Topview/Higgsfield/team provider sections removed; MCP-connect pages removed; not re-diffed section by section in this run",
+   "blocker": ""
+  },
+  {
+   "id": "cg.desktop-only",
+   "family": "Desktop-only (Electron, cloud account, MCP pages, local models, CLI LLMs)",
+   "sourceRepo": "christopherjohnogden/CineGen@769f148",
+   "sourcePaths": [
+    "main.tsx",
+    "App.tsx",
+    "components/cloud/cloud-account.tsx",
+    "components/settings/{claude,remote}-mcp-connect.tsx",
+    "electron/ipc/{local-models,codex-cli,gemini-cli,claude-code,cli-llm-*,sam3-server}.ts"
+   ],
+   "targetPaths": [],
+   "originalFunctionality": "Native/desktop features",
+   "browserCompatibility": "no",
+   "backendDependencies": "desktop",
+   "status": "NOT_APPLICABLE",
+   "uiIntegration": "",
+   "persistence": "",
+   "preview": "",
+   "exportPublish": "",
+   "testsPerformed": "documentation",
+   "evidence": "docs/cinegen-services-classification.md (commit of this stage)",
+   "missing": "",
+   "blocker": "Electron / native / Python / CLI-based; not allowed in the browser app"
   }
  ]
 }
