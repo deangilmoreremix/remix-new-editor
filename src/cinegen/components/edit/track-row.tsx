@@ -20,6 +20,7 @@ interface TrackRowProps {
   selectedClipIds: Set<string>;
   onSelectClip: (clipId: string, additive: boolean) => void;
   onTrimClip: (clipId: string, trimStart: number, trimEnd: number, startTime?: number) => void;
+  onRateStretch?: (clipId: string, speed: number, startTime: number) => void;
   onTrimPreview: (clipId: string, sourceTime: number) => void;
   onTrimPreviewEnd: () => void;
   onRemoveClip: (clipId: string) => void;
@@ -64,6 +65,7 @@ export const TrackRow = memo(function TrackRow({
   selectedClipIds,
   onSelectClip,
   onTrimClip,
+  onRateStretch,
   onTrimPreview,
   onTrimPreviewEnd,
   onRemoveClip,
@@ -307,6 +309,7 @@ export const TrackRow = memo(function TrackRow({
             trackColor={trackColor}
             onSelect={onSelectClip}
             onTrim={onTrimClip}
+            onRateStretch={onRateStretch}
             onTrimPreview={onTrimPreview}
             onTrimPreviewEnd={onTrimPreviewEnd}
             onRemove={onRemoveClip}

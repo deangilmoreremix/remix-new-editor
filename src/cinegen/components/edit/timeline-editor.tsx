@@ -852,6 +852,37 @@ export function TimelineEditor({
     };
   }, []);
 
+  // [remix] Alt-drag edge = OpenChatCut rate stretch: speed + start change, source span stays; keyframes/fades rescale with the new length.
+  const handleRateStretch = useCallback(
+    (clipId: string, speed: number, startTime: number) => {
+      const tl = timelineRef.current;
+      const clip = tl.clips.find((c) => c.id === clipId);
+      if (!clip) return;
+      const oldEff = clipEffectiveDuration(clip);
+      const sp = Math.max(0.1, Math.min(8, speed));
+      const newEff = (clip.duration - clip.trimStart - clip.trimEnd) / sp;
+      const ratio = oldEff > 0 ? newEff / oldEff : 1;
+      const linked = new Set([clipId, ...(clip.linkedClipIds ?? [])]);
+      const delta = startTime - clip.startTime;
+      setTimeline({
+        ...tl,
+        clips: tl.clips.map((c) => {
+          if (!linked.has(c.id)) return c;
+          const r = c.id === clipId ? ratio : (clipEffectiveDuration(c) > 0 ? (((c.duration - c.trimStart - c.trimEnd) / sp) / clipEffectiveDuration(c)) : 1);
+          return {
+            ...c,
+            speed: sp,
+            startTime: Math.max(0, c.startTime + delta),
+            keyframes: (c.keyframes ?? []).map((k) => ({ ...k, time: k.time * r })),
+            fadeIn: c.fadeIn !== undefined ? c.fadeIn * r : undefined,
+            fadeOut: c.fadeOut !== undefined ? c.fadeOut * r : undefined,
+          };
+        }),
+      });
+    },
+    [setTimeline],
+  );
+
   // Throttled trim
   const trimRafRef = useRef<number | null>(null);
   const pendingTrimRef = useRef<{ clipId: string; trimStart: number; trimEnd: number; startTime?: number } | null>(null);
@@ -2778,6 +2809,7 @@ export function TimelineEditor({
         selectedClipIds={selectedClipIds}
         onSelectClip={handleSelectClip}
         onTrimClip={handleTrimClip}
+        onRateStretch={handleRateStretch}
         onTrimPreview={onTrimPreview ?? (() => {})}
         onTrimPreviewEnd={onTrimPreviewEnd ?? (() => {})}
         onRemoveClip={handleRemoveClip}

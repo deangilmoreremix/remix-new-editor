@@ -8,6 +8,7 @@ import { clipEffectiveDuration } from '@cinegen/types/timeline';
 import { WaveformCanvas } from './waveform-canvas';
 import { KeyframeTrack } from './keyframe-track';
 import { FilmstripBackground } from './filmstrip-background';
+import { rateStretchGeometry } from '../../../openchatcut/editor/rateStretch';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import aiSvg from '@cinegen/assets/ai.svg';
 
@@ -22,6 +23,8 @@ interface ClipCardProps {
   trackColor?: string;
   onSelect?: (clipId: string, additive: boolean) => void;
   onTrim?: (clipId: string, trimStart: number, trimEnd: number, startTime?: number) => void;
+  /** [remix] Alt-drag on a clip edge = rate stretch (OpenChatCut rateStretchGeometry): new speed and start time, source span unchanged */
+  onRateStretch?: (clipId: string, speed: number, startTime: number) => void;
   onRemove?: (clipId: string) => void;
   onMove?: (clipId: string, newStartTime: number, trackId?: string) => void;
   onMoveStart?: (clipId: string, startX: number, initStartTime: number, duplicate: boolean) => void;
@@ -70,6 +73,7 @@ export const ClipCard = memo(function ClipCard({
   trackColor,
   onSelect,
   onTrim,
+  onRateStretch,
   onRemove,
   onMove,
   onMoveStart,
@@ -95,6 +99,7 @@ export const ClipCard = memo(function ClipCard({
   onContextMenu: onContextMenuProp,
 }: ClipCardProps) {
   const actionRef = useRef<
+    | { kind: 'stretch'; side: 'left' | 'right'; startX: number; initSpeed: number; initStart: number; initEff: number }
     | { kind: 'trim'; side: 'left' | 'right'; startX: number; initTrimStart: number; initTrimEnd: number; initStartTime: number }
     | { kind: 'move'; startX: number; initStartTime: number; latestStartTime: number; duplicate: boolean; moved: boolean }
     | null
@@ -202,6 +207,10 @@ export const ClipCard = memo(function ClipCard({
       }
 
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      if (e.altKey && onRateStretch && trackKind !== 'image') {
+        actionRef.current = { kind: 'stretch', side, startX: e.clientX, initSpeed: clip.speed || 1, initStart: clip.startTime, initEff: clipEffectiveDuration(clip) };
+        return;
+      }
       actionRef.current = {
         kind: 'trim',
         side,
@@ -211,7 +220,7 @@ export const ClipCard = memo(function ClipCard({
         initStartTime: clip.startTime,
       };
     },
-    [clip, activeTool, onAdvancedMouseDown, onExtendEdgeDown],
+    [clip, activeTool, onAdvancedMouseDown, onExtendEdgeDown, onRateStretch, trackKind],
   );
 
   const handleMoveDown = useCallback(
@@ -259,6 +268,13 @@ export const ClipCard = memo(function ClipCard({
       const dx = e.clientX - action.startX;
       const dt = dx / pixelsPerSecond;
 
+      if (action.kind === 'stretch') {
+        const fps = 30;
+        const item = { id: clip.id, kind: 'video', startFrame: Math.round(action.initStart * fps), durationInFrames: Math.max(1, Math.round(action.initEff * fps)), playbackRate: action.initSpeed } as never;
+        const g = rateStretchGeometry(item, action.side, Math.round(dt * fps));
+        onRateStretch?.(clip.id, g.playbackRate, g.startFrame / fps);
+        return;
+      }
       if (action.kind === 'trim') {
         if (action.side === 'left') {
           const raw = Math.max(0, Math.min(action.initTrimStart + dt, clip.duration - clip.trimEnd - 0.1));
@@ -310,12 +326,14 @@ export const ClipCard = memo(function ClipCard({
         }
       }
     },
-    [clip.id, clip.duration, clip.trimStart, clip.trimEnd, pixelsPerSecond, snapTime, snapMoveTime, onTrim, onTrimPreview, onMoveSnap, onMove, onDuplicateDrag],
+    [clip.id, clip.duration, clip.trimStart, clip.trimEnd, pixelsPerSecond, snapTime, snapMoveTime, onTrim, onRateStretch, onTrimPreview, onMoveSnap, onMove, onDuplicateDrag],
   );
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     const action = actionRef.current;
-    if (action?.kind === 'trim') {
+    if (action?.kind === 'stretch') {
+      onMoveSnap?.(null);
+    } else if (action?.kind === 'trim') {
       onTrimPreviewEnd?.();
       onMoveSnap?.(null);
     } else if (action?.kind === 'move') {
