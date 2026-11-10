@@ -1,3 +1,4 @@
+import '../../../styles/template-generator.css';
 import { BaseModal } from './BaseModal.jsx';
 import { ALL_NICHE_TEMPLATES } from '../../lib/nicheTemplatesIndex.js';
 import { generateScript, rewriteScript, shortenScript, expandScript, applyCta, changeTone, changeAudience } from '../../lib/editor/scriptAiService.js';
