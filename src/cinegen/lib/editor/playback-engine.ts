@@ -1,7 +1,7 @@
 import type { Timeline, Clip, Track } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
-import { clipTransformCss, clipTransformClipPath } from '@cinegen/lib/occ/transform';
+import { clipTransformCss, clipTransformClipPath, fillCss } from '@cinegen/lib/occ/transform';
 import { interpolateProperty } from './timeline-operations';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { mediaDebug, mediaDebugWarn } from '@cinegen/lib/debug/media-debug';
@@ -603,6 +603,8 @@ export class PlaybackEngine {
         this.clearMetadataTimeout(el);
         this.disconnectMediaAudioNode(el);
         el.remove();
+        this.fillCanvases.get(clipId)?.remove();
+        this.fillCanvases.delete(clipId);
         this.videoPool.delete(clipId);
         this.playbackHealth.delete(clipId);
       }
@@ -692,6 +694,24 @@ export class PlaybackEngine {
     }
   }
 
+  private fillCanvases = new Map<string, HTMLCanvasElement>();
+
+  /** [remix] OpenChatCut background fill: a small canvas copy of the frame, blurred + darkened, sits behind the (contained) video element. */
+  private syncFill(clipId: string, el: HTMLVideoElement, tr: import('@cinegen/lib/occ/transform').ClipTransform | undefined, opacity: number): void {
+    let cv = this.fillCanvases.get(clipId);
+    const css = tr && this.videoContainer ? fillCss(tr, this.videoContainer.clientWidth || 1280, this.videoContainer.clientHeight || 720) : undefined;
+    if (!css) { if (cv) cv.style.opacity = '0'; return; }
+    if (!cv) {
+      cv = document.createElement('canvas'); cv.width = 64; cv.height = 36;
+      cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+      el.parentElement?.insertBefore(cv, el);
+      this.fillCanvases.set(clipId, cv);
+    }
+    cv.style.filter = css.filter; cv.style.transform = css.transform;
+    cv.style.zIndex = el.style.zIndex; cv.style.opacity = String(opacity);
+    if (el.readyState >= 2) { try { cv.getContext('2d')?.drawImage(el, 0, 0, cv.width, cv.height); } catch { /* tainted */ } }
+  }
+
   private syncVideo(): void {
     if (!this.timeline) return;
     const now = performance.now();
@@ -754,6 +774,8 @@ export class PlaybackEngine {
       const tcss = clipTransformCss(entry.clip.transform, clipTime);
       el.style.transform = `scale(${scaleX}, ${scaleY})${tcss ? ` ${tcss}` : ''}`;
       el.style.clipPath = clipTransformClipPath(entry.clip.transform) ?? '';
+      el.style.objectFit = entry.clip.transform?.fit ?? 'contain';
+      this.syncFill(entry.clip.id, el, entry.clip.transform, opacity);
 
       el.style.opacity = String(opacity);
       el.style.zIndex = String(z++);
@@ -862,6 +884,7 @@ export class PlaybackEngine {
       el.style.opacity = '0';
       el.style.zIndex = '0';
       el.style.transform = '';
+      this.syncFill(clipId, el, undefined, 0);
       if (!el.paused) el.pause();
       this.playbackHealth.delete(clipId);
 

@@ -36,6 +36,7 @@ import { CodeLayer } from './codeLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
 import { clipTransformCss, clipTransformClipPath } from '../../../cinegen/lib/occ/transform';
+import { backgroundFillAppearance, backgroundFillFilter } from '../../../openchatcut/editor/backgroundFill';
 import { sampleKeyframes as sampleFxKey } from '../../../openchatcut/editor/keyframes';
 import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
 import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
@@ -460,6 +461,17 @@ function fadedVolume(layer, fps, base, kf) {
 
 /** [remix] fade-in/out of a visual clip = opacity multiplier over the whole layer. */
 /** [remix] clip position / scale / rotation (+ tracked path): same CSS as the editor viewer (cinegen/lib/occ/transform.ts). */
+/** [remix] OpenChatCut backgroundFill: blurred, darkened, over-scanned cover copy of the clip behind the contained picture. */
+function OccFill({ layer, trimBefore, seqFrom }) {
+  const { width: W, height: H } = useVideoConfig();
+  const a = backgroundFillAppearance(W, H, layer.clipTransform.fill);
+  return (
+    <AbsoluteFill style={{ filter: backgroundFillFilter(a), transform: `scale(${a.overscanScale})` }}>
+      <MediaLayer layer={{ ...layer, trimBefore, occFx: undefined, fit: 'cover', volume: 0, fadeIn: 0, fadeOut: 0 }} seqFrom={seqFrom} />
+    </AbsoluteFill>
+  );
+}
+
 function OccTransform({ transform, children }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -599,6 +611,7 @@ export function TimelineComposition({ model }) {
               <KeyframeWrap layer={layer} seqFrom={from}>
                 {/* [remix] clip blend mode (CSS mix-blend-mode, burned into export) */}
                 <AbsoluteFill style={layer.clipBlend ? { mixBlendMode: layer.clipBlend } : undefined}>
+                  {layer.clipTransform?.fill !== undefined && layer.kind !== 'audio' && <OccFill layer={layer} trimBefore={trimBefore} seqFrom={from} />}
                   <OccTransform transform={layer.clipTransform}>
                   {layer.clipZoom
                     ? <OccZoom zoom={layer.clipZoom} durationInFrames={layer.durationInFrames}><MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} /></OccZoom>

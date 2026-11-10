@@ -1,4 +1,6 @@
 // [remix] Position / scale / rotation of the clip in the frame (with keyframes), and the tracked path made by OpenChatCut's tracker (Zoom → Follow subject → Pin).
+import { FLEX_CROP_EDGES, flexCropEdgeMax, flexCropInsetPatch, normalizedFlexCrop } from '../../../openchatcut/editor/flexCrop';
+import { DEFAULT_BACKGROUND_FILL_STRENGTH } from '../../../openchatcut/editor/backgroundFill';
 import type { Clip } from '@cinegen/types/timeline';
 import { IDENTITY_TRANSFORM, hasTransform, transformValuesAt, upsertKey, type ClipTransform } from '@cinegen/lib/occ/transform';
 
@@ -26,6 +28,24 @@ export function ClipTransformSection({ clip, currentTime = 0, onUpdate }: { clip
           <span className="clip-properties-panel__label">{r.label}</span>
           <input type="range" className="clip-properties-panel__slider" data-testid={`transform-${r.key}`} min={r.min} max={r.max} step={r.step} value={cur[r.key]} onChange={(e) => set({ [r.key]: parseFloat(e.target.value) })} />
           <span className="clip-properties-panel__value">{cur[r.key].toFixed(r.key === 'scale' ? 2 : 1)}{r.unit}</span>
+        </div>
+      ))}
+      <div className="clip-properties-panel__row">
+        <span className="clip-properties-panel__label">Fit</span>
+        <select className="clip-properties-panel__select" data-testid="transform-fit" value={tr.fit ?? 'contain'} onChange={(e) => commit({ ...tr, fit: e.target.value as 'contain' | 'cover' })}>
+          <option value="contain">Contain (whole picture)</option>
+          <option value="cover">Cover (fill frame)</option>
+        </select>
+      </div>
+      <div className="clip-properties-panel__row">
+        <button className="clip-properties-panel__toggle-btn" data-testid="transform-fill" title="Fill the bars with a blurred copy of the clip" onClick={() => commit({ ...tr, fill: tr.fill === undefined ? DEFAULT_BACKGROUND_FILL_STRENGTH : undefined })}>{tr.fill === undefined ? 'Background fill: off' : 'Background fill: on'}</button>
+        {tr.fill !== undefined && <input type="range" className="clip-properties-panel__slider" data-testid="transform-fill-strength" min={0} max={100} step={1} value={tr.fill} onChange={(e) => commit({ ...tr, fill: parseInt(e.target.value, 10) })} />}
+      </div>
+      {FLEX_CROP_EDGES.map((edge) => (
+        <div className="clip-properties-panel__row" key={edge}>
+          <span className="clip-properties-panel__label">Crop {edge}</span>
+          <input type="range" className="clip-properties-panel__slider" data-testid={`transform-crop-${edge}`} min={0} max={flexCropEdgeMax(tr.crop, edge)} step={0.005} value={normalizedFlexCrop(tr.crop)[edge]} onChange={(e) => commit({ ...tr, crop: flexCropInsetPatch(tr.crop, edge, parseFloat(e.target.value)).crop })} />
+          <span className="clip-properties-panel__value">{Math.round(normalizedFlexCrop(tr.crop)[edge] * 100)}%</span>
         </div>
       ))}
       <div className="clip-properties-panel__row">

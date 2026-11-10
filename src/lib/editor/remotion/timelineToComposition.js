@@ -206,13 +206,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         return;
       }
       if (clip.type === 'video' && src) {
-        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, ...flip, fit: clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
+        const layer = { ...base, kind: 'video', src, trimBefore, ...speed, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
         layers.push(layer);
         if (isVideoTrack(track)) media.push(layer);
         return;
       }
       if (clip.type === 'image' && src) {
-        const layer = { ...base, kind: 'image', src, ...flip, fit: clip.fit || 'cover' };
+        const layer = { ...base, kind: 'image', src, ...flip, fit: clip.transform?.fit || clip.fit || 'cover' };
         layers.push(layer);
         if (isVideoTrack(track)) media.push(layer);
         return;

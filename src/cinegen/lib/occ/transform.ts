@@ -1,6 +1,7 @@
 // [remix] Clip transform (position / scale / rotation) for the CineGen clip model, plus a tracked path.
 // The tracker is OpenChatCut's (tracking/analyzeMotion); `transformFromTrack` turns its points into path keys that keep the tracked
 // subject at the centre of the frame (their keyframeActions "stabilize" idea). Pure: shared by the viewer and the export composition.
+import { backgroundFillAppearance, backgroundFillFilter } from '../../../openchatcut/editor/backgroundFill';
 import type { TrackingPoint } from '../../../openchatcut/tracking/types';
 
 export interface ClipTransform {
@@ -13,13 +14,17 @@ export interface ClipTransform {
   rotation: number;
   /** crop as fractions of the frame (OpenChatCut FlexCrop): cut first, then transformed with the clip — used by layouts */
   crop?: { left: number; top: number; right: number; bottom: number };
+  /** OpenChatCut AspectFit: how the picture sits in the frame (default: contain in the viewer, cover in export as before) */
+  fit?: 'contain' | 'cover';
+  /** OpenChatCut backgroundFill strength 0–100: a blurred, darkened copy of the clip fills the bars behind a contained picture */
+  fill?: number;
   /** keyframes (clip-relative seconds): when present they drive x/y/scale/rotation, linearly interpolated */
   keys?: Array<{ t: number; x: number; y: number; scale: number; rotation: number }>;
   /** tracked path: extra offsets (%) at clip-relative seconds, linearly interpolated */
   path?: Array<{ t: number; x: number; y: number }>;
 }
 export const IDENTITY_TRANSFORM: ClipTransform = { x: 0, y: 0, scale: 1, rotation: 0 };
-export const hasTransform = (t?: ClipTransform | null): t is ClipTransform => !!t && (t.x !== 0 || t.y !== 0 || t.scale !== 1 || t.rotation !== 0 || !!t.crop || !!t.path?.length || !!t.keys?.length);
+export const hasTransform = (t?: ClipTransform | null): t is ClipTransform => !!t && (t.x !== 0 || t.y !== 0 || t.scale !== 1 || t.rotation !== 0 || !!t.crop || !!t.fit || t.fill !== undefined || !!t.path?.length || !!t.keys?.length);
 
 export function pathOffsetAt(path: ClipTransform['path'], t: number): { x: number; y: number } {
   if (!path?.length) return { x: 0, y: 0 };
@@ -74,4 +79,11 @@ export function clipTransformClipPath(tr: ClipTransform | undefined | null): str
   if (!c) return undefined;
   const p = (v: number) => `${(Math.max(0, v) * 100).toFixed(3)}%`;
   return `inset(${p(c.top)} ${p(c.right)} ${p(c.bottom)} ${p(c.left)})`;
+}
+
+/** Preview CSS for the blurred background-fill copy (OpenChatCut backgroundFillAppearance / backgroundFillFilter). */
+export function fillCss(tr: ClipTransform | undefined | null, w: number, h: number): { filter: string; transform: string } | undefined {
+  if (!tr || tr.fill === undefined) return undefined;
+  const a = backgroundFillAppearance(w, h, tr.fill);
+  return { filter: backgroundFillFilter(a), transform: `scale(${a.overscanScale})` };
 }
