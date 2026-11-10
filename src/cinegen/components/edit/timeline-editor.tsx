@@ -47,6 +47,11 @@ import type { WorkflowNodeData } from '@cinegen/types/workflow';
 import { applyComposition, type Composition } from '@cinegen/lib/occ/template-composition';
 import { openSmartSpeech } from '@cinegen/lib/occ/smart-speech';
 import { MgTemplatesModal } from './mg-templates-modal';
+// [hyperframes] flag-gated library for verified HyperFrames animations
+import { HyperframesModal } from './hyperframes-modal';
+import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
+// @ts-expect-error plain JS flag from the main app's lib
+import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
 import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
 
@@ -114,6 +119,7 @@ export function TimelineEditor({
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackHeight = trackHeightProp;
   const [mgOpen, setMgOpen] = useState(false);
+  const [hfOpen, setHfOpen] = useState(false);
   const [bladeX, setBladeX] = useState<number | null>(null);
   const [rulerScrollLeft, setRulerScrollLeft] = useState(0);
 
@@ -3264,6 +3270,7 @@ export function TimelineEditor({
           selectOverlay(overlay.id);
         }}
         onBrowseMotion={() => setMgOpen(true)}
+        onBrowseHyperframes={isHyperframesEnabled() ? () => setHfOpen(true) : undefined}
         onOpenSpeech={handleOpenSpeech}
         onOpenGenerator={handleOpenGenerator}
         onOpenPersonalization={handleOpenPersonalization}
@@ -3277,6 +3284,7 @@ export function TimelineEditor({
         onUpdate={(id, updates) => dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates })}
       />
 
+      {hfOpen && isHyperframesEnabled() && <HyperframesModal onClose={() => setHfOpen(false)} onPick={(item) => { const overlay = createHyperframesOverlay(item, currentTime); dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); setHfOpen(false); }} />}
       {mgOpen && <MgTemplatesModal onClose={() => setMgOpen(false)} onPick={(t) => { const overlay = createMgOverlay(t, currentTime); dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); setMgOpen(false); }} />}
 
       {/* Global playhead — spans across all sections including divider */}

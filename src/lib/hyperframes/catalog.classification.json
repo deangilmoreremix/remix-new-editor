@@ -1,0 +1,6260 @@
+{
+ "schemaVersion": 1,
+ "upstreamCommit": "cda84222aa12716f2ceb92b45629487be81a0601",
+ "thresholds": {
+  "ssimVerified": 0.95,
+  "ssimAdapter": 0.85,
+  "minExportFps": 8.0
+ },
+ "totals": {
+  "adapter-compatible": 40,
+  "verified-export": 88,
+  "unsupported": 82,
+  "not-tested": 247
+ },
+ "byType": {
+  "block": {
+   "adapter-compatible": 40,
+   "verified-export": 88,
+   "unsupported": 82
+  },
+  "component": {
+   "not-tested": 238
+  },
+  "example": {
+   "not-tested": 9
+  }
+ },
+ "verifiedButNotEnabled": {
+  "export throughput 5.1 fps < 8.0": 2,
+  "no editable fields detected": 58,
+  "audio element": 2,
+  "WebGL": 22,
+  "three.js": 7,
+  "remote image URL": 12,
+  "video element": 2,
+  "unseeded Math.random": 1,
+  "export throughput 5.6 fps < 8.0": 1,
+  "export throughput 2.9 fps < 8.0": 1,
+  "sub-composition": 1,
+  "export throughput 5.9 fps < 8.0": 1,
+  "export throughput 7.8 fps < 8.0": 2,
+  "HTML-in-canvas API": 2,
+  "export throughput 7.0 fps < 8.0": 1,
+  "export throughput 4.6 fps < 8.0": 1
+ },
+ "enabledCount": 30,
+ "items": {
+  "ai-answer-rank": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.923; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.986,
+     0.99,
+     0.923
+    ],
+    "ssimMin": 0.923,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 16.0,
+     "bytes": 147419
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "ai-chat-reveal": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.985,
+     0.987,
+     0.987
+    ],
+    "ssimMin": 0.985,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 5.1,
+     "bytes": 188918
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "export throughput 5.1 fps < 8.0",
+    "no editable fields detected"
+   ]
+  },
+  "app-showcase": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "needs a resource from a host that is not allow-listed: blocked-url src: host not allow-listed: cdn.jsdelivr.net: https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.m",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.967,
+     0.982,
+     0.982
+    ],
+    "ssimMin": 0.967,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "apple-money-count": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.950; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.967,
+     0.969,
+     0.95
+    ],
+    "ssimMin": 0.95,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 18.1,
+     "bytes": 535713
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "aurora": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline aurora: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "bar-chart-race": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.98,
+     0.981,
+     0.979
+    ],
+    "ssimMin": 0.979,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 19.1,
+     "bytes": 388215
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "beat-freeze-cut": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.887,
+     0.792,
+     0.948
+    ],
+    "ssimMin": 0.792,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "blob": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline blob: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "blue-sweater-intro-video": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.973,
+     0.987
+    ],
+    "ssimMin": 0.973,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 11.2,
+     "bytes": 293252
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "audio element",
+    "no editable fields detected"
+   ]
+  },
+  "camcorder-hud": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.972,
+     0.972,
+     0.972
+    ],
+    "ssimMin": 0.972,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 41.3,
+     "bytes": 34041
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "camera-dolly-zoom": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.497,
+     0.519,
+     0.513
+    ],
+    "ssimMin": 0.497,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "canopy-part-title": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 27.9,
+     "bytes": 57905
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "three.js",
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "carousel-circle-1": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.896; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.896,
+     0.982,
+     0.988
+    ],
+    "ssimMin": 0.896,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 28.0,
+     "bytes": 805251
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-circle-2": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.886; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.886,
+     0.984,
+     0.987
+    ],
+    "ssimMin": 0.886,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 26.3,
+     "bytes": 802865
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-circle-3": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.815,
+     0.882,
+     0.89
+    ],
+    "ssimMin": 0.815,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-circle-4": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.786,
+     0.951,
+     0.95
+    ],
+    "ssimMin": 0.786,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-circle-5": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.586,
+     0.769,
+     0.762
+    ],
+    "ssimMin": 0.586,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-orbit-1": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.839,
+     0.843,
+     0.834
+    ],
+    "ssimMin": 0.834,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-orbit-2": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.855,
+     0.846,
+     0.837
+    ],
+    "ssimMin": 0.837,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-orbit-3": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.792,
+     0.826,
+     0.824
+    ],
+    "ssimMin": 0.792,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-orbit-4": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.858,
+     0.801,
+     0.796
+    ],
+    "ssimMin": 0.796,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-orbit-5": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.889; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.889,
+     0.892,
+     0.889
+    ],
+    "ssimMin": 0.889,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 1.5,
+     "bytes": 822896
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-path-1": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.85,
+     0.906,
+     0.908
+    ],
+    "ssimMin": 0.85,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-path-2": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.848,
+     0.973,
+     0.976
+    ],
+    "ssimMin": 0.848,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-path-3": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.785,
+     0.962,
+     0.985
+    ],
+    "ssimMin": 0.785,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-path-4": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.837,
+     0.914,
+     0.957
+    ],
+    "ssimMin": 0.837,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-path-5": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.827,
+     0.885,
+     0.882
+    ],
+    "ssimMin": 0.827,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-text-circle-1": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.931; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.931,
+     0.931,
+     0.963
+    ],
+    "ssimMin": 0.931,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 12.5,
+     "bytes": 801446
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-text-circle-2": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.943; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.944,
+     0.943,
+     0.961
+    ],
+    "ssimMin": 0.943,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 11.6,
+     "bytes": 751890
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-text-circle-3": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.944,
+     0.746,
+     0.937
+    ],
+    "ssimMin": 0.746,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-text-circle-4": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.891; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.937,
+     0.891,
+     0.955
+    ],
+    "ssimMin": 0.891,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 12.1,
+     "bytes": 1136505
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-text-circle-5": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.929,
+     0.665,
+     0.906
+    ],
+    "ssimMin": 0.665,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-vision-1": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.792,
+     0.776,
+     0.779
+    ],
+    "ssimMin": 0.776,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-vision-2": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.768,
+     0.781,
+     0.762
+    ],
+    "ssimMin": 0.762,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-vision-3": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.762,
+     0.782,
+     0.759
+    ],
+    "ssimMin": 0.759,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-vision-4": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.785,
+     0.794,
+     0.783
+    ],
+    "ssimMin": 0.783,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "carousel-vision-5": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.56,
+     0.538,
+     0.537
+    ],
+    "ssimMin": 0.537,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "chatgpt-exchange": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.894; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.978,
+     0.99,
+     0.894
+    ],
+    "ssimMin": 0.894,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 4.3,
+     "bytes": 261499
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "chromatic-radial-split": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.987,
+     0.987,
+     0.987
+    ],
+    "ssimMin": 0.987,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 12.3,
+     "bytes": 199681
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "chrome-orb": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline chrome-orb: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cinemagraph": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.955,
+     0.954,
+     0.955
+    ],
+    "ssimMin": 0.954,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 30.6,
+     "bytes": 125055
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "video element",
+    "unseeded Math.random",
+    "no editable fields detected"
+   ]
+  },
+  "cinematic-zoom": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.99,
+     0.99,
+     0.99
+    ],
+    "ssimMin": 0.99,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 5.6,
+     "bytes": 238749
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "export throughput 5.6 fps < 8.0",
+    "no editable fields detected"
+   ]
+  },
+  "claude-exchange": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.900; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.971,
+     0.973,
+     0.9
+    ],
+    "ssimMin": 0.9,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 2.3,
+     "bytes": 199820
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "code-3d-extrude": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 16.3,
+     "bytes": 825642
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "three.js",
+    "no editable fields detected"
+   ]
+  },
+  "code-diff": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.947; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.95,
+     0.947,
+     0.947
+    ],
+    "ssimMin": 0.947,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 12.2,
+     "bytes": 320206
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "code-highlight": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.944; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.945,
+     0.944,
+     0.944
+    ],
+    "ssimMin": 0.944,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 9.8,
+     "bytes": 434549
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "code-morph": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.948; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.948,
+     0.95,
+     0.948
+    ],
+    "ssimMin": 0.948,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 9.8,
+     "bytes": 483543
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "code-particle-assemble": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 0.999,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 19.2,
+     "bytes": 1489186
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "three.js",
+    "no editable fields detected"
+   ]
+  },
+  "code-scroll": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.931; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.931,
+     0.95,
+     0.95
+    ],
+    "ssimMin": 0.931,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 4.7,
+     "bytes": 544022
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "code-shader-dissolve": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 0.999,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 13.6,
+     "bytes": 496996
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "three.js",
+    "no editable fields detected"
+   ]
+  },
+  "code-slice-hero": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "code-snippet-apple-terminal-pro": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.991,
+     0.986,
+     0.986
+    ],
+    "ssimMin": 0.986,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 8.9,
+     "bytes": 61703
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "code-snippet-dark-2026": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline code-snippet-dark-2026: no __timelines entry",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "code-snippet-dark-modern": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline code-snippet-dark-modern: no __timelines entry",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "code-typing": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.945; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.951,
+     0.949,
+     0.945
+    ],
+    "ssimMin": 0.945,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 10.8,
+     "bytes": 221705
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "color-wheel": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline color-wheel: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cosmic-orb": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     0.999,
+     0.999
+    ],
+    "ssimMin": 0.999,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 2.9,
+     "bytes": 792933
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "export throughput 2.9 fps < 8.0",
+    "no editable fields detected"
+   ]
+  },
+  "cross-warp-morph": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.987,
+     0.986,
+     0.987
+    ],
+    "ssimMin": 0.986,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 10.1,
+     "bytes": 209781
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "cuboid-carousel": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "data-chart": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.926; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.974,
+     0.926,
+     0.926
+    ],
+    "ssimMin": 0.926,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 21.6,
+     "bytes": 76869
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "domain-warp-dissolve": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.983,
+     0.982,
+     0.982
+    ],
+    "ssimMin": 0.982,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 9.1,
+     "bytes": 515541
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "editorial-flash-overlay": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 49.5,
+     "bytes": 28050
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "exploded-stack": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.921; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.941,
+     0.921,
+     0.94
+    ],
+    "ssimMin": 0.921,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 27.7,
+     "bytes": 41385
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "extruded-logo": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.858,
+     0.841,
+     0.839
+    ],
+    "ssimMin": 0.839,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "falling-lines": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline falling-lines: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "flash-through-white": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.956,
+     0.955,
+     0.955
+    ],
+    "ssimMin": 0.955,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 13.9,
+     "bytes": 202258
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "flowchart": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.947; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.947,
+     0.958,
+     1.0
+    ],
+    "ssimMin": 0.947,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 17.4,
+     "bytes": 88498
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "flowchart-vertical": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.950; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.95,
+     0.961,
+     1.0
+    ],
+    "ssimMin": 0.95,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 16.3,
+     "bytes": 81405
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "flowing-gradient": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline flowing-gradient: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "fractal-noise": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline fractal-noise: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "freeze-frame-dressing": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     0.977,
+     0.977
+    ],
+    "ssimMin": 0.977,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 34.7,
+     "bytes": 198257
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "frost": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline frost: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "frost-sequence-camera-orbit": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "gabor-noise": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline gabor-noise: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "gallery-tunnel": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.995,
+     0.992,
+     0.995
+    ],
+    "ssimMin": 0.992,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 11.1,
+     "bytes": 808288
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "three.js",
+    "sub-composition",
+    "no editable fields detected"
+   ]
+  },
+  "glass-hero": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.853,
+     0.838,
+     0.839
+    ],
+    "ssimMin": 0.838,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "glass-shard-title": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "a block script failed to run: script assets/glass-main.js: Unexpected token '<'",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "glitch": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.993,
+     0.993,
+     0.993
+    ],
+    "ssimMin": 0.993,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 13.1,
+     "bytes": 378425
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "godrays": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline godrays: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "goo": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline goo: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "gooey-split": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.98,
+     0.998
+    ],
+    "ssimMin": 0.98,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 5.9,
+     "bytes": 348568
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "export throughput 5.9 fps < 8.0",
+    "no editable fields detected"
+   ]
+  },
+  "gravitational-lens": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.898; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.898,
+     0.899,
+     0.899
+    ],
+    "ssimMin": 0.898,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 12.2,
+     "bytes": 135072
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "halftone-field": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.993,
+     0.993,
+     0.994
+    ],
+    "ssimMin": 0.993,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 10.3,
+     "bytes": 1245072
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "heatmap": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline heatmap: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "heygen-avatar-promo-card": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.976,
+     0.978,
+     0.979
+    ],
+    "ssimMin": 0.976,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 7.8,
+     "bytes": 815015
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "video element",
+    "audio element",
+    "export throughput 7.8 fps < 8.0",
+    "no editable fields detected"
+   ]
+  },
+  "hologram": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline hologram: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "holographic": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline holographic: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "hw-frame": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.664,
+     0.663,
+     0.664
+    ],
+    "ssimMin": 0.663,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "hw-path-text": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.98,
+     0.964,
+     0.964
+    ],
+    "ssimMin": 0.964,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 28.0,
+     "bytes": 28051
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "hw-pipeline": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.988,
+     0.961,
+     0.961
+    ],
+    "ssimMin": 0.961,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 29.2,
+     "bytes": 53890
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "hw-scribble-transition": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.928; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.928,
+     1.0,
+     0.997
+    ],
+    "ssimMin": 0.928,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 44.0,
+     "bytes": 117385
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "hw-text-cloud": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.944; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.944,
+     0.944,
+     0.944
+    ],
+    "ssimMin": 0.944,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 25.7,
+     "bytes": 43139
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "hw-title": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.958,
+     0.987,
+     0.974
+    ],
+    "ssimMin": 0.958,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 30.8,
+     "bytes": 370956
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "hw-write-title": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.997,
+     0.987,
+     0.974
+    ],
+    "ssimMin": 0.974,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 31.5,
+     "bytes": 28001
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "instagram-follow": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.983,
+     0.983,
+     1.0
+    ],
+    "ssimMin": 0.983,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 30.0,
+     "bytes": 180991
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "ios26-liquid-glass": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.998,
+     0.994
+    ],
+    "ssimMin": 0.994,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 7.0,
+     "bytes": 440059
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "three.js",
+    "HTML-in-canvas API",
+    "export throughput 7.0 fps < 8.0",
+    "no editable fields detected"
+   ]
+  },
+  "lens-flare": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline lens-flare: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "light-edge": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline light-edge: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "light-leak": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.906; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.906,
+     0.907,
+     0.907
+    ],
+    "ssimMin": 0.906,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 13.8,
+     "bytes": 421826
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "liquid-glass-notification": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "a block script failed to run: script liquid-glass-notification#inline: LiquidGlass is not defined",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.814,
+     0.678,
+     0.608
+    ],
+    "ssimMin": 0.608,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "liquid-glass-widgets": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "a block script failed to run: script liquid-glass-widgets#inline: LiquidGlass is not defined",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.958,
+     0.963,
+     0.815
+    ],
+    "ssimMin": 0.815,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "liquid-metal": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline liquid-metal: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "logo-outro": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     0.998,
+     0.998
+    ],
+    "ssimMin": 0.998,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 32.7,
+     "bytes": 164813
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "lottie-character-walk": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     0.994
+    ],
+    "ssimMin": 0.994,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 45.1,
+     "bytes": 39205
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "lower-third-bild": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.996,
+     0.996,
+     0.996
+    ],
+    "ssimMin": 0.996,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 41.1,
+     "bytes": 39693
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-accent-underline": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.994,
+     0.993,
+     0.993
+    ],
+    "ssimMin": 0.993,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 39.8,
+     "bytes": 95325
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-bold-block": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.997,
+     0.999,
+     0.999
+    ],
+    "ssimMin": 0.997,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 33.1,
+     "bytes": 74450
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-clean-bar": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.997,
+     0.997
+    ],
+    "ssimMin": 0.997,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 38.9,
+     "bytes": 81575
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-color-block": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.992,
+     0.992,
+     0.992
+    ],
+    "ssimMin": 0.992,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 37.9,
+     "bytes": 133187
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-dark-card": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.998,
+     0.998
+    ],
+    "ssimMin": 0.998,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 40.0,
+     "bytes": 78919
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-kicker-name": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.994,
+     0.995,
+     0.995
+    ],
+    "ssimMin": 0.994,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 35.4,
+     "bytes": 67435
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-mask-reveal": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.997,
+     0.997,
+     0.998
+    ],
+    "ssimMin": 0.997,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 41.8,
+     "bytes": 62052
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-neon-border": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.971,
+     0.987,
+     0.985
+    ],
+    "ssimMin": 0.971,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 12.5,
+     "bytes": 233306
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-side-rule": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.998,
+     0.998
+    ],
+    "ssimMin": 0.998,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 37.5,
+     "bytes": 135401
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-soft-pill": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.997,
+     0.997,
+     0.992
+    ],
+    "ssimMin": 0.992,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 35.0,
+     "bytes": 103006
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "lt-stack-bars": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     0.999,
+     0.998
+    ],
+    "ssimMin": 0.998,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 35.7,
+     "bytes": 39173
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "macos-notification": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.996,
+     0.996,
+     1.0
+    ],
+    "ssimMin": 0.996,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 30.3,
+     "bytes": 107608
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "macos-tahoe-liquid-glass": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.862; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.932,
+     0.904,
+     0.862
+    ],
+    "ssimMin": 0.862,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 5.8,
+     "bytes": 397214
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "marble": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline marble: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "mesh-gradient": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline mesh-gradient: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "message-thread-reveal": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.927; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.927,
+     0.937,
+     0.969
+    ],
+    "ssimMin": 0.927,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 1.8,
+     "bytes": 132579
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "mk-background": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.973,
+     0.972,
+     0.973
+    ],
+    "ssimMin": 0.972,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 29.3,
+     "bytes": 160281
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "mk-callout-highlight": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.992,
+     0.993,
+     0.995
+    ],
+    "ssimMin": 0.992,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 38.5,
+     "bytes": 219073
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "mk-clone-wall-transition": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.992,
+     0.963,
+     0.954
+    ],
+    "ssimMin": 0.954,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 9.4,
+     "bytes": 758244
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "mk-line-graph": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.984,
+     0.964,
+     0.964
+    ],
+    "ssimMin": 0.964,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 31.1,
+     "bytes": 92379
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "mk-placeholder-grid": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.963,
+     0.964,
+     0.963
+    ],
+    "ssimMin": 0.963,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 24.0,
+     "bytes": 325218
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "mk-progress-stat": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.98,
+     0.99,
+     0.99
+    ],
+    "ssimMin": 0.98,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 43.9,
+     "bytes": 96063
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "mk-specs-list": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.972,
+     0.967,
+     0.967
+    ],
+    "ssimMin": 0.967,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 35.8,
+     "bytes": 287234
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "nebula": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline nebula: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "news-ticker": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.929; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.944,
+     0.936,
+     0.929
+    ],
+    "ssimMin": 0.929,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 9.1,
+     "bytes": 356482
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "north-korea-locked-down": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.881; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.918,
+     0.93,
+     0.881
+    ],
+    "ssimMin": 0.881,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 9.9,
+     "bytes": 790762
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "notes-reveal": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.978,
+     0.987,
+     0.983
+    ],
+    "ssimMin": 0.978,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 5.1,
+     "bytes": 94683
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "export throughput 5.1 fps < 8.0",
+    "no editable fields detected"
+   ]
+  },
+  "notification-cascade": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.992,
+     0.986,
+     0.969
+    ],
+    "ssimMin": 0.969,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 16.7,
+     "bytes": 786946
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "nyc-paris-flight": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.897; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.904,
+     0.898,
+     0.897
+    ],
+    "ssimMin": 0.897,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 9.3,
+     "bytes": 743903
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "obsidian": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline obsidian: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "orbit-card": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "organic-light-leak-overlay": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.733,
+     0.949,
+     0.862
+    ],
+    "ssimMin": 0.733,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "oscilloscope-trace": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.99,
+     0.99,
+     0.99
+    ],
+    "ssimMin": 0.99,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 15.2,
+     "bytes": 817635
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "plasma": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline plasma: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "plastic": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline plastic: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "prism": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline prism: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "product-turntable": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.906; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.906,
+     0.911,
+     0.909
+    ],
+    "ssimMin": 0.906,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 30.0,
+     "bytes": 50834
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "rack-focus": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.998,
+     0.998
+    ],
+    "ssimMin": 0.998,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 7.8,
+     "bytes": 412189
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "export throughput 7.8 fps < 8.0",
+    "no editable fields detected"
+   ]
+  },
+  "reddit-post": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.987,
+     0.987,
+     1.0
+    ],
+    "ssimMin": 0.987,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 19.1,
+     "bytes": 248136
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "ridged-burn": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.974,
+     0.973,
+     0.974
+    ],
+    "ssimMin": 0.973,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 12.2,
+     "bytes": 591022
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "ripple-waves": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.991,
+     0.991,
+     0.99
+    ],
+    "ssimMin": 0.99,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 14.8,
+     "bytes": 338628
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "ripples": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline ripples: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "sdf-iris": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.909; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.909,
+     0.909,
+     0.91
+    ],
+    "ssimMin": 0.909,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 14.7,
+     "bytes": 311352
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "share-sheet-carousel": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.958,
+     0.957,
+     0.959
+    ],
+    "ssimMin": 0.957,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 10.4,
+     "bytes": 615754
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "sine-wave": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline sine-wave: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "slack-notification-ad": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.954,
+     0.956,
+     0.953
+    ],
+    "ssimMin": 0.953,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 17.1,
+     "bytes": 536932
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "snow": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.985,
+     0.983,
+     0.984
+    ],
+    "ssimMin": 0.983,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 25.9,
+     "bytes": 478198
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "spain-map": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.981,
+     0.985,
+     0.985
+    ],
+    "ssimMin": 0.981,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 24.4,
+     "bytes": 184326
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "spiral": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline spiral: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "spiral-galaxy": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.978,
+     0.975,
+     0.972
+    ],
+    "ssimMin": 0.972,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 12.4,
+     "bytes": 811463
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "three.js",
+    "no editable fields detected"
+   ]
+  },
+  "split-flap-board": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.99,
+     0.988,
+     0.993
+    ],
+    "ssimMin": 0.988,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 10.8,
+     "bytes": 464795
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "spotify-card": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.986,
+     0.986,
+     0.986
+    ],
+    "ssimMin": 0.986,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 17.3,
+     "bytes": 325346
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "starfield": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.98,
+     0.982,
+     0.98
+    ],
+    "ssimMin": 0.98,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 17.1,
+     "bytes": 96205
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "strands": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline strands: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "stripes": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline stripes: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "sun-burst": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline sun-burst: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "swirl": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline swirl: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "swirl-vortex": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.982,
+     0.982,
+     0.982
+    ],
+    "ssimMin": 0.982,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 12.9,
+     "bytes": 236681
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "thermal-distortion": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.991,
+     0.991,
+     0.991
+    ],
+    "ssimMin": 0.991,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 10.4,
+     "bytes": 220820
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "thin-film": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline thin-film: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "thread-message-stack": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline thread-message-stack: no __timelines entry",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "tiktok-follow": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.985,
+     0.985,
+     1.0
+    ],
+    "ssimMin": 0.985,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 33.7,
+     "bytes": 165681
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "transitions-3d": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.864; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.864,
+     0.939,
+     1.0
+    ],
+    "ssimMin": 0.864,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 23.7,
+     "bytes": 40349
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "transitions-blur": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     0.996,
+     0.998
+    ],
+    "ssimMin": 0.996,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 22.1,
+     "bytes": 39921
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "transitions-cover": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     0.989,
+     0.995
+    ],
+    "ssimMin": 0.989,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 20.9,
+     "bytes": 150001
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "transitions-destruction": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.858; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.858,
+     0.996,
+     0.998
+    ],
+    "ssimMin": 0.858,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 22.6,
+     "bytes": 39965
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "transitions-dissolve": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.999,
+     0.999
+    ],
+    "ssimMin": 0.998,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 21.8,
+     "bytes": 39974
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "transitions-distortion": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.998,
+     0.998
+    ],
+    "ssimMin": 0.998,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 24.4,
+     "bytes": 170219
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "transitions-grid": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     0.998,
+     0.999
+    ],
+    "ssimMin": 0.998,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 23.9,
+     "bytes": 137497
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "transitions-light": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     0.993,
+     0.995
+    ],
+    "ssimMin": 0.993,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 19.2,
+     "bytes": 144611
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "transitions-mechanical": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.857; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.857,
+     0.999,
+     0.998
+    ],
+    "ssimMin": 0.857,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 21.8,
+     "bytes": 39947
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "transitions-other": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     0.996,
+     0.998
+    ],
+    "ssimMin": 0.996,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 21.3,
+     "bytes": 40015
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "transitions-push": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.998,
+     0.999,
+     1.0
+    ],
+    "ssimMin": 0.998,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 22.6,
+     "bytes": 39956
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "transitions-radial": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 21.1,
+     "bytes": 40313
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "transitions-scale": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.863; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.863,
+     0.999,
+     0.998
+    ],
+    "ssimMin": 0.863,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 23.2,
+     "bytes": 40131
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "ui-3d-reveal": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.994,
+     0.825,
+     0.981
+    ],
+    "ssimMin": 0.825,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "us-map": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.895; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.895,
+     0.964,
+     0.966
+    ],
+    "ssimMin": 0.895,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 19.4,
+     "bytes": 308283
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "us-map-bubble": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.775,
+     0.77,
+     0.769
+    ],
+    "ssimMin": 0.769,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "us-map-flow": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.806,
+     0.804,
+     0.803
+    ],
+    "ssimMin": 0.803,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "us-map-hex": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.987,
+     0.957,
+     0.955
+    ],
+    "ssimMin": 0.955,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 28.7,
+     "bytes": 309334
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "vfx-anamorphic-flare": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.999,
+     0.999,
+     1.0
+    ],
+    "ssimMin": 0.999,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 16.7,
+     "bytes": 522419
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "vfx-iphone-device": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline vfx-iphone-device: no __timelines entry",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 1.0,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vfx-liquid-background": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "needs a resource from a host that is not allow-listed: blocked-url src: host not allow-listed: cdn.jsdelivr.net: https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.m",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.968,
+     0.702,
+     0.789
+    ],
+    "ssimMin": 0.702,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vfx-liquid-glass": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.744,
+     0.751,
+     0.75
+    ],
+    "ssimMin": 0.744,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vfx-magnetic": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.997,
+     0.995,
+     0.996
+    ],
+    "ssimMin": 0.995,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 10.6,
+     "bytes": 85677
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "HTML-in-canvas API",
+    "no editable fields detected"
+   ]
+  },
+  "vfx-portal": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.0,
+     0.0,
+     0.002
+    ],
+    "ssimMin": 0.0,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vfx-shatter": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "the block failed to mount: mount vfx-shatter: ctxA.drawElementImage is not a function",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vfx-text-cursor": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: export timeout",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.924,
+     0.916,
+     0.919
+    ],
+    "ssimMin": 0.916,
+    "export": {
+     "ok": false,
+     "error": "export timeout"
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "voronoi": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline voronoi: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vpn-youtube-spot": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.919; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.919,
+     0.93,
+     1.0
+    ],
+    "ssimMin": 0.919,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 7.0,
+     "bytes": 590025
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "water": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline water: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "waveform": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline waveform: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "week-in-merges": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.987,
+     0.987,
+     0.987
+    ],
+    "ssimMin": 0.987,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 22.5,
+     "bytes": 184314
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "weight-wave": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.927; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.927,
+     0.928,
+     0.928
+    ],
+    "ssimMin": 0.927,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 24.4,
+     "bytes": 50343
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "whip-pan": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.984,
+     0.984,
+     0.984
+    ],
+    "ssimMin": 0.984,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 10.4,
+     "bytes": 205540
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "WebGL",
+    "no editable fields detected"
+   ]
+  },
+  "wireframe-portal-title": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.930; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.93,
+     1.0,
+     1.0
+    ],
+    "ssimMin": 0.93,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 24.3,
+     "bytes": 192813
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "world-map": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "MP4 export failed: not run",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.688,
+     0.744,
+     0.744
+    ],
+    "ssimMin": 0.688,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "worley-noise": {
+   "type": "block",
+   "status": "unsupported",
+   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline worley-noise: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [],
+    "ssimMin": null,
+    "export": null
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "x-post": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.986,
+     0.986,
+     1.0
+    ],
+    "ssimMin": 0.986,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 15.3,
+     "bytes": 264938
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "yt-comment-card": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.996,
+     0.989,
+     0.989
+    ],
+    "ssimMin": 0.989,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 24.7,
+     "bytes": 81888
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "no editable fields detected"
+   ]
+  },
+  "yt-lcd-background": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.908; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.908,
+     0.909,
+     0.909
+    ],
+    "ssimMin": 0.908,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 3.9,
+     "bytes": 498863
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "yt-logo-intro": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.997,
+     0.996,
+     0.996
+    ],
+    "ssimMin": 0.996,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 13.7,
+     "bytes": 381101
+    }
+   },
+   "enabled": true,
+   "enabledBlockedBy": []
+  },
+  "yt-lower-third": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.993,
+     0.993,
+     1.0
+    ],
+    "ssimMin": 0.993,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 32.7,
+     "bytes": 135263
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "remote image URL",
+    "no editable fields detected"
+   ]
+  },
+  "yt-prism-title": {
+   "type": "block",
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.948; exports, with visible differences",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.948,
+     0.956,
+     0.953
+    ],
+    "ssimMin": 0.948,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 4.6,
+     "bytes": 410983
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "yt-vertical-fill": {
+   "type": "block",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "evidence": {
+    "stillsOk": "3/3",
+    "ssim": [
+     0.958,
+     0.958,
+     0.959
+    ],
+    "ssimMin": 0.958,
+    "export": {
+     "ok": true,
+     "frames": 60,
+     "fps": 4.6,
+     "bytes": 489101
+    }
+   },
+   "enabled": false,
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8.0",
+    "no editable fields detected"
+   ]
+  },
+  "agent-cursor": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "animated-bar-chart": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "arc-motion-path": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "ascii-render-pass": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "ascii-trail-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "aurora-drift": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "avatar-cloud": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "avatar-group-hover": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "badge-pop": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "beat-accent": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "beat-pulse-background": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "beat-timeline": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "before-after-wipe": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "blur-in": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "blur-out-up": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "bottom-up-letters": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "browser-device-stage": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "camera-rig-depth-stack": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "camera-scan-gate": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "camera-shake": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-blend-difference": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-camera-follow": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-clip-wipe": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-editorial-emphasis": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-emoji-pop": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-glitch-rgb": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-gradient-fill": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-highlight": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-kinetic-slam": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-matrix-decode": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-neon-accent": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-neon-glow": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-parallax-layers": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-particle-burst": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-pill-karaoke": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-texture": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caption-weight-shift": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "card-resize": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "caret-swap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "char-slam-explode": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "chart-story": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "chat-message": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "chat-thread": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "chromatic-aberration-wipe": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "code-terminal-run": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "colorama-wipe": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "comparison-split": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "confetti": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "conic-progress-ring": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "constellation-hub": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "count-up": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cta-close": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cta-lockup": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cursor-annotate": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cursor-context-menu": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cursor-drag-drop": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cursor-glyph-trail": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cursor-marquee-select": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cursor-text-select": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cursor-zoom-follow": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "curtain-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "cut-the-curve": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "dart-cursor": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "decline-chart": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "device-frame-stage": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "directional-wipe": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "drift-hold": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "dynamic-grid": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "echo-smear": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "echo-trail": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "extended-keyframe": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "facet-morph": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "fade-through": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "filmed-screen": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "focus-blur-resolve": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "focus-rack": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "focus-swap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "gesture-tap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "gloss-sweep": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "grade-split-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "grain-field": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "grain-overlay": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "grid-card-assemble": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "grid-pixelate-wipe": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "halftone-dissolve": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "headline-slam": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "hw-arrow": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "hw-boil": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "hw-box-label": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "hw-callout-circle": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "hw-underline": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "icon-morph-beat": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "icon-swap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "ink-bleed-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "inline-highlight": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "input-feedback": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "iris-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "keyframe-scrub-stack": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "kinetic-center-build": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "kinetic-type-swap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "light-sweep-pass": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "line-by-line-slide": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "line-swap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "locked-nucleus-orbit": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "logo-brand-close": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "logo-sting": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "logo-wall": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "magnetic-cursor": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "marker-checklist-card": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "marker-highlight": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "match-cut": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "matrix-decode": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "menu-morph": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "mesh-gradient-bg": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "micro-transitions": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "mk-emphasis-type": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "mk-usage-arc": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "modal-morph": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "morph-swap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "morph-text": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "motion-blur": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "multi-device-splay": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "multiplayer-cursors": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "native-notification-pop": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "notes-typing": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "notification-pileup": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "notification-stack": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "number-pop-in": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "number-wheel": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "offset-path-traveler": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "onboarding-stepper-flow": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "ordered-dither-pass": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "outline-draw": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "oversized-cursor": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "overwhelm-surround": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "page-slide": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "pan-stations": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "panel-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "paper-collage-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "parallax-device-dive": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "parallax-unzoom": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "parallax-zoom": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "particle-image-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "particle-text-dissolve": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "pendulum-swing": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "per-word-crossfade": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "per-word-rise": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "perspective-marquee": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "physical-exit": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "press-ripple": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "pull-back-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "pull-to-refresh": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "push-in": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "radial-surround": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "rgb-glitch-text": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "rubber-band-bumper": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "scan-band": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "scramble-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "screen-flow-carousel": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "scroll-camera-story": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "scroll-feed": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "segmentation-flood": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "separator": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "settings-toggle-flow": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "shared-axis-y": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "shared-axis-z": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "sheet-spring-up": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "shimmer-sweep": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "shutter-slam": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "signup-flow": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "skeleton-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "slit-scan-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "slot-machine-roll": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "social-proof-card": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "soft-blob-touch": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "soft-blur-in": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "split-tilt-cards": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "spotlight-card": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "spring-pop": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "spring-stack-shuffle": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "stagger-cascade": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "stagger-lattice": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "staggered-fade-up": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "star-rating-fill": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "state-chip-rail": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "sticky-mock-swap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "stitched-text-draw": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "stop-motion-cadence": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "store-badge-lockup": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "streaming-text": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "strikethrough-replace": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "success-check": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "svg-line-draw-loader": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "svg-mask-reveal": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "svg-stroke-trace": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "swipe-rail": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "tabs-slide-indicator": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "telemetry-hud": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "terminal-simulator": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "testimonial-card": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "testimonial-proof-card": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "text-match-cut": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "text-shimmer": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "text-stagger": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "text-state-swap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "texture-mask-text": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "three-orbiting-cards": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "ticker-takeover": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "tilt-card": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "titlecard-calm": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "titlecard-lockup": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "toggle-flip": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "top-down-letters": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "torn-paper-rip": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "touch-indicator": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "tracing-beam": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "tracking-in": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "trust-strip": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "type-match-cut": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "typed-prompt": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "typewriter": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "typing-indicator": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "ui-focus-zoom": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "variable-axis-type": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "variable-font-flex": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vector-editor-rig": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "velocity-throw-snap": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vignette": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vox-annotate": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "whip-pan-cut": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "whiteboard-ink": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "wordmark-tiles": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "x-follow-card": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "yt-camera-move": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "yt-circle-pointer": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "yt-feather-highlight": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "yt-screen-warp": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "zoom-through-transition": {
+   "type": "component",
+   "status": "not-tested",
+   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "decision-tree": {
+   "type": "example",
+   "status": "not-tested",
+   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "kinetic-type": {
+   "type": "example",
+   "status": "not-tested",
+   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "nyt-graph": {
+   "type": "example",
+   "status": "not-tested",
+   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "path-traced-3d": {
+   "type": "example",
+   "status": "not-tested",
+   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "play-mode": {
+   "type": "example",
+   "status": "not-tested",
+   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "product-promo": {
+   "type": "example",
+   "status": "not-tested",
+   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "swiss-grid": {
+   "type": "example",
+   "status": "not-tested",
+   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "vignelli": {
+   "type": "example",
+   "status": "not-tested",
+   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  },
+  "warm-grain": {
+   "type": "example",
+   "status": "not-tested",
+   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
+   "evidence": null,
+   "enabled": false,
+   "enabledBlockedBy": []
+  }
+ }
+}

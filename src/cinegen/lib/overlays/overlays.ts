@@ -26,7 +26,7 @@ export const OVERLAY_KINDS: Array<{ kind: OverlayKind; label: string; blurb: str
   { kind: 'overlay-lower-third', label: 'Lower Thirds', blurb: 'Name and title bars that animate in and out.' },
 ];
 
-const KINDS = new Set<string>([...OVERLAY_KINDS.map((k) => k.kind), 'mg-template']);
+const KINDS = new Set<string>([...OVERLAY_KINDS.map((k) => k.kind), 'mg-template', 'hyperframes']);
 
 /** Add-ons driven by the old registry's schema (options live under `addon`), as opposed to the flat forms. */
 export const isRegistryOverlay = (kind: string) => !['lead-form', 'list-builder', 'click-to-call'].includes(kind) && !!getAddon(kind);

@@ -42,7 +42,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
   latest.current = overlay;
 
   useEffect(() => {
-    if (!box.current || latest.current.type === 'mg-template') return;
+    if (!box.current || latest.current.type === 'mg-template' || latest.current.type === 'hyperframes') return;
     const schema = overlaySchema(latest.current);
     const editor = renderAddonEditor(box.current, {
       fields: schema.fields, fieldsFor: schema.fieldsFor, options: schema.options, onFieldChange: schema.onFieldChange, idPrefix: `ov-${overlay.id}`,
@@ -89,7 +89,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
             onChange={(e) => onUpdate({ end: Math.max(overlay.start + 0.5, num(e.target.value, overlay.end)) })} style={{ width: 80 }} />
         </label>
       </div>
-      {overlay.type === 'mg-template' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
+      {overlay.type === 'mg-template' || overlay.type === 'hyperframes' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
     </aside>
   );
 }

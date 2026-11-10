@@ -1,0 +1,2155 @@
+{
+ "upstreamCommit": "cda84222aa12716f2ceb92b45629487be81a0601",
+ "items": [
+  {
+   "id": "bar-chart-race",
+   "title": "Bar Chart Race",
+   "description": "Ranked bars grow and overtake each other as a time series advances, with the axis rescaling as values climb and the accent handing over to whoever leads",
+   "tags": [
+    "data",
+    "chart",
+    "statistics",
+    "ranking"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 12,
+   "sourceSha256": "5ce62fd8178c61a09dc7fdac0ad810268edbb68b5321a08698a205579ccfe895",
+   "files": [
+    {
+     "path": "bar-chart-race.html",
+     "target": "compositions/bar-chart-race.html",
+     "sha256": "5ce62fd8178c61a09dc7fdac0ad810268edbb68b5321a08698a205579ccfe895"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Streaming Subscribers by Se\u2026",
+     "type": "text",
+     "defaultValue": "Streaming Subscribers by Service",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Ranked by reported subscrib\u2026",
+     "type": "text",
+     "defaultValue": "Ranked by reported subscribers",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Period",
+     "type": "text",
+     "defaultValue": "Period",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: 2019",
+     "type": "text",
+     "defaultValue": "2019",
+     "target": {
+      "hfId": "hf-10",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Placeholder data",
+     "type": "text",
+     "defaultValue": "Placeholder data",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "camcorder-hud",
+   "title": "Camcorder HUD",
+   "description": "Responsive REC, battery, editable date placeholder, and timeline-driven counter overlay for creator-camera and camcorder treatments",
+   "tags": [
+    "camcorder",
+    "camera",
+    "recording",
+    "hud",
+    "overlay",
+    "creator",
+    "media-treatment-overlay"
+   ],
+   "category": "camcorder",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "f7e1b992a4ad93195ada7dc0ecb3ed0beb3916c8a40ac7a518b7745bf5f8810b",
+   "files": [
+    {
+     "path": "camcorder-hud.html",
+     "target": "compositions/camcorder-hud.html",
+     "sha256": "f7e1b992a4ad93195ada7dc0ecb3ed0beb3916c8a40ac7a518b7745bf5f8810b"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: REC",
+     "type": "text",
+     "defaultValue": "REC",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: SP \u00b7 16:9",
+     "type": "text",
+     "defaultValue": "SP \u00b7 16:9",
+     "target": {
+      "hfId": "hf-10",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: 00:00:00",
+     "type": "text",
+     "defaultValue": "00:00:00",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "c1",
+     "label": "Color 1",
+     "type": "color",
+     "defaultValue": "#f12c2c",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "style",
+      "prop": "backgroundColor"
+     }
+    }
+   ]
+  },
+  {
+   "id": "code-snippet-apple-terminal-pro",
+   "title": "Code Snippet - Apple Terminal Pro",
+   "description": "Apple Terminal Pro profile: black background with grey text and lime green cursor, per-character typing animation of a shell session.",
+   "tags": [
+    "code",
+    "developer",
+    "showcase",
+    "terminal",
+    "apple",
+    "apple-terminal"
+   ],
+   "category": "code",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 12,
+   "sourceSha256": "597133c12cbba8c7f282ab02e6dc62e20301955bc72f7ef848706d42bbf57417",
+   "files": [
+    {
+     "path": "code-snippet-apple-terminal-pro.html",
+     "target": "compositions/code-snippet-apple-terminal-pro.html",
+     "sha256": "597133c12cbba8c7f282ab02e6dc62e20301955bc72f7ef848706d42bbf57417"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: bash \u2014 80\u00d724",
+     "type": "text",
+     "defaultValue": "bash \u2014 80\u00d724",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Last login: Mon Jun 2 09:14\u2026",
+     "type": "text",
+     "defaultValue": "Last login: Mon Jun 2 09:14:22 on ttys008",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Building production bundle.\u2026",
+     "type": "text",
+     "defaultValue": "Building production bundle...",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: vite v5.3.1 building for pr\u2026",
+     "type": "text",
+     "defaultValue": "vite v5.3.1 building for production...",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: \u2713 142 modules transformed.",
+     "type": "text",
+     "defaultValue": "\u2713 142 modules transformed.",
+     "target": {
+      "hfId": "hf-14",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: dist/index.html 0.48 kB",
+     "type": "text",
+     "defaultValue": "dist/index.html 0.48 kB",
+     "target": {
+      "hfId": "hf-15",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lower-third-bild",
+   "title": "Lower Third \u2014 BILD Style",
+   "description": "News-style lower third with tight-fit text boxes: white headline bar with red drop-shadow, red sub-line with white drop-shadow.",
+   "tags": [
+    "broadcast",
+    "lower-third",
+    "news",
+    "overlay"
+   ],
+   "category": "broadcast",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8,
+   "sourceSha256": "e336778dd191bbac725aea6831c047d6ff6ca830f0705489b38ec0c7f80217f8",
+   "files": [
+    {
+     "path": "lower-third-bild.html",
+     "target": "compositions/lower-third-bild.html",
+     "sha256": "e336778dd191bbac725aea6831c047d6ff6ca830f0705489b38ec0c7f80217f8"
+    },
+    {
+     "path": "assets/fonts/BarlowCondensed-Bold.woff2",
+     "target": "compositions/assets/fonts/BarlowCondensed-Bold.woff2",
+     "sha256": "75b7b8e878ea0c33be73e888d0d192df09da34af0cf428b69f8c208e0c27e688"
+    },
+    {
+     "path": "assets/fonts/BarlowCondensed-ExtraBold.woff2",
+     "target": "compositions/assets/fonts/BarlowCondensed-ExtraBold.woff2",
+     "sha256": "2e5732c61470a890aee05ee399f6720664835efab8749dfc87d487e7882ffc44"
+    }
+   ],
+   "editables": [
+    {
+     "key": "c1",
+     "label": "Color 1",
+     "type": "color",
+     "defaultValue": "#ffffff",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "style",
+      "prop": "backgroundColor"
+     }
+    },
+    {
+     "key": "c2",
+     "label": "Color 2",
+     "type": "color",
+     "defaultValue": "#dd0000",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "style",
+      "prop": "backgroundColor"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-accent-underline",
+   "title": "Lower Third \u2014 Accent Underline",
+   "description": "Cardless lower third for footage overlay: name rises, an accent rule draws left-to-right, role fades in; text-shadowed for legibility",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "minimal"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "08e62fd35e14b99dd35e658b941f2b33781ff1cadb428d7b9626d69cfe3c4fe7",
+   "files": [
+    {
+     "path": "lt-accent-underline.html",
+     "target": "compositions/lt-accent-underline.html",
+     "sha256": "08e62fd35e14b99dd35e658b941f2b33781ff1cadb428d7b9626d69cfe3c4fe7"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Dr. Maya Chen",
+     "type": "text",
+     "defaultValue": "Dr. Maya Chen",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-bold-block",
+   "title": "Lower Third \u2014 Bold Block",
+   "description": "High-energy podcast lower third: solid dark block wipes in, uppercase name slams up, accent tag pops",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "76a8470adf0bb1a8f3b2738efd206dfb151110b5fe65a3506a7d1852f804fce2",
+   "files": [
+    {
+     "path": "lt-bold-block.html",
+     "target": "compositions/lt-bold-block.html",
+     "sha256": "76a8470adf0bb1a8f3b2738efd206dfb151110b5fe65a3506a7d1852f804fce2"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Maya Chen",
+     "type": "text",
+     "defaultValue": "Maya Chen",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-clean-bar",
+   "title": "Lower Third \u2014 Clean Bar",
+   "description": "Minimal white-card lower third for podcasts/interviews: accent tab, name + role, clip-wipe entrance",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "6648b428ea74128368545a5cdf8d83a82e75dc468e9d3bbbac933e1463df5a67",
+   "files": [
+    {
+     "path": "lt-clean-bar.html",
+     "target": "compositions/lt-clean-bar.html",
+     "sha256": "6648b428ea74128368545a5cdf8d83a82e75dc468e9d3bbbac933e1463df5a67"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Dr. Maya Chen",
+     "type": "text",
+     "defaultValue": "Dr. Maya Chen",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-color-block",
+   "title": "Lower Third \u2014 Color Block",
+   "description": "High-energy lower third: bold accent-color block slides in with overshoot, condensed name + mono role",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "6fd10042c2bfb1998566f5626d1f301d0d87244d19c793ca4c30d7b8562fa640",
+   "files": [
+    {
+     "path": "lt-color-block.html",
+     "target": "compositions/lt-color-block.html",
+     "sha256": "6fd10042c2bfb1998566f5626d1f301d0d87244d19c793ca4c30d7b8562fa640"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Dr. Maya Chen",
+     "type": "text",
+     "defaultValue": "Dr. Maya Chen",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-dark-card",
+   "title": "Lower Third \u2014 Dark Card",
+   "description": "Charcoal card lower third for bright footage: name, drawn accent underline, role; slide-up entrance",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "dark"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "b0386837dd6eccb06613a18b06d2ac9b17b3db755b80874d0e6c0d1aaa084bb7",
+   "files": [
+    {
+     "path": "lt-dark-card.html",
+     "target": "compositions/lt-dark-card.html",
+     "sha256": "b0386837dd6eccb06613a18b06d2ac9b17b3db755b80874d0e6c0d1aaa084bb7"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Dr. Maya Chen",
+     "type": "text",
+     "defaultValue": "Dr. Maya Chen",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-kicker-name",
+   "title": "Lower Third \u2014 Kicker Name",
+   "description": "Cardless lower third with an accent eyebrow/kicker tag, heavy name, and a drawn baseline; for footage",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "d802508401c2a14fb532fc6a71043f7daa908a4d8570bcda0fa2712cf2d2ead3",
+   "files": [
+    {
+     "path": "lt-kicker-name.html",
+     "target": "compositions/lt-kicker-name.html",
+     "sha256": "d802508401c2a14fb532fc6a71043f7daa908a4d8570bcda0fa2712cf2d2ead3"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Episode 47",
+     "type": "text",
+     "defaultValue": "Episode 47",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Maya Chen",
+     "type": "text",
+     "defaultValue": "Maya Chen",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-mask-reveal",
+   "title": "Lower Third \u2014 Mask Reveal",
+   "description": "Cardless lower third: an accent sweep crosses and clip-path-reveals a heavy name, role fades up; for footage",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "7f348ec3124e211f7ec8e7241f21220134504ab713143e3f9dc10e016892e2e3",
+   "files": [
+    {
+     "path": "lt-mask-reveal.html",
+     "target": "compositions/lt-mask-reveal.html",
+     "sha256": "7f348ec3124e211f7ec8e7241f21220134504ab713143e3f9dc10e016892e2e3"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Dr. Maya Chen",
+     "type": "text",
+     "defaultValue": "Dr. Maya Chen",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "c1",
+     "label": "Color 1",
+     "type": "color",
+     "defaultValue": "#ffd23f",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "style",
+      "prop": "backgroundColor"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-neon-border",
+   "title": "Neon Border",
+   "description": "Two arcs of light travel the edge of a rounded panel and snap corner to corner, trailing a soft three-layer bloom. A lower third for a name and role.",
+   "tags": [
+    "lower-third",
+    "glow",
+    "loop",
+    "video-primitive"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "073000c8a2b634ff71a9509733293f17e8cde3f19094f4bf2407710bccbfbecb",
+   "files": [
+    {
+     "path": "lt-neon-border.html",
+     "target": "compositions/lt-neon-border.html",
+     "sha256": "073000c8a2b634ff71a9509733293f17e8cde3f19094f4bf2407710bccbfbecb"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Dr. Maya Chen",
+     "type": "text",
+     "defaultValue": "Dr. Maya Chen",
+     "target": {
+      "hfId": "hf-16",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-17",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-side-rule",
+   "title": "Lower Third \u2014 Side Rule",
+   "description": "Cardless lower third with a vertical accent bar; condensed display name + mono role, text-shadowed for footage",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "minimal"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "faa20504273f478a470bb1fa99fc5ea81fb5709b279a9acee8b15b4996917527",
+   "files": [
+    {
+     "path": "lt-side-rule.html",
+     "target": "compositions/lt-side-rule.html",
+     "sha256": "faa20504273f478a470bb1fa99fc5ea81fb5709b279a9acee8b15b4996917527"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Dr. Maya Chen",
+     "type": "text",
+     "defaultValue": "Dr. Maya Chen",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-soft-pill",
+   "title": "Lower Third \u2014 Soft Pill",
+   "description": "Rounded white pill lower third for podcasts/interviews: status dot, name + role, scale-pop entrance",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "minimal"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "e1f14e3b482622e6005beec80678bc70ad661e15f3db3e3461fae414a81d5c83",
+   "files": [
+    {
+     "path": "lt-soft-pill.html",
+     "target": "compositions/lt-soft-pill.html",
+     "sha256": "e1f14e3b482622e6005beec80678bc70ad661e15f3db3e3461fae414a81d5c83"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Dr. Maya Chen",
+     "type": "text",
+     "defaultValue": "Dr. Maya Chen",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lt-stack-bars",
+   "title": "Lower Third \u2014 Stack Bars",
+   "description": "Two stacked bars: a dark name bar wipes from the left, an accent role bar wipes from the right",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "podcast",
+    "interview",
+    "bold"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.8,
+   "sourceSha256": "ff98825092de17e862c8c24bd8acca839840548ef64b7fcbbb2710fe6dc130cf",
+   "files": [
+    {
+     "path": "lt-stack-bars.html",
+     "target": "compositions/lt-stack-bars.html",
+     "sha256": "ff98825092de17e862c8c24bd8acca839840548ef64b7fcbbb2710fe6dc130cf"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Maya Chen",
+     "type": "text",
+     "defaultValue": "Maya Chen",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Host \u00b7 Neuroscientist",
+     "type": "text",
+     "defaultValue": "Host \u00b7 Neuroscientist",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "mk-progress-stat",
+   "title": "Count-Up Stat Card",
+   "description": "Big-numeral statistic with count-up, label, thin progress track filling to value/max, and caption; light and dark schemes",
+   "tags": [
+    "data-viz",
+    "stat",
+    "minimal"
+   ],
+   "category": "data-viz",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 7,
+   "sourceSha256": "2c6d9e0dedf250a8e25b53c87057b511ae20545f30e7c1b1ec27b366bec74178",
+   "files": [
+    {
+     "path": "mk-progress-stat.html",
+     "target": "compositions/mk-progress-stat.html",
+     "sha256": "2c6d9e0dedf250a8e25b53c87057b511ae20545f30e7c1b1ec27b366bec74178"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: 0",
+     "type": "text",
+     "defaultValue": "0",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "notification-cascade",
+   "title": "Notification Cascade",
+   "description": "Phone notifications land one after another and stack up the screen, each banner pushing the pile down as it arrives, before the whole stack lifts away into a closing card",
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "notification",
+    "vertical",
+    "ad-template"
+   ],
+   "category": "showcase",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "duration": 14,
+   "sourceSha256": "9bb3a62e358ff2b66c2afa6b9bd6110bfc3e834c8ff4c543c52cfc368c0db1d9",
+   "files": [
+    {
+     "path": "notification-cascade.html",
+     "target": "compositions/notification-cascade.html",
+     "sha256": "9bb3a62e358ff2b66c2afa6b9bd6110bfc3e834c8ff4c543c52cfc368c0db1d9"
+    },
+    {
+     "path": "assets/desk-backdrop.jpg",
+     "target": "assets/desk-backdrop.jpg",
+     "sha256": "b84738ef758732c7169b621d812884f22a8ec402fbc1a8a5b4dc4cad081b0c35"
+    },
+    {
+     "path": "assets/hyperframes-logo-white.svg",
+     "target": "assets/hyperframes-logo-white.svg",
+     "sha256": "f9f942c43b465616c3af2fb8b07daf1cc05a4776903bbb27beb2bb608060e6c7"
+    },
+    {
+     "path": "TEMPLATE.md",
+     "target": "TEMPLATE.md",
+     "sha256": "a0cc092179d4dfbbdd1b821ac468d2db71c420e223cf400d9943410d8ee238df"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Show less",
+     "type": "text",
+     "defaultValue": "Show less",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: New render",
+     "type": "text",
+     "defaultValue": "New render",
+     "target": {
+      "hfId": "hf-20",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Launch video is ready.",
+     "type": "text",
+     "defaultValue": "Launch video is ready.",
+     "target": {
+      "hfId": "hf-21",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: NOW",
+     "type": "text",
+     "defaultValue": "NOW",
+     "target": {
+      "hfId": "hf-22",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: HyperFrames",
+     "type": "text",
+     "defaultValue": "HyperFrames",
+     "target": {
+      "hfId": "hf-23",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: New render",
+     "type": "text",
+     "defaultValue": "New render",
+     "target": {
+      "hfId": "hf-28",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "i1",
+     "label": "Image 1 URL",
+     "type": "text",
+     "defaultValue": "assets/desk-backdrop.jpg",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "attr",
+      "prop": "src"
+     }
+    },
+    {
+     "key": "i2",
+     "label": "Image 2 URL",
+     "type": "text",
+     "defaultValue": "assets/hyperframes-logo-white.svg",
+     "target": {
+      "hfId": "hf-53",
+      "kind": "attr",
+      "prop": "src"
+     }
+    }
+   ]
+  },
+  {
+   "id": "oscilloscope-trace",
+   "title": "Oscilloscope Trace",
+   "description": "CRT oscilloscope beam sweeping a waveform across a 10x8 graticule, with closed-form phosphor persistence: the tail decays as exp(-age/tau) and brightens where the beam slows",
+   "tags": [
+    "instrument",
+    "data",
+    "showcase",
+    "retro"
+   ],
+   "category": "instrument",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "4ae7ce79f0bd29aa6764206101f776aced12d5ca212af4b2cb9f3e3f9c1445ea",
+   "files": [
+    {
+     "path": "oscilloscope-trace.html",
+     "target": "compositions/oscilloscope-trace.html",
+     "sha256": "4ae7ce79f0bd29aa6764206101f776aced12d5ca212af4b2cb9f3e3f9c1445ea"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: OSCILLOSCOPE",
+     "type": "text",
+     "defaultValue": "OSCILLOSCOPE",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: SOURCE",
+     "type": "text",
+     "defaultValue": "SOURCE",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: SINE",
+     "type": "text",
+     "defaultValue": "SINE",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: FREQ",
+     "type": "text",
+     "defaultValue": "FREQ",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: TIMEBASE",
+     "type": "text",
+     "defaultValue": "TIMEBASE",
+     "target": {
+      "hfId": "hf-14",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: VERT",
+     "type": "text",
+     "defaultValue": "VERT",
+     "target": {
+      "hfId": "hf-17",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "share-sheet-carousel",
+   "title": "Share-Sheet Carousel",
+   "description": "A share sheet springs up from the bottom of the phone and cycles previews inside its card on a fast cut rhythm while the blurred ground swaps behind it, ending on an accept tap",
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "share-sheet",
+    "vertical",
+    "ad-template"
+   ],
+   "category": "showcase",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "duration": 7.2333,
+   "sourceSha256": "c51358e4dcfc77d61b79c4e72540f30d01104066a7b278d5bece98cb902ebea7",
+   "files": [
+    {
+     "path": "share-sheet-carousel.html",
+     "target": "compositions/share-sheet-carousel.html",
+     "sha256": "c51358e4dcfc77d61b79c4e72540f30d01104066a7b278d5bece98cb902ebea7"
+    },
+    {
+     "path": "assets/slide-01.jpg",
+     "target": "assets/slide-01.jpg",
+     "sha256": "b027e8df2ebc91b860b212d46ad7893454a2c875372455406ee1f974af483fb3"
+    },
+    {
+     "path": "assets/slide-02.jpg",
+     "target": "assets/slide-02.jpg",
+     "sha256": "e0afd7322aaec59a72d7424ac07659972471fb3eb63cbfbc4b8bc3fd76ef5c29"
+    },
+    {
+     "path": "assets/slide-03.jpg",
+     "target": "assets/slide-03.jpg",
+     "sha256": "cd908527295c4367e67690212848742d69f45b7d7934410ba8a3f79fbe8fd037"
+    },
+    {
+     "path": "assets/slide-04.jpg",
+     "target": "assets/slide-04.jpg",
+     "sha256": "734322e45db3b243fcc2e75aa1264bbbc122aa686ebde0d17b7a79f584078ad1"
+    },
+    {
+     "path": "assets/hyperframes-logo-black.svg",
+     "target": "assets/hyperframes-logo-black.svg",
+     "sha256": "dc156e7c21b474746c2ff3b651b96c90eb44745cc88252f0f36c140faf63cb59"
+    },
+    {
+     "path": "TEMPLATE.md",
+     "target": "TEMPLATE.md",
+     "sha256": "d9258bee9a425c2249c33255a020f78edcd6807f3a6a95692b76e004ea222f4d"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Share",
+     "type": "text",
+     "defaultValue": "Share",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: OPEN-SOURCE VIDEO ENGINE \u00b7 \u2026",
+     "type": "text",
+     "defaultValue": "OPEN-SOURCE VIDEO ENGINE \u00b7 SHIP FROM HTML",
+     "target": {
+      "hfId": "hf-19",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Decline",
+     "type": "text",
+     "defaultValue": "Decline",
+     "target": {
+      "hfId": "hf-23",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Accept",
+     "type": "text",
+     "defaultValue": "Accept",
+     "target": {
+      "hfId": "hf-24",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "c1",
+     "label": "Color 1",
+     "type": "color",
+     "defaultValue": "#dfdfdf",
+     "target": {
+      "hfId": "hf-20",
+      "kind": "style",
+      "prop": "backgroundColor"
+     }
+    },
+    {
+     "key": "c2",
+     "label": "Color 2",
+     "type": "color",
+     "defaultValue": "#e9e9e9",
+     "target": {
+      "hfId": "hf-21",
+      "kind": "style",
+      "prop": "backgroundColor"
+     }
+    },
+    {
+     "key": "i1",
+     "label": "Image 1 URL",
+     "type": "text",
+     "defaultValue": "assets/slide-01.jpg",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "attr",
+      "prop": "src"
+     }
+    },
+    {
+     "key": "i2",
+     "label": "Image 2 URL",
+     "type": "text",
+     "defaultValue": "assets/slide-02.jpg",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "attr",
+      "prop": "src"
+     }
+    }
+   ]
+  },
+  {
+   "id": "slack-notification-ad",
+   "title": "Slack Notification Ad",
+   "description": "A portrait lock screen fills with escalating Slack video requests before HeyGen delivers the payoff",
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "notification",
+    "vertical",
+    "ad-template"
+   ],
+   "category": "showcase",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "duration": 12,
+   "sourceSha256": "ca74f84b1270c52d77b3fa12b5fc30320a1e6e0d908945e5748c41dc06a637c0",
+   "files": [
+    {
+     "path": "slack-notification-ad.html",
+     "target": "compositions/slack-notification-ad.html",
+     "sha256": "ca74f84b1270c52d77b3fa12b5fc30320a1e6e0d908945e5748c41dc06a637c0"
+    },
+    {
+     "path": "assets/img/heygen-mark.svg",
+     "target": "assets/img/heygen-mark.svg",
+     "sha256": "34391f3497738d29d8c174f29b07121dee56c0ceb3aca658b3066802126dc91f"
+    },
+    {
+     "path": "assets/img/slack-mark.svg",
+     "target": "assets/img/slack-mark.svg",
+     "sha256": "17160477a475166ad0556e0028e3b0bd0634d70c02e7b920c04a4429ea184ab3"
+    },
+    {
+     "path": "assets/fonts/inter-latin-400-normal.woff2",
+     "target": "assets/fonts/inter-latin-400-normal.woff2",
+     "sha256": "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc"
+    },
+    {
+     "path": "assets/fonts/inter-latin-500-normal.woff2",
+     "target": "assets/fonts/inter-latin-500-normal.woff2",
+     "sha256": "f3779f1efccc4bdcdf9c0a02ab95bf6bd092ed09c48c08cedc725889edd1d19f"
+    },
+    {
+     "path": "assets/fonts/inter-latin-600-normal.woff2",
+     "target": "assets/fonts/inter-latin-600-normal.woff2",
+     "sha256": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a"
+    },
+    {
+     "path": "assets/fonts/inter-LICENSE.txt",
+     "target": "assets/fonts/inter-LICENSE.txt",
+     "sha256": "3b0a5fca3d17942cde889069889dedbbbd075e9b599968c82a95f4d944e9b345"
+    },
+    {
+     "path": "TEMPLATE.md",
+     "target": "TEMPLATE.md",
+     "sha256": "d306203328cd20a24c2a18d266bc1be8134e26fb6ba3c5c5f2987e6a80ed04cd"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Thursday, August 14",
+     "type": "text",
+     "defaultValue": "Thursday, August 14",
+     "target": {
+      "hfId": "hf-sscr",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: 9:41",
+     "type": "text",
+     "defaultValue": "9:41",
+     "target": {
+      "hfId": "hf-4x4o",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: 9:42",
+     "type": "text",
+     "defaultValue": "9:42",
+     "target": {
+      "hfId": "hf-eb8w",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: 9:45",
+     "type": "text",
+     "defaultValue": "9:45",
+     "target": {
+      "hfId": "hf-hfp6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: 9:51",
+     "type": "text",
+     "defaultValue": "9:51",
+     "target": {
+      "hfId": "hf-tj9u",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "c1",
+     "label": "Color 1",
+     "type": "color",
+     "defaultValue": "#ffffff",
+     "target": {
+      "hfId": "hf-l2or",
+      "kind": "style",
+      "prop": "backgroundColor"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transitions-blur",
+   "title": "Blur Transitions",
+   "description": "Showcase of blur-based transitions between scenes",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 20,
+   "sourceSha256": "d493c347a9399f33cf02f7be887d67555681af48fe9f102c5247884d1c0518c3",
+   "files": [
+    {
+     "path": "transitions-blur.html",
+     "target": "compositions/transitions-blur.html",
+     "sha256": "d493c347a9399f33cf02f7be887d67555681af48fe9f102c5247884d1c0518c3"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: TRANSITION CATALOG",
+     "type": "text",
+     "defaultValue": "TRANSITION CATALOG",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Blur Transitions",
+     "type": "text",
+     "defaultValue": "Blur Transitions",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: 3 transitions",
+     "type": "text",
+     "defaultValue": "3 transitions",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: SCENE A",
+     "type": "text",
+     "defaultValue": "SCENE A",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transitions-cover",
+   "title": "Cover Transitions",
+   "description": "Showcase of cover/uncover slide transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 21,
+   "sourceSha256": "d5e701cccd3b60993484b51d2e054298b7f136177f34cbebce4c1de448c59006",
+   "files": [
+    {
+     "path": "transitions-cover.html",
+     "target": "compositions/transitions-cover.html",
+     "sha256": "d5e701cccd3b60993484b51d2e054298b7f136177f34cbebce4c1de448c59006"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Cover Transitions",
+     "type": "text",
+     "defaultValue": "Cover Transitions",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: 3 transition styles",
+     "type": "text",
+     "defaultValue": "3 transition styles",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: SCENE A",
+     "type": "text",
+     "defaultValue": "SCENE A",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: SCENE B",
+     "type": "text",
+     "defaultValue": "SCENE B",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transitions-dissolve",
+   "title": "Dissolve Transitions",
+   "description": "Showcase of dissolve and fade transitions",
+   "tags": [
+    "transition",
+    "showcase",
+    "crossfade"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 24,
+   "sourceSha256": "be35ea72f94bcf20ce5b4e4b4c39f99c9f734d6aa8d2244f33ff247439f31afb",
+   "files": [
+    {
+     "path": "transitions-dissolve.html",
+     "target": "compositions/transitions-dissolve.html",
+     "sha256": "be35ea72f94bcf20ce5b4e4b4c39f99c9f734d6aa8d2244f33ff247439f31afb"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: TRANSITION CATALOG",
+     "type": "text",
+     "defaultValue": "TRANSITION CATALOG",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Dissolve Transitions",
+     "type": "text",
+     "defaultValue": "Dissolve Transitions",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: 4 transitions",
+     "type": "text",
+     "defaultValue": "4 transitions",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: SCENE A",
+     "type": "text",
+     "defaultValue": "SCENE A",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transitions-distortion",
+   "title": "Distortion Transitions",
+   "description": "Showcase of warp and distortion transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 21,
+   "sourceSha256": "1ed8fd8308a10f749fc920ce9d77df7985a1b024bfc66ed8555bbd4d25e5ad84",
+   "files": [
+    {
+     "path": "transitions-distortion.html",
+     "target": "compositions/transitions-distortion.html",
+     "sha256": "1ed8fd8308a10f749fc920ce9d77df7985a1b024bfc66ed8555bbd4d25e5ad84"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Distortion Transitions",
+     "type": "text",
+     "defaultValue": "Distortion Transitions",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Glitch \u2022 Chromatic \u2022 Ripple",
+     "type": "text",
+     "defaultValue": "Glitch \u2022 Chromatic \u2022 Ripple",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Scene A",
+     "type": "text",
+     "defaultValue": "Scene A",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: Scene B",
+     "type": "text",
+     "defaultValue": "Scene B",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transitions-grid",
+   "title": "Grid Transitions",
+   "description": "Showcase of grid-based tile transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 11,
+   "sourceSha256": "abb3c444c9d73e97973a93f4fa810babc2deb80f575ebefb9b628599f8c94211",
+   "files": [
+    {
+     "path": "transitions-grid.html",
+     "target": "compositions/transitions-grid.html",
+     "sha256": "abb3c444c9d73e97973a93f4fa810babc2deb80f575ebefb9b628599f8c94211"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Grid Transitions",
+     "type": "text",
+     "defaultValue": "Grid Transitions",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Grid Dissolve",
+     "type": "text",
+     "defaultValue": "Grid Dissolve",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Scene A",
+     "type": "text",
+     "defaultValue": "Scene A",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: Scene B",
+     "type": "text",
+     "defaultValue": "Scene B",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transitions-light",
+   "title": "Light Transitions",
+   "description": "Showcase of light-based glow and flash transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 21,
+   "sourceSha256": "74b04f50a317191dc30ae8b849819bc51c24ec045b094fa553d9cc92d2a8ab74",
+   "files": [
+    {
+     "path": "transitions-light.html",
+     "target": "compositions/transitions-light.html",
+     "sha256": "74b04f50a317191dc30ae8b849819bc51c24ec045b094fa553d9cc92d2a8ab74"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Light Transitions",
+     "type": "text",
+     "defaultValue": "Light Transitions",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: 3 transition styles",
+     "type": "text",
+     "defaultValue": "3 transition styles",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: SCENE A",
+     "type": "text",
+     "defaultValue": "SCENE A",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: SCENE B",
+     "type": "text",
+     "defaultValue": "SCENE B",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transitions-other",
+   "title": "Other Transitions",
+   "description": "Showcase of miscellaneous creative transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 20,
+   "sourceSha256": "e77fcfaa70bde8e9a5bcc57f7295b6ed37aef9661ed1d0472cf94e981671bac1",
+   "files": [
+    {
+     "path": "transitions-other.html",
+     "target": "compositions/transitions-other.html",
+     "sha256": "e77fcfaa70bde8e9a5bcc57f7295b6ed37aef9661ed1d0472cf94e981671bac1"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: TRANSITION CATALOG",
+     "type": "text",
+     "defaultValue": "TRANSITION CATALOG",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Other Transitions",
+     "type": "text",
+     "defaultValue": "Other Transitions",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: 3 transitions",
+     "type": "text",
+     "defaultValue": "3 transitions",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: SCENE A",
+     "type": "text",
+     "defaultValue": "SCENE A",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transitions-push",
+   "title": "Push Transitions",
+   "description": "Showcase of push and slide transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 24,
+   "sourceSha256": "6e94839890101bbcbf14cfe76c5d41d06738fa70b6d1c423e3b41692d52c8441",
+   "files": [
+    {
+     "path": "transitions-push.html",
+     "target": "compositions/transitions-push.html",
+     "sha256": "6e94839890101bbcbf14cfe76c5d41d06738fa70b6d1c423e3b41692d52c8441"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: TRANSITION CATALOG",
+     "type": "text",
+     "defaultValue": "TRANSITION CATALOG",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Push Transitions",
+     "type": "text",
+     "defaultValue": "Push Transitions",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: 4 transitions",
+     "type": "text",
+     "defaultValue": "4 transitions",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: SCENE A",
+     "type": "text",
+     "defaultValue": "SCENE A",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "transitions-radial",
+   "title": "Radial Transitions",
+   "description": "Showcase of radial wipe and reveal transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 20,
+   "sourceSha256": "2e723ae75e92e6e4c1c51e6c596122bb43df8c2fef1ff4363ed787588bec4111",
+   "files": [
+    {
+     "path": "transitions-radial.html",
+     "target": "compositions/transitions-radial.html",
+     "sha256": "2e723ae75e92e6e4c1c51e6c596122bb43df8c2fef1ff4363ed787588bec4111"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Radial Transitions",
+     "type": "text",
+     "defaultValue": "Radial Transitions",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: 3 Transitions",
+     "type": "text",
+     "defaultValue": "3 Transitions",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Scene A",
+     "type": "text",
+     "defaultValue": "Scene A",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: Scene B",
+     "type": "text",
+     "defaultValue": "Scene B",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ]
+  },
+  {
+   "id": "yt-logo-intro",
+   "title": "Logo Intro Sequence",
+   "description": "Logo stamp pops on a lined board, a kicker line gives way to the title with an accent arrow chip; seeded line distortion",
+   "tags": [
+    "logo",
+    "intro",
+    "creator"
+   ],
+   "category": "logo",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "75941ae117c487b1648db6a8efb8d7ab53bb2567161d5730ad02c9143d7bc2df",
+   "files": [
+    {
+     "path": "yt-logo-intro.html",
+     "target": "compositions/yt-logo-intro.html",
+     "sha256": "75941ae117c487b1648db6a8efb8d7ab53bb2567161d5730ad02c9143d7bc2df"
+    }
+   ],
+   "editables": [
+    {
+     "key": "c1",
+     "label": "Color 1",
+     "type": "color",
+     "defaultValue": "#1d1d1f",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "style",
+      "prop": "backgroundColor"
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -17,6 +17,7 @@ import { attachDragResize } from '../../../lib/editor/addons/dragResize.js';
 import { ctaBox } from '../../../lib/editor/addons/ctaLottie.js';
 import { mgOverlayLayer } from '@cinegen/lib/occ/mg-templates';
 import { overlaysAt, isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+import { hyperframesOverlayLayer } from '@cinegen/lib/hyperframes/overlay';
 import { useSelectedOverlay, selectOverlay } from '@cinegen/lib/overlays/selection';
 import '../../../../styles/timeline-addons.css';
 import '../../../../styles/watch.css';
@@ -128,17 +129,19 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onGeom
   const mgRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<{ update: (m: unknown) => Promise<void>; frame: (f: number) => void; destroy: () => void } | null>(null);
   const mgOverlays = overlays.filter((o) => o.type === 'mg-template');
-  const mgKey = JSON.stringify([frame.width, frame.height, mgOverlays.map((o) => [o.id, o.start, o.end, o.code, o.props])]);
+  // [hyperframes] verified HyperFrames animations share the same sandboxed preview frame
+  const hfOverlays = overlays.filter((o) => o.type === 'hyperframes');
+  const mgKey = JSON.stringify([frame.width, frame.height, mgOverlays.map((o) => [o.id, o.start, o.end, o.code, o.props]), ...(hfOverlays.length ? [hfOverlays.map((o) => [o.id, o.start, o.end, o.blockId, o.props])] : [])]);
   useEffect(() => {
     const host = mgRef.current;
     if (!host) return;
-    if (!mgOverlays.length) { previewRef.current?.destroy(); previewRef.current = null; return; }
+    if (!mgOverlays.length && !hfOverlays.length) { previewRef.current?.destroy(); previewRef.current = null; return; }
     let live = true;
     void import('../../../lib/editor/remotion/codePreviewClient.js').then(({ createCodePreview }: { createCodePreview: (h: HTMLElement) => NonNullable<typeof previewRef.current> }) => {
       if (!live) return;
       previewRef.current ??= createCodePreview(host);
       const fps = 30;
-      const layers = mgOverlays.map((o) => mgOverlayLayer(o, fps));
+      const layers = [...mgOverlays.map((o) => mgOverlayLayer(o, fps)), ...hfOverlays.map((o) => hyperframesOverlayLayer(o, fps))];
       void previewRef.current.update({ version: 1, fps, width: frame.width, height: frame.height, durationInFrames: Math.max(1, ...layers.map((l) => l.from + l.durationInFrames)), background: 'transparent', layers, audio: [], transitions: [], fonts: [] });
     });
     return () => { live = false; };
