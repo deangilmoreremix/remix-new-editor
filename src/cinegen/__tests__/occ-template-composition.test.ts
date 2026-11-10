@@ -19,3 +19,11 @@ describe('Template Generator composition → CineGen timeline', () => {
     expect(r.timeline.transitions[0]).toMatchObject({ type: 'dissolve' });
   });
 });
+
+describe('wizard overlay kinds', () => {
+  it('maps CTA / lead form / lower third / sticker overlays to overlay-lane kinds', () => {
+    const comp = buildCompositionFromState({ media: [m(1, 8)], overlays: ['cta', 'lead-form', 'lower-third', 'sticker'].map((type) => ({ type, name: type, duration: 3, startTime: 1 })), transitions: [] }) as never;
+    const r = applyComposition(createDefaultTimeline('T'), comp);
+    expect(r.overlays.map((o) => o.type).sort()).toEqual(['click-to-call', 'lead-form', 'overlay-lower-third', 'overlay-sticker']);
+  });
+});

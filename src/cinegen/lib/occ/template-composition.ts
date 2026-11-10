@@ -39,6 +39,11 @@ export function applyComposition(timeline: Timeline, comp: Composition): Applied
         const added = tl.clips.find((x) => !before.has(x.id) && x.assetId === asset.id && x.trackId === target.id);
         if (added) ids.push(added.id);
         assets.push(asset);
+      } else if (c.type === 'cta' || c.type === 'lead-form' || c.type === 'lower-third' || c.type === 'sticker') {
+        // wizard overlay kinds → the matching overlay-lane kind (defaults from the overlay's own descriptor)
+        const kind = { cta: 'click-to-call', 'lead-form': 'lead-form', 'lower-third': 'overlay-lower-third', sticker: 'overlay-sticker' }[c.type] as 'click-to-call';
+        const o = createOverlay(kind, start, T + dur);
+        overlays.push({ ...o, start, end: start + dur });
       } else if (c.text) {
         const o = createOverlay('overlay-text', start, T + dur);
         const addon = { ...((o.addon as Record<string, unknown>) ?? {}), text: c.text };

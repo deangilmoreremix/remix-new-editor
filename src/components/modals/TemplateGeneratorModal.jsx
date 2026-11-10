@@ -537,12 +537,26 @@ export class TemplateGeneratorModal extends BaseModal {
       { id: 'lead-form', label: 'Lead Form', icon: '📋' },
       { id: 'interactive', label: 'Interactive', icon: '👆' }
     ];
+    const picked = new Set(this.data.overlays.map(o => o.type));
+    const tr = this.data.transitions[0]?.type || '';
+    const boundary = this.data.overlays.some(o => o.placement === 'boundary');
     return `
       <h3>Add Overlays</h3>
       <p class="tg-step-desc">Enhance your video with text, branding, and interactive elements.</p>
+      <div class="tg-form-row">
+        <div class="tg-form-group">
+          <label>Transition between clips</label>
+          <select id="tg-transition-type" class="tg-select">
+            <option value="" ${tr === '' ? 'selected' : ''}>None</option>
+            <option value="dissolve" ${tr === 'dissolve' ? 'selected' : ''}>Dissolve</option>
+            <option value="fadeToBlack" ${tr === 'fadeToBlack' ? 'selected' : ''}>Fade through black</option>
+          </select>
+        </div>
+        <label class="tg-toggle"><input type="checkbox" id="tg-transition-overlay" ${boundary ? 'checked' : ''}><span>Transition overlay centred on each cut</span></label>
+      </div>
       <div class="tg-overlay-grid">
         ${overlayTypes.map(o => `
-          <button class="tg-overlay-card" data-overlay-type="${o.id}">
+          <button class="tg-overlay-card ${picked.has(o.id) ? 'is-selected' : ''}" aria-pressed="${picked.has(o.id)}" data-overlay-type="${o.id}">
             <span class="tg-overlay-icon">${o.icon}</span>
             <span class="tg-overlay-label">${o.label}</span>
           </button>
@@ -921,6 +935,26 @@ export class TemplateGeneratorModal extends BaseModal {
         break;
       case 4:
         this.setupStep4MediaListeners();
+        break;
+      case 5:
+        // Overlays: each card toggles an overlay of that kind; the transition controls feed the builder's transitions / boundary overlays.
+        this.overlay.querySelectorAll('.tg-overlay-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const type = card.dataset.overlayType;
+            const has = this.data.overlays.some(o => o.type === type);
+            this.data.overlays = has
+              ? this.data.overlays.filter(o => o.type !== type)
+              : [...this.data.overlays, { type, kind: type === 'text' || type === 'caption' ? 'text' : 'overlay', name: card.textContent.trim(), duration: 4, startTime: 0, text: type === 'text' || type === 'caption' ? 'Your text here' : undefined }];
+            this.refresh();
+          });
+        });
+        this.overlay.querySelector('#tg-transition-type')?.addEventListener('change', (e) => {
+          this.data.transitions = e.target.value ? [{ type: e.target.value, duration: 1 }] : [];
+        });
+        this.overlay.querySelector('#tg-transition-overlay')?.addEventListener('change', (e) => {
+          const rest = this.data.overlays.filter(o => o.placement !== 'boundary');
+          this.data.overlays = e.target.checked ? [...rest, { placement: 'boundary', type: 'overlay', name: 'Transition overlay', duration: 2 }] : rest;
+        });
         break;
       case 7:
         this.setupStep7PersonalizationListeners();

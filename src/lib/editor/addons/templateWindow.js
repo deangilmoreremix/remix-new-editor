@@ -113,6 +113,16 @@ export function openTemplateWindow({ library = 'endScreens', onUse, buildModel, 
     }
   }
 
+  // Connect Form: the preview shows the viewer's own number as it is typed (same swap "Use template" applies)
+  const callValues = () => {
+    const q = (c) => backdrop.querySelector(c)?.value || '';
+    return { phone: q('.tpl-win__phone'), country: q('.tpl-win__cc').replace(/\D/g, '') || '1', buttonText: q('.tpl-win__btn').trim(), notify: q('.tpl-win__notify').trim() };
+  };
+  backdrop.querySelector('.tpl-win__call')?.addEventListener('input', () => {
+    if (!current || !engine) return;
+    try { engine.update(buildModel(templatePreviewProject(applyCallSetup(current, callValues()), presetToClips))); } catch { /* preview only */ }
+  });
+
   function close() {
     if (closed) return;
     closed = true;
@@ -130,8 +140,7 @@ export function openTemplateWindow({ library = 'endScreens', onUse, buildModel, 
     if (e.target.closest('.tpl-win__use') && current) {
       let tpl = current;
       if (lib.callSetup) {
-        const q = (c) => backdrop.querySelector(c)?.value || '';
-        tpl = applyCallSetup(tpl, { phone: q('.tpl-win__phone'), country: q('.tpl-win__cc').replace(/\D/g, '') || '1', buttonText: q('.tpl-win__btn').trim(), notify: q('.tpl-win__notify').trim() });
+        tpl = applyCallSetup(tpl, callValues());
       }
       close();
       onUse?.(tpl, lib);

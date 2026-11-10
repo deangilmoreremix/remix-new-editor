@@ -22,3 +22,16 @@ describe('motion-graphics templates on the sandboxed code renderer', () => {
     expect(l).toMatchObject({ kind: 'code', from: 60, durationInFrames: 90 });
   });
 });
+
+describe('overlay-lane items reach the exported composition', () => {
+  it('a call button and an End Screen background become composition layers; lead forms stay interactive-only', async () => {
+    await import('../../lib/editor/addons/index.js');
+    const { timelineToComposition } = await import('../../lib/editor/remotion/timelineToComposition.js');
+    const { createTemplateOverlays } = await import('@cinegen/lib/overlays/overlays');
+    const items = [...createTemplateOverlays('cf-call-now', 2, 30, { phone: '212 555 0147' }), ...createTemplateOverlays('es-thanks', 2, 30), ...createTemplateOverlays('cf-book-call', 2, 30)];
+    const model = timelineToComposition({ timelineSeconds: 30, tracks: [{ id: 'ov', type: 'text', items }] }, { quality: '720p' });
+    expect(model.layers.some((l: { type?: string }) => l.type === 'cta-button')).toBe(true);
+    expect(model.layers.some((l: { type?: string }) => l.type === 'overlay-text')).toBe(true);
+    expect(model.layers.some((l: { type?: string }) => l.type === 'lead-form')).toBe(false);
+  });
+});
