@@ -125,7 +125,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; glDef?: unknown; clipAId: string; clipBId: string }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; glDef?: unknown; clipAId: string; clipBId: string }>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -154,6 +154,12 @@ export function registerWebApi() {
             ],
           };
           const model = timelineToComposition(state, { fps: a.fps, quality, aspect: a.aspect });
+          // [remix] OpenChatCut motion-graphics templates → code layers on top (the sandboxed renderer runs them; the code gate still applies)
+          {
+            const { mgOverlayLayer } = await import('@cinegen/lib/occ/mg-templates');
+            const m = model as { layers: unknown[]; durationInFrames: number };
+            for (const o of a.mgOverlays ?? []) { const l = mgOverlayLayer({ ...o, type: 'mg-template' } as never, a.fps); m.layers.push(l); m.durationInFrames = Math.max(m.durationInFrames, l.from + l.durationInFrames); }
+          }
           // [remix] OpenChatCut captions (words already in timeline ms) → one caption layer per captioned clip
           (model as { occCaptions?: unknown[] }).occCaptions = a.clips.flatMap((c) => (c.captions ? [c.captions] : []));
           for (const c of a.clips) { const cap = c.captions as { template?: string; styleOverride?: { fontFamily?: string } } | undefined; const tpl = cap?.template; const fam = cap?.styleOverride?.fontFamily || (tpl && CAPTION_STYLE_BY_ID[tpl as never]?.fontFamily); if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }

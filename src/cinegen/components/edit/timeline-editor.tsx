@@ -44,6 +44,8 @@ import unlinkSvg from '@cinegen/assets/unlink.svg';
 import type { Timeline, Clip as TimelineClip, ToolType, Keyframe, TimelineMarker } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import type { WorkflowNodeData } from '@cinegen/types/workflow';
+import { MgTemplatesModal } from './mg-templates-modal';
+import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
 import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
 
 const LABEL_WIDTH = 150;
@@ -109,6 +111,7 @@ export function TimelineEditor({
   const editorRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackHeight = trackHeightProp;
+  const [mgOpen, setMgOpen] = useState(false);
   const [bladeX, setBladeX] = useState<number | null>(null);
   const [rulerScrollLeft, setRulerScrollLeft] = useState(0);
 
@@ -3213,6 +3216,7 @@ export function TimelineEditor({
           dispatch({ type: 'ADD_OVERLAY', overlay });
           selectOverlay(overlay.id);
         }}
+        onBrowseMotion={() => setMgOpen(true)}
         onAddTemplate={(templateId) => {
           const made = createTemplateOverlays(templateId, currentTime, Math.max(sequenceDuration, 10));
           made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
@@ -3220,6 +3224,8 @@ export function TimelineEditor({
         }}
         onUpdate={(id, updates) => dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates })}
       />
+
+      {mgOpen && <MgTemplatesModal onClose={() => setMgOpen(false)} onPick={(t) => { const overlay = createMgOverlay(t, currentTime); dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); setMgOpen(false); }} />}
 
       {/* Global playhead — spans across all sections including divider */}
       <div className="timeline-editor__playhead-clip" style={{ left: LABEL_WIDTH }}>

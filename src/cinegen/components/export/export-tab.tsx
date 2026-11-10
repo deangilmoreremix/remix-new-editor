@@ -56,6 +56,8 @@ export function ExportTab() {
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
+        // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
+        mgOverlays: (state.overlays ?? []).filter((o) => o.type === 'mg-template').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, code: o.code, props: o.props })),
         // [remix] OpenChatCut GL transitions on dissolve cuts
         transitions: (activeTimeline.transitions ?? []).filter((t) => t.glType && t.type === 'dissolve' && t.clipBId).map((t) => ({ glType: t.glType, glDef: t.glDef, clipAId: t.clipAId, clipBId: t.clipBId })),
       });
@@ -63,7 +65,7 @@ export function ExportTab() {
     } catch (error) {
       console.error('Failed to start render:', error);
     }
-  }, [dispatch, exportClips, totalDuration, activeTimeline.transitions]);
+  }, [dispatch, exportClips, totalDuration, activeTimeline.transitions, state.overlays]);
 
   useEffect(() => {
     if (!activeJob) {

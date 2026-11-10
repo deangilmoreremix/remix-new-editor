@@ -20,7 +20,7 @@ export interface WorkflowSpace {
 
 export type OverlayKind =
   | 'lead-form' | 'list-builder' | 'click-to-call'
-  | 'overlay-text' | 'overlay-text-mask' | 'overlay-image' | 'overlay-personalized-image' | 'overlay-sticker' | 'overlay-background' | 'overlay-lower-third';
+  | 'overlay-text' | 'overlay-text-mask' | 'overlay-image' | 'overlay-personalized-image' | 'overlay-sticker' | 'overlay-background' | 'overlay-lower-third' | 'mg-template';
 /** [remix] One overlay on the video: timing in seconds plus the old add-on's own options (flat, as the old editor saved them). */
 export interface OverlayClip {
   id: string;

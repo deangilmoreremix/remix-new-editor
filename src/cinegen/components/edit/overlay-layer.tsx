@@ -13,6 +13,7 @@ import { postWebhooksDirect, webhookUrlsFor } from '../../../lib/editor/addons/l
 import { buildOverlayElement, finishOverlayElement, destroyOverlayElement, syncOverlayTime, setOverlayPlaying } from '../../../lib/editor/addons/overlayRender.js';
 // @ts-expect-error plain JS drag / resize handles
 import { attachDragResize } from '../../../lib/editor/addons/dragResize.js';
+import { mgOverlayLayer } from '@cinegen/lib/occ/mg-templates';
 import { overlaysAt, isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { useSelectedOverlay, selectOverlay } from '@cinegen/lib/overlays/selection';
 import '../../../../styles/timeline-addons.css';
@@ -117,10 +118,34 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onGeom
     setOverlayPlaying(layer, isPlaying);
   }, [currentTime, isPlaying, addonSignature]);
 
+  // [remix] OpenChatCut motion-graphics templates: shown by the editor's sandboxed code-preview frame (never run in this page).
+  const mgRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<{ update: (m: unknown) => Promise<void>; frame: (f: number) => void; destroy: () => void } | null>(null);
+  const mgOverlays = overlays.filter((o) => o.type === 'mg-template');
+  const mgKey = JSON.stringify(mgOverlays.map((o) => [o.id, o.start, o.end, o.code, o.props]));
+  useEffect(() => {
+    const host = mgRef.current;
+    if (!host) return;
+    if (!mgOverlays.length) { previewRef.current?.destroy(); previewRef.current = null; return; }
+    let live = true;
+    void import('../../../lib/editor/remotion/codePreviewClient.js').then(({ createCodePreview }: { createCodePreview: (h: HTMLElement) => NonNullable<typeof previewRef.current> }) => {
+      if (!live) return;
+      previewRef.current ??= createCodePreview(host);
+      const fps = 30;
+      const layers = mgOverlays.map((o) => mgOverlayLayer(o, fps));
+      void previewRef.current.update({ version: 1, fps, width: 1280, height: 720, durationInFrames: Math.max(1, ...layers.map((l) => l.from + l.durationInFrames)), background: 'transparent', layers, audio: [], transitions: [], fonts: [] });
+    });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mgKey]);
+  useEffect(() => () => { previewRef.current?.destroy(); previewRef.current = null; }, []);
+  useEffect(() => { previewRef.current?.frame(Math.round(currentTime * 30)); }, [currentTime, mgKey]);
+
   void GATES;
   return (
     <>
       <div ref={addonRef} className="addon-overlay-layer" style={{ zIndex: 5 }} />
+      <div ref={mgRef} style={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }} />
       <div ref={hostRef} className="wf-layer" style={{ zIndex: 6 }} />
     </>
   );

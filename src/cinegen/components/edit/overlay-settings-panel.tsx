@@ -4,8 +4,29 @@ import { useEffect, useRef } from 'react';
 import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS settings renderer from the main app
 import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
+import type { MgPropField } from '@cinegen/lib/occ/mg-templates';
 import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+
+/** [remix] Props of an OpenChatCut motion-graphics template, drawn from the template's own propSchema. */
+function MgPropsEditor({ overlay, onUpdate }: { overlay: OverlayClip; onUpdate: (u: Partial<OverlayClip>) => void }) {
+  const schema = (overlay.propSchema as MgPropField[] | undefined) ?? [];
+  const props = (overlay.props as Record<string, unknown>) ?? {};
+  const set = (key: string, v: unknown) => onUpdate({ props: { ...props, [key]: v } });
+  return (
+    <div style={{ padding: '0 12px 16px' }}>
+      {schema.map((f) => {
+        const v = props[f.key] ?? f.defaultValue;
+        const label = <span>{f.label ?? f.key}</span>;
+        if (f.type === 'boolean') return <label key={f.key} className="addon-field"><span><input type="checkbox" checked={!!v} onChange={(e) => set(f.key, e.target.checked)} /> {f.label ?? f.key}</span></label>;
+        if (f.type === 'color') return <label key={f.key} className="addon-field">{label}<input type="color" value={/^#[0-9a-f]{6}$/i.test(String(v)) ? String(v) : '#ffffff'} onChange={(e) => set(f.key, e.target.value)} /></label>;
+        if (f.type === 'number') return <label key={f.key} className="addon-field">{label}<input type="number" min={f.min} max={f.max} step={f.step ?? 1} value={Number(v ?? 0)} onChange={(e) => set(f.key, Number(e.target.value))} /></label>;
+        if (f.type === 'select') return <label key={f.key} className="addon-field">{label}<select value={String(v ?? '')} onChange={(e) => set(f.key, e.target.value)}>{(f.options ?? []).map((o) => { const val = typeof o === 'string' ? o : o.value; return <option key={val} value={val}>{typeof o === 'string' ? o : o.label ?? o.value}</option>; })}</select></label>;
+        return <label key={f.key} className="addon-field">{label}<input type="text" value={String(v ?? '')} onChange={(e) => set(f.key, e.target.value)} /></label>;
+      })}
+    </div>
+  );
+}
 
 interface Props {
   overlay: OverlayClip;
@@ -21,7 +42,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
   latest.current = overlay;
 
   useEffect(() => {
-    if (!box.current) return;
+    if (!box.current || latest.current.type === 'mg-template') return;
     const schema = overlaySchema(latest.current);
     const editor = renderAddonEditor(box.current, {
       fields: schema.fields, fieldsFor: schema.fieldsFor, options: schema.options, onFieldChange: schema.onFieldChange, idPrefix: `ov-${overlay.id}`,
@@ -68,7 +89,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
             onChange={(e) => onUpdate({ end: Math.max(overlay.start + 0.5, num(e.target.value, overlay.end)) })} style={{ width: 80 }} />
         </label>
       </div>
-      <div ref={box} style={{ padding: '0 12px 16px' }} />
+      {overlay.type === 'mg-template' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
     </aside>
   );
 }
