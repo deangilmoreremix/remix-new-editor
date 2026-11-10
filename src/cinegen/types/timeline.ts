@@ -56,6 +56,8 @@ export interface Clip {
   fx?: ClipFx[];
   lut?: { id: string; intensity: number; def?: import('../lib/occ/plugins').FxSnapshot };
   blendMode?: string;
+  /** [remix] set on clips materialised from a multicam group */
+  multicam?: { groupId: string; angleId: string };
   /** [remix] position / scale / rotation (+ tracked path) of the clip in the frame. */
   transform?: import('../lib/occ/transform').ClipTransform;
   /** [remix] OpenChatCut zoom / follow-subject reframe (their ZoomEffect). */
@@ -106,6 +108,8 @@ export interface Timeline {
   duration: number;
   transitions: Transition[];
   markers: TimelineMarker[];
+  /** [remix] persistent multicam groups (OpenChatCut group + angle-decision concepts, see lib/occ/multicam-groups.ts) */
+  multicam?: import('../lib/occ/multicam-groups').McGroup[];
 }
 
 /** Effective duration of a clip (what plays on the timeline). */
