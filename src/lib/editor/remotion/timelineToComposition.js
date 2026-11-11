@@ -12,6 +12,7 @@
  * Skip, Lead Generator, CTA, List Builder) are live UI, not pixels: they are
  * left out of the rendered frames but stay in the editor.
  */
+import { applyMultiCam, multiCamActive } from '../multiCam.js';
 import { getAddon, addonOptions } from '../addons/registry.js';
 import { resolveOverlayText, safeImageUrl, sanitizeWrapperStyles } from '../addons/overlayRender.js';
 import { voiceSrcFor } from '../personalize/perContact.js';
@@ -117,6 +118,8 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
   const transitions = [];
   const skipped = [];
   const media = []; // base video/image clips, for transition pairing
+  const camActive = multiCamActive(state?.multiCam, tracks);
+  const secondCam = (track) => camActive && track.id === state.multiCam.secondTrackId;
 
   tracks.forEach((track, trackIndex) => {
     const items = (track.items || track.clips || [])
@@ -130,6 +133,7 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
       const base = {
         id: String(clip.id),
         trackIndex,
+        trackId: track.id,
         from,
         durationInFrames,
         effects: Array.isArray(clip.effects) ? clip.effects : [],
@@ -179,13 +183,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
       if (clip.type === 'video' && src) {
         const layer = { ...base, kind: 'video', src, trimBefore, fit: clip.fit || 'cover', volume: audible.has(track.id) ? volume : 0 };
         layers.push(layer);
-        if (isVideoTrack(track)) media.push(layer);
+        if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;
       }
       if (clip.type === 'image' && src) {
         const layer = { ...base, kind: 'image', src, fit: clip.fit || 'cover' };
         layers.push(layer);
-        if (isVideoTrack(track)) media.push(layer);
+        if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;
       }
       if (clip.type === 'text' && (clip.heading || clip.body)) {
@@ -219,7 +223,7 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', prof
     durationInFrames: Math.max(1, lastFrame),
     durationInSeconds: round(Math.max(1, lastFrame) / fps),
     background: '#000000',
-    layers,
+    layers: applyMultiCam(layers, tracks, state?.multiCam),
     audio,
     transitions,
     skipped,

@@ -9,6 +9,7 @@
 //   ← sv:ready
 //   ← sv:exported  { blob, name, prompt }
 import { mountStudioChrome } from '../../../lib/studioChrome.js';
+import { createEditorBanner } from '../../../lib/thumbnails.js';
 import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
@@ -48,6 +49,9 @@ export function VideoAgentStudio() {
   window.addEventListener('resize', fit);
 
   const { topbar } = mountStudioChrome(container, { currentRoute: 'video-agent', title: 'Video Agent' });
+  // The banner carries the page title, so the bar below it only holds status.
+  topbar.querySelector('.studio-topbar__title')?.remove();
+  container.insertBefore(createEditorBanner('video-agent', 'Video Agent', 'Describe an animation and the agent writes, previews and renders it'), container.firstChild);
   const status = document.createElement('span');
   status.className = 'text-xs text-secondary mr-3';
   status.setAttribute('aria-live', 'polite');

@@ -10,7 +10,6 @@ const MODAL_FILES = [
   { name: 'GTMPromptModal', path: './GTMPromptModal.jsx', exportName: 'GTMPromptModal' },
   { name: 'LeadGeneratorModal', path: './LeadGeneratorModal.jsx', exportName: 'LeadGeneratorModal' },
   { name: 'PageShotModal', path: './PageShotModal.jsx', exportName: 'PageShotModal' },
-  { name: 'PersonalizeModal', path: './PersonalizeModal.jsx', exportName: 'PersonalizeModal' },
   { name: 'PreviewMediaModal', path: './PreviewMediaModal.jsx', exportName: 'PreviewMediaModal' },
   { name: 'RecorderModal', path: './RecorderModal.jsx', exportName: 'RecorderModal' },
   { name: 'SaveProjectModal', path: './SaveProjectModal.jsx', exportName: 'SaveProjectModal' },

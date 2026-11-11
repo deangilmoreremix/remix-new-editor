@@ -182,6 +182,66 @@ describe('interactive player', () => {
   });
 });
 
+describe('form answers go into the video', () => {
+  let frame;
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    frame = document.createElement('div');
+    document.body.appendChild(frame);
+  });
+  const submit = async (value) => {
+    const form = frame.querySelector('form');
+    form.querySelector('input').value = value;
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+    await new Promise((r) => setTimeout(r, 0));
+  };
+
+  it('List Builder (not just Personalizer) fills {{tokens}} with what the viewer typed', async () => {
+    const { e, create } = fakeEngine();
+    const p = project();
+    p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'firstname', type: 'singleline', label: 'First name' }], caption: 'Join the list' };
+    const player = createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, onLead: async () => ({ stored: true }) });
+    expect(e.model.layers.find((l) => l.id === 'txt').options.text).toBe('Hello');
+    player.play();
+    await submit('Zoe');
+    expect(e.model.layers.find((l) => l.id === 'txt').options.text).toBe('Hello Zoe');
+  });
+
+  it('Lead Generator form answers fill tokens too, by name, company or any canonical token', async () => {
+    const { e, create } = fakeEngine();
+    const p = project();
+    const clips = p.tracks.flatMap((t) => t.items);
+    clips.find((c) => c.id === 'lf').fields = [{ id: 'name', type: 'singleline', label: 'Name' }];
+    clips.find((c) => c.id === 'txt').addon.text = 'Welcome {{fullName}}';
+    const player = createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, onLead: async () => ({ stored: true }) });
+    player.play();
+    e.advance(2.2); // the Pause clip
+    player.play();
+    e.advance(5.2); // the lead form gates here
+    await submit('Ann Lee');
+    expect(e.model.layers.find((l) => l.id === 'txt').options.text).toBe('Welcome Ann Lee');
+    expect(player.playing).toBe(true);
+  });
+
+  it('reports when a form is gating playback (so the page can hide the big play button)', async () => {
+    const { create } = fakeEngine();
+    const p = project();
+    p.listBuilder = { enabled: true, kind: 'list-builder', elements: [{ id: 'email', type: 'email', label: 'Email' }], caption: 'Join' };
+    const seen = [];
+    const player = createInteractivePlayer({ project: p, stage: frame, frame, createEngine: create, onChange: (c) => seen.push(c.gating), onLead: async () => ({ stored: true }) });
+    player.play();
+    expect(seen.at(-1)).toBe(true);
+    await submit('a@b.co');
+    expect(seen.at(-1)).toBe(false);
+  });
+
+  it('answers are also stored under the studio\'s canonical token', () => {
+    const v = profileWithAnswers({ variables: { firstName: 'Old' } }, { 'FIRST NAME': 'Zoe', NAME: 'Zoe Q', COMPANY: 'Acme', EMPTY: '' }).variables;
+    expect(v).toMatchObject({ firstName: 'Zoe', fullName: 'Zoe Q', company: 'Acme' });
+    expect('empty' in v).toBe(false);
+  });
+});
+
 describe('viewer overlays', () => {
   it('only renders safe CTA and link targets', () => {
     expect(ctaElement({ id: 1, phoneNumber: '+1 555 123 4567' }).getAttribute('href')).toBe('tel:+15551234567');

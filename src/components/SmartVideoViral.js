@@ -2,6 +2,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { escapeHtml } from '../lib/security.js';
 import { showToast } from '../lib/loading.js';
 import { navigate } from '../lib/router.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { YOUMIND_VIRAL_OVERFLOW } from '../data/youmindViralOverflow.js';
 
@@ -408,6 +409,9 @@ export function SmartVideoViral() {
   // =====================
   // 1. HERO SECTION (collapsible)
   // =====================
+  // Page banner (title + description); the hero below keeps the stats and the preview.
+  const viralBanner = createStudioHeader('viral', 'Smart Video Viral', 'Continuously refreshed feed of trending AI prompts from X — copy any prompt into your studio and create.', 'max-w-6xl mx-auto mt-2 mb-2');
+  container.appendChild(viralBanner);
   const heroWrap = document.createElement('div');
   heroWrap.className = 'viral-hero-wrap w-full max-w-6xl mx-auto mb-2';
   heroWrap.id = 'viral-hero';
@@ -416,9 +420,7 @@ export function SmartVideoViral() {
   heroContent.innerHTML = `
     <div class="viral-hero-body flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 py-6">
       <div class="flex-1 min-w-0">
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-2">Smart Video Viral</h1>
-        <p class="text-zinc-400 text-sm md:text-base font-medium max-w-xl leading-relaxed">Continuously refreshed feed of trending AI prompts from X — copy any prompt into your studio and create.</p>
-        <div class="flex flex-wrap items-center gap-3 mt-4">
+        <div class="flex flex-wrap items-center gap-3">
           <div class="viral-stat-pill"><span class="text-primary font-bold text-sm" id="viral-stat-total">0</span><span>prompts</span></div>
           <div class="viral-stat-pill"><span class="text-purple-400 font-bold text-sm" id="viral-stat-videos">0</span><span>videos</span></div>
           <div class="viral-stat-pill"><span class="text-emerald-400 font-bold text-sm" id="viral-stat-images">0</span><span>images</span></div>
@@ -794,6 +796,7 @@ export function SmartVideoViral() {
            ` : ''}
             <div class="mt-auto flex gap-2">
               <button class="copy-prompt-btn btn-primary-modern" data-id="${item.imglumeId}" title="Copy prompt to clipboard">Copy Prompt</button>
+              <button class="personalize-demo-btn btn-secondary-modern" data-id="${item.imglumeId}" title="Personalize this demo for a business" aria-haspopup="dialog">Personalize This Demo</button>
               <button class="create-style-btn btn-secondary-modern" data-id="${item.imglumeId}" title="Create this style in studio">Create This Style</button>
               <a href="${escapeHtml(item.source?.url || item.curation?.recordUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn-secondary-modern" title="View source post on X">Source</a>
             </div>
@@ -889,6 +892,19 @@ export function SmartVideoViral() {
           document.body.removeChild(textarea);
           showToast('Prompt copied to clipboard!', 'success', 2000);
         });
+      });
+    });
+    // "Personalize This Demo" (OpenHiggsBolt GO AI Viral → personalization modal).
+    gridEl.querySelectorAll('.personalize-demo-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Compare as strings: Seedance ids are strings ("seedance-1402").
+        const id = btn.getAttribute('data-id');
+        const item = prompts.find(p => String(p.imglumeId) === id);
+        if (!item) return;
+        const { openViralPersonalization } = await import('../features/personalization/mount.jsx');
+        openViralPersonalization(item, { trigger: btn });
       });
     });
     gridEl.querySelectorAll('.create-style-btn').forEach(btn => {

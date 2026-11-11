@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import { pathToFileURL } from 'url';
 import { publicAuditReportPlugin } from './vite/plugins/publicAuditReportPlugin.js';
 // Cache-bust: 2026-07-28
 
@@ -894,7 +895,7 @@ function modelCatalogDevPlugin() {
           // by returning the requested pool wrapped in { models: [...] }.
           const url = new URL(req.url, 'http://localhost');
           const modelType = url.searchParams.get('modelType');
-          const VALID = ['t2i', 'i2i', 'i2v', 't2v', 'v2v'];
+          const VALID = ['t2i', 'i2i', 'i2v', 't2v', 'v2v', 'audio', 'lipsync'];
           if (modelType && VALID.includes(modelType)) {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ models: data[modelType] || [] }));
@@ -922,10 +923,13 @@ function modelCatalogBuildPlugin() {
   return {
     name: 'model-catalog-build',
     enforce: 'post',
-    generateBundle(_options, _bundle) {
+    async generateBundle(_options, _bundle) {
       try {
-        const modelsMod = require(path.join(PROJECT_ROOT, 'src/lib/models.js'));
-        const descMod   = require(path.join(PROJECT_ROOT, 'src/lib/modelDescriptions.js'));
+        // models.js and modelDescriptions.js are ES modules; require() of them
+        // threw, the plugin was skipped, and the committed (stale) static
+        // catalog was served instead.
+        const modelsMod = await import(pathToFileURL(path.join(PROJECT_ROOT, 'src/lib/models.js')).href);
+        const descMod   = await import(pathToFileURL(path.join(PROJECT_ROOT, 'src/lib/modelDescriptions.js')).href);
         const DESCRIPTIONS = descMod.DESCRIPTIONS || {};
 
         const seen = new Set();
@@ -952,8 +956,10 @@ function modelCatalogBuildPlugin() {
           i2v: unique(modelsMod.i2vModels || [], 'i2v'),
           t2v: unique(modelsMod.t2vModels || [], 't2v'),
           v2v: unique(modelsMod.v2vModels || [], 'v2v'),
+          audio: unique(modelsMod.audioModels || [], 'audio'),
+          lipsync: unique(modelsMod.lipsyncModels || [], 'lipsync'),
         };
-        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length + catalog.v2v.length;
+        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length + catalog.v2v.length + catalog.audio.length + catalog.lipsync.length;
         this.emitFile({
           type: 'asset',
           fileName: 'api/model-catalog.json',
@@ -1022,6 +1028,9 @@ export default defineConfig({
             '@higgsfield/style-templates': path.resolve(__dirname, 'packages/style-templates/src'),
             '@higgsfield/video-compiler': path.resolve(__dirname, 'packages/video-compiler/src'),
             '@higgsfield/ai-chat': path.resolve(__dirname, 'packages/ai-chat/src'),
+            // Personalization + Lead Finder system ported from OpenHiggsBolt.
+            // The copied files keep OpenHiggsBolt's folder layout under this root.
+            '@ohb': path.resolve(__dirname, 'src/features/personalization'),
         },
     },
     plugins: [
@@ -1340,6 +1349,44 @@ export default defineConfig({
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api\/intelligence/, '/.netlify/functions/intelligence-api'),
+            },
+            // Personalization + Lead Finder API (netlify/functions/personalization-api.mts).
+            // The function declares these paths itself (config.path), so
+            // `netlify dev` serves them as-is on :8888 — no rewrite.
+            '/api/personalization/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/demo/discover': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/video/record': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/proxy/openai-enhance': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // OpenHiggsBolt MuAPI proxy, upload route and template preview clips,
+            // served by the same personalization function.
+            '/api/api/v1/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/v1/upload_file': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/media/shotcraft/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // Motion Director: director chat + page capture (netlify/functions/personalization-api.mts).
+            '/api/motion-studio/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
             },
             '/api/personalizer': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',

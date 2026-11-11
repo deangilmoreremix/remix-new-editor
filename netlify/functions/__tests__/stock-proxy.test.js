@@ -67,4 +67,23 @@ describe('Netlify stock proxies', () => {
     expect(res.statusCode).toBe(400);
     expect(res.body).not.toContain('key=pk');
   });
+
+  it('Pixabay: user key header wins, image_type is allow-listed, per_page is at least 3', async () => {
+    await pixabay(ev('/api/pixabay/images/curated', { image_type: 'vector', per_page: '1' }, { 'X-Pixabay-Api-Key': 'mine' }));
+    let url = new URL(fetchMock.mock.calls[0][0]);
+    expect(url.searchParams.get('key')).toBe('mine');
+    expect(url.searchParams.get('image_type')).toBe('vector');
+    expect(url.searchParams.get('per_page')).toBe('3');
+    await pixabay(ev('/api/pixabay/images/search', { query: 'x', image_type: 'bogus' }));
+    url = new URL(fetchMock.mock.calls[1][0]);
+    expect(url.searchParams.get('image_type')).toBe('photo');
+    expect(url.searchParams.get('key')).toBe('pk');
+  });
+
+  it('Pixabay: 503 tells the user to add a key in Settings', async () => {
+    delete process.env.PIXABAY_API_KEY;
+    const res = await pixabay(ev('/api/pixabay/videos/popular', {}));
+    expect(res.statusCode).toBe(503);
+    expect(JSON.parse(res.body).error.message).toContain('Settings');
+  });
 });

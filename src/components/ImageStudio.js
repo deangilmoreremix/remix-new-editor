@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { consumeStudioPrefill } from '../lib/studioPrefill.js';
 import { saveGeneration, confirmDeleteGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -13,6 +14,7 @@ import {
 import { ENHANCE_TAGS, QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
+import { openDrawModal } from './studio/drawModal.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
@@ -26,6 +28,7 @@ import { mountUpstreamModelPicker } from './upstream-picker/mountUpstreamModelPi
 import { imageModelPickerEntryByVariantId, PROVIDER_LOGOS, invertLogos, getProviderStyle, renderProviderLogoImg, positionModelSelectorDropdown } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { ADVANCED_ICON, TOOLS_ICON } from './studio/actionRow.js';
+import { createMediaSlot } from './studio/mediaSlot.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
 import { EXAMPLE_ASSETS } from '../data/exampleGalleryAssets.js';
 import { showToast, createLoadingOverlay, createProgressBar } from '../lib/loading.js';
@@ -43,10 +46,22 @@ export function ImageStudio() {
   mountStudioChrome(container, { currentRoute: 'image' });
 
     // --- State ---
-    const defaultModel = t2iModels[0];
+    let syncImageModelExtras = () => {};
+    let swapUrl = null; // face image for models with a swapField (e.g. AI Image Face Swap)
+    let selectedEffect = null; // effect preset for models with a `name` enum input
+    // Remember the last text-to-image model and aspect ratio between visits.
+    const SETTINGS_KEY = 'image_studio_settings';
+    const savedSettings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; } catch { return {}; } })();
+    const saveSettings = () => {
+        if (imageMode) return;
+        try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ model: selectedModel, ar: selectedAr })); } catch { /* ignore */ }
+    };
+    const defaultModel = t2iModels.find((m) => m.id === savedSettings.model) || t2iModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
-    let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '1:1';
+    let selectedAr = (savedSettings.ar && getAspectRatiosForModel(defaultModel.id).includes(savedSettings.ar))
+        ? savedSettings.ar
+        : (defaultModel.inputs?.aspect_ratio?.default || '1:1');
     let dropdownOpen = null;
     let selectedProvider = 'all';
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
@@ -136,7 +151,6 @@ export function ImageStudio() {
       } catch { /* ignore */ }
     })();
 
-    const getCurrentModels = () => imageMode ? i2iModels : t2iModels;
     const getCurrentAspectRatios = (id) => imageMode ? getAspectRatiosForI2IModel(id) : getAspectRatiosForModel(id);
     const getCurrentResolutions = (id) => imageMode ? getResolutionsForI2IModel(id) : getResolutionsForModel(id);
     const getCurrentQualityField = (id) => imageMode ? getQualityFieldForI2IModel(id) : getQualityFieldForModel(id);
@@ -278,6 +292,19 @@ export function ImageStudio() {
       }).catch(() => {});
     });
 
+    // Recipe Engine: seed it with the current prompt and surface failures
+    // instead of silently swallowing them.
+    function openImageRecipes() {
+      const ta = document.getElementById('i-prompt-textarea') || textarea;
+      openRecipeModal({
+        basePrompt: ta?.value?.trim() || '',
+        onRunRecipe: () => showToast('Recipe finished — open the result from the Recipe panel.', 'success'),
+      }).catch((err) => {
+        console.error('[Recipe] open failed:', err);
+        showToast('Could not open Recipes: ' + (err?.message || err), 'error');
+      });
+    }
+
     // Recipe Engine button
     const recipeBtn = document.createElement('button');
     recipeBtn.type = 'button';
@@ -285,9 +312,7 @@ export function ImageStudio() {
     recipeBtn.title = 'Browse AI recipes';
     recipeBtn.setAttribute('aria-label', 'Open recipe engine');
     recipeBtn.className = 'btn-ghost-modern';
-    recipeBtn.addEventListener('click', () => {
-      openRecipeModal().catch(() => {});
-    });
+    recipeBtn.addEventListener('click', () => openImageRecipes());
 
 
     // Monetization Hub button
@@ -311,10 +336,31 @@ export function ImageStudio() {
         textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px';
     };
 
-    const prefill = localStorage.getItem('prefill_prompt');
+    let prefill = localStorage.getItem('prefill_prompt');
+    if (prefill) localStorage.removeItem('prefill_prompt');
+    // Staged hand-off (e.g. "Edit in Image Studio" from the personalization
+    // modal): the prompt plus an optional reference image, loaded into the
+    // upload picker so the studio opens in image-to-image mode.
+    const stagedPrefill = consumeStudioPrefill('image');
+    if (stagedPrefill) {
+        if (!prefill && stagedPrefill.prompt) prefill = stagedPrefill.prompt;
+        const referenceImageUrl = stagedPrefill.params?.referenceImageUrl;
+        if (typeof referenceImageUrl === 'string' && /^https?:\/\//i.test(referenceImageUrl)) {
+            // picker.setImage() fires onSelect, which updates the model button
+            // (#model-btn-label) — wait until the studio is in the document.
+            let tries = 0;
+            const applyReference = () => {
+                if (!document.getElementById('model-btn-label') && tries++ < 120) {
+                    requestAnimationFrame(applyReference);
+                    return;
+                }
+                try { picker.setImage(referenceImageUrl); } catch (err) { console.warn('[ImageStudio] hand-off image not applied:', err); }
+            };
+            requestAnimationFrame(applyReference);
+        }
+    }
     if (prefill) {
         textarea.value = prefill;
-        localStorage.removeItem('prefill_prompt');
         requestAnimationFrame(() => {
             textarea.style.height = 'auto';
             const maxHeight = window.innerWidth < 768 ? 150 : 250;
@@ -423,7 +469,7 @@ export function ImageStudio() {
             }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
-      openRecipeModal().catch(() => {});
+          openImageRecipes();
         } else if (action === 'monetize') {
       openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
@@ -557,6 +603,88 @@ export function ImageStudio() {
     toolsBtn.className = 'btn-action-secondary shrink-0';
     toolsBtn.setAttribute('data-tooltip', 'Quick starters & prompt enhancer');
     controlsLeft.appendChild(toolsBtn);
+
+    // Draw / sketch a reference image (or hand it to Video Studio as a start frame).
+    const drawBtn = document.createElement('button');
+    drawBtn.type = 'button';
+    drawBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg> <span class="text-xs font-bold text-white group-hover:text-primary transition-colors">Draw</span>`;
+    drawBtn.className = 'btn-action-secondary shrink-0';
+    drawBtn.setAttribute('data-tooltip', 'Sketch a reference for the model to follow');
+    drawBtn.addEventListener('click', () => openDrawModal({
+        backgroundUrl: uploadedImageUrls[0] || undefined,
+        onDone: async (file, { destination } = {}) => {
+            try {
+                const { uploadFileToStorage } = await import('../lib/uploadService.js');
+                const uploaded = await uploadFileToStorage(file);
+                const url = typeof uploaded === 'string' ? uploaded : uploaded?.url;
+                if (!url) throw new Error('upload returned no URL');
+                if (destination === 'video') {
+                    try { localStorage.setItem('video_prefill_start_frame', url); } catch { /* ignore */ }
+                    const { navigate } = await import('../lib/router.js');
+                    navigate('video');
+                    return;
+                }
+                picker.setImage(url);
+                showToast('Sketch added as reference', 'success');
+            } catch (err) {
+                showToast('Sketch upload failed: ' + (err.message || 'try again'), 'error');
+            }
+        },
+    }));
+    controlsLeft.appendChild(drawBtn);
+
+    // Effect type, for models that take a named effect preset.
+    const effectBtn = createControlBtn(`
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M12 2l2.39 6.95H22l-6.19 4.5L18.18 22 12 17.5 5.82 22l2.37-8.55L2 8.95h7.61L12 2z"/></svg>
+    `, 'Effect', 'effect-btn', 'Effect type');
+    effectBtn.style.display = 'none';
+    const setEffectLabel = (text) => { const l = effectBtn.querySelector('#effect-btn-label'); if (l) l.textContent = text; };
+    let menuSpec = null; // items for the generic 'menu' dropdown
+    effectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (dropdownOpen === 'menu') { closeDropdown(); return; }
+        const model = getExtendedModel(imageMode ? getI2IModelById(selectedModel) : getModelById(selectedModel));
+        const options = model?.inputs?.name?.enum || [];
+        menuSpec = { title: 'Effect', items: options.map((name) => ({ label: name, selected: name === selectedEffect, onSelect: () => { selectedEffect = name; setEffectLabel(name); } })) };
+        dropdownOpen = 'menu';
+        showDropdown('menu', effectBtn);
+        if (dropdown._outsideClickHandler) window.removeEventListener('click', dropdown._outsideClickHandler);
+        dropdown._outsideClickHandler = () => closeDropdown();
+        window.addEventListener('click', dropdown._outsideClickHandler);
+    });
+    controlsLeft.insertBefore(effectBtn, thumbBtn);
+
+    // Face image, for face-swap models.
+    const swapSlot = createMediaSlot({
+        icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></svg>',
+        title: 'Swap face image',
+        onFiles: async ([file]) => {
+            swapSlot.setProgress(1);
+            try {
+                swapUrl = await muapi.uploadFile(file, { onProgress: (p) => swapSlot.setProgress(Math.min(99, p)) });
+                swapSlot.setPreview(swapUrl);
+            } catch (err) {
+                showToast(`Upload failed: ${err.message || 'try again'}`, 'error', 5000);
+            } finally {
+                swapSlot.setProgress(100);
+            }
+        },
+        onClear: () => { swapUrl = null; },
+    });
+    swapSlot.el.classList.add('hidden');
+    topRow.insertBefore(swapSlot.el, textarea);
+
+    // Show the effect and face controls only for models that take them.
+    syncImageModelExtras = () => {
+        const model = getExtendedModel(imageMode ? getI2IModelById(selectedModel) : getModelById(selectedModel));
+        const effects = model?.inputs?.name?.enum || [];
+        effectBtn.style.display = effects.length ? 'flex' : 'none';
+        if (!effects.includes(selectedEffect)) { selectedEffect = effects[0] || null; setEffectLabel(selectedEffect || 'Effect'); }
+        const needsSwap = !!(imageMode && model?.swapField);
+        swapSlot.el.classList.toggle('hidden', !needsSwap);
+        if (!needsSwap) { swapUrl = null; swapSlot.setPreview(null); }
+    };
+    syncImageModelExtras();
 
     // Personalize button + inline popover (shared module)
     const personalizeHandle = mountPersonalizeTrigger({
@@ -894,6 +1022,8 @@ generateBtn.type = 'button';
             const resolved = isImageMode ? getI2IModelById(modelId) : getModelById(modelId);
             dynamicControls.update(getExtendedModel(resolved));
         }
+        syncImageModelExtras();
+        saveSettings();
     };
 
     // Open the upstream split-pane picker (provider sidebar, search, categories).
@@ -955,6 +1085,7 @@ generateBtn.type = 'button';
                 item.onclick = (e) => {
                     e.stopPropagation();
                     selectedAr = r;
+                    saveSettings();
                     document.getElementById('ar-btn-label').textContent = r;
                     closeDropdown();
                 };
@@ -980,6 +1111,26 @@ generateBtn.type = 'button';
                     e.stopPropagation();
                     document.getElementById('quality-btn-label').textContent = opt;
                     closeDropdown();
+                };
+                list.appendChild(item);
+            });
+            dropdown.appendChild(list);
+        } else if (type === 'menu' && menuSpec) {
+            // Simple option list (Source workflows, effect presets).
+            dropdown.classList.add('max-w-[260px]');
+            dropdown.innerHTML = `<div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 border-b border-white/5 mb-2"></div>`;
+            dropdown.firstElementChild.textContent = menuSpec.title;
+            const list = document.createElement('div');
+            list.className = 'flex flex-col gap-1 max-h-[50vh] overflow-y-auto custom-scrollbar';
+            menuSpec.items.forEach((opt) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group';
+                item.innerHTML = `<span class="text-xs font-bold text-white opacity-80 group-hover:opacity-100"></span>${opt.selected ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}`;
+                item.firstElementChild.textContent = opt.label;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    closeDropdown();
+                    opt.onSelect();
                 };
                 list.appendChild(item);
             });
@@ -1313,6 +1464,10 @@ generateBtn.type = 'button';
                 showInlineError(container, 'Please upload a reference image first.');
                 return;
             }
+            if (getI2IModelById(selectedModel)?.swapField && !swapUrl) {
+                showInlineError(container, 'Please upload a swap face image first.');
+                return;
+            }
         } else {
             if (!prompt) {
                 showInlineError(container, 'Please enter a prompt to generate an image.');
@@ -1353,6 +1508,8 @@ generateBtn.type = 'button';
                     ...dynamicPayload
                 };
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
+                if (swapUrl) genParams.swap_url = swapUrl;
+                if (selectedEffect) genParams.name = selectedEffect;
                 if (prompt) genParams.prompt = prompt;
                 if (batchCount > 1) genParams.batch_count = batchCount;
                 if (selectedLora) genParams.lora = selectedLora;
@@ -1381,6 +1538,7 @@ generateBtn.type = 'button';
                 };
                 if (selectedStyle && selectedStyle !== 'None' && supportsStyleParam) genParams.style = selectedStyle;
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
+                if (selectedEffect) genParams.name = selectedEffect;
                 if (batchCount > 1) genParams.batch_count = batchCount;
                 if (selectedLora) genParams.lora = selectedLora;
                 if (loraWeight !== 1.0) genParams.lora_weight = loraWeight;

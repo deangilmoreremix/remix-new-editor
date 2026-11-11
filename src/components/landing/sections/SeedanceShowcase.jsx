@@ -18,6 +18,7 @@ import {
   injectMinimaxStyles,
   sectionHeading,
   createViewPromptButton,
+  createPersonalizeButton,
   createStyleLink,
   createStudioIcon,
   metaPill,
@@ -78,6 +79,7 @@ function createGalleryCard(demo) {
     loadPrompt: loadDemoPrompt,
     model: SEEDANCE_MODEL,
   }));
+  primaryActions.appendChild(createPersonalizeButton(demo, { loadPrompt: loadDemoPrompt }));
   primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video', getTarget: getCreateTarget, loadPrompt: loadDemoPrompt, model: SEEDANCE_MODEL }));
 
   const target = getCreateTarget(demo);
