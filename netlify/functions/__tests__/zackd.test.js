@@ -48,15 +48,14 @@ describe('zackd prompts', () => {
     expect(parseJsonLoose('nope')).toBeNull();
   });
 
-  it('builds prompts with anchors, look and negatives', () => {
+  it('builds upstream prompts; extras (look, consistency boost) are opt-in', () => {
     const map = normalizeBeats(llmMap, { topic: 'Gum' });
-    const p = keyframePrompt(map.beats[0].shots[0], map.character_sheets, { look: 'glass' });
-    expect(p).toContain('Boy swallows gum');
-    expect(p).toContain('boy sheet: Boy in blue shirt');
-    expect(p).toContain('semi-translucent');
-    expect(p).toContain('Avoid:');
-    expect(characterSheetPrompt(map.character_sheets[1])).toContain('turnaround sheet');
-    expect(clipPrompt({ camera_move: 'push_in', scene_description: 'X' })).toBe('Smooth 3D animation, camera movement push in. X');
+    const p = keyframePrompt(map.beats[0].shots[0], map.character_sheets);
+    expect(p).toBe('Stylized 3D render, Zack D Films visual aesthetic, plasticine clay subsurface scattering: Boy swallows gum, in Zack D 3D stylized animation render style, smooth plasticine shader, dramatic studio key light, vibrant rim lighting, subsurface scattering, macro depth of field. Anchored on character sheet refs: boy_sheet.');
+    expect(keyframePrompt(map.beats[0].shots[0], map.character_sheets, { boost: true })).toContain('Keep these consistent: boy sheet: Boy in blue shirt.');
+    expect(keyframePrompt(map.beats[0].shots[0], map.character_sheets, { look: 'glass' })).toContain('semi-translucent');
+    expect(characterSheetPrompt(map.character_sheets[1])).toContain('turnaround sheet, front view, side profile view, and 3/4 angle view of gut, stylized 3D digital art style');
+    expect(clipPrompt({ camera_move: 'push_in', scene_description: 'X' })).toBe('Smooth 3D animation, camera movement push_in. Smooth 3D motion, X');
     expect(ttsPayload({ text: ' hi ', voice: 'evil', speed: 9 })).toMatchObject({ text: 'hi', voice_id: 'Casual_Guy', speed: 2 });
   });
 });

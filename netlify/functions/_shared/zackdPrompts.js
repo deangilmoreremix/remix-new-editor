@@ -64,8 +64,9 @@ export const CAPTION_THEMES = [
 export const DEFAULT_CAPTION_LANGUAGE = 'English';
 export const DEFAULT_CAPTION_THEME = 'Hormozi_1';
 
+export const UPSTREAM_VOICE = 'male_doc_fast'; // upstream's voice_id; not listed in MuAPI's tables, so offered but not the default
 export const TTS_VOICES = [
-  'Casual_Guy', 'Deep_Voice_Man', 'Friendly_Person', 'Patient_Man', 'Determined_Man', 'Decent_Boy',
+  'Casual_Guy', UPSTREAM_VOICE, 'Deep_Voice_Man', 'Friendly_Person', 'Patient_Man', 'Determined_Man', 'Decent_Boy',
   'Wise_Woman', 'Calm_Woman', 'Lively_Girl', 'Inspirational_girl', 'Exuberant_Girl', 'Sweet_Girl_2',
 ];
 export const DEFAULT_VOICE = 'Casual_Guy';
@@ -79,31 +80,41 @@ export const SEED_TOPICS = [
   { topic: "What Happens If You Don't Sleep For 3 Days", hook: 'After 72 hours without sleep, your brain starts consuming its own synapses.', category: 'Health / Sleep' },
 ];
 
-const STYLE_LOOK = 'stylized 3D animation render, smooth glossy plasticine shader with subtle subsurface scattering, crisp ambient occlusion';
-const NEGATIVE = 'Avoid: photorealistic human skin, realistic face photography, 2D illustration, flat vector art, sketch, anime, low resolution, grainy texture, blurry details.';
+// ---- Upstream prompt strings ------------------------------------------------------------------------------------------
+// Verbatim from scripts/provider.py, character_sheets.py, keyframes.py and clips.py of
+// Anil-matcha/zack-d-films-ai-video-generator. __tests__/fixtures/upstream-fixtures.json pins them.
+// provider.generate_image prefixes EVERY image prompt (sheets and keyframes) with this:
+export const IMAGE_PREFIX = 'Stylized 3D render, Zack D Films visual aesthetic, plasticine clay subsurface scattering: ';
+const SHEET_STYLE = 'stylized 3D digital art style, smooth plasticine shader, clean light grey background, octane render, studio lighting, zero shadows.';
+const KEYFRAME_STYLE = 'in Zack D 3D stylized animation render style, smooth plasticine shader, dramatic studio key light, vibrant rim lighting, subsurface scattering, macro depth of field.';
 
-/** Selectable look presets for Gate 2 (look selection). */
+/** Looks: "plasticine" IS upstream. The others are our additions (opt-in, off by default). */
 export const LOOKS = {
-  plasticine: {
-    label: 'Plasticine clay',
-    style: STYLE_LOOK,
-    lighting: 'dramatic blue rim light, soft top studio key light, volumetric studio lighting',
-    background: 'dark clean studio background, subtle ambient particles',
-  },
+  plasticine: { label: 'Plasticine clay (upstream)', sheetStyle: SHEET_STYLE, keyframeStyle: KEYFRAME_STYLE },
   glass: {
     label: 'Translucent glass',
-    style: 'stylized 3D animation render, semi-translucent glossy tissue, glass-like specular highlights, crisp ambient occlusion',
-    lighting: 'vibrant magenta and teal rim light, bright interior glow',
-    background: 'deep blue studio space, soft bokeh',
+    sheetStyle: 'stylized 3D digital art style, semi-translucent glossy tissue, clean light grey background, octane render, studio lighting, zero shadows.',
+    keyframeStyle: 'in Zack D 3D stylized animation render style, semi-translucent glossy tissue, vibrant magenta and teal rim lighting, bright interior glow, subsurface scattering, macro depth of field.',
   },
   bright: {
     label: 'Bright toy studio',
-    style: 'stylized 3D animation render, clean polymer clay shader, soft shadows, saturated colors',
-    lighting: 'bright high-key studio lighting, gentle rim light',
-    background: 'light grey seamless studio background',
+    sheetStyle: 'stylized 3D digital art style, clean polymer clay shader, clean light grey background, octane render, soft studio lighting, zero shadows.',
+    keyframeStyle: 'in Zack D 3D stylized animation render style, clean polymer clay shader, bright high-key studio lighting, saturated colors, macro depth of field.',
   },
 };
 export const DEFAULT_LOOK = 'plasticine';
+
+/**
+ * Optional behaviours. The defaults reproduce upstream: assemble.py keeps every clip's own audio, uses each clip's
+ * real length, and never mixes narration or music. Everything else is OUR extension.
+ */
+export const DEFAULT_EXTRAS = {
+  keepClipAudio: true, // upstream: always
+  mixVoice: false, // extension: mix generated narration/music into the cut (turns on by itself once they exist)
+  trimToPlanned: false, // extension: cut each clip to its planned shot length (2-4 s) instead of its real length
+  consistencyBoost: false, // extension: add the character sheet descriptions to the image prompts
+};
+
 
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 const str = (v, max) => String(v ?? '').trim().slice(0, max);
@@ -216,38 +227,32 @@ export const totalDuration = (map) => allShots(map).reduce((n, s) => n + s.durat
 
 const lookOf = (look) => LOOKS[look] || LOOKS[DEFAULT_LOOK];
 
-/** Orthographic turnaround sheet prompt for a recurring character/object. */
-export function characterSheetPrompt(sheet, { look = DEFAULT_LOOK } = {}) {
-  const l = lookOf(look);
-  const label = String(sheet?.description || sheet?.id || 'character').slice(0, 300);
-  return `Orthographic 3D character turnaround sheet, front view, side profile view, and 3/4 angle view of ${label}, ${l.style}, clean light grey background, studio lighting, zero shadows. ${NEGATIVE}`;
+/** Orthographic turnaround sheet prompt (character_sheets.py + provider prefix). Aspect: 16:9. */
+export function characterSheetPrompt(sheet, { look = DEFAULT_LOOK, boost = false } = {}) {
+  const name = String(sheet?.id || 'character').replace(/_/g, ' ');
+  const label = boost && sheet?.description ? `${name} (${String(sheet.description).slice(0, 300)})` : name;
+  return `${IMAGE_PREFIX}Orthographic 3D character turnaround sheet, front view, side profile view, and 3/4 angle view of ${label}, ${lookOf(look).sheetStyle}`;
 }
 
-/** 5-part keyframe prompt: subject, character anchor, style, lighting/camera, background. */
-export function keyframePrompt(shot, sheets = [], { look = DEFAULT_LOOK } = {}) {
-  const l = lookOf(look);
-  const byId = Object.fromEntries((sheets || []).map((s) => [s.id, s]));
-  const anchors = (shot.character_refs || [])
-    .map((id) => byId[id]?.description && `${id.replace(/_/g, ' ')}: ${byId[id].description}`)
-    .filter(Boolean);
-  const camera = shot.type === 'wide'
-    ? 'wide establishing shot, 35mm lens'
-    : 'macro 85mm lens, extreme close-up, shallow depth of field, cross-section cutaway view';
-  return [
-    shot.scene_description,
-    anchors.length ? `Keep these exactly consistent with their reference sheets: ${anchors.join('; ')}.` : null,
-    `${l.style}.`,
-    `${l.lighting}, ${camera}.`,
-    `${l.background}.`,
-    NEGATIVE,
-  ].filter(Boolean).join(' ');
+/** Keyframe prompt (keyframes.py + provider prefix). Aspect: the beat map's (9:16). */
+export function keyframePrompt(shot, sheets = [], { look = DEFAULT_LOOK, boost = false } = {}) {
+  let p = `${shot.scene_description}, ${lookOf(look).keyframeStyle}`;
+  const refs = shot.character_refs || [];
+  if (refs.length) p += ` Anchored on character sheet refs: ${refs.join(', ')}.`;
+  if (boost) {
+    const byId = Object.fromEntries((sheets || []).map((x) => [x.id, x]));
+    const details = refs.map((id) => byId[id]?.description && `${id.replace(/_/g, ' ')}: ${byId[id].description}`).filter(Boolean);
+    if (details.length) p += ` Keep these consistent: ${details.join('; ')}.`;
+  }
+  return IMAGE_PREFIX + p;
 }
 
+/** Veo prompt (provider.animate_image wrapping clips.py's motion prompt); camera_move is used raw (e.g. push_in). */
 export function clipPrompt(shot) {
-  return `Smooth 3D animation, camera movement ${String(shot.camera_move || 'push_in').replace(/_/g, ' ')}. ${shot.scene_description}`;
+  return `Smooth 3D animation, camera movement ${shot.camera_move || 'push_in'}. Smooth 3D motion, ${shot.scene_description}`;
 }
 
-/** Narration TTS payload for MuAPI (minimax-speech-2.6-turbo). */
+/** Narration TTS payload (provider.clone_voice_and_tts: text, voice_id, speed 1.1). `prompt` is kept for MuAPI compatibility. */
 export function ttsPayload({ text, voice, speed } = {}) {
   const v = TTS_VOICES.includes(voice) ? voice : DEFAULT_VOICE;
   const t = String(text || '').trim();

@@ -60,7 +60,7 @@ describe('ZackDStudio flow', () => {
     await click(root, 'keyframe(s)');
     const kf = calls.filter((c) => c.kind === 'image' && c.aspect === '9:16');
     expect(kf).toHaveLength(3);
-    expect(kf[0].prompt).toContain('Boy in blue shirt'); // character anchor is carried into keyframes
+    expect(kf[0].prompt).toContain('Anchored on character sheet refs: boy'); // upstream's anchor sentence
     await click(root, 'Approve keyframes');
     // clips use the keyframe URLs
     await click(root, 'clip(s)');
@@ -76,7 +76,7 @@ describe('ZackDStudio flow', () => {
     await click(root, 'Assemble video');
     const args = runAssembly.mock.calls[0][0];
     expect(args.clips).toHaveLength(3);
-    expect(args.clips[0]).toMatchObject({ zoom: true, duration: 3 });
+    expect(args.clips[0]).toMatchObject({ zoom: true, planned: 3 });
     expect(args.narrationUrl).toMatch(/tts/);
     expect(root.querySelector('video')).toBeTruthy();
     await click(root, 'Save to library');

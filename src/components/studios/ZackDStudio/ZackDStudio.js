@@ -14,7 +14,7 @@ import { TEMPLATES, TEMPLATE_ATTRIBUTION, templateToProject } from '../../../lib
 import {
   SEED_TOPICS, LOOKS, DEFAULT_LOOK, TTS_VOICES, DEFAULT_VOICE, DEFAULT_TTS_SPEED,
   CAPTION_LANGUAGES, CAPTION_THEMES, DEFAULT_CAPTION_LANGUAGE, DEFAULT_CAPTION_THEME,
-  characterSheetPrompt, keyframePrompt, clipPrompt, narrationText, allShots, totalDuration,
+  characterSheetPrompt, keyframePrompt, clipPrompt, narrationText, allShots, totalDuration, DEFAULT_EXTRAS,
 } from '../../../../netlify/functions/_shared/zackdPrompts.js';
 
 const STORE_KEY = 'zackd_project_v1';
@@ -27,7 +27,7 @@ const STAGES = [
 const blank = () => ({
   stage: 'topic', topic: '', map: null, look: DEFAULT_LOOK, sheets: {}, shots: {},
   voice: DEFAULT_VOICE, speed: DEFAULT_TTS_SPEED, narration: null, music: null, final: null,
-  captionLang: DEFAULT_CAPTION_LANGUAGE, captionTheme: DEFAULT_CAPTION_THEME, keepClipAudio: true,
+  captionLang: DEFAULT_CAPTION_LANGUAGE, captionTheme: DEFAULT_CAPTION_THEME, ...DEFAULT_EXTRAS,
 });
 
 function load() {
@@ -128,11 +128,11 @@ export function ZackDStudio() {
   }
 
   const genSheet = async (sheet) => {
-    const r = await runJob({ kind: 'image', aspect: '16:9', prompt: characterSheetPrompt(sheet, { look: s.look }) }, { signal: abort.signal });
+    const r = await runJob({ kind: 'image', aspect: '16:9', prompt: characterSheetPrompt(sheet, { look: s.look, boost: s.consistencyBoost }) }, { signal: abort.signal });
     s.sheets[sheet.id] = { url: r.url }; save(); render();
   };
   const genKeyframe = async (shot) => {
-    const r = await runJob({ kind: 'image', aspect: '9:16', prompt: keyframePrompt(shot, sheetList(), { look: s.look }) }, { signal: abort.signal });
+    const r = await runJob({ kind: 'image', aspect: '9:16', prompt: keyframePrompt(shot, sheetList(), { look: s.look, boost: s.consistencyBoost }) }, { signal: abort.signal });
     s.shots[shot.shot_id] = { ...(s.shots[shot.shot_id] || {}), keyframe: r.url, clip: null }; save(); render();
   };
   const genClip = async (shot) => {
@@ -143,11 +143,11 @@ export function ZackDStudio() {
   };
   const genNarration = async () => {
     const r = await runJob({ kind: 'tts', text: narrationText(s.map), voice: s.voice, speed: s.speed }, { signal: abort.signal });
-    s.narration = r.url; save(); render();
+    s.narration = r.url; s.mixVoice = true; save(); render(); // a generated voice goes into the cut unless switched off
   };
   const genMusic = async () => {
     const r = await runJob({ kind: 'music', prompt: `Underscore for a short about: ${s.topic}`, duration: Math.ceil(totalDuration(s.map)) + 5 }, { signal: abort.signal });
-    s.music = r.url; save(); render();
+    s.music = r.url; s.mixVoice = true; save(); render();
   };
 
   async function assemble() {
@@ -158,8 +158,8 @@ export function ZackDStudio() {
     busy = true; error = ''; render();
     try {
       const { blob, duration } = await runAssembly({
-        clips: shots.map((x) => ({ url: s.shots[x.shot_id].clip, duration: x.duration_sec, zoom: x.zoom_impact })),
-        narrationUrl: s.narration, musicUrl: s.music, keepClipAudio: s.keepClipAudio !== false, transition: DEFAULT_TRANSITION_SEC, signal: abort.signal,
+        clips: shots.map((x) => ({ url: s.shots[x.shot_id].clip, planned: x.duration_sec, zoom: x.zoom_impact })),
+        narrationUrl: s.narration, musicUrl: s.music, keepClipAudio: s.keepClipAudio !== false, mixVoice: !!s.mixVoice, trimToPlanned: !!s.trimToPlanned, transition: DEFAULT_TRANSITION_SEC, signal: abort.signal,
         onProgress: (phase, p) => say(phase === 'encode' ? `Encoding ${Math.round(p * 100)}%` : phase === 'download' ? 'Downloading clips…' : 'Loading encoder…'),
       });
       if (s.final?.objectUrl) URL.revokeObjectURL(s.final.objectUrl);
@@ -413,12 +413,19 @@ export function ZackDStudio() {
     box.appendChild(el('p', 'text-sm text-secondary', 'Assembly runs in your browser: crossfades and wipes between shots, impact zooms, narration with music ducked underneath. It can take a minute or two.'));
     const hasAudio = !!s.narration;
     // Keep each clip's own (Veo) sound: full volume on its own, ducked under narration.
-    const keepRow = el('label', 'flex items-center gap-2 text-sm text-white/80 cursor-pointer');
-    const keep = el('input'); keep.type = 'checkbox'; keep.checked = s.keepClipAudio !== false; keep.id = 'zackd-keep-clip-audio';
-    keep.onchange = () => { s.keepClipAudio = keep.checked; save(); };
-    keepRow.append(keep, el('span', '', "Keep the clips' own sound (Veo audio), quieter under narration"));
-    box.appendChild(keepRow);
-    if (!hasAudio) box.appendChild(el('p', 'text-xs text-muted', s.keepClipAudio === false ? 'No narration and clip sound is off, so the video will be silent.' : 'No narration yet. The cut will use the clips\' own sound.'));
+    // Upstream-faithful by default: real clip lengths, each clip's own sound, no narration/music mix.
+    const extra = (key, id, label, hint) => {
+      const row = el('label', 'flex items-center gap-2 text-sm text-white/80 cursor-pointer');
+      const box2 = el('input'); box2.type = 'checkbox'; box2.checked = key === 'keepClipAudio' ? s.keepClipAudio !== false : !!s[key]; box2.id = id;
+      box2.onchange = () => { s[key] = box2.checked; save(); };
+      row.append(box2, el('span', '', label));
+      if (hint) row.title = hint;
+      box.appendChild(row);
+    };
+    extra('keepClipAudio', 'zackd-keep-clip-audio', "Keep the clips' own sound (Veo audio)", 'Upstream always keeps it');
+    extra('mixVoice', 'zackd-mix-voice', 'Mix in the narration and music I generated', 'Extra: upstream generates them but never mixes them into the video');
+    extra('trimToPlanned', 'zackd-trim-planned', 'Trim each clip to its planned 2-4 s shot length', 'Extra: upstream uses each clip at its full length');
+    if (!hasAudio) box.appendChild(el('p', 'text-xs text-muted', s.keepClipAudio === false ? 'No narration and clip sound is off, so the video will be silent.' : 'The cut uses the clips\' own sound, like upstream.'));
     const go = el('button', BTN_MAIN, s.final ? 'Re-assemble' : 'Assemble video'); go.disabled = busy; go.onclick = assemble;
     box.appendChild(go);
     if (s.final) {
