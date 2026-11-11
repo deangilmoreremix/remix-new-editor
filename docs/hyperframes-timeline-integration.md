@@ -117,3 +117,5 @@ Full vitest: pristine 193 failing / 8 files; integration 193 failing in the same
 
 ## Viewing it on a preview deploy
 HyperFrames is off by default. On a preview, open the app, then in the browser console run `localStorage.setItem('remix.hyperframes.v1','1')` and reload. The Edit tab's "Add overlay…" menu then shows "HyperFrames animations…". Emergency off: `localStorage.setItem('remix.hyperframes.kill','1')`.
+
+Preview build trigger note: PR #90 now targets develop so Netlify builds a Deploy Preview.
