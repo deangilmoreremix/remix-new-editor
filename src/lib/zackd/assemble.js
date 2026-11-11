@@ -139,6 +139,15 @@ export function buildSrt(beats, { transition = DEFAULT_TRANSITION_SEC } = {}) {
   return out.join('\n');
 }
 
+const ENCODER_LOAD_TIMEOUT_MS = 90_000;
+
+/** Reject with `message` if `promise` has not settled after `ms` (a stuck encoder load must not spin forever). */
+export function withTimeout(promise, ms, message) {
+  let timer;
+  const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms); });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 async function fetchBytes(url, signal) {
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`Could not download ${url.slice(0, 60)}… (${res.status})`);
@@ -165,10 +174,12 @@ export async function runAssembly({ clips, narrationUrl, musicUrl, keepClipAudio
   const ff = new FFmpeg();
   ff.on('progress', ({ progress }) => onProgress?.('encode', Math.min(1, Math.max(0, progress))));
   onProgress?.('load', 0);
-  await ff.load({
-    coreURL: await toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
-  });
+  await withTimeout((async () => {
+    await ff.load({
+      coreURL: await toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
+      wasmURL: await toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
+    });
+  })(), ENCODER_LOAD_TIMEOUT_MS, 'The video encoder could not be loaded. Check your connection and try again.');
 
   const args = [];
   const probed = clips.map((c) => ({ ...c }));

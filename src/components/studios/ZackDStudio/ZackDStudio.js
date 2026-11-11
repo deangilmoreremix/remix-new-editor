@@ -41,8 +41,8 @@ const el = (tag, cls = '', text = '') => {
   return n;
 };
 // Shared studio look: neutral white-alpha surfaces; `primary` (neon) only on the main CTA / active step, always with black text.
-const BTN = 'px-4 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed';
-const BTN_MAIN = 'bg-primary text-black px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 border border-primary/10 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
+const BTN = 'w-fit px-4 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed';
+const BTN_MAIN = 'w-fit bg-primary text-black px-6 py-2.5 rounded-full font-bold text-sm hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 border border-primary/10 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
 const CARD = 'rounded-lg border border-white/10 bg-panel-bg p-3 shadow-xl hover:border-primary/50 transition-colors';
 const FIELD = 'rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-primary/45 transition-colors';
 const FIELD_SM = 'rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-white outline-none focus:border-primary/45 transition-colors';
@@ -63,6 +63,7 @@ export function ZackDStudio() {
   let error = '';
   let log = '';
   let progress = 0;
+  let shownError = '';
 
   const save = () => {
     // `final` holds a Blob + object URL that die with the page; everything else survives a reload.
@@ -90,7 +91,7 @@ export function ZackDStudio() {
     const failed = results.filter((r) => !r.ok);
     const fatal = failed.find((r) => r.error?.code === 'need_key' || r.error?.code === 'bad_key');
     if (fatal) error = fatal.error.message;
-    else if (failed.length) error = `${failed.length} of ${items.length} failed: ${failed[0].error?.message || 'error'}. Use Regenerate to retry them.`;
+    else if (failed.length) error = `${failed.length} of ${items.length} failed: ${String(failed[0].error?.message || 'error').replace(/[.\s]+$/, '')}. Use Regenerate to retry them.`;
     if (error) showToast(error, 'error');
     else showToast(`${label} ready`, 'success', 2500);
     save(); render();
@@ -308,7 +309,7 @@ export function ZackDStudio() {
     box.appendChild(lookRow);
 
     const sheets = sheetList();
-    const sheetBtn = el('button', BTN_MAIN, `Generate ${sheets.filter((x) => !s.sheets[x.id]).length || 'all'} character sheet(s)`);
+    const sheetBtn = el('button', BTN_MAIN, (sheets.filter((x) => !s.sheets[x.id]).length ? `Generate ${sheets.filter((x) => !s.sheets[x.id]).length} character sheet(s)` : 'Regenerate all character sheet(s)'));
     sheetBtn.disabled = busy;
     sheetBtn.onclick = () => {
       const todo = sheets.filter((x) => !s.sheets[x.id]);
@@ -329,7 +330,7 @@ export function ZackDStudio() {
 
     const shots = shotList();
     const todo = shots.filter((x) => !s.shots[x.shot_id]?.keyframe);
-    const kfBtn = el('button', BTN_MAIN, `Generate ${todo.length || 'all'} keyframe(s)`); kfBtn.disabled = busy;
+    const kfBtn = el('button', BTN_MAIN, (todo.length ? `Generate ${todo.length} keyframe(s)` : 'Regenerate all keyframe(s)')); kfBtn.disabled = busy;
     kfBtn.onclick = () => batch('Keyframes', todo.length ? todo : shots, genKeyframe, { confirmText: `Generate ${(todo.length || shots.length)} keyframe image(s)?` });
     box.appendChild(kfBtn);
     const kg = el('div', 'grid gap-3 grid-cols-2 sm:grid-cols-4');
@@ -355,7 +356,7 @@ export function ZackDStudio() {
     const shots = shotList();
     const todo = shots.filter((x) => !s.shots[x.shot_id]?.clip);
     box.appendChild(el('p', 'text-sm text-secondary', 'Animate each keyframe with Veo 3.1 (fast, with standard as fallback). Clips take a few minutes each and are the most expensive step.'));
-    const go = el('button', BTN_MAIN, `Generate ${todo.length || 'all'} clip(s)`); go.disabled = busy || !shots.every((x) => s.shots[x.shot_id]?.keyframe);
+    const go = el('button', BTN_MAIN, (todo.length ? `Generate ${todo.length} clip(s)` : 'Regenerate all clip(s)')); go.disabled = busy || !shots.every((x) => s.shots[x.shot_id]?.keyframe);
     go.onclick = () => batch('Clips', todo.length ? todo : shots, genClip, { confirmText: `Generate ${(todo.length || shots.length)} video clip(s) with Veo 3.1? This is the most expensive step.` });
     box.appendChild(go);
     const g = el('div', 'grid gap-3 grid-cols-2 sm:grid-cols-4');
@@ -489,10 +490,14 @@ export function ZackDStudio() {
       const label = bar.querySelector('.progress-label'); if (label) label.textContent = log;
       inner.appendChild(bar);
     }
-    if (error) { const e = el('div', 'rounded-xl border border-red-500/30 bg-red-500/10 text-red-300 px-3 py-2 text-sm', error); e.setAttribute('role', 'alert'); inner.appendChild(e); }
+    let alertEl = null;
+    if (error) { alertEl = el('div', 'rounded-xl border border-red-500/30 bg-red-500/10 text-red-300 px-3 py-2 text-sm', error); alertEl.setAttribute('role', 'alert'); inner.appendChild(alertEl); }
     inner.appendChild((s.stage !== 'topic' && !s.map ? viewTopic : VIEWS[s.stage] || viewTopic)());
     main.appendChild(inner);
     main.scrollTop = y;
+    // A failure on a long step (e.g. the final cut) must not hide off-screen at the top: bring a NEW error into view once.
+    if (alertEl && error !== shownError) alertEl.scrollIntoView?.({ block: 'nearest' });
+    shownError = error;
   }
 
   render();

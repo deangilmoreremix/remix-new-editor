@@ -39,7 +39,7 @@ async function click(root, text) {
 }
 
 describe('ZackDStudio flow', () => {
-  beforeEach(() => { localStorage.clear(); calls.length = 0; vi.spyOn(window, 'confirm').mockReturnValue(true); URL.createObjectURL = vi.fn(() => 'blob:x'); URL.revokeObjectURL = vi.fn(); });
+  beforeEach(() => { document.body.replaceChildren(); localStorage.clear(); calls.length = 0; vi.spyOn(window, 'confirm').mockReturnValue(true); URL.createObjectURL = vi.fn(() => 'blob:x'); URL.revokeObjectURL = vi.fn(); });
 
   it('walks topic → script → visuals → clips → audio → final cut', async () => {
     const root = ZackDStudio();
@@ -146,5 +146,17 @@ describe('ZackDStudio flow', () => {
     await click(root, 'Re-assemble');
     expect(runAssembly.mock.calls.at(-1)[0].keepClipAudio).toBe(false);
     expect(root.textContent).toMatch(/clip sound is off|The cut will use/);
+  });
+
+  it('a failed batch reads cleanly (no doubled period) and offers Regenerate', async () => {
+    const { runJob } = await import('../api.js');
+    const root = ZackDStudio(); document.body.appendChild(root);
+    root.querySelector('input').value = 'Gum'; root.querySelector('input').dispatchEvent(new Event('input'));
+    await click(root, 'Write script'); await click(root, 'Approve script');
+    runJob.mockRejectedValueOnce(new Error('The generation failed. Try again.'));
+    await click(root, 'character sheet');
+    const text = root.querySelector('[role=alert]').textContent;
+    expect(text).toBe('1 of 2 failed: The generation failed. Try again. Use Regenerate to retry them.');
+    expect(text).not.toMatch(/\.\./);
   });
 });

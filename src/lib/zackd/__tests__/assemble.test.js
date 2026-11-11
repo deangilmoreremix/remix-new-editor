@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildAssemblyPlan, buildSrt, TRANSITIONS } from '../assemble.js';
+import { buildAssemblyPlan, buildSrt, TRANSITIONS, withTimeout } from '../assemble.js';
 
 describe('buildAssemblyPlan', () => {
   const shots = [{ duration: 3, zoom: false }, { duration: 3, zoom: true }, { duration: 4, zoom: false }];
@@ -87,5 +87,13 @@ describe('buildSrt', () => {
     expect(srt).toContain('1\n00:00:00,000 --> 00:00:02,750\none two three four five six');
     expect(srt).toContain('2\n00:00:02,750 --> 00:00:05,500\nseven eight');
     expect(srt).toContain('3\n00:00:05,500 --> 00:00:09,000\nnext beat');
+  });
+});
+
+describe('withTimeout', () => {
+  it('rejects with a readable message when the work never finishes, and passes results through otherwise', async () => {
+    await expect(withTimeout(new Promise(() => {}), 20, 'encoder stuck')).rejects.toThrow('encoder stuck');
+    await expect(withTimeout(Promise.resolve(7), 1000, 'nope')).resolves.toBe(7);
+    await expect(withTimeout(Promise.reject(new Error('boom')), 1000, 'nope')).rejects.toThrow('boom');
   });
 });
