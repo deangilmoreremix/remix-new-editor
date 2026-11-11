@@ -124,7 +124,7 @@ describe('zackd function', () => {
     let f = reply({ status: 'processing' });
     expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: f }))).toEqual({ ok: true, status: 'pending' });
     expect(f.mock.calls[0][0]).toBe('https://api.muapi.ai/api/v1/predictions/req_abc1/result');
-    expect(f.mock.calls[0][1]).toEqual({ headers: { 'x-api-key': keys.muapi } }); // GET: no method/body
+    expect(f.mock.calls[0][1]).toEqual({ headers: { 'x-api-key': keys.muapi }, signal: expect.any(AbortSignal) }); // GET: no method/body, but time-boxed
     expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: reply({ status: 'failed' }) })).status).toBe('failed');
     expect(body(await handle({ action: 'status', requestId: 'req_abc1' }, 'u3', { keys, fetchImpl: reply({ status: 'completed', outputs: ['https://cdn.example.com/a.mp4'] }) }))).toEqual({ ok: true, status: 'done', url: 'https://cdn.example.com/a.mp4' });
     // sandbox/static placeholder assets are never reported as generated output
