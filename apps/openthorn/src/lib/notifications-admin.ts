@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { T } from './tables'
+import { apiUrl } from './api'
 
 export interface AdminNotificationRow {
   id: string
@@ -30,7 +31,7 @@ export async function adminSendNotification(draft: NotificationDraft): Promise<v
 
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) throw new Error('Not signed in')
-  const res = await fetch('/api/admin', {
+  const res = await fetch(apiUrl('admin'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
     body: JSON.stringify({ action: 'send-notification', text, timeLabel }),

@@ -51,6 +51,19 @@ describe('builder database names', () => {
     expect(offenders).toEqual([])
   })
 
+  it('server endpoints (api/) never use a bare table name in REST URLs', () => {
+    const API = join(SRC, '..', 'api')
+    const REST_BARE = new RegExp(`/rest/v1/(?:${[...TABLES, 'supabase_connections', 'project_migrations'].join('|')})(?![A-Za-z_])`, 'g')
+    const offenders: string[] = []
+    for (const name of readdirSync(API).filter((n) => n.endsWith('.ts'))) {
+      const text = readFileSync(join(API, name), 'utf8')
+      for (const match of text.matchAll(REST_BARE)) offenders.push(`api/${name}  ${match[0]}`)
+    }
+    expect(offenders).toEqual([])
+    expect('`${url}/rest/v1/projects?id=eq.1`'.match(REST_BARE)).not.toBeNull()
+    expect('`${url}/rest/v1/${TBL.projects}?id=eq.1`'.match(REST_BARE)).toBeNull()
+  })
+
   it('the guard itself catches the known bad forms', () => {
     for (const bad of [
       "supabase.from('projects')",
