@@ -1,20 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/audio/intelligence/clap.worker.ts), vendored.
 /// <reference lib="webworker" />
-import {
-  AutoProcessor,
-  ClapAudioModelWithProjection,
-  env,
-  type Processor,
-} from '@huggingface/transformers';
-import {
-  CLAP_EMBEDDING_DIMENSION,
-  CLAP_MODEL_ID,
-  CLAP_MODEL_REVISION,
-  CLAP_SAMPLE_RATE,
-  type ClapBackend,
-  type ClapWorkerRequest,
-  type ClapWorkerResponse,
-} from './clapTypes';
+import { AutoProcessor, ClapAudioModelWithProjection, env } from '@huggingface/transformers';
+import type { Processor } from '@huggingface/transformers';
+import { CLAP_EMBEDDING_DIMENSION, CLAP_MODEL_ID, CLAP_MODEL_REVISION, CLAP_SAMPLE_RATE } from './clapTypes';
+import type { ClapBackend, ClapWorkerRequest, ClapWorkerResponse } from './clapTypes';
 
 const WINDOW_SAMPLES = CLAP_SAMPLE_RATE * 10;
 const WINDOW_STEP_SAMPLES = CLAP_SAMPLE_RATE * 8;

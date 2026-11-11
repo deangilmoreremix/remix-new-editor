@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (src/audio/intelligence/clapClient.ts), vendored.
-import {
-  CLAP_EMBEDDING_DIMENSION,
-  CLAP_SAMPLE_RATE,
-  type ClapBackend,
-  type ClapWorkerRequest,
-  type ClapWorkerResponse,
-  type ClapWorkerResult,
-} from './clapTypes';
+import { CLAP_EMBEDDING_DIMENSION, CLAP_SAMPLE_RATE } from './clapTypes';
+import type { ClapBackend, ClapWorkerRequest, ClapWorkerResponse, ClapWorkerResult } from './clapTypes';
 import { resampleMonoSamples } from './audioDecode';
 // [remix] browser worker only (their native desktop adapter is not part of the web build)
 const createNativeClapWorker = (): Worker | null => null;
