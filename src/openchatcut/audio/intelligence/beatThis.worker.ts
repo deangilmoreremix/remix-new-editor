@@ -3,20 +3,8 @@
 import * as ort from 'onnxruntime-web/webgpu';
 // [remix] path adjusted for this repo layout (package exports block the bare specifier)
 import ortJsepWasmUrl from '../../../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm?url';
-import {
-  BEAT_THIS_BORDER_FRAMES,
-  BEAT_THIS_CHUNK_FRAMES,
-  BEAT_THIS_EMPTY_LOGIT,
-  BEAT_THIS_FFT_BINS,
-  BEAT_THIS_MEL_BINS,
-  BEAT_THIS_SAMPLE_RATE,
-  beatThisFrameCount,
-  beatThisWindowStarts,
-  preprocessBeatThisWindow,
-  type BeatThisLogits,
-  type BeatThisWindow,
-  type BeatThisWindowLogits,
-} from './beatThisPreprocess';
+import { BEAT_THIS_BORDER_FRAMES, BEAT_THIS_CHUNK_FRAMES, BEAT_THIS_EMPTY_LOGIT, BEAT_THIS_FFT_BINS, BEAT_THIS_MEL_BINS, BEAT_THIS_SAMPLE_RATE, beatThisFrameCount, beatThisWindowStarts, preprocessBeatThisWindow } from './beatThisPreprocess';
+import type { BeatThisLogits, BeatThisWindow, BeatThisWindowLogits } from './beatThisPreprocess';
 
 const REVISION = '4e971bd43753023e1bf961c34a0cb74985cfcb88';
 // [remix] their /api/hf-proxy is not part of this app: the user-initiated download goes straight to Hugging Face (pinned revision, size-checked below)

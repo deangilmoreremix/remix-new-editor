@@ -1264,6 +1264,22 @@ export default defineConfig({
         jsx: 'automatic',
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
     },
+    // Worker bundles are built by a separate pipeline that does not include plugin-react (which strips the types of .ts/.tsx here: the
+    // esbuild option above only covers .js/.jsx). Without this, a TypeScript worker such as
+    // src/openchatcut/audio/intelligence/clap.worker.ts reaches the worker parser untransformed and the production build fails.
+    worker: {
+        format: 'es',
+        plugins: () => [{
+            name: 'worker-typescript',
+            enforce: 'pre',
+            async transform(code, id) {
+                if (!/\.tsx?$/.test(id.split('?')[0]) || id.includes('node_modules')) return null;
+                const { transform } = await import('esbuild');
+                const out = await transform(code, { loader: id.split('?')[0].endsWith('x') ? 'tsx' : 'ts', sourcefile: id, sourcemap: true, target: 'esnext' });
+                return { code: out.code, map: out.map };
+            },
+        }],
+    },
     server: {
         host: '127.0.0.1',
         port: 3000,
