@@ -6,6 +6,21 @@
 
 import { BaseModal } from './BaseModal.jsx';
 import { supabase } from '../../lib/supabase.js';
+import { submitLead } from '../../lib/editor/addons/leadClient.js';
+
+const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Input id -> lead property. (The old handler derived the key from the id
+// and wrote "Firstname" / "Jobtitle", so those fields were never saved.)
+const FIELD_MAP = {
+  'first-name': 'firstName',
+  'last-name': 'lastName',
+  email: 'email',
+  phone: 'phone',
+  company: 'company',
+  'job-title': 'jobTitle',
+};
 
 export class LeadGeneratorModal extends BaseModal {
   constructor(options = {}) {
@@ -31,6 +46,7 @@ export class LeadGeneratorModal extends BaseModal {
       notes: '',
       tags: []
     };
+    this.status = { text: '', kind: '' };
     this.availableTags = ['Hot Lead', 'Cold Lead', 'Follow Up', 'Qualified', 'Demo Scheduled', 'Customer'];
   }
 
@@ -42,27 +58,27 @@ export class LeadGeneratorModal extends BaseModal {
           <div class="form-grid">
             <div class="form-group">
               <label for="first-name">First Name</label>
-              <input type="text" id="first-name" class="text-input" placeholder="John" value="${this.lead.firstName}">
+              <input type="text" id="first-name" class="text-input" placeholder="John" value="${esc(this.lead.firstName)}">
             </div>
             <div class="form-group">
               <label for="last-name">Last Name</label>
-              <input type="text" id="last-name" class="text-input" placeholder="Smith" value="${this.lead.lastName}">
+              <input type="text" id="last-name" class="text-input" placeholder="Smith" value="${esc(this.lead.lastName)}">
             </div>
             <div class="form-group full-width">
               <label for="email">Email *</label>
-              <input type="email" id="email" class="text-input" placeholder="john@company.com" value="${this.lead.email}" required>
+              <input type="email" id="email" class="text-input" placeholder="john@company.com" value="${esc(this.lead.email)}" required>
             </div>
             <div class="form-group">
               <label for="phone">Phone</label>
-              <input type="tel" id="phone" class="text-input" placeholder="+1 555-1234" value="${this.lead.phone}">
+              <input type="tel" id="phone" class="text-input" placeholder="+1 555-1234" value="${esc(this.lead.phone)}">
             </div>
             <div class="form-group">
               <label for="company">Company</label>
-              <input type="text" id="company" class="text-input" placeholder="Acme Corp" value="${this.lead.company}">
+              <input type="text" id="company" class="text-input" placeholder="Acme Corp" value="${esc(this.lead.company)}">
             </div>
             <div class="form-group full-width">
               <label for="job-title">Job Title</label>
-              <input type="text" id="job-title" class="text-input" placeholder="Marketing Manager" value="${this.lead.jobTitle}">
+              <input type="text" id="job-title" class="text-input" placeholder="Marketing Manager" value="${esc(this.lead.jobTitle)}">
             </div>
           </div>
         </div>
@@ -104,9 +120,11 @@ export class LeadGeneratorModal extends BaseModal {
           </div>
         </div>
 
+        <p class="lead-status lead-status--${this.status.kind || 'idle'}" id="lead-status" role="status" aria-live="polite">${esc(this.status.text)}</p>
+
         <div class="lead-notes-section">
           <h4>Notes</h4>
-          <textarea id="notes" class="form-textarea" placeholder="Add notes about this lead..." rows="3">${this.lead.notes}</textarea>
+          <textarea id="notes" class="form-textarea" placeholder="Add notes about this lead..." rows="3">${esc(this.lead.notes)}</textarea>
         </div>
       </div>
     `;
@@ -121,8 +139,7 @@ export class LeadGeneratorModal extends BaseModal {
       const input = this.content.querySelector(`#${id}`);
       if (input) {
         input.addEventListener('input', (e) => {
-          const field = id.replace('-', '');
-          this.lead[field.charAt(0).toUpperCase() + field.slice(1)] = e.target.value;
+          this.lead[FIELD_MAP[id]] = e.target.value;
         });
       }
     });
@@ -166,54 +183,60 @@ export class LeadGeneratorModal extends BaseModal {
     });
   }
 
+  setStatus(text, kind) {
+    this.status = { text, kind };
+    const el = this.content?.querySelector('#lead-status');
+    if (el) {
+      el.textContent = text;
+      el.className = `lead-status lead-status--${kind || 'idle'}`;
+    }
+  }
+
+  /** The lead as one answer-per-field object (same shape the video forms submit). */
+  toLeadData() {
+    const l = this.lead;
+    const entries = {
+      EMAIL: l.email,
+      'FIRST NAME': l.firstName,
+      'LAST NAME': l.lastName,
+      PHONE: l.phone,
+      COMPANY: l.company,
+      'JOB TITLE': l.jobTitle,
+      SOURCE: l.source,
+      TAGS: (l.tags || []).join(', '),
+      NOTES: l.notes,
+    };
+    return Object.fromEntries(Object.entries(entries).filter(([, v]) => String(v ?? '').trim()));
+  }
+
   async handleSave() {
-    if (!this.lead.email) {
-      
+    const email = String(this.lead.email || '').trim();
+    if (!EMAIL_RE.test(email)) {
+      this.setStatus('Enter a valid email address to save this lead.', 'error');
+      this.content?.querySelector('#email')?.focus();
       return;
     }
-
-    try {
-      // Send lead data to backend for email processing
-      const { data, error } = await supabase.functions.invoke('lead-processor', {
-        body: {
-          lead: {
-            ...this.lead,
-            id: Date.now(),
-            createdAt: new Date().toISOString()
-          },
-          action: 'capture',
-          personalizationData: this.personalizationData || {}
-        }
-      });
-
-      if (error) throw error;
-
-      // Send welcome email if personalization data exists
-      if (this.personalizationData) {
-        await supabase.functions.invoke('email-service', {
-          body: {
-            to: this.lead.email,
-            subject: 'Your Personalized Video Experience',
-            template: 'personalized_video_welcome',
-            personalizationData: this.personalizationData,
-            leadData: this.lead
-          }
-        });
-      }
-
-      this.onComplete?.({
-        ...this.lead,
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        emailSent: true
-      });
-
-      
-      this.close();
-
-    } catch (error) {
-      console.error('Lead processing error:', error);
-      
+    this.setStatus('Saving…', 'idle');
+    // Stored in public.video_leads through the lead-capture edge function, the
+    // same pipeline as the List Builder / Lead Generator forms. (The old code
+    // called "lead-processor" and "email-service", which don't exist.)
+    const res = await submitLead(supabase, {
+      projectId: null,
+      clipId: 'manual',
+      kind: 'lead-form',
+      data: this.toLeadData(),
+      preview: false,
+    });
+    if (res.error) {
+      this.setStatus(`Couldn't save this lead: ${res.error}`, 'error');
+      this.onError?.(res.error);
+      return;
     }
+    if (!res.stored) {
+      this.setStatus('Not saved — sign in to store leads.', 'error');
+      return;
+    }
+    this.onComplete?.({ ...this.lead, email, id: Date.now(), createdAt: new Date().toISOString() });
+    this.close();
   }
 }
