@@ -46,7 +46,9 @@ describe('Timeline Editor keyboard tool shortcuts', () => {
     // line — the shortcut must keep writing toolMap's value verbatim.
     expect(SOURCE).toContain('state.selectedTool = toolMap[toolKey]');
     expect(SOURCE).toContain("'x': 'mask'");
-    expect(SOURCE).toContain("showToast('Mask tool active — select a clip and open AI Tools to segment')");
+    // The toast now tells the user what the Mask tool really does (on-device SAM
+    // on the preview); the old text pointed at an "AI Tools" panel that no longer exists.
+    expect(SOURCE).toContain("showToast('Mask tool: click an object, or drag a box around it, on the preview')");
   });
 
   it('every shortcut selects a tool the toolbar actually knows', () => {

@@ -1150,3 +1150,13 @@
 .mc-mode.is-on { border-color: var(--cyan, #22d3ee); background: rgba(34, 211, 238, .12); }
 .mc-tracks, .mc-opts { display: grid; gap: 8px; }
 .mc-actions { display: grid; gap: 6px; }
+
+/* Connect Form call setup (number, country code, button text, call alert email) */
+.tpl-win__call { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; margin: 8px 0; font-size: 11px; }
+.tpl-win__call label { display: flex; flex-direction: column; gap: 3px; opacity: .9; }
+.tpl-win__call input { background: rgba(255,255,255,.06); color: inherit; border: 1px solid rgba(255,255,255,.18); border-radius: 6px; padding: 5px 7px; font: inherit; }
+
+/* Template Generator: Overlays step cards */
+.tg-overlay-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 10px; }
+.tg-overlay-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04); color: inherit; cursor: pointer; }
+.tg-overlay-card.is-selected { border-color: #22d3ee; background: rgba(34,211,238,.14); }

@@ -114,6 +114,29 @@
   status = 200
   force = true
 
+# Timeline Editor paid AI (MuAPI only, user's own key): Fill Gap, Extend,
+# layers, watermark removal. Submit + status polling.
+[[redirects]]
+  from = "/api/timeline-ai"
+  to = "/.netlify/functions/timeline-ai"
+  status = 200
+  force = true
+
+# Timeline Editor text AI (OpenAI Responses API, user's own key): chat modes,
+# storyboard, script breakdown, shot list, beat sheet.
+[[redirects]]
+  from = "/api/timeline-llm"
+  to = "/.netlify/functions/timeline-llm"
+  status = 200
+  force = true
+
+# Voice Director: mints an OpenAI Realtime client secret on the user's own key.
+[[redirects]]
+  from = "/api/timeline-voice"
+  to = "/.netlify/functions/timeline-voice"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/cinegen"
   to = "/.netlify/functions/cinegen"
@@ -164,7 +187,7 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=()"
+    Permissions-Policy = "camera=(), microphone=(self)"
 
 # Ensure the SPA fallback only fires when no file matches.
 # Netlify's default redirect behavior already skips existing files.
