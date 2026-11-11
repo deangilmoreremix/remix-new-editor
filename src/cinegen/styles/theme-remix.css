@@ -45,3 +45,11 @@
   .pm-window { width: 100vw; height: 100vh; border-radius: 0; border: 0; }
   .pm-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 }
+
+/* [remix] Edit tab: neutral dark surfaces instead of tinted ones (user request). Host CSS only; CineGen components unchanged.
+   Track label cells carry an inline per-track colour gradient, so these need !important. */
+.track-row__label { background: var(--bg-raised) !important; }
+.clip-card--audio { background: var(--bg-raised); }
+.edit-tab, .timeline-viewer { background: #0a0a0c; }
+.left-panel, .timeline-editor { background: #0e0e11; }
+.clip-card__overlay { background: rgba(10, 12, 16, 0.78) !important; }
