@@ -116,9 +116,9 @@ const pageLoaders = {
     try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }
     return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
   },
-  // The Timeline Editor is now CineGen's workspace (vendored in src/cinegen). The previous editor stays
-  // reachable at #/timeline-classic until its rail features are brought into the new one.
-  timeline: () => import('../cinegen/mount.tsx').then(m => m.CineGenEditorPage()),
+  // The Timeline Editor is the unmodified CineGen web app (apps/cinegen/web) in an iframe (VITE_CINEGEN_URL). src/cinegen is kept
+  // in the repo but no longer mounted. The previous editor stays reachable at #/timeline-classic.
+  timeline: () => import('../components/CineGenFramePage.js').then(m => m.CineGenFramePage()),
   'timeline-classic': () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
