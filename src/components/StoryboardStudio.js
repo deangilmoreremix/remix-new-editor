@@ -267,9 +267,6 @@ export function StoryboardStudio(options = {}) {
   if (!embedded) {
     topBar.appendChild(createStudioHeader('storyboard', 'Storyboard Studio', 'Plan scenes as AI storyboard frames, then turn them into video', 'mb-4'));
   }
-  const inlineInstructions = createInlineInstructions('storyboard');
-  inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
-  topBar.appendChild(inlineInstructions);
   container.appendChild(topBar);
 
   // =====================================================================
@@ -336,6 +333,11 @@ export function StoryboardStudio(options = {}) {
     </div>
   `;
   container.appendChild(brief);
+
+  // How-to steps sit under the brief, like Image and Video Studio.
+  const inlineInstructions = createInlineInstructions('storyboard');
+  inlineInstructions.classList.add('shrink-0', 'px-4', 'md:px-8', 'mb-4');
+  container.appendChild(inlineInstructions);
 
   const $ = (sel) => brief.querySelector(sel);
   const premiseEl = $('#vi-premise');
