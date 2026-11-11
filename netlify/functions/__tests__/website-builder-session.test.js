@@ -10,8 +10,10 @@ import {
   createHandler,
   claimsHaveFeature,
   primaryVerifiedEmail,
+  loginProof,
 } from '../website-builder-session.js';
 
+const SECRET = 'test-login-secret';
 const ENV = { SUPABASE_URL: 'https://db.test', SUPABASE_SERVICE_ROLE_KEY: 'service', CLERK_SECRET_KEY: 'sk_test' };
 
 function clerkUser(overrides = {}) {
@@ -34,17 +36,25 @@ function fakeFetch(user, status = 200) {
 /**
  * Fake Supabase admin client that mimics the behaviours that matter here:
  * - createUser fails with email_exists when the address already has a login;
+ * - createUser runs the database's on_auth_user_created trigger, which
+ *   rejects the login (production error: null clerk_id) unless
+ *   user_metadata.wb_login_proof is HMAC(login_secret, lower(email)).
+ *   app_metadata is written AFTER the row exists, so it is ignored here, as
+ *   in real Supabase;
  * - generateLink({ type: 'magiclink' }) SILENTLY CREATES an unknown user with
- *   no app_metadata. The main app's on_auth_user_created trigger rejects such
- *   a user (production error: null clerk_id), so `autoCreatedUnmarked` must
+ *   no proof, which the same trigger rejects, so `autoCreatedUnmarked` must
  *   stay false.
  * `profile` is the existing wb_profiles row for this Clerk user, if any.
  */
 function fakeAdmin({ profile = null, authUserExists = false, suspended = false } = {}) {
-  const state = { authUserExists: authUserExists || !!profile, autoCreatedUnmarked: false };
-  const createUser = vi.fn(async () => {
+  const state = { authUserExists: authUserExists || !!profile, autoCreatedUnmarked: false, triggerRejected: false };
+  const createUser = vi.fn(async (args) => {
     if (state.authUserExists) {
       return { data: null, error: { status: 422, code: 'email_exists', message: 'A user with this email address has already been registered' } };
+    }
+    if (args?.user_metadata?.wb_login_proof !== loginProof(SECRET, args?.email)) {
+      state.triggerRejected = true;
+      return { data: null, error: { status: 500, message: 'Database error creating new user' } };
     }
     state.authUserExists = true;
     return { data: { user: { id: 'auth-uuid-1' } }, error: null };
@@ -60,9 +70,12 @@ function fakeAdmin({ profile = null, authUserExists = false, suspended = false }
   const eq = vi.fn(() => ({ maybeSingle }));
   const single = vi.fn(async () => ({ data: { suspended }, error: null }));
   const upsert = vi.fn(() => ({ select: () => ({ single }) }));
-  const from = vi.fn(() => ({ select: () => ({ eq }), upsert }));
+  const configMaybeSingle = vi.fn(async () => ({ data: { value: SECRET }, error: null }));
+  const from = vi.fn((table) => (table === 'wb_private_config'
+    ? { select: () => ({ eq: () => ({ maybeSingle: configMaybeSingle }) }) }
+    : { select: () => ({ eq }), upsert }));
   const client = { auth: { admin: { generateLink, createUser } }, from };
-  return { client, generateLink, createUser, upsert, eq, state };
+  return { client, generateLink, createUser, upsert, eq, state, from, configMaybeSingle };
 }
 
 function call(handler, auth = { userId: 'user_123', claims: {} }) {
@@ -94,7 +107,7 @@ describe('primaryVerifiedEmail', () => {
 describe('website-builder-session handler', () => {
   const RETURNING = { id: 'auth-uuid-1', email: 'dean@example.com' };
 
-  it('first visit: creates the login WITH the builder marker before asking for a link', async () => {
+  it('first visit: creates the login WITH the server-made proof before asking for a link', async () => {
     const admin = fakeAdmin();
     const handler = createHandler({ fetchImpl: fakeFetch(clerkUser()), createAdminClient: () => admin.client });
     const res = await call(handler);
@@ -104,8 +117,16 @@ describe('website-builder-session handler', () => {
     expect(admin.createUser).toHaveBeenCalledWith({
       email: 'dean@example.com',
       email_confirm: true,
+      user_metadata: {
+        wb_login_proof: loginProof(SECRET, 'dean@example.com'),
+        clerk_user_id: 'user_123',
+        full_name: 'Dean R',
+        avatar_url: 'https://img.test/a.png',
+      },
       app_metadata: { clerk_user_id: 'user_123', source: 'smart-website-builder' },
     });
+    expect(admin.from).toHaveBeenCalledWith('wb_private_config');
+    expect(admin.state.triggerRejected).toBe(false);
     // The regression: the user must never be created implicitly by generateLink.
     expect(admin.state.autoCreatedUnmarked).toBe(false);
     expect(admin.createUser.mock.invocationCallOrder[0]).toBeLessThan(admin.generateLink.mock.invocationCallOrder[0]);
@@ -113,6 +134,24 @@ describe('website-builder-session handler', () => {
       expect.objectContaining({ id: 'auth-uuid-1', email: 'dean@example.com', clerk_user_id: 'user_123', full_name: 'Dean R' }),
       { onConflict: 'id' },
     );
+  });
+
+  it('proof is per email address and cannot be forged without the secret', () => {
+    expect(loginProof(SECRET, 'Dean@Example.com')).toBe(loginProof(SECRET, 'dean@example.com'));
+    expect(loginProof(SECRET, 'a@example.com')).not.toBe(loginProof(SECRET, 'b@example.com'));
+    expect(loginProof('another-secret', 'a@example.com')).not.toBe(loginProof(SECRET, 'a@example.com'));
+    expect(loginProof(SECRET, 'a@example.com')).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('fails with session_failed (and never leaves a half-made login) if the login secret is missing', async () => {
+    const admin = fakeAdmin();
+    admin.configMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
+    const handler = createHandler({ fetchImpl: fakeFetch(clerkUser()), createAdminClient: () => admin.client });
+    const res = await call(handler);
+    expect(res.statusCode).toBe(500);
+    expect(res.body.error).toBe('session_failed');
+    expect(admin.createUser).not.toHaveBeenCalled();
+    expect(admin.generateLink).not.toHaveBeenCalled();
   });
 
   it('reuses an address that already has a Supabase login from another app', async () => {

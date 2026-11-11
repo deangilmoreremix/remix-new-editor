@@ -21,6 +21,7 @@
 // Environment (Netlify): CLERK_SECRET_KEY (+ the Clerk JWKS settings used by
 // _shared/clerkAuth.js), SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 
+import { createHmac } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { withClerkAuth } from './_shared/clerkAuth.js';
 
@@ -69,21 +70,52 @@ function isAlreadyRegistered(error) {
 }
 
 /**
+ * Proof, bound to one email address, that a Supabase login was created by this
+ * server. hex(HMAC-SHA256(login_secret, lower(email))). The database trigger
+ * public.handle_new_user recomputes it and, on a match, skips the main app's
+ * public.users insert (which cannot succeed: its clerk_id column is NOT NULL
+ * and the trigger never supplies it). Only the service role can read
+ * login_secret, so nobody else can produce a valid proof.
+ */
+export function loginProof(secret, email) {
+  return createHmac('sha256', secret).update(String(email).toLowerCase()).digest('hex');
+}
+
+async function readLoginSecret(admin) {
+  const { data, error } = await admin
+    .from('wb_private_config')
+    .select('value')
+    .eq('key', 'login_secret')
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.value) throw new Error('wb_private_config.login_secret is not set');
+  return data.value;
+}
+
+/**
  * Create the Supabase auth user for a first-time builder visitor.
  *
  * This must happen BEFORE generateLink: generateLink({ type: 'magiclink' })
- * silently creates unknown users itself, with no app_metadata. The main app's
- * on_auth_user_created trigger (public.handle_new_user) then has no way to
- * tell a builder login from any other and tries to add a row to public.users,
- * which requires a Clerk id it never provides, so the insert (and the whole
- * login) fails. The `source` marker lets that trigger skip builder logins
- * (see supabase/migrations/20261106120000_website_builder_skip_main_users_row.sql).
+ * silently creates unknown users itself, without the proof, which the main
+ * app's on_auth_user_created trigger then rejects.
+ *
+ * The proof has to be in user_metadata: Supabase's admin API writes
+ * app_metadata in a second step, after the auth.users row (and the trigger)
+ * already ran, so a marker there is never seen. See
+ * supabase/migrations/20261111120000_website_builder_login_proof.sql.
  * An address that already has a Supabase login (from another app) is reused.
  */
-async function ensureAuthUser(admin, email, clerkUserId) {
+async function ensureAuthUser(admin, email, clerkUserId, profile = {}) {
+  const secret = await readLoginSecret(admin);
   const { error } = await admin.auth.admin.createUser({
     email,
     email_confirm: true,
+    user_metadata: {
+      wb_login_proof: loginProof(secret, email),
+      clerk_user_id: clerkUserId,
+      full_name: profile.fullName || undefined,
+      avatar_url: profile.avatarUrl || undefined,
+    },
     app_metadata: { clerk_user_id: clerkUserId, source: 'smart-website-builder' },
   });
   if (error && !isAlreadyRegistered(error)) throw error;
@@ -138,11 +170,13 @@ export function createHandler({ fetchImpl = fetch, createAdminClient } = {}) {
         .maybeSingle();
       if (lookupError) throw lookupError;
 
+      const fullName = [clerkUser.first_name, clerkUser.last_name].filter(Boolean).join(' ') || clerkUser.username || null;
       const loginEmail = existing?.email || email;
-      if (!existing) await ensureAuthUser(admin, loginEmail, userId);
+      if (!existing) {
+        await ensureAuthUser(admin, loginEmail, userId, { fullName, avatarUrl: clerkUser.image_url });
+      }
       const { tokenHash, authUserId } = await issueMagicLink(admin, loginEmail);
 
-      const fullName = [clerkUser.first_name, clerkUser.last_name].filter(Boolean).join(' ') || clerkUser.username || null;
       const { data: profile, error: profileError } = await admin
         .from('wb_profiles')
         .upsert(
