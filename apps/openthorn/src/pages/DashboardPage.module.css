@@ -42,7 +42,7 @@
   transform: translateX(-50%);
   width: 640px;
   height: 380px;
-  background: radial-gradient(ellipse at center, rgba(217, 255, 0, 0.04), transparent 65%);
+  background: radial-gradient(ellipse at center, rgba(217, 255, 0, 0.09), rgba(217, 255, 0, 0.04) 45%, transparent 70%);
   pointer-events: none;
   z-index: -1;
 }
@@ -60,6 +60,7 @@
 
 .name {
   color: var(--color-accent);
+  font-style: italic;
 }
 
 /* Prompt */

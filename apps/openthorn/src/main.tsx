@@ -4,8 +4,13 @@ import { BrowserRouter } from 'react-router-dom'
 import { SupabaseAuthProvider } from './lib/AuthContext'
 import App from './App'
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
-// Inter — the same typeface as the rest of the SmartVideo studios (self-hosted).
-import '@fontsource-variable/inter'
+import '@fontsource-variable/fraunces/opsz.css'
+import '@fontsource/roboto/300.css'
+import '@fontsource/roboto/400.css'
+import '@fontsource/roboto/400-italic.css'
+import '@fontsource/roboto/500.css'
+import '@fontsource/roboto/700.css'
+import '@fontsource/roboto/900.css'
 import './index.css'
 
 // Prerendered per-route JSON-LD (scripts/prerender.mjs) exists for crawlers
