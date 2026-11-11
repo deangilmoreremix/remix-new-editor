@@ -23,3 +23,25 @@
   --radius-md: 10px;
   --radius-lg: 16px;
 }
+
+/* [remix] Project Manager: CineGen's window is a fixed-size desktop window; in a full browser tab it is
+   centred as the same window with larger project cards (host CSS only, no component change). */
+.pm-window {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(1180px, calc(100vw - 48px));
+  height: min(780px, calc(100vh - 48px));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+.pm-grid-wrap { padding: 26px 26px 16px; }
+.pm-grid {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 22px;
+}
+.pm-card__name { font-size: 14px; }
+@media (max-width: 640px) {
+  .pm-window { width: 100vw; height: 100vh; border-radius: 0; border: 0; }
+  .pm-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+}
