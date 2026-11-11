@@ -482,9 +482,10 @@ function securityHeaders() {
                 res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
                 
                 // Permissions Policy
+                // [remix] microphone=(self): the timeline's voice-over recorder and Voice Director use the mic (same origin only)
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=()'
+                    'camera=(), microphone=(self)'
                 );
                 
                 next();
@@ -1020,6 +1021,7 @@ export default defineConfig({
             'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime.js'),
             'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime.js'),
             'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
+            '@cinegen': path.resolve(__dirname, 'src/cinegen'),
             '@smartvideo/ai-timeline-editor': path.resolve(__dirname, 'packages/ai-timeline-editor/src'),
             '@higgsfield/color-grading': path.resolve(__dirname, 'packages/color-grading/src'),
             '@higgsfield/audio-mixer': path.resolve(__dirname, 'packages/audio-mixer/src'),
@@ -1034,6 +1036,24 @@ export default defineConfig({
         },
     },
     plugins: [
+        // [remix] OpenChatCut's dev-only plugin (config/vite.config.ts `serveOrtWasmLoader`): serve the prebuilt onnxruntime loader
+        // module from public/models/silero-vad verbatim, since Vite refuses to import JS from /public.
+        {
+            name: 'openchatcut-ort-wasm-loader',
+            apply: 'serve',
+            enforce: 'pre',
+            configureServer(server) {
+                server.middlewares.use((req, res, next) => {
+                    const pathname = (req.url ?? '').split('?')[0];
+                    if (!/^\/models\/silero-vad\/.+\.mjs$/.test(pathname)) { next(); return; }
+                    const file = path.resolve(process.cwd(), 'public', pathname.replace(/^\//, ''));
+                    if (!fs.existsSync(file)) { next(); return; }
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'text/javascript');
+                    res.end(fs.readFileSync(file));
+                });
+            },
+        },
         publicAuditReportPlugin(),
         tailwindcss(),
         {
@@ -1233,6 +1253,10 @@ export default defineConfig({
         // parses them with the plain js loader and fails with
         // "The JSX syntax extension is not currently enabled".
         esbuildOptions: { loader: { '.js': 'jsx' } },
+        // kokoro-js / phonemizer (free on-device voiceover) ship emscripten
+        // asm.js; the jsx loader above misparses it ("(0 | n) is not a
+        // function"). Serve them untouched.
+        exclude: ['kokoro-js', 'phonemizer'],
     },
     // Many legacy modules under components/ are authored as .js files that
     // nevertheless contain JSX. @vitejs/plugin-react only reliably transforms
@@ -1243,9 +1267,27 @@ export default defineConfig({
     esbuild: {
         loader: 'tsx',
         include: /\.jsx?$/,
-        exclude: /\.tsx?$/,
+        // Never re-parse kokoro-js / phonemizer as TSX (their asm.js has
+        // `a < b > (c)` sequences that TSX reads as generics).
+        exclude: [/\.tsx?$/, /node_modules[\\/](kokoro-js|phonemizer)[\\/]/],
         jsx: 'automatic',
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
+    },
+    // Worker bundles are built by a separate pipeline that does not include plugin-react (which strips the types of .ts/.tsx here: the
+    // esbuild option above only covers .js/.jsx). Without this, a TypeScript worker such as
+    // src/openchatcut/audio/intelligence/clap.worker.ts reaches the worker parser untransformed and the production build fails.
+    worker: {
+        format: 'es',
+        plugins: () => [{
+            name: 'worker-typescript',
+            enforce: 'pre',
+            async transform(code, id) {
+                if (!/\.tsx?$/.test(id.split('?')[0]) || id.includes('node_modules')) return null;
+                const { transform } = await import('esbuild');
+                const out = await transform(code, { loader: id.split('?')[0].endsWith('x') ? 'tsx' : 'ts', sourcefile: id, sourcemap: true, target: 'esnext' });
+                return { code: out.code, map: out.map };
+            },
+        }],
     },
     server: {
         host: '127.0.0.1',

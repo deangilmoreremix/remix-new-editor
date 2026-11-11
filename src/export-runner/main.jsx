@@ -17,7 +17,7 @@
  */
 import './sandboxShims.js';
 import { renderMediaOnWeb, renderStillOnWeb } from '@remotion/web-renderer';
-import { TimelineComposition, registerGoogleFonts } from '../lib/editor/remotion/TimelineComposition.jsx';
+import { TimelineComposition, registerGoogleFonts, registerUserFont } from '../lib/editor/remotion/TimelineComposition.jsx';
 import { loadEffects, effectIdsInModel } from '../lib/editor/remotion/effects.js';
 import { takeCodeErrors } from '../lib/editor/remotion/codeLayer.jsx';
 
@@ -55,6 +55,8 @@ async function render(id, rawModel, options = {}) {
     }
     const container = ['mp4', 'webm', 'mov'].includes(options.container) ? options.container : 'mp4';
     // Fonts first, so frame 0 already uses them (HTML and Lottie SVG text).
+    // [remix] user-imported caption fonts arrive as data URLs
+    await Promise.race([Promise.all((model.userFonts || []).map(registerUserFont)), new Promise((r) => setTimeout(r, 15000))]);
     await Promise.race([registerGoogleFonts(model.fonts || []), new Promise((r) => setTimeout(r, 15000))]);
     await loadEffects(effectIdsInModel(model));
     const result = await renderMediaOnWeb({
@@ -70,7 +72,8 @@ async function render(id, rawModel, options = {}) {
       inputProps: { model },
       container,
       videoCodec: options.videoCodec || (container === 'webm' ? 'vp9' : 'h264'),
-      videoBitrate: BITRATE[options.quality] || 'high',
+      // [remix] explicit bitrate (OpenChatCut export/bitrate.ts) overrides the quality preset
+      videoBitrate: Number.isFinite(options.videoBitrate) ? options.videoBitrate : (BITRATE[options.quality] || 'high'),
       signal: controller.signal,
       licenseKey: 'free-license',
       onProgress: (p) => post({ type: 'progress', id, progress: p.progress, encodedFrames: p.encodedFrames }),
@@ -91,6 +94,8 @@ async function still(id, rawModel, frame) {
   const model = materializeBlobs(rawModel, urls);
   try {
     takeCodeErrors();
+    // [remix] user-imported caption fonts arrive as data URLs
+    await Promise.race([Promise.all((model.userFonts || []).map(registerUserFont)), new Promise((r) => setTimeout(r, 15000))]);
     await Promise.race([registerGoogleFonts(model.fonts || []), new Promise((r) => setTimeout(r, 15000))]);
     await loadEffects(effectIdsInModel(model));
     const result = await renderStillOnWeb({

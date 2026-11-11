@@ -1,0 +1,23 @@
+/* Personalization Suite (VideoPersonalizationHub). Its markup used these classes but no stylesheet for them was ever committed. */
+.personalization-hub { display: flex; flex-direction: column; gap: 14px; color: #e5edf5; font-size: 13px; }
+.hub-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.hub-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.hub-tab { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.16); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.hub-tab.active { border-color: #22d3ee; color: #22d3ee; background: rgba(34,211,238,.1); }
+.hub-content, .tab-content { display: flex; flex-direction: column; gap: 12px; }
+.upload-zone { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px; border: 2px dashed rgba(255,255,255,.22); border-radius: 12px; text-align: center; color: rgba(229,237,245,.8); }
+.upload-icon, .content-icon, .metric-icon, .token-icon, .insight-icon, .summary-icon { font-size: 22px; }
+.primary-btn, .mini-btn, .edit-btn, .remove-btn, .create-pages-btn { border-radius: 8px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: inherit; padding: 6px 12px; font: inherit; cursor: pointer; }
+.primary-btn, .create-pages-btn { background: #22d3ee; border-color: #22d3ee; color: #06121a; font-weight: 600; }
+.workflow-progress { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.1); }
+.progress-step { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: rgba(229,237,245,.55); }
+.progress-step.active, .progress-step.current { color: #22d3ee; } .progress-step.completed { color: #34d399; }
+.step-dot { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.1); }
+.uploaded-videos, .video-list, .contacts-list, .token-grid, .content-types-grid, .metrics-grid, .template-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.video-item, .contact-item, .token-item, .template-card, .metric-card, .insight-card, .summary-item, .content-type-btn, .preview-card { padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: inherit; font: inherit; text-align: left; }
+.template-card.selected, .content-type-btn.selected { border-color: #22d3ee; background: rgba(34,211,238,.12); }
+.text-input, .select-input { width: 100%; box-sizing: border-box; background: rgba(255,255,255,.05); color: inherit; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; padding: 7px 10px; font: inherit; }
+.progress-track { height: 8px; background: rgba(255,255,255,.12); border-radius: 4px; overflow: hidden; } .progress-fill { height: 100%; background: #22d3ee; }
+.empty-state, .empty-contacts, .chart-placeholder { padding: 18px; text-align: center; color: rgba(229,237,245,.55); }
+.hub-footer { display: flex; justify-content: flex-end; gap: 8px; }
+.positive { color: #34d399; } .negative { color: #f87171; }

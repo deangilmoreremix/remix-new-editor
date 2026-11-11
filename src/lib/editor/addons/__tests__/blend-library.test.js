@@ -7,12 +7,12 @@ import { timelineToComposition } from '../../remotion/timelineToComposition.js';
 
 describe('Blend Modes library', () => {
   it('every look maps to a registered overlay with a valid blend mode', () => {
-    expect(BLEND_ITEMS.length).toBeGreaterThanOrEqual(15);
+    expect(BLEND_ITEMS.length).toBeGreaterThanOrEqual(12);
     expect(validateBlendLibrary()).toEqual([]);
     expect(BLEND_CATEGORIES.map((c) => c.id)).toContain('color-wash');
   });
 
-  it('image looks ship their files (original assets)', () => {
+  it('every offered image look has its file and thumbnail in the repository', () => {
     BLEND_ITEMS.filter((i) => i.kind === 'image').forEach((i) => {
       expect(fs.existsSync(path.join('public', i.src))).toBe(true);
       expect(fs.existsSync(path.join('public', i.thumb))).toBe(true);
@@ -20,9 +20,9 @@ describe('Blend Modes library', () => {
   });
 
   it('image looks become full-frame Image clips with an absolute URL', () => {
-    const a = blendItemToAddon(getBlendItem('leak-amber'), { origin: 'https://x.test' });
+    const a = blendItemToAddon(getBlendItem('leak-1'), { origin: 'https://x.test' });
     expect(a.type).toBe('overlay-image');
-    expect(a.options).toMatchObject({ src: 'https://x.test/assets/blend/leak-amber.jpg', fill: true, blendMode: 'screen' });
+    expect(a.options).toMatchObject({ src: 'https://x.test/assets/overlay/items/imgly_overlay_lightleak1.jpg', fill: true, blendMode: 'screen' });
   });
 
   it('colour washes become Wrapper gradients that survive the CSS allowlist', () => {

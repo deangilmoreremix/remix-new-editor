@@ -48,7 +48,7 @@ function stubOpenAI(status = 200, payload = {}) {
   openaiCalls = [];
   vi.stubGlobal('fetch', async (url, init = {}) => {
     if (String(url).startsWith('https://api.openai.com/')) {
-      openaiCalls.push({ url: String(url), auth: new Headers(init.headers).get('authorization') });
+      openaiCalls.push({ url: String(url), auth: new Headers(init.headers).get('authorization'), body: init.body });
       return new Response(JSON.stringify(payload), { status, headers: { 'Content-Type': 'application/json' } });
     }
     return new Response('{}', { status: 404 });
@@ -102,6 +102,56 @@ describe('timeline-image-generate (Template Generator AI image)', async () => {
     expect(openaiCalls.length).toBeGreaterThan(0);
     expect(openaiCalls.every((c) => c.auth === `Bearer ${USER_KEY}`)).toBe(true);
     expect(JSON.parse(r.body).error).toMatch(/OpenAI rejected your API key/);
+  });
+});
+
+describe('timeline-image-generate — Images 2.6 and reference images', async () => {
+  const { handler } = await import('../../netlify/functions/timeline-image-generate.js');
+
+  it('defaults to gpt-image-2.6-flare when no model is pinned', async () => {
+    stubOpenAI(200, { data: [{ b64_json: 'aGVsbG8=' }] });
+    const ok = await handler({ httpMethod: 'POST', headers: { 'X-OpenAI-Key': USER_KEY }, body: JSON.stringify({ prompt: 'a cat' }) });
+    expect(JSON.parse(ok.body).assets[0].model).toBe('gpt-image-2.6-flare');
+    expect(JSON.parse(openaiCalls[0].body).model).toBe('gpt-image-2.6-flare');
+  });
+
+  it('an unpinned request falls back once to gpt-image-2 when the account lacks 2.6', async () => {
+    openaiCalls = [];
+    vi.stubGlobal('fetch', async (url, init = {}) => {
+      const body = JSON.parse(init.body || '{}');
+      openaiCalls.push({ url: String(url), body: init.body });
+      return body.model === 'gpt-image-2'
+        ? new Response(JSON.stringify({ data: [{ b64_json: 'aGVsbG8=' }] }), { status: 200 })
+        : new Response(JSON.stringify({ error: { message: 'The model `gpt-image-2.6-flare` does not exist' } }), { status: 404 });
+    });
+    const r = await handler({ httpMethod: 'POST', headers: { 'X-OpenAI-Key': USER_KEY }, body: JSON.stringify({ prompt: 'a cat' }) });
+    expect(JSON.parse(r.body).assets[0].model).toBe('gpt-image-2');
+    expect(openaiCalls).toHaveLength(2);
+  });
+
+  it('accepts the Images 2.6 models and edits with reference images on the user key', async () => {
+    stubOpenAI(200, { data: [{ b64_json: 'aGVsbG8=' }] });
+    const r = await handler({
+      httpMethod: 'POST',
+      headers: { 'X-OpenAI-Key': USER_KEY },
+      body: JSON.stringify({
+        prompt: 'same character, low angle',
+        model: 'gpt-image-2.6-sunburst',
+        referenceImageUrls: ['https://cdn.example.com/hero.png', 'data:image/png;base64,xx', 'http://insecure.example.com/x.png'],
+      }),
+    });
+    expect(r.statusCode).toBe(200);
+    expect(JSON.parse(r.body).assets[0].model).toBe('gpt-image-2.6-sunburst');
+    expect(openaiCalls).toHaveLength(1);
+    expect(openaiCalls[0].url).toBe('https://api.openai.com/v1/images/edits');
+    expect(openaiCalls[0].auth).toBe(`Bearer ${USER_KEY}`);
+  });
+
+  it('rejects unknown models', async () => {
+    stubOpenAI();
+    const r = await handler({ httpMethod: 'POST', headers: { 'X-OpenAI-Key': USER_KEY }, body: JSON.stringify({ prompt: 'x', model: 'gpt-image-2.6-flare-image-to-image' }) });
+    expect(r.statusCode).toBe(400);
+    expect(openaiCalls).toHaveLength(0);
   });
 });
 
