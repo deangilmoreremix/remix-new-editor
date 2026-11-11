@@ -243,7 +243,7 @@ export function ZackDStudio() {
     if (s.map) { const keep = el('button', BTN, 'Continue current project'); keep.onclick = () => setStage('script'); row.appendChild(keep); }
     box.appendChild(row);
     box.appendChild(el('div', `${HEADING} mt-2`, 'Templates'));
-    const tg = el('div', 'grid gap-3 sm:grid-cols-3');
+    const tg = el('div', 'grid gap-3 sm:grid-cols-3 items-start');
     TEMPLATES.forEach((t) => {
       const card = el('div', `${CARD} flex flex-col gap-2`);
       if (t.demo) {
