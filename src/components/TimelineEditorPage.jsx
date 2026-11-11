@@ -4,6 +4,7 @@ import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
 import { renderMediaGrid, addMediaToTimeline } from '../lib/editor/mediaLibrary.js';
+import { openScreenityRecorder, closeScreenityRecorder, probeBlobDuration, remuxForTimeline } from '../lib/recorderBridge.js';
 import { assetStore } from '../lib/assets/assetStore.js';
 import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, openGTMPromptModal } from '../lib/uiIntegration.js';
 import { integrateMediaIngest, GiphyIntegration, StickersLibrary, LowerThirds, VideoGallery, AnimationList } from '../lib/mediaIngest.js';
@@ -88,7 +89,6 @@ import { SettingsModal } from './modals/SettingsModal.jsx';
 import { ConnectModal } from './modals/ConnectModal.jsx';
 import { PreviewMediaModal } from './modals/PreviewMediaModal.jsx';
 import { VideoPlayerModal } from './modals/VideoPlayerModal.jsx';
-import { RecorderModal } from './modals/RecorderModal.jsx';
 import { EnhancedRecorderModal } from './modals/EnhancedRecorderModal.jsx';
 import { TemplateGeneratorModal } from './modals/TemplateGeneratorModal.jsx';
 import { TemplatePreviewModal } from './modals/TemplatePreviewModal.jsx';
@@ -6621,18 +6621,14 @@ export function TimelineEditorPage() {
       }
     }
 
+    // The Recorder menu opens the Screenity web recorder (public/recorder/) as an overlay.
     function openRecorderModal(state, showToast) {
       try {
-        const modal = new RecorderModal({
-          onComplete: (result) => {
-            addVideoToTimeline(result, state);
-          },
-          onError: (error) => console.log(`Recording failed: ${error}`, 'error')
-        });
-        modal.open();
+        const opened = openScreenityRecorder({});
+        if (!opened) return;
       } catch (error) {
-        console.error('Recording failed:', error);
-        showToast(`Recording failed: ${error.message || error}`, 'error');
+        console.error('Recorder failed to open:', error);
+        showToast(`Recorder failed to open: ${error.message || error}`, 'error');
       }
     }
 
@@ -7057,18 +7053,34 @@ export function TimelineEditorPage() {
       if (window.__smartvidRecordingListener) {
         window.removeEventListener('message', window.__smartvidRecordingListener);
       }
-      window.__smartvidRecordingListener = (event) => {
+      window.__smartvidRecordingListener = async (event) => {
         const data = event.data;
-        if (event.source !== window || event.origin !== window.location.origin) return;
+        if (event.origin !== window.location.origin) return;
         if (!data || data.source !== 'smartvid-extension' || data.type !== 'recording') return;
         if (!(data.blob instanceof Blob)) return;
-        addVideoToTimeline({
-          blob: data.blob,
-          name: data.name,
-          duration: data.duration,
-          type: data.mode === 'audio' ? 'audio' : 'screen'
-        }, state);
-        window.postMessage({ source: 'smartvid-editor', type: 'recording-received', id: data.id }, window.location.origin);
+        try {
+          const isAudio = data.mode === 'audio';
+          let blob = data.blob;
+          // The recorder reports Infinity for headerless WebM; only trust real, finite values.
+          let duration = Number.isFinite(Number(data.duration)) && Number(data.duration) > 0 ? Number(data.duration) : null;
+          if (!isAudio) {
+            if (!blob.type.includes('mp4')) {
+              const out = await remuxForTimeline(blob);
+              blob = out.blob;
+              if (!duration) duration = out.duration;
+            }
+          }
+          if (!duration) duration = await probeBlobDuration(blob);
+          addVideoToTimeline({
+            blob,
+            name: data.name,
+            duration,
+            type: isAudio ? 'audio' : 'screen'
+          }, state);
+          closeScreenityRecorder();
+        } finally {
+          event.source?.postMessage({ source: 'smartvid-editor', type: 'recording-received', id: data.id }, window.location.origin);
+        }
       };
       window.addEventListener('message', window.__smartvidRecordingListener);
     }
