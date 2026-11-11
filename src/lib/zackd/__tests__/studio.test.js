@@ -239,4 +239,23 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(saved.shots.beat_2_a.clip).toBe('https://cdn.example.com/kept.mp4');          // so does other work
     expect(saved.shots.beat_1_a.clip).toBe('https://cdn.example.com/late-clip.mp4');     // and the recovered clip is added
   });
+
+  it('a studio opened again keeps a result that a disposed studio recovered late, even after the user edits', async () => {
+    localStorage.setItem('zackd_project_v1', JSON.stringify({ pid: 'P1', topic: 'Topic', shots: {} }));
+    savePendingJob({ requestId: 'req_late2', studioType: 'zackd', historyMeta: { slot: 'clip', id: 'beat_1_a', pid: 'P1' }, maxAttempts: 10, interval: 10, submittedAt: Date.now() });
+    let finishOld;
+    vi.mocked(pollJob).mockImplementationOnce(() => new Promise((resolve) => { finishOld = resolve; }));
+    vi.mocked(pollJob).mockImplementationOnce(() => new Promise(() => {})); // the reopened studio's own poll never ends here
+    const old = mount();
+    old.cleanup();
+    document.body.replaceChildren();
+    const fresh = mount();                                    // the user came back; this instance loaded the project BEFORE the late result
+    finishOld({ url: 'https://cdn.example.com/late-clip2.mp4' });
+    await tick(40);
+    typeTopic(fresh, 'Edited after the result');              // the live studio saves its state
+    await tick(20);
+    const saved = JSON.parse(localStorage.getItem('zackd_project_v1'));
+    expect(saved.topic).toBe('Edited after the result');
+    expect(saved.shots.beat_1_a.clip).toBe('https://cdn.example.com/late-clip2.mp4'); // the recovered result was not overwritten
+  });
 });

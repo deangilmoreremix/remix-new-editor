@@ -559,7 +559,12 @@ export function ZackDStudio() {
       return;
     } else return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(latest)); } catch { /* ignore */ }
+    window.dispatchEvent(new Event('zackd:stored-updated')); // a studio opened since then holds an older copy: tell it to reload
   }
+  // Another (disposed) instance merged a recovered result into the saved project: reload it, so this instance's next
+  // save does not overwrite that result with its older copy. Everything this instance changes is already saved.
+  const onStoredUpdated = () => { if (disposed) return; s = load(); paint(); };
+  window.addEventListener('zackd:stored-updated', onStoredUpdated);
   function applyResult(meta, url) {
     if (disposed) { applyResultToStored(meta, url); return; }
     if (meta.pid && meta.pid !== s.pid) return; // belongs to an earlier project
@@ -784,6 +789,7 @@ export function ZackDStudio() {
   grow();
   container.cleanup = () => {
     disposed = true;
+    window.removeEventListener('zackd:stored-updated', onStoredUpdated);
     abort.current.abort();
     closeDropdown();
     if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
