@@ -77,7 +77,7 @@ export const SEED_TOPICS = [
   { topic: 'What Happens When You Swallow Gum?', hook: "You've been told gum stays in your stomach for 7 years... is that actually true?", category: 'Medical / Human Body' },
   { topic: 'How Mosquitoes Drink Your Blood', hook: "A mosquito doesn't just suck blood. It leaves six needle-like tools and saliva behind.", category: 'Biology / Insects' },
   { topic: 'Why Your Brain Gets Brain Freeze', hook: 'Eating ice cream too fast tricks your brain into thinking your head is freezing solid.', category: 'Neuroscience' },
-  { topic: "What Happens If You Don't Sleep For 3 Days", hook: 'After 72 hours without sleep, your brain starts consuming its own synapses.', category: 'Health / Sleep' },
+  { topic: "What Happens If You Don't Sleep For 3 Days", hook: 'What really happens to your brain and body when you stay awake for three days?', category: 'Health / Sleep' },
 ];
 
 // ---- Upstream prompt strings ------------------------------------------------------------------------------------------

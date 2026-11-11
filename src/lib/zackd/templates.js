@@ -13,7 +13,7 @@ export const TEMPLATES = [
     "title": "Swallow gum: finished demo",
     "topic": "What Happens When You Swallow Gum?",
     "description": "A complete 3-beat short from the upstream project. Reuses its 5 keyframes and 5 Veo clips so you can edit the script, add your own narration and render a cut without generating anything.",
-    "poster": "/zackd/templates/swallow-gum/poster.jpg",
+    "poster": "/zackd/templates/swallow-gum/keyframes/beat_1_a.png",
     "demo": "/zackd/templates/swallow-gum/demo.mp4",
     "beats": [
       {

@@ -100,6 +100,15 @@ describe('zackd function', () => {
     expect(sub.statusCode).not.toBe(429);
   });
 
+  it('a submit that times out is reported as unknown and never falls back to a second paid model', async () => {
+    const before = muapiPost.mock.calls.length;
+    muapiPost.mockRejectedValueOnce(Object.assign(new Error('timed out'), { name: 'TimeoutError' }));
+    const out = await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u-timeout', { keys });
+    expect(out.statusCode).toBe(504);
+    expect(body(out).error.code).toBe('submit_timeout');
+    expect(muapiPost.mock.calls.length - before).toBe(1);
+  });
+
   it('requires the right BYOK key per action', async () => {
     expect((await handle({ action: 'script', topic: 'x' }, 'u1', { keys: { muapi: keys.muapi } })).statusCode).toBe(401);
     expect(body(await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u1', { keys: { openai: keys.openai } })).error.message).toMatch(/MuAPI/);

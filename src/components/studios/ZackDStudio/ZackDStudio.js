@@ -185,7 +185,7 @@ export function ZackDStudio() {
     dropdown.appendChild(el('div', `${SECTION_LABEL} px-3 py-2 border-b border-white/5 mb-2`, title));
     const list = el('div', 'flex flex-col gap-1 max-h-[50vh] overflow-y-auto custom-scrollbar');
     items.forEach((it) => {
-      const row = el('div', 'flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group');
+      const row = el('button', 'w-full text-left flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all group'); row.type = 'button'; row.setAttribute('aria-pressed', String(!!it.selected));
       const text = el('div', 'flex flex-col');
       text.appendChild(el('span', 'text-xs font-bold text-white opacity-80 group-hover:opacity-100', it.label));
       if (it.hint) text.appendChild(el('span', 'text-[10px] text-white/40 mt-0.5', it.hint));
@@ -530,6 +530,11 @@ export function ZackDStudio() {
     else if (meta.slot === 'narration') { s.narration = url; s.mixVoice = true; }
     else if (meta.slot === 'music') { s.music = url; s.mixVoice = true; }
     else return;
+    // A rendered cut that was built from the media that just changed is stale: drop it so it cannot be downloaded, saved or captioned.
+    if (final && (meta.slot === 'clip' || meta.slot === 'keyframe' || ((meta.slot === 'narration' || meta.slot === 'music') && final.mixed))) {
+      if (final.objectUrl) URL.revokeObjectURL(final.objectUrl);
+      final = null;
+    }
     save();
   }
   // Every media job goes through the app's pending-job tracker so it can be resumed after a reload.
@@ -549,7 +554,11 @@ export function ZackDStudio() {
     if (!kf) throw new Error('Generate the keyframe first.');
     return tracked('clip', shot.shot_id, { kind: 'clip', imageUrl: kf, prompt: clipPrompt(shot) });
   };
-  const genNarration = () => tracked('narration', 'narration', { kind: 'tts', text: narrationText(s.map), voice: s.voice, speed: DEFAULT_TTS_SPEED });
+  const genNarration = () => {
+    const text = narrationText(s.map);
+    if (text.length > 3000) throw new Error(`The narration is ${text.length} characters, over the 3,000 the voice service accepts. Shorten some beats and try again.`);
+    return tracked('narration', 'narration', { kind: 'tts', text, voice: s.voice, speed: DEFAULT_TTS_SPEED });
+  };
   const genMusic = () => tracked('music', 'music', { kind: 'music', prompt: `Underscore for a short about: ${s.topic}`, duration: Math.ceil(totalDuration(s.map)) + 5 });
 
   // A batch of paid jobs with a cost confirmation, per-card pending state, a progress bar and the shared lifecycle UX.
@@ -630,7 +639,7 @@ export function ZackDStudio() {
         onProgress: (phase, p) => { if (phase === 'encode') { progress?.setProgress(p * 100); setLabel(`Encoding ${Math.round(p * 100)}%`); } else setLabel(phase === 'download' ? 'Downloading clips…' : 'Loading encoder…'); },
       });
       if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
-      final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false, hasNarration: !!(s.mixVoice && s.narration) }; // captions are transcribed from the cut's audio
+      final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false, hasNarration: !!(s.mixVoice && s.narration), mixed: !!s.mixVoice }; // captions are transcribed from the cut's audio
       showToast('Final cut ready', 'success', 2500);
     } catch (e) { fail(e); }
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();

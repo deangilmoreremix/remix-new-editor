@@ -143,7 +143,7 @@ async function submit(body, keys) {
   // Start at the requested attempt; if that model's endpoint rejects the job outright, try the fallback once.
   for (let i = req.attempt; i < req.models.length; i += 1) {
     try {
-      const res = await muapiPost(`/${req.models[i]}`, req.payload, undefined, keys.muapi);
+      const res = await muapiPost(`/${req.models[i]}`, req.payload, AbortSignal.timeout(25_000), keys.muapi);
       const out = { model: req.models[i], attempt: i, hasFallback: i < req.models.length - 1 };
       const requestId = res.request_id || res.id;
       if (requestId) return json(200, { ok: true, requestId: String(requestId), ...out });
@@ -152,6 +152,8 @@ async function submit(body, keys) {
       lastErr = new Error('no result');
     } catch (err) {
       if ([401, 402, 403].includes(err?.status)) return fail(401, 'bad_key', BAD_MUAPI_KEY);
+      // The request may have been accepted (and billed) even though no answer came back: do not submit the fallback model on top of it.
+      if (err?.name === 'TimeoutError' || err?.name === 'AbortError') return fail(504, 'submit_timeout', 'The media service did not answer in time. The job may still have started: check your MuAPI dashboard before trying again so you are not charged twice.');
       lastErr = err;
     }
   }

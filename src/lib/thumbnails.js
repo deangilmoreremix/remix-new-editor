@@ -333,7 +333,7 @@ const STUDIO_THUMBNAILS = {
 };
 
 const HERO_THUMBNAILS = {
-  zackd: '/zackd/templates/swallow-gum/poster.jpg', // a keyframe from the Zack D template
+  zackd: '/zackd/templates/swallow-gum/keyframes/beat_1_a.png', // a keyframe from the Zack D template (tracked in git; *.jpg is gitignored)
   image: '/thumbnails/heroes/image.webp',
   video: '/thumbnails/heroes/video.webp',
   videoagent: '/thumbnails/heroes/videoagent.webp.png',
