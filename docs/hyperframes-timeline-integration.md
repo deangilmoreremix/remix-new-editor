@@ -114,3 +114,6 @@ Full vitest: pristine 193 failing / 8 files; integration 193 failing in the same
 ### Remaining production blockers
 - Export throughput: most components and 2 starters render at 4-8 fps at 1080p in this environment (held back, not hidden); real customer hardware may differ.
 - Only Chromium tested; footage durability depends on storage upload (existing behaviour); WebGL/three.js/WebGPU items stay disabled; 4 starters need a footage slot / caption layout work; kinetic-type needs asset pinning; unmeasured editable fields are hidden.
+
+## Viewing it on a preview deploy
+HyperFrames is off by default. On a preview, open the app, then in the browser console run `localStorage.setItem('remix.hyperframes.v1','1')` and reload. The Edit tab's "Add overlay…" menu then shows "HyperFrames animations…". Emergency off: `localStorage.setItem('remix.hyperframes.kill','1')`.
