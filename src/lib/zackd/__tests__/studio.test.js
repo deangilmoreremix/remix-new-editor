@@ -166,6 +166,7 @@ describe('ZackDStudio (built like the other video studios)', () => {
     await until(() => !btnText(root, 'Burn captions').disabled, 'burn enabled');
     const lang = root.querySelector('select[aria-label="Caption language"]'); lang.value = 'Spanish (Mexico)'; lang.dispatchEvent(new Event('change'));
     const th = root.querySelector('select[aria-label="Caption theme"]'); th.value = 'Beast'; th.dispatchEvent(new Event('change'));
+    expect(btnText(root, 'New project').disabled).toBe(false); // idle: reset is available
     window.confirm.mockReturnValueOnce(false);
     btnText(root, 'Burn captions').click(); await tick();
     expect(uploadFile).not.toHaveBeenCalled(); // declined: nothing uploaded or charged

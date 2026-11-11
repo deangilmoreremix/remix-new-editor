@@ -416,7 +416,7 @@ export function ZackDStudio() {
     const srt = el('button', CANVAS_BTN, 'Download captions (.srt)'); srt.type = 'button';
     srt.onclick = () => download(new Blob([buildSrt(s.map.beats, { transition: DEFAULT_TRANSITION_SEC, durations: final.durations })], { type: 'text/plain' }), 'zackd-short.srt');
     const lib = el('button', CANVAS_BTN, final.saved ? 'Saved to library' : 'Save to library'); lib.type = 'button'; lib.disabled = busy || final.saved; lib.onclick = saveToLibrary;
-    const fresh = el('button', CANVAS_BTN, 'New project'); fresh.type = 'button';
+    const fresh = el('button', CANVAS_BTN, 'New project'); fresh.type = 'button'; fresh.disabled = busy; // resetting mid-operation would discard a paid result
     fresh.onclick = () => { if (window.confirm('Start a new project? The current one will be cleared from this browser.')) { newProject(); } };
     controls.append(dl, srt, lib, fresh);
     wrap.appendChild(controls);
@@ -610,7 +610,7 @@ export function ZackDStudio() {
     s = { ...blank(), ...p, look: s.look, voice: s.voice, approved: t.kind === 'finished' };
     textarea.value = s.topic; grow(); final = null; hideInlineError(container); save(); paint();
   }
-  function newProject() { s = blank(); textarea.value = ''; final = null; hideInlineError(container); save(); paint(); }
+  function newProject() { if (busy) return; s = blank(); textarea.value = ''; final = null; hideInlineError(container); save(); paint(); }
 
   async function assemble() {
     if (busy) return;
@@ -661,13 +661,14 @@ export function ZackDStudio() {
     paint();
     const setLabel = (t) => { const l = progress?.querySelector('.progress-label'); if (l) l.textContent = t; };
     setLabel('Uploading the video…');
+    const cut = final; // the cut this burn belongs to
     try {
       const { muapi } = await import('../../../lib/muapi.js');
       const file = new File([final.blob], 'zackd-cut.mp4', { type: 'video/mp4' });
       const videoUrl = await muapi.uploadFile(file, { signal: abort.current.signal });
       setLabel('Burning captions (2-3 minutes)…');
       const r = await runJob({ kind: 'captions', videoUrl, language: s.captionLang, theme: s.captionTheme }, { signal: abort.current.signal });
-      final.captioned = { url: r.url, saved: false };
+      cut.captioned = { url: r.url, saved: false };
       showToast('Captions ready', 'success', 2500);
     } catch (e) { fail(e); }
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
