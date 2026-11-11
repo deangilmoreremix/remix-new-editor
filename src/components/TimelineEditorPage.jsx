@@ -7051,6 +7051,28 @@ export function TimelineEditorPage() {
       }, 'Audio');
     }
 
+    // SmartVid extension bridge: the extension's content script (running on this
+    // origin) posts finished recordings here; add them like any other recording.
+    if (typeof window !== 'undefined') {
+      if (window.__smartvidRecordingListener) {
+        window.removeEventListener('message', window.__smartvidRecordingListener);
+      }
+      window.__smartvidRecordingListener = (event) => {
+        const data = event.data;
+        if (event.source !== window || event.origin !== window.location.origin) return;
+        if (!data || data.source !== 'smartvid-extension' || data.type !== 'recording') return;
+        if (!(data.blob instanceof Blob)) return;
+        addVideoToTimeline({
+          blob: data.blob,
+          name: data.name,
+          duration: data.duration,
+          type: data.mode === 'audio' ? 'audio' : 'screen'
+        }, state);
+        window.postMessage({ source: 'smartvid-editor', type: 'recording-received', id: data.id }, window.location.origin);
+      };
+      window.addEventListener('message', window.__smartvidRecordingListener);
+    }
+
     /**
      * Template Generator → timeline. Media clips go on the video track one after another
      * from the playhead (credit kept, transitions stored on the outgoing clip); script
