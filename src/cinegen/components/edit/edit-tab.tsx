@@ -12,6 +12,14 @@ import { ResizeHandle } from './resize-handle';
 import { activeGlTransition } from '@cinegen/lib/occ/transitions';
 import { useRecorder } from '../../../openchatcut/audio/recorder';
 import { SoundLibraryPopup } from './sound-library-popup';
+import { LibraryPanel, type LibraryActions } from './library-panel'; // [remix] one Library for animations, effects, transitions, looks, overlays & forms, sounds
+import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
+import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
+import { nextClipOnTrack, transitionBetween, transitionHandle, addGlTransition, setGlType, transitionSnapshotFor } from '@cinegen/lib/occ/transitions';
+import { snapshotFor } from '@cinegen/lib/occ/plugins';
+import { primeClipLuts } from '@cinegen/lib/occ/clip-fx';
+import { ALL_FX } from '../../../openchatcut/gl/fx/effects';
+import { t as occT } from '../../../openchatcut/i18n/t';
 import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
@@ -929,6 +937,62 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     [dispatch, timeline],
   );
 
+  // [remix] Library: what clicking a card does. Every action returns a short message that the panel shows ("Select a clip first").
+  const libraryActions = useMemo<LibraryActions>(() => {
+    const needClip = (what: string) => `Select a clip on the timeline first, then click ${what}.`;
+    return {
+      onAddOverlay: (kind) => {
+        const overlay = createOverlay(kind, currentTime, Math.max(sequenceDuration, 10));
+        dispatch({ type: 'ADD_OVERLAY', overlay });
+        selectOverlay(overlay.id);
+        return `Added ${overlay.name} at the playhead. Remove it with the × on the Overlays lane.`;
+      },
+      onAddTemplate: (templateId) => {
+        const phone = isConnectTemplate(templateId) ? (window.prompt('Phone number to call (with area code, e.g. 212 555 0147)', '') ?? '').trim() : '';
+        const made = createTemplateOverlays(templateId, currentTime, Math.max(sequenceDuration, 10), phone ? { phone } : undefined);
+        made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+        if (made.length) selectOverlay(made[made.length - 1].id);
+        return made.length ? `Added ${made.length} overlay${made.length > 1 ? 's' : ''} at the playhead.` : 'That template has nothing to add.';
+      },
+      onAddMg: (tpl) => {
+        const overlay = createMgOverlay(tpl, currentTime);
+        dispatch({ type: 'ADD_OVERLAY', overlay });
+        selectOverlay(overlay.id);
+        return `Added “${tpl.name}” at the playhead. Edit its text in the panel on the right.`;
+      },
+      onApplyFx: async (id) => {
+        if (!selectedClip) return needClip('an effect');
+        const def = await snapshotFor(id);
+        handleUpdateClipProps(selectedClip.id, { fx: [...(selectedClip.fx ?? []), { id, props: {}, ...(def ? { def } : {}) }] });
+        return `Added ${occT(ALL_FX[id]?.name ?? id)} to “${selectedClip.name}”.`;
+      },
+      onApplyLut: async (id) => {
+        if (!selectedClip) return needClip('a look');
+        const def = await snapshotFor(id);
+        const next = { id, intensity: selectedClip.lut?.intensity ?? 1, ...(def ? { def } : {}) };
+        void primeClipLuts({ lut: next });
+        handleUpdateClipProps(selectedClip.id, { lut: next });
+        return `Applied the look to “${selectedClip.name}”.`;
+      },
+      onApplyTransition: async (id) => {
+        if (!selectedClip) return needClip('a transition');
+        const next = nextClipOnTrack(timeline, selectedClip);
+        if (!next) return 'This clip has no clip after it on its track, so there is no cut to put a transition on.';
+        const snap = id.startsWith('plugin:') ? await transitionSnapshotFor(id) : undefined;
+        const existing = transitionBetween(timeline, selectedClip, next);
+        if (existing) {
+          dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: setGlType(timeline, existing.id, id, snap) });
+          return 'Changed the transition on this cut.';
+        }
+        const handle = transitionHandle(selectedClip, next);
+        if (handle <= 0.05) return 'A transition needs spare footage at the cut: trim the end of this clip and the start of the next one first.';
+        dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addGlTransition(timeline, selectedClip, next, id, Math.min(0.5, handle), snap) });
+        return 'Added the transition to the cut after this clip.';
+      },
+      onAddSound: (effect) => { handleAddSound(effect); return `Added ${effect.name} at the playhead.`; },
+    };
+  }, [currentTime, sequenceDuration, dispatch, selectedClip, timeline, handleUpdateClipProps, handleAddSound]);
+
   const handleAddKeyframe = useCallback(
     (clipId: string, property: 'opacity' | 'volume', time: number, value: number) => {
       const kf: Keyframe = { time, property, value };
@@ -1020,6 +1084,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         projectId={projectId}
         onAddAsset={(asset) => dispatch({ type: 'ADD_ASSET', asset })}
         onAddTimeline={(timeline) => dispatch({ type: 'ADD_TIMELINE', timeline })}
+        libraryNode={<LibraryPanel {...libraryActions} />}
       />
       <ResizeHandle
         direction="horizontal"

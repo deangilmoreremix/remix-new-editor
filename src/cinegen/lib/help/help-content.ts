@@ -25,6 +25,7 @@ export const SELECTOR_HELP: Array<[string, string | ((el: Element) => string)]> 
   ['.timeline-editor__ruler-row', 'timeline ruler'],
   ['.track-row__label-text', 'track name'],
   ['.mp__asset-item', 'media pool item'],
+  ['.library-panel .cc-resource-card', 'library item'],
 ];
 
 export const HELP: Record<string, HelpEntry> = {
@@ -111,6 +112,20 @@ export const HELP: Record<string, HelpEntry> = {
   'remove overlay': e('Remove overlay', 'Take this overlay off the timeline.', 'Deletes the overlay (lead form, button, graphic, motion template or end screen) from the timeline and the video. Use Undo to bring it back.', ['Press the × on its block, or select it and press Delete.']),
   'remove caption': e('Remove caption', 'Delete this caption.', 'Removes this single caption line from the clip. The other captions are not affected. Use Undo to bring it back.', ['Press the × on the caption block, or select it and press Delete.']),
   'overlays: forms and buttons drawn over the video': e('Overlay lane', 'Timing for forms, buttons and graphics.', 'This lane shows every overlay as a block. Drag a block to change when it appears, drag its edges to change how long it stays, and click it to edit it.', ['Click a block to select it.', 'Drag to move, drag the edges to resize.']),
+
+  // ── Library (left panel) ─────────────────────────────────────────────────
+  'media': e('Media', 'Your imported and generated files.', 'Shows the media pool: the videos, audio and images in this project, ready to drag onto the timeline.', ['Press Media to go back to your files.']),
+  'library': e('Library', 'Everything you can add besides your own media.', 'One place for animated graphics, effects, transitions, colour looks, overlays and forms (lead generator, buttons, text, stickers, end screens) and sound effects. Click an item to add or apply it.', ['Press Library, pick a category, optionally search.', 'Click an item: overlays, animations and sounds go in at the playhead; effects and looks apply to the selected clip; transitions go on the cut after the selected clip.']),
+  'search the library': e('Search the library', 'Find an item in the current category.', 'Filters the cards below by name or description.', ['Click the box and type; clear it to see everything again.']),
+  'library animations': e('Animations', 'Animated titles, lower thirds and call-outs.', 'Ready-made motion graphics. Adding one puts it on the Overlays lane at the playhead, and its text, colours and numbers can be edited in the panel on the right.', ['Open Animations and click one.', 'Edit its fields on the right; drag its block on the Overlays lane to retime it.']),
+  'library effects': e('Effects', 'Visual effects for a clip.', 'Blur, glow, glitch, grain and more. Select a clip on the timeline first, then click an effect to add it; adjust its sliders in the inspector.', ['Select a clip.', 'Open Effects and click one.']),
+  'library transitions': e('Transitions', 'Change how one clip becomes the next.', 'Wipes, dissolves, glitches and more. Select a clip that has another clip after it, then click a transition to put it on that cut. The two clips need spare footage at the cut.', ['Select the first clip of the cut.', 'Open Transitions and click one.']),
+  'library looks': e('Looks', 'Colour grades (LUTs) for a clip.', 'Applies a colour look to the selected clip. Adjust its intensity in the inspector, or import your own .cube file there.', ['Select a clip.', 'Open Looks and click one.']),
+  'library overlays': e('Overlays & forms', 'Lead forms, buttons, text, stickers, end screens.', 'Interactive and graphic elements drawn over the video: lead generator, list builder, call-to-action button, smart text, images, stickers, backgrounds, lower thirds, and end-screen and connect-form templates. Each goes on the Overlays lane at the playhead and has a × to remove it.', ['Open Overlays & forms and click one.', 'Edit it in the panel on the right.']),
+  'library sounds': e('Sounds', 'Sound effects.', 'A library of short sound effects. Preview with the play button and press Add to place one on an audio track at the playhead.', ['Open Sounds, press ▶ to listen, then Add.']),
+  'add sound to timeline': e('Add sound', 'Place this sound at the playhead.', 'Adds the sound effect to an audio track starting at the playhead.', ['Move the playhead, then press Add.']),
+  'preview sound': e('Preview sound', 'Listen before you add it.', 'Plays or stops a preview of this sound.', ['Press the button.']),
+  'library item': e('Library item', 'Click to apply it.', 'Effects and looks apply to the selected clip; transitions go on the cut after the selected clip. Hover it to see the effect play.', ['Select a clip, then click the card.']),
 
   // ── Project Manager ──────────────────────────────────────────────────────
   'new project': e('New project', 'Start an empty project.', 'Creates a new project and opens it in the editor. Projects are saved in your browser automatically.', ['Press the button, type a name and press Enter.']),
