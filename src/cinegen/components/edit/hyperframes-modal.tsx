@@ -22,50 +22,41 @@ function Preview({ item }: { item: HfItem }) {
     return () => { live = false; window.clearInterval(timer); handle?.destroy(); };
   }, [item.id]);
   const ratio = item.dimensions.width / item.dimensions.height;
-  return <div ref={host} aria-label={`Preview of ${item.title}`} style={{ position: 'relative', width: '100%', aspectRatio: String(ratio), maxHeight: 260, background: 'repeating-conic-gradient(#1b2230 0% 25%, #121722 0% 50%) 50% / 16px 16px', borderRadius: 6, overflow: 'hidden' }} />;
+  return <div ref={host} aria-label={`Preview of ${item.title}`} style={{ position: 'relative', width: '100%', aspectRatio: String(ratio), maxHeight: '100%', margin: '0 auto', height: '100%', overflow: 'hidden' }} />;
 }
 
 export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onPick: (item: HfItem) => void }) {
   const all = useMemo(() => hyperframesItems(), []);
   const [q, setQ] = useState('');
   const [tag, setTag] = useState('all');
-  const [sel, setSel] = useState<HfItem | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
+  const [live, setLive] = useState<string | null>(null); // the hovered card starts its live preview after a short pause
+  useEffect(() => { setLive(null); if (!hover) return undefined; const t = window.setTimeout(() => setLive(hover), 350); return () => window.clearTimeout(t); }, [hover]);
   const tags = useMemo(() => ['all', ...[...new Set(all.flatMap((i) => [i.category]))].sort()], [all]);
   const list = searchHyperframes(all, q, tag);
+  // Same look as the effects / LUTs / transitions library (occ-library-modal): same dialog, tab row, cards (cc-resource-card) and footer line.
   return (
-    <div role="dialog" aria-label="Animations" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <style>{'.hf-card:hover .hf-card-name{opacity:1!important}'}</style>
-      <div style={{ width: 'min(900px, 94vw)', maxHeight: '84vh', display: 'flex', flexDirection: 'column', background: '#0b1016', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8, padding: 14 }} onClick={(e) => e.stopPropagation()}>
+    <div className="occ-library" role="dialog" aria-label="Animations" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
+      <div style={{ width: 'min(760px, 94vw)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: '#0b1016', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8, padding: 14 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-          <strong style={{ flex: 1 }}>Animations</strong>
-          <button className="clip-properties-panel__toggle-btn" onClick={onClose}>Close</button>
+          <button className="clip-properties-panel__toggle-btn" style={{ borderColor: '#22d3ee' }}>{`Animations (${all.length})`}</button>
+          <input type="text" placeholder="Search animations" aria-label="Search animations" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: 1, minWidth: 120, background: '#0d1218', color: 'inherit', border: '1px solid rgba(255,255,255,.18)', borderRadius: 6, padding: '4px 8px' }} />
+          <select aria-label="Category" value={tag} onChange={(e) => setTag(e.target.value)} style={{ background: '#0d1218', color: 'inherit', border: '1px solid rgba(255,255,255,.18)', borderRadius: 6, padding: '4px 6px' }}>{tags.map((c) => <option key={c} value={c}>{c === 'all' ? 'All categories' : c}</option>)}</select>
+          <button className="clip-properties-panel__toggle-btn" aria-label="Close library" onClick={onClose}>×</button>
         </div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-          <input type="text" placeholder="Search animations" aria-label="Search animations" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: 1, background: 'transparent', color: 'inherit', border: '1px solid rgba(255,255,255,.18)', borderRadius: 6, padding: '4px 8px' }} />
-          <select aria-label="Category" value={tag} onChange={(e) => setTag(e.target.value)} style={{ background: 'transparent', color: 'inherit', border: '1px solid rgba(255,255,255,.18)', borderRadius: 6 }}>{tags.map((c) => <option key={c} value={c} style={{ color: '#000' }}>{c}</option>)}</select>
+        <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))', gap: 10, paddingRight: 4 }}>
+          {list.map((i) => (
+            <button key={i.id} className={`cc-resource-card${hover === i.id ? ' hovered' : ''}`} onMouseEnter={() => setHover(i.id)} onMouseLeave={() => setHover(null)} onClick={() => onPick(i)} aria-label={i.title} data-testid={`animation-${i.id}`}>
+              <div className="cc-resource-thumb" style={{ background: '#000' }}>
+                <img src={`/hyperframes/thumbs/${i.id}.jpg`} alt="" loading="lazy" style={{ objectFit: 'contain' }} />
+                {live === i.id && <div style={{ position: 'absolute', inset: 0, background: '#000' }}><Preview item={i} /></div>}
+              </div>
+              <span className="cc-resource-name">{i.title}</span>
+            </button>
+          ))}
+          {!list.length && <span style={{ fontSize: 12, opacity: 0.7 }}>No animations match your search.</span>}
         </div>
-        <div style={{ display: 'flex', gap: 12, minHeight: 0, flex: 1 }}>
-          <div style={{ overflow: 'auto', flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8, alignContent: 'start' }}>
-            {list.map((i) => (
-              <button key={i.id} className="hf-card" title={i.title} aria-label={i.title} onClick={() => setSel(i)} onDoubleClick={() => onPick(i)}
-                style={{ position: 'relative', padding: 0, overflow: 'hidden', borderRadius: 8, border: `2px solid ${sel?.id === i.id ? '#4cc9f0' : 'rgba(255,255,255,.14)'}`, background: '#000', color: 'inherit', cursor: 'pointer', width: '100%', height: 0, paddingBottom: '56.25%' }}>
-                <img src={`/hyperframes/thumbs/${i.id}.jpg`} alt={i.title} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
-                <span className="hf-card-name" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '14px 6px 4px', fontSize: 11, fontWeight: 600, textAlign: 'left', background: 'linear-gradient(transparent, rgba(0,0,0,.8))', opacity: sel?.id === i.id ? 1 : 0, transition: 'opacity .15s' }}>{i.title}</span>
-              </button>
-            ))}
-            {!list.length && <span style={{ fontSize: 12, opacity: 0.7 }}>No animations match your search.</span>}
-          </div>
-          <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {sel ? (
-              <>
-                <Preview item={sel} />
-                <div style={{ fontSize: 12, fontWeight: 600 }}>{sel.title}</div>
-                <button className="clip-properties-panel__toggle-btn" onClick={() => onPick(sel)}>Add to timeline</button>
-              </>
-            ) : <span style={{ fontSize: 12, opacity: 0.7 }}>Select an animation to see it play.</span>}
-          </div>
-        </div>
-        <div style={{ fontSize: 11, opacity: 0.65, marginTop: 8 }}>{all.length} animations</div>
+        <div style={{ fontSize: 11, opacity: 0.65, marginTop: 8 }}>Click a card to add it to the timeline at the playhead. Hover to preview.</div>
       </div>
     </div>
   );
