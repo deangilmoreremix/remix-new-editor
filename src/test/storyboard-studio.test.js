@@ -49,6 +49,20 @@ describe('Storyboard Studio layout', () => {
   });
 });
 
+describe('how-to steps', () => {
+  it('sit below the story brief, not above it', () => {
+    const root = mount();
+    const brief = root.querySelector('section[aria-label="Story brief"]');
+    const steps = brief.nextElementSibling;
+    expect(steps.classList.contains('shrink-0')).toBe(true);
+    expect(steps.className).toContain('mb-4');
+    // The header block (first child after the chrome) must not contain the steps wrapper.
+    const header = [...root.children].find((c) => c.className.includes('pt-6'));
+    expect(header.contains(steps)).toBe(false);
+    expect(brief.compareDocumentPosition(steps) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});
+
 describe('frames board', () => {
   it('never lets the page column squash the frames row (every layout)', () => {
     const root = mount();
