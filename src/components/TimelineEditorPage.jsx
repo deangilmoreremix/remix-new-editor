@@ -6983,54 +6983,63 @@ export function TimelineEditorPage() {
     }
 
     // Helper functions for modal integration
+    // Recorder / PageShot / generator results all go through insertClipIntoTrack so
+    // clips land on the right track (renderTracks only reads track.items), get
+    // selected, and show in the preview.
+    function clipWidthFromDuration(seconds, fallback) {
+      const secs = Number(seconds);
+      if (!Number.isFinite(secs) || secs <= 0) return fallback;
+      return Math.max(2, Math.min(100, (secs / state.timelineSeconds) * 100));
+    }
+
     function addVideoToTimeline(videoData, state) {
-      const videoTrack = state.tracks.find(t => t.type === 'video');
-      if (videoTrack) {
-        const src = videoData.blob ? URL.createObjectURL(videoData.blob) : videoData.src;
-        const newClip = {
-          id: Date.now(),
-          name: videoData.name || 'Imported Video',
-          left: 50,
-          width: 20,
-          type: 'video',
-          src,
-          poster: videoData.poster
-        };
-        videoTrack.items.push(newClip);
-        renderTracks();
+      const src = videoData.blob ? URL.createObjectURL(videoData.blob) : (videoData.src || videoData.url);
+      if (!src) {
+        showToast('Recording has no media to add', 'error');
+        return;
       }
+      const isAudio = videoData.type === 'audio' || videoData.mode === 'audio';
+      const label = videoData.name || (isAudio ? 'Audio Recording' : 'Recording');
+      saveStateSnapshot(state);
+      insertClipIntoTrack({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        name: label,
+        width: clipWidthFromDuration(videoData.duration, 20),
+        type: isAudio ? 'audio' : 'video',
+        src,
+        poster: videoData.poster
+      }, isAudio ? 'Audio' : 'Video');
+      showToast(`${label} added to timeline`, 'success');
     }
 
     function addImageToTimeline(imageData, state) {
-      const videoTrack = state.tracks.find(t => t.name === 'Video');
-      if (videoTrack) {
-        const newClip = {
-          id: Date.now(),
-          name: imageData.name || 'Imported Image',
-          left: 50,
-          width: 15,
-          type: 'image',
-          src: imageData.src
-        };
-        videoTrack.clips.push(newClip);
-        renderTracks();
+      const src = imageData.src || imageData.imageUrl;
+      if (!src) {
+        showToast('Screenshot has no image to add', 'error');
+        return;
       }
+      saveStateSnapshot(state);
+      insertClipIntoTrack({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        name: imageData.name || 'Screenshot',
+        width: 15,
+        type: 'image',
+        src,
+        fit: 'contain'
+      }, 'Video');
     }
 
     function addAudioToTimeline(audioData, state) {
-      const audioTrack = state.tracks.find(t => t.name === 'Audio');
-      if (audioTrack) {
-        const newClip = {
-          id: Date.now(),
-          name: audioData.name || 'Generated Audio',
-          left: 50,
-          width: 20,
-          type: 'audio',
-          src: audioData.src
-        };
-        audioTrack.clips.push(newClip);
-        renderTracks();
-      }
+      const src = audioData.src || audioData.url;
+      if (!src) return;
+      saveStateSnapshot(state);
+      insertClipIntoTrack({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        name: audioData.name || 'Generated Audio',
+        width: clipWidthFromDuration(audioData.duration, 20),
+        type: 'audio',
+        src
+      }, 'Audio');
     }
 
     /**

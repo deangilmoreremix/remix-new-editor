@@ -484,7 +484,7 @@ function securityHeaders() {
                 // Permissions Policy
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=()'
+                    'camera=(self), microphone=(self)'
                 );
                 
                 next();

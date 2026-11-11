@@ -249,12 +249,21 @@ export class PageShotModal extends BaseModal {
         })
         .catch(err => {
           console.error('Screen capture failed:', err);
-          this.isCapturing = false;
-          this.simulateCapture();
+          this.captureFailed(err);
         });
     } else {
-      this.simulateCapture();
+      this.captureFailed(new Error('Screen capture is not supported in this browser'));
     }
+  }
+
+  // Never substitute a fake screenshot when capture is denied or unsupported.
+  captureFailed(err) {
+    this.isCapturing = false;
+    this.capturedImage = null;
+    if (typeof this.onError === 'function') this.onError(err);
+    else if (typeof this.options?.onError === 'function') this.options.onError(err);
+    this.updateBody(this.renderBody());
+    this.setupEventListeners();
   }
 
   simulateCapture() {
