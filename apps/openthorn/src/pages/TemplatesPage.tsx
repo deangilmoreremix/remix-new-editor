@@ -270,7 +270,6 @@ export default function TemplatesPage() {
                   type="button"
                   onClick={handleUseTemplate}
                   disabled={launching}
-                  style={{ background: selected.accentColor }}
                 >
                   {launching ? 'Starting…' : 'Use this template →'}
                 </button>

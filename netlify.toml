@@ -40,6 +40,12 @@
 
 # Motion Director page capture (background: up to 15 minutes), started by
 # /api/motion-studio/capture with INTERNAL_FUNCTION_SECRET.
+# Smart Website Builder server endpoints (apps/openthorn/api, bundled as TS).
+# The function declares its own path, /openthorn/api/*, which wins over the
+# /openthorn/* SPA fallback below.
+[functions."website-builder-api"]
+  node_bundler = "esbuild"
+
 [functions."motion-studio-capture-background"]
   node_bundler = "esbuild"
   external_node_modules = ["@sparticuz/chromium", "playwright-core", "playwright"]
