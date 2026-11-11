@@ -4,7 +4,7 @@
 >
 > | Item | Result |
 > |---|---|
-> | Enabled for customers | **117** = 69 blocks + 47 components + 1 starter project (flag OFF by default) |
+> | Enabled for customers | **118** = 69 blocks + 48 components + 1 starter project (flag OFF by default) |
 > | Blocks | 210: 114 verified (84 + 30 recovered by generic adapter fixes) = 67 enabled + 47 held back (exact blocker per id in the ledger); 19 adapter-compatible, 25 specialized, 50 unsupported, 2 not-tested |
 > | Components | 238: 80 verified vs native HyperFrames, 37 host-dependent (blank standalone), 57 adapter-compatible, 62 specialized, 2 adapter errors; **7 enabled** (beat-accent, chat-message, conic-progress-ring, hw-arrow, hw-box-label, text-shimmer, yt-circle-pointer); 56 verified ones are held for browser-export throughput (4-8 fps at 1080p), 19 for blank standalone output, 17 for no measured editable effect |
 > | Starter projects | 9: 3 verified vs native (decision-tree, nyt-graph, product-promo); **1 enabled (product-promo, 12.2 fps, full-scene template, exported in the real editor)**; decision-tree/nyt-graph held for throughput (6.7/6.9 fps); play-mode, swiss-grid, vignelli, warm-grain adapter-compatible (SSIM 0.88-0.94: unfilled `__VIDEO_SRC__` footage slot and caption layout differences); kinetic-type unsupported (remote S3 image not pinned); path-traced-3d unsupported (WebGL path tracer, no timeline) |
@@ -141,3 +141,7 @@ headless test browser (software GPU), so no WebGPU/WebGL shader block is enabled
 ### Correction: items that show text a customer cannot change were removed (-15)
 The 14 `caption-*` demos and `halftone-dissolve` declare no (effective) variables but show built-in text, and had been let through as "ready to use" because the leaf-text probe found nothing. They are held back again
 (`shows built-in text that cannot be edited`). The other five no-field items (`magnetic-cursor`, `sticky-mock-swap`, `stagger-lattice`, `svg-line-draw-loader`, `yt-feather-highlight`) were checked by eye: no text.
+
+### Update: inline variable declarations, nicer library cards (118 HyperFrames + 149 RemotionUI = 267)
+Compositions that mount their component inline (component demos) declare the variables on the inner element; `BlockClip` now resolves customer `var.*` overrides against that element when the root declares none (this made 29 of 38 fields of 11 re-tested components visibly effective).
+Eight components that looked like a tiny element in a corner when shown alone (`avatar-group-hover`, `menu-morph`, `matrix-decode`, `per-word-crossfade`, `perspective-marquee`, `tabs-slide-indicator`, `top-down-letters`, `input-feedback`) now use their own demo scene; `badge-pop` was added. Hover previews of all 266 then-current cards were checked in the real library modal.

@@ -518,7 +518,9 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         const root = el.querySelector('[data-composition-id]');
         const id = root?.getAttribute('data-composition-id');
         const scope = createScope(el); scope.store.gsap = gsap; state.current.scope = scope;
-        const varValues = resolveVariables(parseVariableDecls(root), cleanedOv, { allowHosts, onReject: (r) => report('override-rejected', name, `${r.key}: ${r.reason}`) });
+        // a composition that mounts its component inline (e.g. a component's demo) declares the variables on that inner element, not on the root
+        const declRoot = parseVariableDecls(root).length ? root : (el.querySelector('[data-composition-variables]') || root);
+        const varValues = resolveVariables(parseVariableDecls(declRoot), cleanedOv, { allowHosts, onReject: (r) => report('override-rejected', name, `${r.key}: ${r.reason}`) });
         bindVariables(el, varValues);
         // ---- nested compositions (data-composition-src): fetched from the pinned file map only, mounted into their host clip ----
         const cfgOv = Object.fromEntries(Object.entries(cleanedOv).filter(([k]) => k.startsWith('cfg.')));

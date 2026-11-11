@@ -11,8 +11,8 @@ ascii-trail-reveal,component,specialized,no,no,no,0.806,,worst-sample SSIM 0.806
 aurora,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline aurora: no __timelines entry (data-no-timeline block)
 aurora-drift,component,verified-export,yes,yes,no,0.981,1,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
 avatar-cloud,component,adapter-compatible,no,no,no,0.88,,worst-sample SSIM 0.880
-avatar-group-hover,component,verified-export,yes,yes,no,0.995,3,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
-badge-pop,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
+avatar-group-hover,component,verified-export,yes,yes,no,0.995,3,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+badge-pop,component,verified-export,yes,yes,no,1.0,3,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 bar-chart-race,block,verified-export,yes,yes,no,0.993,11,SSIM >= 0.95 at all samples; MP4 export OK
 beat-accent,component,verified-export,yes,yes,no,0.975,4,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 beat-freeze-cut,block,verified-export,yes,no,no,0.989,,export throughput 6.9 fps < 8
@@ -189,7 +189,7 @@ icon-morph-beat,component,verified-export,yes,yes,no,0.994,2,SSIM >= 0.95 at all
 icon-swap,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 ink-bleed-reveal,component,adapter-compatible,no,no,no,0.899,,worst-sample SSIM 0.899
 inline-highlight,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
-input-feedback,component,verified-export,yes,yes,no,0.996,1,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
+input-feedback,component,verified-export,yes,yes,no,0.996,3,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 instagram-follow,block,verified-export,yes,yes,no,0.986,6,SSIM >= 0.95 at all samples; MP4 export OK
 ios26-liquid-glass,block,verified-export,yes,no,no,,,WebGL; three.js; HTML-in-canvas API; export throughput 7.0 fps < 8.0; no editable fields detected; not yet rendered through the production adapter path
 iris-reveal,component,specialized,no,no,no,0.63,,worst-sample SSIM 0.630: content differs from native
@@ -231,8 +231,8 @@ marble,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. s
 marker-checklist-card,component,specialized,no,no,no,0.706,,worst-sample SSIM 0.706: content differs from native
 marker-highlight,component,adapter-compatible,no,no,no,0.935,,worst-sample SSIM 0.935
 match-cut,component,adapter-compatible,no,no,no,0.944,,worst-sample SSIM 0.944
-matrix-decode,component,verified-export,yes,yes,no,0.999,4,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
-menu-morph,component,verified-export,yes,yes,no,0.999,2,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
+matrix-decode,component,verified-export,yes,yes,no,0.999,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+menu-morph,component,verified-export,yes,yes,no,0.999,2,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 mesh-gradient,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline mesh-gradient: no __timelines entry (data-no-timeline block)
 mesh-gradient-bg,component,verified-export,yes,no,no,1.0,,export throughput 4.2 fps < 8
 message-thread-reveal,block,verified-export,yes,no,no,0.994,,export throughput 1.8 fps < 8
@@ -286,9 +286,9 @@ particle-image-reveal,component,specialized,no,no,no,0.802,,worst-sample SSIM 0.
 particle-text-dissolve,component,adapter-compatible,no,no,no,0.916,,worst-sample SSIM 0.916
 path-traced-3d,example,unsupported,no,no,no,0.731,,adapter errors: [hyperframes] timeline path-traced-3d: no __timelines entry (data-no-timeline block)
 pendulum-swing,component,verified-export,yes,no,no,0.999,,export throughput 4.7 fps < 8
-per-word-crossfade,component,verified-export,yes,yes,no,1.0,2,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
+per-word-crossfade,component,verified-export,yes,yes,no,1.0,2,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 per-word-rise,component,adapter-compatible,no,no,no,0.943,,worst-sample SSIM 0.943
-perspective-marquee,component,verified-export,yes,yes,no,1.0,2,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
+perspective-marquee,component,verified-export,yes,yes,no,1.0,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 physical-exit,component,specialized,no,no,no,0.641,,worst-sample SSIM 0.641: content differs from native
 plasma,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline plasma: no __timelines entry (data-no-timeline block)
 plastic,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline plastic: no __timelines entry (data-no-timeline block)
@@ -365,7 +365,7 @@ swipe-rail,component,specialized,no,no,no,0.595,,worst-sample SSIM 0.595: conten
 swirl,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline swirl: no __timelines entry (data-no-timeline block)
 swirl-vortex,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
 swiss-grid,example,adapter-compatible,no,no,no,0.876,,worst-sample SSIM 0.876
-tabs-slide-indicator,component,verified-export,yes,yes,no,1.0,3,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
+tabs-slide-indicator,component,verified-export,yes,yes,no,1.0,3,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 telemetry-hud,component,adapter-compatible,no,no,no,0.891,,worst-sample SSIM 0.891
 terminal-simulator,component,verified-export,yes,no,no,0.967,,export throughput 4.4 fps < 8
 testimonial-card,component,verified-export,yes,no,no,0.979,,no real browser export run; no editable field with a measured visible effect
@@ -385,7 +385,7 @@ tilt-card,component,verified-export,yes,yes,no,0.989,2,SSIM >= 0.95 at all sampl
 titlecard-calm,component,adapter-compatible,no,no,no,0.948,,worst-sample SSIM 0.948
 titlecard-lockup,component,adapter-compatible,no,no,no,0.936,,worst-sample SSIM 0.936
 toggle-flip,component,adapter-compatible,no,no,no,0.92,,worst-sample SSIM 0.920
-top-down-letters,component,verified-export,yes,yes,no,1.0,2,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
+top-down-letters,component,verified-export,yes,yes,no,1.0,2,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 torn-paper-rip,component,specialized,no,no,no,0.161,,worst-sample SSIM 0.161: content differs from native
 touch-indicator,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 tracing-beam,component,specialized,no,no,no,0.795,,worst-sample SSIM 0.795: content differs from native

@@ -7,12 +7,12 @@
   "minExportFps": 8.0
  },
  "totals": {
-  "verified-export": 218,
+  "verified-export": 219,
   "unsupported": 53,
   "not-tested": 2,
   "adapter-compatible": 72,
   "specialized": 81,
-  "host-dependent": 31
+  "host-dependent": 30
  },
  "byType": {
   "block": {
@@ -23,9 +23,9 @@
    "specialized": 25
   },
   "component": {
-   "verified-export": 101,
+   "verified-export": 102,
    "adapter-compatible": 49,
-   "host-dependent": 31,
+   "host-dependent": 30,
    "specialized": 56,
    "unsupported": 1
   },
@@ -57,7 +57,7 @@
   "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 117,
+ "enabledCount": 118,
  "items": {
   "ai-answer-rank": {
    "type": "block",
@@ -4703,49 +4703,46 @@
   "avatar-group-hover": {
    "type": "component",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK",
    "evidence": {
     "prodSsimMin": 0.995,
     "adapterErrors": [],
     "motion": 0.0,
     "export": {
-     "id": "avatar-group-hover",
      "ok": true,
-     "ms": 13262,
-     "bytes": 32270,
-     "fps": 4.5,
-     "hfErrors": {}
+     "fps": 23.6
     },
-    "kind": "static",
-    "nonBlank": 0.0043,
+    "kind": "animated",
+    "nonBlank": 0.0593,
     "exportFullLength1080p": {
      "fps": 9.8,
      "ok": true
-    }
+    },
+    "viaDemoSsimMin": 0.989
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "viaDemo": true
   },
   "badge-pop": {
    "type": "component",
-   "status": "host-dependent",
-   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK",
    "evidence": {
     "prodSsimMin": 1.0,
     "adapterErrors": [],
     "motion": 0.0,
     "export": {
-     "id": "badge-pop",
      "ok": true,
-     "ms": 12759,
-     "bytes": 29193,
-     "fps": 4.7,
-     "hfErrors": {}
+     "fps": 40.9
     },
-    "kind": "static"
+    "kind": "animated",
+    "viaDemoSsimMin": 0.999,
+    "nonBlank": 0.0081
    },
-   "enabled": false,
-   "enabledBlockedBy": []
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "viaDemo": true
   },
   "beat-accent": {
    "type": "component",
@@ -6364,28 +6361,26 @@
   "input-feedback": {
    "type": "component",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK",
    "evidence": {
     "prodSsimMin": 0.996,
     "adapterErrors": [],
     "motion": 0.0,
     "export": {
-     "id": "input-feedback",
      "ok": true,
-     "ms": 12888,
-     "bytes": 31710,
-     "fps": 4.7,
-     "hfErrors": {}
+     "fps": 30.2
     },
-    "kind": "static",
-    "nonBlank": 0.0157,
+    "kind": "animated",
+    "nonBlank": 0.029,
     "exportFullLength1080p": {
      "fps": 9.9,
      "ok": true
-    }
+    },
+    "viaDemoSsimMin": 0.995
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "viaDemo": true
   },
   "iris-reveal": {
    "type": "component",
@@ -6642,54 +6637,50 @@
   "matrix-decode": {
    "type": "component",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK",
    "evidence": {
     "prodSsimMin": 0.999,
     "adapterErrors": [],
     "motion": 0.0,
     "export": {
-     "id": "matrix-decode",
      "ok": true,
-     "ms": 13053,
-     "bytes": 35896,
-     "fps": 4.6,
-     "hfErrors": {}
+     "fps": 23.2
     },
     "kind": "static",
-    "nonBlank": 0.0092,
+    "nonBlank": 0.3244,
     "exportFullLength1080p": {
      "fps": 10.5,
      "ok": true
-    }
+    },
+    "viaDemoSsimMin": 0.976
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "viaDemo": true
   },
   "menu-morph": {
    "type": "component",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK",
    "evidence": {
     "prodSsimMin": 0.999,
     "adapterErrors": [],
     "motion": 0.0,
     "export": {
-     "id": "menu-morph",
      "ok": true,
-     "ms": 13188,
-     "bytes": 30349,
-     "fps": 4.5,
-     "hfErrors": {}
+     "fps": 35.1
     },
-    "kind": "static",
-    "nonBlank": 0.0053,
+    "kind": "animated",
+    "nonBlank": 0.0602,
     "exportFullLength1080p": {
      "fps": 10.2,
      "ok": true
-    }
+    },
+    "viaDemoSsimMin": 0.991
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "viaDemo": true
   },
   "mesh-gradient-bg": {
    "type": "component",
@@ -7265,28 +7256,26 @@
   "per-word-crossfade": {
    "type": "component",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK",
    "evidence": {
     "prodSsimMin": 1.0,
     "adapterErrors": [],
     "motion": 0.0,
     "export": {
-     "id": "per-word-crossfade",
      "ok": true,
-     "ms": 13423,
-     "bytes": 30535,
-     "fps": 4.5,
-     "hfErrors": {}
+     "fps": 28.6
     },
     "kind": "static",
-    "nonBlank": 0.0059,
+    "nonBlank": 0.0177,
     "exportFullLength1080p": {
      "fps": 10,
      "ok": true
-    }
+    },
+    "viaDemoSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "viaDemo": true
   },
   "per-word-rise": {
    "type": "component",
@@ -7305,28 +7294,26 @@
   "perspective-marquee": {
    "type": "component",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK",
    "evidence": {
     "prodSsimMin": 1.0,
     "adapterErrors": [],
     "motion": 0.0,
     "export": {
-     "id": "perspective-marquee",
      "ok": true,
-     "ms": 13634,
-     "bytes": 33949,
-     "fps": 4.4,
-     "hfErrors": {}
+     "fps": 18.8
     },
-    "kind": "static",
-    "nonBlank": 0.0163,
+    "kind": "animated",
+    "nonBlank": 0.1295,
     "exportFullLength1080p": {
      "fps": 8.8,
      "ok": true
-    }
+    },
+    "viaDemoSsimMin": 0.963
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "viaDemo": true
   },
   "physical-exit": {
    "type": "component",
@@ -8232,28 +8219,26 @@
   "tabs-slide-indicator": {
    "type": "component",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK",
    "evidence": {
     "prodSsimMin": 1.0,
     "adapterErrors": [],
     "motion": 0.0,
     "export": {
-     "id": "tabs-slide-indicator",
      "ok": true,
-     "ms": 13083,
-     "bytes": 29482,
-     "fps": 4.6,
-     "hfErrors": {}
+     "fps": 38.8
     },
     "kind": "static",
-    "nonBlank": 0.0061,
+    "nonBlank": 0.0309,
     "exportFullLength1080p": {
      "fps": 10.3,
      "ok": true
-    }
+    },
+    "viaDemoSsimMin": 1.0
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "viaDemo": true
   },
   "telemetry-hud": {
    "type": "component",
@@ -8522,28 +8507,26 @@
   "top-down-letters": {
    "type": "component",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK",
    "evidence": {
     "prodSsimMin": 1.0,
     "adapterErrors": [],
     "motion": 0.0,
     "export": {
-     "id": "top-down-letters",
      "ok": true,
-     "ms": 13095,
-     "bytes": 29438,
-     "fps": 4.6,
-     "hfErrors": {}
+     "fps": 37.7
     },
     "kind": "static",
-    "nonBlank": 0.0042,
+    "nonBlank": 0.0697,
     "exportFullLength1080p": {
      "fps": 10.5,
      "ok": true
-    }
+    },
+    "viaDemoSsimMin": 0.999
    },
    "enabled": true,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [],
+   "viaDemo": true
   },
   "torn-paper-rip": {
    "type": "component",
