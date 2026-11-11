@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OverlayKind } from '@cinegen/types/workspace';
 import { OVERLAY_KINDS, overlayTemplates } from '@cinegen/lib/overlays/overlays';
 import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
+import { buildAnimationCatalog, animationGroups, filterAnimations } from '@cinegen/lib/occ/animation-catalog';
 import { GL_TRANSITION_ORDER, glTransitionLabel } from '@cinegen/lib/occ/transitions';
 import { userLutIds } from '@cinegen/lib/occ/user-luts';
 import { availableSounds, soundEffectSrc } from '@cinegen/lib/occ/sound-library';
@@ -49,6 +50,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
   const [note, setNote] = useState('');
   const [hover, setHover] = useState<string | null>(null);
   const [mg, setMg] = useState<MgTemplate[] | null>(null);
+  const [group, setGroup] = useState<string | null>(null);
   const [playing, setPlaying] = useState<string | null>(null);
   const audio = useRef<HTMLAudioElement | null>(null);
   const noteTimer = useRef<number | undefined>(undefined);
@@ -100,17 +102,26 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
 
   const body = () => {
     if (cat === 'animations') {
-      const list = (mg ?? []).filter((x) => x.usable && match(x.name, x.category, x.description));
+      const items = buildAnimationCatalog({ mg: mg ?? [] });
+      const list = filterAnimations(items, group, q);
       return (
-        <div className="library-panel__grid library-panel__grid--wide">
-          {!mg && <span className="library-panel__empty">Loading…</span>}
-          {mg && !list.length && <span className="library-panel__empty">No animations match.</span>}
-          {list.map((x) => (
-            <button key={x.id} style={card} title={x.description} data-testid={`library-mg-${x.id}`} onClick={() => void run(() => actions.onAddMg(x))}>
-              <strong style={{ fontSize: 12 }}>{x.name}</strong>
-              <span style={{ fontSize: 10, opacity: 0.65 }}>{x.category} · {(x.durationInFrames / x.fps).toFixed(1)}s</span>
-            </button>
-          ))}
+        <div className="library-panel__stack">
+          <div className="library-panel__chips" role="tablist" aria-label="Animation groups">
+            <button className={`library-panel__chip${group === null ? ' library-panel__chip--on' : ''}`} data-testid="library-group-everything" data-help="library group" onClick={() => setGroup(null)}>Everything</button>
+            {animationGroups(items).map((g) => (
+              <button key={g.group} className={`library-panel__chip${group === g.group ? ' library-panel__chip--on' : ''}`} data-testid={`library-group-${g.group}`} data-help="library group" onClick={() => setGroup(g.group)}>{g.group} <span style={{ opacity: 0.6 }}>{g.count}</span></button>
+            ))}
+          </div>
+          <div className="library-panel__grid library-panel__grid--wide">
+            {!mg && <span className="library-panel__empty">Loading…</span>}
+            {mg && !list.length && <span className="library-panel__empty">No animations match.</span>}
+            {list.map((x) => (
+              <button key={x.id} style={card} title={x.description} data-testid={`library-mg-${x.id}`} onClick={() => void run(() => actions.onAddMg(x.mg))}>
+                <strong style={{ fontSize: 12 }}>{x.name}</strong>
+                <span style={{ fontSize: 10, opacity: 0.65 }}>{x.group} · {x.seconds.toFixed(1)}s</span>
+              </button>
+            ))}
+          </div>
         </div>
       );
     }
