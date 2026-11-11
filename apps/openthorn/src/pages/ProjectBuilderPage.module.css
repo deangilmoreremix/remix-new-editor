@@ -867,6 +867,49 @@
   border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.chatHeader {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 14px 0;
+}
+
+.newChatBtn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.newChatBtn:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.newChatBtn:active {
+  transform: scale(0.94);
+}
+
+.newChatBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.newChatBtn:disabled:hover {
+  color: var(--color-text-muted);
+  background: transparent;
+  border-color: transparent;
+}
+
 .thread {
   min-height: 0;
   flex: 1;
@@ -947,10 +990,13 @@
   font-weight: 850;
 }
 
-.assistantTop img {
+/* img: upstream's logo file; svg: BrandLogo, the inline mark that replaces it */
+.assistantTop img,
+.assistantTop svg {
   width: 23px;
   height: 23px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .markdown {
@@ -1977,7 +2023,8 @@
   box-shadow: 0 18px 48px rgba(49, 37, 28, 0.12);
 }
 
-.previewMark img {
+.previewMark img,
+.previewMark svg {
   width: 40px;
   height: 40px;
   object-fit: contain;
