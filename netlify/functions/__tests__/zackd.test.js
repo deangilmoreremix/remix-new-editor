@@ -91,6 +91,15 @@ describe('zackd function', () => {
     expect(body(await handle({ action: 'status', requestId: 'req_cap1' }, 'u5', { keys, fetchImpl: f }))).toEqual({ ok: true, status: 'done', url: 'https://cdn.example.com/captioned.mp4' });
   });
 
+  it('status polling has its own allowance, so a long job cannot use up the generation quota', async () => {
+    const f = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ status: 'processing' }) }));
+    for (let i = 0; i < 200; i += 1) {
+      expect((await handle({ action: 'status', requestId: 'req_poll1' }, 'u-poll', { keys, fetchImpl: f })).statusCode).toBe(200);
+    }
+    const sub = await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u-poll', { keys, fetchImpl: f });
+    expect(sub.statusCode).not.toBe(429);
+  });
+
   it('requires the right BYOK key per action', async () => {
     expect((await handle({ action: 'script', topic: 'x' }, 'u1', { keys: { muapi: keys.muapi } })).statusCode).toBe(401);
     expect(body(await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u1', { keys: { openai: keys.openai } })).error.message).toMatch(/MuAPI/);

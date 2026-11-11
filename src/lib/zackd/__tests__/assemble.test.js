@@ -71,6 +71,20 @@ describe('buildSrt', () => {
   });
 });
 
+describe('buildSrt with the rendered cut', () => {
+  it('uses the real clip lengths instead of the planned ones, so captions track the actual video', () => {
+    const beats = [
+      { narration: 'one two', shots: [{ duration_sec: 3 }, { duration_sec: 3 }] },
+      { narration: 'three four', shots: [{ duration_sec: 3 }] },
+    ];
+    const planned = buildSrt(beats, { transition: 0.5 });
+    const real = buildSrt(beats, { transition: 0.5, durations: [8, 8, 8] });
+    expect(planned).toContain('00:00:00,000 --> 00:00:05,500\none two');
+    expect(real).toContain('00:00:00,000 --> 00:00:15,500\none two'); // 8 + (8 - 0.5 transition)
+    expect(real).toContain('00:00:15,500 --> 00:00:23,000\nthree four'); // the next beat waits for the previous captions
+  });
+});
+
 describe('withTimeout', () => {
   it('rejects with a readable message when the work never finishes, and passes results through otherwise', async () => {
     await expect(withTimeout(new Promise(() => {}), 20, 'encoder stuck')).rejects.toThrow('encoder stuck');

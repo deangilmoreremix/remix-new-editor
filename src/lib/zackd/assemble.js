@@ -111,8 +111,10 @@ export function buildAssemblyPlan(shots, { transition = DEFAULT_TRANSITION_SEC, 
 }
 
 /** Evenly spread each beat's words over its shots' on-screen window → SRT text. */
-export function buildSrt(beats, { transition = DEFAULT_TRANSITION_SEC } = {}) {
+/** `durations` (optional) = the real per-shot lengths of the rendered cut, in shot order; falls back to the planned ones. */
+export function buildSrt(beats, { transition = DEFAULT_TRANSITION_SEC, durations = null } = {}) {
   const td = Number(transition) || 0;
+  const lenOf = (s, k) => (Array.isArray(durations) && Number.isFinite(durations[k]) ? durations[k] : s.duration_sec);
   const ts = (sec) => {
     const ms = Math.max(0, Math.round(sec * 1000));
     const p = (v, l = 2) => String(v).padStart(l, '0');
@@ -131,8 +133,9 @@ export function buildSrt(beats, { transition = DEFAULT_TRANSITION_SEC } = {}) {
     let beatEnd = beatStart;
     b.shots.forEach((s) => {
       const st = startOf(shotIndex, cursor);
-      beatEnd = st + s.duration_sec;
-      cursor += s.duration_sec;
+      const len = lenOf(s, shotIndex);
+      beatEnd = st + len;
+      cursor += len;
       shotIndex += 1;
     });
     beatEnd = Math.max(beatEnd, beatStart + 0.1);
@@ -187,48 +190,58 @@ async function probeClip(ff, name) {
 export async function runAssembly({ clips, narrationUrl, musicUrl, keepClipAudio = true, mixVoice = false, trimToPlanned = false, transition = DEFAULT_TRANSITION_SEC, onProgress, signal }) {
   const [{ FFmpeg }, { toBlobURL }] = await Promise.all([import('@ffmpeg/ffmpeg'), import('@ffmpeg/util')]);
   const ff = new FFmpeg();
-  ff.on('progress', ({ progress }) => onProgress?.('encode', Math.min(1, Math.max(0, progress))));
-  onProgress?.('load', 0);
-  await withTimeout((async () => {
-    await ff.load({
-      coreURL: await toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
-      wasmURL: await toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
-    });
-  })(), ENCODER_LOAD_TIMEOUT_MS, 'The video encoder could not be loaded. Check your connection and try again.');
+  const onAbort = () => { try { ff.terminate(); } catch { /* already gone */ } };
+  if (signal?.aborted) { throw new DOMException('Aborted', 'AbortError'); }
+  signal?.addEventListener('abort', onAbort, { once: true });
+  try {
+    ff.on('progress', ({ progress }) => onProgress?.('encode', Math.min(1, Math.max(0, progress))));
+    onProgress?.('load', 0);
+    await withTimeout((async () => {
+      await ff.load({
+        coreURL: await toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
+        wasmURL: await toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
+      });
+    })(), ENCODER_LOAD_TIMEOUT_MS, 'The video encoder could not be loaded. Check your connection and try again.');
 
-  const shots = [];
-  for (let i = 0; i < clips.length; i += 1) {
-    onProgress?.('download', i / clips.length);
-    await ff.writeFile(`clip${i}.mp4`, await fetchBytes(clips[i].url, signal));
-    const info = await probeClip(ff, `clip${i}.mp4`);
-    const real = info.duration ?? clips[i].planned ?? 3;
-    const duration = trimToPlanned && clips[i].planned ? Math.min(real, clips[i].planned) : real;
-    shots.push({ duration, zoom: !!clips[i].zoom, hasAudio: info.hasAudio });
+    const shots = [];
+    for (let i = 0; i < clips.length; i += 1) {
+      onProgress?.('download', i / clips.length);
+      await ff.writeFile(`clip${i}.mp4`, await fetchBytes(clips[i].url, signal));
+      const info = await probeClip(ff, `clip${i}.mp4`);
+      const real = info.duration ?? clips[i].planned ?? 3;
+      const duration = trimToPlanned && clips[i].planned ? Math.min(real, clips[i].planned) : real;
+      shots.push({ duration, zoom: !!clips[i].zoom, hasAudio: info.hasAudio });
+    }
+    const hasNarration = !!(mixVoice && narrationUrl);
+    const hasMusic = !!(mixVoice && musicUrl);
+    if (hasNarration) await ff.writeFile('narration.mp3', await fetchBytes(narrationUrl, signal));
+    if (hasMusic) await ff.writeFile('bgm.mp3', await fetchBytes(musicUrl, signal));
+    const plan = buildAssemblyPlan(shots, { transition, clipAudio: keepClipAudio, hasNarration, hasMusic });
+
+    const args = [];
+    for (const input of plan.inputs) {
+      if (input.type === 'clip') args.push('-i', `clip${input.shot}.mp4`);
+      else if (input.type === 'silence') args.push('-f', 'lavfi', '-t', num(input.duration), '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000');
+      else if (input.type === 'narration') args.push('-i', 'narration.mp3');
+      else args.push('-i', 'bgm.mp3');
+    }
+    args.push('-filter_complex', plan.filterComplex, '-map', '[vout]');
+    if (plan.audioLabel) args.push('-map', `[${plan.audioLabel}]`);
+    // Upstream passes -shortest; a mixed-in voice may be longer than the picture, so cap at the picture length then.
+    if (hasNarration || hasMusic) args.push('-t', num(plan.total)); else args.push('-shortest');
+    args.push('-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p');
+    if (plan.audioLabel) args.push('-c:a', 'aac', '-b:a', '96k');
+    args.push('-movflags', '+faststart', 'final.mp4');
+
+    const code = await ff.exec(args);
+    if (code !== 0) throw new Error('The video encoder failed. Try fewer or shorter clips.');
+    const data = await ff.readFile('final.mp4');
+    return { blob: new Blob([data], { type: 'video/mp4' }), duration: plan.total, durations: shots.map((x) => x.duration), hasAudio: !!plan.audioLabel };
+  } catch (e) {
+    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError'); // terminating the worker rejects exec with an unrelated error
+    throw e;
+  } finally {
+    signal?.removeEventListener('abort', onAbort);
+    try { ff.terminate(); } catch { /* already terminated */ }
   }
-  const hasNarration = !!(mixVoice && narrationUrl);
-  const hasMusic = !!(mixVoice && musicUrl);
-  if (hasNarration) await ff.writeFile('narration.mp3', await fetchBytes(narrationUrl, signal));
-  if (hasMusic) await ff.writeFile('bgm.mp3', await fetchBytes(musicUrl, signal));
-  const plan = buildAssemblyPlan(shots, { transition, clipAudio: keepClipAudio, hasNarration, hasMusic });
-
-  const args = [];
-  for (const input of plan.inputs) {
-    if (input.type === 'clip') args.push('-i', `clip${input.shot}.mp4`);
-    else if (input.type === 'silence') args.push('-f', 'lavfi', '-t', num(input.duration), '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000');
-    else if (input.type === 'narration') args.push('-i', 'narration.mp3');
-    else args.push('-i', 'bgm.mp3');
-  }
-  args.push('-filter_complex', plan.filterComplex, '-map', '[vout]');
-  if (plan.audioLabel) args.push('-map', `[${plan.audioLabel}]`);
-  // Upstream passes -shortest; a mixed-in voice may be longer than the picture, so cap at the picture length then.
-  if (hasNarration || hasMusic) args.push('-t', num(plan.total)); else args.push('-shortest');
-  args.push('-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p');
-  if (plan.audioLabel) args.push('-c:a', 'aac', '-b:a', '96k');
-  args.push('-movflags', '+faststart', 'final.mp4');
-
-  const code = await ff.exec(args);
-  if (code !== 0) throw new Error('The video encoder failed. Try fewer or shorter clips.');
-  const data = await ff.readFile('final.mp4');
-  ff.terminate();
-  return { blob: new Blob([data], { type: 'video/mp4' }), duration: plan.total, hasAudio: !!plan.audioLabel };
 }

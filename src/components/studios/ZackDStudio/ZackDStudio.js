@@ -412,7 +412,7 @@ export function ZackDStudio() {
     const dl = el('button', CANVAS_BTN, 'Download MP4'); dl.type = 'button';
     dl.onclick = () => download(final.blob, 'zackd-short.mp4');
     const srt = el('button', CANVAS_BTN, 'Download captions (.srt)'); srt.type = 'button';
-    srt.onclick = () => download(new Blob([buildSrt(s.map.beats, { transition: DEFAULT_TRANSITION_SEC })], { type: 'text/plain' }), 'zackd-short.srt');
+    srt.onclick = () => download(new Blob([buildSrt(s.map.beats, { transition: DEFAULT_TRANSITION_SEC, durations: final.durations })], { type: 'text/plain' }), 'zackd-short.srt');
     const lib = el('button', CANVAS_BTN, final.saved ? 'Saved to library' : 'Save to library'); lib.type = 'button'; lib.disabled = busy || final.saved; lib.onclick = saveToLibrary;
     const fresh = el('button', CANVAS_BTN, 'New project'); fresh.type = 'button';
     fresh.onclick = () => { if (window.confirm('Start a new project? The current one will be cleared from this browser.')) { newProject(); } };
@@ -618,14 +618,14 @@ export function ZackDStudio() {
     paint();
     const setLabel = (t) => { const l = progress?.querySelector('.progress-label'); if (l) l.textContent = t; };
     try {
-      const { blob, duration } = await runAssembly({
+      const { blob, duration, durations } = await runAssembly({
         clips: shots.map((x) => ({ url: s.shots[x.shot_id].clip, planned: x.duration_sec, zoom: x.zoom_impact })),
         narrationUrl: s.narration, musicUrl: s.music, keepClipAudio: s.keepClipAudio !== false, mixVoice: !!s.mixVoice, trimToPlanned: !!s.trimToPlanned,
         transition: DEFAULT_TRANSITION_SEC, signal: abort.current.signal,
         onProgress: (phase, p) => { if (phase === 'encode') { progress?.setProgress(p * 100); setLabel(`Encoding ${Math.round(p * 100)}%`); } else setLabel(phase === 'download' ? 'Downloading clips…' : 'Loading encoder…'); },
       });
       if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
-      final = { objectUrl: URL.createObjectURL(blob), blob, duration, saved: false };
+      final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false };
       showToast('Final cut ready', 'success', 2500);
     } catch (e) { fail(e); }
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();

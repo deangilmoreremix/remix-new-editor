@@ -31,19 +31,23 @@ import {
 
 const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
 const TIMEOUT_MS = 90_000;
+// Status polls (one every 4 s per running job) must not eat the quota for paid generation requests, so they get their own bucket.
 const RATE = { windowMs: 10 * 60_000, max: 150 };
+const POLL_RATE = { windowMs: 10 * 60_000, max: 1500 };
 const hits = new Map();
 const IMAGE_ASPECTS = ['9:16', '16:9', '1:1'];
 
 const json = (statusCode, body) => ({ statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 const fail = (statusCode, code, message) => json(statusCode, { ok: false, error: { code, message } });
 
-function rateLimited(userId) {
+function rateLimited(userId, { polling = false } = {}) {
   const now = Date.now();
-  const list = (hits.get(userId) || []).filter((t) => now - t < RATE.windowMs);
+  const rate = polling ? POLL_RATE : RATE;
+  const key = polling ? `${userId}:poll` : userId;
+  const list = (hits.get(key) || []).filter((t) => now - t < rate.windowMs);
   list.push(now);
-  hits.set(userId, list);
-  return list.length > RATE.max;
+  hits.set(key, list);
+  return list.length > rate.max;
 }
 
 function extractText(data) {
@@ -190,7 +194,7 @@ export async function handle(body, userId, { fetchImpl = fetch, keys = {} } = {}
   if (text && !keys.openai) return fail(401, 'need_key', NEED_OPENAI_KEY);
   if (!text && !keys.muapi) return fail(401, 'need_key', NEED_MUAPI_KEY);
   if (!['trends', 'script', 'submit', 'status'].includes(action)) return fail(400, 'bad_request', 'Unknown action');
-  if (rateLimited(userId)) return fail(429, 'rate_limited', 'Too many requests. Wait a few minutes.');
+  if (rateLimited(userId, { polling: action === 'status' })) return fail(429, 'rate_limited', 'Too many requests. Wait a few minutes.');
 
   try {
     if (action === 'trends') {
