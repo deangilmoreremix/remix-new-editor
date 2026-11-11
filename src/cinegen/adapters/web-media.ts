@@ -230,6 +230,8 @@ export const webMediaApi = {
             return { path: a.remoteUrl, sourceUrl: a.remoteUrl, downloaded: false }; // cross-origin: the browser streams it
           }
         }
+        // [remix] data:/blob: sources (e.g. element reference uploads kept in the project) are already durable in-browser.
+        if (a.remoteUrl && /^(data|blob):/i.test(a.remoteUrl)) return { path: a.remoteUrl, downloaded: false };
         if (a.localPathHint) return { path: a.localPathHint, downloaded: false };
         return { error: 'No source to persist.' };
       } catch (error) {

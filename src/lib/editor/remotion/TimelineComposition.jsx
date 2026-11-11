@@ -444,6 +444,16 @@ function KeyframeWrap({ layer, seqFrom, origin, children }) {
   return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
 }
 
+/** A Multi-Cam window (picture-in-picture or one half of a split screen). */
+function CameraBox({ box, children }) {
+  const border = box.border ? `${box.border}px solid rgba(255,255,255,0.9)` : undefined;
+  return (
+    <div style={{ position: 'absolute', left: `${box.left}%`, top: `${box.top}%`, width: `${box.width}%`, height: `${box.height}%`, overflow: 'hidden', borderRadius: box.radius ? `${box.radius}px` : undefined, border, boxSizing: 'border-box', boxShadow: box.radius ? '0 6px 24px rgba(0,0,0,0.5)' : undefined }}>
+      <AbsoluteFill>{children}</AbsoluteFill>
+    </div>
+  );
+}
+
 /** [remix] OpenChatCut zoom / follow-subject reframe: scale about the focal point (their TimelineMediaLayer transform). */
 function OccZoom({ zoom, durationInFrames, children }) {
   const frame = useCurrentFrame();
@@ -626,7 +636,7 @@ export function TimelineComposition({ model }) {
               <Sequence key={layer.id} from={from} durationInFrames={Math.max(1, end - from)} layout="absolute-fill">
                 <InTransition tr={inTr} direction="entering" layerFrom={from}>
                   <InTransition tr={outTr} direction="exiting" layerFrom={from}>
-                    <AbsoluteFill>{content}</AbsoluteFill>
+                    {layer.box ? <CameraBox box={layer.box}>{content}</CameraBox> : <AbsoluteFill>{content}</AbsoluteFill>}
                   </InTransition>
                 </InTransition>
               </Sequence>

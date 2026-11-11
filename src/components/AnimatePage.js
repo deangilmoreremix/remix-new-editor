@@ -54,6 +54,20 @@ export function AnimatePage() {
     selectedMuapiModel: null,
   };
 
+  // Hand-off from Storyboard Studio: a frame image plus its motion prompt.
+  try {
+    const raw = sessionStorage.getItem('storyboard_animate_frame');
+    if (raw) {
+      sessionStorage.removeItem('storyboard_animate_frame');
+      const frame = JSON.parse(raw);
+      if (frame?.imageUrl) {
+        state.sourceImageUrl = frame.imageUrl;
+        if (frame.prompt) state.prompt = frame.prompt;
+        if (frame.duration) state.duration = Math.min(12, Math.max(3, Math.round(frame.duration)));
+      }
+    }
+  } catch { /* storage unavailable or bad payload */ }
+
   const root = document.createElement('div');
   root.className = 'w-full max-w-4xl mx-auto px-4 pb-8 animate-fade-in-up';
 
@@ -147,12 +161,36 @@ export function AnimatePage() {
       });
       uploadSection.appendChild(picker.trigger);
       uploadSection.appendChild(picker.panel);
+      if (state.sourceImageUrl) {
+        const preview = document.createElement('img');
+        preview.src = state.sourceImageUrl;
+        preview.alt = 'Source image';
+        preview.className = 'mt-2 h-24 rounded-lg border border-white/10 object-cover';
+        uploadSection.appendChild(preview);
+      }
     }
   }
 
   // ---- Controls ----
   const controls = document.createElement('div');
   controls.className = 'flex flex-col gap-4 mb-6';
+
+  // "Use My Brand" (OpenHiggsBolt Motion Studio): connect a business — name,
+  // colors, logos and reference frames — through the personalization modal.
+  const brandRow = document.createElement('div');
+  brandRow.className = 'flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3';
+  brandRow.innerHTML = '<div class="text-sm font-bold text-white">Use My Brand<div class="text-xs font-normal text-secondary">Connect your brand: business name, colors, logos and reference frames.</div></div>';
+  const brandBtn = document.createElement('button');
+  brandBtn.type = 'button';
+  brandBtn.className = 'btn-secondary-modern text-xs shrink-0';
+  brandBtn.textContent = 'Connect Personalization';
+  brandBtn.setAttribute('aria-haspopup', 'dialog');
+  brandBtn.addEventListener('click', async () => {
+    const { openMotionBrandPersonalization } = await import('../features/personalization/mount.jsx');
+    openMotionBrandPersonalization({ trigger: brandBtn });
+  });
+  brandRow.appendChild(brandBtn);
+  controls.appendChild(brandRow);
 
   const promptRow = document.createElement('div');
   const promptLabel = document.createElement('label');

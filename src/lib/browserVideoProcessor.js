@@ -326,7 +326,15 @@ async function segment({ blob, onProgress }) {
     new Promise((res) => {
       const onSeek = () => {
         video.removeEventListener('seeked', onSeek);
-        res();
+        // 'seeked' can fire before the new frame is painted; wait for it.
+        if (typeof video.requestVideoFrameCallback === 'function') {
+          let done = false;
+          const finish = () => { if (!done) { done = true; res(); } };
+          video.requestVideoFrameCallback(finish);
+          setTimeout(finish, 250);
+        } else {
+          setTimeout(res, 60);
+        }
       };
       video.addEventListener('seeked', onSeek);
       video.currentTime = Math.min(t, Math.max(0, dur - 0.05));
@@ -504,7 +512,14 @@ async function analyze({ op, blob, onProgress }) {
     new Promise((res) => {
       const onSeek = () => {
         video.removeEventListener('seeked', onSeek);
-        res();
+        if (typeof video.requestVideoFrameCallback === 'function') {
+          let done = false;
+          const finish = () => { if (!done) { done = true; res(); } };
+          video.requestVideoFrameCallback(finish);
+          setTimeout(finish, 250);
+        } else {
+          setTimeout(res, 60);
+        }
       };
       video.addEventListener('seeked', onSeek);
       video.currentTime = Math.min(t, Math.max(0, dur - 0.05));
@@ -518,19 +533,27 @@ async function analyze({ op, blob, onProgress }) {
     sctx.drawImage(video, 0, 0, 32, 32);
     const data = sctx.getImageData(0, 0, 32, 32).data;
     const hash = perceptualHash(data);
-    frames.push({ t, hash, diff: 0, motion: 0 });
+    let r = 0; let g = 0; let b = 0;
+    for (let k = 0; k < data.length; k += 4) { r += data[k]; g += data[k + 1]; b += data[k + 2]; }
+    const px = data.length / 4;
+    frames.push({ t, hash, rgb: [r / px, g / px, b / px], diff: 0, motion: 0 });
     idx++;
     if (onProgress) onProgress(Math.min(99, Math.round((idx / total) * 100)));
   }
 
   for (let i = 1; i < frames.length; i++) {
-    frames[i].diff = hamming(frames[i - 1].hash, frames[i].hash);
+    // Pattern change (hash) plus average-colour change, so a cut between two
+    // flat or similar-brightness shots still counts.
+    const [pr, pg, pb] = frames[i - 1].rgb; const [cr, cg, cb] = frames[i].rgb;
+    const colour = (Math.abs(pr - cr) + Math.abs(pg - cg) + Math.abs(pb - cb)) / 3;
+    frames[i].diff = hamming(frames[i - 1].hash, frames[i].hash) + Math.round((colour / 255) * 40);
     frames[i].motion = frames[i].diff;
   }
 
   if (op === 'detect-scenes') {
     const diffs = frames.map((f) => f.diff).filter((d) => d > 0).sort((a, b) => a - b);
-    const threshold = diffs.length ? Math.max(8, diffs[Math.floor(diffs.length * 0.9)]) : 12;
+    // Cap the percentile so a handful of strong cuts are all kept.
+    const threshold = diffs.length ? Math.max(8, Math.min(14, diffs[Math.floor(diffs.length * 0.9)])) : 12;
     const scenes = [];
     let start = 0;
     for (let i = 1; i < frames.length; i++) {

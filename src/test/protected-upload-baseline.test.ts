@@ -645,7 +645,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // CineGen work: the on-device Mask tool, track delete/reorder, linked
     // clips, Track Forward, keyframe lanes and the Voice Director button;
     // the dead #cinegen* button listeners were removed. No upload call site changed.
-    ['src/components/TimelineEditorPage.jsx', '117568bc065a824bd9a37194ce8e1c14dda8b72a10ef80132258f00fa53ff59e'], // re-recorded: removed dead element_create/shot_board MuAPI result handlers (images now use Images 2.6 on the user's OpenAI key)
+    ['src/components/TimelineEditorPage.jsx', 'c0dab45a213e43e299c617e0940f535d6bd96be8f04392b3d146e1a41b4f3449'], // re-recorded: removed dead element_create/shot_board MuAPI result handlers (images now use Images 2.6 on the user's OpenAI key)
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],

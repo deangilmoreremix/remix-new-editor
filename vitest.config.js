@@ -17,6 +17,9 @@ export default defineConfig({
     // per-mount headroom added for studio-smoke.
     testTimeout: 30000,
     // E2E specs are run by Playwright, not vitest (they need a browser + dev server).
+    // tests/visual/** are Playwright specs too (playwright.config.visual.ts).
+    // tests/integration/*.mjs are env-gated Node scripts (`node tests/integration/<file>.mjs`)
+    // that call process.exit, so they are not Vitest suites.
     // Agent worktrees under .kilo are scratch space and must not be collected.
     // Backend Jest suites live under backend/__tests__ and root __tests__; keep them out of vitest.
     // Backend vitest suites under backend/tests need backend-only deps; run from that package.
@@ -27,11 +30,12 @@ export default defineConfig({
     // .agents/skills/media-use/scripts tests are Node test-runner scripts (`node:test`) plus a custom
     // self-executing harness (not Vitest suites); they run/pass via `node --test`, so keep them out of
     // this Vitest collector. **/.git/** is never test source — exclude it defensively.
-    exclude: ['**/node_modules/**', '**/tests/e2e/**', '**/e2e/**', '**/dist/**', '**/.kilo/**', '**/tests/studio-demo/**', 'backend/__tests__/**', '__tests__/**', 'backend/tests/**', 'apps/vimax/**', 'apps/cinegen/**', '.agents/skills/media-use/**', '**/.git/**'],
+    exclude: ['**/node_modules/**', '**/tests/e2e/**', '**/tests/visual/**', 'tests/integration/**/*.mjs', '**/e2e/**', '**/dist/**', '**/.kilo/**', '**/tests/studio-demo/**', 'backend/__tests__/**', '__tests__/**', 'backend/tests/**', 'apps/vimax/**', 'apps/cinegen/**', '.agents/skills/media-use/**', '**/.git/**'],
   },
   resolve: {
     alias: {
       '../../lib/socialPublishHelpers': path.resolve(__dirname, 'src/lib/socialPublishHelpers.js'),
+      '@ohb': path.resolve(__dirname, 'src/features/personalization'),
       // tests/unit/timeline-*.unit.spec.ts import through the `@/` layout:
       // `@` is the PROJECT ROOT, so `@/src/components/Timeline` resolves to
       // src/components/Timeline.js and `@/components/base/Component` to

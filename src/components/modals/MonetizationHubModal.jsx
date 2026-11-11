@@ -1,7 +1,28 @@
 import { BaseModal } from './BaseModal.jsx';
 import { searchTracks, getTrackById } from '../../lib/monetizationCurriculum.js';
-import { searchTemplates, getTemplateById } from '../../lib/businessTemplates.js';
+import { searchTemplates, getTemplateById, TEMPLATE_CATEGORIES } from '../../lib/businessTemplates.js';
 import { MODAL_SHORTCUTS, renderShortcutsOverlay } from './modalShortcuts.js';
+import { injectCatalogModalStyles } from './catalogModalStyles.js';
+
+const escapeAttr = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// Business templates are structured records (description, framework,
+// psychology list, ROI, ...) with no single `body`; compose a readable plain
+// text version for preview, copy and download.
+export function templateToText(tpl) {
+  if (!tpl) return '';
+  const lines = [tpl.title, ''];
+  if (tpl.description) lines.push(tpl.description, '');
+  if (tpl.framework) lines.push('Framework', tpl.framework, '');
+  if (Array.isArray(tpl.psychology) && tpl.psychology.length) {
+    lines.push('Psychology', ...tpl.psychology.map(p => `- ${p}`), '');
+  }
+  if (tpl.roi) lines.push('ROI', tpl.roi, '');
+  if (tpl.benchmarks) lines.push('Benchmarks', tpl.benchmarks, '');
+  if (tpl.estimatedTime) lines.push(`Estimated time: ${tpl.estimatedTime}`);
+  if (tpl.difficulty) lines.push(`Difficulty: ${tpl.difficulty}`);
+  return lines.join('\n').trim();
+}
 
 export class MonetizationHubModal extends BaseModal {
   constructor(options = {}) {
@@ -60,7 +81,7 @@ export class MonetizationHubModal extends BaseModal {
         const id = btn.dataset.copyTemplate;
         const tpl = getTemplateById(id);
         if (tpl) {
-          navigator.clipboard.writeText(tpl.body).then(() => {
+          navigator.clipboard.writeText(templateToText(tpl)).then(() => {
             const label = btn.querySelector('.copy-label');
             if (label) {
               const prev = label.textContent;
@@ -81,7 +102,7 @@ export class MonetizationHubModal extends BaseModal {
         const id = btn.dataset.downloadTemplate;
         const tpl = getTemplateById(id);
         if (tpl) {
-          const blob = new Blob([tpl.body], { type: "text/plain" });
+          const blob = new Blob([templateToText(tpl)], { type: "text/plain" });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -100,11 +121,17 @@ export class MonetizationHubModal extends BaseModal {
     }
   }
 
+  open() {
+    injectCatalogModalStyles();
+    super.open();
+  }
+
+  onRender() {
+    this._bind();
+  }
+
   _refresh() {
-    if (this.container) {
-      this.render();
-      this._bind();
-    }
+    this.refresh();
   }
 
   handleKeyDown(e) {
@@ -125,7 +152,7 @@ export class MonetizationHubModal extends BaseModal {
 
   renderBody() {
     const tracks = searchTracks({ query: this.trackQuery, level: this.trackLevel });
-    const templates = searchTemplates({ query: this.templateQuery, type: this.templateType });
+    const templates = searchTemplates({ query: this.templateQuery, category: this.templateType });
     const selectedTrack = getTrackById(this.selectedTrackId);
     const selectedTemplate = getTemplateById(this.selectedTemplateId);
 
@@ -154,7 +181,7 @@ export class MonetizationHubModal extends BaseModal {
           <div class="monetization-split">
             <div class="monetization-catalog">
               <div class="monetization-controls">
-                <input type="search" data-track-search placeholder="Search tracks..." value="${this.trackQuery}" />
+                <input type="search" data-track-search placeholder="Search tracks..." value="${escapeAttr(this.trackQuery)}" />
                 <select data-track-level>
                   <option value="">All Levels</option>
                   <option value="Beginner" ${this.trackLevel === 'Beginner' ? 'selected' : ''}>Beginner</option>
@@ -178,14 +205,10 @@ export class MonetizationHubModal extends BaseModal {
           <div class="monetization-split">
             <div class="monetization-catalog">
               <div class="monetization-controls">
-                <input type="search" data-template-search placeholder="Search templates..." value="${this.templateQuery}" />
+                <input type="search" data-template-search placeholder="Search templates..." value="${escapeAttr(this.templateQuery)}" />
                 <select data-template-type>
-                  <option value="">All Types</option>
-                  <option value="pricing" ${this.templateType === 'pricing' ? 'selected' : ''}>Pricing</option>
-                  <option value="outreach" ${this.templateType === 'outreach' ? 'selected' : ''}>Outreach</option>
-                  <option value="contract" ${this.templateType === 'contract' ? 'selected' : ''}>Contract</option>
-                  <option value="invoice" ${this.templateType === 'invoice' ? 'selected' : ''}>Invoice</option>
-                  <option value="script" ${this.templateType === 'script' ? 'selected' : ''}>Script</option>
+                  <option value="">All Categories</option>
+                  ${TEMPLATE_CATEGORIES.map(c => `<option value="${escapeAttr(c.id)}" ${this.templateType === c.id ? 'selected' : ''}>${escapeAttr(c.name)}</option>`).join('')}
                 </select>
               </div>
               <div class="monetization-list">
@@ -195,8 +218,9 @@ export class MonetizationHubModal extends BaseModal {
             <div class="monetization-detail">
               ${selectedTemplate ? `
                 <div class="detail-title">${selectedTemplate.title}</div>
-                <div class="detail-meta">${selectedTemplate.type}</div>
-                <pre class="template-preview">${selectedTemplate.body}</pre>
+                <div class="detail-meta">${escapeAttr(selectedTemplate.type)}${selectedTemplate.difficulty ? ` · ${escapeAttr(selectedTemplate.difficulty)}` : ''}</div>
+                ${selectedTemplate.shortDescription ? `<div class="detail-desc">${escapeAttr(selectedTemplate.shortDescription)}</div>` : ''}
+                <pre class="template-preview">${escapeAttr(templateToText(selectedTemplate))}</pre>
                 <div class="detail-actions">
                   <button type="button" class="btn-primary-modern" data-action="copy-template" data-copy-template="${selectedTemplate.id}"><span class="copy-label">Copy</span></button>
                   <button type="button" class="btn-secondary-modern" data-action="download-template" data-download-template="${selectedTemplate.id}"><span class="download-label">Download</span></button>

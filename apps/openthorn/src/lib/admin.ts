@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { T, RPC } from './tables'
+import { apiUrl } from './api'
 
 export interface AdminUserRow {
   id: string
@@ -26,7 +27,7 @@ export async function adminListUsers(): Promise<AdminUserRow[]> {
 export async function adminUserAction(action: AdminUserAction, userId: string): Promise<void> {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) throw new Error('Not signed in')
-  const res = await fetch('/api/admin', {
+  const res = await fetch(apiUrl('admin'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

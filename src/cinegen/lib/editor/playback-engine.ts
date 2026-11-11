@@ -81,6 +81,9 @@ export class PlaybackEngine {
   // Mute/solo cache
   private mutedTrackIds = new Set<string>();
 
+  // [remix] While paused no tick runs, so a clip held hidden during its entry seek would stay hidden (black frame).
+  private pausedResyncTimer: ReturnType<typeof setTimeout> | null = null;
+
   // Asset lookup cache (rebuilt on setAssets)
   private assetMap = new Map<string, Asset>();
 
@@ -624,6 +627,9 @@ export class PlaybackEngine {
         this.videoContainer.appendChild(createdVideo);
         this.videoPool.set(clipId, createdVideo);
         video = createdVideo;
+        // [remix] Paused first load: show the frame as soon as it can be drawn (no tick runs while paused).
+        createdVideo.addEventListener('loadeddata', () => { if (!this._isPlaying) this.syncVideo(); });
+        createdVideo.addEventListener('seeked', () => { if (!this._isPlaying) this.syncVideo(); });
 
         if (!createdVideo.dataset.autoProxyWatchers) {
           createdVideo.dataset.autoProxyWatchers = '1';
@@ -732,6 +738,7 @@ export class PlaybackEngine {
 
     // Sync each active clip
     let z = 1;
+    let needsPausedResync = false;
     for (const entry of activeVisuals) {
       const el = this.videoPool.get(entry.clip.id);
       if (!el) continue;
@@ -766,7 +773,7 @@ export class PlaybackEngine {
       opacity = this.applyTransitionOpacity(entry.clip, opacity);
 
       // Suppress visibility until seek settles to avoid showing a corrupt/wrong frame
-      if (seekPending) opacity = 0;
+      if (seekPending) { opacity = 0; needsPausedResync = true; }
 
       // Flip transforms
       const scaleX = entry.clip.flipH ? -1 : 1;
@@ -909,6 +916,14 @@ export class PlaybackEngine {
     // Clean up entry timestamps for clips no longer in the pool
     for (const clipId of this.clipEntryTimestamps.keys()) {
       if (!this.videoPool.has(clipId)) this.clipEntryTimestamps.delete(clipId);
+    }
+
+    // [remix] Paused: no tick will un-hide a clip held at opacity 0 for its entry seek, so re-sync once it has settled.
+    if (needsPausedResync && !this._isPlaying && this.pausedResyncTimer === null) {
+      this.pausedResyncTimer = setTimeout(() => {
+        this.pausedResyncTimer = null;
+        if (!this._isPlaying) this.syncVideo();
+      }, 100);
     }
   }
 
@@ -1210,6 +1225,7 @@ export class PlaybackEngine {
   // --- Cleanup ---
 
   destroy(): void {
+    if (this.pausedResyncTimer !== null) { clearTimeout(this.pausedResyncTimer); this.pausedResyncTimer = null; }
     this.pause();
     // Clean video pool
     for (const el of this.videoPool.values()) {

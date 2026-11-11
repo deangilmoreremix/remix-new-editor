@@ -289,8 +289,19 @@ export function registerWebApi() {
     upload: async (file: unknown) => {
       const f = file as { buffer: ArrayBuffer; name: string; type: string };
       const blob = new File([f.buffer], f.name, { type: f.type });
-      const url = await uploadFileToStorage(blob);
-      return { url };
+      try {
+        const url = await uploadFileToStorage(blob);
+        if (url) return { url: url as string };
+      } catch { /* storage unavailable: not signed in, no Supabase configuration, or offline */ }
+      // Fallback that keeps the Element usable and persistent: the image is stored in the project itself as a data URL (the project
+      // lives in this browser's IndexedDB), so it survives reload; it is uploaded to a provider only when a generation uses it.
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result));
+        r.onerror = () => reject(r.error ?? new Error('Could not read the image'));
+        r.readAsDataURL(blob);
+      });
+      return { url: dataUrl };
     },
   });
 }

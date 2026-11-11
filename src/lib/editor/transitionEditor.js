@@ -5,9 +5,12 @@
 
 import { TransitionsLibrary } from './transitionsLibrary.js';
 
+const PRESETS_KEY = 'remix_transition_presets';
+
 export class TransitionEditor {
-  constructor(container, onTransitionChange, onDeleteTransition) {
+  constructor(container, onTransitionChange, onDeleteTransition, hooks = {}) {
     this.container = container;
+    this.hooks = hooks; // { toast(message, kind) }
     this.onTransitionChange = onTransitionChange;
     this.onDeleteTransition = onDeleteTransition;
     this.library = new TransitionsLibrary();
@@ -69,6 +72,7 @@ export class TransitionEditor {
             <div class="preset-selector">
               <select id="presetSelect" data-tooltip="Preset Selector - Choose a pre-configured transition preset to quickly apply settings">
                 <option value="">Choose Preset...</option>
+                <optgroup label="My presets" id="myPresets">${this.myPresetOptions()}</optgroup>
                 <optgroup label="Cinematic">
                   ${this.library.getPresets('cinematic').map(preset =>
                     `<option value="cinematic:${preset.name}">${preset.name}</option>`
@@ -116,6 +120,7 @@ export class TransitionEditor {
         </div>
 
         <div class="transition-editor__actions">
+          <input type="text" id="presetName" class="transition-name-input" placeholder="Preset name" maxlength="40" aria-label="Preset name"/>
           <button class="transition-btn secondary" id="savePreset" data-tooltip="Save as Preset - Save the current transition settings as a reusable preset">💾 Save as Preset</button>
           <button class="transition-btn secondary" id="exportTransition" data-tooltip="Export - Download the transition configuration as a JSON file">📤 Export</button>
           <button class="transition-btn secondary" id="deleteTransition" data-tooltip="Delete Transition - Remove this transition from the timeline">🗑️ Delete</button>
@@ -267,8 +272,12 @@ export class TransitionEditor {
 
     // Preset selection
     this.container.querySelector('#presetSelect').addEventListener('change', (e) => {
-      const [category, presetName] = e.target.value.split(':');
-      if (category && presetName) {
+      const [category, ...rest] = e.target.value.split(':');
+      const presetName = rest.join(':');
+      if (category === 'mine' && presetName) {
+        const mine = this.myPresets().find((p) => p.name === presetName);
+        if (mine) { this.loadPreset(mine); if (mine.duration) this.setDuration(mine.duration); }
+      } else if (category && presetName) {
         const presets = this.library.getPresets(category);
         const preset = presets.find(p => p.name === presetName);
         if (preset) {
@@ -297,7 +306,9 @@ export class TransitionEditor {
   }
 
   selectTransition(transitionKey) {
-    this.currentTransition = this.library.getTransition(transitionKey);
+    const found = this.library.getTransition(transitionKey);
+    this.currentTransition = found ? { ...found, key: transitionKey } : null;
+    if (!this.currentTransition) return;
     this.currentParams = { ...this.currentTransition.params };
 
     // Update UI
@@ -399,12 +410,35 @@ export class TransitionEditor {
     this.animationFrame = requestAnimationFrame(() => this.animatePreview());
   }
 
-  savePreset() {
-    const name = prompt('Enter preset name:');
-    if (!name) return;
+  myPresets() {
+    try { const list = JSON.parse(globalThis.localStorage?.getItem(PRESETS_KEY) || '[]'); return Array.isArray(list) ? list : []; } catch { return []; }
+  }
 
-    // In a real implementation, this would save to localStorage or a backend
-    alert(`Preset "${name}" saved!`);
+  myPresetOptions() {
+    return this.myPresets().map((p) => `<option value="mine:${String(p.name).replace(/"/g, '&quot;')}">${String(p.name).replace(/</g, '&lt;')}</option>`).join('');
+  }
+
+  setDuration(seconds) {
+    this.duration = Math.min(10, Math.max(0.5, Number(seconds) || 2));
+    const slider = this.container.querySelector('#durationSlider');
+    if (slider) slider.value = String(this.duration);
+    const label = this.container.querySelector('#durationValue');
+    if (label) label.textContent = `${this.duration}s`;
+  }
+
+  savePreset() {
+    if (!this.currentTransition) { this.hooks.toast?.('Pick a transition first.', 'info'); return false; }
+    const input = this.container.querySelector('#presetName');
+    const name = (input?.value || '').trim();
+    if (!name) { this.hooks.toast?.('Name your preset first.', 'info'); input?.focus(); return false; }
+    const list = this.myPresets().filter((p) => p.name !== name);
+    list.unshift({ name, transition: this.currentTransition.key, params: { ...this.currentParams }, duration: this.duration });
+    try { globalThis.localStorage?.setItem(PRESETS_KEY, JSON.stringify(list.slice(0, 50))); } catch { this.hooks.toast?.('Could not save the preset in this browser.', 'error'); return false; }
+    const group = this.container.querySelector('#myPresets');
+    if (group) group.innerHTML = this.myPresetOptions();
+    if (input) input.value = '';
+    this.hooks.toast?.(`Preset "${name}" saved`, 'success');
+    return true;
   }
 
   exportTransition() {
@@ -429,12 +463,12 @@ export class TransitionEditor {
 
   applyTransition() {
     if (!this.currentTransition) {
-      alert('Please select a transition first');
+      this.hooks.toast?.('Pick a transition first.', 'info');
       return;
     }
 
+    // The third argument (duration) tells the host this is Apply, not a selection.
     this.onTransitionChange?.(this.currentTransition, this.currentParams, this.duration);
-    alert(`Applied ${this.currentTransition.name} transition`);
   }
 
   deleteTransition() {

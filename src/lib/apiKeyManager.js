@@ -12,12 +12,14 @@ const KEY_STORAGE = {
   openai: 'openai_key',
   videodb: 'videodb_key',
   pexels: 'pexels_key',
+  pixabay: 'pixabay_key',
 };
 const KEY_HASH_STORAGE = {
   muapi: 'muapi_key_hash',
   openai: 'openai_key_hash',
   videodb: 'videodb_key_hash',
   pexels: 'pexels_key_hash',
+  pixabay: 'pixabay_key_hash',
 };
 
 // Simple obfuscation - NOT encryption, but adds a layer against casual reading
@@ -67,6 +69,7 @@ export class ApiKeyManager {
             openai: { key: null, hash: null },
             videodb: { key: null, hash: null },
             pexels: { key: null, hash: null },
+            pixabay: { key: null, hash: null },
         };
         this._listeners = new Set();
     }
@@ -223,6 +226,13 @@ export class ApiKeyManager {
     getPexelsHash() { return this._getStoredHashFor('pexels'); }
     clearPexelsKey() { return this._clearKeyFor('pexels'); }
 
+    // ---- Pixabay key ----
+    async setPixabayKey(key, persist = true) { return this._setKeyFor('pixabay', key, persist); }
+    getPixabayKey() { return this._getKeyFor('pixabay'); }
+    hasPixabayKey() { return this._hasKeyFor('pixabay'); }
+    getPixabayHash() { return this._getStoredHashFor('pixabay'); }
+    clearPixabayKey() { return this._clearKeyFor('pixabay'); }
+
     /**
      * Whether any provider key is configured.
      */
@@ -239,7 +249,8 @@ export class ApiKeyManager {
         const openaiHash = this._getStoredHashFor('openai');
         const videodbHash = this._getStoredHashFor('videodb');
         const pexelsHash = this._getStoredHashFor('pexels');
-        return hash === muapiHash || hash === openaiHash || hash === videodbHash || hash === pexelsHash;
+        const pixabayHash = this._getStoredHashFor('pixabay');
+        return hash === muapiHash || hash === openaiHash || hash === videodbHash || hash === pexelsHash || hash === pixabayHash;
     }
 
     /**

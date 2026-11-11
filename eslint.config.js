@@ -252,6 +252,27 @@ export default [
     },
   },
   {
+    // Personalization + Lead Finder system ported from OpenHiggsBolt. It is
+    // TypeScript written for Next.js + Vitest: `React.*` type references and
+    // Node globals in its tests/scripts are resolved by TypeScript, not by
+    // ESLint's no-undef, and its <img> usage is intentional (no next/image
+    // here). Upstream lint rules apply to it; these are the remix deltas.
+    files: ['src/features/personalization/**/*.{js,jsx,ts,tsx,mjs}'],
+    languageOptions: {
+      globals: {
+        React: 'readonly',
+        Buffer: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        queueMicrotask: 'readonly',
+        screen: 'readonly',
+      },
+    },
+    rules: {
+      'no-undef': 'off',
+    },
+  },
+  {
     // Vendored CineGen (src/cinegen, MIT; see src/cinegen/NOTICE.md) and the OpenChatCut port (src/openchatcut): TypeScript sources written
     // against type-aware tooling. They keep their upstream style, so: DOM/TS globals the type checker already knows, the lint rules that
     // only restate style choices are off, and the plugin rules their `eslint-disable` comments name are registered as no-ops (otherwise

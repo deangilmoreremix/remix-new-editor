@@ -43,6 +43,8 @@ const DESIGN_SYSTEM = {
   }
 };
 
+const quoteAttr = (value) => String(value).replace(/["\\]/g, '\\$&');
+
 const SIZES = {
   small: { maxWidth: '400px' },
   medium: { maxWidth: '600px' },
@@ -533,7 +535,96 @@ export class BaseModal {
     this.setupAccessibility();
     this.setupEventListeners();
     this.animateIn();
+    this.onRender();
     this.onOpen();
+  }
+
+  /**
+   * The modal's root element while it is open (alias of `overlay`).
+   * Subclasses query their controls through `this.container`.
+   */
+  get container() {
+    return this.overlay;
+  }
+
+  /**
+   * Hook for subclasses: called after the modal opens and after every
+   * refresh(), with fresh DOM in place. Attach control handlers here.
+   * The default forwards to mount() for modals written against that older
+   * hook name (Extend, Fill Gap, Music Generation), which was never invoked.
+   */
+  onRender() {
+    this.mount(this.overlay);
+  }
+
+  /** Legacy wiring hook; see onRender(). */
+  // eslint-disable-next-line no-unused-vars
+  mount(container) {}
+
+  /**
+   * Re-render the body and footer in place. Unlike render(), this keeps the
+   * open overlay (and its slide-in state), preserves focus and caret in the
+   * focused input, and re-runs onRender() so controls stay wired.
+   */
+  refresh() {
+    if (!this.overlay || this.state !== 'open') return;
+
+    const active = document.activeElement;
+    let focusSelector = null;
+    let selStart = null;
+    let selEnd = null;
+    if (active && this.overlay.contains(active)) {
+      if (active.id) {
+        focusSelector = `[id="${quoteAttr(active.id)}"]`;
+      } else {
+        const attr = Array.from(active.attributes).find(a => a.name.startsWith('data-'));
+        if (attr) focusSelector = `[${attr.name}${attr.value ? `="${quoteAttr(attr.value)}"` : ''}]`;
+      }
+      try { selStart = active.selectionStart; selEnd = active.selectionEnd; } catch {}
+    }
+
+    // Remember what the user has typed/selected in id'd form fields so a
+    // re-render (e.g. to show a "running" state) doesn't reset them.
+    const formValues = new Map();
+    this.overlay.querySelectorAll('input[id], select[id], textarea[id]').forEach(el => {
+      formValues.set(el.id, el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value);
+    });
+
+    this.removeEventListeners();
+    const body = this.overlay.querySelector('.modal-body');
+    if (body) body.innerHTML = this.renderBody();
+    const footer = this.overlay.querySelector('.modal-footer');
+    if (footer) footer.innerHTML = this.footerContent || this.renderFooter();
+
+    formValues.forEach((value, id) => {
+      const el = this.overlay.querySelector(`[id="${quoteAttr(id)}"]`);
+      if (!el) return;
+      if (el.type === 'checkbox' || el.type === 'radio') el.checked = value;
+      else el.value = value;
+    });
+
+    if (this.content) {
+      this.focusableElements = Array.from(
+        this.content.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      ).filter(el => !el.disabled);
+    }
+    this.setupEventListeners();
+    // removeEventListeners() dropped the document keydown handler (normally
+    // added by setupAccessibility, which we skip so focus isn't yanked to the
+    // first control); re-attach it so Escape/Tab keep working.
+    this.boundHandlers.keydown = this.handleKeyDown.bind(this);
+    document.addEventListener('keydown', this.boundHandlers.keydown);
+    this.onRender();
+
+    if (focusSelector) {
+      const el = this.overlay.querySelector(focusSelector);
+      if (el) {
+        el.focus();
+        if (selStart !== null && selStart !== undefined) {
+          try { el.setSelectionRange(selStart, selEnd); } catch {}
+        }
+      }
+    }
   }
 
   close() {
@@ -764,6 +855,10 @@ export class BaseModal {
   removeEventListeners() {
     if (this.boundHandlers.keydown) {
       document.removeEventListener('keydown', this.boundHandlers.keydown);
+    }
+
+    if (this.boundHandlers.backdrop && this.overlay) {
+      this.overlay.removeEventListener('click', this.boundHandlers.backdrop);
     }
     
     const closeBtn = this.overlay?.querySelector('.modal-close');
