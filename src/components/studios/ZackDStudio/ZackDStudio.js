@@ -75,6 +75,7 @@ export function ZackDStudio() {
 
   // ---- state -------------------------------------------------------------------------------------------------
   let s = load();
+  let disposed = false; // the studio was left (container.cleanup): a late result must not save this instance's stale state
   let assembling = false; let renderStale = false; // an input changed while a render was encoding
   let narrStale = false; // narration was dropped by an edit; the panel repaints on blur
   let history = loadHistory();
@@ -541,7 +542,26 @@ export function ZackDStudio() {
 
   // ---- generation ----------------------------------------------------------------------------------------------------
   const slotOf = (job) => job?.historyMeta || {};
+  // Merge a result into the LATEST saved project (used once this instance has been disposed, because the user may
+  // have returned to the studio and changed the project since; this instance's own copy is stale).
+  function applyResultToStored(meta, url) {
+    const latest = load();
+    if (meta.pid && meta.pid !== latest.pid) return;
+    if (meta.slot === 'narration' && meta.rev !== undefined && meta.rev !== (latest.narrRev || 0)) return;
+    if (meta.slot === 'sheet') latest.sheets = { ...latest.sheets, [meta.id]: { url } };
+    else if (meta.slot === 'keyframe') latest.shots = { ...latest.shots, [meta.id]: { ...(latest.shots[meta.id] || {}), keyframe: url, clip: null } };
+    else if (meta.slot === 'clip') latest.shots = { ...latest.shots, [meta.id]: { ...(latest.shots[meta.id] || {}), clip: url } };
+    else if (meta.slot === 'narration') { latest.narration = url; latest.mixVoice = true; }
+    else if (meta.slot === 'music') { latest.music = url; latest.mixVoice = true; }
+    else if (meta.slot === 'captions') {
+      const h = [{ id: `${Date.now()}`, url, prompt: latest.topic, ts: Date.now() }, ...loadHistory().filter((x) => x.url !== url)].slice(0, 30);
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); } catch { /* ignore */ }
+      return;
+    } else return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(latest)); } catch { /* ignore */ }
+  }
   function applyResult(meta, url) {
+    if (disposed) { applyResultToStored(meta, url); return; }
     if (meta.pid && meta.pid !== s.pid) return; // belongs to an earlier project
     if (meta.slot === 'narration' && meta.rev !== undefined && meta.rev !== (s.narrRev || 0)) return; // made from narration text that has since been edited
     if (meta.slot === 'sheet') s.sheets[meta.id] = { url };
@@ -757,12 +777,13 @@ export function ZackDStudio() {
   // Jobs that were running when the page was reloaded are picked up again (same helper the other studios use).
   resumePendingJobs('zackd', {
     poll: (rid, attempts, interval) => pollJob(rid, attempts, interval),
-    onResult: (url, job) => { applyResult(slotOf(job), url); paint(); showToast('Recovered a generation that was still running', 'info', 3000); },
+    onResult: (url, job) => { applyResult(slotOf(job), url); if (!disposed) paint(); showToast('Recovered a generation that was still running', 'info', 3000); },
   });
 
   paint();
   grow();
   container.cleanup = () => {
+    disposed = true;
     abort.current.abort();
     closeDropdown();
     if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);

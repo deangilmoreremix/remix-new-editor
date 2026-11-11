@@ -33,7 +33,8 @@ vi.mock('../../../components/studio/generationNotifications.js', () => ({ notify
 
 const { ZackDStudio } = await import('../../../components/studios/ZackDStudio/ZackDStudio.js');
 const { runAssembly } = await import('../assemble.js');
-const { runJob } = await import('../api.js');
+const { runJob, pollJob } = await import('../api.js');
+const { savePendingJob } = await import('../../pendingJobs.js');
 const { saveGeneration } = await import('../../generationHistory.js');
 const { mountStudioChrome } = await import('../../studioChrome.js');
 
@@ -220,5 +221,22 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(calls.filter((c) => c.action === 'script').at(-1).topic).toBe('Sleep');
     await step(root, 'Approve script'); generate(root).click();
     await until(() => !btnText(root, 'Rewrite script'), 'gone once approved');
+  });
+
+  it('a recovered job that finishes after the studio was left merges into the latest saved project instead of overwriting it', async () => {
+    localStorage.setItem('zackd_project_v1', JSON.stringify({ pid: 'P1', topic: 'Original topic', shots: {} }));
+    savePendingJob({ requestId: 'req_late', studioType: 'zackd', historyMeta: { slot: 'clip', id: 'beat_1_a', pid: 'P1' }, maxAttempts: 10, interval: 10, submittedAt: Date.now() });
+    let finish;
+    vi.mocked(pollJob).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    const root = mount();                       // the studio resumes the job and waits for it
+    root.cleanup();                             // the user leaves the studio...
+    // ...comes back, and edits the project (a newer studio instance saved this; the old instance only has its stale copy)
+    localStorage.setItem('zackd_project_v1', JSON.stringify({ pid: 'P1', topic: 'Edited topic', shots: { beat_2_a: { clip: 'https://cdn.example.com/kept.mp4' } } }));
+    finish({ url: 'https://cdn.example.com/late-clip.mp4' });
+    await tick(40);
+    const saved = JSON.parse(localStorage.getItem('zackd_project_v1'));
+    expect(saved.topic).toBe('Edited topic');                                            // the user's edit survives
+    expect(saved.shots.beat_2_a.clip).toBe('https://cdn.example.com/kept.mp4');          // so does other work
+    expect(saved.shots.beat_1_a.clip).toBe('https://cdn.example.com/late-clip.mp4');     // and the recovered clip is added
   });
 });
