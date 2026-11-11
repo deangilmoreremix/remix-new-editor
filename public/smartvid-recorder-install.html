@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install the SmartVid Recorder</title>
+<style>
+  :root { --bg:#0b1020; --card:#131a2e; --text:#e8ecf6; --muted:#9aa6c4; --accent:#22d3ee; --border:#232c47; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f5f7fb; --card:#fff; --text:#16203a; --muted:#56627f; --accent:#0891b2; --border:#dde3f0; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:32px 16px 64px; }
+  h1 { font-size:1.8rem; margin:0 0 4px; }
+  p.lead { color:var(--muted); margin:0 0 24px; }
+  .btn { display:inline-block; background:var(--accent); color:#04222a; font-weight:600; padding:12px 20px; border-radius:10px; text-decoration:none; }
+  ol { list-style:none; counter-reset:s; padding:0; margin:28px 0; }
+  li { counter-increment:s; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 16px 16px 60px; margin-bottom:12px; position:relative; }
+  li::before { content:counter(s); position:absolute; left:16px; top:16px; width:30px; height:30px; border-radius:50%; background:var(--accent); color:#04222a; font-weight:700; display:grid; place-items:center; }
+  li strong { display:block; }
+  code { background:var(--bg); border:1px solid var(--border); padding:1px 6px; border-radius:6px; font-size:.9em; }
+  .note { background:var(--card); border-left:4px solid var(--accent); padding:12px 16px; border-radius:8px; color:var(--muted); margin:12px 0; }
+  h2 { font-size:1.2rem; margin-top:32px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Install the SmartVid Recorder</h1>
+  <p class="lead">A free Chrome extension that records your screen, tab or camera and sends the recording straight to your SmartVid timeline.</p>
+  <a class="btn" href="/downloads/smartvid-recorder.zip" download>Download SmartVid Recorder (.zip)</a>
+
+  <ol>
+    <li><strong>Unzip the download</strong>Right-click the zip and extract it to a folder you'll keep, such as <code>Documents/SmartVidRecorder</code>. Don't delete this folder, because Chrome runs the extension from it.</li>
+    <li><strong>Open the extensions page</strong>In Chrome, Edge or Brave, type <code>chrome://extensions</code> in the address bar and press Enter (use <code>edge://extensions</code> in Edge).</li>
+    <li><strong>Turn on Developer mode</strong>Use the toggle in the top-right corner of the extensions page.</li>
+    <li><strong>Load the extension</strong>Click <em>Load unpacked</em> and choose the folder you unzipped in step 1. The SmartVid Recorder appears in your list.</li>
+    <li><strong>Pin it</strong>Click the puzzle-piece icon in the toolbar, then the pin next to SmartVid Recorder so it's always one click away.</li>
+    <li><strong>Record</strong>Open the SmartVid editor, click the extension, choose screen, tab or camera and start recording. When you stop, click <em>Send to SmartVid timeline</em> in the panel that opens.</li>
+  </ol>
+
+  <div class="note">Chrome may show a "Disable developer mode extensions" message when it starts. Click <em>Cancel</em> or <em>Keep</em> to continue using the extension. This appears for any extension installed outside the Chrome Web Store.</div>
+
+  <h2>Good to know</h2>
+  <ul>
+    <li>Works on desktop Chrome, Edge, Brave and Opera. It doesn't work on Safari, Firefox or phones.</li>
+    <li>Keep the SmartVid editor open in a tab when you click send. The extension opens it if it's closed.</li>
+    <li>Recordings stay on your computer until you send them.</li>
+    <li>To update, download the new zip, replace the contents of your folder, then click the refresh icon on the extension's card at <code>chrome://extensions</code>.</li>
+  </ul>
+
+  <h2>Troubleshooting</h2>
+  <ul>
+    <li><strong>"Manifest file is missing":</strong> you selected the zip or the wrong folder. Pick the unzipped folder that contains <code>manifest.json</code>.</li>
+    <li><strong>Nothing arrives in the editor:</strong> check that the editor tab is open and was loaded after you installed the extension. Reload it and send again.</li>
+    <li><strong>Camera or mic blocked:</strong> allow access when Chrome asks, or turn it on under <code>chrome://settings/content</code>.</li>
+  </ul>
+</main>
+</body>
+</html>

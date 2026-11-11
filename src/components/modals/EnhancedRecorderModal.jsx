@@ -42,6 +42,10 @@ export class EnhancedRecorderModal extends BaseModal {
   renderBody() {
     return `
       <div class="recorder-container">
+        <p style="margin:0 0 10px;font-size:12px;opacity:.75">
+          Need overlays on other sites, annotations and tab capture?
+          <a href="/smartvid-recorder-install.html" target="_blank" rel="noopener" style="color:#22d3ee">Get the SmartVid browser extension</a>
+        </p>
         <div class="recorder-main">
           <div class="recorder-preview">
             ${this.recordingState === 'idle' ? this.renderIdlePreview() : ''}

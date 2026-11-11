@@ -66,6 +66,10 @@ export class RecorderModal extends BaseModal {
   renderBody() {
     return `
       <div class="recorder-container">
+        <p class="recorder-ext-hint" style="margin:0 0 10px;font-size:12px;opacity:.75">
+          Need full-screen overlays, annotations and tab capture?
+          <a href="/smartvid-recorder-install.html" target="_blank" rel="noopener" style="color:#22d3ee">Get the SmartVid browser extension</a>
+        </p>
         <div class="recorder-type-selector">
           <button class="type-btn ${this.recordingType === 'screen' ? 'active' : ''}" data-type="screen" data-tooltip="Record your screen">
             <span class="type-icon">🖥</span>
@@ -341,6 +345,24 @@ export class RecorderModal extends BaseModal {
     return canvas.captureStream(fps);
   }
 
+  // 3-2-1 overlay shown after the user has granted capture, before recording starts.
+  runCountdown(seconds) {
+    return new Promise((resolve) => {
+      const el = document.createElement('div');
+      el.setAttribute('aria-live', 'assertive');
+      el.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;'
+        + 'background:rgba(0,0,0,.55);color:#fff;font:700 120px system-ui,sans-serif;pointer-events:none';
+      document.body.appendChild(el);
+      let n = seconds;
+      const tick = () => {
+        if (n <= 0) { el.remove(); resolve(); return; }
+        el.textContent = String(n--);
+        setTimeout(tick, 1000);
+      };
+      tick();
+    });
+  }
+
   async startRecording() {
     try {
       let stream = null;
@@ -384,7 +406,20 @@ export class RecorderModal extends BaseModal {
         stream = await navigator.mediaDevices.getUserMedia({ audio: this.getAudioConstraints() });
       }
 
+      if (stream && this.recordingType !== 'audio') {
+        // Add the selected microphone to the recording. Failing to get a mic
+        // must not block the recording, so just continue silent.
+        try {
+          const mic = await navigator.mediaDevices.getUserMedia({ audio: this.getAudioConstraints() });
+          this.micStream = mic;
+          mic.getAudioTracks().forEach((t) => stream.addTrack(t));
+        } catch (micErr) {
+          console.warn('Microphone unavailable, recording without audio:', micErr);
+        }
+      }
+
       if (stream) {
+        await this.runCountdown(3);
         this.recordedChunks = [];
         this.mediaRecorder = new MediaRecorder(stream, {
           mimeType: this.getMimeType()
@@ -397,6 +432,9 @@ export class RecorderModal extends BaseModal {
         this.mediaRecorder.onstop = () => {
           this.recordedBlob = new Blob(this.recordedChunks, { type: this.getMimeType() });
           this.isRecording = false;
+          this.micStream?.getTracks().forEach((t) => t.stop());
+          this.screenStream?.getTracks().forEach((t) => t.stop());
+          this.webcamStream?.getTracks().forEach((t) => t.stop());
           clearInterval(this.recordingInterval);
           this.updateBody(this.renderBody());
           this.setupEventListeners();
