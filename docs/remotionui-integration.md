@@ -1,6 +1,6 @@
 # RemotionUI animations in the timeline editor
 
-The Animations library (behind the same feature flag as the HyperFrames animations, off by default) also offers components from
+The Animations library (on for everyone, same switches as the HyperFrames animations) also offers components from
 **RemotionUI** (https://remotionui.com, package `remotion-ui`, MIT). They are placed, edited, saved, previewed and exported exactly like the
 other animations: same overlay lane, same sandboxed preview frame and export runner, same error toasts, same kill switches
 (`VITE_HYPERFRAMES_RUNTIME_DISABLED=true` or `localStorage remix.hyperframes.kill='1'` switch both families off; saved projects are never rewritten).

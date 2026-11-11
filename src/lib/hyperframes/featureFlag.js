@@ -1,21 +1,17 @@
 /**
- * HyperFrames timeline library: feature flag. OFF by default.
+ * Animations library: ON for everyone. The only way to hide the library entry point on one browser (QA) is localStorage
+ * "remix.hyperframes.v1" = "0". A storage error leaves it ON. Any other value (or none) is ON.
+ * The old build variable VITE_HYPERFRAMES_TIMELINE no longer matters: it used to turn the feature ON, and an existing "false" in a
+ * deploy environment must not switch the library off.
  *
- * ON when the build sets VITE_HYPERFRAMES_TIMELINE=true, or (for QA on a deployed build) when
- * localStorage "remix.hyperframes.v1" is "1". Anything else, including a storage error, is OFF.
- *
- * The flag only controls whether customers can ADD HyperFrames animations (library entry points). A saved project
- * that already contains HyperFrames overlays keeps them and renders them either way, so turning the flag off never
- * silently deletes customer content; see docs/hyperframes-timeline-integration.md for rollback.
+ * This only controls whether customers can ADD animations (library entry point). A saved project that already contains animation
+ * overlays keeps them and renders them either way. The emergency kill switch below (isHyperframesRuntimeDisabled) is separate.
  */
 export function isHyperframesEnabled() {
   try {
-    if (import.meta.env?.VITE_HYPERFRAMES_TIMELINE === 'true') return true;
-  } catch { /* import.meta.env unavailable */ }
-  try {
-    return typeof localStorage !== 'undefined' && localStorage.getItem('remix.hyperframes.v1') === '1';
+    return !(typeof localStorage !== 'undefined' && localStorage.getItem('remix.hyperframes.v1') === '0');
   } catch {
-    return false;
+    return true;
   }
 }
 
