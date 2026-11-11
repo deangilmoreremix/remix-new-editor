@@ -631,7 +631,15 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // shortcut appeared to do nothing. Fixed by resolving the stored token
     // through a single normaliser (`selectedToolLabel()`). No upload-pipeline
     // behaviour changed. Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', '49093db1fc3b605f1afdf3c485df3918193249ed1054f7bee3a54330a694c39d'],
+    // Re-recorded deliberately for the approved Projects / publishing work:
+    // a Projects rail panel, a Save modal that persists to timeline_projects,
+    // cloud autosave of the saved project, render metadata after export, and
+    // readable-link / privacy / revision controls in the Share panel. No
+    // upload-pipeline behaviour changed: every new call goes through the
+    // existing signed-in Supabase client (publishOwnerClient) and the
+    // dynamically imported projectStore / publishClient modules. Semantic
+    // coverage in section 5.
+    ['src/components/TimelineEditorPage.jsx', '1641b377ae08485dae3c5160ff765fdd8e69b83ecd9062784e37aef259ae5809'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -905,6 +913,22 @@ describe('protected files — semantic integrity assertions', () => {
     // The keyboard tool shortcut must keep writing toolMap's value verbatim —
     // src/lib/editor/__tests__/timeline-editor-mask.test.js pins this line.
     expect(source).toContain('state.selectedTool = toolMap[toolKey]');
+  });
+
+  it('TimelineEditorPage.jsx adds Projects wiring without a new upload or provider path', () => {
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    // The existing upload entry points are untouched and still used.
+    expect(source).toContain("import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';");
+    expect(source).toContain('uploadFileToStorage');
+    // Projects talk to the database only through the already-authenticated
+    // owner client, via the dynamically imported store modules.
+    expect(source).toContain("import('../lib/editor/projectLibrary/projectStore.js')");
+    expect(source).toContain("import('../lib/editor/projectLibrary/projectsPanel.js')");
+    expect(source).toContain('async function publishOwnerClient()');
+    // Opening a project must never silently replace an unsaved timeline.
+    expect(source).toContain('is not saved as a project and will be replaced');
+    // No browser-exposed provider key or direct provider fetch was introduced.
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
   });
 
   it('TimelineEditorPage.jsx keeps the image-finder personalization wiring', () => {

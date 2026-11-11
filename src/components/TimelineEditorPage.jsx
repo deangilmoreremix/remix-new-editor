@@ -5700,12 +5700,31 @@ export function TimelineEditorPage() {
           }
           const project = pub.preparePublishProject(state, { title });
           const id = videoId() || pub.makeSlug();
-          const info = await pub.publishVideo(client, { id, project });
+          const info = await pub.publishVideo(client, { id, project, projectId: state.projectId || null });
           state.publishedVideos = { ...(state.publishedVideos || {}), [publishedKey()]: id };
           debouncedSave();
+          // With a business name already chosen, give a new video a readable
+          // link automatically (suffix on collision); owners can rename it later.
+          try {
+            const mine = await pub.getMyBusiness(client);
+            if (mine.business && !info.slug) {
+              const base = pub.slugify(title, 'video');
+              for (let n = 1; n <= 5; n += 1) {
+                try { await pub.setVideoSlug(client, id, n === 1 ? base : `${base}-${n}`.slice(0, 48)); break; } catch (e) { if (!/already taken/i.test(e.message)) break; }
+              }
+            }
+          } catch { /* the /watch/<id> link always works */ }
           showToast('Published — copy the link to share it', 'success');
-          return { ...info, published: true };
+          return { ...(await pub.getMyVideo(client, id).catch(() => info)), published: true };
         },
+        async saveLink({ business, slug }) {
+          const client = await publishOwnerClient();
+          if (business) await pub.claimBusinessSlug(client, business);
+          await pub.setVideoSlug(client, videoId(), slug);
+          return pub.getMyVideo(client, videoId());
+        },
+        async setPrivacy(privacy) { await pub.setVideoPrivacy(await publishOwnerClient(), videoId(), privacy); },
+        async listRevisions() { return pub.listRevisions(await publishOwnerClient(), videoId()); },
         async setPublished(on) {
           await pub.setPublished(await publishOwnerClient(), videoId(), on);
           showToast(on ? 'Published' : 'Unpublished — the link no longer works', 'success');

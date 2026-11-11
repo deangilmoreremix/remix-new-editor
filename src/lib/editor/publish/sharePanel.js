@@ -2,7 +2,7 @@
  * Share panel: publish the timeline as an interactive video, then copy its
  * link or embed code, see views and leads, update or unpublish it.
  */
-import { watchUrl, embedCode } from './publishClient.js';
+import { watchUrl, embedCode, canonicalUrl, validateSlug, slugify } from './publishClient.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -19,9 +19,13 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
  *   fetchStats()   → Promise<[{ contactId, views, plays, completes, ctaClicks, leads, lastSeen }]>
  *   contactLabel(id) → display name for a contact id
  *   defaultTitle
+ *   saveLink({ business?, slug }) → Promise<info>   claim business name (if given) and set the video's slug
+ *   setPrivacy('public'|'unlisted') → Promise
+ *   listRevisions() → Promise<[{ revision, title, created_at }]>
  */
 export function renderSharePanel(container, opts) {
-  const ui = { info: null, busy: false, error: '', leads: null, copied: '', stats: null, statsError: '' };
+  const ui = { info: null, busy: false, error: '', leads: null, copied: '', stats: null, statsError: '', revisions: null, linkMsg: '' };
+  const urlOf = (info) => canonicalUrl(info);
 
   // Views, plays, completions, CTA clicks and leads per contact (personal
   // links carry ?c=<contactId>; plain links count as "Everyone else").
@@ -64,6 +68,36 @@ export function renderSharePanel(container, opts) {
     return n ? `<p class="pz-warning">${n} contact${n === 1 ? "'s link is" : "s' links are"} missing a personalized image (marked ⚠). Add the image in the Personalize window's image finder, or set a fallback image on the Personalized Image.</p>` : '';
   };
 
+  // Readable link: /v/<business>/<slug>. The database validates, reserves and
+  // guarantees uniqueness; the inputs only give instant feedback.
+  const linkEditorHtml = (info) => {
+    if (!opts.saveLink) return '';
+    const biz = info.business || '';
+    const slug = info.slug || slugify(info.title, '');
+    return `<div class="share-link-editor">
+      <div class="addon-field"><span>Custom link</span>
+        <span class="share-copy">
+          ${biz ? `<code class="share-prefix">/v/${esc(biz)}/</code>` : '<input type="text" data-share-business maxlength="48" placeholder="your-business" aria-label="Business name in link" />'}
+          <input type="text" data-share-slug maxlength="48" value="${esc(slug)}" placeholder="video-name" aria-label="Video name in link" />
+          <button type="button" class="mini-btn" data-share-savelink>Save link</button>
+        </span></div>
+      <p class="addon-field__hint" data-share-linkmsg role="status">${esc(ui.linkMsg || (biz ? 'Old links keep working when you rename.' : 'Pick a business name once; it is yours alone and appears in all your links.'))}</p>
+      <label class="addon-field"><span>Who can find it</span>
+        <select data-share-privacy aria-label="Privacy">
+          <option value="public" ${info.privacy !== 'unlisted' ? 'selected' : ''}>Public — search engines may list it</option>
+          <option value="unlisted" ${info.privacy === 'unlisted' ? 'selected' : ''}>Unlisted — only people with the link</option>
+        </select></label>
+    </div>`;
+  };
+  const revisionsHtml = () => {
+    if (!opts.listRevisions) return '';
+    const rows = ui.revisions;
+    const body = rows == null ? '<li class="pz-hint">Loading…</li>'
+      : rows.length ? rows.map((r) => `<li>Revision ${Number(r.revision)} · ${esc(new Date(r.created_at).toLocaleString())}</li>`).join('')
+        : '<li class="pz-hint">No published revisions yet.</li>';
+    return `<details class="share-revisions" data-share-revisions><summary>Published revisions</summary><ul>${body}</ul></details>`;
+  };
+
   // One link per Personalization Studio contact: their details fill the
   // video and their own Smart Speech line plays.
   const personalHtml = (link) => {
@@ -83,7 +117,7 @@ export function renderSharePanel(container, opts) {
 
   const draw = () => {
     const info = ui.info;
-    const link = info ? watchUrl(info.id) : '';
+    const link = info ? urlOf(info) : '';
     container.innerHTML = `
       <div class="share-panel">
         <p class="addon-field__hint">Publish this timeline as an interactive video: viewers get your pauses, loops, skips, lead forms, CTA buttons and List Builder, and their leads come to you.</p>
@@ -101,9 +135,11 @@ export function renderSharePanel(container, opts) {
               <span class="share-copy"><textarea readonly rows="3" data-share-embed aria-label="Embed code">${esc(embedCode(info.id))}</textarea><button type="button" class="mini-btn" data-share-copy="embed">${ui.copied === 'embed' ? 'Copied ✓' : 'Copy'}</button></span></label>
             <p class="addon-field__hint">Personalize a link with the viewer's details, e.g. <code>${esc(link)}?firstname=Ann&amp;company=Acme</code> — {{tokens}} in your text fill in automatically.</p>
             <div class="share-stats"><span>👁 ${Number(info.view_count) || 0} views</span><span>✉️ ${ui.leads == null ? '–' : ui.leads} leads</span><a href="${esc(link)}" target="_blank" rel="noopener">Open ↗</a></div>
+            ${linkEditorHtml(info)}
             ${personalHtml(link)}
             ${statsHtml()}
-            <p class="addon-field__hint">Changes in the editor go live when you press “Update published video”.</p>
+            ${revisionsHtml()}
+            <p class="addon-field__hint">Changes in the editor go live when you press “Update published video”. Your editable project is never replaced by publishing.</p>
           </div>` : info ? '<p class="addon-field__hint">This video is unpublished — its link shows “not found”.</p>' : ''}
       </div>`;
   };
@@ -141,6 +177,19 @@ export function renderSharePanel(container, opts) {
         ui.error = err?.message || 'Could not unpublish';
       }
       draw();
+    } else if (d.shareSavelink !== undefined) {
+      const slug = container.querySelector('[data-share-slug]')?.value.trim().toLowerCase() || '';
+      const business = container.querySelector('[data-share-business]')?.value.trim().toLowerCase() || null;
+      const problem = validateSlug(slug) || (business ? validateSlug(business) : null);
+      if (problem) { ui.linkMsg = problem; draw(); return; }
+      if (!ui.info.business && !business) { ui.linkMsg = 'Choose a business name first.'; draw(); return; }
+      try {
+        ui.info = { ...ui.info, ...(await opts.saveLink({ business, slug })) };
+        ui.linkMsg = 'Link saved. The old link still works.';
+      } catch (err) {
+        ui.linkMsg = err?.message || 'Could not save the link';
+      }
+      draw();
     } else if (d.shareStatsRefresh !== undefined) {
       ui.stats = null;
       draw();
@@ -154,18 +203,36 @@ export function renderSharePanel(container, opts) {
       draw();
       setTimeout(() => { ui.copied = ''; draw(); }, 1800);
     } else if (d.shareCopy) {
-      const text = d.shareCopy === 'link' ? watchUrl(ui.info.id) : embedCode(ui.info.id);
+      const text = d.shareCopy === 'link' ? urlOf(ui.info) : embedCode(ui.info.id);
       try { await opts.copy(text); ui.copied = d.shareCopy; } catch { ui.copied = ''; }
       draw();
       setTimeout(() => { ui.copied = ''; draw(); }, 1800);
     }
   };
 
+  const onChange = async (e) => {
+    if (e.target.matches('[data-share-privacy]')) {
+      try { await opts.setPrivacy(e.target.value); ui.info = { ...ui.info, privacy: e.target.value }; ui.linkMsg = 'Privacy updated.'; } catch (err) { ui.linkMsg = err?.message || 'Could not update privacy'; }
+      draw();
+    }
+  };
+  const onToggle = async (e) => {
+    if (e.target.matches('[data-share-revisions]') && e.target.open && ui.revisions == null) {
+      try { ui.revisions = await opts.listRevisions(); } catch { ui.revisions = []; }
+      const open = container.querySelector('[data-share-revisions]');
+      draw();
+      container.querySelector('[data-share-revisions]')?.setAttribute('open', '');
+      void open;
+    }
+  };
+
   container.addEventListener('click', onClick);
+  container.addEventListener('change', onChange);
+  container.addEventListener('toggle', onToggle, true);
   draw();
   refresh();
   return {
     refresh,
-    destroy() { container.removeEventListener('click', onClick); },
+    destroy() { container.removeEventListener('click', onClick); container.removeEventListener('change', onChange); container.removeEventListener('toggle', onToggle, true); },
   };
 }

@@ -8,7 +8,7 @@
  */
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
-import { fetchPublishedVideo, countView, submitViewerLead, profileFromQuery, recordVideoEvent } from '../lib/editor/publish/publishClient.js';
+import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery, recordVideoEvent } from '../lib/editor/publish/publishClient.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 
@@ -26,9 +26,10 @@ function message(container, title, text) {
 /**
  * @param {HTMLElement} container
  * @param {string} id
- * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, countView }
+ * @param {string|{business:string,slug:string}} ref  a video id (/watch/<id>) or a readable link (/v/<business>/<slug>)
+ * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, recordEvent }
  */
-export async function mountWatchPage(container, id, deps = {}) {
+export async function mountWatchPage(container, ref, deps = {}) {
   const params = new URLSearchParams(globalThis.location?.search || '');
   const embed = params.get('embed') === '1';
   document.documentElement.classList.add('watch-root');
@@ -37,7 +38,13 @@ export async function mountWatchPage(container, id, deps = {}) {
 
   let video;
   try {
-    video = await (deps.fetchVideo || fetchPublishedVideo)(id);
+    video = await (deps.fetchVideo || fetchPublishedVideo)(ref);
+    // A renamed link answers with its new address: follow it, keep the query string.
+    if (video?.redirect?.id) {
+      const r = video.redirect;
+      const target = r.business && r.slug ? { business: r.business, slug: r.slug } : r.id;
+      video = await (deps.fetchVideo || fetchPublishedVideo)(target);
+    }
   } catch (err) {
     message(container, 'Video unavailable', err?.message || 'Please try again later.');
     return null;
@@ -48,6 +55,20 @@ export async function mountWatchPage(container, id, deps = {}) {
   }
   const title = video.title || video.project.title || 'Video';
   document.title = title;
+  // Unlisted videos are reachable by link only: keep them out of search results.
+  if (video.privacy === 'unlisted') {
+    const m = document.createElement('meta');
+    m.name = 'robots';
+    m.content = 'noindex, nofollow';
+    document.head.appendChild(m);
+  }
+  // Show the canonical address (readable link when set) without reloading.
+  try {
+    const canon = new URL(canonicalUrl(video, globalThis.location?.origin || ''));
+    if (canon.pathname !== globalThis.location?.pathname && globalThis.history?.replaceState) {
+      globalThis.history.replaceState(null, '', canon.pathname + (globalThis.location?.search || ''));
+    }
+  } catch { /* non-browser env */ }
 
   container.innerHTML = `
     <main class="watch">
@@ -151,7 +172,7 @@ export async function mountWatchPage(container, id, deps = {}) {
     track('cta_click', a.closest('[data-clip-id]')?.dataset.clipId || null);
   }, true);
 
-  (deps.countView || countView)(video.id);
+  // One view source: the 'view' event also bumps the video's view count.
   track('view');
   return player;
 }
