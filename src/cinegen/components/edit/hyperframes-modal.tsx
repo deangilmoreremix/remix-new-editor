@@ -41,7 +41,7 @@ const GLYPH: Record<string, string> = { All: '▦', 'Lower thirds': '▭', 'Titl
 const TYPE_LABEL: Record<string, string> = { block: 'Animation', component: 'Component', example: 'Scene template' };
 const aspectOf = (w: number, h: number) => (Math.abs(w - h) < 8 ? '1:1' : w > h ? '16:9' : '9:16');
 const INK = 'rgba(229,237,245,.9)';
-const field: CSSProperties = { width: '100%', boxSizing: 'border-box', background: '#0b1016', color: 'inherit', border: '1px solid rgba(255,255,255,.14)', borderRadius: 10, padding: '11px 12px', fontSize: 13 };
+const field: CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', color: 'inherit', border: '1px solid var(--border-medium)', borderRadius: 10, padding: '11px 12px', fontSize: 13 };
 const label: CSSProperties = { fontSize: 11, letterSpacing: '.06em', fontWeight: 600, textTransform: 'uppercase', opacity: 0.75, marginBottom: 6 };
 
 export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onPick: (item: HfItem) => void }) {
@@ -60,17 +60,17 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
   // Layout follows the Personalize modal's demo picker: header, rounded panel, category pills with count badges, labelled filters, big cards.
   return (
     <div role="dialog" aria-label="Animations" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
-      <style>{'.hf-card2:hover{border-color:rgba(34,211,238,.55)!important}'}</style>
-      <div style={{ width: 'min(1480px, 96vw)', height: 'min(900px, 92vh)', display: 'flex', flexDirection: 'column', background: '#0d1219', border: '1px solid rgba(255,255,255,.12)', borderRadius: 26, color: INK, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '24px 28px', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(34,211,238,.12)', color: '#22d3ee', display: 'grid', placeItems: 'center', fontSize: 20 }}>✦</div>
+      <style>{'.hf-card2:hover{border-color:var(--accent)!important}'}</style>
+      <div style={{ width: 'min(1480px, 96vw)', height: 'min(900px, 92vh)', display: 'flex', flexDirection: 'column', background: 'var(--bg-raised)', border: '1px solid var(--border-medium)', borderRadius: 26, color: INK, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '24px 28px', borderBottom: '1px solid var(--border-subtle)' }}>
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--accent-dim)', color: 'var(--accent)', display: 'grid', placeItems: 'center', fontSize: 20 }}>✦</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 20, fontWeight: 700 }}>Animations</div>
             <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4, maxWidth: 720 }}>Add a ready-made animation, lower third, chart or scene over your video. Click one to place it at the playhead, then edit its text, colors and timing.</div>
           </div>
           <button aria-label="Close library" onClick={onClose} style={{ background: 'transparent', border: 0, color: 'inherit', fontSize: 22, cursor: 'pointer', padding: 6 }}>×</button>
         </div>
-        <div style={{ margin: '18px 20px 20px', border: '1px solid rgba(255,255,255,.1)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'rgba(255,255,255,.015)' }}>
+        <div style={{ margin: '18px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
             <strong style={{ fontSize: 13, letterSpacing: '.06em', textTransform: 'uppercase' }}>▣ Choose an animation</strong>
             <span style={{ flex: 1 }} />
@@ -82,9 +82,9 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
               const on = tag === (c === 'All' ? 'all' : c);
               return (
                 <button key={c} role="tab" aria-selected={on} onClick={() => setTag(c === 'All' ? 'all' : c)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, border: `1px solid ${on ? '#22d3ee' : 'rgba(255,255,255,.14)'}`, color: on ? '#22d3ee' : 'inherit', background: on ? 'rgba(34,211,238,.12)' : 'rgba(255,255,255,.02)' }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, border: `1px solid ${on ? 'var(--accent)' : 'var(--border-medium)'}`, color: on ? 'var(--accent)' : 'inherit', background: on ? 'var(--accent-dim)' : 'var(--bg-elevated)' }}>
                   <span style={{ opacity: 0.8, fontSize: 12 }}>{GLYPH[c] ?? '•'}</span>{c}
-                  <span style={{ minWidth: 22, height: 20, padding: '0 6px', borderRadius: 999, boxSizing: 'border-box', display: 'inline-grid', placeItems: 'center', fontSize: 11, background: on ? 'rgba(34,211,238,.2)' : 'rgba(255,255,255,.08)' }}>{c === 'All' ? all.length : counts.get(c)}</span>
+                  <span style={{ minWidth: 22, height: 20, padding: '0 6px', borderRadius: 999, boxSizing: 'border-box', display: 'inline-grid', placeItems: 'center', fontSize: 11, background: on ? 'var(--accent-dim)' : 'var(--bg-overlay)' }}>{c === 'All' ? all.length : counts.get(c)}</span>
                 </button>
               );
             })}
@@ -98,7 +98,7 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
           <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
             {list.map((i) => (
               <button key={i.id} className="hf-card2" onMouseEnter={() => setHover(i.id)} onMouseLeave={() => setHover(null)} onClick={() => onPick(i)} aria-label={i.title} data-testid={`animation-${i.id}`}
-                style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid rgba(255,255,255,.1)', background: 'rgba(255,255,255,.03)', color: 'inherit', cursor: 'pointer' }}>
+                style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' }}>
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
                   <img src={`/hyperframes/thumbs/${i.id}.jpg`} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
                   {live === i.id && <div style={{ position: 'absolute', inset: 0, background: '#000' }}><Preview item={i} /></div>}
