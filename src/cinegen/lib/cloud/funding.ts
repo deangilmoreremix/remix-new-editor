@@ -148,6 +148,24 @@ export async function runWorkflow(params: WorkflowRunParams, _options: WorkflowR
 }
 
 // [remix] verbatim from CineGen lib/cloud/funding.ts
+// [remix] restored verbatim from CineGen (it was dropped when this file was reduced to the browser router)
+const VIDEO_REFERENCE_EXTENSIONS = ['mp4', 'mov', 'webm', 'm4v', 'avi', 'mkv'];
+const AUDIO_REFERENCE_EXTENSIONS = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'aiff'];
+
+/**
+ * A reference list is mixed media. Topview sorts references into stills, clips
+ * and audio by the role we send, so read the role off the file rather than off
+ * the field it arrived in — otherwise a clip is submitted as a still image.
+ */
+function referenceRoleFor(value: string, fallback: string): string {
+  let path = value.split(/[?#]/)[0];
+  try { path = decodeURIComponent(path); } catch { /* Legacy URLs may contain literal percent signs. */ }
+  const ext = path.slice(path.lastIndexOf('.') + 1).toLowerCase();
+  if (VIDEO_REFERENCE_EXTENSIONS.includes(ext)) return 'video';
+  if (AUDIO_REFERENCE_EXTENSIONS.includes(ext)) return 'audio';
+  return fallback;
+}
+
 export function workflowMediaInputs(inputs: Record<string, unknown>, outputType: string): Array<{ value: string; role: string }> {
   const media: Array<{ value: string; role: string }> = [];
   const add = (value: unknown, role: string) => {

@@ -249,4 +249,25 @@ export default [
       'no-console': 'off',
     },
   },
+  {
+    // Vendored CineGen (src/cinegen, MIT; see src/cinegen/NOTICE.md) and the OpenChatCut port (src/openchatcut): TypeScript sources written
+    // against type-aware tooling. They keep their upstream style, so: DOM/TS globals the type checker already knows, the lint rules that
+    // only restate style choices are off, and the plugin rules their `eslint-disable` comments name are registered as no-ops (otherwise
+    // each such comment is reported as "Definition for rule ... was not found").
+    files: ['src/cinegen/**/*.{js,jsx,ts,tsx,mjs}', 'src/openchatcut/**/*.{js,jsx,ts,tsx,mjs}'],
+    languageOptions: {
+      globals: { React: 'readonly', structuredClone: 'readonly', queueMicrotask: 'readonly', NodeJS: 'readonly', URL: 'readonly', DedicatedWorkerGlobalScope: 'readonly' },
+    },
+    plugins: {
+      '@next/next': { rules: { 'no-img-element': { create: () => ({}) } } },
+      'jsx-a11y': { rules: { 'media-has-caption': { create: () => ({}) }, 'alt-text': { create: () => ({}) }, 'no-static-element-interactions': { create: () => ({}) }, 'click-events-have-key-events': { create: () => ({}) } } },
+      '@typescript-eslint': { rules: { 'no-explicit-any': { create: () => ({}) }, 'no-unused-vars': { create: () => ({}) }, 'ban-ts-comment': { create: () => ({}) } } },
+    },
+    rules: {
+      'prefer-const': 'off',
+      'no-irregular-whitespace': 'off',
+      'no-control-regex': 'off',
+      'no-useless-escape': 'off',
+    },
+  },
 ];
