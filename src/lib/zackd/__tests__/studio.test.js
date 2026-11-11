@@ -258,4 +258,25 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(saved.topic).toBe('Edited after the result');
     expect(saved.shots.beat_1_a.clip).toBe('https://cdn.example.com/late-clip2.mp4'); // the recovered result was not overwritten
   });
+
+  it('a late-recovered clip dropped by a disposed studio also invalidates the live studio\'s finished cut', async () => {
+    vi.mocked(pollJob).mockReset(); vi.mocked(pollJob).mockImplementation(async () => ({ url: 'https://cdn.example.com/resumed' })); // drop once-queues left by earlier tests
+    const root0 = mount();
+    await click(root0, 'Use as template');
+    await step(root0, 'Render final cut');
+    const pid = JSON.parse(localStorage.getItem('zackd_project_v1')).pid;
+    root0.cleanup(); document.body.replaceChildren();
+    savePendingJob({ requestId: 'req_late3', studioType: 'zackd', historyMeta: { slot: 'clip', id: 'beat_1_a', pid }, maxAttempts: 10, interval: 10, submittedAt: Date.now() });
+    let finishOld;
+    vi.mocked(pollJob).mockImplementationOnce(() => new Promise((resolve) => { finishOld = resolve; }));
+    vi.mocked(pollJob).mockImplementationOnce(() => new Promise(() => {}));
+    const old = mount();
+    old.cleanup(); document.body.replaceChildren();
+    const live = mount();
+    generate(live).click();
+    await until(() => btnText(live, 'Download MP4'), 'final cut');
+    finishOld({ url: 'https://cdn.example.com/late-clip3.mp4' });
+    await tick(40);
+    expect(btnText(live, 'Download MP4')).toBeFalsy(); // the cut was built from the replaced clip
+  });
 });

@@ -559,12 +559,20 @@ export function ZackDStudio() {
       return;
     } else return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(latest)); } catch { /* ignore */ }
-    window.dispatchEvent(new Event('zackd:stored-updated')); // a studio opened since then holds an older copy: tell it to reload
+    window.dispatchEvent(new CustomEvent('zackd:stored-updated', { detail: { slot: meta.slot } })); // a studio opened since then holds an older copy: tell it to reload
   }
   // Another (disposed) instance merged a recovered result into the saved project: reload it, so this instance's next
   // save does not overwrite that result with its older copy. Everything this instance changes is already saved.
-  const onStoredUpdated = () => { if (disposed) return; s = load(); paint(); };
+  const onStoredUpdated = (ev) => { if (disposed) return; s = load(); invalidateCuts(ev?.detail?.slot); paint(); };
   window.addEventListener('zackd:stored-updated', onStoredUpdated);
+  // A changed clip/keyframe/narration/music makes any cut built from it stale: flag an in-flight render and drop a finished one.
+  function invalidateCuts(slot) {
+    if (assembling && (slot === 'clip' || slot === 'keyframe' || slot === 'narration' || slot === 'music')) renderStale = true;
+    if (final && (slot === 'clip' || slot === 'keyframe' || ((slot === 'narration' || slot === 'music') && final.mixed))) {
+      if (final.objectUrl) URL.revokeObjectURL(final.objectUrl);
+      final = null;
+    }
+  }
   function applyResult(meta, url) {
     if (disposed) { applyResultToStored(meta, url); return; }
     if (meta.pid && meta.pid !== s.pid) return; // belongs to an earlier project
@@ -576,12 +584,7 @@ export function ZackDStudio() {
     else if (meta.slot === 'music') { s.music = url; s.mixVoice = true; }
     else if (meta.slot === 'captions') { addHistory(url, s.topic); showToast('Recovered your captioned video. It is in the history.', 'info', 4000); } // the cut it came from is gone after a reload
     else return;
-    if (assembling && (meta.slot === 'clip' || meta.slot === 'keyframe' || meta.slot === 'narration' || meta.slot === 'music')) renderStale = true;
-    // A rendered cut that was built from the media that just changed is stale: drop it so it cannot be downloaded, saved or captioned.
-    if (final && (meta.slot === 'clip' || meta.slot === 'keyframe' || ((meta.slot === 'narration' || meta.slot === 'music') && final.mixed))) {
-      if (final.objectUrl) URL.revokeObjectURL(final.objectUrl);
-      final = null;
-    }
+    invalidateCuts(meta.slot);
     save();
   }
   // Every media job goes through the app's pending-job tracker so it can be resumed after a reload.
