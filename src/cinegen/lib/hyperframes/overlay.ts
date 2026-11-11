@@ -16,7 +16,7 @@ export interface HfEditable {
   target: { hfId?: string; kind: 'text' | 'style' | 'attr' | 'cfg' | 'var'; prop?: string; path?: string; id?: string };
 }
 export interface HfItem {
-  id: string; title: string; description: string; tags: string[]; category: string;
+  id: string; type?: 'block' | 'component' | 'example'; title: string; description: string; tags: string[]; category: string;
   dimensions: { width: number; height: number }; duration: number; sourceSha256: string; editables: HfEditable[];
 }
 
