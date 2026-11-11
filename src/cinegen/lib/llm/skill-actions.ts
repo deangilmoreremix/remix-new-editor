@@ -190,7 +190,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function normalizeTab(tab: string): ProjectTab | null {
   if (tab === 'spaces') return 'create';
-  if (tab === 'elements' || tab === 'create' || tab === 'director' || tab === 'edit' || tab === 'llm' || tab === 'export' || tab === 'settings') {
+  if (tab === 'elements' || tab === 'create' || tab === 'director' || tab === 'edit' || tab === 'llm' || tab === 'export' || tab === 'leads' || tab === 'settings') {
     return tab;
   }
   return null;

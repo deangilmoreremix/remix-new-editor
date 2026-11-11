@@ -8,6 +8,7 @@ import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
 import { applyOptinToLeadForm, switchListBuilderKind } from '../../../lib/editor/addons/listBuilder.js';
 import type { MgPropField } from '@cinegen/lib/occ/mg-templates';
 import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
+import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 
 /** [remix] Props of an OpenChatCut motion-graphics template, drawn from the template's own propSchema. */
@@ -111,6 +112,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
           <button type="button" className="mini-btn" onClick={onClose} aria-label="Close">✕</button>
         </span>
       </div>
+      {(overlay.type === 'list-builder' || overlay.type === 'lead-form') && <FormLeadsButton overlayId={overlay.id} type={overlay.type} />}
       {overlay.type === 'list-builder' ? (
         <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>Viewers fill this out before the video plays. It sits at the start of the timeline and takes no video time.</p>
       ) : (
