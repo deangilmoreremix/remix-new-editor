@@ -196,4 +196,15 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(generate(root).textContent).toContain('Generate 1 character sheet'); // the failed sheet is retried from the same button
     expect(root.querySelector('button[aria-label^="Generate character sheet"], button[aria-label^="Redo"], button[aria-label^="Generate"]')).toBeTruthy();
   });
+
+  it('drops a generated voice-over when the narration text it was made from is edited', async () => {
+    const root = mount();
+    await click(root, 'Use as template');
+    await click(root, 'Generate narration');
+    await until(() => root.querySelector('audio'), 'narration');
+    const nar = root.querySelector('textarea[aria-label="Narration, beat 1"]');
+    nar.value = 'A corrected sentence.'; nar.dispatchEvent(new Event('input')); nar.dispatchEvent(new Event('change'));
+    await until(() => !root.querySelector('audio'), 'voice-over dropped');
+    expect(btnText(root, 'Generate narration')).toBeTruthy();
+  });
 });

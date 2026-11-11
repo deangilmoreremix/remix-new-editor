@@ -75,6 +75,7 @@ export function ZackDStudio() {
 
   // ---- state -------------------------------------------------------------------------------------------------
   let s = load();
+  let narrStale = false; // narration was dropped by an edit; the panel repaints on blur
   let history = loadHistory();
   let final = null; // { objectUrl, blob, duration, captioned?: { url } }: in memory only (blob URLs die with the page)
   let trends = SEED_TOPICS;
@@ -339,7 +340,16 @@ export function ZackDStudio() {
         const card = el('div', `${CARD} p-3 gap-2`);
         card.appendChild(el('div', 'text-[10px] font-bold text-muted uppercase tracking-widest', `Beat ${bi + 1}${b.hook ? ' · Hook' : ''} · ${b.title_en}`));
         const nar = el('textarea', `${FIELD} text-sm`); nar.rows = 3; nar.maxLength = 400; nar.value = b.narration; nar.disabled = busy; nar.setAttribute('aria-label', `Narration, beat ${bi + 1}`);
-        nar.oninput = () => { b.narration = nar.value; save(); };
+        nar.oninput = () => {
+          b.narration = nar.value;
+          // the generated voice-over speaks the old text: drop it, and a cut that mixed it in, so it has to be regenerated
+          if (s.narration) {
+            s.narration = null; narrStale = true;
+            if (final?.mixed) { if (final.objectUrl) URL.revokeObjectURL(final.objectUrl); final = null; }
+          }
+          save();
+        };
+        nar.onchange = () => { if (narrStale) { narrStale = false; paint(); } }; // repaint once typing is done, so the focus is not lost
         card.appendChild(nar);
         b.shots.forEach((sh) => {
           const row = el('div', 'flex flex-col gap-1');
