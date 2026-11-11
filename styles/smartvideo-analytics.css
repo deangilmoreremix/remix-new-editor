@@ -54,7 +54,7 @@
 .sv-editor .sv-bar-track,.sv-editor .sv-progress{background:var(--surface-sunken)}
 .sv-editor .sv-bar-fill,.sv-editor .sv-progress span{background:var(--accent-grad)}
 .sv-editor .sv-heatmap span{background:var(--cyan)}
-.sv-editor .sv-heatmap span.sv-heat-highlight{background:var(--emerald)}
+.sv-editor .sv-heatmap span.sv-heat-highlight{background:var(--text-strong);box-shadow:0 0 0 1px var(--cyan)}
 .sv-editor .sv-video-preview,.sv-editor .sv-video-placeholder{background:var(--surface-sunken);color:var(--text-muted)}
 .sv-editor .sv-op-icon{background:var(--surface-3)}
 .sv-editor .sv-op-unread{background:var(--danger);border-color:var(--bg)}

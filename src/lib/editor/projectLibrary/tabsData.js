@@ -86,12 +86,16 @@ export const NOTIFICATION_TYPES = Object.freeze([
   ['interest_surge', 'Interest rising'], ['followup_opportunity', 'Follow-up opportunity'], ['daily_digest', 'Analytics summary'],
 ]);
 
-export async function listNotifications(client, projectId, { limit = 30 } = {}) {
+export const NOTIFICATION_PAGE = 20;
+
+/** One page of a project's alerts, newest first. `hasMore` tells whether another page exists. */
+export async function listNotifications(client, projectId, { limit = NOTIFICATION_PAGE, offset = 0 } = {}) {
   const { data, error } = await client.from('owner_notifications')
     .select('id, video_id, project_id, type, title, summary, suggestion, interest, metrics, read_at, created_at')
-    .eq('project_id', projectId).order('created_at', { ascending: false }).limit(limit);
+    .eq('project_id', projectId).order('created_at', { ascending: false }).range(offset, offset + limit);
   if (error) throw new Error(error.message || 'Could not load notifications');
-  return data || [];
+  const rows = data || [];
+  return { rows: rows.slice(0, limit), hasMore: rows.length > limit };
 }
 
 export async function markRead(client, ids = null) {

@@ -47,6 +47,7 @@ export function renderProjectsPanel(host, deps) {
   let error = null;
   let alive = true;
   let unread = null;
+  let portfolio = null; // owner-wide numbers (unique viewers de-duplicated across videos); null => derived from the cards
   let tabCleanup = null; // set by tabs that mount something (e.g. React) and need tearing down
 
   host.classList.add('prj-root');
@@ -93,6 +94,7 @@ export function renderProjectsPanel(host, deps) {
         deps.getStats ? deps.getStats(ids).catch(() => null) : null,
       ]);
       unread = deps.getUnread ? await deps.getUnread().catch(() => null) : null;
+      portfolio = deps.getPortfolio ? await deps.getPortfolio().catch(() => null) : null;
       rows = Object.fromEntries(list.map((r) => [r.id, r]));
       cards = list.map((r) => toCard(r, { published: pub?.[r.id] || null, stats: stats?.[r.id] || null }));
     } catch (e) {
@@ -103,15 +105,26 @@ export function renderProjectsPanel(host, deps) {
   }
 
   function summaryHtml() {
-    const published = cards.filter((c) => c.published).length;
     const withStats = cards.filter((c) => c.hasStats);
     const sum = (k) => (withStats.length ? withStats.reduce((a, c) => a + (c[k] || 0), 0) : null);
     const compact = (v) => (v == null ? '—' : v >= 10000 ? `${(v / 1000).toFixed(1)}K`.replace('.0K', 'K') : v >= 1000 ? `${(v / 1000).toFixed(1)}K` : String(v));
-    const main = [['Published videos', published], ['Total plays · 30 days', sum('plays')], ['Leads · 30 days', sum('leads')]];
-    const rest = [['CTA clicks', sum('ctaClicks')], ['Unread alerts', unread], ['Follow-ups', cards.filter((c) => c.needsFollowUp).length]];
-    // Per-video unique viewers are intentionally NOT summed here (would not be unique people).
+    const p = portfolio;
+    const num = (v) => (v == null ? null : Number(v));
+    const plays = p ? num(p.plays) : sum('plays');
+    const leads = p ? num(p.leads) : sum('leads');
+    // Unique viewers are de-duplicated ACROSS videos by the database; per-video counts are never added together.
+    const unique = p ? (num(p.plays) > 0 && !num(p.unique_viewers) ? null : num(p.unique_viewers)) : null;
+    const top = p?.top_video ? `${p.top_video.title} (${compact(num(p.top_video.plays))})` : '—';
+    const main = [['Published videos', p ? num(p.published_videos) : cards.filter((c) => c.published).length], ['Total plays · 30 days', plays], ['Leads · 30 days', leads]];
+    const rest = [
+      ['CTA clicks', p ? (num(p.cta_clicks) ?? 0) + (num(p.call_clicks) ?? 0) : sum('ctaClicks'), 'num'],
+      ['Unique viewers', unique, 'num'],
+      ['Active this week', p ? num(p.videos_with_recent_engagement) : null, 'num'],
+      ['Unread alerts', unread, 'num'],
+      ['Follow-ups', cards.filter((c) => c.needsFollowUp).length, 'num'],
+    ];
     return `<div class="prj-stats-main">${main.map(([l, v]) => `<div class="prj-stat prj-stat-lg"><span>${l}</span><b>${compact(v)}</b></div>`).join('')}</div>
-      <div class="prj-stats-rest">${rest.map(([l, v]) => `<div class="prj-stat"><b>${compact(v)}</b><span>${l}</span></div>`).join('')}</div>`;
+      <div class="prj-stats-rest">${rest.map(([l, v]) => `<div class="prj-stat"><b>${compact(v)}</b><span>${l}</span></div>`).join('')}${p ? `<div class="prj-stat" title="Highest-performing video in the last 30 days"><span>Top video</span><b style="font-weight:600">${esc(top)}</b></div>` : ''}</div>`;
   }
 
   /** The one obvious next step for a project. */
@@ -199,7 +212,7 @@ export function renderProjectsPanel(host, deps) {
     const panel = detail.querySelector('[data-role="tabpanel"]');
     const ctx = { project: rows[c.id], card: c, deps, refresh, openTab };
     if (ui.tab === 'overview') overviewTab(panel, c);
-    else if (ui.tab === 'share') shareTab(panel, c);
+    else if (ui.tab === 'share' && !deps.tabs?.share) shareTab(panel, c);   // built-in fallback when no renderer is injected
     else if (deps.tabs?.[ui.tab]) { const r = deps.tabs[ui.tab](panel, ctx, ui.tabOpts || {}); ui.tabOpts = {}; if (typeof r === 'function') tabCleanup = r; }
     else panel.innerHTML = `<div class="prj-empty"><p>${c.published
       ? 'No data has been collected for this video yet.'
@@ -256,8 +269,15 @@ export function renderProjectsPanel(host, deps) {
       } else if (name === 'duplicate') {
         await duplicateProject(await deps.getClient(), id); toast('Project duplicated', 'success'); await refresh();
       } else if (name === 'delete') {
-        if (globalThis.confirm(`Delete "${row?.name}"? Published links will stop working only if you unpublish them.`)) {
-          await deleteProject(await deps.getClient(), id); toast('Project deleted', 'success'); ui.selected = null; await refresh(); drawDetail();
+        const card = cards.find((x) => x.id === id);
+        const note = card?.published ? ' Its published video will be unpublished, so the public link stops working.' : '';
+        if (globalThis.confirm(`Delete "${row?.name}"?${note} You can ask support to restore it later; leads and notifications are kept.`)) {
+          const client = await deps.getClient();
+          if (card?.published && card.publishedId) {
+            const { error } = await client.from('published_videos').update({ published: false }).eq('id', card.publishedId);
+            if (error) throw new Error(error.message || 'Could not unpublish the video');
+          }
+          await deleteProject(client, id); toast(card?.published ? 'Project deleted and its video unpublished' : 'Project deleted', 'success'); ui.selected = null; await refresh(); drawDetail();
         }
       }
     } catch (e) { toast(e.message || 'Action failed', 'error'); }
@@ -293,6 +313,13 @@ export function renderProjectsPanel(host, deps) {
   return {
     refresh,
     openDetail,
+    /** Header bell: jump to the Notifications tab of the project with the most unread alerts. */
+    async openMostUnread() {
+      if (loading) await new Promise((r) => { const t = setInterval(() => { if (!loading) { clearInterval(t); r(); } }, 50); });
+      const best = cards.filter((c) => c.unreadNotifications > 0).sort((a, b) => b.unreadNotifications - a.unreadNotifications)[0];
+      if (best) openDetail(best.id, 'notifications');
+      return best?.id || null;
+    },
     destroy() { alive = false; if (tabCleanup) { try { tabCleanup(); } catch { /* noop */ } tabCleanup = null; } },
     _state: () => ({ ui, cards }),
   };

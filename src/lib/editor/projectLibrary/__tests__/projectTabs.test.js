@@ -47,7 +47,7 @@ function client(o = {}) {
   const from = (table) => {
     const q = { table, f: [] };
     const api = {
-      select: () => api, eq: (c, v) => { q.f.push([c, v]); return api; }, is: () => api, order: () => api, limit: () => api,
+      select: () => api, eq: (c, v) => { q.f.push([c, v]); return api; }, is: () => api, order: () => api, limit: () => api, range: (a, b) => { q.range = [a, b]; return api; },
       upsert: async (row) => { calls.push(['upsert', table, row]); state.prefs = row; return { error: null }; },
       insert: (row) => { q.ins = row; return api; },
       single: async () => { const r = { id: 'new-proj', name: q.ins.name, ...q.ins }; state.inserted.push(r); return { data: r, error: null }; },
@@ -58,7 +58,7 @@ function client(o = {}) {
         if (table === 'timeline_projects') return { data: { id: 'orig', name: 'Roofing promo', data: PROJECT_STATE, tags: [], settings: {} }, error: null };
         return { data: null, error: null };
       },
-      then: (res, rej) => Promise.resolve({ data: table === 'owner_notifications' ? state.notes : table === 'timeline_projects' ? state.followups : [], error: null }).then(res, rej),
+      then: (res, rej) => Promise.resolve({ data: table === 'owner_notifications' ? (q.range ? state.notes.slice(q.range[0], q.range[1] + 1) : state.notes) : table === 'timeline_projects' ? state.followups : [], error: null }).then(res, rej),
     };
     return api;
   };
@@ -172,6 +172,16 @@ describe('Notifications tab', () => {
     expect(first.querySelector('[aria-label="Unread"]')).toBeTruthy();
     expect(panel.querySelector('[data-n="n2"] [aria-label="Unread"]')).toBeNull();
     expect(panel.textContent).not.toMatch(/\b(John|Jane|Smith)\b/);
+  });
+  it('pages long histories: first page then Load more appends the rest', async () => {
+    const many = Array.from({ length: 25 }, (_, i) => ({ id: 'p' + i, type: 'new_lead', title: 'Lead ' + i, summary: 's', interest: null, metrics: {}, read_at: 'x', created_at: '2026-11-10T10:00:00Z' }));
+    const { panel } = mount(notificationsTab, client({ notes: many }));
+    await tick();
+    expect(panel.querySelectorAll('[data-n]').length).toBe(20);
+    panel.querySelector('[data-more]').click();
+    await tick();
+    expect(panel.querySelectorAll('[data-n]').length).toBe(25);
+    expect(panel.querySelector('[data-more]')).toBeNull();
   });
   it('marks one and all as read through the RPC and refreshes the unread count', async () => {
     const c = client({ notes: notes() });

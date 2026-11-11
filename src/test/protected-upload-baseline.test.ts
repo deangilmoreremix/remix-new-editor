@@ -642,7 +642,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', '5a4da5755df323bb74f14d4a46d562ce04cdf3c28bbbe67c4b0ae50c74a7efe0'],
+    ['src/components/TimelineEditorPage.jsx', '3b27bab38a7db63ad64b1b7e5c70c5038002fa4b5e6a04ba56dc41c920bf4f8a'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -930,6 +930,11 @@ describe('protected files — semantic integrity assertions', () => {
     expect(source).toContain("import('../lib/editor/projectLibrary/projectTabs.js')");
     expect(source).toContain("import('../lib/editor/projectLibrary/analytics/mountAnalyticsTab.jsx')");
     expect(source).toContain('async function publishOwnerClient()');
+    // Thumbnails, shared Publish panel and the header-bell hand-off reuse existing modules/events.
+    expect(source).toContain('captureProjectThumbnail');
+    expect(source).toContain('createSharePanel');
+    expect(source).toContain("remix:open-projects");
+    expect(source).toContain('owner_portfolio_summary');
     expect(source).toContain("import { isTypingTarget } from '../lib/editor/keyboard.js';");
     // Opening a project must never silently replace an unsaved timeline.
     expect(source).toContain('is not saved as a project and will be replaced');

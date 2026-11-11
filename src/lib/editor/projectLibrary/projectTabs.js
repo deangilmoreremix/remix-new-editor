@@ -11,7 +11,7 @@ import {
 import { recommend, SEGMENT_LABELS, SCORE_EXPLANATION } from './retarget/recommendations.js';
 import { listFollowups, loadProject } from './projectStore.js';
 import { launchFollowup } from './retarget/followup.js';
-import { canonicalUrl } from '../publish/publishClient.js';
+import { canonicalUrl, setPublished } from '../publish/publishClient.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
@@ -110,7 +110,8 @@ export function notificationsTab(deps) {
     (async () => {
       try {
         const client = await deps.getClient();
-        let [notes, prefs] = await Promise.all([listNotifications(client, ctx.project.id), loadPreferences(client)]);
+        let [page, prefs] = await Promise.all([listNotifications(client, ctx.project.id), loadPreferences(client)]);
+        let notes = page.rows; let hasMore = page.hasMore;
         if (!alive) return;
         const draw = () => {
           const typeLabel = Object.fromEntries(NOTIFICATION_TYPES);
@@ -120,6 +121,7 @@ export function notificationsTab(deps) {
               ${notes.length ? notes.map((n) => `<div class="sv-opportunity" data-n="${esc(n.id)}" style="cursor:default"><span class="sv-op-icon"><span class="sv-icon">${n.type === 'new_lead' || n.type === 'contact_cta' ? '♧' : n.type === 'pricing_cta' || n.type === 'interest_surge' || n.type === 'milestone' ? '↗' : '↻'}</span>${n.read_at ? '' : '<span class="sv-op-unread" role="img" aria-label="Unread"></span>'}</span>
                 <span class="sv-op-content"><strong>${esc(n.title)}</strong><span>${esc(n.summary)}</span>${n.interest ? `<span>Interest: ${esc(n.interest)}</span>` : ''}${n.metrics?.score ? `<span>Observed engagement score: ${esc(n.metrics.score)}</span>` : ''}<span>${esc(typeLabel[n.type] || n.type)} · ${esc(new Date(n.created_at).toLocaleString())}</span>
                   <span class="sv-toolbar-actions" style="justify-content:flex-start;flex-wrap:wrap"><button type="button" class="sv-secondary-btn" data-go="analytics">View analytics</button><button type="button" class="sv-secondary-btn" data-go="audience">View engagement</button><button type="button" class="sv-secondary-btn" data-go="retarget">Open Retarget</button>${n.interest ? '<button type="button" class="sv-secondary-btn" data-follow>Create follow-up</button>' : ''}${n.read_at ? '' : '<button type="button" class="sv-secondary-btn" data-read>Mark as read</button>'}</span></span></div>`).join('') : '<p class="sv-subtitle sv-empty">No alerts for this video yet. You will be notified about new leads, high-interest viewers, pricing and contact clicks and milestones.</p>'}
+              ${hasMore ? '<button type="button" class="sv-secondary-btn" data-more>Show older alerts</button>' : ''}
             </div>
             <form class="sv-card" data-prefs aria-label="Notification preferences"><h3>Preferences</h3>
               <p class="sv-subtitle">Applies to all of your videos.</p>
@@ -139,6 +141,10 @@ export function notificationsTab(deps) {
             });
             if (opts.focusId === n.id) { el.scrollIntoView?.({ block: 'center' }); if (!n.read_at) markRead(client, [n.id]).then(() => { n.read_at = new Date().toISOString(); deps.onUnreadChanged?.(); draw(); }).catch(() => {}); }
           });
+          root.querySelector('[data-more]')?.addEventListener('click', async (e) => {
+            e.currentTarget.disabled = true;
+            try { const next = await listNotifications(client, ctx.project.id, { offset: notes.length }); notes = [...notes, ...next.rows]; hasMore = next.hasMore; draw(); } catch (err) { e.currentTarget.textContent = err.message; }
+          });
           root.querySelector('[data-read-all]')?.addEventListener('click', async () => { await markRead(client, notes.filter((n) => !n.read_at).map((n) => n.id)); notes.forEach((n) => { n.read_at = n.read_at || new Date().toISOString(); }); deps.onUnreadChanged?.(); draw(); });
           root.querySelector('[data-prefs]').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -156,5 +162,65 @@ export function notificationsTab(deps) {
       }
     })();
     return () => { alive = false; };
+  };
+}
+
+// ---------------------------------------------------------------- Publish & Share
+export const RETENTION_NOTE = 'Viewer data is kept for 90 days as individual sessions; daily totals are kept longer. Viewers are anonymous and no IP addresses are stored.';
+
+/**
+ * For the project open in the editor this embeds the full Share panel (publish, update, slug, privacy, revisions).
+ * For any other project it shows the published video's status and link, and tells the owner how to change it.
+ * Both get the analytics data controls (retention note + delete).
+ *   deps.getOpenProjectId(), deps.mountShare(host) -> { destroy }
+ */
+export function shareTab(deps) {
+  return (panel, ctx) => {
+    let alive = true; let shared = null;
+    wrap(panel, '<div class="prj-skel" aria-busy="true"><i></i></div>');
+    (async () => {
+      try {
+        const client = await deps.getClient();
+        const video = await getProjectVideo(client, ctx.project.id);
+        if (!alive) return;
+        const isOpen = deps.getOpenProjectId?.() === ctx.project.id && !!deps.mountShare;
+        const url = video ? canonicalUrl(video) : null;
+        const root = wrap(panel, `
+          <div class="sv-heading"><div><div class="sv-breadcrumb">Hosted interactive player</div><h1>Publish &amp; share</h1></div>
+            ${video ? `<span class="sv-status ${video.published ? 'sv-status-published' : ''}">${video.published ? '✓ published' : 'unpublished'}</span>` : ''}</div>
+          <p class="sv-subtitle">Clicks, calls and forms are measured on the hosted page. An exported MP4 file cannot contain clickable overlays. Publishing never replaces your editable project.</p>
+          ${isOpen ? '<div class="sv-card" data-share-host></div>' : `
+          <div class="sv-card">
+            ${video ? `<h3>${esc(video.title)}</h3>
+              <div class="sv-custom-range" style="margin:12px 0"><label style="flex:1;min-width:220px">Link<input type="text" readonly value="${esc(url)}" aria-label="Share link" style="width:100%"/></label></div>
+              <div class="sv-toolbar-actions" style="justify-content:flex-start">
+                <button type="button" class="sv-secondary-btn" data-copy>Copy link</button>
+                <button type="button" class="sv-secondary-btn" data-toggle>${video.published ? 'Unpublish' : 'Publish again'}</button></div>
+              <p class="sv-hint" data-msg role="status">Revision ${esc(video.revision)} · ${esc(video.privacy === 'unlisted' ? 'unlisted' : 'public')}. To publish changes or edit the link, open this project in the editor.</p>`
+            : '<h3>Not published yet</h3><p class="sv-subtitle">Open this project in the editor and use Publish &amp; share to create its hosted link.</p>'}
+          </div>`}
+          ${video ? `<div class="sv-card"><h3>Analytics data</h3><p class="sv-subtitle">${esc(RETENTION_NOTE)}</p>
+            <button type="button" class="sv-secondary-btn" data-delete-analytics>Delete all analytics for this video</button>
+            <p class="sv-hint" data-del-msg role="status"></p></div>` : ''}`);
+        if (isOpen) shared = await deps.mountShare(root.querySelector('[data-share-host]'));
+        root.querySelector('[data-copy]')?.addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); root.querySelector('[data-msg]').textContent = 'Link copied.'; } catch { root.querySelector('[data-msg]').textContent = 'Could not copy automatically; select the link and copy it.'; } });
+        root.querySelector('[data-toggle]')?.addEventListener('click', async () => {
+          try { await setPublished(client, video.id, !video.published); ctx.refresh?.(); ctx.openTab('share'); } catch (e) { root.querySelector('[data-msg]').textContent = e.message; }
+        });
+        root.querySelector('[data-delete-analytics]')?.addEventListener('click', async () => {
+          if (!globalThis.confirm('Delete all collected analytics (sessions, events, daily totals) for this video? This cannot be undone. Notifications and leads are kept.')) return;
+          const msg = root.querySelector('[data-del-msg]');
+          try {
+            const { data, error } = await client.rpc('delete_video_analytics', { p_video_id: video.id });
+            if (error) throw new Error(error.message);
+            msg.textContent = `Deleted ${Number(data?.sessions_deleted) || 0} viewing sessions and all daily totals.`;
+            ctx.refresh?.();
+          } catch (e) { msg.textContent = e.message || 'Could not delete analytics'; }
+        });
+      } catch (err) {
+        if (alive) wrap(panel, `<div class="sv-card" role="alert"><h3>Could not load publishing details</h3><p class="sv-subtitle">${esc(err.message)}</p></div>`);
+      }
+    })();
+    return () => { alive = false; try { shared?.destroy?.(); } catch { /* gone */ } };
   };
 }
