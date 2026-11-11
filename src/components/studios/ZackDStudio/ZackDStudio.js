@@ -28,8 +28,10 @@ const STORE_KEY = 'zackd_project_v1';
 const HISTORY_KEY = 'zackd_history_v1';
 const CONCURRENCY = 3;
 
+// each project gets an id so a job that finishes after a new project/template started is never applied to it
+const newPid = () => `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 const blank = () => ({
-  topic: '', map: null, approved: false, look: DEFAULT_LOOK, sheets: {}, shots: {}, voice: DEFAULT_VOICE,
+  pid: newPid(), topic: '', map: null, approved: false, look: DEFAULT_LOOK, sheets: {}, shots: {}, voice: DEFAULT_VOICE,
   narration: null, music: null, captionLang: DEFAULT_CAPTION_LANGUAGE, captionTheme: DEFAULT_CAPTION_THEME, ...DEFAULT_EXTRAS,
 });
 
@@ -521,6 +523,7 @@ export function ZackDStudio() {
   // ---- generation ----------------------------------------------------------------------------------------------------
   const slotOf = (job) => job?.historyMeta || {};
   function applyResult(meta, url) {
+    if (meta.pid && meta.pid !== s.pid) return; // belongs to an earlier project
     if (meta.slot === 'sheet') s.sheets[meta.id] = { url };
     else if (meta.slot === 'keyframe') s.shots[meta.id] = { ...(s.shots[meta.id] || {}), keyframe: url, clip: null };
     else if (meta.slot === 'clip') s.shots[meta.id] = { ...(s.shots[meta.id] || {}), clip: url };
@@ -531,10 +534,11 @@ export function ZackDStudio() {
   }
   // Every media job goes through the app's pending-job tracker so it can be resumed after a reload.
   async function tracked(slot, id, body) {
-    const tracker = createPendingJobTracker('zackd', { slot, id }, { maxAttempts: 180, interval: 4000 });
+    const pid = s.pid;
+    const tracker = createPendingJobTracker('zackd', { slot, id, pid }, { maxAttempts: 180, interval: 4000 });
     try {
       const r = await runJob(body, { signal: abort.current.signal, onRequestId: tracker.onRequestId });
-      applyResult({ slot, id }, r.url);
+      applyResult({ slot, id, pid }, r.url);
       return r;
     } finally { tracker.finish(); }
   }
@@ -592,7 +596,7 @@ export function ZackDStudio() {
     cancelCtl = createAbortAwareGenerateButton(generateBtn); cancelCtl.showCancel(); abort.current = cancelCtl.controller;
     try {
       const out = await call({ action: 'script', topic: s.topic.trim() }, { signal: abort.current.signal });
-      s = { ...s, map: out.map, approved: false, sheets: {}, shots: {}, narration: null, music: null };
+      s = { ...s, pid: newPid(), map: out.map, approved: false, sheets: {}, shots: {}, narration: null, music: null };
       final = null; save();
     } catch (e) { fail(e); }
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
