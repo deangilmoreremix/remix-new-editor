@@ -19,6 +19,8 @@ const DEFAULTS = {
   lightingPreset: 'Golden Hour',
   colorGrade: 'Teal & Orange',
   cta: '',
+  frameCount: 6,
+  storyBible: '',
 };
 
 let state = { ...DEFAULTS };
