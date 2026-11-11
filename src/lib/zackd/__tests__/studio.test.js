@@ -21,6 +21,7 @@ vi.mock('../api.js', async (orig) => ({
   pollJob: vi.fn(async () => ({ url: 'https://cdn.example.com/resumed' })),
 }));
 vi.mock('../assemble.js', async (orig) => ({ ...(await orig()), runAssembly: vi.fn(async () => ({ blob: new Blob(['x'], { type: 'video/mp4' }), duration: 38.6 })) }));
+let uploadSupabase = vi.fn(async () => ({ url: 'https://store.example.com/f.mp4' }));
 const uploadFile = vi.fn(async () => 'https://muapi.example.com/uploaded-cut.mp4');
 vi.mock('../../muapi.js', () => ({ muapi: { uploadFile: (...a) => uploadFile(...a) } }));
 vi.mock('../../studioChrome.js', () => ({ mountStudioChrome: vi.fn(() => ({ topbar: null })) }));
@@ -28,7 +29,7 @@ const createStudioHeader = vi.fn((id, title) => { const d = document.createEleme
 vi.mock('../../thumbnails.js', () => ({ createStudioHeader: (...a) => createStudioHeader(...a) }));
 vi.mock('../../modelSelectorUI.js', () => ({ positionModelSelectorDropdown: vi.fn() }));
 vi.mock('../../generationHistory.js', () => ({ saveGeneration: vi.fn() }));
-vi.mock('../../uploadService.js', () => ({ uploadFileToSupabase: vi.fn(async () => ({ url: 'https://store.example.com/f.mp4' })) }));
+vi.mock('../../uploadService.js', () => ({ uploadFileToSupabase: (...a) => uploadSupabase(...a) }));
 vi.mock('../../../components/studio/generationNotifications.js', () => ({ notifyGeneration: vi.fn() }));
 
 const { ZackDStudio } = await import('../../../components/studios/ZackDStudio/ZackDStudio.js');
@@ -330,5 +331,23 @@ describe('ZackDStudio (built like the other video studios)', () => {
     await tick(40);
     expect(live.querySelector('#zackd-history-sidebar video')).toBeTruthy(); // the live studio shows it
     expect(JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url)).toContain('https://cdn.example.com/captioned-late.mp4');
+  });
+
+  it('a library upload that finishes after the studio was left adds to the SAVED history and tells the live studio', async () => {
+    const root = mount();
+    await click(root, 'Use as template');
+    await step(root, 'Render final cut'); generate(root).click();
+    await until(() => btnText(root, 'Save to library'), 'final cut');
+    let finishUpload;
+    uploadSupabase = vi.fn(() => new Promise((resolve) => { finishUpload = () => resolve({ url: 'https://store.example.com/late-upload.mp4' }); }));
+    btnText(root, 'Save to library').click(); await tick(10);
+    root.cleanup(); document.body.replaceChildren();
+    localStorage.setItem('zackd_history_v1', JSON.stringify([{ id: 'x1', url: 'https://cdn.example.com/other.mp4', prompt: 'other', ts: 1 }]));
+    const live = mount();                                              // reopened: its history has the other entry
+    finishUpload(); await tick(40);
+    const urls = JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url);
+    expect(urls).toEqual(expect.arrayContaining(['https://store.example.com/late-upload.mp4', 'https://cdn.example.com/other.mp4'])); // nothing overwritten
+    expect(live.querySelectorAll('#zackd-history-sidebar video').length).toBe(2);
+    uploadSupabase = vi.fn(async () => ({ url: 'https://store.example.com/f.mp4' }));
   });
 });

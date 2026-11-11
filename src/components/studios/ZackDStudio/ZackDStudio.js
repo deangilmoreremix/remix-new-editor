@@ -245,7 +245,7 @@ export function ZackDStudio() {
       item.appendChild(v);
       const del = el('button', 'absolute top-1 right-1 hidden group-hover:block p-1 bg-black/70 rounded-full text-red-400 text-[10px]', '✕');
       del.title = 'Remove from history'; del.setAttribute('aria-label', 'Remove from history');
-      del.onclick = (e) => { e.stopPropagation(); history = history.filter((x) => x.id !== h.id); saveHistory(); renderHistory(); };
+      del.onclick = (e) => { e.stopPropagation(); history = loadHistory().filter((x) => x.id !== h.id); saveHistory(); renderHistory(); };
       item.appendChild(del);
       item.onclick = () => lightbox(h.url, 'video');
       historyList.appendChild(item);
@@ -255,8 +255,11 @@ export function ZackDStudio() {
     historySidebar.classList.toggle('translate-x-0', show); historySidebar.classList.toggle('opacity-100', show);
   }
   function addHistory(url, prompt) {
-    history = [{ id: `${Date.now()}`, url, prompt, ts: Date.now() }, ...history.filter((h) => h.url !== url)];
-    saveHistory(); renderHistory();
+    // merge against the SAVED history: another studio instance (reopened, or recovering a caption) may have added entries since this one loaded it
+    history = [{ id: `${Date.now()}`, url, prompt, ts: Date.now() }, ...loadHistory().filter((h) => h.url !== url)];
+    saveHistory();
+    if (disposed) window.dispatchEvent(new CustomEvent('zackd:stored-updated', { detail: { slot: 'captions' } })); // tell the live studio to reload its history
+    else renderHistory();
   }
 
   function lightbox(url, kind) {
