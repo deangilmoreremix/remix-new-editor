@@ -175,6 +175,14 @@
   [headers.values]
     Access-Control-Allow-Origin = "*"
 
+# [hyperframes] Vendored, pinned HyperFrames blocks (public/hyperframes/blocks). The sandboxed export-runner / code-preview
+# frames have an opaque origin, so fetching these (and decoding their images into the canvas) needs CORS. Static, immutable per commit.
+[[headers]]
+  for = "/hyperframes/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
+
 # The public video player (/watch/<id>) can be embedded anywhere: its
 # framing headers are rewritten by netlify/edge-functions/watch-embed.js
 # (header rules below are merged, not overridden, so a rule can't do it).

@@ -34,7 +34,7 @@ export const findGate = (overlays: OverlayClip[]) => overlays.find(isGateOverlay
 /** A new overlay never lands on top of the gate's marker (the gate holds the video at 0s, so it would show two forms at once). */
 export const startAfterGate = (overlays: OverlayClip[], startSec: number) => (findGate(overlays) ? Math.max(startSec, GATE_SECONDS) : startSec);
 
-const KINDS = new Set<string>([...OVERLAY_KINDS.map((k) => k.kind), 'mg-template']);
+const KINDS = new Set<string>([...OVERLAY_KINDS.map((k) => k.kind), 'mg-template', 'hyperframes']);
 
 /** Add-ons driven by the old registry's schema (options live under `addon`), as opposed to the flat forms. */
 export const isRegistryOverlay = (kind: string) => !['lead-form', 'list-builder', 'click-to-call'].includes(kind) && !!getAddon(kind);

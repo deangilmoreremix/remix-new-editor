@@ -1,0 +1,2 @@
+// Opaque-origin frames throw on localStorage/sessionStorage access; some libraries probe them. In-memory stand-ins.
+for (const k of ['localStorage', 'sessionStorage']) { try { void window[k]; } catch { const m = new Map(); Object.defineProperty(window, k, { configurable: true, value: { getItem: (x) => m.get(x) ?? null, setItem: (x, v) => m.set(x, String(v)), removeItem: (x) => m.delete(x), clear: () => m.clear(), key: (i) => [...m.keys()][i] ?? null, get length() { return m.size; } } }); } }
