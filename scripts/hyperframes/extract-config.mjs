@@ -13,6 +13,8 @@ const TEXT_KEYS = /^(text|title|label|name|subtitle|caption|heading|headline|des
 const SKIP_NUM = /(seed|^x$|^y$|index|^id$)/i;
 const HEX = /^#[0-9a-f]{6}$/i;
 const words = (p) => p.split('.').map((s) => s.replace(/([a-z])([A-Z])/g, '$1 $2')).join(' › ').replace(/^./, (c) => c.toUpperCase());
+import { readdirSync, statSync } from 'node:fs';
+function readdirAllHtml(dir) { let t = ''; for (const f of readdirSync(dir)) { const p = join(dir, f); if (statSync(p).isDirectory()) t += readdirAllHtml(p); else if (f.endsWith('.html')) t += readFileSync(p, 'utf8') + '\n'; } return t; }
 const out = {}; let withCfg = 0;
 const decodeAttr = (x) => x.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
 function variableFields(html) {
@@ -31,8 +33,10 @@ function variableFields(html) {
   }).filter(Boolean);
 }
 for (const [id, v] of Object.entries(cls)) {
-  if (v.type !== 'block' || v.status !== 'verified-export') continue;
-  const html = readFileSync(join(up, 'registry/blocks', id, id + '.html'), 'utf8');
+  if (!(process.env.IDS || '').split(',').filter(Boolean).includes(id) && (v.type !== 'block' || v.status !== 'verified-export')) continue;
+  const kindDir = v.type === 'component' ? 'components' : v.type === 'example' ? 'examples' : 'blocks';
+  const mainPath = v.type === 'example' ? join(up, 'registry/examples', id, 'index.html') : join(up, 'registry', kindDir, id, id + '.html');
+  const html = v.type === 'example' ? readdirAllHtml(join(up, 'registry/examples', id)) : readFileSync(mainPath, 'utf8');
   const lit = findConfigLiteral(html); const fields = [];
   if (lit) {
     let obj; try { obj = runInNewContext('(' + html.slice(lit[0], lit[1]) + ')', Object.create(null), { timeout: 200 }); } catch { obj = null; }

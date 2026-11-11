@@ -7,36 +7,44 @@
   "minExportFps": 8.0
  },
  "totals": {
-  "adapter-compatible": 41,
-  "verified-export": 86,
-  "unsupported": 51,
-  "specialized": 32,
-  "not-tested": 247
+  "verified-export": 197,
+  "unsupported": 54,
+  "not-tested": 2,
+  "adapter-compatible": 80,
+  "specialized": 87,
+  "host-dependent": 37
  },
  "byType": {
   "block": {
-   "adapter-compatible": 41,
-   "verified-export": 86,
-   "unsupported": 51,
-   "specialized": 32
+   "verified-export": 114,
+   "unsupported": 50,
+   "not-tested": 2,
+   "adapter-compatible": 19,
+   "specialized": 25
   },
   "component": {
-   "not-tested": 238
+   "verified-export": 80,
+   "adapter-compatible": 57,
+   "host-dependent": 37,
+   "specialized": 62,
+   "unsupported": 2
   },
   "example": {
-   "not-tested": 9
+   "verified-export": 3,
+   "unsupported": 2,
+   "adapter-compatible": 4
   }
  },
  "verifiedButNotEnabled": {
   "export throughput 5.1 fps < 8.0": 2,
-  "not yet rendered through the production adapter path": 34,
+  "not yet rendered through the production adapter path": 33,
   "audio element": 2,
   "no editable fields detected": 19,
-  "WebGL": 22,
-  "three.js": 7,
+  "WebGL": 21,
   "video element": 2,
   "unseeded Math.random": 1,
   "export throughput 5.6 fps < 8.0": 1,
+  "three.js": 6,
   "export throughput 2.9 fps < 8.0": 1,
   "sub-composition": 1,
   "export throughput 5.9 fps < 8.0": 1,
@@ -49,29 +57,25 @@
   "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 49,
+ "enabledCount": 75,
  "items": {
   "ai-answer-rank": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.923; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.986,
-     0.99,
-     0.923
-    ],
-    "ssimMin": 0.923,
-    "export": {
-     "ok": true,
-     "frames": 60,
-     "fps": 16.0,
-     "bytes": 147419
-    }
+    "prodSsimMin": 0.997,
+    "adapterErrors": [],
+    "motion": 0.1053,
+    "export": null,
+    "kind": "animated",
+    "nonBlank": 1.0
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "ai-chat-reveal": {
    "type": "block",
@@ -100,42 +104,46 @@
   },
   "app-showcase": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "needs a resource from a host that is not allow-listed: blocked-url src: host not allow-listed: cdn.jsdelivr.net: https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.m",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.967,
-     0.982,
-     0.982
-    ],
-    "ssimMin": 0.967,
-    "export": null
+    "prodSsimMin": 0.981,
+    "adapterErrors": [],
+    "motion": 0.1023,
+    "export": {
+     "id": "app-showcase",
+     "ok": true,
+     "ms": 8997,
+     "bytes": 939447,
+     "fps": 6.7,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.7 fps < 8"
+   ]
   },
   "apple-money-count": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.950; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.967,
-     0.969,
-     0.95
-    ],
-    "ssimMin": 0.95,
-    "export": {
-     "ok": true,
-     "frames": 60,
-     "fps": 18.1,
-     "bytes": 535713
-    }
+    "prodSsimMin": 0.986,
+    "adapterErrors": [],
+    "motion": 0.21,
+    "export": null,
+    "kind": "animated",
+    "nonBlank": 1.0
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "audio feature",
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "aurora": {
    "type": "block",
@@ -181,20 +189,27 @@
   },
   "beat-freeze-cut": {
    "type": "block",
-   "status": "specialized",
-   "reason": "renders, but worst-sample SSIM 0.792: content differs from native (export not attempted)",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.887,
-     0.792,
-     0.948
-    ],
-    "ssimMin": 0.792,
-    "export": null
+    "prodSsimMin": 0.989,
+    "adapterErrors": [],
+    "motion": 0.8807,
+    "export": {
+     "id": "beat-freeze-cut",
+     "ok": true,
+     "ms": 8643,
+     "bytes": 667174,
+     "fps": 6.9,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.9 fps < 8"
+   ]
   },
   "blob": {
    "type": "block",
@@ -264,25 +279,32 @@
   },
   "camera-dolly-zoom": {
    "type": "block",
-   "status": "specialized",
-   "reason": "renders, but worst-sample SSIM 0.497: content differs from native (export not attempted)",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.497,
-     0.519,
-     0.513
-    ],
-    "ssimMin": 0.497,
-    "export": null
+    "prodSsimMin": 0.998,
+    "adapterErrors": [],
+    "motion": 0.2931,
+    "export": {
+     "id": "camera-dolly-zoom",
+     "ok": true,
+     "ms": 18951,
+     "bytes": 46841,
+     "fps": 3.2,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.992
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 3.2 fps < 8"
+   ]
   },
   "canopy-part-title": {
    "type": "block",
-   "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "status": "not-tested",
+   "reason": "native reference is blank at every sample (max non-black 0.0000), so SSIM verifies nothing; needs sample times that catch the visible moment",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -299,11 +321,7 @@
     }
    },
    "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "three.js",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabledBlockedBy": []
   },
   "carousel-circle-1": {
    "type": "block",
@@ -926,68 +944,68 @@
   },
   "code-diff": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.947; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.95,
-     0.947,
-     0.947
-    ],
-    "ssimMin": 0.947,
+    "prodSsimMin": 0.995,
+    "adapterErrors": [],
+    "motion": 0.0358,
     "export": {
+     "id": "code-diff",
      "ok": true,
-     "frames": 60,
-     "fps": 12.2,
-     "bytes": 320206
-    }
+     "ms": 5349,
+     "bytes": 379394,
+     "fps": 11.2,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.35
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "code-highlight": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.944; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.945,
-     0.944,
-     0.944
-    ],
-    "ssimMin": 0.944,
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0403,
     "export": {
+     "id": "code-highlight",
      "ok": true,
-     "frames": 60,
-     "fps": 9.8,
-     "bytes": 434549
-    }
+     "ms": 5815,
+     "bytes": 534273,
+     "fps": 10.3,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.3172
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "code-morph": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.948; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.948,
-     0.95,
-     0.948
-    ],
-    "ssimMin": 0.948,
+    "prodSsimMin": 0.999,
+    "adapterErrors": [],
+    "motion": 0.0216,
     "export": {
+     "id": "code-morph",
      "ok": true,
-     "frames": 60,
-     "fps": 9.8,
-     "bytes": 483543
-    }
+     "ms": 6218,
+     "bytes": 538304,
+     "fps": 9.6,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.2885
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "code-particle-assemble": {
@@ -1019,25 +1037,27 @@
   },
   "code-scroll": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.931; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.931,
-     0.95,
-     0.95
-    ],
-    "ssimMin": 0.931,
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.1112,
     "export": {
+     "id": "code-scroll",
      "ok": true,
-     "frames": 60,
-     "fps": 4.7,
-     "bytes": 544022
-    }
+     "ms": 13213,
+     "bytes": 716227,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.3735
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.5 fps < 8"
+   ]
   },
   "code-shader-dissolve": {
    "type": "block",
@@ -1143,24 +1163,24 @@
   },
   "code-typing": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.945; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.951,
-     0.949,
-     0.945
-    ],
-    "ssimMin": 0.945,
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0214,
     "export": {
+     "id": "code-typing",
      "ok": true,
-     "frames": 60,
-     "fps": 10.8,
-     "bytes": 221705
-    }
+     "ms": 5745,
+     "bytes": 279579,
+     "fps": 10.4,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.2922
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "color-wheel": {
@@ -1247,24 +1267,24 @@
   },
   "data-chart": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.926; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.974,
-     0.926,
-     0.926
-    ],
-    "ssimMin": 0.926,
+    "prodSsimMin": 0.995,
+    "adapterErrors": [],
+    "motion": 0.0652,
     "export": {
+     "id": "data-chart",
      "ok": true,
-     "frames": 60,
-     "fps": 21.6,
-     "bytes": 76869
-    }
+     "ms": 3323,
+     "bytes": 63312,
+     "fps": 18.1,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "domain-warp-dissolve": {
@@ -1295,8 +1315,8 @@
   },
   "editorial-flash-overlay": {
    "type": "block",
-   "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "status": "not-tested",
+   "reason": "native reference is blank at every sample (max non-black 0.0000), so SSIM verifies nothing; needs sample times that catch the visible moment",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1310,12 +1330,10 @@
      "frames": 60,
      "fps": 49.5,
      "bytes": 28050
-    },
-    "prodSsimMin": 1.0
+    }
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "readyToUse": true
+   "enabled": false,
+   "enabledBlockedBy": []
   },
   "exploded-stack": {
    "type": "block",
@@ -1397,46 +1415,46 @@
   },
   "flowchart": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.947; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.947,
-     0.958,
-     1.0
-    ],
-    "ssimMin": 0.947,
+    "prodSsimMin": 0.995,
+    "adapterErrors": [],
+    "motion": 0.073,
     "export": {
+     "id": "flowchart",
      "ok": true,
-     "frames": 60,
-     "fps": 17.4,
-     "bytes": 88498
-    }
+     "ms": 3694,
+     "bytes": 89322,
+     "fps": 16.2,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "flowchart-vertical": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.950; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.95,
-     0.961,
-     1.0
-    ],
-    "ssimMin": 0.95,
+    "prodSsimMin": 0.998,
+    "adapterErrors": [],
+    "motion": 0.0403,
     "export": {
+     "id": "flowchart-vertical",
      "ok": true,
-     "frames": 60,
-     "fps": 16.3,
-     "bytes": 81405
-    }
+     "ms": 4301,
+     "bytes": 82042,
+     "fps": 14,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "flowing-gradient": {
@@ -1782,19 +1800,24 @@
   },
   "hw-frame": {
    "type": "block",
-   "status": "specialized",
-   "reason": "renders, but worst-sample SSIM 0.663: content differs from native (export not attempted)",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.664,
-     0.663,
-     0.664
-    ],
-    "ssimMin": 0.663,
-    "export": null
+    "prodSsimMin": 0.999,
+    "adapterErrors": [],
+    "motion": 0.0335,
+    "export": {
+     "id": "hw-frame",
+     "ok": true,
+     "ms": 2246,
+     "bytes": 81491,
+     "fps": 26.7,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9999
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "hw-path-text": {
@@ -1850,46 +1873,46 @@
   },
   "hw-scribble-transition": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.928; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.928,
-     1.0,
-     0.997
-    ],
-    "ssimMin": 0.928,
+    "prodSsimMin": 0.992,
+    "adapterErrors": [],
+    "motion": 0.9971,
     "export": {
+     "id": "hw-scribble-transition",
      "ok": true,
-     "frames": 60,
-     "fps": 44.0,
-     "bytes": 117385
-    }
+     "ms": 1426,
+     "bytes": 117463,
+     "fps": 42.1,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "hw-text-cloud": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.944; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.944,
-     0.944,
-     0.944
-    ],
-    "ssimMin": 0.944,
+    "prodSsimMin": 0.976,
+    "adapterErrors": [],
+    "motion": 0.0485,
     "export": {
+     "id": "hw-text-cloud",
      "ok": true,
-     "frames": 60,
-     "fps": 25.7,
-     "bytes": 43139
-    }
+     "ms": 2733,
+     "bytes": 43174,
+     "fps": 22,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.0496
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "hw-title": {
@@ -2516,25 +2539,27 @@
   },
   "message-thread-reveal": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.927; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.927,
-     0.937,
-     0.969
-    ],
-    "ssimMin": 0.927,
+    "prodSsimMin": 0.994,
+    "adapterErrors": [],
+    "motion": 0.3269,
     "export": {
+     "id": "message-thread-reveal",
      "ok": true,
-     "frames": 60,
+     "ms": 33201,
+     "bytes": 172559,
      "fps": 1.8,
-     "bytes": 132579
-    }
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.5369
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 1.8 fps < 8"
+   ]
   },
   "mk-background": {
    "type": "block",
@@ -2738,24 +2763,24 @@
   },
   "news-ticker": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.929; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.944,
-     0.936,
-     0.929
-    ],
-    "ssimMin": 0.929,
+    "prodSsimMin": 0.96,
+    "adapterErrors": [],
+    "motion": 0.0169,
     "export": {
+     "id": "news-ticker",
      "ok": true,
-     "frames": 60,
-     "fps": 9.1,
-     "bytes": 356482
-    }
+     "ms": 5814,
+     "bytes": 364829,
+     "fps": 10.3,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.1414
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "north-korea-locked-down": {
@@ -2846,25 +2871,21 @@
   },
   "nyc-paris-flight": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.897; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.904,
-     0.898,
-     0.897
-    ],
-    "ssimMin": 0.897,
-    "export": {
-     "ok": true,
-     "frames": 60,
-     "fps": 9.3,
-     "bytes": 743903
-    }
+    "prodSsimMin": 0.99,
+    "adapterErrors": [],
+    "motion": 0.0986,
+    "export": null,
+    "kind": "animated",
+    "nonBlank": 0.9981
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "audio feature",
+    "no real browser export run"
+   ]
   },
   "obsidian": {
    "type": "block",
@@ -3644,24 +3665,24 @@
   },
   "transitions-destruction": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.858; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.858,
-     0.996,
-     0.998
-    ],
-    "ssimMin": 0.858,
+    "prodSsimMin": 0.996,
+    "adapterErrors": [],
+    "motion": 0.9352,
     "export": {
+     "id": "transitions-destruction",
      "ok": true,
-     "frames": 60,
-     "fps": 22.6,
-     "bytes": 39965
-    }
+     "ms": 2384,
+     "bytes": 31376,
+     "fps": 25.2,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9998
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "transitions-dissolve": {
@@ -3780,24 +3801,24 @@
   },
   "transitions-mechanical": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.857; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.857,
-     0.999,
-     0.998
-    ],
-    "ssimMin": 0.857,
+    "prodSsimMin": 0.996,
+    "adapterErrors": [],
+    "motion": 0.0435,
     "export": {
+     "id": "transitions-mechanical",
      "ok": true,
-     "frames": 60,
-     "fps": 21.8,
-     "bytes": 39947
-    }
+     "ms": 2451,
+     "bytes": 31396,
+     "fps": 24.5,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "transitions-other": {
@@ -3886,97 +3907,112 @@
   },
   "transitions-scale": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.863; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.863,
-     0.999,
-     0.998
-    ],
-    "ssimMin": 0.863,
+    "prodSsimMin": 0.997,
+    "adapterErrors": [],
+    "motion": 0.0361,
     "export": {
+     "id": "transitions-scale",
      "ok": true,
-     "frames": 60,
-     "fps": 23.2,
-     "bytes": 40131
-    }
+     "ms": 2523,
+     "bytes": 31332,
+     "fps": 23.8,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "ui-3d-reveal": {
    "type": "block",
-   "status": "specialized",
-   "reason": "renders, but worst-sample SSIM 0.825: content differs from native (export not attempted)",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.994,
-     0.825,
-     0.981
-    ],
-    "ssimMin": 0.825,
-    "export": null
+    "prodSsimMin": 0.994,
+    "adapterErrors": [],
+    "motion": 0.3755,
+    "export": {
+     "id": "ui-3d-reveal",
+     "ok": true,
+     "ms": 5299,
+     "bytes": 270463,
+     "fps": 11.3,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.8847
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "us-map": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.895; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.895,
-     0.964,
-     0.966
-    ],
-    "ssimMin": 0.895,
+    "prodSsimMin": 0.997,
+    "adapterErrors": [],
+    "motion": 0.1907,
     "export": {
+     "id": "us-map",
      "ok": true,
-     "frames": 60,
-     "fps": 19.4,
-     "bytes": 308283
-    }
+     "ms": 4300,
+     "bytes": 357995,
+     "fps": 14,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9997
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "us-map-bubble": {
    "type": "block",
-   "status": "specialized",
-   "reason": "renders, but worst-sample SSIM 0.769: content differs from native (export not attempted)",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.775,
-     0.77,
-     0.769
-    ],
-    "ssimMin": 0.769,
-    "export": null
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0191,
+    "export": {
+     "id": "us-map-bubble",
+     "ok": true,
+     "ms": 3727,
+     "bytes": 413930,
+     "fps": 16.1,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9994
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "us-map-flow": {
    "type": "block",
-   "status": "specialized",
-   "reason": "renders, but worst-sample SSIM 0.803: content differs from native (export not attempted)",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.806,
-     0.804,
-     0.803
-    ],
-    "ssimMin": 0.803,
-    "export": null
+    "prodSsimMin": 0.998,
+    "adapterErrors": [],
+    "motion": 0.0299,
+    "export": {
+     "id": "us-map-flow",
+     "ok": true,
+     "ms": 3565,
+     "bytes": 396491,
+     "fps": 16.8,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9995
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "us-map-hex": {
@@ -4174,25 +4210,21 @@
   },
   "vpn-youtube-spot": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.919; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.919,
-     0.93,
-     1.0
-    ],
-    "ssimMin": 0.919,
-    "export": {
-     "ok": true,
-     "frames": 60,
-     "fps": 7.0,
-     "bytes": 590025
-    }
+    "prodSsimMin": 0.97,
+    "adapterErrors": [],
+    "motion": 0.276,
+    "export": null,
+    "kind": "animated",
+    "nonBlank": 1.0
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "audio feature",
+    "no real browser export run"
+   ]
   },
   "water": {
    "type": "block",
@@ -4319,19 +4351,24 @@
   },
   "world-map": {
    "type": "block",
-   "status": "specialized",
-   "reason": "renders, but worst-sample SSIM 0.688: content differs from native (export not attempted)",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.688,
-     0.744,
-     0.744
-    ],
-    "ssimMin": 0.688,
-    "export": null
+    "prodSsimMin": 0.997,
+    "adapterErrors": [],
+    "motion": 0.0775,
+    "export": {
+     "id": "world-map",
+     "ok": true,
+     "ms": 2978,
+     "bytes": 282484,
+     "fps": 20.1,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9994
    },
-   "enabled": false,
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "worley-noise": {
@@ -4398,25 +4435,27 @@
   },
   "yt-lcd-background": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.908; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.908,
-     0.909,
-     0.909
-    ],
-    "ssimMin": 0.908,
+    "prodSsimMin": 0.994,
+    "adapterErrors": [],
+    "motion": 0.0,
     "export": {
+     "id": "yt-lcd-background",
      "ok": true,
-     "frames": 60,
-     "fps": 3.9,
-     "bytes": 498863
-    }
+     "ms": 15019,
+     "bytes": 735408,
+     "fps": 4,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 1.0
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4 fps < 8"
+   ]
   },
   "yt-logo-intro": {
    "type": "block",
@@ -4475,25 +4514,27 @@
   },
   "yt-prism-title": {
    "type": "block",
-   "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.948; exports, with visible differences",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
    "evidence": {
-    "stillsOk": "3/3",
-    "ssim": [
-     0.948,
-     0.956,
-     0.953
-    ],
-    "ssimMin": 0.948,
+    "prodSsimMin": 0.961,
+    "adapterErrors": [],
+    "motion": 0.0359,
     "export": {
+     "id": "yt-prism-title",
      "ok": true,
-     "frames": 60,
-     "fps": 4.6,
-     "bytes": 410983
-    }
+     "ms": 12358,
+     "bytes": 502845,
+     "fps": 4.9,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.0599
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.9 fps < 8"
+   ]
   },
   "yt-vertical-fill": {
    "type": "block",
@@ -4522,1977 +4563,4477 @@
   },
   "agent-cursor": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.994,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "animated-bar-chart": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.937",
+   "evidence": {
+    "prodSsimMin": 0.937,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "arc-motion-path": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "arc-motion-path",
+     "ok": true,
+     "ms": 13495,
+     "bytes": 47537,
+     "fps": 4.4,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.1585
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.4 fps < 8"
+   ]
   },
   "ascii-render-pass": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "ascii-render-pass",
+     "ok": true,
+     "ms": 7548,
+     "bytes": 37528,
+     "fps": 7.9,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "ascii-trail-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.806: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.806,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "aurora-drift": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.981,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "aurora-drift",
+     "ok": true,
+     "ms": 17750,
+     "bytes": 136927,
+     "fps": 3.4,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.7385
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 3.4 fps < 8"
+   ]
   },
   "avatar-cloud": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.880",
+   "evidence": {
+    "prodSsimMin": 0.88,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "avatar-group-hover": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.995,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "avatar-group-hover",
+     "ok": true,
+     "ms": 13262,
+     "bytes": 32270,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0043
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.5 fps < 8"
+   ]
   },
   "badge-pop": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "badge-pop",
+     "ok": true,
+     "ms": 12759,
+     "bytes": 29193,
+     "fps": 4.7,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "beat-accent": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
-   "enabled": false,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.975,
+    "adapterErrors": [],
+    "motion": 0.026,
+    "export": {
+     "id": "beat-accent",
+     "ok": true,
+     "ms": 6669,
+     "bytes": 156156,
+     "fps": 9,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9915
+   },
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "beat-pulse-background": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.940",
+   "evidence": {
+    "prodSsimMin": 0.94,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "beat-timeline": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.918",
+   "evidence": {
+    "prodSsimMin": 0.918,
+    "adapterErrors": [],
+    "motion": 0.094,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "before-after-wipe": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.655: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.655,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "blur-in": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "blur-in",
+     "ok": true,
+     "ms": 13008,
+     "bytes": 35185,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0102
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "blur-out-up": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "blur-out-up",
+     "ok": true,
+     "ms": 12967,
+     "bytes": 28548,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "bottom-up-letters": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "bottom-up-letters",
+     "ok": true,
+     "ms": 11852,
+     "bytes": 28075,
+     "fps": 5.1,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "browser-device-stage": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.430: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.43,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "camera-rig-depth-stack": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.998,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "camera-rig-depth-stack",
+     "ok": true,
+     "ms": 14169,
+     "bytes": 48311,
+     "fps": 4.2,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.158
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.2 fps < 8"
+   ]
   },
   "camera-scan-gate": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.938",
+   "evidence": {
+    "prodSsimMin": 0.938,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "camera-shake": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.677: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.677,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-blend-difference": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-camera-follow": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.682: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.682,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-clip-wipe": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.976,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "caption-clip-wipe",
+     "ok": true,
+     "ms": 8359,
+     "bytes": 157991,
+     "fps": 7.2,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "export throughput 7.2 fps < 8",
+    "shows built-in content and exposes no editable field"
+   ]
   },
   "caption-editorial-emphasis": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.98,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "caption-editorial-emphasis",
+     "ok": true,
+     "ms": 7414,
+     "bytes": 146823,
+     "fps": 8.1,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "shows built-in content and exposes no editable field"
+   ]
   },
   "caption-emoji-pop": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.967,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "caption-emoji-pop",
+     "ok": true,
+     "ms": 8577,
+     "bytes": 180605,
+     "fps": 7,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "export throughput 7 fps < 8",
+    "shows built-in content and exposes no editable field"
+   ]
   },
   "caption-glitch-rgb": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.973,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "caption-glitch-rgb",
+     "ok": true,
+     "ms": 8487,
+     "bytes": 308105,
+     "fps": 7.1,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "export throughput 7.1 fps < 8",
+    "shows built-in content and exposes no editable field"
+   ]
   },
   "caption-gradient-fill": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.859",
+   "evidence": {
+    "prodSsimMin": 0.859,
+    "adapterErrors": [],
+    "motion": 0.0001,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-highlight": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.932",
+   "evidence": {
+    "prodSsimMin": 0.932,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-kinetic-slam": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.926",
+   "evidence": {
+    "prodSsimMin": 0.926,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-matrix-decode": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.981,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "caption-matrix-decode",
+     "ok": true,
+     "ms": 7315,
+     "bytes": 251644,
+     "fps": 8.2,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "shows built-in content and exposes no editable field"
+   ]
   },
   "caption-neon-accent": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.922",
+   "evidence": {
+    "prodSsimMin": 0.922,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-neon-glow": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.902",
+   "evidence": {
+    "prodSsimMin": 0.902,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-parallax-layers": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.792: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.792,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-particle-burst": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.96,
+    "adapterErrors": [],
+    "motion": 0.0005,
+    "export": {
+     "id": "caption-particle-burst",
+     "ok": true,
+     "ms": 7419,
+     "bytes": 286841,
+     "fps": 8.1,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.0005
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "shows built-in content and exposes no editable field"
+   ]
   },
   "caption-pill-karaoke": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.914",
+   "evidence": {
+    "prodSsimMin": 0.914,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-texture": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "caption-texture",
+     "ok": false,
+     "error": "@remotion/web-renderer only supports URL masks with mask-size: 100% 100%, mask-position: 0% 0%, mask-repeat: no-repeat, the border box as origin and clip, and alpha semantics. Unsupported values: mask-size: 200% 200%, mask-position: 0% 50%, mask-repeat: repeat, mask-mode: luminance",
+     "ms": 0,
+     "fps": null
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "caption-weight-shift": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.982,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "caption-weight-shift",
+     "ok": true,
+     "ms": 7722,
+     "bytes": 120000,
+     "fps": 7.8,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "export throughput 7.8 fps < 8",
+    "shows built-in content and exposes no editable field"
+   ]
   },
   "card-resize": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.981,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "card-resize",
+     "ok": true,
+     "ms": 13419,
+     "bytes": 33180,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0218
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.5 fps < 8"
+   ]
   },
   "caret-swap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "unsupported",
+   "reason": "adapter errors: [hyperframes] script https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js: Unexpected token '<'",
+   "evidence": {
+    "prodSsimMin": 0.984,
+    "adapterErrors": [
+     "[hyperframes] script https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js: Unexpected token '<'"
+    ],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "char-slam-explode": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.929",
+   "evidence": {
+    "prodSsimMin": 0.929,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "chart-story": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.838: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.838,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "chat-message": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
-   "enabled": false,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.974,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "chat-message",
+     "ok": true,
+     "ms": 6844,
+     "bytes": 73644,
+     "fps": 8.8,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0146
+   },
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "chat-thread": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.615: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.615,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "chromatic-aberration-wipe": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "chromatic-aberration-wipe",
+     "ok": true,
+     "ms": 13764,
+     "bytes": 44393,
+     "fps": 4.4,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.1579
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.4 fps < 8"
+   ]
   },
   "code-terminal-run": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.155: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.155,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "colorama-wipe": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "colorama-wipe",
+     "ok": true,
+     "ms": 11834,
+     "bytes": 28124,
+     "fps": 5.1,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "comparison-split": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.537: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.537,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "confetti": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "confetti",
+     "ok": true,
+     "ms": 14478,
+     "bytes": 43299,
+     "fps": 4.1,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.1575
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.1 fps < 8"
+   ]
   },
   "conic-progress-ring": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
-   "enabled": false,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.963,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "conic-progress-ring",
+     "ok": true,
+     "ms": 6963,
+     "bytes": 119735,
+     "fps": 8.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0529
+   },
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "constellation-hub": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.802: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.802,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "count-up": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.948",
+   "evidence": {
+    "prodSsimMin": 0.948,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "cta-close": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.907",
+   "evidence": {
+    "prodSsimMin": 0.907,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "cta-lockup": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.841: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.841,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "cursor-annotate": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.99,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "cursor-annotate",
+     "ok": true,
+     "ms": 6539,
+     "bytes": 85996,
+     "fps": 9.2,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "no editable field with a measured visible effect"
+   ]
   },
   "cursor-context-menu": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.947",
+   "evidence": {
+    "prodSsimMin": 0.947,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "cursor-drag-drop": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.963,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "cursor-drag-drop",
+     "ok": true,
+     "ms": 11571,
+     "bytes": 520522,
+     "fps": 5.2,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.468
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 5.2 fps < 8"
+   ]
   },
   "cursor-glyph-trail": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.965,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "cursor-glyph-trail",
+     "ok": true,
+     "ms": 13369,
+     "bytes": 96326,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.3106
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.5 fps < 8"
+   ]
   },
   "cursor-marquee-select": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.918",
+   "evidence": {
+    "prodSsimMin": 0.918,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "cursor-text-select": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.831: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.831,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "cursor-zoom-follow": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.870",
+   "evidence": {
+    "prodSsimMin": 0.87,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "curtain-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.572: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.572,
+    "adapterErrors": [],
+    "motion": 0.7025,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "cut-the-curve": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.961,
+    "adapterErrors": [],
+    "motion": 0.2181,
+    "export": {
+     "id": "cut-the-curve",
+     "ok": true,
+     "ms": 9176,
+     "bytes": 142765,
+     "fps": 6.5,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9985
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.5 fps < 8"
+   ]
   },
   "dart-cursor": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 0.998,
+    "adapterErrors": [],
+    "motion": 0.0015,
+    "export": {
+     "id": "dart-cursor",
+     "ok": true,
+     "ms": 8802,
+     "bytes": 28064,
+     "fps": 6.8,
+     "hfErrors": {}
+    },
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "decline-chart": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.564: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.564,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "device-frame-stage": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.892",
+   "evidence": {
+    "prodSsimMin": 0.892,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "directional-wipe": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "directional-wipe",
+     "ok": true,
+     "ms": 13757,
+     "bytes": 33228,
+     "fps": 4.4,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.1579
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.4 fps < 8"
+   ]
   },
   "drift-hold": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.944",
+   "evidence": {
+    "prodSsimMin": 0.944,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "dynamic-grid": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "dynamic-grid",
+     "ok": true,
+     "ms": 12391,
+     "bytes": 66656,
+     "fps": 4.8,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "echo-smear": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "echo-smear",
+     "ok": true,
+     "ms": 12017,
+     "bytes": 28075,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "echo-trail": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.951,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "echo-trail",
+     "ok": true,
+     "ms": 8740,
+     "bytes": 232371,
+     "fps": 6.9,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "export throughput 6.9 fps < 8",
+    "no editable field with a measured visible effect"
+   ]
   },
   "extended-keyframe": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "extended-keyframe",
+     "ok": true,
+     "ms": 11907,
+     "bytes": 28062,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "facet-morph": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.926",
+   "evidence": {
+    "prodSsimMin": 0.926,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "fade-through": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "fade-through",
+     "ok": true,
+     "ms": 11953,
+     "bytes": 28062,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "filmed-screen": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.622: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.622,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "focus-blur-resolve": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "focus-blur-resolve",
+     "ok": true,
+     "ms": 13336,
+     "bytes": 29077,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "focus-rack": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.663: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.663,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "focus-swap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.842: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.842,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "gesture-tap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.725: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.725,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "gloss-sweep": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.890",
+   "evidence": {
+    "prodSsimMin": 0.89,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "grade-split-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.775: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.775,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "grain-field": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.471: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.471,
+    "adapterErrors": [],
+    "motion": 0.4549,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "grain-overlay": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.001: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.001,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "grid-card-assemble": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.464: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.464,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "grid-pixelate-wipe": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "grid-pixelate-wipe",
+     "ok": true,
+     "ms": 14894,
+     "bytes": 28085,
+     "fps": 4,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "halftone-dissolve": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.388: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.388,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "headline-slam": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.971,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "headline-slam",
+     "ok": true,
+     "ms": 7678,
+     "bytes": 192763,
+     "fps": 7.8,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "export throughput 7.8 fps < 8",
+    "no editable field with a measured visible effect"
+   ]
   },
   "hw-arrow": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
-   "enabled": false,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.986,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "hw-arrow",
+     "ok": true,
+     "ms": 7252,
+     "bytes": 274344,
+     "fps": 8.3,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 1.0
+   },
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "hw-boil": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.98,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static",
+    "nonBlank": 1.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "unseededRandom feature",
+    "no real browser export run"
+   ]
   },
   "hw-box-label": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
-   "enabled": false,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.989,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "hw-box-label",
+     "ok": true,
+     "ms": 7299,
+     "bytes": 221377,
+     "fps": 8.2,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 1.0
+   },
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "hw-callout-circle": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.984,
+    "adapterErrors": [],
+    "motion": 0.017,
+    "export": {
+     "id": "hw-callout-circle",
+     "ok": true,
+     "ms": 7608,
+     "bytes": 180860,
+     "fps": 7.9,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 7.9 fps < 8"
+   ]
   },
   "hw-underline": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.954,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "hw-underline",
+     "ok": true,
+     "ms": 7550,
+     "bytes": 67455,
+     "fps": 7.9,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.9966
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 7.9 fps < 8"
+   ]
   },
   "icon-morph-beat": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.994,
+    "adapterErrors": [],
+    "motion": 0.0086,
+    "export": {
+     "id": "icon-morph-beat",
+     "ok": true,
+     "ms": 9681,
+     "bytes": 72457,
+     "fps": 6.2,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.0949
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.2 fps < 8"
+   ]
   },
   "icon-swap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "icon-swap",
+     "ok": true,
+     "ms": 12157,
+     "bytes": 28382,
+     "fps": 4.9,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "ink-bleed-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.899",
+   "evidence": {
+    "prodSsimMin": 0.899,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "inline-highlight": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "inline-highlight",
+     "ok": true,
+     "ms": 11903,
+     "bytes": 28129,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "input-feedback": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.996,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "input-feedback",
+     "ok": true,
+     "ms": 12888,
+     "bytes": 31710,
+     "fps": 4.7,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0157
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.7 fps < 8"
+   ]
   },
   "iris-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.630: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.63,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "keyframe-scrub-stack": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.920",
+   "evidence": {
+    "prodSsimMin": 0.92,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "kinetic-center-build": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "unsupported",
+   "reason": "adapter errors: [hyperframes] script https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js: Unexpected token '<'",
+   "evidence": {
+    "prodSsimMin": 0.99,
+    "adapterErrors": [
+     "[hyperframes] script https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js: Unexpected token '<'",
+     "[hyperframes] script kinetic-center-build.html#inline: CustomEase is not defined"
+    ],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "kinetic-type-swap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.936",
+   "evidence": {
+    "prodSsimMin": 0.936,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "light-sweep-pass": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.663: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.663,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "line-by-line-slide": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "line-by-line-slide",
+     "ok": true,
+     "ms": 13176,
+     "bytes": 30033,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0071
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "line-swap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.963,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "locked-nucleus-orbit": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.981,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "locked-nucleus-orbit",
+     "ok": true,
+     "ms": 8828,
+     "bytes": 586834,
+     "fps": 6.8,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0147
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.8 fps < 8"
+   ]
   },
   "logo-brand-close": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.922",
+   "evidence": {
+    "prodSsimMin": 0.922,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "logo-sting": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.915",
+   "evidence": {
+    "prodSsimMin": 0.915,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "logo-wall": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.803: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.803,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "magnetic-cursor": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.999,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "magnetic-cursor",
+     "ok": true,
+     "ms": 8136,
+     "bytes": 30862,
+     "fps": 7.4,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0662
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 7.4 fps < 8"
+   ]
   },
   "marker-checklist-card": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.706: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.706,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "marker-highlight": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.935",
+   "evidence": {
+    "prodSsimMin": 0.935,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "match-cut": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.944",
+   "evidence": {
+    "prodSsimMin": 0.944,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "matrix-decode": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.999,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "matrix-decode",
+     "ok": true,
+     "ms": 13053,
+     "bytes": 35896,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0093
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "menu-morph": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.999,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "menu-morph",
+     "ok": true,
+     "ms": 13188,
+     "bytes": 30349,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0053
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.5 fps < 8"
+   ]
   },
   "mesh-gradient-bg": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "mesh-gradient-bg",
+     "ok": true,
+     "ms": 14428,
+     "bytes": 46799,
+     "fps": 4.2,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.1575
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.2 fps < 8"
+   ]
   },
   "micro-transitions": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "mk-emphasis-type": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.942",
+   "evidence": {
+    "prodSsimMin": 0.942,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "mk-usage-arc": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 0.995,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "modal-morph": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.459: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.459,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "morph-swap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.900",
+   "evidence": {
+    "prodSsimMin": 0.9,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "morph-text": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.928",
+   "evidence": {
+    "prodSsimMin": 0.928,
+    "adapterErrors": [],
+    "motion": 0.0054,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "motion-blur": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "motion-blur",
+     "ok": true,
+     "ms": 11868,
+     "bytes": 28065,
+     "fps": 5.1,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "multi-device-splay": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.518: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.518,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "multiplayer-cursors": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.759: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.759,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "native-notification-pop": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.950",
+   "evidence": {
+    "prodSsimMin": 0.95,
+    "adapterErrors": [],
+    "motion": 0.2115,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "notes-typing": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.986,
+    "adapterErrors": [],
+    "motion": 0.0232,
+    "export": {
+     "id": "notes-typing",
+     "ok": true,
+     "ms": 9245,
+     "bytes": 63204,
+     "fps": 6.5,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9962
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.5 fps < 8"
+   ]
   },
   "notification-pileup": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.854",
+   "evidence": {
+    "prodSsimMin": 0.854,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "notification-stack": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.723: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.723,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "number-pop-in": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 0.999,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "number-pop-in",
+     "ok": true,
+     "ms": 13469,
+     "bytes": 28841,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "number-wheel": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "number-wheel",
+     "ok": true,
+     "ms": 12019,
+     "bytes": 28064,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "offset-path-traveler": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.973,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static",
+    "nonBlank": 0.0053
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "onboarding-stepper-flow": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.983,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "onboarding-stepper-flow",
+     "ok": true,
+     "ms": 13624,
+     "bytes": 39531,
+     "fps": 4.4,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0665
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.4 fps < 8"
+   ]
   },
   "ordered-dither-pass": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.010: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.01,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "outline-draw": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.949",
+   "evidence": {
+    "prodSsimMin": 0.949,
+    "adapterErrors": [],
+    "motion": 0.0603,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "oversized-cursor": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.99,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "oversized-cursor",
+     "ok": true,
+     "ms": 9775,
+     "bytes": 82499,
+     "fps": 6.1,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0041
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.1 fps < 8"
+   ]
   },
   "overwhelm-surround": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.907",
+   "evidence": {
+    "prodSsimMin": 0.907,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "page-slide": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "page-slide",
+     "ok": true,
+     "ms": 12969,
+     "bytes": 35198,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0863
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "pan-stations": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.801: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.801,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "panel-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.998,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "panel-reveal",
+     "ok": true,
+     "ms": 12884,
+     "bytes": 31418,
+     "fps": 4.7,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0212
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.7 fps < 8"
+   ]
   },
   "paper-collage-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.142: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.142,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "parallax-device-dive": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.862",
+   "evidence": {
+    "prodSsimMin": 0.862,
+    "adapterErrors": [],
+    "motion": 0.2293,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "parallax-unzoom": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "parallax-unzoom",
+     "ok": true,
+     "ms": 11936,
+     "bytes": 28113,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "parallax-zoom": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "parallax-zoom",
+     "ok": true,
+     "ms": 12046,
+     "bytes": 28118,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "particle-image-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.802: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.802,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "particle-text-dissolve": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.916",
+   "evidence": {
+    "prodSsimMin": 0.916,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "pendulum-swing": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.999,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "pendulum-swing",
+     "ok": true,
+     "ms": 12737,
+     "bytes": 32317,
+     "fps": 4.7,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0204
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.7 fps < 8"
+   ]
   },
   "per-word-crossfade": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "per-word-crossfade",
+     "ok": true,
+     "ms": 13423,
+     "bytes": 30535,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0061
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.5 fps < 8"
+   ]
   },
   "per-word-rise": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.943",
+   "evidence": {
+    "prodSsimMin": 0.943,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "perspective-marquee": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "perspective-marquee",
+     "ok": true,
+     "ms": 13634,
+     "bytes": 33949,
+     "fps": 4.4,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0163
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.4 fps < 8"
+   ]
   },
   "physical-exit": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.641: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.641,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "press-ripple": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.989,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "pull-back-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.727: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.727,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "pull-to-refresh": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.765: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.765,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "push-in": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.975,
+    "adapterErrors": [],
+    "motion": 0.0152,
+    "export": {
+     "id": "push-in",
+     "ok": true,
+     "ms": 7686,
+     "bytes": 353140,
+     "fps": 7.8,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9725
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 7.8 fps < 8"
+   ]
   },
   "radial-surround": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.613: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.613,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "rgb-glitch-text": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.998,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "rgb-glitch-text",
+     "ok": true,
+     "ms": 12716,
+     "bytes": 31348,
+     "fps": 4.7,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0039
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.7 fps < 8"
+   ]
   },
   "rubber-band-bumper": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.900",
+   "evidence": {
+    "prodSsimMin": 0.9,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "scan-band": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.951,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "scramble-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.690: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.69,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "screen-flow-carousel": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.433: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.433,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "scroll-camera-story": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.000: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "scroll-feed": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.743: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.743,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "segmentation-flood": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.000: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "separator": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "separator",
+     "ok": true,
+     "ms": 12030,
+     "bytes": 28226,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "settings-toggle-flow": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.987,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "settings-toggle-flow",
+     "ok": true,
+     "ms": 13333,
+     "bytes": 35529,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0707
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.5 fps < 8"
+   ]
   },
   "shared-axis-y": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "shared-axis-y",
+     "ok": true,
+     "ms": 13150,
+     "bytes": 29360,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0037
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "shared-axis-z": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "shared-axis-z",
+     "ok": true,
+     "ms": 13072,
+     "bytes": 29234,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0028
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "sheet-spring-up": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "sheet-spring-up",
+     "ok": true,
+     "ms": 12576,
+     "bytes": 33879,
+     "fps": 4.8,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0644
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.8 fps < 8"
+   ]
   },
   "shimmer-sweep": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "shimmer-sweep",
+     "ok": true,
+     "ms": 11917,
+     "bytes": 28070,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "shutter-slam": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.930",
+   "evidence": {
+    "prodSsimMin": 0.93,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "signup-flow": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.969,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "signup-flow",
+     "ok": true,
+     "ms": 13185,
+     "bytes": 36199,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0797
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "skeleton-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "skeleton-reveal",
+     "ok": true,
+     "ms": 12667,
+     "bytes": 28768,
+     "fps": 4.7,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0132
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.7 fps < 8",
+    "shows built-in text that cannot be edited"
+   ]
   },
   "slit-scan-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.953,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "slit-scan-reveal",
+     "ok": true,
+     "ms": 7224,
+     "bytes": 580001,
+     "fps": 8.3,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "no editable field with a measured visible effect"
+   ]
   },
   "slot-machine-roll": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "slot-machine-roll",
+     "ok": true,
+     "ms": 12776,
+     "bytes": 28569,
+     "fps": 4.7,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "social-proof-card": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.96,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static",
+    "nonBlank": 1.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "soft-blob-touch": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.806: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.806,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "soft-blur-in": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "soft-blur-in",
+     "ok": true,
+     "ms": 11841,
+     "bytes": 28114,
+     "fps": 5.1,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "split-tilt-cards": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.868",
+   "evidence": {
+    "prodSsimMin": 0.868,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "spotlight-card": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "spotlight-card",
+     "ok": true,
+     "ms": 14062,
+     "bytes": 39034,
+     "fps": 4.3,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.1536
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.3 fps < 8"
+   ]
   },
   "spring-pop": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.792: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.792,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "spring-stack-shuffle": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.922",
+   "evidence": {
+    "prodSsimMin": 0.922,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "stagger-cascade": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.735: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.735,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "stagger-lattice": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.880",
+   "evidence": {
+    "prodSsimMin": 0.88,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "staggered-fade-up": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "staggered-fade-up",
+     "ok": true,
+     "ms": 13046,
+     "bytes": 29705,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0044
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "star-rating-fill": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "state-chip-rail": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.958,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "state-chip-rail",
+     "ok": true,
+     "ms": 7555,
+     "bytes": 135094,
+     "fps": 7.9,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "export throughput 7.9 fps < 8",
+    "no editable field with a measured visible effect"
+   ]
   },
   "sticky-mock-swap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.972,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "sticky-mock-swap",
+     "ok": true,
+     "ms": 8243,
+     "bytes": 134716,
+     "fps": 7.3,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.3311
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 7.3 fps < 8"
+   ]
   },
   "stitched-text-draw": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.972,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "stitched-text-draw",
+     "ok": true,
+     "ms": 6582,
+     "bytes": 50500,
+     "fps": 9.1,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "no editable field with a measured visible effect"
+   ]
   },
   "stop-motion-cadence": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.966,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "stop-motion-cadence",
+     "ok": true,
+     "ms": 9544,
+     "bytes": 89853,
+     "fps": 6.3,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0053
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.3 fps < 8",
+    "no editable field with a measured visible effect"
+   ]
   },
   "store-badge-lockup": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.904",
+   "evidence": {
+    "prodSsimMin": 0.904,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "streaming-text": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "strikethrough-replace": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "strikethrough-replace",
+     "ok": true,
+     "ms": 12752,
+     "bytes": 28936,
+     "fps": 4.7,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "success-check": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "success-check",
+     "ok": true,
+     "ms": 12076,
+     "bytes": 29597,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "svg-line-draw-loader": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.920",
+   "evidence": {
+    "prodSsimMin": 0.92,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "svg-mask-reveal": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.910",
+   "evidence": {
+    "prodSsimMin": 0.91,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "svg-stroke-trace": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.867",
+   "evidence": {
+    "prodSsimMin": 0.867,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "swipe-rail": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.595: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.595,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "tabs-slide-indicator": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "tabs-slide-indicator",
+     "ok": true,
+     "ms": 13083,
+     "bytes": 29482,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.006
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "telemetry-hud": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.891",
+   "evidence": {
+    "prodSsimMin": 0.891,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "terminal-simulator": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.967,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "terminal-simulator",
+     "ok": true,
+     "ms": 13760,
+     "bytes": 40188,
+     "fps": 4.4,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.1698
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.4 fps < 8"
+   ]
   },
   "testimonial-card": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.979,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static",
+    "nonBlank": 0.2841
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "testimonial-proof-card": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.894",
+   "evidence": {
+    "prodSsimMin": 0.894,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "text-match-cut": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.912",
+   "evidence": {
+    "prodSsimMin": 0.912,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "text-shimmer": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
-   "enabled": false,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.993,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "text-shimmer",
+     "ok": true,
+     "ms": 7081,
+     "bytes": 58259,
+     "fps": 8.5,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.034
+   },
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "text-stagger": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "text-stagger",
+     "ok": false,
+     "error": "Error: page.evaluate: Page crashed"
+    },
+    "kind": "static",
+    "nonBlank": 0.0106
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "browser export failed: Error: page.evaluate: Page crashed"
+   ]
   },
   "text-state-swap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "text-state-swap",
+     "ok": true,
+     "ms": 12377,
+     "bytes": 28339,
+     "fps": 4.8,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "texture-mask-text": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "texture-mask-text",
+     "ok": true,
+     "ms": 11839,
+     "bytes": 28077,
+     "fps": 5.1,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "three-orbiting-cards": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.937",
+   "evidence": {
+    "prodSsimMin": 0.937,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "ticker-takeover": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.790: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.79,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "tilt-card": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.989,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "tilt-card",
+     "ok": true,
+     "ms": 13108,
+     "bytes": 37220,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0536
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "titlecard-calm": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.948",
+   "evidence": {
+    "prodSsimMin": 0.948,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "titlecard-lockup": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.936",
+   "evidence": {
+    "prodSsimMin": 0.936,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "toggle-flip": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.920",
+   "evidence": {
+    "prodSsimMin": 0.92,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "top-down-letters": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "top-down-letters",
+     "ok": true,
+     "ms": 13095,
+     "bytes": 29438,
+     "fps": 4.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0041
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.6 fps < 8"
+   ]
   },
   "torn-paper-rip": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.161: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.161,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "touch-indicator": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "touch-indicator",
+     "ok": true,
+     "ms": 6346,
+     "bytes": 36568,
+     "fps": 9.5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "tracing-beam": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.795: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.795,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "tracking-in": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "tracking-in",
+     "ok": true,
+     "ms": 11979,
+     "bytes": 28116,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "trust-strip": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.987,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "trust-strip",
+     "ok": true,
+     "ms": 7861,
+     "bytes": 83452,
+     "fps": 7.6,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "export throughput 7.6 fps < 8",
+    "no editable field with a measured visible effect"
+   ]
   },
   "type-match-cut": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.315: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.315,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "typed-prompt": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.844: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.844,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "typewriter": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "typewriter",
+     "ok": true,
+     "ms": 12832,
+     "bytes": 29887,
+     "fps": 4.7,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "typing-indicator": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "typing-indicator",
+     "ok": true,
+     "ms": 12352,
+     "bytes": 28980,
+     "fps": 4.9,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0036
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.9 fps < 8"
+   ]
   },
   "ui-focus-zoom": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.000: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.0,
+    "adapterErrors": [],
+    "motion": 0.9001,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "variable-axis-type": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.885",
+   "evidence": {
+    "prodSsimMin": 0.885,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "variable-font-flex": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.952,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "variable-font-flex",
+     "ok": true,
+     "ms": 6895,
+     "bytes": 87911,
+     "fps": 8.7,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "standalone output is (nearly) blank",
+    "no editable field with a measured visible effect"
+   ]
   },
   "vector-editor-rig": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.837: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.837,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "velocity-throw-snap": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.000: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "vignette": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "host-dependent",
+   "reason": "native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone",
+   "evidence": {
+    "prodSsimMin": 1.0,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "vignette",
+     "ok": true,
+     "ms": 11984,
+     "bytes": 28079,
+     "fps": 5,
+     "hfErrors": {}
+    },
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "vox-annotate": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.949",
+   "evidence": {
+    "prodSsimMin": 0.949,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "whip-pan-cut": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.891",
+   "evidence": {
+    "prodSsimMin": 0.891,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "whiteboard-ink": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.97,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static",
+    "nonBlank": 1.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "no real browser export run",
+    "no editable field with a measured visible effect"
+   ]
   },
   "wordmark-tiles": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.700: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.7,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "x-follow-card": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)",
+   "evidence": {
+    "prodSsimMin": 0.972,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": {
+     "id": "x-follow-card",
+     "ok": true,
+     "ms": 13274,
+     "bytes": 42406,
+     "fps": 4.5,
+     "hfErrors": {}
+    },
+    "kind": "static",
+    "nonBlank": 0.1087
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 4.5 fps < 8"
+   ]
   },
   "yt-camera-move": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.828: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.828,
+    "adapterErrors": [],
+    "motion": 0.0128,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "yt-circle-pointer": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
-   "enabled": false,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.991,
+    "adapterErrors": [],
+    "motion": 0.0073,
+    "export": {
+     "id": "yt-circle-pointer",
+     "ok": true,
+     "ms": 7306,
+     "bytes": 206057,
+     "fps": 8.2,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
+   },
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "yt-feather-highlight": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.794: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.794,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "yt-screen-warp": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.587: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.587,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "zoom-through-transition": {
    "type": "component",
-   "status": "not-tested",
-   "reason": "components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept",
-   "evidence": null,
+   "status": "specialized",
+   "reason": "worst-sample SSIM 0.683: content differs from native",
+   "evidence": {
+    "prodSsimMin": 0.683,
+    "adapterErrors": [],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "decision-tree": {
    "type": "example",
-   "status": "not-tested",
-   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.995,
+    "adapterErrors": [],
+    "motion": 0.0554,
+    "export": {
+     "id": "decision-tree",
+     "ok": true,
+     "ms": 8987,
+     "bytes": 98646,
+     "fps": 6.7,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.7 fps < 8"
+   ]
   },
   "kinetic-type": {
    "type": "example",
-   "status": "not-tested",
-   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
-   "evidence": null,
+   "status": "unsupported",
+   "reason": "adapter errors: [hyperframes] blocked-url src: host not allow-listed: gen-os-static.s3.us-east-2.amazonaws.com: https://gen-os-static.s3.us-east-2.amazonaws",
+   "evidence": {
+    "prodSsimMin": 0.391,
+    "adapterErrors": [
+     "[hyperframes] blocked-url src: host not allow-listed: gen-os-static.s3.us-east-2.amazonaws.com: https://gen-os-static.s3.us-east-2.amazonaws.com/astral_asse"
+    ],
+    "motion": 1.0,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "nyt-graph": {
    "type": "example",
-   "status": "not-tested",
-   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
-   "evidence": null,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.995,
+    "adapterErrors": [],
+    "motion": 0.0653,
+    "export": {
+     "id": "nyt-graph",
+     "ok": true,
+     "ms": 8642,
+     "bytes": 63410,
+     "fps": 6.9,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
+   },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export throughput 6.9 fps < 8"
+   ]
   },
   "path-traced-3d": {
    "type": "example",
-   "status": "not-tested",
-   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
-   "evidence": null,
+   "status": "unsupported",
+   "reason": "adapter errors: [hyperframes] timeline path-traced-3d: no __timelines entry (data-no-timeline block)",
+   "evidence": {
+    "prodSsimMin": 0.731,
+    "adapterErrors": [
+     "[hyperframes] timeline path-traced-3d: no __timelines entry (data-no-timeline block)"
+    ],
+    "motion": 0.0,
+    "export": null,
+    "kind": "static"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "play-mode": {
    "type": "example",
-   "status": "not-tested",
-   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.932",
+   "evidence": {
+    "prodSsimMin": 0.932,
+    "adapterErrors": [],
+    "motion": 0.9133,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "product-promo": {
    "type": "example",
-   "status": "not-tested",
-   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
-   "evidence": null,
-   "enabled": false,
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "evidence": {
+    "prodSsimMin": 0.995,
+    "adapterErrors": [],
+    "motion": 0.9929,
+    "export": {
+     "id": "product-promo",
+     "ok": true,
+     "ms": 4923,
+     "bytes": 240762,
+     "fps": 12.2,
+     "hfErrors": {}
+    },
+    "kind": "animated",
+    "nonBlank": 0.9996
+   },
+   "enabled": true,
    "enabledBlockedBy": []
   },
   "swiss-grid": {
    "type": "example",
-   "status": "not-tested",
-   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.876",
+   "evidence": {
+    "prodSsimMin": 0.876,
+    "adapterErrors": [],
+    "motion": 0.1222,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "vignelli": {
    "type": "example",
-   "status": "not-tested",
-   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.895",
+   "evidence": {
+    "prodSsimMin": 0.895,
+    "adapterErrors": [],
+    "motion": 0.9477,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   },
   "warm-grain": {
    "type": "example",
-   "status": "not-tested",
-   "reason": "starter projects (multi-composition) are not supported by the timeline overlay model yet",
-   "evidence": null,
+   "status": "adapter-compatible",
+   "reason": "worst-sample SSIM 0.942",
+   "evidence": {
+    "prodSsimMin": 0.942,
+    "adapterErrors": [],
+    "motion": 0.1891,
+    "export": null,
+    "kind": "animated"
+   },
    "enabled": false,
    "enabledBlockedBy": []
   }

@@ -293,37 +293,6 @@
    ]
   },
   {
-   "id": "editorial-flash-overlay",
-   "type": "block",
-   "title": "Editorial Flash Overlay",
-   "description": "Finite neutral-warm light layers for a seek-safe camera-flash cut or social reveal",
-   "tags": [
-    "flash",
-    "editorial",
-    "social",
-    "light",
-    "transition",
-    "overlay",
-    "media-treatment-overlay"
-   ],
-   "category": "flash",
-   "dimensions": {
-    "width": 1920,
-    "height": 1080
-   },
-   "duration": 4,
-   "sourceSha256": "0730392042a50c077c7eb3808bf6d76ddc0bcec6b6272fb2ce300007bd26478f",
-   "readyToUse": true,
-   "files": [
-    {
-     "path": "editorial-flash-overlay.html",
-     "target": "compositions/editorial-flash-overlay.html",
-     "sha256": "0730392042a50c077c7eb3808bf6d76ddc0bcec6b6272fb2ce300007bd26478f"
-    }
-   ],
-   "editables": []
-  },
-  {
    "id": "hw-path-text",
    "type": "block",
    "title": "Text Along a Path",
@@ -3916,6 +3885,1977 @@
      }
     }
    ]
+  },
+  {
+   "id": "code-diff",
+   "type": "block",
+   "title": "Code Diff",
+   "description": "An edit shown as a colored diff \u2014 removed lines collapse in red, added lines expand in green.",
+   "tags": [
+    "code",
+    "code-animation",
+    "diff",
+    "developer"
+   ],
+   "category": "code",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "5356890fec4947e384b044d7dda3d03601432125a4ce60087caac0e3639d9d93",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: greet.js",
+     "type": "text",
+     "defaultValue": "greet.js",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "code-diff.html",
+     "target": "compositions/code-diff.html",
+     "sha256": "5356890fec4947e384b044d7dda3d03601432125a4ce60087caac0e3639d9d93"
+    }
+   ],
+   "duration": 6
+  },
+  {
+   "id": "code-highlight",
+   "type": "block",
+   "title": "Code Highlight Sweep",
+   "description": "A highlight band sweeps across a target line while the surrounding context dims \u2014 draws the eye to one line.",
+   "tags": [
+    "code",
+    "code-animation",
+    "highlight",
+    "developer"
+   ],
+   "category": "code",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "2e28ffdb11fe7b595e47488f2dfb93db514f315dd5f334c902540fcbebf2bb2f",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: loadConfig.js",
+     "type": "text",
+     "defaultValue": "loadConfig.js",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "code-highlight.html",
+     "target": "compositions/code-highlight.html",
+     "sha256": "2e28ffdb11fe7b595e47488f2dfb93db514f315dd5f334c902540fcbebf2bb2f"
+    }
+   ],
+   "duration": 5
+  },
+  {
+   "id": "code-morph",
+   "type": "block",
+   "title": "Code Morph",
+   "description": "One snippet transforms into another \u2014 tokens glide between positions, leavers fade out, enterers fade in. Shiki Magic Move re-driven as a paused GSAP timeline.",
+   "tags": [
+    "code",
+    "code-animation",
+    "morph",
+    "refactor",
+    "developer"
+   ],
+   "category": "code",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "26b2342609f1da2ef2f65fef5dbc0fc3230f78893c11569e4e055f3015f6e4a2",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: refactor.js",
+     "type": "text",
+     "defaultValue": "refactor.js",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "code-morph.html",
+     "target": "compositions/code-morph.html",
+     "sha256": "26b2342609f1da2ef2f65fef5dbc0fc3230f78893c11569e4e055f3015f6e4a2"
+    }
+   ],
+   "duration": 7
+  },
+  {
+   "id": "code-typing",
+   "type": "block",
+   "title": "Code Typing",
+   "description": "Token-streamed typing reveal with a caret that tracks the frontier \u2014 deterministic, no CSS animation.",
+   "tags": [
+    "code",
+    "code-animation",
+    "typing",
+    "developer"
+   ],
+   "category": "code",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "99477451bdffeb368523b9cf7b36ca8385c0c15c2438b46597269e179f9f8fdf",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: loadConfig.js",
+     "type": "text",
+     "defaultValue": "loadConfig.js",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "code-typing.html",
+     "target": "compositions/code-typing.html",
+     "sha256": "99477451bdffeb368523b9cf7b36ca8385c0c15c2438b46597269e179f9f8fdf"
+    }
+   ],
+   "duration": 5
+  },
+  {
+   "id": "data-chart",
+   "type": "block",
+   "title": "Data Chart",
+   "description": "Animated bar + line chart with staggered reveal, NYT-style typography, and value labels",
+   "tags": [
+    "data",
+    "chart",
+    "statistics"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "02ccb24bfa21850d19c2842853256a3c47d5fd25dc746d6b99986bef268bf027",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Monthly Revenue vs. Convers\u2026",
+     "type": "text",
+     "defaultValue": "Monthly Revenue vs. Conversion Rate",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Jan\u2013Jun 2024, in thousands",
+     "type": "text",
+     "defaultValue": "Jan\u2013Jun 2024, in thousands",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Revenue",
+     "type": "text",
+     "defaultValue": "Revenue",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Conversion Rate",
+     "type": "text",
+     "defaultValue": "Conversion Rate",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Source: Internal analytics",
+     "type": "text",
+     "defaultValue": "Source: Internal analytics",
+     "target": {
+      "hfId": "hf-23",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "data-chart.html",
+     "target": "compositions/data-chart.html",
+     "sha256": "02ccb24bfa21850d19c2842853256a3c47d5fd25dc746d6b99986bef268bf027"
+    }
+   ],
+   "duration": 15
+  },
+  {
+   "id": "flowchart",
+   "type": "block",
+   "title": "Flowchart",
+   "description": "Animated decision tree with SVG connectors, sticky-note nodes, cursor interaction, and typing correction",
+   "tags": [
+    "diagram",
+    "flowchart",
+    "interactive"
+   ],
+   "category": "diagram",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "c5432d04f4f720de031377a35fbf07f1c2cbee72b04b40f7b79b0e26f5fd63bc",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Yes",
+     "type": "text",
+     "defaultValue": "Yes",
+     "target": {
+      "hfId": "hf-10",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Not sure",
+     "type": "text",
+     "defaultValue": "Not sure",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Should I learn to code?",
+     "type": "text",
+     "defaultValue": "Should I learn to code?",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Try no-code first",
+     "type": "text",
+     "defaultValue": "Try no-code first",
+     "target": {
+      "hfId": "hf-21",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Build a personal website",
+     "type": "text",
+     "defaultValue": "Build a personal website",
+     "target": {
+      "hfId": "hf-22",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: Take a free intro course",
+     "type": "text",
+     "defaultValue": "Take a free intro course",
+     "target": {
+      "hfId": "hf-23",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "flowchart.html",
+     "target": "compositions/flowchart.html",
+     "sha256": "c5432d04f4f720de031377a35fbf07f1c2cbee72b04b40f7b79b0e26f5fd63bc"
+    }
+   ],
+   "duration": 12
+  },
+  {
+   "id": "flowchart-vertical",
+   "type": "block",
+   "title": "Flowchart Vertical",
+   "description": "Portrait animated decision tree with SVG connectors, sticky-note nodes, cursor interaction, and typing correction",
+   "tags": [
+    "diagram",
+    "flowchart",
+    "interactive",
+    "portrait"
+   ],
+   "category": "diagram",
+   "dimensions": {
+    "width": 1440,
+    "height": 2560
+   },
+   "sourceSha256": "35b54ecdd282e83beb464276483dc633c64a7e47138447b2b5642df463cfc548",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t3",
+     "label": "Text 3: Should I learn to code?",
+     "type": "text",
+     "defaultValue": "Should I learn to code?",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Try no-code first",
+     "type": "text",
+     "defaultValue": "Try no-code first",
+     "target": {
+      "hfId": "hf-21",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Build a personal website",
+     "type": "text",
+     "defaultValue": "Build a personal website",
+     "target": {
+      "hfId": "hf-22",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: Take a free intro course",
+     "type": "text",
+     "defaultValue": "Take a free intro course",
+     "target": {
+      "hfId": "hf-23",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "flowchart-vertical.html",
+     "target": "compositions/flowchart-vertical.html",
+     "sha256": "35b54ecdd282e83beb464276483dc633c64a7e47138447b2b5642df463cfc548"
+    }
+   ],
+   "duration": 12
+  },
+  {
+   "id": "hw-frame",
+   "type": "block",
+   "title": "Sketched Frame",
+   "description": "Media in a hand-drawn border with corner doodles and a handwritten caption; the unit tilts slightly and boils (images inside the block; keep live footage in the host)",
+   "tags": [
+    "handwritten",
+    "frame",
+    "media"
+   ],
+   "category": "handwritten",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "339876f3c8f2b1ab81ef52b6bc0be0cf894c78d25607f41885fd3aea8b484009",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "cfg_caption",
+     "label": "Caption",
+     "defaultValue": "our trip!",
+     "target": {
+      "kind": "cfg",
+      "path": "caption"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_doodles",
+     "label": "Doodles",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "doodles"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_boil_enabled",
+     "label": "Boil \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_slot_w",
+     "label": "Slot \u203a w",
+     "defaultValue": 960,
+     "target": {
+      "kind": "cfg",
+      "path": "slot.w"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 2880,
+     "step": 1
+    },
+    {
+     "key": "cfg_slot_h",
+     "label": "Slot \u203a h",
+     "defaultValue": 620,
+     "target": {
+      "kind": "cfg",
+      "path": "slot.h"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1860,
+     "step": 1
+    },
+    {
+     "key": "cfg_tilt",
+     "label": "Tilt",
+     "defaultValue": -1.2,
+     "target": {
+      "kind": "cfg",
+      "path": "tilt"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 0.1
+    },
+    {
+     "key": "cfg_boil_amp",
+     "label": "Boil \u203a amp",
+     "defaultValue": 1.6,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.amp"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 0.1
+    },
+    {
+     "key": "cfg_boil_rot",
+     "label": "Boil \u203a rot",
+     "defaultValue": 0.35,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.rot"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05
+    },
+    {
+     "key": "cfg_boil_frameDrop",
+     "label": "Boil \u203a frame Drop",
+     "defaultValue": 3,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.frameDrop"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 1
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "hw-frame.html",
+     "target": "compositions/hw-frame.html",
+     "sha256": "339876f3c8f2b1ab81ef52b6bc0be0cf894c78d25607f41885fd3aea8b484009"
+    },
+    {
+     "path": "assets/fonts/Caveat-700-latin.woff2",
+     "target": "assets/fonts/Caveat-700-latin.woff2",
+     "sha256": "891951df5e8b5b0f0bc760d31375405e795c666b5add70437de12d4a6482b33f"
+    }
+   ],
+   "duration": 8
+  },
+  {
+   "id": "hw-scribble-transition",
+   "type": "block",
+   "title": "Scribble Transition",
+   "description": "Overlay transition: scribble bands accumulate to cover the frame with a solid backstop, the host cuts beneath, and the scribble clears",
+   "tags": [
+    "handwritten",
+    "transition",
+    "wipe"
+   ],
+   "category": "handwritten",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "45d56e7039969d9d8336bdf8f0709a0a60638b33c27cdfad9923cb4d93bcf566",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "cfg_bands",
+     "label": "Bands",
+     "defaultValue": 7,
+     "target": {
+      "kind": "cfg",
+      "path": "bands"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 21,
+     "step": 1
+    },
+    {
+     "key": "cfg_strokeScale",
+     "label": "Stroke Scale",
+     "defaultValue": 1,
+     "target": {
+      "kind": "cfg",
+      "path": "strokeScale"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "hw-scribble-transition.html",
+     "target": "compositions/hw-scribble-transition.html",
+     "sha256": "45d56e7039969d9d8336bdf8f0709a0a60638b33c27cdfad9923cb4d93bcf566"
+    }
+   ],
+   "duration": 2.2
+  },
+  {
+   "id": "hw-text-cloud",
+   "type": "block",
+   "title": "Speech Bubble",
+   "description": "Hand-drawn speech bubble with a positionable tail: outline draws on, paper fill fades in, handwritten text types per character; boils",
+   "tags": [
+    "handwritten",
+    "speech-bubble",
+    "overlay"
+   ],
+   "category": "handwritten",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "d0aafa7d638560b1fff46564320d03358fe1203a7d1d27ebcba4df68a296bb93",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "cfg_text",
+     "label": "Text",
+     "defaultValue": "what are you looking at?",
+     "target": {
+      "kind": "cfg",
+      "path": "text"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_tip_side",
+     "label": "Tip \u203a side",
+     "defaultValue": "bottom-left",
+     "target": {
+      "kind": "cfg",
+      "path": "tip.side"
+     },
+     "type": "select",
+     "options": [
+      "bottom-left",
+      "bottom-right"
+     ]
+    },
+    {
+     "key": "cfg_boil_enabled",
+     "label": "Boil \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_w",
+     "label": "W",
+     "defaultValue": 560,
+     "target": {
+      "kind": "cfg",
+      "path": "w"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 1680,
+     "step": 1
+    },
+    {
+     "key": "cfg_h",
+     "label": "H",
+     "defaultValue": 300,
+     "target": {
+      "kind": "cfg",
+      "path": "h"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 900,
+     "step": 1
+    },
+    {
+     "key": "cfg_fontSize",
+     "label": "Font Size",
+     "defaultValue": 58,
+     "target": {
+      "kind": "cfg",
+      "path": "fontSize"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 174,
+     "step": 1
+    },
+    {
+     "key": "cfg_tip_len",
+     "label": "Tip \u203a len",
+     "defaultValue": 90,
+     "target": {
+      "kind": "cfg",
+      "path": "tip.len"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 270,
+     "step": 1
+    },
+    {
+     "key": "cfg_boil_amp",
+     "label": "Boil \u203a amp",
+     "defaultValue": 1.6,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.amp"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 0.1
+    },
+    {
+     "key": "cfg_boil_frameDrop",
+     "label": "Boil \u203a frame Drop",
+     "defaultValue": 3,
+     "target": {
+      "kind": "cfg",
+      "path": "boil.frameDrop"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 10,
+     "step": 1
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "hw-text-cloud.html",
+     "target": "compositions/hw-text-cloud.html",
+     "sha256": "d0aafa7d638560b1fff46564320d03358fe1203a7d1d27ebcba4df68a296bb93"
+    },
+    {
+     "path": "assets/fonts/Caveat-700-latin.woff2",
+     "target": "assets/fonts/Caveat-700-latin.woff2",
+     "sha256": "891951df5e8b5b0f0bc760d31375405e795c666b5add70437de12d4a6482b33f"
+    }
+   ],
+   "duration": 6
+  },
+  {
+   "id": "news-ticker",
+   "type": "block",
+   "title": "News Ticker",
+   "description": "Premium broadcast-style lower-third ticker with live label, headline ribbon, and scrolling news crawl.",
+   "tags": [
+    "lower-third",
+    "overlay",
+    "news",
+    "ticker"
+   ],
+   "category": "lower-third",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "8da727da9c8c2e7adda0d5f7ce1991b5443eb65145d058ccfa64b3331fc565df",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Live",
+     "type": "text",
+     "defaultValue": "Live",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Global Desk",
+     "type": "text",
+     "defaultValue": "Global Desk",
+     "target": {
+      "hfId": "hf-10",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: prototype",
+     "type": "text",
+     "defaultValue": "prototype",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: 09:41 UTC",
+     "type": "text",
+     "defaultValue": "09:41 UTC",
+     "target": {
+      "hfId": "hf-14",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Breaking",
+     "type": "text",
+     "defaultValue": "Breaking",
+     "target": {
+      "hfId": "hf-16",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: 38%",
+     "type": "text",
+     "defaultValue": "38%",
+     "target": {
+      "hfId": "hf-21",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "news-ticker.html",
+     "target": "compositions/news-ticker.html",
+     "sha256": "8da727da9c8c2e7adda0d5f7ce1991b5443eb65145d058ccfa64b3331fc565df"
+    }
+   ],
+   "duration": 7
+  },
+  {
+   "id": "transitions-destruction",
+   "type": "block",
+   "title": "Destruction Transitions",
+   "description": "Showcase of destructive break-apart transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "d5cd1cdd3a1e087bbbc8f0b4e4a47b45170e612845b637453119ce95cd1cf3d9",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Text 6: TWO",
+     "type": "text",
+     "defaultValue": "TWO",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "transitions-destruction.html",
+     "target": "compositions/transitions-destruction.html",
+     "sha256": "d5cd1cdd3a1e087bbbc8f0b4e4a47b45170e612845b637453119ce95cd1cf3d9"
+    }
+   ],
+   "duration": 14
+  },
+  {
+   "id": "transitions-mechanical",
+   "type": "block",
+   "title": "Mechanical Transitions",
+   "description": "Showcase of mechanical shutter and iris transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "098589405f547834c5359d5c94a2f1dfed06c0780f23962e54c3e3577cea9c1f",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t4",
+     "label": "Text 4: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: SCENE A",
+     "type": "text",
+     "defaultValue": "SCENE A",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "transitions-mechanical.html",
+     "target": "compositions/transitions-mechanical.html",
+     "sha256": "098589405f547834c5359d5c94a2f1dfed06c0780f23962e54c3e3577cea9c1f"
+    }
+   ],
+   "duration": 15
+  },
+  {
+   "id": "transitions-scale",
+   "type": "block",
+   "title": "Scale Transitions",
+   "description": "Showcase of scale and zoom transitions",
+   "tags": [
+    "transition",
+    "showcase"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "6781bb145004f49ca83ad57bacdba3c32678bee568ac5583b88211eec24be143",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t4",
+     "label": "Text 4: ONE",
+     "type": "text",
+     "defaultValue": "ONE",
+     "target": {
+      "hfId": "hf-8",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: SCENE A",
+     "type": "text",
+     "defaultValue": "SCENE A",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "transitions-scale.html",
+     "target": "compositions/transitions-scale.html",
+     "sha256": "6781bb145004f49ca83ad57bacdba3c32678bee568ac5583b88211eec24be143"
+    }
+   ],
+   "duration": 15
+  },
+  {
+   "id": "ui-3d-reveal",
+   "type": "block",
+   "title": "3D UI Reveal",
+   "description": "Perspective 3D reveal animation for UI elements",
+   "tags": [
+    "showcase",
+    "3d",
+    "reveal"
+   ],
+   "category": "showcase",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "fbb3f7960686a1f5932bfd07b105c3029cdd898f113911be662e6bc36892e993",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: App Redesign",
+     "type": "text",
+     "defaultValue": "App Redesign",
+     "target": {
+      "hfId": "hf-53",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Design System",
+     "type": "text",
+     "defaultValue": "Design System",
+     "target": {
+      "hfId": "hf-55",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: Dev",
+     "type": "text",
+     "defaultValue": "Dev",
+     "target": {
+      "hfId": "hf-61",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "ui-3d-reveal.html",
+     "target": "compositions/ui-3d-reveal.html",
+     "sha256": "fbb3f7960686a1f5932bfd07b105c3029cdd898f113911be662e6bc36892e993"
+    }
+   ],
+   "duration": 13
+  },
+  {
+   "id": "us-map",
+   "type": "block",
+   "title": "US Map",
+   "description": "Animated US choropleth map with staggered state reveals, value labels, and gradient legend \u2014 pure inline SVG with GSAP",
+   "tags": [
+    "data",
+    "map",
+    "geography",
+    "usa",
+    "choropleth"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "49aa2c343281624853a931cef628fc5bb4ca57fb9f56b208b2c8be93c8a00b44",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Population Density by State",
+     "type": "text",
+     "defaultValue": "Population Density by State",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Residents per square mile, \u2026",
+     "type": "text",
+     "defaultValue": "Residents per square mile, 2024 Census estimates",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Low",
+     "type": "text",
+     "defaultValue": "Low",
+     "target": {
+      "hfId": "hf-10",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t4",
+     "label": "Text 4: High",
+     "type": "text",
+     "defaultValue": "High",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "us-map.html",
+     "target": "compositions/us-map.html",
+     "sha256": "49aa2c343281624853a931cef628fc5bb4ca57fb9f56b208b2c8be93c8a00b44"
+    }
+   ],
+   "duration": 12
+  },
+  {
+   "id": "us-map-bubble",
+   "type": "block",
+   "title": "US Bubble Map",
+   "description": "Animated US bubble map with proportional city markers, value callouts, and connection lines \u2014 composable with us-map",
+   "tags": [
+    "data",
+    "map",
+    "geography",
+    "usa",
+    "bubble",
+    "cities"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "99690a23c39e52588ab102277f74280a889bb76625cac63e153ac51ecc580dc2",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Top 20 US Cities by Populat\u2026",
+     "type": "text",
+     "defaultValue": "Top 20 US Cities by Population",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Proportional bubble markers\u2026",
+     "type": "text",
+     "defaultValue": "Proportional bubble markers by metropolitan population",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t3",
+     "label": "Text 3: Source: U.S. Census Bureau,\u2026",
+     "type": "text",
+     "defaultValue": "Source: U.S. Census Bureau, 2024",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "us-map-bubble.html",
+     "target": "compositions/us-map-bubble.html",
+     "sha256": "99690a23c39e52588ab102277f74280a889bb76625cac63e153ac51ecc580dc2"
+    }
+   ],
+   "duration": 12
+  },
+  {
+   "id": "us-map-flow",
+   "type": "block",
+   "title": "US Flow Map",
+   "description": "Animated connection arcs between US cities over a base map \u2014 composable origin-destination flow visualization",
+   "tags": [
+    "data",
+    "map",
+    "geography",
+    "usa",
+    "flow",
+    "connections",
+    "arcs"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "d331e43b6e0bfa51dd7cdfceee8c3cf4c01186887e4c405bac3a0f5f35ba11f2",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Interstate Flow Connections",
+     "type": "text",
+     "defaultValue": "Interstate Flow Connections",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Relative volume of major ci\u2026",
+     "type": "text",
+     "defaultValue": "Relative volume of major city-to-city corridors",
+     "target": {
+      "hfId": "hf-4",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "us-map-flow.html",
+     "target": "compositions/us-map-flow.html",
+     "sha256": "d331e43b6e0bfa51dd7cdfceee8c3cf4c01186887e4c405bac3a0f5f35ba11f2"
+    }
+   ],
+   "duration": 12
+  },
+  {
+   "id": "world-map",
+   "type": "block",
+   "title": "World Map",
+   "description": "Animated world choropleth with country-by-country reveal, tooltip labels, and rotating globe inset \u2014 D3 Natural Earth projection",
+   "tags": [
+    "data",
+    "map",
+    "geography",
+    "world",
+    "choropleth"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "f0e3f9b9841137f8639136a1bcd6fcb233c50f780ea8eb5792f20faa8f62e85d",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Global GDP per Capita",
+     "type": "text",
+     "defaultValue": "Global GDP per Capita",
+     "target": {
+      "hfId": "hf-2",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Nominal GDP per capita, 202\u2026",
+     "type": "text",
+     "defaultValue": "Nominal GDP per capita, 2024 IMF estimates",
+     "target": {
+      "hfId": "hf-3",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Source: International Monet\u2026",
+     "type": "text",
+     "defaultValue": "Source: International Monetary Fund",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "world-map.html",
+     "target": "compositions/world-map.html",
+     "sha256": "f0e3f9b9841137f8639136a1bcd6fcb233c50f780ea8eb5792f20faa8f62e85d"
+    }
+   ],
+   "duration": 14
+  },
+  {
+   "id": "beat-accent",
+   "type": "component",
+   "title": "Beat Accent",
+   "description": "A single music-hit sting: impact flash, micro scale-pulse on the subject, immediate decay.",
+   "tags": [
+    "motion-primitive",
+    "effects",
+    "burst",
+    "sting",
+    "emphasize",
+    "impact"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "e72f8d23d81459b88e841b5ab9cb3eaf9b4a1a3047f1ab830bf48f769897dfdc",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: BOOM",
+     "type": "text",
+     "defaultValue": "BOOM",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "var_text",
+     "label": "Accent text",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "BOOM"
+    },
+    {
+     "key": "var_flashColor",
+     "label": "Flash color",
+     "target": {
+      "kind": "var",
+      "id": "flashColor"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "accent",
+       "label": "Accent"
+      },
+      {
+       "value": "soft",
+       "label": "Soft accent"
+      },
+      {
+       "value": "bright",
+       "label": "Bright accent"
+      }
+     ],
+     "defaultValue": "accent"
+    },
+    {
+     "key": "var_intensity",
+     "label": "Intensity",
+     "target": {
+      "kind": "var",
+      "id": "intensity"
+     },
+     "type": "number",
+     "defaultValue": 1,
+     "min": 0.5,
+     "max": 2,
+     "step": 0.1
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "beat-accent.html",
+     "target": "compositions/components/beat-accent.html",
+     "sha256": "e72f8d23d81459b88e841b5ab9cb3eaf9b4a1a3047f1ab830bf48f769897dfdc"
+    }
+   ],
+   "duration": 5.0,
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "beat-accent.html": "e72f8d23d81459b88e841b5ab9cb3eaf9b4a1a3047f1ab830bf48f769897dfdc"
+    }
+   }
+  },
+  {
+   "id": "chat-message",
+   "type": "component",
+   "title": "Chat Message",
+   "description": "One message arrives on the measured entry - scale 0.75, 0.12s, growing from its sender's corner. The type is an enum switched like marker-highlight's style: a received or sent bubble with a real tail, a large emoji row, an image, or a link card with title and domain. The atom that chat-thread builds conversations from",
+   "tags": [
+    "video-primitive",
+    "chat",
+    "mock-ui",
+    "message"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "fe9b9e0dd4c886843713116811688565c6fea3995cbb52f8c2e044106072715a",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "var_text",
+     "label": "Text",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "wait look \ud83d\udc40"
+    },
+    {
+     "key": "var_type",
+     "label": "Type",
+     "target": {
+      "kind": "var",
+      "id": "type"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "recv",
+       "label": "Received"
+      },
+      {
+       "value": "sent",
+       "label": "Sent"
+      },
+      {
+       "value": "emoji",
+       "label": "Emoji"
+      },
+      {
+       "value": "img",
+       "label": "Image"
+      },
+      {
+       "value": "card",
+       "label": "Link card"
+      }
+     ],
+     "defaultValue": "sent"
+    },
+    {
+     "key": "var_delivered",
+     "label": "Delivered",
+     "target": {
+      "kind": "var",
+      "id": "delivered"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "on",
+       "label": "On"
+      },
+      {
+       "value": "off",
+       "label": "Off"
+      }
+     ],
+     "defaultValue": "on"
+    },
+    {
+     "key": "var_tail",
+     "label": "Tail",
+     "target": {
+      "kind": "var",
+      "id": "tail"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "on",
+       "label": "On"
+      },
+      {
+       "value": "off",
+       "label": "Off"
+      }
+     ],
+     "defaultValue": "on"
+    }
+   ],
+   "motion": "static",
+   "files": [
+    {
+     "path": "chat-message.html",
+     "target": "compositions/components/chat-message.html",
+     "sha256": "fe9b9e0dd4c886843713116811688565c6fea3995cbb52f8c2e044106072715a"
+    }
+   ],
+   "duration": 3.0,
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "chat-message.html": "fe9b9e0dd4c886843713116811688565c6fea3995cbb52f8c2e044106072715a"
+    }
+   }
+  },
+  {
+   "id": "conic-progress-ring",
+   "type": "component",
+   "title": "Conic Progress Ring",
+   "description": "A token-driven conic progress ring whose angular fill and center count settle together from one registered percentage.",
+   "tags": [
+    "data",
+    "progress",
+    "ring",
+    "conic-gradient",
+    "prove",
+    "demonstrate"
+   ],
+   "category": "data",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "a01beeb774006a3317d123983b85586adb3bc81b94e435e3f65116ba9dabb93a",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "var_label",
+     "label": "Center label",
+     "target": {
+      "kind": "var",
+      "id": "label"
+     },
+     "type": "text",
+     "defaultValue": "100"
+    },
+    {
+     "key": "var_thickness",
+     "label": "Thickness",
+     "target": {
+      "kind": "var",
+      "id": "thickness"
+     },
+     "type": "number",
+     "defaultValue": 12,
+     "min": 4,
+     "max": 30,
+     "step": 1
+    }
+   ],
+   "motion": "static",
+   "files": [
+    {
+     "path": "conic-progress-ring.html",
+     "target": "compositions/components/conic-progress-ring.html",
+     "sha256": "a01beeb774006a3317d123983b85586adb3bc81b94e435e3f65116ba9dabb93a"
+    }
+   ],
+   "duration": 5.0,
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "conic-progress-ring.html": "a01beeb774006a3317d123983b85586adb3bc81b94e435e3f65116ba9dabb93a"
+    }
+   }
+  },
+  {
+   "id": "hw-arrow",
+   "type": "component",
+   "title": "Hand-Drawn Arrow",
+   "description": "Wobbled draw-on arrow with straight, gentle, and swoop curve poses, a four-way stroke texture matrix (plain/soft/sharp/spray), and a travel-aligned head-arrival stretch pulse with spring recovery; boils while on screen",
+   "tags": [
+    "handwritten",
+    "annotation",
+    "arrow",
+    "overlay"
+   ],
+   "category": "handwritten",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "73585adc010db9ec60568eabeb1afb544601e6deef19ac22e2db3a1a380f0dad",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: point at things",
+     "type": "text",
+     "defaultValue": "point at things",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "cfg_arrowStyle",
+     "label": "Arrow Style",
+     "defaultValue": "gentle",
+     "target": {
+      "kind": "cfg",
+      "path": "arrowStyle"
+     },
+     "type": "select",
+     "options": [
+      "straight",
+      "gentle",
+      "swoop"
+     ]
+    },
+    {
+     "key": "cfg_strokeType",
+     "label": "Stroke Type",
+     "defaultValue": "plain",
+     "target": {
+      "kind": "cfg",
+      "path": "strokeType"
+     },
+     "type": "select",
+     "options": [
+      "plain",
+      "soft",
+      "sharp",
+      "spray"
+     ]
+    },
+    {
+     "key": "cfg_boil",
+     "label": "Boil",
+     "defaultValue": "calm",
+     "target": {
+      "kind": "cfg",
+      "path": "boil"
+     },
+     "type": "select",
+     "options": [
+      "off",
+      "calm",
+      "lively"
+     ]
+    }
+   ],
+   "motion": "static",
+   "files": [
+    {
+     "path": "hw-arrow.html",
+     "target": "compositions/components/hw-arrow.html",
+     "sha256": "73585adc010db9ec60568eabeb1afb544601e6deef19ac22e2db3a1a380f0dad"
+    },
+    {
+     "path": "assets/fonts/Caveat-700-latin.woff2",
+     "target": "assets/fonts/Caveat-700-latin.woff2",
+     "sha256": "891951df5e8b5b0f0bc760d31375405e795c666b5add70437de12d4a6482b33f"
+    }
+   ],
+   "duration": 5.0,
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "hw-arrow.html": "73585adc010db9ec60568eabeb1afb544601e6deef19ac22e2db3a1a380f0dad",
+     "assets/fonts/Caveat-700-latin.woff2": "891951df5e8b5b0f0bc760d31375405e795c666b5add70437de12d4a6482b33f"
+    }
+   }
+  },
+  {
+   "id": "hw-box-label",
+   "type": "component",
+   "title": "Hand-Drawn Box Label",
+   "description": "Wobbled rounded rectangle draws on \u2014 across the authored stroke matrix (plain/soft/sharp/spray) \u2014 or drops in and lands with a volume-true contact squash and bouncy spring recovery, with a handwritten label above or centered; boils",
+   "tags": [
+    "handwritten",
+    "annotation",
+    "overlay"
+   ],
+   "category": "handwritten",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "3c4d4049a2ffe0d5553203763eb6b5d382e9d5cc320d61dc9106a4de0fe76b2c",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Europe",
+     "type": "text",
+     "defaultValue": "Europe",
+     "target": {
+      "hfId": "hf-10",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "cfg_entrance",
+     "label": "Entrance",
+     "defaultValue": "draw",
+     "target": {
+      "kind": "cfg",
+      "path": "entrance"
+     },
+     "type": "select",
+     "options": [
+      "draw",
+      "drop"
+     ]
+    },
+    {
+     "key": "cfg_strokeType",
+     "label": "Stroke Type",
+     "defaultValue": "plain",
+     "target": {
+      "kind": "cfg",
+      "path": "strokeType"
+     },
+     "type": "select",
+     "options": [
+      "plain",
+      "soft",
+      "sharp",
+      "spray"
+     ]
+    },
+    {
+     "key": "cfg_labelPos",
+     "label": "Label Pos",
+     "defaultValue": "above",
+     "target": {
+      "kind": "cfg",
+      "path": "labelPos"
+     },
+     "type": "select",
+     "options": [
+      "above",
+      "inside"
+     ]
+    },
+    {
+     "key": "cfg_boil",
+     "label": "Boil",
+     "defaultValue": "calm",
+     "target": {
+      "kind": "cfg",
+      "path": "boil"
+     },
+     "type": "select",
+     "options": [
+      "off",
+      "calm",
+      "lively"
+     ]
+    }
+   ],
+   "motion": "static",
+   "files": [
+    {
+     "path": "hw-box-label.html",
+     "target": "compositions/components/hw-box-label.html",
+     "sha256": "3c4d4049a2ffe0d5553203763eb6b5d382e9d5cc320d61dc9106a4de0fe76b2c"
+    },
+    {
+     "path": "assets/fonts/Caveat-700-latin.woff2",
+     "target": "assets/fonts/Caveat-700-latin.woff2",
+     "sha256": "891951df5e8b5b0f0bc760d31375405e795c666b5add70437de12d4a6482b33f"
+    }
+   ],
+   "duration": 5.0,
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "hw-box-label.html": "3c4d4049a2ffe0d5553203763eb6b5d382e9d5cc320d61dc9106a4de0fe76b2c",
+     "assets/fonts/Caveat-700-latin.woff2": "891951df5e8b5b0f0bc760d31375405e795c666b5add70437de12d4a6482b33f"
+    }
+   }
+  },
+  {
+   "id": "text-shimmer",
+   "type": "component",
+   "title": "Text Shimmer",
+   "description": "A static headline receives one clean specular gradient sweep through its glyphs, then returns to its ordinary text color.",
+   "tags": [
+    "motion-primitive",
+    "text-effects",
+    "shimmer",
+    "specular",
+    "emphasis"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "a96775b95265720efc23311566d17d574768cd60383743fa2dd71c9fd3241153",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "var_text",
+     "label": "Headline",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "Effortless"
+    }
+   ],
+   "motion": "static",
+   "files": [
+    {
+     "path": "text-shimmer.html",
+     "target": "compositions/components/text-shimmer.html",
+     "sha256": "a96775b95265720efc23311566d17d574768cd60383743fa2dd71c9fd3241153"
+    }
+   ],
+   "duration": 3.0,
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "text-shimmer.html": "a96775b95265720efc23311566d17d574768cd60383743fa2dd71c9fd3241153"
+    }
+   }
+  },
+  {
+   "id": "yt-circle-pointer",
+   "type": "component",
+   "title": "Pointer Circle + Countdown",
+   "description": "Draw-on annotation ellipse around a target plus a countdown chip that pulses each tick",
+   "tags": [
+    "annotation",
+    "countdown",
+    "overlay"
+   ],
+   "category": "annotation",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "9025c13c9d8f09bbd6ec957da1ab9a7484b7a4170cbec8ac22e6ffc8d31ea430",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: the thing",
+     "type": "text",
+     "defaultValue": "the thing",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: sec",
+     "type": "text",
+     "defaultValue": "sec",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "yt-circle-pointer.html",
+     "target": "compositions/components/yt-circle-pointer.html",
+     "sha256": "9025c13c9d8f09bbd6ec957da1ab9a7484b7a4170cbec8ac22e6ffc8d31ea430"
+    }
+   ],
+   "duration": 5.0,
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "yt-circle-pointer.html": "9025c13c9d8f09bbd6ec957da1ab9a7484b7a4170cbec8ac22e6ffc8d31ea430"
+    }
+   }
+  },
+  {
+   "id": "product-promo",
+   "type": "example",
+   "title": "Product Promo",
+   "description": "Multi-scene product showcase with SVG assets",
+   "tags": [],
+   "category": "other",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "sourceSha256": "e66d18050fa0863f31a1da06ad8564aed7f09b3c7b9cd59e08ed56f3fecb024e",
+   "readyToUse": false,
+   "editables": [
+    {
+     "key": "t1",
+     "label": "Text 1: Design without limits",
+     "type": "text",
+     "defaultValue": "Design without limits",
+     "target": {
+      "hfId": "hf-28",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t2",
+     "label": "Text 2: Get Started",
+     "type": "text",
+     "defaultValue": "Get Started",
+     "target": {
+      "hfId": "hf-32",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t5",
+     "label": "Text 5: Assets",
+     "type": "text",
+     "defaultValue": "Assets",
+     "target": {
+      "hfId": "hf-41",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t6",
+     "label": "Text 6: Button/Primary",
+     "type": "text",
+     "defaultValue": "Button/Primary",
+     "target": {
+      "hfId": "hf-45",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "files": [
+    {
+     "path": "assets/figma-cursors.svg",
+     "target": "assets/figma-cursors.svg",
+     "sha256": "fc502bfd3a3068bdbcf9eae4e6db8d24961ade74c784f2874b087042c24dab2a"
+    },
+    {
+     "path": "assets/figma-logo-pieces.svg",
+     "target": "assets/figma-logo-pieces.svg",
+     "sha256": "33d1ccf5e60c6c6860ad0d3817bd1fa21a02e165c96319ee96a56f35b39aafd7"
+    },
+    {
+     "path": "assets/figma-logo-pills.svg",
+     "target": "assets/figma-logo-pills.svg",
+     "sha256": "0260247a846428be258ffa69a70cb94cb03de3dd99de9cb30d5df54ae31638ba"
+    },
+    {
+     "path": "compositions/scene1-logo-intro.html",
+     "target": "compositions/scene1-logo-intro.html",
+     "sha256": "286cb47166409ff8e4568ce06a0c73b056bb843bfa46e0c70bdeff131d87a833"
+    },
+    {
+     "path": "compositions/scene2-4-canvas.html",
+     "target": "compositions/scene2-4-canvas.html",
+     "sha256": "4e9ddf830440b5fefffe0deb78e39923cfeb1d09dcc6d9faea84a1604f5b3ca5"
+    },
+    {
+     "path": "compositions/scene5-logo-outro.html",
+     "target": "compositions/scene5-logo-outro.html",
+     "sha256": "2abf2a0e8c52b9539ec1efe0b6cb35bb6c2fff0237b5b5e154a1c3a9f53421f1"
+    },
+    {
+     "path": "index.html",
+     "target": "index.html",
+     "sha256": "e66d18050fa0863f31a1da06ad8564aed7f09b3c7b9cd59e08ed56f3fecb024e"
+    }
+   ],
+   "duration": 20,
+   "project": {
+    "dir": "examples/product-promo",
+    "entry": "index.html",
+    "files": {
+     "assets/figma-cursors.svg": "fc502bfd3a3068bdbcf9eae4e6db8d24961ade74c784f2874b087042c24dab2a",
+     "assets/figma-logo-pieces.svg": "33d1ccf5e60c6c6860ad0d3817bd1fa21a02e165c96319ee96a56f35b39aafd7",
+     "assets/figma-logo-pills.svg": "0260247a846428be258ffa69a70cb94cb03de3dd99de9cb30d5df54ae31638ba",
+     "compositions/scene1-logo-intro.html": "286cb47166409ff8e4568ce06a0c73b056bb843bfa46e0c70bdeff131d87a833",
+     "compositions/scene2-4-canvas.html": "4e9ddf830440b5fefffe0deb78e39923cfeb1d09dcc6d9faea84a1604f5b3ca5",
+     "compositions/scene5-logo-outro.html": "2abf2a0e8c52b9539ec1efe0b6cb35bb6c2fff0237b5b5e154a1c3a9f53421f1",
+     "index.html": "e66d18050fa0863f31a1da06ad8564aed7f09b3c7b9cd59e08ed56f3fecb024e"
+    }
+   }
   }
  ]
 }

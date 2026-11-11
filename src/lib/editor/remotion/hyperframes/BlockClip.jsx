@@ -257,7 +257,7 @@ export function convertVideos(host) {
   }
 }
 export function collectVideos(host) {
-  return [...host.querySelectorAll('[data-hf-video][data-hf-src]')].map((el) => {
+  return [...host.querySelectorAll('[data-hf-video][data-hf-src]')].filter((el) => !/__[A-Z][A-Z0-9_]*__/.test(el.getAttribute('data-hf-src'))).map((el) => { // unfilled template slots (e.g. __VIDEO_SRC__) stay empty: there is no footage to paint
     const ghost = document.createElement('video');
     ghost.muted = true; ghost.playsInline = true; ghost.preload = 'auto'; ghost.crossOrigin = 'anonymous'; ghost.src = el.getAttribute('data-hf-src');
     const num = (a, d) => (el.hasAttribute(a) && !Number.isNaN(parseFloat(el.getAttribute(a))) ? parseFloat(el.getAttribute(a)) : d);
@@ -269,15 +269,16 @@ const seekGhost = (g, t) => new Promise((res) => {
   if (g.readyState < 1) { g.addEventListener('loadedmetadata', () => { g.currentTime = t; }, { once: true }); }
   else if (Math.abs(g.currentTime - t) < 1e-3) return res();
   else g.currentTime = t;
-  g.addEventListener('seeked', done); setTimeout(done, 4000);
+  g.addEventListener('seeked', done); setTimeout(done, g.readyState < 1 ? 2000 : 4000);
 });
 export async function paintVideos(videos, t) {
   for (const v of videos) {
+    if (v.broken) continue;
     const w = v.el.offsetWidth, h = v.el.offsetHeight; if (!w || !h) continue;
     const local = (t - v.start) * v.rate + v.mediaStart;
     const mt = Math.min(Math.max(local, 0), Number.isFinite(v.ghost.duration) ? Math.max(0, v.ghost.duration - 0.001) : local);
     await seekGhost(v.ghost, mt);
-    const vw = v.ghost.videoWidth, vh = v.ghost.videoHeight; if (!vw || !vh) continue;
+    const vw = v.ghost.videoWidth, vh = v.ghost.videoHeight; if (!vw || !vh) { v.broken = true; continue; } // never loaded: do not wait again on every frame
     v.canvas.width = w; v.canvas.height = h; const g = v.canvas.getContext('2d');
     const k = v.el.dataset.hfFit === 'contain' ? Math.min(w / vw, h / vh) : Math.max(w / vw, h / vh);
     g.clearRect(0, 0, w, h); g.drawImage(v.ghost, (w - vw * k) / 2, (h - vh * k) / 2, vw * k, vh * k);
@@ -330,7 +331,7 @@ const errors = [];
 /** Problems seen while mounting blocks (blocked URLs, failed scripts). Read and cleared by the renderer pages. */
 export const takeHyperframesErrors = () => errors.splice(0).slice(0, 20);
 /** Kinds that make the rendered output wrong or empty (fatal for export) vs. notes that leave a usable result. */
-export const FATAL_KINDS = new Set(['refused', 'fetch', 'script', 'mount', 'timeline', 'blocked-script', 'integrity']);
+export const FATAL_KINDS = new Set(['refused', 'fetch', 'script', 'mount', 'timeline', 'blocked-script', 'blocked-url', 'integrity']);
 const errorListeners = new Set();
 /** Subscribe to adapter problems as they happen: fn({ kind, name, message, fatal }). Returns the unsubscribe function. */
 export const onHyperframesError = (fn) => { errorListeners.add(fn); return () => errorListeners.delete(fn); };
@@ -363,7 +364,7 @@ export function createScope(host) {
     getElementsByClassName: (c) => host.getElementsByClassName(c), getElementsByTagName: (t) => host.getElementsByTagName(t),
     addEventListener: (t, cb, o) => { if (t === 'DOMContentLoaded' || t === 'readystatechange') return fire(cb); document.addEventListener(t, cb, o); cleanups.push(() => document.removeEventListener(t, cb, o)); },
     removeEventListener: (t, cb, o) => document.removeEventListener(t, cb, o),
-    body: host, documentElement: host, head: host, readyState: 'complete', currentScript: null,
+    body: host, documentElement: host, head: host, readyState: 'complete', get currentScript() { return store.__currentScript || null; },
   };
   const docProxy = new Proxy(document, {
     get: (t, p) => (p in docOverrides ? docOverrides[p] : (() => { const v = Reflect.get(t, p, t); return typeof v === 'function' ? v.bind(t) : v; })()),
@@ -391,7 +392,7 @@ export function createScope(host) {
   return { run, store, dispose: () => { cleanups.splice(0).forEach((f) => f()); } };
 }
 
-async function runScripts(doc, name, scope, cfg = {}, base = HF_BASE) {
+async function runScripts(doc, name, scope, cfg = {}, base = HF_BASE, owner = name) { // `owner` = the catalog item the problem is attributed to (errors from nested files still belong to it)
   let cfgUsed = false;
   const map = await cdnMap();
   for (const s of doc.querySelectorAll('script')) {
@@ -402,14 +403,14 @@ async function runScripts(doc, name, scope, cfg = {}, base = HF_BASE) {
       if (/gsap@[^/]+\/dist\/gsap(\.min)?\.js/.test(src) || /(^|\/)gsap(-[\d.]+)?(\.min)?\.js$/.test(src)) continue; // core gsap is bundled (CDN or a block-local copy)
       label = src;
       // Remote script URLs are never fetched: only the vendored copies (setup-blocks.mjs) or the block's own folder.
-      const local = /^https?:/.test(src) ? map[src] : src;
-      if (!local || local.includes('..') || /^[a-z][a-z0-9+.-]*:/i.test(local)) { report('blocked-script', src, 'not vendored'); continue; }
-      try { code = await (await fetch(`${base}/${local}`)).text(); } catch (e) { report('fetch', src, e); continue; }
+      const local = /^(https?:)?\/\//.test(src) ? map[src.startsWith('//') ? `https:${src}` : src] : src;
+      if (!local || local.includes('..') || /^[a-z][a-z0-9+.-]*:/i.test(local)) { report('blocked-script', owner, `${src}: not vendored`); continue; }
+      try { code = await (await fetch(`${base}/${local}`)).text(); } catch (e) { report('fetch', owner, `${src}: ${e?.message || e}`); continue; }
     } else { code = s.textContent; label = `${name}#inline`; }
     if (Object.keys(cfg).length && !cfgUsed) { const patched = patchConfig(code, cfg); if (patched !== null) { code = patched; cfgUsed = true; } }
-    try { scope.run(code, label); } catch (e) { report('script', label, e); }
+    try { scope.run(code, label); } catch (e) { report('script', owner, `${label}: ${e?.message || e}`); }
   }
-  if (Object.keys(cfg).length && !cfgUsed) report('override-rejected', name, 'block has no CONFIG object; cfg overrides ignored');
+  if (Object.keys(cfg).length && !cfgUsed) report('override-rejected', owner, 'block has no CONFIG object; cfg overrides ignored');
 }
 
 const applyClipVisibility = (host, t) => {
@@ -429,7 +430,7 @@ const applyVisibility = (host, t, wins) => {
   for (const w of wins) {
     if (w.error || w.el === host) continue;
     const end = Number.isFinite(w.duration) ? w.absStart + w.duration : Infinity;
-    w.el.classList.toggle('hf-hidden', !(t >= w.absStart - 1e-6 && t < end));
+    w.el.classList.toggle('hf-off', !(t >= w.absStart - 1e-6 && t < end)); // display:none: a child's own visibility:visible must not defeat the clip window
   }
 };
 
@@ -458,6 +459,15 @@ export function unwrapTemplate(doc, width, height) {
   return true;
 }
 
+/** HyperFrames sizes every composition element from data-width / data-height; without that, percent-based children (width:100%; height:100%) collapse to 0. */
+export function sizeCompositions(root, width, height) {
+  for (const c of root.querySelectorAll('[data-composition-id]')) {
+    const w = parseFloat(c.getAttribute('data-width')) || width, h = parseFloat(c.getAttribute('data-height')) || height;
+    if (!c.style.width && w) c.style.width = `${w}px`;
+    if (!c.style.height && h) c.style.height = `${h}px`;
+  }
+}
+
 export function BlockClip({ name, width, height, overrides, expectedSha256, project }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -474,14 +484,15 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
     (async () => {
       try {
         if (!BLOCK_ID.test(String(name))) { report('refused', String(name).slice(0, 40), 'invalid block id'); return; }
-        const base = project ? `${HF_BASE}/${project.dir}` : HF_BASE;
-        const pinned = async (url, sha, label) => { // fetch one file and verify it against its pinned sha256 (fail closed)
+        const base = project ? `/hyperframes/${project.dir}` : HF_BASE; // starter projects and components are vendored next to the blocks folder
+        const pinned = async (url, sha, label, rel) => { // fetch one file and verify it against its pinned sha256 (fail closed); problems are attributed to the catalog item, the file named in the message
+          const at = rel ? `${rel}: ` : '';
           const res = await fetch(url);
-          if (!res.ok) { report('fetch', label, `HTTP ${res.status}`); return null; }
+          if (!res.ok) { report('fetch', label, `${at}HTTP ${res.status}`); return null; }
           const bytes = await res.arrayBuffer();
           if (sha) {
-            if (!globalThis.crypto?.subtle) { report('refused', label, 'integrity check unavailable (no crypto.subtle)'); return null; }
-            if ((await sha256Hex(bytes)) !== sha) { report('refused', label, 'source does not match the pinned sha256'); return null; }
+            if (!globalThis.crypto?.subtle) { report('refused', label, `${at}integrity check unavailable (no crypto.subtle)`); return null; }
+            if ((await sha256Hex(bytes)) !== sha) { report('refused', label, `${at}source does not match the pinned sha256`); return null; }
           }
           return new TextDecoder().decode(bytes);
         };
@@ -491,7 +502,7 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         if (html === null) return;
         const doc = new DOMParser().parseFromString(html, 'text/html');
         unwrapTemplate(doc, width, height);
-        stampHfIds(doc.body);
+        if (!project) stampHfIds(doc.body); // projects: ids are stamped on the composed tree after nested compositions are mounted
         const cleanedOv = validateOverrides(overrides || {}, { allowHosts }).cleaned;
         let css = [...doc.querySelectorAll('style')].map((s) => rebaseCssUrls(scopeCss(s.textContent), base)).join('\n');
         el.innerHTML = '';
@@ -500,7 +511,8 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         for (const n of doc.body.childNodes) if (n.nodeName !== 'SCRIPT') el.appendChild(document.importNode(n, true));
         el.querySelectorAll('script').forEach((x) => x.remove()); // scripts run from the parsed source below, never from the mounted DOM
         stripUnsafeAttributes(el);
-        if (overrides) applyOverrides(el, overrides, { allowHosts, onReject: (r) => report('override-rejected', name, r.map((x) => `${x.key}: ${x.reason}`).join('; ')) });
+        const applyEl = () => { if (overrides) applyOverrides(el, overrides, { allowHosts, onReject: (r) => report('override-rejected', name, r.map((x) => `${x.key}: ${x.reason}`).join('; ')) }); };
+        if (!project) applyEl();
         rebaseElementUrls(el, base);
         const root = el.querySelector('[data-composition-id]');
         const id = root?.getAttribute('data-composition-id');
@@ -508,7 +520,8 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         const varValues = resolveVariables(parseVariableDecls(root), cleanedOv, { allowHosts, onReject: (r) => report('override-rejected', name, `${r.key}: ${r.reason}`) });
         bindVariables(el, varValues);
         // ---- nested compositions (data-composition-src): fetched from the pinned file map only, mounted into their host clip ----
-        const jobs = [{ code: doc, name, vars: varValues, cfg: Object.fromEntries(Object.entries(cleanedOv).filter(([k]) => k.startsWith('cfg.'))) }];
+        const cfgOv = Object.fromEntries(Object.entries(cleanedOv).filter(([k]) => k.startsWith('cfg.')));
+        const jobs = [{ code: doc, name, vars: varValues, cfg: project?.hostHtml ? {} : cfgOv }]; // generated hosts have no CONFIG: their component carries it
         const childIds = [];
         let loaded = 0;
         const loadNested = async (container, depth) => {
@@ -520,7 +533,7 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
             if (!project || !rel) { report('refused', name, `nested composition path not allowed: ${String(hostEl.getAttribute('data-composition-src')).slice(0, 80)}`); continue; }
             const sha = project.files?.[rel];
             if (!sha) { report('refused', name, `nested file "${rel}" is not in the pinned file list`); continue; }
-            const text = await pinned(`${base}/${rel}`, sha, rel); if (text === null) continue;
+            const text = await pinned(`${base}/${rel}`, sha, name, rel); if (text === null) continue;
             const cdoc = new DOMParser().parseFromString(text, 'text/html');
             const tpl = [...cdoc.head.children, ...cdoc.body.children].find((c) => c.tagName === 'TEMPLATE');
             const frag = document.createDocumentFragment();
@@ -529,8 +542,8 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
             const declHost = frag.querySelector('[data-composition-variables]') || cdoc.documentElement;
             const inst = { ...instanceOverrides(hostEl), ...Object.fromEntries(Object.entries(cleanedOv).filter(([k]) => k.startsWith(`ivar.${hostEl.id || cid}.`)).map(([k, v]) => [`var.${k.split('.').slice(2).join('.')}`, v])) };
             const vals = resolveVariables(parseVariableDecls(declHost), inst, { allowHosts, onReject: (r) => report('override-rejected', name, `${rel}: ${r.key}: ${r.reason}`) });
-            const childCss = [...frag.querySelectorAll('style')].map((st) => { const t = rebaseCssUrls(scopeCss(st.textContent), base); st.remove(); return t; }).join('\n');
-            css += '\n' + childCss;
+            const childCss = [...frag.querySelectorAll('style')].map((st) => { const t = rebaseCssUrls(scopeCss(st.textContent), base); st.textContent = rebaseCssUrls(st.textContent, base); return t; }).join('\n'); // like the block path: the original <style> stays in the mounted DOM next to its scoped copy
+            css += '\n' + childCss + '\n' + [...cdoc.head.querySelectorAll('style')].map((st) => rebaseCssUrls(scopeCss(st.textContent), base)).join('\n'); // standalone files keep their styles in <head>
             for (const l of frag.querySelectorAll('link[rel=stylesheet]')) { el.appendChild(l.cloneNode()); l.remove(); }
             frag.querySelectorAll('img,source').forEach((x) => x.setAttribute('crossorigin', 'anonymous'));
             const scripts = document.createDocumentFragment(); for (const sc of [...frag.querySelectorAll('script')]) { scripts.appendChild(sc); }
@@ -538,14 +551,15 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
             stripUnsafeAttributes(hostEl); rebaseElementUrls(hostEl, base); bindVariables(hostEl, vals);
             if (cid && !hostEl.hasAttribute('data-composition-id')) hostEl.setAttribute('data-composition-id', cid);
             if (cid) childIds.push(cid);
-            jobs.push({ code: scripts, name: rel, vars: vals, cfg: {} });
+            jobs.push({ code: scripts, name: rel, vars: vals, cfg: project?.hostHtml ? cfgOv : {}, host: hostEl });
             await loadNested(hostEl, depth + 1);
           }
         };
         await loadNested(el, 0);
+        if (project) { sizeCompositions(el, width, height); stampHfIds(el); applyEl(); } // nested projects only: plain blocks keep their verified layout and ids
         css = await inlineBlockFonts(css);
         state.current.bars = extractInsetBars(css);
-        const styleEl = document.createElement('style'); styleEl.textContent = `.hf-hidden{visibility:hidden!important}${css}`; el.prepend(styleEl);
+        const styleEl = document.createElement('style'); styleEl.textContent = `.hf-hidden{visibility:hidden!important}.hf-off{display:none!important}${css}`; el.prepend(styleEl);
         convertVideos(el);
         // Script-built nodes (innerHTML from block scripts) get the same relative-URL rebasing.
         const rebaseNode = (n) => { if (n.nodeType !== 1) return; for (const im of (n.tagName === 'IMG' ? [n] : n.querySelectorAll?.('img') || [])) if (!im.crossOrigin) im.crossOrigin = 'anonymous'; for (const a of ['src', 'poster', 'href']) { const v = n.getAttribute(a); if (v && !/^<|\s/.test(v)) { const r = rebaseUrl(v, base); if (r !== v) n.setAttribute(a, r); } } rebaseElementUrls(n, base); };
@@ -554,24 +568,29 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         const fams = fontFamiliesIn(css + ' ' + [...el.querySelectorAll('[style]')].map((n) => n.getAttribute('style')).join(';'));
         state.current.fonts = await loadGoogleFonts(fams, el);
         if (scriptsAllowed()) {
-          for (const j of jobs) { scope.store.__hyperframes = { getVariables: () => ({ ...j.vars }) }; await runScripts(j.code, j.name, scope, j.cfg, base); }
+          for (const j of jobs) {
+            scope.store.__hyperframes = { getVariables: () => ({ ...j.vars }) };
+            const cs = document.createElement('script'); (j.host || el).appendChild(cs); scope.store.__currentScript = cs; // inert stand-in so document.currentScript.closest(...) works
+            await runScripts(j.code, j.name, scope, j.cfg, base, name);
+          }
         } else report('refused', name, 'scripts not run: not in an opaque-origin sandbox');
         // ---- timelines: the root composition plus every nested composition, each seeked to its own local time ----
-        const want = [id, ...childIds].filter(Boolean);
+        const want = [...new Set([id, ...childIds, ...[...el.querySelectorAll('[data-composition-id]')].map((x) => x.getAttribute('data-composition-id'))])].filter(Boolean); // inline compositions (no src) register timelines too
         const tls = {};
         for (let i = 0; i < 120 && !cancelled; i++) {
           for (const w of want) if (!tls[w] && scope.store.__timelines?.[w]) tls[w] = scope.store.__timelines[w];
-          if (want.every((w) => tls[w]) || (!project && tls[id])) break;
+          if (want.every((w) => tls[w]) || (!project && want.length <= 1 && tls[id])) break;
           await new Promise((r) => setTimeout(r, 50));
         }
         const tl = (id && tls[id]) || null;
-        if (!tl && !(project && Object.keys(tls).length)) report('timeline', name, 'no __timelines entry' + (root?.hasAttribute('data-no-timeline') ? ' (data-no-timeline block)' : ''));
-        for (const w of childIds) if (!tls[w]) report('timeline', name, `nested composition "${w}" registered no timeline`);
-        const wins = project || childIds.length ? computeWindows(root || el) : null;
+        if (!tl && !project) report('timeline', name, 'no __timelines entry' + (root?.hasAttribute('data-no-timeline') ? ' (data-no-timeline block)' : ''));
+        // a nested composition that registers no timeline is a static (CSS/markup only) composition: valid, nothing to seek
+        const wins = project || childIds.length || want.length > 1 ? computeWindows(root || el) : null;
         if (wins) for (const w of wins) if (w.error) report('timeline', name, w.error);
         const seekers = [];
         for (const [cid, t2] of Object.entries(tls)) {
-          t2.pause(); const st = await settleTimeline(t2); if (!st.settled) report('timeline', name, `timeline "${cid}" did not settle (duration ${st.duration})`);
+          t2.pause(); const st = await settleTimeline(t2); const emptyMaster = (cid === id || !!(wins && wins.find((w) => !w.error && (w.id === cid || w.el.getAttribute('data-composition-id') === cid)))) && (project || childIds.length || want.length > 1) && st.duration === 0; // an empty host master timeline is legitimate: the nested compositions carry the animation
+          if (!st.settled && !emptyMaster) report('timeline', name, `timeline "${cid}" did not settle (duration ${st.duration})`);
           const win = cid === id ? null : (wins || []).find((w) => !w.error && (w.id === cid || w.el.getAttribute('data-composition-id') === cid));
           seekers.push({ tl: t2, win });
         }

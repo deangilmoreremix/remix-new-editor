@@ -12,6 +12,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useVideoConfig, useDelayRender } from 'remotion';
 import enabled from '../../../hyperframes/catalog.enabled.json';
 import { reportCodeError } from '../codeLayer.jsx';
+import { componentHostHtml, routeVarsToInstance } from './host.js';
 
 const byId = new Map(enabled.items.map((i) => [i.id, i]));
 export const isEnabledBlock = (id) => byId.has(id);
@@ -50,9 +51,13 @@ export function HyperframesLayer({ layer }) {
   const bw = item.dimensions?.width || layer.blockWidth || 1920, bh = item.dimensions?.height || layer.blockHeight || 1080;
   const k = Math.min(width / bw, height / bh);
   const BlockClip = mod.BlockClip;
+  // components are mounted through a generated host; starter projects through their own pinned index.html
+  const isHost = item.project?.host === true;
+  const project = isHost ? { dir: item.project.dir, files: item.project.files, hostHtml: componentHostHtml({ id: item.id, duration: item.duration, width: bw, height: bh }) } : item.project;
+  const overrides = isHost ? routeVarsToInstance(layer.overrides) : layer.overrides;
   return (
     <div style={{ position: 'absolute', left: (width - bw * k) / 2, top: (height - bh * k) / 2, width: bw, height: bh, transform: `scale(${k})`, transformOrigin: 'top left' }}>
-      <BlockClip name={item.id} width={bw} height={bh} overrides={layer.overrides} expectedSha256={item.sourceSha256} />
+      <BlockClip name={item.id} width={bw} height={bh} overrides={overrides} expectedSha256={item.sourceSha256} project={project} />
     </div>
   );
 }

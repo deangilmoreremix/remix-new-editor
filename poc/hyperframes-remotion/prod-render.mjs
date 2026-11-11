@@ -18,6 +18,7 @@ async function worker() {
     const guard = setTimeout(() => { r.fatal = 'timeout'; ctx.close().catch(() => {}); }, +(process.env.ITEM_MS || 100000));
     try {
       await p.route(`${BASE}/__hf_host`, (rt) => rt.fulfill({ contentType: 'text/html', body: `<body style="margin:0;background:#000"><script>window.__pwn=[];addEventListener('message',e=>{if(e.data&&e.data.pwn)window.__pwn.push(e.data.pwn)});window.__ready=new Promise(r=>addEventListener('message',e=>{if(e.data&&e.data.type==='preview-ready')r()}))</script><iframe id="f" sandbox="allow-scripts" src="${BASE}/code-preview.html" style="position:fixed;inset:0;width:100%;height:100%;border:0;background:transparent;color-scheme:light"></iframe></body>` }));
+      if (process.env.TAMPER) await p.route(new RegExp(process.env.TAMPER), async (rt) => { const res = await rt.fetch(); await rt.fulfill({ response: res, body: Buffer.concat([await res.body(), Buffer.from('\n<!-- tampered -->')]) }); });
       await p.goto(`${BASE}/__hf_host`);
       await p.evaluate(() => new Promise((res, rej) => { window.__ready.then(res); setTimeout(() => rej(new Error('preview never became ready')), 40000); }));
       const dur = Math.max(1, Math.ceil(s.durationSec * FPS));
@@ -30,6 +31,10 @@ async function worker() {
         await p.evaluate((f) => document.getElementById('f').contentWindow.postMessage({ type: 'frame', frame: f }, '*'), Math.round(t * FPS));
         await p.waitForTimeout(+(process.env.SEEK_MS || 1200));
         await p.screenshot({ path: `${OUT}/${s.id}/t${t}.png` }); r.frames.push(t);
+      }
+      if (process.env.DISCOVER) { // list text leaves of the composed DOM (ids stamped by the adapter) for the editable-field analysis
+        const fr = p.frames().find((f) => /code-preview/.test(f.url()));
+        r.leaves = await fr.evaluate(() => [...document.querySelectorAll('[data-hf-id]')].filter((e) => !e.children.length && !['SCRIPT', 'STYLE'].includes(e.tagName)).map((e) => ({ hfId: e.getAttribute('data-hf-id'), text: e.textContent.trim() })).filter((x) => x.text.length >= 2 && x.text.length <= 60).slice(0, 40));
       }
       r.codeErrors = await p.evaluate(() => window.__errs); r.pwn = await p.evaluate(() => window.__pwn);
     } catch (e) { r.fatal = String(e).slice(0, 200); }

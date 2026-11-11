@@ -90,6 +90,11 @@ export function validateOverrides(set, opts = {}) {
       if (typeof value === 'boolean') { cleaned[key] = value; continue; }
       no('config value type not allowed'); continue;
     }
+    if (/^ivar\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(key)) { // nested-composition instance variable: ivar.<instanceId>.<variableId>; type/range checks happen in resolveVariables
+      if (typeof value === 'string') { value.length <= 2100000 ? (cleaned[key] = value) : no('variable text too long'); continue; }
+      if (typeof value === 'number' || typeof value === 'boolean') { cleaned[key] = value; continue; }
+      no('variable value type not allowed'); continue;
+    }
     if ((m = /^var\.(?<id>[A-Za-z0-9_-]+)$/.exec(key))) {
       if (typeof value === 'string') { value.length <= 2100000 ? (cleaned[key] = value) : no('variable text too long'); continue; } // per-type checks (length, range, enum, asset allow-list) happen in resolveVariables against the declaration
       if (typeof value === 'number' || typeof value === 'boolean') { cleaned[key] = value; continue; }

@@ -1,0 +1,23 @@
+{
+ "pristine": {
+  "numPassedTests": 6845,
+  "numFailedTests": 193,
+  "numTotalTests": 7589
+ },
+ "integration": {
+  "numPassedTests": 6885,
+  "numFailedTests": 193,
+  "numTotalTests": 7629
+ },
+ "newFailures": [],
+ "preExistingFailingFiles": [
+  "src/test/protected-upload-baseline.test.ts",
+  "tests/acceptance/all-template-production.spec.ts",
+  "tests/integration/muapi-upload-auth.integration.test.mjs",
+  "tests/integration/muapi-upload.integration.test.mjs",
+  "tests/unit/template-contract.unit.spec.ts",
+  "tests/unit/timeline-muapi-generation-service.unit.spec.ts",
+  "tests/visual/cinema-harness.spec.ts",
+  "tests/visual/evidence.spec.ts"
+ ]
+}

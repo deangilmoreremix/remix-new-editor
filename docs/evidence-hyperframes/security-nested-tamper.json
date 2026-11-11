@@ -1,0 +1,15 @@
+[
+ {
+  "id": "product-promo",
+  "frames": [
+   3
+  ],
+  "logs": [
+   "[hyperframes] refused product-promo: compositions/scene2-4-canvas.html: source does not match the pinned sha256"
+  ],
+  "codeErrors": [
+   "[hyperframes:error] \"product-promo\" could not be rendered correctly (refused: compositions/scene2-4-canvas.html: source does not match the pinned sha256)."
+  ],
+  "pwn": []
+ }
+]

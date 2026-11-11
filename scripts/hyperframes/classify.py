@@ -25,6 +25,7 @@ SSIM_VERIFIED, SSIM_ADAPTER = 0.95, 0.85
 ap = argparse.ArgumentParser()
 for k in ('manifest', 'stills', 'compare', 'exports', 'editables', 'out-classification', 'out-enabled'): ap.add_argument('--' + k, required=True)
 ap.add_argument('--prod-results', default=None, help='per-block {logs, fatal} from the production renders; any adapter error blocks enablement')
+ap.add_argument('--native-nonblank', default=None, help='native-nonblank.py output: a verified item whose native frames are blank at every sample is downgraded (blank-vs-blank SSIM is vacuous)')
 ap.add_argument('--effect', default=None, help='measure-effect.py output: editables without a measured visible effect are dropped')
 ap.add_argument('--prod-compare', default=None, help='SSIM of the PRODUCTION adapter path (sandboxed preview frame) vs native; when given, a block must also reach SSIM_VERIFIED there')
 a = ap.parse_args()
@@ -34,6 +35,7 @@ edit = json.load(open(a.editables)) if os.path.exists(a.editables) else {}
 prod = json.load(open(a.prod_compare)) if a.prod_compare else None
 effect = json.load(open(a.effect)) if a.effect else None
 prodres = json.load(open(a.prod_results)) if a.prod_results else {}
+nb = json.load(open(a.native_nonblank)) if a.native_nonblank else {}
 cdn_map = json.load(open(os.path.join(os.path.dirname(a.stills), '..', 'public', 'blocks', '_cdn', 'map.json'))) if os.path.exists(os.path.join(os.path.dirname(a.stills), '..', 'public', 'blocks', '_cdn', 'map.json')) else None
 
 def policy_block(it):
@@ -75,6 +77,8 @@ for it in man['items']:
             if m >= SSIM_VERIFIED: rec.update(status='verified-export', reason=f'SSIM >= {SSIM_VERIFIED} at all samples; MP4 export OK')
             elif m >= SSIM_ADAPTER: rec.update(status='adapter-compatible', reason=f'worst-sample SSIM {m:.3f}; exports, with visible differences')
             else: rec.update(status='specialized', reason=f'worst-sample SSIM {m:.3f}: content differs from native')
+        if rec['status'] == 'verified-export' and n in nb and nb[n] < 0.003:
+            rec.update(status='not-tested', reason=f'native reference is blank at every sample (max non-black {nb[n]:.4f}), so SSIM verifies nothing; needs sample times that catch the visible moment')
         if prod is not None and rec['status'] == 'verified-export' and n in prod:
             pv = [x for x in (prod.get(n) or {}).values() if x is not None]
             ev['prodSsimMin'] = round(min(pv), 3) if pv else None
