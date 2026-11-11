@@ -158,6 +158,11 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(btnText(root, 'Burn captions').disabled).toBe(true); // no narration yet
     await click(root, 'Generate narration');
     await until(() => root.querySelector('audio'), 'narration');
+    // narration made after the render is not in the cut: burning would transcribe the clips' own sound, so re-render first
+    expect(btnText(root, 'Burn captions').disabled).toBe(true);
+    expect(root.textContent).toContain('This cut does not contain the narration');
+    await step(root, 'Render again'); generate(root).click();
+    await until(() => runAssembly.mock.calls.length === 2 && runAssembly.mock.calls[1][0].mixVoice === true, 're-render with narration');
     await until(() => !btnText(root, 'Burn captions').disabled, 'burn enabled');
     const lang = root.querySelector('select[aria-label="Caption language"]'); lang.value = 'Spanish (Mexico)'; lang.dispatchEvent(new Event('change'));
     const th = root.querySelector('select[aria-label="Caption theme"]'); th.value = 'Beast'; th.dispatchEvent(new Event('change'));

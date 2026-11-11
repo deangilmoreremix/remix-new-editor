@@ -432,9 +432,10 @@ export function ZackDStudio() {
     CAPTION_THEMES.forEach((t) => { const o = el('option', '', t.label); o.value = t.value; o.selected = t.value === s.captionTheme; theme.appendChild(o); });
     theme.onchange = () => { s.captionTheme = theme.value; save(); };
     const burn = el('button', CANVAS_BTN, final.captioned ? 'Burn again' : 'Burn captions'); burn.type = 'button';
-    burn.disabled = busy || !s.narration; burn.onclick = burnCaptions;
+    burn.disabled = busy || !s.narration || !final.hasNarration; burn.onclick = burnCaptions;
     row.append(lang, theme, burn); cap.appendChild(row);
     if (!s.narration) cap.appendChild(el('div', 'text-xs text-white/40', 'Generate narration first: captions are transcribed from the spoken audio.'));
+    else if (!final.hasNarration) cap.appendChild(el('div', 'text-xs text-white/40', 'This cut does not contain the narration. Turn on "Mix in the narration and music" in Advanced and render again, then burn captions.'));
     if (final.captioned) {
       const cv = el('video', 'max-h-[60vh] rounded-2xl bg-black border border-white/10'); cv.src = final.captioned.url; cv.controls = true; cv.loop = true; cv.playsInline = true; cv.style.aspectRatio = '9 / 16';
       cap.appendChild(cv);
@@ -625,7 +626,7 @@ export function ZackDStudio() {
         onProgress: (phase, p) => { if (phase === 'encode') { progress?.setProgress(p * 100); setLabel(`Encoding ${Math.round(p * 100)}%`); } else setLabel(phase === 'download' ? 'Downloading clips…' : 'Loading encoder…'); },
       });
       if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
-      final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false };
+      final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false, hasNarration: !!(s.mixVoice && s.narration) }; // captions are transcribed from the cut's audio
       showToast('Final cut ready', 'success', 2500);
     } catch (e) { fail(e); }
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
@@ -648,6 +649,7 @@ export function ZackDStudio() {
   async function burnCaptions() {
     if (!final?.blob || busy) return;
     if (!s.narration) { fail(new Error('Captions are generated from the spoken audio. Add narration first.')); return; }
+    if (!final.hasNarration) { fail(new Error('This cut does not include the narration. Mix it in (Advanced) and render again before burning captions.')); return; }
     if (!window.confirm('Burn captions into the video with MuAPI AI Captions? About $0.20 minimum ($0.005 per second), and it takes a few minutes.')) return;
     busy = true; hideInlineError(container);
     progress = createProgressBar(0, 'w-full max-w-2xl');
