@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { getErrorMessage, logError } from './errors'
+import { removeLegacyBuilderSession } from './legacy-session'
 
 /**
  * State of the SmartVideo single sign-on handshake.
@@ -68,6 +69,13 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const loading = ssoStatus === 'connecting'
 
   useEffect(() => {
+    // A builder session saved before the builder got its own storage key would
+    // otherwise keep sitting where SmartVideo's own client reads it.
+    try {
+      removeLegacyBuilderSession(window.localStorage, import.meta.env.VITE_SUPABASE_URL as string)
+    } catch {
+      // storage can be unavailable (private mode, blocked site data): nothing to clean
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next)
       setUser(next?.user ?? null)
