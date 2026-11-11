@@ -53,6 +53,12 @@ vi.mock('../../src/lib/editor/captionActions.js', () => ({
 }));
 
 vi.mock('../../src/lib/thumbnails.js', () => ({
+  createEditorBanner: vi.fn(() => document.createElement('div')),
+  demoteBannerHeading: vi.fn((el) => {
+    const h = el.querySelector('h1');
+    if (h) { const d = document.createElement('div'); d.textContent = h.textContent; h.replaceWith(d); }
+    return el;
+  }),
   createStudioHeader: vi.fn((_id, title = '', subtitle = '') => {
     const el = document.createElement('div');
     el.innerHTML = `<h1></h1><p></p>`;
@@ -163,6 +169,7 @@ vi.mock('../../src/lib/modelSelectorUI.js', () => ({
 
 vi.mock('../../src/lib/templateEngine.js', () => ({
   getNicheTerms: vi.fn(() => []),
+  detectNiche: vi.fn(() => 'general-business'),
   enrichPromptString: vi.fn((p) => p),
   deriveEngineInputFromTemplate: vi.fn(() => ({})),
   composeNegativePrompt: vi.fn(() => ''),
@@ -220,7 +227,9 @@ vi.mock('../../src/lib/supabase.js', () => ({
 
 vi.mock('../../src/components/UploadPicker.js', () => ({
   createUploadPicker: vi.fn(() => ({
+    trigger: document.createElement('button'),
     panel: document.createElement('div'),
+    reset: vi.fn(),
     open: vi.fn(),
     close: vi.fn(),
   })),
@@ -712,7 +721,8 @@ describe('E2E User Journey Tests', () => {
       container.appendChild(element);
       await wait(50);
 
-      const videoUploadBtn = container.querySelector('#videoUploadBtn');
+      // Video templates expose the Video Studio source-video picker.
+      const videoUploadBtn = container.querySelector('.template-media-field[data-media-kind="video"]');
       expect(videoUploadBtn).not.toBeNull();
     });
 
@@ -774,6 +784,7 @@ describe('E2E User Journey Tests', () => {
     });
 
     it('closes model picker on second click', async () => {
+      document.querySelectorAll('.upstream-model-picker').forEach(h => h.remove());
       const element = TemplateStudio('restaurant-brand-film');
       container.innerHTML = '';
       container.appendChild(element);
@@ -783,14 +794,15 @@ describe('E2E User Journey Tests', () => {
       modelBtn.click();
       await wait(150);
 
-      let dropdown = container.querySelector('[role="listbox"]');
-      expect(dropdown.classList.contains('opacity-100')).toBe(true);
+      // The Video Studio model picker mounts in a fixed host on <body>.
+      for (let i = 0; i < 20 && !document.querySelector('.upstream-model-picker'); i++) await wait(50);
+    for (let i = 0; i < 20 && !document.querySelector('.upstream-model-picker'); i++) await new Promise(r => setTimeout(r, 50));
+      expect(document.querySelector('.upstream-model-picker')).not.toBeNull();
 
       modelBtn.click();
       await wait(150);
 
-      dropdown = container.querySelector('[role="listbox"]');
-      expect(dropdown.classList.contains('opacity-0')).toBe(true);
+      expect(document.querySelector('.upstream-model-picker')).toBeNull();
     });
 
     it('model picker shows loading state initially', async () => {

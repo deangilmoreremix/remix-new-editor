@@ -1,6 +1,10 @@
 # Netlify build configuration
+#
+# Netlify is the only CI/CD for this project (GitHub Actions workflows were
+# removed). Every deploy — production, branch deploys and deploy previews —
+# runs ESLint first, so a lint error fails the deploy instead of shipping.
 [build]
-  command = "npm install --include=optional && npm run build"
+  command = "npm install --include=optional && npm run lint && npm run build"
   publish = "dist"
 
 [build.environment]
@@ -10,7 +14,7 @@
   # them legitimately appears in a log line or build output. Every name below is
   # read ONLY by code under netlify/functions/ (server-side) — none is inlined
   # into the client bundle, and none carries a VITE_ prefix.
-  SECRETS_SCAN_OMIT_KEYS = "CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET,OPENAI_API_KEY,MUAPI_API_KEY,PIXABAY_API_KEY,FAL_KEY,GEMINI_API_KEY,GITHUB_TOKEN"
+  SECRETS_SCAN_OMIT_KEYS = "INTERNAL_FUNCTION_SECRET,FIRECRAWL_API_KEY,CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET,OPENAI_API_KEY,MUAPI_API_KEY,PIXABAY_API_KEY,FAL_KEY,GEMINI_API_KEY,GITHUB_TOKEN"
 
 # MEDIA UPLOADS DO NOT TRANSIT NETLIFY FUNCTIONS.
 # Netlify synchronous functions cap the request payload at 6 MB (≈4.5 MB for
@@ -23,6 +27,32 @@
 #   • saved assets → refetch the durable Supabase original in-browser, then
 #                    re-upload through the same shared adapter
 # Do NOT add a Netlify function that relays media bytes.
+
+# Personalization + Lead Finder (ported from OpenHiggsBolt).
+# personalization-api.mts declares its own paths (/api/personalization/*,
+# /api/demo/discover, /api/video/record). It and the browser-discovery worker
+# import TypeScript from netlify/functions/_personalization, so both are
+# bundled with esbuild. Chromium is shipped as a package, not bundled.
+[functions."personalization-api"]
+  node_bundler = "esbuild"
+  # /api/motion-studio/capture falls back to an in-request browser capture.
+  external_node_modules = ["@sparticuz/chromium", "playwright-core", "playwright"]
+
+# Motion Director page capture (background: up to 15 minutes), started by
+# /api/motion-studio/capture with INTERNAL_FUNCTION_SECRET.
+# Smart Website Builder server endpoints (apps/openthorn/api, bundled as TS).
+# The function declares its own path, /openthorn/api/*, which wins over the
+# /openthorn/* SPA fallback below.
+[functions."website-builder-api"]
+  node_bundler = "esbuild"
+
+[functions."motion-studio-capture-background"]
+  node_bundler = "esbuild"
+  external_node_modules = ["@sparticuz/chromium", "playwright-core", "playwright"]
+
+[functions."personalization-browser-discovery"]
+  node_bundler = "esbuild"
+  external_node_modules = ["@sparticuz/chromium", "playwright-core"]
 
 # Serve the model catalog as a static file in production.
 # The vite build plugin emits dist/api/model-catalog.json containing all
@@ -114,6 +144,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/cinegen"
+  to = "/.netlify/functions/cinegen"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/watch-voice"
   to = "/.netlify/functions/watch-voice"
   status = 200
@@ -138,6 +174,14 @@
   for = "/assets/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
+
+# [hyperframes] Vendored, pinned HyperFrames blocks (public/hyperframes/blocks). The sandboxed export-runner / code-preview
+# frames have an opaque origin, so fetching these (and decoding their images into the canvas) needs CORS. Static, immutable per commit.
+[[headers]]
+  for = "/hyperframes/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
 
 # The public video player (/watch/<id>) can be embedded anywhere: its
 # framing headers are rewritten by netlify/edge-functions/watch-embed.js

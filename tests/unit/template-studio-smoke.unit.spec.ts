@@ -61,6 +61,12 @@ vi.mock('../../src/lib/editor/captionActions.js', () => ({
 
 // Mock thumbnail modal dependencies
 vi.mock('../../src/lib/thumbnails.js', () => ({
+  createEditorBanner: vi.fn(() => document.createElement('div')),
+  demoteBannerHeading: vi.fn((el) => {
+    const h = el.querySelector('h1');
+    if (h) { const d = document.createElement('div'); d.textContent = h.textContent; h.replaceWith(d); }
+    return el;
+  }),
   createStudioHeader: vi.fn((_id, title = '', subtitle = '') => {
     const el = document.createElement('div');
     el.innerHTML = `<h1></h1><p></p>`;
@@ -146,6 +152,7 @@ vi.mock('../../src/lib/modelSelectorUI.js', () => ({
 
 vi.mock('../../src/lib/templateEngine.js', () => ({
   getNicheTerms: vi.fn(() => []),
+  detectNiche: vi.fn(() => 'general-business'),
   enrichPromptString: vi.fn((p) => p),
   deriveEngineInputFromTemplate: vi.fn(() => ({})),
   composeNegativePrompt: vi.fn(() => ''),
@@ -202,7 +209,9 @@ vi.mock('../../src/lib/supabase.js', () => ({
 
 vi.mock('../../src/components/UploadPicker.js', () => ({
   createUploadPicker: vi.fn(() => ({
+    trigger: document.createElement('button'),
     panel: document.createElement('div'),
+    reset: vi.fn(),
     open: vi.fn(),
     close: vi.fn(),
   })),
@@ -329,7 +338,8 @@ describe('TemplateStudio smoke tests with feature assertions', () => {
     mount();
     await new Promise(r => setTimeout(r, 50));
 
-    const videoBtn = container.querySelector('#videoUploadBtn');
+    // Video templates expose the Video Studio source-video picker.
+    const videoBtn = container.querySelector('.template-media-field[data-media-kind="video"]');
     expect(videoBtn).not.toBeNull();
   });
 

@@ -67,11 +67,11 @@ describe('timeline-ai — generic generate with MuAPI\'s live catalog', () => {
     expect(post).toHaveBeenCalledWith('/elevenlabs-v4', { prompt: 'Hello', voice_id: 'abc' }, undefined, KEY);
   });
   it('rejects an unknown model and a missing required field', async () => {
-    const fetchImpl = vi.fn(async () => new Response(JSON.stringify([{ name: 'elevenlabs-v4', endpoint_url: 'elevenlabs-v4', required_fields: ['prompt'], input_fields: ['prompt'] }]), { status: 200 }));
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify([{ name: 'zz-live-only-model', endpoint_url: 'zz-live-only-model', required_fields: ['prompt'], input_fields: ['prompt'] }]), { status: 200 }));
     const post = vi.fn();
     const a = await handle({ action: 'submit', tool: 'generate', params: { model: 'nope', inputs: {} } }, 'u4', { keys: { muapi: KEY }, post, fetchImpl });
     expect(a.statusCode).toBe(400);
-    const b = await handle({ action: 'submit', tool: 'generate', params: { model: 'elevenlabs-v4', inputs: {} } }, 'u5', { keys: { muapi: KEY }, post, fetchImpl });
+    const b = await handle({ action: 'submit', tool: 'generate', params: { model: 'zz-live-only-model', inputs: {} } }, 'u5', { keys: { muapi: KEY }, post, fetchImpl });
     expect(b.statusCode).toBe(400);
     expect(post).not.toHaveBeenCalled();
   });

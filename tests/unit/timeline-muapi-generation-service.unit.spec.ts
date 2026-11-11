@@ -332,3 +332,52 @@ describe('MuAPIProvider — getServiceNameForMode', () => {
     expect(new MuAPIProvider().getServiceNameForMode('unknown')).toBe('api_request');
   });
 });
+
+describe('MuAPIProvider — review fixes', () => {
+  beforeEach(() => {
+    submitOnlyMock.mockClear();
+    checkStatusMock.mockClear();
+  });
+
+  it('keeps a direct output returned by submit (no request id) and poll returns it', async () => {
+    submitOnlyMock.mockResolvedValueOnce({ requestId: null, submitData: { outputs: ['https://cdn/direct.png'] } });
+    const provider = new MuAPIProvider();
+    const r = await provider.submit({ mode: 'generate-image', model: 'google-imagen4', prompt: 'x' });
+    expect(r.status).toBe('completed');
+    expect(r.url).toBe('https://cdn/direct.png');
+    const polled = await provider.poll(r.generationId);
+    expect(polled.status).toBe('completed');
+    expect(polled.url).toBe('https://cdn/direct.png');
+    expect(checkStatusMock).not.toHaveBeenCalled();
+  });
+
+  it('reconfiguring the muapi provider keeps in-flight jobs pollable', async () => {
+    const svc = new GenerationService();
+    svc.configureProvider('muapi', {});
+    const r = await svc.providers.muapi.submit({ mode: 'text-to-video', prompt: 'x' });
+    svc.configureProvider('muapi', { timeout: 1 });
+    const polled = await svc.providers.muapi.poll(r.generationId);
+    expect(polled.status).toBe('processing');
+    expect(checkStatusMock).toHaveBeenCalledWith('req_test_123', null);
+  });
+
+  it('stopping polling while a status request is in flight neither reports nor reschedules', async () => {
+    vi.useFakeTimers();
+    try {
+      const svc = new GenerationService();
+      let release;
+      vi.spyOn(svc, 'poll').mockImplementation(() => new Promise((res) => { release = res; }));
+      const onUpdate = vi.fn();
+      const stop = svc.startPolling('gen_x', onUpdate, 100);
+      await vi.advanceTimersByTimeAsync(100);
+      expect(svc.poll).toHaveBeenCalledTimes(1);
+      stop();
+      release({ status: 'processing' });
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(onUpdate).not.toHaveBeenCalled();
+      expect(svc.poll).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

@@ -6,7 +6,6 @@ console.log('🔍 Testing Video Personalization Components...\n');
 
 // Check if files exist
 const filesToCheck = [
-  'components/VideoPersonalizationHub.jsx',
   'components/VideoUploader.jsx',
   'components/VideoPersonalizer.jsx',
   'components/TokenEditor.jsx',
@@ -34,7 +33,7 @@ if (allFilesExist) {
   console.log('✅ All component files are present');
 
   // Check file sizes to ensure they're not empty
-  const hubSize = fs.statSync('components/VideoPersonalizationHub.jsx').size;
+  const hubSize = fs.statSync('src/components/modals/VideoPersonalizationHub.jsx').size;
   console.log(`📏 Main Hub Component: ${hubSize} bytes`);
 
   if (hubSize > 1000) {

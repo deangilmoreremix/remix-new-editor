@@ -16,7 +16,7 @@ export const json = (statusCode, body, extraHeaders = {}) => ({
   headers: {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, x-pexels-api-key',
+    'Access-Control-Allow-Headers': 'Content-Type, x-pexels-api-key, x-pixabay-api-key',
     ...extraHeaders,
   },
   body: JSON.stringify(body),

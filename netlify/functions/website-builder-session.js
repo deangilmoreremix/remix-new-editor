@@ -21,6 +21,7 @@
 // Environment (Netlify): CLERK_SECRET_KEY (+ the Clerk JWKS settings used by
 // _shared/clerkAuth.js), SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 
+import { createHmac } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { withClerkAuth } from './_shared/clerkAuth.js';
 
@@ -58,23 +59,71 @@ async function fetchClerkUser(userId, fetchImpl) {
   return res.json();
 }
 
-function isNotFound(error) {
+function isAlreadyRegistered(error) {
   const msg = String(error?.message || '').toLowerCase();
-  return error?.status === 404 || msg.includes('not found') || msg.includes('no user');
+  return (
+    error?.code === 'email_exists' ||
+    error?.code === 'user_already_exists' ||
+    msg.includes('already been registered') ||
+    msg.includes('already registered')
+  );
 }
 
-/** Generate a magic-link token for `email`, creating the auth user if needed. */
-async function issueMagicLink(admin, email, clerkUserId) {
-  let { data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email });
-  if (error && isNotFound(error)) {
-    const created = await admin.auth.admin.createUser({
-      email,
-      email_confirm: true,
-      app_metadata: { clerk_user_id: clerkUserId, source: 'smart-website-builder' },
-    });
-    if (created.error) throw created.error;
-    ({ data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email }));
-  }
+/**
+ * Proof, bound to one email address, that a Supabase login was created by this
+ * server. hex(HMAC-SHA256(login_secret, lower(email))). The database trigger
+ * public.handle_new_user recomputes it and, on a match, skips the main app's
+ * public.users insert (which cannot succeed: its clerk_id column is NOT NULL
+ * and the trigger never supplies it). Only the service role can read
+ * login_secret, so nobody else can produce a valid proof.
+ */
+export function loginProof(secret, email) {
+  return createHmac('sha256', secret).update(String(email).toLowerCase()).digest('hex');
+}
+
+async function readLoginSecret(admin) {
+  const { data, error } = await admin
+    .from('wb_private_config')
+    .select('value')
+    .eq('key', 'login_secret')
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.value) throw new Error('wb_private_config.login_secret is not set');
+  return data.value;
+}
+
+/**
+ * Create the Supabase auth user for a first-time builder visitor.
+ *
+ * This must happen BEFORE generateLink: generateLink({ type: 'magiclink' })
+ * silently creates unknown users itself, without the proof, which the main
+ * app's on_auth_user_created trigger then rejects.
+ *
+ * The proof has to be in user_metadata: Supabase's admin API writes
+ * app_metadata in a second step, after the auth.users row (and the trigger)
+ * already ran, so a marker there is never seen. See
+ * supabase/migrations/20261111120000_website_builder_login_proof.sql.
+ * An address that already has a Supabase login (from another app) is reused.
+ */
+async function ensureAuthUser(admin, email, clerkUserId, profile = {}) {
+  const secret = await readLoginSecret(admin);
+  const { error } = await admin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: {
+      wb_login_proof: loginProof(secret, email),
+      clerk_user_id: clerkUserId,
+      full_name: profile.fullName || undefined,
+      avatar_url: profile.avatarUrl || undefined,
+    },
+    app_metadata: { clerk_user_id: clerkUserId, source: 'smart-website-builder' },
+  });
+  if (error && !isAlreadyRegistered(error)) throw error;
+}
+
+/** Generate a one-time magic-link token for an existing Supabase auth user. */
+async function issueMagicLink(admin, email) {
+  const { data, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email });
   if (error) throw error;
   const tokenHash = data?.properties?.hashed_token;
   const authUserId = data?.user?.id;
@@ -112,13 +161,26 @@ export function createHandler({ fetchImpl = fetch, createAdminClient } = {}) {
       : createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
     try {
-      const { tokenHash, authUserId } = await issueMagicLink(admin, email, userId);
+      // A returning builder user is matched by Clerk id, so a later change of
+      // their SmartVideo email never splits their projects across two logins.
+      const { data: existing, error: lookupError } = await admin
+        .from('wb_profiles')
+        .select('id, email')
+        .eq('clerk_user_id', userId)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
 
       const fullName = [clerkUser.first_name, clerkUser.last_name].filter(Boolean).join(' ') || clerkUser.username || null;
+      const loginEmail = existing?.email || email;
+      if (!existing) {
+        await ensureAuthUser(admin, loginEmail, userId, { fullName, avatarUrl: clerkUser.image_url });
+      }
+      const { tokenHash, authUserId } = await issueMagicLink(admin, loginEmail);
+
       const { data: profile, error: profileError } = await admin
         .from('wb_profiles')
         .upsert(
-          { id: authUserId, email, clerk_user_id: userId, full_name: fullName, avatar_url: clerkUser.image_url || null },
+          { id: authUserId, email: loginEmail, clerk_user_id: userId, full_name: fullName, avatar_url: clerkUser.image_url || null },
           { onConflict: 'id' },
         )
         .select('suspended')
@@ -126,7 +188,7 @@ export function createHandler({ fetchImpl = fetch, createAdminClient } = {}) {
       if (profileError) throw profileError;
       if (profile?.suspended) return json(403, { error: 'suspended' });
 
-      return json(200, { token_hash: tokenHash, type: 'email', email });
+      return json(200, { token_hash: tokenHash, type: 'email', email: loginEmail });
     } catch (err) {
       console.error('[website-builder-session] session issue failed:', err?.message || err);
       return json(500, { error: 'session_failed' });

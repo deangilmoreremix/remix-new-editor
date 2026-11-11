@@ -10,6 +10,8 @@ export default [
       'out',
       'public/static/js/lamejs',
       'dist',
+      // vendored third-party source (RemotionUI, MIT), pinned and hashed in src/lib/remotionui/registry.lock.json
+      'src/lib/editor/remotion/remotionui/vendored',
     ],
   },
   js.configs.recommended,
@@ -247,6 +249,27 @@ export default [
     rules: {
       'no-unused-vars': 'warn',
       'no-console': 'off',
+    },
+  },
+  {
+    // Personalization + Lead Finder system ported from OpenHiggsBolt. It is
+    // TypeScript written for Next.js + Vitest: `React.*` type references and
+    // Node globals in its tests/scripts are resolved by TypeScript, not by
+    // ESLint's no-undef, and its <img> usage is intentional (no next/image
+    // here). Upstream lint rules apply to it; these are the remix deltas.
+    files: ['src/features/personalization/**/*.{js,jsx,ts,tsx,mjs}'],
+    languageOptions: {
+      globals: {
+        React: 'readonly',
+        Buffer: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        queueMicrotask: 'readonly',
+        screen: 'readonly',
+      },
+    },
+    rules: {
+      'no-undef': 'off',
     },
   },
   {

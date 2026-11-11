@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { apiUrl } from './api'
 
 // Provider API keys are encrypted at rest. Two schemes exist:
 //
@@ -93,7 +94,7 @@ async function runServerKeyOp(action: 'encrypt' | 'decrypt', value: string): Pro
   if (!token) return null
 
   try {
-    const res = await fetch('/api/provider-keys', {
+    const res = await fetch(apiUrl('provider-keys'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ action, value }),
