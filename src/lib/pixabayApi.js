@@ -10,6 +10,8 @@
  * redundant proxy calls and improve perceived performance.
  */
 
+import { apiKeyManager } from './apiKeyManager.js';
+
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes for search results
 const CACHE_PREFIX = 'pixabay_cache_';
 
@@ -42,10 +44,20 @@ function setCache(key, data) {
 
 async function pixabayFetch(path, options = {}) {
   const base = (import.meta?.env?.VITE_BACKEND_URL || '').replace(/\/$/, '');
-  const url = `${base}/api/pixabay${path}${options.query ? '?' + new URLSearchParams(options.query).toString() : ''}`;
+  // Drop unset params: URLSearchParams would send them as the string "undefined".
+  const query = options.query
+    ? Object.fromEntries(Object.entries(options.query).filter(([, v]) => v !== undefined && v !== null && v !== ''))
+    : null;
+  const url = `${base}/api/pixabay${path}${query && Object.keys(query).length ? '?' + new URLSearchParams(query).toString() : ''}`;
   const headers = {
     ...(options.headers || {}),
   };
+  // BYOK: the user's own Pixabay key (Settings → API keys) when they added one;
+  // otherwise the proxy uses the platform key.
+  try {
+    const userKey = apiKeyManager.getPixabayKey?.();
+    if (userKey) headers['x-pixabay-api-key'] = userKey;
+  } catch { /* storage blocked: platform key */ }
   const res = await fetch(url, {
     method: options.method || 'GET',
     headers,
@@ -91,13 +103,14 @@ export async function searchPixabayImages({
   category,
   order,
   colors,
+  image_type, // 'photo' | 'illustration' | 'vector' | 'all'
 } = {}) {
   if (!query || !query.trim()) {
     const err = new Error('query is required for image search');
     err.status = 400;
     throw err;
   }
-  const key = cacheKey(['images/search', { query: String(query).trim(), orientation, page, per_page, safe_search, min_width, min_height, category, order, colors }]);
+  const key = cacheKey(['images/search', { query: String(query).trim(), orientation, page, per_page, safe_search, min_width, min_height, category, order, colors, image_type }]);
   const cached = getCached(key);
   if (cached) return cached;
 
@@ -113,6 +126,7 @@ export async function searchPixabayImages({
       category: category || undefined,
       order: order || undefined,
       colors: colors || undefined,
+      image_type: image_type || undefined,
     },
   });
   setCache(key, data);
@@ -148,13 +162,14 @@ export async function searchPixabayVideos({
   min_height,
   category,
   order,
+  video_type, // 'all' | 'film' | 'animation'
 } = {}) {
   if (!query || !query.trim()) {
     const err = new Error('query is required for video search');
     err.status = 400;
     throw err;
   }
-  const key = cacheKey(['videos/search', { query: String(query).trim(), orientation, page, per_page, safe_search, min_duration, max_duration, min_width, min_height, category, order }]);
+  const key = cacheKey(['videos/search', { query: String(query).trim(), orientation, page, per_page, safe_search, min_duration, max_duration, min_width, min_height, category, order, video_type }]);
   const cached = getCached(key);
   if (cached) return cached;
 
@@ -171,6 +186,7 @@ export async function searchPixabayVideos({
       min_height: min_height || undefined,
       category: category || undefined,
       order: order || undefined,
+      video_type: video_type || undefined,
     },
   });
   setCache(key, data);
@@ -186,8 +202,9 @@ export async function getCuratedPixabayImages({
   safe_search = true,
   category,
   order,
+  image_type,
 } = {}) {
-  const key = cacheKey(['images/curated', { page, per_page, safe_search, category, order }]);
+  const key = cacheKey(['images/curated', { page, per_page, safe_search, category, order, image_type }]);
   const cached = getCached(key);
   if (cached) return cached;
 
@@ -198,6 +215,7 @@ export async function getCuratedPixabayImages({
       safe_search: safe_search ? 'true' : 'false',
       category: category || undefined,
       order: order || undefined,
+      image_type: image_type || undefined,
     },
   });
   setCache(key, data);
@@ -217,8 +235,9 @@ export async function getPopularPixabayVideos({
   min_height,
   category,
   order,
+  video_type,
 } = {}) {
-  const key = cacheKey(['videos/popular', { page, per_page, safe_search, min_duration, max_duration, min_width, min_height, category, order }]);
+  const key = cacheKey(['videos/popular', { page, per_page, safe_search, min_duration, max_duration, min_width, min_height, category, order, video_type }]);
   const cached = getCached(key);
   if (cached) return cached;
 
@@ -233,6 +252,7 @@ export async function getPopularPixabayVideos({
       min_height: min_height || undefined,
       category: category || undefined,
       order: order || undefined,
+      video_type: video_type || undefined,
     },
   });
   setCache(key, data);

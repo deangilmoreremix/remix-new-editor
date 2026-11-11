@@ -14,28 +14,46 @@ import { TimelineFeatureApi } from '../lib/editor/timelineFeatureApi.js';
 
 /**
  * Default GTM → Thumbnail bridge.
- * Lazily imports ThumbnailService, generates a single candidate from the
- * GTM-enhanced prompt, and dispatches a `gtm:thumbnail-generated` window event
- * with the first candidate so any studio can display/save it.
- * Studios can pass their own `onGenerateThumbnail` to override this default.
+ *
+ * Opens the shared Thumbnail Studio drawer for the studio that launched GTM
+ * Boost, pre-filled with the boosted prompt and the studio's aspect ratio.
+ * When the user applies a thumbnail it is saved as that studio's custom
+ * thumbnail and broadcast as `gtm:thumbnail-generated` (with `studioId`) so
+ * the studio picks it up immediately (see gtmThumbnailBridge.js).
+ *
+ * Previously this generated one 16:9 image in the background with no
+ * preview, and only 3 studios listened for the result.
  */
-async function defaultGenerateThumbnail(prompt) {
-  const mod = await import('../lib/thumbnailService.js');
-  const { ThumbnailService } = mod;
-  const service = new ThumbnailService({
-    templateId: 'gtm-generated',
-    templateName: 'GTM Generated',
-    aspectRatio: '16:9',
+async function defaultGenerateThumbnail(prompt, { profile } = {}) {
+  const [{ TemplateThumbnailModal, mountThumbnailModal }, { saveCustomThumbnailToCache, clearCustomThumbnailCache }] = await Promise.all([
+    import('../components/modals/TemplateThumbnailModal.jsx'),
+    import('./thumbnails.js'),
+  ]);
+  const thumb = profile?.thumbnail || {};
+  const studioId = thumb.studioId || profile?.theme || 'gtm-generated';
+  const modal = new TemplateThumbnailModal({
+    appTheme: profile?.theme || 'timeline-editor',
+    layout: 'panel',
+    studioId,
+    studioName: profile?.studioName || 'GTM Boost',
+    aspectRatio: thumb.aspectRatio || '16:9',
+    outputType: thumb.outputType || 'video',
+    brief: prompt,
+    onApply: ({ imageUrl }) => {
+      if (thumb.studioId) saveCustomThumbnailToCache(thumb.studioId, imageUrl);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gtm:thumbnail-generated', {
+          detail: { prompt, studioId, candidate: { imageUrl } },
+        }));
+      }
+    },
+    onClear: () => {
+      if (thumb.studioId) clearCustomThumbnailCache(thumb.studioId);
+    },
   });
-  const { candidates } = await service.generateCandidates(prompt, { n: 1 });
-  const first = Array.isArray(candidates) && candidates.length > 0 ? candidates[0] : null;
-  if (!first) throw new Error('No thumbnail candidates returned');
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('gtm:thumbnail-generated', {
-      detail: { prompt, candidate: first }
-    }));
-  }
-  return first;
+  mountThumbnailModal(modal);
+  modal.open();
+  return modal;
 }
 
 /**
@@ -64,40 +82,45 @@ export async function fetchGTMTemplateContext(template) {
 }
 
 /**
- * Open the GTM Prompt Enhancer modal
- * Shared utility used by all apps (timeline-editor, image-studio, video-studio, etc.)
- * @param {string} appTheme - The app theme identifier for color customization
- * @param {Function} onPromptGenerated - Callback when a prompt is generated
- * @param {Function} [onGenerateThumbnail] - Optional override for thumbnail generation;
- *        defaults to defaultGenerateThumbnail which calls the ai-thumbnail-generator
- *        edge function and dispatches a `gtm:thumbnail-generated` window event.
+ * Open GTM Boost for a studio.
+ *
+ *   openGTMPromptModal('image-studio', (prompt) => { ... })
+ *   openGTMPromptModal('image-studio', {
+ *     onPromptGenerated, basePrompt, templateContext, onGenerateThumbnail, studioName,
+ *   })
+ *
+ * The theme key selects the studio profile, so the result is shaped for that
+ * studio (image prompt, video prompt, avatar script, audio brief…).
+ * `basePrompt` pre-fills the idea box — pass the studio's current prompt.
+ *
+ * Legacy forms still work: a function as the 2nd argument with an optional
+ * thumbnail callback (or an options object) as the 3rd argument.
+ *
  * @returns {GTMPromptModal|null} The modal instance or null on error
  */
 export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGeneratedOrCtx = null, maybeCtx = null) {
-  let onPromptGenerated;
-  let templateContext = null;
-  let onGenerateThumbnail;
-
+  let options = {};
   if (typeof onPromptGeneratedOrCtx === 'function') {
-    onPromptGenerated = onPromptGeneratedOrCtx;
-    onGenerateThumbnail = maybeCtx;
-  } else {
-    onPromptGenerated = onPromptGeneratedOrCtx?.onPromptGenerated;
-    templateContext = onPromptGeneratedOrCtx || null;
-    onGenerateThumbnail = maybeCtx;
+    options.onPromptGenerated = onPromptGeneratedOrCtx;
+    if (typeof maybeCtx === 'function') options.onGenerateThumbnail = maybeCtx;
+    else if (maybeCtx && typeof maybeCtx === 'object') options = { ...maybeCtx, ...options };
+  } else if (onPromptGeneratedOrCtx && typeof onPromptGeneratedOrCtx === 'object') {
+    const ctx = onPromptGeneratedOrCtx;
+    // Accept both the options shape and a bare template context object.
+    const isOptions = 'templateContext' in ctx || 'onPromptGenerated' in ctx || 'onGenerateThumbnail' in ctx;
+    options = isOptions ? { ...ctx } : { templateContext: ctx };
+    if (typeof maybeCtx === 'function') options.onGenerateThumbnail = maybeCtx;
   }
 
   try {
     const defaultPromptCallback = (generatedPrompt) => {
       const promptInput = document.querySelector(
-        '#generation-prompt, textarea[placeholder*="Describe"], input[placeholder*="Describe"], textarea[placeholder*="prompt"], textarea[placeholder*="Prompt"], .studio-prompt-textarea, [data-prompt-input]'
+        '#generation-prompt, [data-studio-prompt], [data-prompt-input], .studio-prompt-textarea, textarea[placeholder*="Describe"], input[placeholder*="Describe"], textarea[placeholder*="prompt"], textarea[placeholder*="Prompt"]'
       );
       if (promptInput) {
         promptInput.value = generatedPrompt;
         promptInput.dispatchEvent(new Event('input', { bubbles: true }));
         promptInput.dispatchEvent(new Event('change', { bubbles: true }));
-      } else {
-        navigator.clipboard.writeText(generatedPrompt).catch(() => {});
       }
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('gtm:prompt-generated', {
@@ -108,9 +131,11 @@ export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerat
 
     const modal = new GTMPromptModal({
       appTheme,
-      templateContext,
-      onPromptGenerated: onPromptGenerated || defaultPromptCallback,
-      onGenerateThumbnail: onGenerateThumbnail || defaultGenerateThumbnail,
+      templateContext: options.templateContext || null,
+      basePrompt: options.basePrompt,
+      studioName: options.studioName,
+      onPromptGenerated: options.onPromptGenerated || defaultPromptCallback,
+      onGenerateThumbnail: options.onGenerateThumbnail || defaultGenerateThumbnail,
     });
     modal.open();
     return modal;

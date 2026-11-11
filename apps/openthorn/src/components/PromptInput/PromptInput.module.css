@@ -90,8 +90,8 @@
 }
 
 .cardFocused {
-  border-color: rgba(94, 234, 212, 0.24);
-  box-shadow: 0 0 0 1px rgba(94, 234, 212, 0.08), 0 18px 50px rgba(0, 0, 0, 0.18);
+  border-color: rgba(217, 255, 0, 0.24);
+  box-shadow: 0 0 0 1px rgba(217, 255, 0, 0.08), 0 18px 50px rgba(0, 0, 0, 0.18);
 }
 
 /* ===== Input area ===== */
@@ -261,6 +261,7 @@
   flex-shrink: 0;
 }
 
+/* Outlined ghost, like the studios' Tools / Draw buttons (.btn-action-secondary) */
 .thinkingTrigger {
   display: inline-flex;
   align-items: center;
@@ -270,17 +271,17 @@
   min-width: 78px;
   max-width: 110px;
   padding: 0 9px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--color-text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
   font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+  transition: all 200ms ease;
 }
 
 .thinkingTrigger span {
@@ -297,7 +298,7 @@
 .thinkingTrigger:hover {
   border-color: rgba(255, 255, 255, 0.18);
   background-color: rgba(255, 255, 255, 0.06);
-  color: var(--color-text);
+  color: #ffffff;
 }
 
 .thinkingTrigger:focus-visible {
@@ -353,7 +354,7 @@
 }
 
 .thinkingOptionSelected {
-  background: rgba(139, 92, 246, 0.12);
+  background: rgba(217, 255, 0, 0.12);
   color: var(--color-text);
 }
 
@@ -378,64 +379,77 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--color-accent);
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(217, 255, 0, 0.1);
   padding: 3px 8px;
   border-radius: 6px;
   letter-spacing: 0;
   flex-shrink: 0;
 }
 
-/* ===== Submit button ===== */
+/* ===== Submit button =====
+   The studios' Generate button (src/styles/gtm-prompt-modal.css .btn-primary-modern):
+   transparent, thin light border, 2px lime edge on the left. */
 
 .submitBtn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 22px;
+  padding: 0 18px;
   height: 38px;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-warm-accent));
-  color: #08050C;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid var(--color-accent);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
   white-space: nowrap;
-  transition: transform 0.18s var(--ease-spring), box-shadow 0.25s ease, filter 0.2s;
-  will-change: transform;
+  transition: all 200ms ease;
   letter-spacing: 0;
   cursor: pointer;
-  border: none;
   outline: none;
   flex-shrink: 0;
 }
 
-.submitBtn:focus,
-.submitBtn:focus-visible {
+.submitBtn:focus {
   outline: none;
 }
 
+.submitBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px rgba(217, 255, 0, 0.4);
+}
+
 .submitBtn:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 4px 20px rgba(246, 193, 119, 0.24);
+  color: #ffffff;
+  border-color: rgba(217, 255, 0, 0.5);
+  border-left-color: var(--color-accent);
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
+  transform: translateY(-1px);
 }
 
 .submitBtn:active {
-  transform: scale(0.95);
+  transform: translateY(0) scale(0.98);
 }
 
+/* Stop: same shape, red edge */
 .cancelBtn {
-  color: #fff3f0;
-  background: linear-gradient(135deg, #ef4444, #f97316);
+  border-left-color: #ef4444;
 }
 
 .cancelBtn:hover {
-  filter: brightness(1.06);
-  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.5);
+  border-left-color: #ef4444;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.1);
 }
 
 .submitBtn:disabled:hover {
-  filter: none;
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.12);
+  border-left-color: var(--color-accent);
   box-shadow: none;
+  transform: none;
 }
 
 .submitBtn:disabled:active {
@@ -472,7 +486,6 @@
   padding: 0 18px;
   height: 32px;
   font-size: 13px;
-  border-radius: 10px;
 }
 
 .small .uploadBtn {

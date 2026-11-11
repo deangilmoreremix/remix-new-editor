@@ -10,6 +10,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { getVideoIntent, setVideoIntent } from '../lib/videoIntentStore.js';
 import { navigate } from '../lib/router.js';
+import { createActionRow, createAdvancedButton, setActionPillLabel, arrangeActionRow } from './studio/actionRow.js';
 
 export function ChatStudio() {
   const container = document.createElement('div');
@@ -242,14 +243,13 @@ sendBtn.type = 'button';
     mountThumbnailModal(modal);
     modal.open();
   });
-  inputRow.appendChild(thumbBtn);
   inputArea.appendChild(inputRow);
 
-  // Advanced options toggle
-  const optionsToggle = document.createElement('button');
-  optionsToggle.className = 'text-xs text-white/50 hover:text-white/80 transition-colors text-left';
-  optionsToggle.textContent = '▼ Advanced Options';
-  inputArea.appendChild(optionsToggle);
+  // Unified action row (matches Image Studio): Thumbnail · Advanced
+  const optionsToggle = createAdvancedButton({ id: 'chat-advanced-btn', tooltip: 'Show advanced options' });
+  const actionRow = createActionRow('mt-3');
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: optionsToggle });
+  inputArea.appendChild(actionRow);
 
   // Advanced options (hidden by default)
   const advancedOptions = document.createElement('div');
@@ -291,7 +291,9 @@ sendBtn.type = 'button';
   // Toggle advanced options
   optionsToggle.onclick = () => {
     advancedOptions.classList.toggle('hidden');
-    optionsToggle.textContent = advancedOptions.classList.contains('hidden') ? '▼ Advanced Options' : '▲ Advanced Options';
+    const open = !advancedOptions.classList.contains('hidden');
+    setActionPillLabel(optionsToggle, open ? 'Less' : 'Advanced');
+    optionsToggle.setAttribute('aria-expanded', String(open));
   };
 
   container.appendChild(inputArea);

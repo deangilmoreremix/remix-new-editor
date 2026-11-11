@@ -15,6 +15,7 @@ import {
   type ProviderModel,
 } from '../../lib/providers'
 import styles from './AdminConfigPage.module.css'
+import { T } from '../../lib/tables'
 
 type Status = { kind: 'ok' | 'error'; text: string } | null
 
@@ -39,7 +40,7 @@ export default function AdminConfigPage() {
     let cancelled = false
     async function load() {
       const [{ data: rows }, config] = await Promise.all([
-        supabase.from('default_models').select('provider_id, models'),
+        supabase.from(T.default_models).select('provider_id, models'),
         loadAppConfig(true),
       ])
       if (cancelled) return
@@ -85,7 +86,7 @@ export default function AdminConfigPage() {
     const models = (catalog[providerId] ?? []).filter((m) => m.id.trim().length > 0)
     if (models.length === 0) throw new Error('Add at least one model with a model id.')
     const { error } = await supabase
-      .from('default_models')
+      .from(T.default_models)
       .upsert(
         { provider_id: providerId, models: serializeProviderModels(models), updated_at: new Date().toISOString() },
         { onConflict: 'provider_id' },
@@ -96,7 +97,7 @@ export default function AdminConfigPage() {
   }, 'Model list saved — live for all users.')
 
   const resetCatalog = (providerId: string) => run(`reset:${providerId}`, async () => {
-    const { error } = await supabase.from('default_models').delete().eq('provider_id', providerId)
+    const { error } = await supabase.from(T.default_models).delete().eq('provider_id', providerId)
     if (error) throw new Error(error.message)
     setCatalog((prev) => ({
       ...prev,

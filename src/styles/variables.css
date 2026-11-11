@@ -28,6 +28,15 @@
   --app-soft-accent: rgba(196, 230, 0, 0.12);
   --app-glow: rgba(217, 255, 0, 0.25);
 
+  /* Short aliases used by BaseModal and the ported Personalization +
+     Lead Finder modal (src/features/personalization). */
+  --primary: var(--color-primary);
+  --on-primary: var(--color-on-primary);
+  --primary-soft: rgba(217, 255, 0, 0.12);
+  --primary-glow: rgba(217, 255, 0, 0.25);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
   /* Backgrounds - Strict Dark Mode */
   --bg-app: #050505;
   /* Deepest Black */

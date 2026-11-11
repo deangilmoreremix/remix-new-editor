@@ -15,7 +15,6 @@ const STUDIOS = [
   { name: 'InfluencerStudio',      route: 'influencer',          category: 'influencer' },
   { name: 'LipSyncStudio',         route: 'lipsync',             category: 'lipsync'  },
   { name: 'StoryboardStudio',      route: 'storyboard',          category: 'storyboard' },
-  { name: 'TrainingStudio',        route: 'training',            category: 'training' },
   { name: 'UpscaleStudio',         route: 'upscale',             category: 'upscale'  },
   { name: 'VideoToolsStudio',      route: 'videotools',          category: 'video-tools' },
 ];

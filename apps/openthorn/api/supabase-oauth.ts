@@ -25,7 +25,9 @@ function header(req: Req, n: string): string | undefined {
 }
 function appBase(req: Req): string {
   const proto = (header(req, 'x-forwarded-proto') || 'https').split(',')[0]
-  return `${proto}://${header(req, 'host')}`
+  // The adapter on Netlify serves the builder under /openthorn; Vercel/dev use ''.
+  const base = (header(req, 'x-app-base-path') || '').replace(/\/+$/, '')
+  return `${proto}://${header(req, 'host')}${base}`
 }
 function redirectUri(req: Req): string {
   return `${appBase(req)}/api/supabase-oauth?action=callback`

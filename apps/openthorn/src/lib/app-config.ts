@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { T } from './tables'
 
 export interface Announcement {
   text: string
@@ -41,7 +42,7 @@ let configPromise: Promise<AppConfigMap> | null = null
 export function loadAppConfig(force = false): Promise<AppConfigMap> {
   if (!configPromise || force) {
     configPromise = (async () => {
-      const { data } = await supabase.from('app_config').select('key, value')
+      const { data } = await supabase.from(T.app_config).select('key, value')
       return Object.fromEntries((data ?? []).map((r) => [r.key as string, r.value]))
     })()
   }
@@ -63,7 +64,7 @@ export async function getFeatureFlags(): Promise<Record<string, boolean>> {
 /** Admin-only write (enforced by RLS). Invalidates the session cache. */
 export async function setAppConfig(key: string, value: unknown): Promise<void> {
   const { error } = await supabase
-    .from('app_config')
+    .from(T.app_config)
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' })
   if (error) throw new Error(error.message)
   configPromise = null

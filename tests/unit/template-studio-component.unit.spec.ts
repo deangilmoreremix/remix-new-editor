@@ -82,7 +82,7 @@ describe('TemplateStudio real-component generation tests', () => {
     expect(inlineError.textContent).toContain('Please upload an image before generating.');
   }, 15000); // real-component mount is slow under parallel load
 
-  it('Niche T2V: prompt-only template renders without image upload', async () => {
+  it('Niche T2V: prompt-only template has no required image input, only optional media sources', async () => {
     mountTemplateStudio('midnight_table_film');
 
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -91,9 +91,11 @@ describe('TemplateStudio real-component generation tests', () => {
     const promptInput = container.querySelector('textarea, input[type="text"]');
     expect(promptInput).not.toBeNull();
 
-    // Verify no image upload input
-    const imageUpload = container.querySelector('input[type="file"]');
-    expect(imageUpload).toBeNull();
+    // No required image input in the template form…
+    expect(container.querySelector('.template-media-field[data-media-kind="image"]')).toBeNull();
+    // …but the optional Video Studio media sources (reference frame + source video) are offered.
+    expect(container.querySelector('.template-media-field[data-media-kind="frame"]')).not.toBeNull();
+    expect(container.querySelector('.template-media-field[data-media-kind="video"]')).not.toBeNull();
   });
 
   it('Standard T2I: prompt-only template renders without image upload', async () => {
@@ -132,4 +134,16 @@ describe('TemplateStudio real-component generation tests', () => {
     const modelBtn = container.querySelector('#templateModelTrigger');
     expect(modelBtn).not.toBeNull();
   });
+});
+describe('niche template fields render once', () => {
+  it('midnight_table_film shows each of its fields a single time', async () => {
+    const { TemplateStudio } = await import('../../src/components/TemplateStudio.js');
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    host.appendChild(TemplateStudio('midnight_table_film'));
+    await new Promise(r => setTimeout(r, 50));
+    const labels = Array.from(host.querySelectorAll('.text-\\[11px\\].font-semibold.uppercase')).map(e => e.textContent.trim());
+    ['Restaurant Name', 'Cuisine Type'].forEach(l => expect(labels.filter(x => x === l).length).toBe(1));
+    host.remove();
+  }, 20000);
 });

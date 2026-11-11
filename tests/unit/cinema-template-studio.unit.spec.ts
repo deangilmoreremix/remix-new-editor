@@ -71,6 +71,19 @@ vi.mock('../../src/lib/editor/captionActions.js', () => ({
 
 // Mock thumbnail modal dependencies
 vi.mock('../../src/lib/thumbnails.js', () => ({
+  createEditorBanner: vi.fn(() => document.createElement('div')),
+  demoteBannerHeading: vi.fn((el) => {
+    const h = el.querySelector('h1');
+    if (h) { const d = document.createElement('div'); d.textContent = h.textContent; h.replaceWith(d); }
+    return el;
+  }),
+  createStudioHeader: vi.fn((_id, title = '', subtitle = '') => {
+    const el = document.createElement('div');
+    el.innerHTML = `<h1></h1><p></p>`;
+    el.querySelector('h1').textContent = title;
+    el.querySelector('p').textContent = subtitle;
+    return el;
+  }),
   getTemplateThumbnailCandidates: vi.fn((template) => ['/thumb.png']),
   saveCustomThumbnailToCache: vi.fn(),
   clearCustomThumbnailCache: vi.fn(),
@@ -122,6 +135,7 @@ vi.mock('../../src/lib/modelSelectorUI.js', () => ({
 }));
 
 vi.mock('../../src/lib/templateEngine.js', () => ({
+  detectNiche: vi.fn(() => 'general-business'),
   getNicheTerms: vi.fn(() => []),
   enrichPromptString: vi.fn((p) => p),
   deriveEngineInputFromTemplate: vi.fn(() => ({})),
@@ -179,7 +193,9 @@ vi.mock('../../src/lib/supabase.js', () => ({
 
 vi.mock('../../src/components/UploadPicker.js', () => ({
   createUploadPicker: vi.fn(() => ({
+    trigger: document.createElement('button'),
     panel: document.createElement('div'),
+    reset: vi.fn(),
     open: vi.fn(),
     close: vi.fn(),
   })),
@@ -574,15 +590,14 @@ describe('CinemaTemplateStudio feature tests', () => {
     expect(grid).not.toBeNull();
   });
 
-  it('adds studio menu button next to back button', async () => {
+  it('does not add its own studio menu (the side menu is the only one)', async () => {
     mount();
     await new Promise(r => setTimeout(r, 50));
 
     const backBtn = container.querySelector('#back-btn');
     expect(backBtn).not.toBeNull();
-    // The menu button should be inserted before the back button
-    const menuBtn = backBtn.previousElementSibling;
-    expect(menuBtn).not.toBeNull();
+    expect(container.querySelector('[data-studio-menu]')).toBeNull();
+    expect(document.querySelector('[data-studio-drawer]')).toBeNull();
   });
 
   it('renders template card with hover effect', async () => {

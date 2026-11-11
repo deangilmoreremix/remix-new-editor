@@ -5,16 +5,16 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
-import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
+import { createSegmented } from './studio/promptComposer.js';
+import { createMarketingAdMode, validateAd, buildAdParams } from './studios/MarketingAdMode.js';
+import { createPendingJobTracker } from '../lib/pendingJobs.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
@@ -39,6 +39,7 @@ export async function CommercialStudio() {
   mountStudioChrome(container, { currentRoute: 'commercial' });
 
   let uploadedUrl = null;
+  let uploadedType = null; // 'image' | 'video' as reported by the upload picker
   let selectedScene = SCENE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = 'ai-product-shot';
@@ -46,12 +47,10 @@ export async function CommercialStudio() {
   let dynamicControlsContainer = null;
   let commercialPrompt = null;
   let _modelSelectorOutsideClickHandler = null;
-  let customThumbnailUrl = getCustomThumbnailFromCache('commercial-studio');
 
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">Commercial Studio</h1>';
+  header.appendChild(createStudioHeader('commercial', 'Product Shot Studio', 'Studio-quality product photos from a single image'));
   container.appendChild(header);
 
   const formCard = document.createElement('div');
@@ -147,22 +146,6 @@ const COMMERCIAL_MODELS = [
   modelWrapper.appendChild(dropdown);
   formCard.appendChild(modelWrapper);
 
-  // Model Picker button
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel,
-      onSelectModel: (id) => {
-        selectedModel = id;
-      }
-    }).catch(() => {});
-  });
-  formCard.appendChild(modelPickerBtn);
 
   const uploadLabel = document.createElement('label');
   uploadLabel.className = 'text-xs font-bold text-secondary uppercase tracking-wider';
@@ -173,8 +156,8 @@ const COMMERCIAL_MODELS = [
   uploadRow.className = 'flex items-center gap-4';
   const picker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => { uploadedUrl = url; },
-    onClear: () => { uploadedUrl = null; },
+    onSelect: ({ url, type }) => { uploadedUrl = url; uploadedType = type || null; },
+    onClear: () => { uploadedUrl = null; uploadedType = null; },
   });
   uploadRow.appendChild(picker.trigger);
   const uploadHint = document.createElement('span');
@@ -193,9 +176,10 @@ const COMMERCIAL_MODELS = [
     const { browsePexelsImages } = await import('../lib/studioPexels.js');
     browsePexelsImages({
       title: 'Select Reference Photo',
-      studioName: 'Commercial Studio',
+      studioName: 'Product Shot Studio',
       onSelect: (asset) => {
         uploadedUrl = asset.src?.large || asset.url || asset.original;
+        uploadedType = 'image';
         const attrContainer = document.getElementById('pexels-commercial-attribution');
         if (attrContainer) {
           attrContainer.innerHTML = '';
@@ -283,40 +267,47 @@ const COMMERCIAL_MODELS = [
   }
   buildDynamicControls();
 
-  // Thumbnail studio button — next to creation controls, GTM Boost styling
-  const thumbBtn = document.createElement('button');
-  thumbBtn.type = 'button';
-  thumbBtn.textContent = '🖼 Thumbnail';
-  thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-action-secondary shrink-0';
-  thumbBtn.addEventListener('click', () => {
-    const modal = new TemplateThumbnailModal({
-      appTheme: 'commercial-studio',
-      layout: 'panel',
-      studioId: 'commercial-studio',
-      studioName: 'Commercial Studio',
-      aspectRatio: selectedFormat.ar || '1:1',
-      outputType: 'image',
-      onApply: ({ imageUrl }) => {
-        customThumbnailUrl = imageUrl;
-        saveCustomThumbnailToCache('commercial-studio', imageUrl);
-      },
-      onClear: () => {
-        customThumbnailUrl = null;
-        clearCustomThumbnailCache('commercial-studio');
-      },
-    });
-    mountThumbnailModal(modal);
-    modal.open();
+  // ── Mode: product shot | ad video (upstream Marketing Studio) ──────────
+  // Ad video sends the product (@image1), an optional avatar (@image2),
+  // references and a format preset to Seedance 2 omni-reference.
+  const adMode = createMarketingAdMode();
+  const adScript = document.createElement('textarea');
+  adScript.rows = 3;
+  adScript.placeholder = 'Describe your ad script... Use @image1 for product, @image2 for avatar.';
+  adScript.className = 'hidden w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary/50 resize-y';
+  adScript.setAttribute('aria-label', 'Ad script');
+  const shotOnly = [modelLabel, modelWrapper, sceneLabel, sceneGrid, formatLabel, formatRow];
+  let mode = 'shot';
+  const SHOT_LABEL = 'Generate Product Shot';
+  const AD_LABEL = 'Generate Ad Video';
+  const modeToggle = createSegmented([{ value: 'shot', label: 'Product shot' }, { value: 'ad', label: 'Ad video' }], 'shot', (v) => {
+    mode = v;
+    shotOnly.forEach((el) => el.classList.toggle('hidden', v === 'ad'));
+    adScript.classList.toggle('hidden', v !== 'ad');
+    adMode.setActive(v === 'ad');
+    picker.trigger.title = v === 'ad' ? 'Product image — shows up as @image1' : 'Upload product image or video';
+    genBtn.textContent = v === 'ad' ? AD_LABEL : SHOT_LABEL;
+    genBtn.setAttribute('aria-label', v === 'ad' ? 'Generate ad video' : 'Generate product shot');
+    uploadHint.textContent = v === 'ad' ? 'Upload a product image' : 'Upload product image or video';
   });
-  formCard.appendChild(thumbBtn);
+  modeToggle.dataset.commercialMode = '';
+  modeToggle.classList.add('self-start');
+  formCard.insertBefore(modeToggle, formCard.firstChild);
+  formCard.appendChild(adScript);
+  formCard.appendChild(adMode.el);
+
+  // Action row — unified Image Studio layout (Advanced)
+  const actionRow = createActionRow();
+  const advanced = createAdvancedPanel({ id: 'commercial-advanced-btn', elements: [dynamicControlsContainer] });
+  arrangeActionRow(actionRow, { advanced: advanced.button });
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Product Shot';
   genBtn.setAttribute('aria-label', 'Generate product shot');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
 
   // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
   const enhanceMenu = document.createElement('div');
@@ -381,25 +372,15 @@ const COMMERCIAL_MODELS = [
   inlineInstructions.classList.add('w-full', 'mt-6');
   container.appendChild(inlineInstructions);
 
-  // "Create This Style" deep-link: apply the staged MiniMax example (model +
-  // a design-reference note) and show its example rail.
+  // Product Shot Studio is a focused tool: no template rails or example
+  // galleries — upload a product, pick a scene and format, generate.
   try {
-    const { consumeAndApply, renderExamplesRail, getMiniMaxDemosWithTargets } = await import('../lib/examplesRail.js');
+    const { consumeAndApply } = await import('../lib/examplesRail.js');
     consumeAndApply('commercial', (staged) => {
       if (staged.model) selectedModel = staged.model;
       if (staged.prompt) commercialPrompt = staged.prompt;
     });
-    const demos = getMiniMaxDemosWithTargets().filter((d) => d.__route === 'commercial');
-    const rail = renderExamplesRail({
-      title: 'MiniMax H3 Product & Commercial Styles',
-      subtitle: 'Click any clip to open it pre-filled in Commercial Studio',
-      ref: 'minimax-h3-commercial',
-      items: demos,
-    });
-    rail.classList.add('w-full', 'mt-8');
-    container.appendChild(rail);
-  } catch (e) {
-  }
+  } catch { /* deep links are optional */ }
 
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full mt-6 hidden';
@@ -407,7 +388,52 @@ const COMMERCIAL_MODELS = [
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
+  // Ad video: product + avatar + references + a format preset → Seedance 2 omni-reference.
+  async function runAd() {
+    const script = adScript.value;
+    const problem = validateAd({ script, productUrl: uploadedUrl, productType: uploadedType });
+    if (problem) { showToast(problem, 'error'); return; }
+    if (!(await requireEntitlement())) return;
+    if (!apiKeyManager.getMuapiKey()) { AuthModal(() => runAd()); return; }
+
+    genBtn.disabled = true;
+    genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Making your ad...';
+    const pendingJob = createPendingJobTracker('commercial', { prompt: script }, { maxAttempts: 900 });
+    try {
+      const params = buildAdParams(adMode.state, { script, productUrl: uploadedUrl });
+      const res = await muapi.generateMarketingStudioAd({ ...params, onRequestId: pendingJob.onRequestId });
+      if (!res?.url) throw new Error('No video URL returned by API');
+      resultArea.classList.remove('hidden');
+      resultArea.innerHTML = `
+        <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+          <video controls playsinline class="w-full rounded-xl mb-3"></video>
+          <div class="flex gap-3">
+            <a download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+            <button type="button" class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
+            <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
+          </div>
+        </div>
+      `;
+      resultArea.querySelector('video').src = res.url;
+      resultArea.querySelector('a[download]').href = res.url;
+      resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
+      resultArea.querySelector('.publish-social-btn').onclick = () => openSocialPublish({ mediaUrl: res.url, mediaType: 'video' });
+      saveGeneration({
+        studio: 'commercial', type: 'video', url: res.url, prompt: script, model: 'seedance-2-vip-omni-reference',
+        parameters: { format: adMode.state.format.name, aspect_ratio: adMode.state.ratio, resolution: adMode.state.res, duration: adMode.state.duration },
+      });
+      showToast('Ad video generated successfully!', 'success');
+    } catch (err) {
+      showToast(err.message || 'Marketing generation failed', 'error', 5000);
+    } finally {
+      pendingJob.finish();
+      genBtn.disabled = false;
+      genBtn.textContent = AD_LABEL;
+    }
+  }
+
   genBtn.onclick = async () => {
+    if (mode === 'ad') return runAd();
     if (!(await requireEntitlement())) return;
     if (!uploadedUrl) {
       showToast('Upload a product image or video first', 'error');
@@ -425,7 +451,6 @@ const COMMERCIAL_MODELS = [
       const params = {
         model: selectedModel,
         image_url: uploadedUrl,
-        thumbnail_url: customThumbnailUrl || undefined,
         signal: controller.signal,
       };
       if (dynamicControls) {
@@ -471,12 +496,6 @@ const COMMERCIAL_MODELS = [
       genBtn.textContent = 'Generate Product Shot';
     }
   };
-
-    const galleryAssets = getAssetsForStudio('commercial');
-    if (galleryAssets.length > 0) {
-      const gallery = ExampleGallery({ studioId: 'commercial', assets: galleryAssets, maxCards: 28 });
-      container.appendChild(gallery);
-    }
 
     return container;
 }

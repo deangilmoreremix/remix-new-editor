@@ -1,73 +1,76 @@
-import { getPageThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
+import { loadGenerationHistory, confirmDeleteGeneration } from '../lib/generationHistory.js';
+import { showToast } from '../lib/loading.js';
 import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
 import { MediaDetailView } from './MediaDetailView.js';
-import { loadGenerationHistory } from '../lib/generationHistory.js';
 import { queueAssetForStudio } from './UploadPicker.js';
 
 // Studios that accept an Asset Library reference handed over from the Library.
 // Ids match the `studioId` passed to createUploadPicker() by each studio.
 const MUAPI_STUDIOS = [
-  { id: 'effects-studio', name: 'Effects Studio' },
-  { id: 'edit-studio', name: 'Edit Studio' },
-  { id: 'upscale-studio', name: 'Upscale Studio' },
-  { id: 'video-tools-studio', name: 'Video Tools' },
-  { id: 'cinema-studio', name: 'Cinema Studio' },
-  { id: 'storyboard-studio', name: 'Storyboard Studio' },
-  { id: 'audio-studio', name: 'Audio Studio' },
-  { id: 'image-studio', name: 'Image Studio' },
-  { id: 'element-library', name: 'Elements' },
+  { id: 'image-studio', route: 'image', name: 'Image Studio' },
+  { id: 'edit-studio', route: 'edit', name: 'Edit Studio' },
+  { id: 'upscale-studio', route: 'upscale', name: 'Upscale Suite' },
+  { id: 'effects-studio', route: 'effects', name: 'Effects Studio' },
+  { id: 'cinema-studio', route: 'cinema', name: 'Cinema Studio' },
+  { id: 'storyboard-studio', route: 'storyboard', name: 'Storyboard Studio' },
+  { id: 'video-tools-studio', route: 'videotools', name: 'Video Tools' },
+  { id: 'audio-studio', route: 'audio', name: 'Audio Studio' },
 ];
 
 export function LibraryPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden';
+  mountStudioChrome(container, { currentRoute: 'library' });
 
   let activeFilter = 'all';
   let searchQuery = '';
+  let sortOrder = 'newest';
+  let historyCache = null;
 
   const topBar = document.createElement('div');
-  topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  const libThumb = getPageThumbnail('library');
-  if (libThumb) {
-    const bannerWrapper = document.createElement('div');
-    bannerWrapper.className = 'relative w-full h-32 md:h-44 rounded-2xl overflow-hidden mb-4';
-    bannerWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-    const img = createThumbnailImg(libThumb, 'Library', 'w-full h-full object-cover');
-    bannerWrapper.appendChild(img);
-    const overlay = document.createElement('div');
-    overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent';
-    bannerWrapper.appendChild(overlay);
-    const textOverlay = document.createElement('div');
-    textOverlay.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-    textOverlay.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Library</h1><p class="text-white/60 text-xs">All your generated images and videos</p>';
-    bannerWrapper.appendChild(textOverlay);
-    topBar.appendChild(bannerWrapper);
-  } else {
-    topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Library</h1><p class="text-secondary text-xs mb-4">All your generated images and videos</p>';
-  }
+  topBar.className = 'px-4 md:px-8 pb-4 shrink-0';
+  topBar.appendChild(createStudioHeader('library', 'Library', 'Everything you have generated and uploaded, in one place', 'mb-4'));
 
   const controls = document.createElement('div');
-  controls.className = 'flex items-center gap-3 flex-wrap';
+  controls.className = 'flex items-center gap-2 flex-wrap';
 
   // 'uploads' is the permanent Asset Library view (durable uploaded files) —
   // it only ever shows permanent storage references, never expiring URLs.
-  const filters = ['all', 'images', 'videos', 'uploads', 'templates'];
+  const FILTERS = [
+    ['all', 'All'],
+    ['images', 'Images'],
+    ['videos', 'Videos'],
+    ['audio', 'Audio'],
+    ['uploads', 'Uploads'],
+  ];
   const filterBtns = {};
-  filters.forEach(f => {
+  FILTERS.forEach(([f, label]) => {
     const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.libraryFilter = f;
     btn.className = 'px-4 py-2 rounded-full text-xs font-bold transition-all';
-    btn.textContent = f === 'uploads' ? 'Uploads' : f.charAt(0).toUpperCase() + f.slice(1);
+    btn.dataset.label = label;
+    btn.textContent = label;
     btn.onclick = () => { activeFilter = f; updateFilters(); renderGrid(); };
     filterBtns[f] = btn;
     controls.appendChild(btn);
   });
 
+  const right = document.createElement('div');
+  right.className = 'ml-auto flex items-center gap-2';
+  const sortSelect = document.createElement('select');
+  sortSelect.className = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none';
+  sortSelect.innerHTML = '<option value="newest">Newest first</option><option value="oldest">Oldest first</option>';
+  sortSelect.onchange = () => { sortOrder = sortSelect.value; renderGrid(); };
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
-  searchInput.placeholder = 'Search by prompt...';
-  searchInput.className = 'ml-auto bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors w-48';
+  searchInput.placeholder = 'Search by prompt or model...';
+  searchInput.className = 'bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors w-56';
   searchInput.oninput = () => { searchQuery = searchInput.value.toLowerCase(); renderGrid(); };
-  controls.appendChild(searchInput);
+  right.append(sortSelect, searchInput);
+  controls.appendChild(right);
 
   topBar.appendChild(controls);
   container.appendChild(topBar);
@@ -77,6 +80,7 @@ export function LibraryPage() {
   container.appendChild(gridArea);
 
   async function loadHistory() {
+    if (historyCache) return historyCache;
     // Loads from Supabase (cloud) + localStorage (local), merged and deduplicated.
     let items;
 
@@ -90,11 +94,41 @@ export function LibraryPage() {
       try { videoHistory = JSON.parse(localStorage.getItem('video_history') || '[]'); } catch (e) { /* ignore */ }
       items = [
         ...imageHistory.map(h => ({ ...h, type: h.type || 'image' })),
-        ...videoHistory.map(h => ({ ...h, type: 'video' })),
+        ...videoHistory.map(h => ({ ...h, type: h.type === 'audio' ? 'audio' : 'video' })),
       ].sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
     }
 
+    // Fold in MuAPI's own history when a key is configured (best-effort).
+    try {
+      const { apiKeyManager } = await import('../lib/apiKeyManager.js');
+      if (apiKeyManager.getKey()) {
+        const [{ muapi }, { fetchServerHistory, mergeServerHistory }] = await Promise.all([
+          import('../lib/muapi.js'),
+          import('../lib/serverHistory.js'),
+        ]);
+        items = mergeServerHistory(items, (await fetchServerHistory(muapi)).filter((i) => i.type !== 'audio'));
+      }
+    } catch { /* server history is optional */ }
+
+    historyCache = items;
+    updateCounts(items);
     return items;
+  }
+
+  const typeOf = (i) => (i.type === 'video' || i.type === 'audio' ? i.type : 'image');
+
+  function updateCounts(items) {
+    const counts = { all: items.length, images: 0, videos: 0, audio: 0 };
+    items.forEach((i) => {
+      const t = typeOf(i);
+      if (t === 'image') counts.images++;
+      else if (t === 'video') counts.videos++;
+      else counts.audio++;
+    });
+    Object.entries(counts).forEach(([k, n]) => {
+      const btn = filterBtns[k];
+      if (btn) btn.textContent = `${btn.dataset.label} · ${n}`;
+    });
   }
 
   function updateFilters() {
@@ -113,13 +147,14 @@ export function LibraryPage() {
       return;
     }
 
-    if (activeFilter === 'images') items = items.filter(i => i.type === 'image' || !i.type);
-    else if (activeFilter === 'videos') items = items.filter(i => i.type === 'video');
-    else if (activeFilter === 'templates') items = items.filter(i => i.template || i.parameters?.template_id);
+    if (activeFilter === 'images') items = items.filter(i => typeOf(i) === 'image');
+    else if (activeFilter === 'videos') items = items.filter(i => typeOf(i) === 'video');
+    else if (activeFilter === 'audio') items = items.filter(i => typeOf(i) === 'audio');
 
     if (searchQuery) {
-      items = items.filter(i => (i.prompt || '').toLowerCase().includes(searchQuery));
+      items = items.filter(i => `${i.prompt || ''} ${i.model || ''} ${i.template || ''}`.toLowerCase().includes(searchQuery));
     }
+    if (sortOrder === 'oldest') items = [...items].reverse();
 
     gridArea.innerHTML = '';
 
@@ -127,8 +162,8 @@ export function LibraryPage() {
       gridArea.innerHTML = `
         <div class="flex flex-col items-center justify-center h-64 text-muted">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="mb-4 opacity-30"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-          <div class="text-sm">No generations yet</div>
-          <div class="text-xs mt-1">Your creations will appear here</div>
+          <div class="text-sm">${searchQuery || activeFilter !== 'all' ? 'Nothing matches this filter' : 'No generations yet'}</div>
+          <div class="text-xs mt-1">${searchQuery || activeFilter !== 'all' ? 'Try another filter or search' : 'Everything you create in any studio is saved here automatically'}</div>
         </div>
       `;
       return;
@@ -141,7 +176,18 @@ export function LibraryPage() {
       const card = document.createElement('div');
       card.className = 'relative group cursor-pointer rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all aspect-square bg-white/[0.02]';
 
-      if (item.type === 'video') {
+      if (typeOf(item) === 'audio') {
+        const wrap = document.createElement('div');
+        wrap.className = 'w-full h-full flex flex-col items-center justify-center gap-2 p-3 bg-gradient-to-br from-purple-500/10 to-transparent';
+        wrap.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-purple-300"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = item.url;
+        audio.className = 'w-full';
+        audio.onclick = (e) => e.stopPropagation();
+        wrap.appendChild(audio);
+        card.appendChild(wrap);
+      } else if (item.type === 'video') {
         const video = createSafeVideo(item.url, 'w-full h-full object-cover');
         card.appendChild(video);
         
@@ -170,7 +216,42 @@ export function LibraryPage() {
       
       card.appendChild(overlay);
 
-      card.onclick = () => showPreview(item);
+      // Quick actions (top-left, on hover): download, copy prompt, delete.
+      const quick = document.createElement('div');
+      quick.className = 'absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity';
+      const mk = (label, svg, fn) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.title = label;
+        b.setAttribute('aria-label', label);
+        b.dataset.libraryAction = label.toLowerCase();
+        b.className = 'w-7 h-7 rounded-lg bg-black/70 hover:bg-black text-white flex items-center justify-center';
+        b.innerHTML = svg;
+        b.onclick = (e) => { e.stopPropagation(); fn(); };
+        quick.appendChild(b);
+      };
+      mk('Download', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>', () => downloadItem(item));
+      if (item.prompt) {
+        mk('Copy prompt', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>', () => {
+          navigator.clipboard?.writeText(item.prompt).then(() => showToast('Prompt copied', 'success')).catch(() => {});
+        });
+      }
+      mk('Save', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>', async () => {
+        const { saveToContent } = await import('../lib/contentLibrary.js');
+        saveToContent({ url: item.url, type: typeOf(item), prompt: item.prompt || '', model: item.model || '', studio: item.studio || '' });
+        showToast('Saved to Content', 'success');
+      });
+      mk('Delete', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>', () => {
+        if (!confirmDeleteGeneration(item.url, item.type)) return;
+        // Keep MuAPI's own history from restoring it on the next load.
+        import('../lib/serverHistory.js').then((m) => m.rememberDeletedUrl(item.url)).catch(() => {});
+        historyCache = (historyCache || []).filter((i) => i.url !== item.url);
+        updateCounts(historyCache);
+        renderGrid();
+      });
+      card.appendChild(quick);
+
+      card.onclick = () => { if (typeOf(item) !== 'audio') showPreview(item); };
       grid.appendChild(card);
     });
 
@@ -308,7 +389,7 @@ export function LibraryPage() {
           queueAssetForStudio(studio.id, asset.id);
           try {
             const { navigate } = await import('../lib/router.js');
-            navigate(studio.id);
+            navigate(studio.route);
           } catch { /* navigation unavailable — the asset stays queued */ }
         }
         chooser.remove();
@@ -328,6 +409,15 @@ export function LibraryPage() {
     document.body.appendChild(chooser);
   }
 
+  function downloadItem(item) {
+    const a = document.createElement('a');
+    a.href = item.url;
+    a.download = `generation-${item.id || Date.now()}`;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.click();
+  }
+
   function showPreview(item) {
     const detailView = new MediaDetailView({
       mediaUrl: item.url,
@@ -345,12 +435,7 @@ export function LibraryPage() {
         {
           id: 'download',
           label: 'Download',
-          onClick: () => {
-            const a = document.createElement('a');
-            a.href = item.url;
-            a.download = `generation-${item.id || Date.now()}`;
-            a.click();
-          },
+          onClick: () => downloadItem(item),
         },
       ],
     });
@@ -358,14 +443,8 @@ export function LibraryPage() {
   }
 
   updateFilters();
+  gridArea.innerHTML = '<div class="flex items-center justify-center h-64 text-muted text-xs">Loading your library…</div>';
   renderGrid();
-
-  // Loading indicator while cloud data is being fetched
-  const loadingEl = document.createElement('div');
-  loadingEl.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-muted text-xs';
-  loadingEl.innerHTML = 'Loading your library…';
-  gridArea.appendChild(loadingEl);
-  setTimeout(() => { if (loadingEl.parentNode) loadingEl.remove(); }, 3000);
 
   return container;
 }

@@ -48,7 +48,7 @@
   height: 80px;
   border-radius: 20px;
   padding: 3px;
-  background: linear-gradient(135deg, var(--ring-color), color-mix(in srgb, var(--ring-color) 40%, #1a1a2e));
+  background: linear-gradient(135deg, var(--ring-color), color-mix(in srgb, var(--ring-color) 40%, #111111));
   margin-bottom: 20px;
   box-shadow: 0 0 32px color-mix(in srgb, var(--ring-color) 30%, transparent);
 }
@@ -62,7 +62,7 @@
   justify-content: center;
   font-size: 30px;
   font-weight: 800;
-  color: #08050c;
+  color: #050505;
   letter-spacing: -0.02em;
 }
 
@@ -120,7 +120,7 @@
   letter-spacing: -0.02em;
   color: #fff;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(167, 139, 250, 0.45);
+  border: 1px solid rgba(217, 255, 0, 0.45);
   border-radius: 8px;
   padding: 6px 14px;
   outline: none;
@@ -129,8 +129,8 @@
 }
 
 .nameInput:focus {
-  border-color: rgba(167, 139, 250, 0.7);
-  box-shadow: 0 0 0 3px rgba(124, 106, 247, 0.15);
+  border-color: rgba(217, 255, 0, 0.7);
+  box-shadow: 0 0 0 3px rgba(217, 255, 0, 0.15);
 }
 
 .nameInput::placeholder {
@@ -138,24 +138,42 @@
   font-weight: 500;
 }
 
+/* Primary action: the SmartVideo studios' Generate-button design (src/styles/gtm-prompt-modal.css
+   .btn-primary-modern): transparent, thin light border, 2px lime edge on the left. */
 .saveBtn {
   height: 36px;
   padding: 0 16px;
-  border-radius: 8px;
-  background: #7c6af7;
-  color: #fff;
-  border: none;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
   display: flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid var(--color-accent);
+  border-radius: 8px;
+  box-shadow: none;
+  transition: all 200ms ease;
 }
 
-.saveBtn:hover:not(:disabled) { background: #6b5ce7; }
+.saveBtn:hover:not(:disabled)  {
+  color: #ffffff;
+  background: transparent;
+  border-color: rgba(217, 255, 0, 0.5);
+  border-left-color: var(--color-accent);
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
+  filter: none;
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.saveBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px rgba(217, 255, 0, 0.4);
+}
 .saveBtn:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .cancelBtn {
@@ -279,9 +297,9 @@
   height: 36px;
   padding: 0 20px;
   border-radius: 8px;
-  background: rgba(124, 106, 247, 0.15);
-  color: #a78bfa;
-  border: 1px solid rgba(124, 106, 247, 0.3);
+  background: rgba(217, 255, 0, 0.15);
+  color: #d9ff00;
+  border: 1px solid rgba(217, 255, 0, 0.3);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -289,8 +307,8 @@
 }
 
 .emptyAction:hover {
-  background: rgba(124, 106, 247, 0.25);
-  color: #c4b5fd;
+  background: rgba(217, 255, 0, 0.25);
+  color: #d9ff00;
 }
 
 /* Grid */
@@ -320,7 +338,7 @@
 
 .cardAccentBar {
   height: 3px;
-  background: var(--accent, #7c6af7);
+  background: var(--accent, #d9ff00);
   width: 100%;
   flex-shrink: 0;
 }
@@ -439,7 +457,7 @@
     height: 56px;
     padding: 0 16px;
     z-index: 48;
-    background: rgba(18, 14, 19, 0.88);
+    background: rgba(10, 10, 10, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border);

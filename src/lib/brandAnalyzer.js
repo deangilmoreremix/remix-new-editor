@@ -118,29 +118,15 @@ export async function scrapeSite(url) {
 export async function analyzeBrand(url) {
   const site = await scrapeSite(url);
 
-  // If scraping failed, create a minimal DNA from the URL alone
-  if (!site.title && !site.bodyText) {
-    return {
-      id: generateId(),
-      url,
-      brandName: new URL(url).hostname.replace(/^www\./, ''),
-      industry: 'Unknown',
-      tagline: '',
-      valueProposition: '',
-      toneOfVoice: ['modern'],
-      brandPersonality: ['clean'],
-      targetAudience: 'General audience',
-      keyMessages: [],
-      primaryColors: ['#000000'],
-      secondaryColors: ['#ffffff'],
-      fonts: [],
-      logoUrl: null,
-      screenshotUrl: null,
-      imageryStyle: 'modern',
-      layoutStyle: 'modern',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  // No scrape backend reachable (static hosting, local dev): let the model
+  // work from the URL itself instead of returning an empty placeholder DNA.
+  const scraped = !!(site.title || site.bodyText);
+  if (!scraped) {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    site.title = host;
+    site.description = `Website: ${url}`;
+    site.bodyText = `The page content could not be fetched. Infer the brand DNA for ${url} (${host}) from the domain name and anything you know about this company. Keep answers plausible and specific.`;
+    site.favicon = `${new URL(url).origin}/favicon.ico`;
   }
 
   let screenshotUrl = null;

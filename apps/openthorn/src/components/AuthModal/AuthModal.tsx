@@ -6,6 +6,7 @@ import { getErrorMessage, logError } from '../../lib/errors'
 import SocialButton from './SocialButton'
 import AuthForm from './AuthForm'
 import styles from './AuthModal.module.css'
+import BrandLogo from '../BrandLogo/BrandLogo'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -156,7 +157,7 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
       return (
         <div className={styles.successState}>
           <div className={styles.successIcon}>
-            <img src="/assets/logo.png" alt="Smart Video" className={styles.successLogo} />
+            <BrandLogo className={styles.successLogo} />
           </div>
           <h3 className={styles.successTitle}>Check your email</h3>
           <p className={styles.successText}>
@@ -173,7 +174,7 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
       return (
         <div className={styles.successState}>
           <div className={styles.successIcon}>
-            <img src="/assets/logo.png" alt="Smart Video" className={styles.successLogo} />
+            <BrandLogo className={styles.successLogo} />
           </div>
           <h3 className={styles.successTitle}>Reset link sent</h3>
           <p className={styles.successText}>
@@ -189,9 +190,9 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
     // Normal form views
     return (
       <>
-        {/* Smart Video logo */}
+        {/* Smart Website Builder logo */}
         <div className={styles.brandIcon}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.brandLogo} />
+          <BrandLogo className={styles.brandLogo} />
         </div>
 
         {/* Tab switcher */}

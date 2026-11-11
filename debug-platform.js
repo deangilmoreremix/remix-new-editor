@@ -44,7 +44,7 @@ const componentsToTest = [
   './components/VideoRecorder.jsx',
   './components/SendsparkWorkflow.jsx',
   './components/GrapesJSEditor.jsx',
-  './components/VideoPersonalizationHub.jsx'
+  './src/components/modals/VideoPersonalizationHub.jsx'
 ];
 
 componentsToTest.forEach(component => {

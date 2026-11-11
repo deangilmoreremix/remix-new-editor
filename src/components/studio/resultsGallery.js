@@ -14,6 +14,7 @@ export const isVideoUrl = (url) => VIDEO_RE.test(url || '');
 export const isAudioUrl = (url) => AUDIO_RE.test(url || '');
 
 const ICON = {
+  save: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>',
   copyText: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',
   copyMedia: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>',
   download: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>',
@@ -138,6 +139,11 @@ export function createResultsGallery({ kind = 'image', historyType = kind, gridC
       ...(item.prompt ? [{ kind: 'copyText', label: 'Copy prompt', run: (btn) => copyText(item.prompt).then(() => btn && flashCheck(btn)).catch(() => showToast('Could not copy the prompt', 'error')) }] : []),
       { kind: 'copyMedia', label: isVid ? 'Copy link' : 'Copy image', run: (btn) => copyMedia(item.url).then(() => btn && flashCheck(btn)).catch(() => showToast('Could not copy', 'error')) },
       { kind: 'download', label: 'Download', run: () => downloadUrl(item.url, `${filenamePrefix}-${item.id || idx}.${ext}`) },
+      { kind: 'save', label: 'Save to Content', run: async () => {
+        const { saveToContent } = await import('../../lib/contentLibrary.js');
+        saveToContent({ url: item.url, type: isVid ? 'video' : (item.type || kind), prompt: item.prompt || '', model: item.model || '', studio: historyType });
+        showToast('Saved to Content', 'success');
+      } },
       ...((extraActions?.(item) || []).map((a) => ({ kind: 'extra', label: a.label, run: a.onSelect }))),
       { kind: 'delete', label: 'Delete', danger: true, run: () => removeItem(item) },
     ];
@@ -186,15 +192,10 @@ export function createResultsGallery({ kind = 'image', historyType = kind, gridC
       b.addEventListener('click', (e) => { e.stopPropagation(); a.run(b); });
       hover.appendChild(b);
     });
-    card.appendChild(hover);
-
-    // Mobile ⋯ menu (44px target)
-    const mobileBtn = document.createElement('button');
-    mobileBtn.type = 'button';
-    mobileBtn.className = 'md:hidden absolute top-2 right-2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-center';
-    mobileBtn.setAttribute('aria-label', 'More actions');
-    mobileBtn.innerHTML = ICON.more;
-    mobileBtn.addEventListener('click', (e) => {
+    // The full action list (including studio-specific ones like Extend or
+    // Remix) lives in one ⋯ menu: a 44px button on phones, and the last
+    // hover button on desktop.
+    const toggleMenu = (e) => {
       e.stopPropagation();
       const existing = card.querySelector('[data-mobile-menu]');
       if (existing) { existing.remove(); return; }
@@ -204,6 +205,7 @@ export function createResultsGallery({ kind = 'image', historyType = kind, gridC
       actions.forEach((a) => {
         const row = document.createElement('button');
         row.type = 'button';
+        row.dataset.menuAction = a.kind;
         row.className = `w-full min-h-11 px-3 rounded-lg text-left text-sm font-semibold flex items-center gap-2 ${a.danger ? 'text-red-400 hover:bg-red-500/10' : 'text-white/80 hover:bg-white/5'}`;
         row.innerHTML = `${ICON[a.kind] || ''}<span></span>`;
         row.querySelector('span').textContent = a.label;
@@ -211,7 +213,29 @@ export function createResultsGallery({ kind = 'image', historyType = kind, gridC
         menu.appendChild(row);
       });
       card.appendChild(menu);
-    });
+      const close = (ev) => { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', close, true); } };
+      setTimeout(() => document.addEventListener('click', close, true), 0);
+    };
+    if (actions.some((a) => a.kind === 'extra')) {
+      const moreHover = document.createElement('button');
+      moreHover.type = 'button';
+      moreHover.title = 'More actions';
+      moreHover.setAttribute('aria-label', 'More actions');
+      moreHover.dataset.action = 'more';
+      moreHover.className = ROUND_BTN;
+      moreHover.innerHTML = ICON.more.replace('width="18" height="18"', 'width="14" height="14"');
+      moreHover.addEventListener('click', toggleMenu);
+      hover.appendChild(moreHover);
+    }
+    card.appendChild(hover);
+
+    // Mobile ⋯ menu (44px target)
+    const mobileBtn = document.createElement('button');
+    mobileBtn.type = 'button';
+    mobileBtn.className = 'md:hidden absolute top-2 right-2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-center';
+    mobileBtn.setAttribute('aria-label', 'More actions');
+    mobileBtn.innerHTML = ICON.more;
+    mobileBtn.addEventListener('click', toggleMenu);
     card.appendChild(mobileBtn);
 
     // Prompt & details footer

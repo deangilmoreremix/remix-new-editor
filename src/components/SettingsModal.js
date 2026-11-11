@@ -289,6 +289,38 @@ export function SettingsModal(onClose) {
         },
     });
 
+    // Stock media. Optional: SmartVid provides shared access, and your own key
+    // (free from each site) gives you your own rate limit.
+    const stockTest = (path, header, label) => async (key) => {
+        const res = await fetch(path, { headers: { [header]: key } });
+        if (res.ok) return { ok: true, message: `${label} connected ✓` };
+        let msg = `${label} rejected the key (${res.status}).`;
+        try { const body = await res.json(); msg = body?.error?.message || msg; } catch { /* ignore */ }
+        return { ok: false, message: msg };
+    };
+
+    const pexelsForm = buildProviderForm({
+        title: 'Pexels API Key (optional)',
+        description: 'Free stock photos and videos in the Template Generator and Stock Media. Leave empty to use SmartVid\'s shared access.',
+        grabUrl: 'https://www.pexels.com/api/new/',
+        getKey: () => apiKeyManager.getPexelsKey(),
+        setKey: (k, p) => apiKeyManager.setPexelsKey(k, p),
+        clearKey: () => apiKeyManager.clearPexelsKey(),
+        placeholder: 'Pexels API key',
+        testConnection: stockTest('/api/pexels/photos/search?query=nature&per_page=1', 'x-pexels-api-key', 'Pexels'),
+    });
+
+    const pixabayForm = buildProviderForm({
+        title: 'Pixabay API Key (optional)',
+        description: 'Free stock photos, illustrations, vectors and videos in the Template Generator and Stock Media. Leave empty to use SmartVid\'s shared access.',
+        grabUrl: 'https://pixabay.com/api/docs/',
+        getKey: () => apiKeyManager.getPixabayKey(),
+        setKey: (k, p) => apiKeyManager.setPixabayKey(k, p),
+        clearKey: () => apiKeyManager.clearPixabayKey(),
+        placeholder: 'Pixabay API key',
+        testConnection: stockTest('/api/pixabay/images/search?query=nature&per_page=3', 'x-pixabay-api-key', 'Pixabay'),
+    });
+
     const closeRow = document.createElement('div');
     closeRow.className = 'mt-2 flex items-center justify-between gap-3';
 
@@ -310,6 +342,8 @@ export function SettingsModal(onClose) {
     modal.appendChild(muapiForm);
     modal.appendChild(openaiForm);
     modal.appendChild(videodbForm);
+    modal.appendChild(pexelsForm);
+    modal.appendChild(pixabayForm);
     modal.appendChild(closeRow);
     modal.appendChild(closeX);
 

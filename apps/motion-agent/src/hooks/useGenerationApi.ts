@@ -200,7 +200,8 @@ export function useGenerationApi(): UseGenerationApiReturn {
                 const codeToShow = stripMarkdownFences(accumulatedText);
                 onCodeGenerated?.(codeToShow);
               } else if (event.type === "error") {
-                throw new Error(event.error);
+                // AI SDK UI streams carry the message in errorText.
+                throw new Error(event.errorText || event.error || "Generation failed.");
               }
             } catch (parseError) {
               if (

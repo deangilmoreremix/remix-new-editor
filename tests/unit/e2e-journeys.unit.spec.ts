@@ -53,6 +53,19 @@ vi.mock('../../src/lib/editor/captionActions.js', () => ({
 }));
 
 vi.mock('../../src/lib/thumbnails.js', () => ({
+  createEditorBanner: vi.fn(() => document.createElement('div')),
+  demoteBannerHeading: vi.fn((el) => {
+    const h = el.querySelector('h1');
+    if (h) { const d = document.createElement('div'); d.textContent = h.textContent; h.replaceWith(d); }
+    return el;
+  }),
+  createStudioHeader: vi.fn((_id, title = '', subtitle = '') => {
+    const el = document.createElement('div');
+    el.innerHTML = `<h1></h1><p></p>`;
+    el.querySelector('h1').textContent = title;
+    el.querySelector('p').textContent = subtitle;
+    return el;
+  }),
   getTemplateThumbnailCandidates: vi.fn((template) => ['/thumb.png']),
   saveCustomThumbnailToCache: vi.fn(),
   clearCustomThumbnailCache: vi.fn(),
@@ -156,6 +169,7 @@ vi.mock('../../src/lib/modelSelectorUI.js', () => ({
 
 vi.mock('../../src/lib/templateEngine.js', () => ({
   getNicheTerms: vi.fn(() => []),
+  detectNiche: vi.fn(() => 'general-business'),
   enrichPromptString: vi.fn((p) => p),
   deriveEngineInputFromTemplate: vi.fn(() => ({})),
   composeNegativePrompt: vi.fn(() => ''),
@@ -213,7 +227,9 @@ vi.mock('../../src/lib/supabase.js', () => ({
 
 vi.mock('../../src/components/UploadPicker.js', () => ({
   createUploadPicker: vi.fn(() => ({
+    trigger: document.createElement('button'),
     panel: document.createElement('div'),
+    reset: vi.fn(),
     open: vi.fn(),
     close: vi.fn(),
   })),
@@ -512,25 +528,14 @@ describe('E2E User Journey Tests', () => {
       expect(browseHeader.textContent).toBe('CINEMATIC TEMPLATES');
     });
 
-    it('TemplateStudio has navigation header with studio links', async () => {
+    it('TemplateStudio has no studio menu of its own (side menu is the only one)', async () => {
       const element = TemplateStudio('restaurant-brand-film');
       container.innerHTML = '';
       container.appendChild(element);
       await wait(50);
 
-      // Verify nav buttons exist
-      const navBtns = container.querySelectorAll('[data-nav]');
-      expect(navBtns.length).toBeGreaterThan(5);
-
-      // Verify specific studio links
-      const cinemaBtn = Array.from(navBtns).find(btn => btn.dataset.nav === 'cinema');
-      expect(cinemaBtn).not.toBeNull();
-
-      const imageBtn = Array.from(navBtns).find(btn => btn.dataset.nav === 'image');
-      expect(imageBtn).not.toBeNull();
-
-      const videoBtn = Array.from(navBtns).find(btn => btn.dataset.nav === 'video');
-      expect(videoBtn).not.toBeNull();
+      expect(container.querySelectorAll('[data-nav]').length).toBe(0);
+      expect(container.querySelector('[data-studio-menu]')).toBeNull();
     });
 
     it('TemplateStudio back button navigates to templates', async () => {
@@ -716,7 +721,8 @@ describe('E2E User Journey Tests', () => {
       container.appendChild(element);
       await wait(50);
 
-      const videoUploadBtn = container.querySelector('#videoUploadBtn');
+      // Video templates expose the Video Studio source-video picker.
+      const videoUploadBtn = container.querySelector('.template-media-field[data-media-kind="video"]');
       expect(videoUploadBtn).not.toBeNull();
     });
 
@@ -778,6 +784,7 @@ describe('E2E User Journey Tests', () => {
     });
 
     it('closes model picker on second click', async () => {
+      document.querySelectorAll('.upstream-model-picker').forEach(h => h.remove());
       const element = TemplateStudio('restaurant-brand-film');
       container.innerHTML = '';
       container.appendChild(element);
@@ -787,14 +794,15 @@ describe('E2E User Journey Tests', () => {
       modelBtn.click();
       await wait(150);
 
-      let dropdown = container.querySelector('[role="listbox"]');
-      expect(dropdown.classList.contains('opacity-100')).toBe(true);
+      // The Video Studio model picker mounts in a fixed host on <body>.
+      for (let i = 0; i < 20 && !document.querySelector('.upstream-model-picker'); i++) await wait(50);
+    for (let i = 0; i < 20 && !document.querySelector('.upstream-model-picker'); i++) await new Promise(r => setTimeout(r, 50));
+      expect(document.querySelector('.upstream-model-picker')).not.toBeNull();
 
       modelBtn.click();
       await wait(150);
 
-      dropdown = container.querySelector('[role="listbox"]');
-      expect(dropdown.classList.contains('opacity-0')).toBe(true);
+      expect(document.querySelector('.upstream-model-picker')).toBeNull();
     });
 
     it('model picker shows loading state initially', async () => {
@@ -1013,7 +1021,7 @@ describe('E2E User Journey Tests', () => {
       advancedBtn.click();
       await wait(50);
 
-      expect(advancedBtn.textContent).toBe('Hide Advanced Controls');
+      expect(advancedBtn.textContent.trim()).toBe('Less');
       expect(advControls.classList.contains('hidden')).toBe(false);
     });
 
@@ -1036,7 +1044,7 @@ describe('E2E User Journey Tests', () => {
       advancedBtn.click();
       await wait(50);
 
-      expect(advancedBtn.textContent).toBe('Hide Advanced Controls');
+      expect(advancedBtn.textContent.trim()).toBe('Less');
     }, 30000);
 
     it('TemplateStudio back button renders', async () => {

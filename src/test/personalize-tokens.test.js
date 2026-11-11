@@ -64,6 +64,23 @@ function makeProfile(overrides = {}) {
       buyingSignals: ['Published a new paper'],
       tone: 'technical',
     },
+    // Images saved by the Personalize window's image finder.
+    personalization: {
+      assets: {
+        identities: [{ id: 'p1', role: 'presenter_identity', url: 'https://cdn.example/ada-presenter.png' }],
+        primaryIdentityId: 'p1',
+        logos: [
+          { id: 'l1', role: 'logo', url: 'https://cdn.example/old-logo.png' },
+          { id: 'l2', role: 'logo', url: 'https://cdn.example/logo.png' },
+        ],
+        primaryLogoId: 'l2',
+        products: [{ id: 'pr1', role: 'product_reference', url: 'https://cdn.example/engine.png' }],
+        brandReferences: [{ id: 'b1', role: 'brand_reference', url: 'https://cdn.example/workshop.png' }],
+        ctaGraphic: { id: 'cta', role: 'cta_graphic', url: 'https://cdn.example/cta.png' },
+        firstFrame: { id: 'f1', role: 'first_frame', url: 'https://cdn.example/first.png' },
+        lastFrame: { id: 'f2', role: 'last_frame', url: 'https://cdn.example/last.png' },
+      },
+    },
     variables: {},
     ...overrides,
   };
@@ -142,7 +159,8 @@ describe('tokenSchema', () => {
     expect(vars.service).toBe('Consulting');
     expect(vars.tone).toBe('technical');
     expect(vars.brandColor).toBe('#d9ff00');
-    expect(vars.logoUrl).toBe('https://img.example/logo.svg');
+    // The image finder's primary logo wins over the older assets.logos list.
+    expect(vars.logoUrl).toBe('https://cdn.example/logo.png');
     expect(vars.twitter).toBe('https://x.com/ada');
     // Regression: these four were the only enrichment fields the modal used
     // to write, and they were always empty strings.

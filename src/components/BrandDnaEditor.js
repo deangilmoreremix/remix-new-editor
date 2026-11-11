@@ -87,6 +87,31 @@ export function BrandDnaEditor(params = {}) {
   }
   root.appendChild(media);
 
+  // ---- Personalize (OpenHiggsBolt brand/[id] page) ----
+  // Opens the shared personalization modal on this brand's website screenshot
+  // (16:9), with the tagline / value proposition as the prompt.
+  if (state.screenshotUrl) {
+    const personalizeBtn = document.createElement('button');
+    personalizeBtn.type = 'button';
+    personalizeBtn.className = 'btn-secondary-modern mb-8';
+    personalizeBtn.textContent = 'Personalize';
+    personalizeBtn.setAttribute('aria-haspopup', 'dialog');
+    personalizeBtn.addEventListener('click', async () => {
+      const { openPersonalization } = await import('../features/personalization/mount.jsx');
+      openPersonalization({
+        studioId: 'brand-studio',
+        studioName: 'Brand Studio',
+        mediaUrl: state.screenshotUrl,
+        mediaType: 'image',
+        aspectRatio: '16:9',
+        prompt: state.tagline || state.valueProposition || '',
+        title: state.brandName || 'Brand',
+        trigger: personalizeBtn,
+      });
+    });
+    root.appendChild(personalizeBtn);
+  }
+
   // ---- Editable Fields ----
   const fields = [
     { key: 'brandName', label: 'Brand Name', type: 'text' },

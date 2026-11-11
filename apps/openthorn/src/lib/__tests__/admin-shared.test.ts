@@ -23,7 +23,7 @@ describe('admin server helpers', () => {
     const { isAdminUser } = await import('../../../api/_shared')
     await expect(isAdminUser(USER_ID)).resolves.toBe(true)
     const [url, init] = fetchMock.mock.calls[0]
-    expect(String(url)).toContain(`/rest/v1/profiles?id=eq.${USER_ID}`)
+    expect(String(url)).toContain(`/rest/v1/wb_profiles?id=eq.${USER_ID}`)
     expect(init.headers.Authorization).toBe('Bearer service-key')
   })
 
@@ -36,35 +36,31 @@ describe('admin server helpers', () => {
     await expect(shared.isAdminUser(USER_ID)).resolves.toBe(false)
   })
 
-  it('adminSetUserSuspended bans via the auth admin API and mirrors the flag', async () => {
+  it('adminSetUserSuspended only flags the builder profile and never touches auth', async () => {
     fetchMock.mockResolvedValue(jsonResponse({}))
     const { adminSetUserSuspended } = await import('../../../api/_shared')
     await adminSetUserSuspended(USER_ID, true)
-
-    const calls = fetchMock.mock.calls.map(([u]) => String(u))
-    expect(calls[0]).toBe(`https://test.supabase.co/auth/v1/admin/users/${USER_ID}`)
-    expect(fetchMock.mock.calls[0][1].method).toBe('PUT')
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ ban_duration: '876000h' })
-    expect(calls[1]).toContain(`/rest/v1/profiles?id=eq.${USER_ID}`)
-    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ suspended: true })
-  })
-
-  it('adminSetUserSuspended(false) lifts the ban', async () => {
-    fetchMock.mockResolvedValue(jsonResponse({}))
-    const { adminSetUserSuspended } = await import('../../../api/_shared')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(String(fetchMock.mock.calls[0][0])).toBe(`https://test.supabase.co/rest/v1/wb_profiles?id=eq.${USER_ID}`)
+    expect(fetchMock.mock.calls[0][1].method).toBe('PATCH')
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ suspended: true })
     await adminSetUserSuspended(USER_ID, false)
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ ban_duration: 'none' })
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ suspended: false })
   })
 
-  it('adminDeleteUser deletes via the auth admin API', async () => {
+  it('adminDeleteUser removes builder rows only and never calls the auth admin API', async () => {
     fetchMock.mockResolvedValue(jsonResponse({}))
     const { adminDeleteUser } = await import('../../../api/_shared')
     await adminDeleteUser(USER_ID)
-    expect(String(fetchMock.mock.calls[0][0])).toBe(`https://test.supabase.co/auth/v1/admin/users/${USER_ID}`)
-    expect(fetchMock.mock.calls[0][1].method).toBe('DELETE')
+    const urls = fetchMock.mock.calls.map(([u]) => String(u))
+    expect(urls.some((u) => u.includes('/auth/v1/'))).toBe(false)
+    expect(urls.every((u) => /\/rest\/v1\/wb_[a-z_]+\?/.test(u))).toBe(true)
+    expect(urls).toContain(`https://test.supabase.co/rest/v1/wb_projects?user_id=eq.${USER_ID}`)
+    expect(urls[urls.length - 1]).toBe(`https://test.supabase.co/rest/v1/wb_profiles?id=eq.${USER_ID}`)
+    expect(fetchMock.mock.calls.every(([, i]) => i.method === 'DELETE')).toBe(true)
   })
 
-  it('admin mutations throw when the auth admin API errors', async () => {
+  it('admin mutations throw when the database errors', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ error: 'nope' }, false, 500))
     const { adminDeleteUser } = await import('../../../api/_shared')
     await expect(adminDeleteUser(USER_ID)).rejects.toThrow()

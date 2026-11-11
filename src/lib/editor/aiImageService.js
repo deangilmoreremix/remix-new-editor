@@ -1,7 +1,7 @@
 /**
  * AI Image service for Template Generator
  *
- * Uses OpenAI's GPT-Image-2 model via the Responses API for context-aware
+ * Uses OpenAI's Images 2.6 models (gpt-image-2.6-flare by default) via the Responses API for context-aware
  * image generation. The actual API key is held server-side in Netlify.
  *
  * The frontend posts to /api/timeline-image-generate which:
@@ -12,6 +12,9 @@
  * Also supports direct image generation (without context) for simpler
  * standalone use via /v1/images/generations with gpt-image-2.
  */
+
+import { openaiKeyHeader } from '../openaiKeyHeader.js';
+import { DEFAULT_IMAGE_MODEL, DETAIL_IMAGE_MODEL, isModelUnavailable } from './ai/openaiImages.js';
 
 const NETLIFY_ENDPOINT = '/api/timeline-image-generate';
 
@@ -40,15 +43,16 @@ export async function generateImage({
   referenceImageUrl,
   editInstruction,
   n = 1,
+  model,
 } = {}) {
   if (!prompt || !prompt.trim()) {
     return { ok: false, assets: [], error: 'Prompt is required' };
   }
 
   try {
-    const res = await fetch(NETLIFY_ENDPOINT, {
+    const send = (useModel) => fetch(NETLIFY_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...openaiKeyHeader() },
       body: JSON.stringify({
         prompt: prompt.trim(),
         niche,
@@ -59,8 +63,18 @@ export async function generateImage({
         referenceImageUrl,
         editInstruction,
         n,
+        model: useModel,
       }),
     });
+    // Images 2.6: Flare for new images, Sunburst for reference edits.
+    const wanted = model || ((referenceImageUrl || editInstruction) ? DETAIL_IMAGE_MODEL : DEFAULT_IMAGE_MODEL);
+    let res = await send(wanted);
+    // Account without 2.6 access yet: retry once on gpt-image-2 (unless pinned by the caller).
+    if (!res.ok && !model && wanted !== 'gpt-image-2') {
+      let msg = '';
+      try { msg = (await res.clone().json())?.error || ''; } catch { /* not JSON */ }
+      if (isModelUnavailable(res.status, msg)) res = await send('gpt-image-2');
+    }
 
     if (!res.ok) {
       let detail = '';
@@ -119,7 +133,7 @@ export function normalizeGeneratedImage(result) {
     type: 'image',
     source: 'openai',
     provider: 'openai',
-    model: result.model || 'gpt-image-2',
+    model: result.model || DEFAULT_IMAGE_MODEL,
     name: result.prompt?.slice(0, 60) || 'AI generated image',
     url: result.url,
     thumbnail: result.url,

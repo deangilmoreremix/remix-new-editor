@@ -2,8 +2,17 @@ import { BaseModal } from './BaseModal.jsx';
 import { searchRecipes, getRecipeById, runRecipe } from '../../lib/recipeEngine.js';
 import { muapi } from '../../lib/muapi.js';
 import { MODAL_SHORTCUTS, renderShortcutsOverlay } from './modalShortcuts.js';
+import { injectCatalogModalStyles } from './catalogModalStyles.js';
 
 const STORAGE_KEY = 'recipeHistory';
+
+function esc(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 export class RecipeModal extends BaseModal {
   constructor(options = {}) {
@@ -20,10 +29,20 @@ export class RecipeModal extends BaseModal {
     this.selectedRecipeId = '';
     this.running = false;
     this.logs = [];
-    this._basePrompt = '';
+    this._basePrompt = options.basePrompt || '';
+    this.lastResult = '';
     this.history = this._loadHistory();
     this.loading = options.loading || false;
     this.showShortcuts = false;
+  }
+
+  open() {
+    injectCatalogModalStyles();
+    super.open();
+  }
+
+  onRender() {
+    this._bind();
   }
 
   _loadHistory() {
@@ -59,7 +78,14 @@ export class RecipeModal extends BaseModal {
       el.onclick = () => {
         this.selectedRecipeId = el.dataset.selectRecipe;
         this.logs = [];
+        this.lastResult = '';
         this._refresh();
+      };
+      el.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.click();
+        }
       };
     });
 
@@ -68,6 +94,7 @@ export class RecipeModal extends BaseModal {
         if (!this.selectedRecipeId) return;
         this.running = true;
         this.logs = [];
+        this.lastResult = '';
         this._addLog('Starting recipe...');
         this._refresh();
         this._runRecipe(this.selectedRecipeId);
@@ -105,17 +132,16 @@ export class RecipeModal extends BaseModal {
     }
 
     this.running = false;
+    this.lastResult = previousResult || '';
     this._addLog('Recipe finished.');
+    this.history = [{ id: recipeId, time: new Date().toISOString(), result: this.lastResult }, ...this.history];
     this._saveHistory();
     this._refresh();
     if (previousResult) this.onRunRecipe(previousResult);
   }
 
   _refresh() {
-    if (this.container) {
-      this.render();
-      this._bind();
-    }
+    this.refresh();
   }
 
   handleKeyDown(e) {
@@ -140,7 +166,7 @@ export class RecipeModal extends BaseModal {
       <div class="recipe-split">
         <div class="recipe-catalog">
           <div class="recipe-controls">
-            <input type="search" data-search placeholder="Search recipes..." value="${this.query}" />
+            <input type="search" data-search placeholder="Search recipes..." value="${esc(this.query)}" />
             <select data-category>
               <option value="">All Categories</option>
               <option value="commercial" ${this.category === 'commercial' ? 'selected' : ''}>Commercial</option>
@@ -153,7 +179,7 @@ export class RecipeModal extends BaseModal {
           </div>
           <div class="recipe-list">
             ${this.loading ? this.renderSkeleton() : recipes.length ? recipes.map(r => `
-              <div class="recipe-card ${this.selectedRecipeId === r.id ? 'selected' : ''}" data-select-recipe="${r.id}">
+              <div class="recipe-card ${this.selectedRecipeId === r.id ? 'selected' : ''}" data-select-recipe="${r.id}" role="button" tabindex="0">
                 <div class="recipe-name">${r.name}</div>
                 <div class="recipe-desc">${r.description}</div>
                 <div class="recipe-meta">${r.steps.length} steps · ${r.category}</div>
@@ -170,14 +196,15 @@ export class RecipeModal extends BaseModal {
                 ${selected.steps.map((s, i) => `<div class="step"><span class="step-num">${i + 1}</span>${s.label} <span class="step-meta">${s.model}</span></div>`).join('')}
               </div>
               <label class="text-xs text-muted mt-3 block">Base Prompt</label>
-              <textarea class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50" rows="3" data-base-prompt placeholder="Base prompt used across steps...">${this._basePrompt || ''}</textarea>
+              <textarea class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50" rows="3" data-base-prompt placeholder="Base prompt used across steps...">${esc(this._basePrompt)}</textarea>
             </div>
             <div class="detail-actions">
               <button type="button" class="btn-primary-modern" data-action="run-recipe" ${this.running ? 'disabled' : ''}>${this.running ? 'Running...' : 'Run Recipe'}</button>
             </div>
             <div class="recipe-log">
-              ${this.logs.map(l => `<div class="log-line"><span class="log-time">${new Date(l.time).toLocaleTimeString()}</span>${l.text}</div>`).join('')}
+              ${this.logs.map(l => `<div class="log-line"><span class="log-time">${new Date(l.time).toLocaleTimeString()}</span>${esc(l.text)}</div>`).join('')}
             </div>
+            ${this.lastResult && !this.running ? `<div class="recipe-result"><a href="${esc(this.lastResult)}" target="_blank" rel="noopener noreferrer">Open result ↗</a></div>` : ''}
           ` : this.loading ? '<div class="empty-state"><div class="skeleton-card" style="height:120px"></div></div>' : '<div class="empty-state">Select a recipe to preview steps.</div>'}
         </div>
       </div>

@@ -40,6 +40,19 @@ vi.mock('../../src/lib/editor/captionActions.js', () => ({
 }));
 
 vi.mock('../../src/lib/thumbnails.js', () => ({
+  createEditorBanner: vi.fn(() => document.createElement('div')),
+  demoteBannerHeading: vi.fn((el) => {
+    const h = el.querySelector('h1');
+    if (h) { const d = document.createElement('div'); d.textContent = h.textContent; h.replaceWith(d); }
+    return el;
+  }),
+  createStudioHeader: vi.fn((_id, title = '', subtitle = '') => {
+    const el = document.createElement('div');
+    el.innerHTML = `<h1></h1><p></p>`;
+    el.querySelector('h1').textContent = title;
+    el.querySelector('p').textContent = subtitle;
+    return el;
+  }),
   getTemplateThumbnailCandidates: vi.fn(() => ['/thumb.png']),
   createHeroSection: vi.fn(() => document.createElement('div')),
   getCustomThumbnailFromCache: vi.fn(() => null),
@@ -78,6 +91,7 @@ vi.mock('../../src/lib/modelSelectorUI.js', () => ({
 }));
 
 vi.mock('../../src/lib/templateEngine.js', () => ({
+  detectNiche: vi.fn(() => 'general-business'),
   getNicheTerms: vi.fn(() => []),
   enrichPromptString: vi.fn((p) => p),
   deriveEngineInputFromTemplate: vi.fn(() => ({})),
@@ -160,10 +174,6 @@ vi.mock('../../src/components/studios/ExampleGallery.js', () => ({
   default: vi.fn(() => document.createElement('div')),
 }));
 
-vi.mock('../../src/lib/modelPickerIntegration.js', () => ({
-  openModelPicker: vi.fn(() => Promise.resolve()),
-}));
-
 vi.mock('../../src/lib/studioControls.js', () => ({
   createAdvancedControls: vi.fn(() => document.createElement('div')),
 }));
@@ -239,7 +249,6 @@ import { CinemaStudio } from '../../src/components/CinemaStudio.js';
 import { CommercialStudio } from '../../src/components/CommercialStudio.js';
 import { LipSyncStudio } from '../../src/components/LipSyncStudio.js';
 import { StoryboardStudio } from '../../src/components/StoryboardStudio.js';
-import { TrainingStudio } from '../../src/components/TrainingStudio.js';
 import { UpscaleStudio } from '../../src/components/UpscaleStudio.js';
 import { VideoToolsStudio } from '../../src/components/VideoToolsStudio.js';
 import { CinemaTemplateStudio } from '../../src/components/CinemaTemplateStudio.js';
@@ -408,7 +417,7 @@ describe('All studios smoke tests', () => {
 
     it('renders header with title', async () => {
       await mountStudio(CommercialStudio);
-      expect(container.textContent).toContain('Commercial');
+      expect(container.textContent).toContain('Product Shot');
     });
 
     it('renders prompt input', async () => {
@@ -474,34 +483,6 @@ describe('All studios smoke tests', () => {
 
     it('renders generate button', async () => {
       mountStudio(StoryboardStudio);
-      await new Promise(r => setTimeout(r, 50));
-      const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
-      expect(genBtn).not.toBeNull();
-    });
-  });
-
-  describe('TrainingStudio', () => {
-    it('mounts without crashing', async () => {
-      mountStudio(TrainingStudio);
-      await new Promise(r => setTimeout(r, 50));
-      expect(container.querySelector('h1')).not.toBeNull();
-    });
-
-    it('renders header with title', async () => {
-      mountStudio(TrainingStudio);
-      await new Promise(r => setTimeout(r, 50));
-      expect(container.textContent).toContain('Training');
-    });
-
-    it('renders prompt input', async () => {
-      mountStudio(TrainingStudio);
-      await new Promise(r => setTimeout(r, 50));
-      const input = container.querySelector('input[type="text"], textarea');
-      expect(input).not.toBeNull();
-    });
-
-    it('renders generate button', async () => {
-      mountStudio(TrainingStudio);
       await new Promise(r => setTimeout(r, 50));
       const genBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent?.includes('Generate'));
       expect(genBtn).not.toBeNull();

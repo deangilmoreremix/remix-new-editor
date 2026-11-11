@@ -1,23 +1,22 @@
 import { getTemplateById } from '../lib/templates.js';
+import { showToast } from '../lib/loading.js';
 import { normalizeTemplate } from '../lib/templateAdapter.js';
 import { resolveTemplate } from '../lib/showcaseTemplateResolver.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
-import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { resolveModel, normalizeAspectRatio, normalizeDuration, applyFormStateToParams, attachThumbnail, buildNegativePrompt, validateBeforeGenerate, formatGenerationError } from '../lib/templateGenerationOrchestrator.js';
-import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels, t2vModels, v2vModels, getV2VModelById } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { mountModelSelector, PROVIDER_LOGOS, invertLogos, getProviderStyle, positionModelSelectorDropdown, renderProviderLogoImg } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { createUploadPicker } from './UploadPicker.js';
+import { createTemplateMediaField, extractTemplateMedia, routeTemplateGeneration, applyTemplateMediaToParams, templateMediaRoute, modelsForRoute, modelForRoute, TEMPLATE_ROUTE_LABELS, createVideoSettingsControls, snapAspectRatioForModel, openStudioModelPicker, findTemplateModel, promptlessV2VBlock, endFrameSupport, dropUndeclaredSettings, modelTakesAspectRatio } from '../lib/templateMedia.js';
 import { navigate } from '../lib/router.js';
-import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { createActionRow, createAdvancedButton, setActionPillLabel, styleThumbnailButton, arrangeActionRow } from './studio/actionRow.js';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
@@ -25,6 +24,11 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
+import { composeTemplatePrompt, defaultCreativeTiles, detectTemplateNiche } from '../lib/templatePromptComposer.js';
+import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
+import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, snapshotGenerationParams } from '../lib/templateResultTools.js';
+import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
+import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { getTemplateStudioAsset } from '../lib/personalizerAdapters.js';
 
 export function TemplateStudio(templateId) {
@@ -50,12 +54,20 @@ export function TemplateStudio(templateId) {
   const specs = getTemplateSpecs(templateId) || {};
   const hasSpecs = hasEnhancedSpecs(templateId);
 
-  // Support both input structures
+  // Support both input structures. normalizeTemplate already merges a niche
+  // template's quick + advanced inputs into `inputs`, so keep each field once
+  // (otherwise every field is rendered twice).
+  const seenInputNames = new Set();
   const allInputs = [
     ...(template.inputs || []),
     ...(template.quickInputs || []),
     ...(template.advancedInputs || [])
-  ];
+  ].filter((input) => {
+    if (!input || !input.name) return true;
+    if (seenInputNames.has(input.name)) return false;
+    seenInputNames.add(input.name);
+    return true;
+  });
 
   // State management
   const formState = {};
@@ -63,10 +75,60 @@ export function TemplateStudio(templateId) {
   const outputTabValues = {};
   let aiEnhancer = true;
   let lastBuiltPrompt = '';
+  // True while the Enhanced Prompt shown is the user's own edit (wand or
+  // typing); any change to the inputs rebuilds it from all of them.
+  let promptManuallyEdited = false;
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
   let lastGeneratedUrl = '';
+  let mediaRouteBadge = null;
+  let aspectRatioNote = null;
+  // Set by the model picker: switches its model list when the route changes.
+  let syncModelPickerToRoute = null;
+  // The model the user chose themselves (model picker or list), as opposed
+  // to one switched in automatically when media changes the route.
+  let explicitModelPick = null;
+  // Mode of the variant picked in the Video / Image Studio model picker
+  // (t2v / i2v / v2v / t2i / i2i); null until the user picks one.
+  let pickedMode = null;
+  // Duration / resolution / native-audio controls (video templates).
+  let videoSettings = null;
+  // Video Studio prompt-bar tools (ratio, Advanced, Motion & Style,
+  // attachment toolbar).
+  let videoTools = null;
+  // Media fields by kind, so attachments from the prompt toolbar land in them.
+  const mediaFields = { image: [], frame: [], video: [] };
+  // Template duration / resolution selects are folded into videoSettings so
+  // only values the selected model accepts are offered.
+  const templateVideoPrefs = {};
+  // Which MuAPI path Generate will take with the media currently attached.
+  function currentMediaRoute() {
+    const media = extractTemplateMedia(formState, allInputs);
+    return { media, ...routeTemplateGeneration({ outputType: template.outputType, modelType: template.modelType, model: selectedModel, pickedMode, ...media }) };
+  }
+  function refreshMediaRoute() {
+    const { route, model } = currentMediaRoute();
+    if (mediaRouteBadge) {
+      // Some video-to-video models (e.g. watermark remover) take no prompt:
+      // say so instead of silently dropping the template prompt.
+      const m = findTemplateModel(model);
+      const noPrompt = route === 'v2v' && m && m.hasPrompt === false;
+      mediaRouteBadge.textContent = `${TEMPLATE_ROUTE_LABELS[route] || route}${noPrompt ? ' · prompt not used by this model' : ''}`;
+      mediaRouteBadge.title = noPrompt ? `${m.name} does not take a prompt. Pick a different video-to-video model in the model dropdown to use your template prompt.` : '';
+    }
+    if (aspectRatioNote) {
+      const takesRatio = modelTakesAspectRatio(route, model);
+      const mm = findTemplateModel(model);
+      aspectRatioNote.textContent = takesRatio ? '' : `${mm?.name || 'This model'} has no aspect-ratio setting, so this choice isn't sent. Pick another model in the model dropdown to control the ratio.`;
+      aspectRatioNote.classList.toggle('hidden', takesRatio);
+    }
+    // Like the Video Studio: attaching an image / video swaps the model
+    // picker to models that accept it.
+    if (syncModelPickerToRoute) syncModelPickerToRoute(route);
+    if (videoSettings) videoSettings.refresh();
+    if (videoTools) videoTools.refresh();
+  }
   // Validate the template's default model against its modelType so video
   // generation always starts with a real, type-compatible model ID.
   // Effect models (ai-video-effects, motion-controls, video-effects, vfx, …)
@@ -99,6 +161,20 @@ export function TemplateStudio(templateId) {
   let retryCount = 0;
   const MAX_RETRIES = 2;
 
+  // Creative Intelligence cards: what the prompt composer uses (editable).
+  const tileState = defaultCreativeTiles(template.outputType === 'image' ? 'image' : 'video', specs);
+  if (!tileState.niche) tileState.niche = detectTemplateNiche({ template });
+  const tileEdited = {};
+  const escapeAttr = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  // Listeners on document / window, removed by container.cleanup() (called by
+  // the router when leaving the page) so a closed studio is not kept alive.
+  const globalCleanups = [];
+  const addGlobalListener = (target, type, handler, options) => {
+    target.addEventListener(type, handler, options);
+    globalCleanups.push(() => target.removeEventListener(type, handler, options));
+  };
+
   // Create full-page wrapper
   const container = document.createElement('div');
   container.className = 'template-studio min-h-screen bg-[#0a0a0b] text-white';
@@ -116,41 +192,6 @@ export function TemplateStudio(templateId) {
   const main = document.createElement('main');
   main.className = 'flex-1';
 
-  // Top nav row
-  const navHeader = document.createElement('div');
-  navHeader.className = 'border-b border-white/5 px-6 py-4';
-  navHeader.innerHTML = `
-    <div class="flex items-center gap-3">
-      <div id="studio-menu-slot"></div>
-      <div class="flex items-center gap-8 overflow-x-auto text-sm text-zinc-400">
-        <button class="hover:text-white transition" data-nav="explore">Explore</button>
-        <button class="hover:text-white transition" data-nav="image">Image</button>
-        <button class="hover:text-white transition" data-nav="video">Video</button>
-        <button class="hover:text-white transition" data-nav="tools">Storyboard</button>
-        <button class="hover:text-white transition" data-nav="edit">Edit</button>
-        <button class="hover:text-white transition" data-nav="character">Character</button>
-        <button class="hover:text-white transition" data-nav="effects">Vibe Motion</button>
-        <button class="hover:text-white transition" data-nav="cinema">Cinema Studio</button>
-        <button class="hover:text-white transition" data-nav="influencer">AI Influencer</button>
-        <button class="hover:text-white transition" data-nav="apps">Apps</button>
-        <button class="text-white font-semibold" data-nav="templates">Templates</button>
-        <button class="hover:text-white transition" data-nav="assist">Assist</button>
-        <button class="hover:text-white transition" data-nav="community">Community</button>
-      </div>
-    </div>
-  `;
-  main.appendChild(navHeader);
-
-  // All-studios side menu (drawer) — opened via the menu icon
-  const drawer = mountStudioDrawer(document.body, { currentRoute: 'templates' });
-  const menuSlot = navHeader.querySelector('#studio-menu-slot');
-  if (menuSlot) menuSlot.appendChild(createStudioMenuButton(drawer.toggle));
-
-  // Add nav click handlers
-  navHeader.querySelectorAll('[data-nav]').forEach(btn => {
-    btn.onclick = () => navigate(btn.dataset.nav);
-  });
-
   // Content area with padding
   const contentArea = document.createElement('div');
   contentArea.className = 'px-8 py-10';
@@ -158,7 +199,7 @@ export function TemplateStudio(templateId) {
   // Back button
   const backBtn = document.createElement('button');
   backBtn.className = 'mb-10 text-sm text-zinc-400 transition hover:text-white';
-  backBtn.innerHTML = '&larr; Back to Apps';
+  backBtn.innerHTML = '&larr; Back to Templates';
   backBtn.onclick = () => navigate('templates');
   contentArea.appendChild(backBtn);
 
@@ -197,19 +238,14 @@ export function TemplateStudio(templateId) {
 
   // Thumbnail action button — matches .gtm-boost-btn styling so it is
   // discoverable alongside the GTM Boost control in the hero section.
-  const thumbAction = document.createElement('button');
-  thumbAction.className = 'mb-5 btn-action-secondary shrink-0';
-  thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
-  thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
-  thumbAction.style.color = '#022c22';
-  thumbAction.textContent = '🖼 Thumbnail';
+  const thumbAction = styleThumbnailButton(document.createElement('button'));
   thumbAction.onclick = () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'template-studio',
       template,
       layout: 'panel',
       onApply: ({ imageUrl, revisedPrompt }) => {
-        img.src = imageUrl + '?v=' + Date.now();
+        img.src = (imageUrl.startsWith('data:') ? imageUrl : imageUrl + '?v=' + Date.now());
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache(template.id, imageUrl);
         if (revisedPrompt && primaryPromptField) {
@@ -229,7 +265,6 @@ export function TemplateStudio(templateId) {
     mountThumbnailModal(modal);
     modal.open();
   };
-  heroSection.appendChild(thumbAction);
 
   // Title
   const title = document.createElement('h1');
@@ -272,7 +307,12 @@ export function TemplateStudio(templateId) {
   let promptEl = null; // assigned during the input loop below
 
   // Build form fields
+  const isVideoTemplate = (template.outputType || (template.modelType === 't2i' || template.modelType === 'i2i' ? 'image' : 'video')) === 'video';
   allInputs.forEach(input => {
+    if (isVideoTemplate && input && input.type === 'select' && (input.name === 'duration' || input.name === 'resolution')) {
+      templateVideoPrefs[input.name] = (input.options || [])[0];
+      return;
+    }
     const fieldWrapper = document.createElement('div');
     fieldWrapper.className = 'mt-6 first:mt-0';
 
@@ -291,140 +331,21 @@ export function TemplateStudio(templateId) {
     `;
     fieldWrapper.appendChild(label);
 
-            if (input.type === 'image' || input.type === 'frame') {
-                const isFrame = input.type === 'frame';
-                const uploadArea = document.createElement('div');
-                uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-                uploadArea.innerHTML = `
-                    <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-                    <span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>
-                `;
-                const setDone = (label) => {
-                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
-                };
-                const setPexelsDone = (label) => {
-                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">📷</div><span class="text-sm text-[#d9ff00]">${label}</span>`;
-                };
-                uploadArea.onclick = () => {
-                    const picker = createUploadPicker({
-                        anchorContainer: container,
-                        frameMode: isFrame,
-                        acceptVideo: false,
-                        onSelect: (sel) => {
-                            if (isFrame) {
-                                formState[input.name] = { startUrl: sel.startUrl, endUrl: sel.endUrl, urls: sel.urls };
-                                setDone(sel.endUrl ? 'Start & end frames set' : 'Start frame set');
-                            } else {
-                                uploadedUrl = sel.url;
-                                formState[input.name] = sel.url;
-                                setDone('Image uploaded');
-                            }
-                        },
-                        onClear: () => {
-                            if (isFrame) {
-                                formState[input.name] = null;
-                            } else {
-                                uploadedUrl = null;
-                                formState[input.name] = null;
-                            }
-                            uploadArea.innerHTML = `
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-                                <span class="text-sm">${isFrame ? 'Click to add start & end frames' : 'Click to upload an image'}</span>
-                            `;
-                        }
-                    });
-                    container.appendChild(picker.panel);
-                };
-
-                const pexelsBtn = document.createElement('button');
-                pexelsBtn.type = 'button';
-                pexelsBtn.title = 'Browse stock photos from Pexels';
-                pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
-                pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
-                pexelsBtn.onclick = async (e) => {
-                    e.stopPropagation();
-                    const { browsePexelsImages } = await import('../lib/studioPexels.js');
-                    browsePexelsImages({
-                        title: isFrame ? 'Select Reference Frames' : 'Select Image',
-                        studioName: 'Template Studio',
-                        onSelect: (asset) => {
-                            const url = asset.src?.large || asset.src?.original || asset.url;
-                            if (isFrame) {
-                                formState[input.name] = { startUrl: url, endUrl: null, urls: [url] };
-                                setPexelsDone('Start frame from Pexels');
-                            } else {
-                                uploadedUrl = url;
-                                formState[input.name] = url;
-                                setPexelsDone('Image from Pexels');
-                            }
-                        },
-                    });
-                };
-
-                const row = document.createElement('div');
-                row.className = 'flex items-center gap-2';
-                row.appendChild(uploadArea);
-                row.appendChild(pexelsBtn);
-                fieldWrapper.appendChild(row);
-            } else if (input.type === 'video') {
-                const uploadArea = document.createElement('div');
-                uploadArea.className = 'flex h-16 items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 text-zinc-400 cursor-pointer hover:border-emerald-400/30 transition';
-                uploadArea.innerHTML = `
-                    <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-                    <span class="text-sm">Click to upload a video</span>
-                `;
-                const setDone = (label) => {
-                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-lg">✓</div><span class="text-sm text-emerald-200">${label}</span>`;
-                };
-                const setPexelsDone = (label) => {
-                    uploadArea.innerHTML = `<div class="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9ff00]/40 bg-[#d9ff00]/10 text-lg">🎬</div><span class="text-sm text-[#d9ff00]">${label}</span>`;
-                };
-                uploadArea.onclick = () => {
-                    const picker = createUploadPicker({
-                        anchorContainer: container,
-                        acceptVideo: true,
-                        onSelect: (sel) => {
-                            uploadedUrl = sel.url;
-                            formState[input.name] = sel.url;
-                            setDone('Video uploaded');
-                        },
-                        onClear: () => {
-                            uploadedUrl = null;
-                            formState[input.name] = null;
-                            uploadArea.innerHTML = `
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-lg">↑</div>
-                                <span class="text-sm">Click to upload a video</span>
-                            `;
-                        }
-                    });
-                    container.appendChild(picker.panel);
-                };
-
-                const pexelsBtn = document.createElement('button');
-                pexelsBtn.type = 'button';
-                pexelsBtn.title = 'Browse stock videos from Pexels';
-                pexelsBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group relative overflow-hidden ml-2';
-                pexelsBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary group-hover:text-primary"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 7.76"/></svg>';
-                pexelsBtn.onclick = async (e) => {
-                    e.stopPropagation();
-                    const { browsePexelsVideos } = await import('../lib/studioPexels.js');
-                    browsePexelsVideos({
-                        title: 'Select Video',
-                        studioName: 'Template Studio',
-                        onSelect: (asset) => {
-                            const url = (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url;
-                            uploadedUrl = url;
-                            formState[input.name] = url;
-                            setPexelsDone('Video from Pexels');
-                        },
-                    });
-                };
-
-                const row = document.createElement('div');
-                row.className = 'flex items-center gap-2';
-                row.appendChild(uploadArea);
-                row.appendChild(pexelsBtn);
-                fieldWrapper.appendChild(row);
+            if (input.type === 'image' || input.type === 'frame' || input.type === 'video') {
+                // Same upload picker + stock browser as the Video Studio.
+                const mediaField = createTemplateMediaField({
+                    kind: input.type,
+                    required: input.type !== 'video' && (!!input.required || template.modelType === 'i2v' || template.modelType === 'i2i'),
+                    anchorContainer: container,
+                    studioName: 'Template Studio',
+                    onChange: (value) => {
+                        formState[input.name] = value;
+                        uploadedUrl = typeof value === 'string' ? value : (value?.startUrl || null);
+                        refreshMediaRoute();
+                    },
+                });
+                fieldWrapper.appendChild(mediaField.element);
+                mediaFields[input.type]?.push(mediaField);
             } else if (input.type === 'text' || input.type === 'textarea') {
       const el = document.createElement(input.type === 'textarea' ? 'textarea' : 'input');
       el.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50';
@@ -454,6 +375,12 @@ export function TemplateStudio(templateId) {
       }
       select.onchange = () => { formState[input.name] = select.value; };
       fieldWrapper.appendChild(select);
+      if (input.name === 'aspect_ratio') {
+        // Shown when the selected model has no aspect-ratio setting.
+        aspectRatioNote = document.createElement('div');
+        aspectRatioNote.className = 'mt-2 hidden text-[11px] text-amber-300/80';
+        fieldWrapper.appendChild(aspectRatioNote);
+      }
     }
 
     leftPanel.appendChild(fieldWrapper);
@@ -546,7 +473,7 @@ export function TemplateStudio(templateId) {
         enhanceMenu.classList.remove('is-open');
       }
     };
-    window.addEventListener('click', closeEnhanceMenu);
+    addGlobalListener(window, 'click', closeEnhanceMenu);
   }
 
   // Model selector (async - fetches enriched catalog with descriptions)
@@ -554,17 +481,22 @@ export function TemplateStudio(templateId) {
   if (outputType === 'video' || ['i2i', 't2i', 'i2v', 't2v', 'v2v'].includes(template.modelType)) {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
-    const fallbackList = getFallbackList(template.modelType);
+    // The picker lists models for the current route (Text / Image / Video →
+    // Video), starting from the template's own type.
+    let pickerRoute = templateMediaRoute({ outputType, modelType: template.modelType });
+    if (template.modelType && getFallbackList(template.modelType).length) pickerRoute = template.modelType;
+    const routeModelPicks = {};
+    let fallbackList = getFallbackList(pickerRoute);
 
     loadedModels = fallbackList;
     // Re-validate the initial selection against the resolved list so the
     // picker trigger never renders an unknown model name.
     selectedModel = getValidModel(template, selectedModel);
     const getModelName = (id) => {
-      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id) || findTemplateModel(id);
       return m ? m.name : id;
     };
-    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id) || findTemplateModel(id);
 
     const triggerBtn = document.createElement('button');
     triggerBtn.type = 'button';
@@ -641,7 +573,11 @@ export function TemplateStudio(templateId) {
             loadingMessage: 'Loading models...',
             onSelectModel: (model) => {
               selectedModel = model.id;
+              explicitModelPick = model.id;
+              routeModelPicks[pickerRoute] = model.id;
               updateTrigger();
+              if (videoSettings) videoSettings.refresh();
+              if (videoTools) videoTools.refresh();
               closeDropdown();
             },
           });
@@ -660,14 +596,17 @@ export function TemplateStudio(templateId) {
           ]);
         };
 
-        withTimeout(getEnrichedModels(template.modelType))
+        const requestedRoute = pickerRoute;
+        withTimeout(getEnrichedModels(requestedRoute))
           .then(enriched => {
+            // The route changed while loading: this list is for the old route.
+            if (requestedRoute !== pickerRoute) return;
             const models = enriched && enriched.length > 0 ? enriched : fallbackList;
             loadedModels = models;
             // Keep the selection valid even if the enriched catalog differs
             // from the fallback list (e.g. renamed or missing IDs).
             if (!models.find(m => m && m.id === selectedModel)) {
-              selectedModel = getValidModel(template, selectedModel);
+              selectedModel = pickerRoute === template.modelType ? getValidModel(template, selectedModel) : modelForRoute(pickerRoute, selectedModel);
               if (!models.find(m => m && m.id === selectedModel)) {
                 selectedModel = models[0]?.id || selectedModel;
               }
@@ -678,6 +617,7 @@ export function TemplateStudio(templateId) {
             modelLoadingStatus.className = 'text-[10px] text-emerald-400/70';
           })
           .catch(err => {
+            if (requestedRoute !== pickerRoute) return;
             console.warn('[TemplateStudio] Failed to load enriched model catalog, using fallback:', err);
             loadedModels = fallbackList;
             renderModelPanel(fallbackList);
@@ -687,13 +627,47 @@ export function TemplateStudio(templateId) {
       }
     };
 
+    // The same model picker as the Video Studio (video templates) / Image
+    // Studio (image templates): provider sidebar, families, T2V / I2V / V2V.
+    let studioPickerController = null;
+    const pickerKind = outputType === 'video' ? 'video' : 'image';
     triggerBtn.onclick = (e) => {
       e.stopPropagation();
+      // Fallback list picker open (Video Studio picker failed to load): toggle it.
       if (dropdown.classList.contains('opacity-100')) {
         closeDropdown();
-      } else {
-        openDropdown();
+        return;
       }
+      if (studioPickerController) {
+        studioPickerController.close();
+        studioPickerController = null;
+        triggerBtn.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      triggerBtn.setAttribute('aria-expanded', 'true');
+      openStudioModelPicker({
+        kind: pickerKind,
+        anchor: triggerBtn,
+        selectedModelId: selectedModel,
+        currentMode: pickerRoute,
+        onPick: (modelId, mode) => {
+          selectedModel = modelId;
+          explicitModelPick = modelId;
+          pickedMode = mode || null;
+          if (pickedMode) routeModelPicks[pickedMode] = modelId;
+          refreshMediaRoute();
+          updateTrigger();
+          if (videoSettings) videoSettings.refresh();
+        },
+        onClose: () => {
+          studioPickerController = null;
+          triggerBtn.setAttribute('aria-expanded', 'false');
+        },
+      }).then((c) => { studioPickerController = c; })
+        .catch((err) => {
+          console.warn('[TemplateStudio] Video Studio model picker unavailable, using list picker:', err);
+          openDropdown();
+        });
     };
 
     const onKeyDown = (e) => {
@@ -702,7 +676,25 @@ export function TemplateStudio(templateId) {
         triggerBtn.focus();
       }
     };
-    document.addEventListener('keydown', onKeyDown);
+    addGlobalListener(document, 'keydown', onKeyDown);
+    globalCleanups.push(() => closeDropdown());
+
+    syncModelPickerToRoute = (route) => {
+      if (!route || route === pickerRoute) return;
+      // Remember the old route's model (only if it belongs to that route).
+      if (modelsForRoute(pickerRoute).some(m => m && m.id === selectedModel)) routeModelPicks[pickerRoute] = selectedModel;
+      pickerRoute = route;
+      fallbackList = modelsForRoute(route);
+      loadedModels = fallbackList;
+      selectedModel = routeModelPicks[route] || modelForRoute(route, selectedModel);
+      delete dropdown.dataset.populated;
+      closeDropdown();
+      updateTrigger();
+      label.textContent = `Model · ${TEMPLATE_ROUTE_LABELS[route] || route}`;
+      if (videoSettings) videoSettings.refresh();
+      modelLoadingStatus.textContent = `${fallbackList.length} models`;
+      modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+    };
 
     const headerRow = document.createElement('div');
     headerRow.className = 'mb-3 flex items-center justify-between gap-3';
@@ -713,43 +705,87 @@ export function TemplateStudio(templateId) {
     headerRow.appendChild(triggerBtn);
     headerRow.appendChild(modelLoadingStatus);
     modelWrapper.appendChild(headerRow);
+    if (outputType === 'video') {
+      // Same per-model controls as the Video Studio prompt bar.
+      videoSettings = createVideoSettingsControls({
+        getTarget: () => {
+          const { route, model } = currentMediaRoute();
+          return { route, model };
+        },
+        preferred: {
+          duration: templateVideoPrefs.duration ?? normalizeDuration(template),
+          resolution: templateVideoPrefs.resolution,
+          // Templates that ship an effect preset start on it.
+          effect: template.defaultParams?.name,
+        },
+        // Templates with their own effect select keep using it.
+        offerEffects: !allInputs.some(i => i && i.name === 'name'),
+      });
+      modelWrapper.appendChild(videoSettings.element);
+      videoSettings.refresh();
+    }
+    // Same prompt-bar tools as the Video Studio.
+    videoTools = createTemplateVideoTools({
+      studioName: 'Template Studio',
+      kind: outputType === 'video' ? 'video' : 'image',
+      hasOwnAspectRatio: allInputs.some(i => i && i.name === 'aspect_ratio'),
+      defaultAspectRatio: normalizeAspectRatio(template) || '',
+      getTarget: () => {
+        const { route, model, media } = currentMediaRoute();
+        return { route, model, imageUrl: media.imageUrl };
+      },
+      onAttach: (key, url) => attachFromToolbar(key, url),
+    });
+    modelWrapper.appendChild(videoTools.element);
+    videoTools.refresh();
     modelWrapper.appendChild(dropdown);
     leftPanel.appendChild(modelWrapper);
 
-    // Video upload button — appears for video templates so v2v models
-    // (video-to-video) can accept a video source alongside image uploads.
+    // Media sources for video templates — the same pickers the Video Studio
+    // uses. A reference image (when the template has no image input of its
+    // own) turns the run into image-to-video; a source video turns it into
+    // video-to-video. The route badge shows which path Generate will take.
     if (outputType === 'video') {
-      const videoUploadWrapper = document.createElement('div');
-      videoUploadWrapper.className = 'mt-4';
-      videoUploadWrapper.innerHTML = `
-        <div class="flex items-center justify-between gap-3">
-          <label class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Video Source (V2V)</label>
-          <button id="videoUploadBtn" type="button" class="text-[10px] font-semibold uppercase tracking-[0.18em] rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white transition px-3 py-1">Upload video</button>
+      const mediaSection = document.createElement('div');
+      mediaSection.className = 'mt-6';
+      mediaSection.innerHTML = `
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Media Sources</div>
+          <span data-media-route class="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400"></span>
         </div>
+        <div data-media-fields class="flex flex-col gap-2"></div>
       `;
-      leftPanel.appendChild(videoUploadWrapper);
-
-      const videoBtn = videoUploadWrapper.querySelector('#videoUploadBtn');
-      const setVideoDone = (label) => {
-        videoBtn.innerHTML = `<span class="text-emerald-200">✓ ${label}</span>`;
-      };
-      videoBtn.onclick = () => {
-        const picker = createUploadPicker({
+      const fieldsHost = mediaSection.querySelector('[data-media-fields]');
+      mediaRouteBadge = mediaSection.querySelector('[data-media-route]');
+      const hasOwnImageInput = allInputs.some(i => i && (i.type === 'image' || i.type === 'frame'));
+      const hasOwnVideoInput = allInputs.some(i => i && i.type === 'video');
+      if (!hasOwnImageInput) {
+        const imageField = createTemplateMediaField({
+          kind: 'frame',
+          required: template.modelType === 'i2v',
           anchorContainer: container,
-          acceptVideo: true,
-          onSelect: (sel) => {
-            uploadedUrl = sel.url;
-            formState['video_url'] = sel.url;
-            setVideoDone('Video uploaded');
-          },
-          onClear: () => {
-            uploadedUrl = null;
-            formState['video_url'] = null;
-            videoBtn.textContent = 'Upload video';
-          }
+          studioName: 'Template Studio',
+          onChange: (value) => { formState['image_url'] = value; refreshMediaRoute(); },
         });
-        container.appendChild(picker.panel);
-      };
+        fieldsHost.appendChild(imageField.element);
+        mediaFields.frame.push(imageField);
+      }
+      if (!hasOwnVideoInput) {
+        const videoField = createTemplateMediaField({
+          kind: 'video',
+          anchorContainer: container,
+          studioName: 'Template Studio',
+          onChange: (value) => {
+            formState['video_url'] = value;
+            uploadedUrl = value || uploadedUrl;
+            refreshMediaRoute();
+          },
+        });
+        fieldsHost.appendChild(videoField.element);
+        mediaFields.video.push(videoField);
+      }
+      leftPanel.appendChild(mediaSection);
+      refreshMediaRoute();
     }
 
     // Close on outside click is handled by openDropdown via
@@ -771,9 +807,6 @@ export function TemplateStudio(templateId) {
         <span class="absolute top-1 h-5 w-5 rounded-full bg-black transition left-6" id="enhancerToggleKnob"></span>
       </button>
     </div>
-    <button id="advancedToggle" class="mt-4 text-sm font-medium text-emerald-200 transition hover:text-emerald-100">
-      Show Advanced Controls
-    </button>
     <div id="advancedControls" class="mt-5 grid gap-4 md:grid-cols-2 hidden"></div>
   `;
   leftPanel.appendChild(enhancerSection);
@@ -798,7 +831,10 @@ export function TemplateStudio(templateId) {
     { name: 'cta', label: 'CTA', type: 'text', placeholder: 'optional' }
   ];
 
+  const isImageTemplate = template.outputType === 'image';
   advancedFields.forEach(field => {
+    // Film formats only apply to video templates.
+    if (isImageTemplate && field.name === 'templateType') return;
     const wrapper = document.createElement('div');
     if (field.type === 'select') {
       wrapper.innerHTML = `
@@ -829,9 +865,21 @@ export function TemplateStudio(templateId) {
       <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Extra Instructions</div>
       <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="extraInstructions">Enhance</button>
     </div>
-    <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 resize-none" rows="4" placeholder="optional cinematic instructions" data-advanced-field="extraInstructions"></textarea>
+    <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 resize-none" rows="4" placeholder="${isImageTemplate ? 'optional instructions (text overlay, colors, layout…)' : 'optional cinematic instructions'}" data-advanced-field="extraInstructions"></textarea>
   `;
   advancedControls.appendChild(extraWrapper);
+
+  // Every Advanced Control feeds the prompt: keep formState in sync (selects
+  // start with their shown value).
+  advancedControls.querySelectorAll('[data-advanced-field]').forEach((el) => {
+    const name = el.dataset.advancedField;
+    // Template Type only counts once the user picks one (its default would
+    // add a competing "Format:" to TikTok / ad base prompts).
+    if (el.tagName === 'SELECT' && name !== 'templateType') formState[name] = el.value;
+    const sync = () => { formState[name] = el.value; };
+    el.addEventListener('input', sync);
+    el.addEventListener('change', sync);
+  });
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -841,10 +889,15 @@ export function TemplateStudio(templateId) {
   genBtn.setAttribute('aria-label', 'Generate template');
   const errorContainer = document.createElement('div');
   errorContainer.className = 'ts-error-container';
+  // Unified action row (matches Image Studio): Thumbnail · Advanced · Personalize
+  const actionRow = createActionRow('mt-6');
+  const advancedToggleBtn = createAdvancedButton({ id: 'advancedToggle', tooltip: 'Show advanced controls' });
+  arrangeActionRow(actionRow, { thumbnail: thumbAction, advanced: advancedToggleBtn });
+  leftPanel.appendChild(actionRow);
   leftPanel.appendChild(errorContainer);
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({
-    controlsContainer: leftPanel,
+    controlsContainer: actionRow,
     appId: 'template-studio',
     studioId: 'template',
     studioName: 'Template Studio',
@@ -900,36 +953,44 @@ export function TemplateStudio(templateId) {
   intelligenceSection.className = 'mt-6 rounded-[28px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_20px_80px_rgba(0,0,0,0.35)]';
   intelligenceSection.innerHTML = `
     <h2 class="text-xl font-bold text-white">Creative Intelligence</h2>
-    <p class="mt-2 mb-5 text-sm text-zinc-400">These tiles show the cinematic structure, creative direction, and visual strategy this template will use to build your final video.</p>
+    <p class="mt-2 mb-5 text-sm text-zinc-400">These tiles show the structure, creative direction, and visual strategy this template will use to build your final ${template.outputType === 'image' ? 'image' : 'video'}. Edit any of them — Generate uses what you see here.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-blue-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">🏷️</div>
         <h3 class="text-lg font-bold text-white mb-2">Auto-Detected Niche</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${hasSpecs && specs.niche ? specs.niche : 'general-business'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="niche">${escapeAttr(tileState.niche)}</textarea>
       </div>
       <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-violet-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">🎬</div>
         <h3 class="text-lg font-bold text-white mb-2">Scene Structure</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="scene">${hasSpecs && specs.sceneBlueprint ? specs.sceneBlueprint.join(' → ') : 'Hook → Subject → Movement → Payoff → CTA'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="scene">${escapeAttr(tileState.scene)}</textarea>
       </div>
       <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-emerald-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">🎥</div>
         <h3 class="text-lg font-bold text-white mb-2">Cinematic Enrichment</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="cinematic">${hasSpecs && specs.cinematography ? specs.cinematography : 'Dynamic camera movement, shallow depth of field, professional lighting'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="cinematic">${escapeAttr(tileState.cinematic)}</textarea>
       </div>
       <div class="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-amber-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">⚙️</div>
         <h3 class="text-lg font-bold text-white mb-2">Visual Style</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="style">${hasSpecs && specs.visualStyle ? specs.visualStyle : 'Polished, cinematic, high-contrast, premium aesthetic'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="3" data-tile="style">${escapeAttr(tileState.style)}</textarea>
       </div>
       <div class="md:col-span-2 rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-4 hover:border-rose-400/20 transition cursor-pointer">
         <div class="mb-3 text-3xl">✨</div>
         <h3 class="text-lg font-bold text-white mb-2">Enhancer Keywords</h3>
-        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="4" data-tile="keywords">${hasSpecs && specs.enhancerKeywords ? specs.enhancerKeywords : 'cinematic, professional, 4K, high quality, premium'}</textarea>
+        <textarea class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-zinc-300 outline-none transition focus:border-emerald-400/50 resize-none" rows="4" data-tile="keywords">${escapeAttr(tileState.keywords)}</textarea>
       </div>
     </div>
   `;
   leftPanel.appendChild(intelligenceSection);
+  intelligenceSection.querySelectorAll('[data-tile]').forEach((ta) => {
+    ta.addEventListener('input', () => {
+      tileState[ta.dataset.tile] = ta.value;
+      tileEdited[ta.dataset.tile] = true;
+    });
+  });
+  // Any change to the inputs makes Generate rebuild the prompt from them.
+  ['input', 'change'].forEach((evt) => leftPanel.addEventListener(evt, () => { promptManuallyEdited = false; }));
 
   grid.appendChild(leftPanel);
 
@@ -961,6 +1022,20 @@ export function TemplateStudio(templateId) {
     </div>
   `;
   rightPanel.appendChild(previewSection);
+
+  // History strip (Video Studio): past generations, click to view again.
+  const resultHistory = createResultHistory({
+    storageKey: 'template_studio_history',
+    onSelect: (entry) => showResult(entry.url, entry),
+  });
+  rightPanel.appendChild(resultHistory.element);
+  // Regenerate / Extend for the result shown (Video Studio).
+  const resultActions = createResultActions({
+    onRegenerate: () => regenerateShown(),
+    onExtend: (entry, opts) => extendResult(entry, opts),
+  });
+  let currentResultEntry = null;
+  let lastRequestId = null;
 
   // Output tabs section
   const outputTabs = ['Enhanced Prompt', 'Scene Beats', 'Voiceover', 'Negative Prompt'];
@@ -1002,11 +1077,9 @@ export function TemplateStudio(templateId) {
     outputTextarea.addEventListener('input', () => {
       outputTabValues[activeTab] = outputTextarea.value;
       if (activeTab === 'Enhanced Prompt') {
+        // Sent as-is until an input changes (then rebuilt from all inputs).
         lastBuiltPrompt = outputTextarea.value;
-        if (primaryPromptField) {
-          primaryPromptField.value = outputTextarea.value;
-        }
-        formState[promptFieldName] = outputTextarea.value;
+        promptManuallyEdited = true;
       } else if (activeTab === 'Negative Prompt') {
         formState['_customNegativePrompt'] = outputTextarea.value;
       } else if (activeTab === 'Scene Beats') {
@@ -1044,14 +1117,14 @@ export function TemplateStudio(templateId) {
         break;
       case 'Scene Beats': {
         const beats = (template.storyBlueprint && template.storyBlueprint.length) ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']);
-        textarea.value = beats.join(' → ');
+        textarea.value = saved || beats.join(' → ');
         break;
       }
       case 'Voiceover':
         textarea.value = saved || `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
         break;
       case 'Negative Prompt':
-        textarea.value = specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
+        textarea.value = saved || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
         break;
     }
   }
@@ -1075,7 +1148,8 @@ export function TemplateStudio(templateId) {
     if (advancedBtn && advControls) {
       advancedBtn.onclick = () => {
         showAdvanced = !showAdvanced;
-        advancedBtn.textContent = showAdvanced ? 'Hide Advanced Controls' : 'Show Advanced Controls';
+        setActionPillLabel(advancedBtn, showAdvanced ? 'Less' : 'Advanced');
+        advancedBtn.setAttribute('aria-expanded', String(showAdvanced));
         advControls.className = showAdvanced ? 'mt-5 grid gap-4 md:grid-cols-2' : 'mt-5 grid gap-4 md:grid-cols-2 hidden';
       };
     }
@@ -1086,17 +1160,15 @@ export function TemplateStudio(templateId) {
       wandBtn.onclick = () => {
         const textarea = document.getElementById('outputTextarea');
         if (!textarea) return;
-        const current = lastBuiltPrompt || textarea.value || '';
-        const enhanced = `${current}, cinematic quality, professional lighting, high detail, 4K resolution`.trim();
+        const current = (promptManuallyEdited && lastBuiltPrompt) ? lastBuiltPrompt : composeFinalPrompt();
+        const extra = template.outputType === 'image'
+          ? 'professional lighting, high detail, sharp focus, 4K resolution'
+          : 'cinematic quality, professional lighting, high detail, 4K resolution';
+        const enhanced = current.toLowerCase().includes(extra.split(',')[0]) ? current : `${current.replace(/\.$/, '')}, ${extra}.`;
         lastBuiltPrompt = enhanced;
+        promptManuallyEdited = true;
         outputTabValues['Enhanced Prompt'] = enhanced;
-        textarea.value = enhanced;
-        if (primaryPromptField) {
-          primaryPromptField.value = enhanced;
-        }
-        if (promptFieldName) {
-          formState[promptFieldName] = enhanced;
-        }
+        if (activeTab === 'Enhanced Prompt') textarea.value = enhanced;
         textarea.classList.add('border-emerald-400/50');
         setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
       };
@@ -1113,6 +1185,8 @@ export function TemplateStudio(templateId) {
           const enhancedValue = `${input.value}, cinematic style, professional quality, premium aesthetic`;
           input.value = enhancedValue;
           formState[fieldName] = enhancedValue;
+          // Rebuild the prompt with the enhanced field.
+          promptManuallyEdited = false;
           btn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
           btn.textContent = 'Enhanced ✓';
           setTimeout(() => {
@@ -1171,7 +1245,7 @@ export function TemplateStudio(templateId) {
     }
 
     // Validate that there's some prompt content to work with
-    const userPrompt = lastBuiltPrompt || (primaryPromptField?.value || '').trim();
+    const userPrompt = (primaryPromptField?.value || '').trim() || lastBuiltPrompt;
     if (!userPrompt && !template.basePrompt) {
       showInlineError(container, 'Please enter a prompt or description before generating.');
       return;
@@ -1180,42 +1254,77 @@ export function TemplateStudio(templateId) {
     // Validate that the selected model matches the template's model type.
     // V2V models are an accepted exception: they are routed through the t2v
     // branch below, so a t2v template may use a v2v model.
-    const allowedModels = getFallbackList(template.modelType);
+    // The model must accept the attached media (route); fall back to the
+    // route's first model otherwise.
+    const { route: genRoute } = currentMediaRoute();
     const isV2VSelection = !!getV2VModelById(selectedModel || template.model);
-    if (allowedModels.length > 0
-      && !isValidModelForType(selectedModel || template.model, template.modelType)
-      && !isV2VSelection) {
-      const fallback = getValidModel(template, selectedModel);
-      showInlineError(container, `Model "${selectedModel || template.model}" is not compatible with this template type. Falling back to ${fallback}.`);
+    const routeModels = modelsForRoute(genRoute);
+    if (routeModels.length > 0
+      && !routeModels.find(m => m && m.id === (selectedModel || template.model))
+      && !(isV2VSelection && genRoute === 't2v')
+      && !(genRoute === template.modelType && isValidModelForType(selectedModel || template.model, template.modelType))) {
+      const fallback = modelForRoute(genRoute, selectedModel);
+      showInlineError(container, `Model "${selectedModel || template.model}" is not compatible with ${TEMPLATE_ROUTE_LABELS[genRoute] || genRoute}. Falling back to ${fallback}.`);
       selectedModel = fallback;
     }
 
     // Build params for potential retry
-    const params = { ...(template.defaultParams || {}), model: getValidModel(template, selectedModel) };
+    const params = { ...(template.defaultParams || {}), model: selectedModel || getValidModel(template, selectedModel) };
 
     if (normalizeAspectRatio(template)) params.aspect_ratio = normalizeAspectRatio(template);
     if (normalizeDuration(template)) params.duration = normalizeDuration(template);
     applyFormStateToParams(params, formState, allInputs);
 
-    // Build prompt from all available template metadata and advanced options
-    const promptForBuild = lastBuiltPrompt || params.prompt || '';
-    params.prompt = buildEnrichedPrompt(template, specs, formState, promptForBuild);
-    lastBuiltPrompt = params.prompt;
+    // Prompt = every input combined (or the user's own edited prompt).
+    params.prompt = composeFinalPrompt();
 
     const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
     if (negativePrompt) params.negative_prompt = negativePrompt;
 
     attachThumbnail(params, customThumbnailUrl);
 
+    // Route by attached media exactly like the Video Studio: a source video
+    // goes to v2v, an image to i2v / i2i, otherwise text-to-video / image.
+    const { media, route, model: routedModel } = currentMediaRoute();
+    params.model = routedModel;
+    applyTemplateMediaToParams(params, media, route);
+    if (route === 'i2v' && media.endImageUrl && endFrameSupport(route, params.model) === 'none') {
+      const mm = findTemplateModel(params.model);
+      showToast(`${mm?.name || params.model} has no end-frame input, so your end frame isn't used. Pick a model with start & end frames (e.g. Seedance 2.5) to use it.`, 'warning');
+    }
+    if (videoSettings) Object.assign(params, videoSettings.getSettings());
+    params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
+    if (!params.aspect_ratio) delete params.aspect_ratio;
+
     // Client-side validation before muapi call
-    const validationError = validateBeforeGenerate(template, params, allInputs, selectedModel);
+    let validationError = null;
+    // Image-driven route, or image-driven template unless the video-to-video
+    // route is active (that one only needs the source video).
+    const needsImage = route === 'i2v' || route === 'i2i'
+      || ((template.modelType === 'i2v' || template.modelType === 'i2i') && route !== 'v2v');
+    if (needsImage && !media.imageUrl) {
+      validationError = 'Please upload an image before generating.';
+    } else if (route === 'v2v' && !media.videoUrl) {
+      validationError = 'Please upload a video before generating.';
+    } else if (promptlessV2VBlock(route, routedModel, explicitModelPick)) {
+      validationError = promptlessV2VBlock(route, routedModel, explicitModelPick);
+    } else {
+      // Media checks are done above; this keeps the shared effect-model
+      // ("name" required) check.
+      validationError = validateBeforeGenerate(
+        { ...template, modelType: route === 'v2v' ? 'v2v' : 't2v' },
+        { ...params, video_url: media.videoUrl },
+        allInputs,
+        routedModel,
+      );
+    }
     if (validationError) {
       showInlineError(container, validationError);
       return;
     }
 
     // Store params for retry and run generation
-    lastGenerationParams = { ...params, _rawPrompt: promptForBuild };
+    lastGenerationParams = { ...params };
     retryCount = 0;
     await runGeneration(params);
     } catch (err) {
@@ -1224,18 +1333,37 @@ export function TemplateStudio(templateId) {
     }
   };
 
-  async function runGeneration(params) {
+  /**
+   * @param {object} params
+   * @param {{ exact?: boolean, route?: string }} [opts] exact: params are the
+   *   stored final request of an earlier result (Regenerate) — send them as
+   *   they are instead of rebuilding prompt, media and model from the form.
+   */
+  async function runGeneration(params, { exact = false, route: exactRoute = null } = {}) {
     if (isGenerating) return;
+    const exactParams = exact ? { ...params } : null;
 
     isGenerating = true;
     genBtn.disabled = true;
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
+    // Same as the Video Studio: Cancel button, progress timer, and a pending
+    // job record so a generation that finishes after a reload is recovered.
+    let cancelHandle = null;
+    let progressHandle = null;
+    let pendingJob = null;
 
     try {
+      let route = exactRoute;
+      if (!exact) {
       // Merge template defaults with the params built by genBtn.onclick.
       // Always resolve to a validated model so a stale/invalid selection
       // can never reach the muapi call.
-      const validatedModel = getValidModel(template, selectedModel || params.model);
+      // Resolve against the current route so a stale / invalid selection can
+      // never reach the muapi call.
+      const { route: runRoute } = currentMediaRoute();
+      const validatedModel = runRoute === template.modelType
+        ? getValidModel(template, selectedModel || params.model)
+        : modelForRoute(runRoute, selectedModel || params.model);
       selectedModel = validatedModel;
       const mergedParams = { model: validatedModel, ...(template.defaultParams || {}), ...params };
       params = mergedParams;
@@ -1244,31 +1372,68 @@ export function TemplateStudio(templateId) {
       if (normalizeDuration(template)) params.duration = normalizeDuration(template);
       applyFormStateToParams(params, formState, allInputs);
 
-      // Build prompt from all available template metadata and advanced options
-      params.prompt = buildEnrichedPrompt(template, specs, formState, params._rawPrompt || params.prompt);
-      lastBuiltPrompt = params.prompt;
+      // Re-route with the media attached now (retries pick up new uploads).
+      const { media, route: derivedRoute, model: routedModel } = currentMediaRoute();
+      route = derivedRoute;
+      // Same required-media checks as Generate (a Retry after clearing media).
+      if ((route === 'i2v' || route === 'i2i') && !media.imageUrl) throw new Error('Please upload an image before generating.');
+      if (route === 'v2v' && !media.videoUrl) throw new Error('Please upload a video before generating.');
+      params.model = routedModel;
+      applyTemplateMediaToParams(params, media, route);
+      if (videoSettings) Object.assign(params, videoSettings.getSettings());
+      params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
+      if (!params.aspect_ratio) delete params.aspect_ratio;
+      // Prompt = every input combined (or the user's own edited prompt).
+      params.prompt = composeFinalPrompt();
 
       const negativePrompt = formState['_customNegativePrompt'] || buildNegativePrompt(template, formState, specs);
       if (negativePrompt) params.negative_prompt = negativePrompt;
+      // Advanced (negative prompt / seed), Character Lock, guidance, ratio.
+      if (videoTools) await videoTools.applyToParams(params);
+      if (params.aspect_ratio) params.aspect_ratio = snapAspectRatioForModel(route, params.model, params.aspect_ratio);
+      // Only settings this model declares (Kling v2.6 I2V: no ratio / resolution).
+      dropUndeclaredSettings(params, route);
+      }
 
-       let result;
-       if (template.modelType === 'i2v') {
-         result = await muapi.generateI2V(params);
-       } else if (template.modelType === 'i2i') {
-         result = await muapi.generateI2I(params);
-       } else if (template.modelType === 't2v') {
-          const isV2V = !!getV2VModelById(selectedModel);
-         if (isV2V) {
-           result = await muapi.processV2V(params);
-         } else {
-           result = await muapi.generateVideo(params);
-         }
-       } else {
-         result = await muapi.generateImage(params);
-       }
+      const isVideoRun = route === 't2v' || route === 'i2v' || route === 'v2v';
+      // The final request (before the per-run signal / callbacks), kept on the
+      // result so Regenerate can re-run exactly this one.
+      const regenParams = snapshotGenerationParams(params);
+      cancelHandle = createAbortAwareGenerateButton(genBtn);
+      cancelHandle.showCancel();
+      params.signal = cancelHandle.controller.signal;
+      pendingJob = createPendingJobTracker('template-studio', { prompt: params.prompt || '', model: params.model, templateId: template.id, outputType: isVideoRun ? 'video' : 'image' });
+      lastRequestId = null;
+      params.onRequestId = (rid) => { lastRequestId = rid; pendingJob.onRequestId(rid); };
+      progressHandle = startGenerationProgress({ parent: errorContainer, type: isVideoRun ? 'video' : 'image' });
+
+      // Same MuAPI calls the Video Studio makes for each route.
+      let result;
+      if (route === 'v2v') {
+        result = await muapi.processV2V(params, params.signal);
+      } else if (route === 'i2v') {
+        result = await muapi.generateI2V(params, params.signal);
+      } else if (route === 't2v') {
+        result = await muapi.generateVideo(params, params.signal);
+      } else if (route === 'i2i') {
+        result = await muapi.generateI2I(params, params.signal);
+      } else {
+        result = await muapi.generateImage(params, params.signal);
+      }
 
       if (result && result.url) {
-        showResult(result.url);
+        const entry = {
+          id: result.id || result.request_id || lastRequestId || null,
+          url: result.url,
+          prompt: params.prompt || template.name,
+          model: params.model || selectedModel,
+          type: isVideoRun ? 'video' : 'image',
+          templateId: template.id,
+          regenParams,
+          regenRoute: route,
+        };
+        resultHistory.add(entry);
+        showResult(result.url, entry);
         saveToHistory(result.url, params.prompt || template.name, params.model || selectedModel, template.outputType || 'video');
         retryCount = 0; // Reset on success
         updateApiKeyIndicator();
@@ -1276,143 +1441,124 @@ export function TemplateStudio(templateId) {
         throw new Error('No output URL returned');
       }
     } catch (err) {
+      if (cancelHandle?.isCancelled?.() || err?.name === 'AbortError') {
+        showInlineError(container, 'Generation cancelled.');
+        return;
+      }
       const { userMessage, retryHtml } = formatGenerationError(err, retryCount, MAX_RETRIES);
       showInlineError(container, `${userMessage}${retryHtml}`);
       const retryBtn = container.querySelector('#retry-btn');
-      if (retryBtn && lastGenerationParams) {
+      if (retryBtn && (exact || lastGenerationParams)) {
         retryBtn.onclick = () => {
           retryCount++;
           const errEl = container.querySelector('.ts-inline-error');
           if (errEl) errEl.remove();
-          runGeneration(lastGenerationParams);
+          // A failed Regenerate retries that same stored run, not the current form.
+          if (exact) runGeneration({ ...exactParams }, { exact: true, route: exactRoute });
+          else runGeneration(lastGenerationParams);
         };
       }
     } finally {
+      if (progressHandle) progressHandle.stop();
+      if (pendingJob) pendingJob.finish();
+      if (cancelHandle) cancelHandle.reset();
       isGenerating = false;
       genBtn.disabled = false;
       genBtn.textContent = 'Generate';
     }
   };
 
-  function buildEnrichedPrompt(template, specs, formState, userPrompt) {
-    const parts = [];
-
-    // User prompt first as the core idea
-    if (typeof userPrompt === 'string' && userPrompt) parts.push(userPrompt);
-
-    // Subject
-    const subject = formState['subject'];
-    if (subject) parts.push(subject);
-
-    // Base prompt substitution
-    if (template.basePrompt) {
-      const base = template.basePrompt.replace('{prompt}', userPrompt || '');
-      if (base) parts.push(base);
+  /**
+   * Media dropped / picked in the prompt attachment toolbar goes into the
+   * matching media field (same as attaching it there directly).
+   */
+  function attachFromToolbar(key, url) {
+    const frame = mediaFields.frame[0];
+    const image = mediaFields.image[0];
+    const video = mediaFields.video[0];
+    if (key === 'video') {
+      if (video) video.setValue(url);
+      else { formState.video_url = url; refreshMediaRoute(); }
+    } else if (key === 'endFrame') {
+      if (frame) frame.setValue({ endUrl: url });
+      else { formState.last_image_url = url; refreshMediaRoute(); }
+    } else if (frame) {
+      frame.setValue({ startUrl: url });
+    } else if (image) {
+      image.setValue(url);
+    } else {
+      formState.image_url = url;
+      refreshMediaRoute();
     }
-
-    // Scene blueprint: matrix template.storyBlueprint else specs.sceneBlueprint
-    const sceneBlueprint = (template.storyBlueprint && template.storyBlueprint.length)
-      ? template.storyBlueprint
-      : (specs.sceneBlueprint || []);
-    if (sceneBlueprint.length) {
-      parts.push(`Scene structure: ${sceneBlueprint.join(' → ')}`);
-    }
-
-    // Cinematography
-    if (specs.cinematography) {
-      parts.push(specs.cinematography);
-    }
-
-    // Visual style: specs.visualStyle else formState.visualStyle
-    const visualStyle = specs.visualStyle || formState['visualStyle'];
-    if (visualStyle) {
-      parts.push(`Visual style: ${visualStyle}`);
-    }
-
-    // Niche enrichment
-    const niche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-    if (niche && NICHE_ENRICHMENT[niche]) {
-      parts.push(NICHE_ENRICHMENT[niche].slice(0, 5).join(', '));
-    } else if (niche) {
-      const nicheTerms = getNicheTerms(niche);
-      if (nicheTerms && nicheTerms.length) {
-        parts.push(nicheTerms.slice(0, 5).join(', '));
-      }
-    }
-
-    // filmFamily direction + promptDirection
-    if (template.filmFamily && FILM_FAMILIES[template.filmFamily]) {
-      parts.push(FILM_FAMILIES[template.filmFamily].direction);
-    }
-    if (template.promptDirection) {
-      parts.push(template.promptDirection);
-    }
-
-    // CTA
-    const cta = formState['cta'];
-    if (cta) {
-      parts.push(`Call to action: ${cta}`);
-    }
-
-    // Setting
-    const setting = formState['setting'];
-    if (setting) {
-      parts.push(`Setting: ${setting}`);
-    }
-
-    // Audience
-    const audience = formState['audience'];
-    if (audience) {
-      parts.push(`Target audience: ${audience}`);
-    }
-
-    // Extra instructions
-    const extraInstructions = formState['extraInstructions'];
-    if (extraInstructions) {
-      parts.push(extraInstructions);
-    }
-
-    // Core use case
-    if (specs.coreUseCase) {
-      parts.push(specs.coreUseCase);
-    }
-
-    // AI ENHANCER: final polishing layer
-    if (aiEnhancer && userPrompt) {
-      if (typeof enrichPromptString === 'function') {
-        const enriched = enrichPromptString(userPrompt, {
-          niche,
-          visualStyle: formState.visualStyle || 'commercial',
-          platform: (template.aspectRatio && template.aspectRatio.includes('9:16')) ? 'TikTok Reel' : 'general',
-          filmType: template.filmFamily || ''
-        });
-        if (enriched) {
-          parts.push(enriched);
-        }
-      } else if (specs.enhancerKeywords) {
-        parts.push(specs.enhancerKeywords);
-      }
-    }
-
-    // AI ENHANCER: final polishing layer
-    let prompt = parts.filter(Boolean).join('. ');
-    prompt = prompt
-      .replace(/\s*\.\s*/g, '. ')
-      .replace(/\.{2,}/g, '.')
-      .split('. ')
-      .filter((sentence, index, arr) => index === 0 || sentence.trim().toLowerCase() !== arr[index - 1].trim().toLowerCase())
-      .join('. ')
-      .trim();
-    if (!prompt.endsWith('.')) prompt += '.';
-    return prompt;
+    promptManuallyEdited = false;
   }
 
-  function showResult(url) {
+  /**
+   * The prompt Generate sends: all inputs combined (main prompt, template
+   * fields, Advanced Controls, Creative Intelligence cards, AI Enhancer),
+   * unless the user edited the Enhanced Prompt since the last input change.
+   * Shown in the Enhanced Prompt tab so the user sees exactly what is sent.
+   */
+  function composeFinalPrompt() {
+    if (promptManuallyEdited && lastBuiltPrompt) return lastBuiltPrompt;
+    const mainPrompt = (formState[promptFieldName] ?? primaryPromptField?.value ?? '').toString();
+    const tiles = { ...tileState };
+    if (!tileEdited.niche) tiles.niche = '';
+    const { prompt, niche } = composeTemplatePrompt({
+      template,
+      specs,
+      userPrompt: mainPrompt,
+      templateInputs: allInputs,
+      fields: formState,
+      advanced: formState,
+      tiles,
+      aiEnhancer,
+      sceneOverride: formState['_customSceneBlueprint'] || '',
+    });
+    // Show the niche actually used on the card (unless the user edited it).
+    if (!tileEdited.niche) {
+      tileState.niche = niche;
+      const nicheTile = container.querySelector('[data-tile="niche"]');
+      if (nicheTile) nicheTile.value = niche;
+    }
+    // Motion & Style (Video Studio) modifiers.
+    const finalPrompt = videoTools ? videoTools.applyToPrompt(prompt, currentMediaRoute().route) : prompt;
+    lastBuiltPrompt = finalPrompt;
+    outputTabValues['Enhanced Prompt'] = finalPrompt;
+    const out = document.getElementById('outputTextarea');
+    if (out && activeTab === 'Enhanced Prompt') out.value = finalPrompt;
+    return finalPrompt;
+  }
+
+  /**
+   * Regenerate the result on screen: re-run exactly the request that made it.
+   * Results whose request was not saved (older history, an Extend result) or
+   * that belong to another template cannot be reproduced here, so nothing is
+   * submitted — the user is told instead of being charged for the form's
+   * current prompt.
+   */
+  function regenerateShown() {
+    const e = currentResultEntry;
+    if (e && e.templateId && e.templateId !== template.id) {
+      showToast('This result is from another template. Open that template to regenerate it.', 'warning');
+      return;
+    }
+    if (e?.regenParams && e.regenRoute) {
+      runGeneration({ ...e.regenParams }, { exact: true, route: e.regenRoute });
+      return;
+    }
+    showToast("This result's settings weren't saved, so it can't be re-run. Adjust the form and press Generate.", 'warning');
+  }
+
+  function showResult(url, entry) {
     lastGeneratedUrl = url;
+    currentResultEntry = entry || resultHistory.find(url) || { url, type: template.outputType === 'video' ? 'video' : 'image', templateId: template.id };
+    resultHistory.setActive(url);
+    const isVideoResult = currentResultEntry.type !== 'image';
     const previewArea = document.getElementById('previewArea');
     if (previewArea) {
       const safeUrl = sanitizeUrl(url);
-      if (template.outputType === 'video') {
+      if (isVideoResult) {
         previewArea.innerHTML = `<video src="${safeUrl}" controls autoplay loop class="w-full h-full object-contain rounded-xl"></video>`;
       } else {
         previewArea.innerHTML = `<img src="${safeUrl}" alt="Generated result" class="w-full h-full object-contain rounded-xl" />`;
@@ -1425,7 +1571,7 @@ export function TemplateStudio(templateId) {
       <div class="rounded-[28px] border border-white/10 bg-white/[0.03] p-5">
         <h3 class="text-lg font-bold text-white mb-4">Generated Result</h3>
         <div class="rounded-[20px] border border-white/10 bg-black/40 p-4">
-          ${template.outputType === 'video'
+          ${isVideoResult
             ? `<video src="${safeUrl}" controls autoplay loop class="w-full rounded-xl"></video>`
             : `<img src="${safeUrl}" alt="Generated result" class="w-full rounded-xl" />`
           }
@@ -1433,22 +1579,56 @@ export function TemplateStudio(templateId) {
         <div class="flex gap-3 mt-4">
           <a href="${sanitizeUrl(url)}" download="${template.id}-${Date.now()}" class="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm text-center hover:opacity-90 transition">Download</a>
           <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-3 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
-          <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">Generate Again</button>
+          <button id="generateAgainBtn" class="flex-1 border border-white/10 bg-white/[0.04] text-white py-3 rounded-xl font-bold text-sm hover:bg-white/[0.08] transition">↻ Regenerate</button>
         </div>
       </div>
     `;
 
+    // Frame scrubber + Extend (Video Studio) under the result.
+    const resultVideo = resultArea.querySelector('video');
+    if (resultVideo) resultVideo.closest('div').appendChild(createFrameScrubber(resultVideo));
+    resultActions.setEntry(currentResultEntry);
+    // "Regenerate" already sits next to Download; this row adds Extend.
+    resultActions.element.querySelector('[data-action="regenerate"]').classList.add('hidden');
+    resultArea.firstElementChild.appendChild(resultActions.element);
+
     setTimeout(() => {
       const againBtn = document.getElementById('generateAgainBtn');
       if (againBtn) {
-        againBtn.onclick = () => genBtn.click();
+        againBtn.onclick = () => regenerateShown();
       }
       const publishBtn = resultArea.querySelector('.publish-social-btn');
       if (publishBtn) {
-        const mediaType = template.outputType === 'video' ? 'video' : 'image';
+        // The shown result's own type (history can hold another template's result).
+        const mediaType = isVideoResult ? 'video' : 'image';
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: url, mediaType });
       }
     }, 0);
+  }
+
+  /**
+   * Extend a Seedance 2.0 result (Video Studio "Extend"): runs the
+   * seedance-v2.0-extend model from the video model catalog with the
+   * original request id.
+   */
+  async function extendResult(entry, { prompt, duration }) {
+    if (!canExtend(entry)) throw new Error('Only Seedance 2.0 videos can be extended.');
+    const params = buildExtendParams(entry, { prompt, duration });
+    let rid = null;
+    params.onRequestId = (id) => { rid = id; };
+    const result = await muapi.generateVideo(params);
+    if (!result || !result.url) throw new Error('No output URL returned');
+    const next = {
+      id: result.id || result.request_id || rid || null,
+      url: result.url,
+      prompt: params.prompt || entry.prompt || template.name,
+      model: params.model,
+      type: 'video',
+      templateId: template.id,
+    };
+    resultHistory.add(next);
+    showResult(result.url, next);
+    saveToHistory(result.url, next.prompt, params.model, 'video');
   }
 
   function saveToHistory(url, prompt, model, type) {
@@ -1462,6 +1642,27 @@ export function TemplateStudio(templateId) {
       timestamp: new Date().toISOString(),
     });
   }
+
+  // Prompt attachment toolbar (Video Studio): start / end frame, image, video.
+  if (videoTools && primaryPromptField) videoTools.attachToPrompt(primaryPromptField);
+
+  // Recover generations that finished while the user was away.
+  try {
+    resumePendingJobs('template-studio', {
+      poll: (id, attempts, interval) => muapi.pollForResult(id, attempts, interval),
+      onResult: (url, job) => {
+        const meta = job?.historyMeta || {};
+        saveToHistory(url, meta.prompt || template.name, meta.model || selectedModel, meta.outputType || template.outputType || 'video');
+        const entry = { id: job?.requestId || null, url, prompt: meta.prompt || '', model: meta.model || '', type: meta.outputType === 'image' ? 'image' : 'video', templateId: meta.templateId || '' };
+        resultHistory.add(entry);
+        if (meta.templateId === template.id) showResult(url, entry);
+      },
+    });
+  } catch { /* storage unavailable */ }
+
+  container.cleanup = () => {
+    globalCleanups.splice(0).forEach((fn) => { try { fn(); } catch { /* ignore */ } });
+  };
 
   return container;
 }

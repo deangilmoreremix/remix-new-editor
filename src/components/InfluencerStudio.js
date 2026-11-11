@@ -4,7 +4,8 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -17,7 +18,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
-import { openModelPicker } from '../lib/modelPickerIntegration.js';
+import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -319,6 +320,9 @@ export async function InfluencerStudio() {
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = { id: 'higgsfield-soul-image-to-image', name: 'Influencer Image' };
   let customThumbnailUrl = getCustomThumbnailFromCache('influencer-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'influencer-studio' });
   let styleIntensity = 70;
   let seedLocked = false;
   const currentSeed = Math.floor(Math.random() * 999999999);
@@ -341,8 +345,7 @@ export async function InfluencerStudio() {
 
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">AI Influencer Studio</h1>';
+  header.appendChild(createStudioHeader('influencer', 'AI Influencer Studio', 'Design a consistent AI influencer and their content'));
   container.appendChild(header);
 
   const modelSelectorContainer = document.createElement('div');
@@ -698,21 +701,7 @@ export async function InfluencerStudio() {
   }
 
   const promptInput = document.createElement('textarea');
-  const modelPickerBtn = document.createElement('button');
-  modelPickerBtn.type = 'button';
-  modelPickerBtn.textContent = 'AI Pick';
-  modelPickerBtn.title = 'Open intelligent model picker';
-  modelPickerBtn.setAttribute('aria-label', 'Open model picker');
-  modelPickerBtn.className = 'btn-action-secondary shrink-0';
-  modelPickerBtn.addEventListener('click', () => {
-    openModelPicker({
-      currentModelId: selectedModel.id,
-      onSelectModel: (modelId) => {
-        selectedModel = i2iModels.find(m => m.id === modelId) || selectedModel;
-      }
-    }).catch(() => {});
-  });
-  formCard.appendChild(modelPickerBtn);
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 2;
   promptInput.placeholder = 'Additional instructions (optional)';
@@ -768,7 +757,7 @@ export async function InfluencerStudio() {
             promptInput.value = prompt;
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
-          });
+          }, { basePrompt: promptInput.value });
         }).catch(() => {});
       } else if (action === 'recipe') {
         openRecipeModal({
@@ -804,14 +793,12 @@ export async function InfluencerStudio() {
   toolbar.appendChild(enhanceMenu);
   formCard.appendChild(toolbar);
 
-  const personalizeControls = document.createElement('div');
-  personalizeControls.className = 'flex items-center gap-2';
-  mountPersonalizeTrigger({
-      controlsContainer: personalizeControls,
+  const actionRow = createActionRow();
+  const personalizeHandle = mountPersonalizeTrigger({
+      controlsContainer: actionRow,
       getTextarea: () => promptInput,
       appId: 'influencer-studio',
   });
-  formCard.appendChild(personalizeControls);
 
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
@@ -838,14 +825,17 @@ export async function InfluencerStudio() {
     mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
+  const advanced = createAdvancedPanel({ id: 'influencer-advanced-btn', elements: [intensityRow, seedRow] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, personalize: personalizeHandle?.button });
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';
   genBtn.className = 'btn-primary-modern w-full px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 transition-all mt-2';
   genBtn.textContent = 'Generate Content';
   genBtn.setAttribute('aria-label', 'Generate content');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
   container.appendChild(formCard);
 
   const previewCard = document.createElement('div');
@@ -897,6 +887,18 @@ export async function InfluencerStudio() {
     refreshTagsBar();
   };
   actionGroup.appendChild(shuffleActionBtn);
+
+  // Reset clears every chosen attribute (upstream's builder Reset).
+  const resetBtn = document.createElement('button');
+  resetBtn.type = 'button';
+  resetBtn.textContent = 'Reset';
+  resetBtn.className = 'px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/10 transition-all';
+  resetBtn.onclick = () => {
+    Object.keys(selectedOptions).forEach((key) => delete selectedOptions[key]);
+    refreshAttrGrid();
+    refreshTagsBar();
+  };
+  actionGroup.appendChild(resetBtn);
 
   const previewGenBtn = document.createElement('button');
   previewGenBtn.type = 'button';
@@ -1034,6 +1036,9 @@ export async function InfluencerStudio() {
 
   const renderHistory = () => {
     historyList.innerHTML = '';
+    const count = generationHistory.length;
+    historyLabel.textContent = `Generated · ${count} character${count === 1 ? '' : 's'}`;
+    historyLabel.className = 'text-[9px] font-bold text-muted uppercase tracking-widest mb-2 text-center px-1';
     generationHistory.slice(0, 50).forEach((entry, idx) => {
       const thumb = document.createElement('div');
       thumb.className = `relative group/thumb cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-300 ${idx === 0 ? 'border-primary shadow-glow' : 'border-white/10 hover:border-white/30'}`;

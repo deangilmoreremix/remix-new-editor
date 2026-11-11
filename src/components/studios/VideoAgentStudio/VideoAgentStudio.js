@@ -5,16 +5,24 @@
 // (@remotion/web-renderer). The finished video is uploaded and saved to the library.
 //
 // postMessage (same origin; see apps/motion-agent/src/host/bridge.ts):
-//   → sv:auth      Clerk session token for /.netlify/functions/video-agent-generate
+//   → sv:auth      Clerk session token + the user's own OpenAI key (BYOK)
 //   ← sv:ready
 //   ← sv:exported  { blob, name, prompt }
 import { mountStudioChrome } from '../../../lib/studioChrome.js';
+import { createEditorBanner } from '../../../lib/thumbnails.js';
+import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
 
 // Explicit index.html: the dev server's SPA fallback would otherwise serve the main app.
 export const MOTION_AGENT_APP_PATH = '/motion-agent/index.html';
-const TOKEN_REFRESH_MS = 45_000;
+// BYOK: the user's own OpenAI key (API key modal) is re-sent on this timer and when the
+// window regains focus, so a key added or changed in Settings reaches the editor quickly.
+const TOKEN_REFRESH_MS = 15_000;
+
+function getUserOpenAIKey() {
+  try { return apiKeyManager.getOpenAIKey() || null; } catch { return null; }
+}
 
 async function getClerkToken() {
   try {
@@ -41,6 +49,9 @@ export function VideoAgentStudio() {
   window.addEventListener('resize', fit);
 
   const { topbar } = mountStudioChrome(container, { currentRoute: 'video-agent', title: 'Video Agent' });
+  // The banner carries the page title, so the bar below it only holds status.
+  topbar.querySelector('.studio-topbar__title')?.remove();
+  container.insertBefore(createEditorBanner('video-agent', 'Video Agent', 'Describe an animation and the agent writes, previews and renders it'), container.firstChild);
   const status = document.createElement('span');
   status.className = 'text-xs text-secondary mr-3';
   status.setAttribute('aria-live', 'polite');
@@ -59,7 +70,7 @@ export function VideoAgentStudio() {
 
   let tokenTimer = null;
   const sendToken = async () => {
-    iframe.contentWindow?.postMessage({ type: 'sv:auth', token: await getClerkToken() }, window.location.origin);
+    iframe.contentWindow?.postMessage({ type: 'sv:auth', token: await getClerkToken(), openaiKey: getUserOpenAIKey() }, window.location.origin);
   };
 
   async function saveExport(blob, name, prompt) {
@@ -82,6 +93,7 @@ export function VideoAgentStudio() {
       sendToken();
       clearInterval(tokenTimer);
       tokenTimer = setInterval(sendToken, TOKEN_REFRESH_MS);
+      window.addEventListener('focus', sendToken);
     } else if (d.type === 'sv:exported' && d.blob instanceof Blob) {
       saveExport(d.blob, typeof d.name === 'string' ? d.name : 'video-agent.mp4', typeof d.prompt === 'string' ? d.prompt : '');
     }
@@ -91,6 +103,7 @@ export function VideoAgentStudio() {
   container.cleanup = () => {
     clearInterval(tokenTimer);
     window.removeEventListener('message', onMessage);
+    window.removeEventListener('focus', sendToken);
     window.removeEventListener('resize', fit);
   };
   return container;

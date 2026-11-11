@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { getErrorMessage, logError, parseStoredJson } from '../lib/errors'
@@ -7,11 +7,13 @@ import { usePageTitle } from '../lib/usePageTitle'
 import type { AgentThinkingLevel } from '../lib/agent-thinking'
 import DashboardSidebar, { type ProjectFilter, type SidebarNotification } from '../components/DashboardSidebar/DashboardSidebar'
 import PromptInput from '../components/PromptInput/PromptInput'
+import FloatingParticles from '../components/FloatingParticles/FloatingParticles'
 import { shouldShowQuickstart } from '../lib/quickstart'
 import { startDashboardTour } from '../lib/dashboard-tour'
-import FloatingParticles from '../components/FloatingParticles/FloatingParticles'
 import type { SelectedModel } from '../components/ModelSelector/ModelSelector'
 import styles from './DashboardPage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
+import { T } from '../lib/tables'
 
 interface Project {
   id: string
@@ -80,7 +82,7 @@ const INITIAL_VISIBLE = 4
 
 export default function DashboardPage() {
   usePageTitle('Dashboard', {
-    description: 'Create, manage, search, publish, and deploy your Smart Video projects.',
+    description: 'Create, manage, search, publish, and deploy your Smart Website Builder projects.',
   })
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
@@ -149,7 +151,7 @@ export default function DashboardPage() {
       try {
       // Owned projects
       const { data: owned, error: ownedError } = await supabase
-        .from('projects')
+        .from(T.projects)
         .select('id, user_id, title, preview_url, cf_pages_project_name, created_at, updated_at, starred')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
@@ -158,7 +160,7 @@ export default function DashboardPage() {
 
       // Shared projects — look up via collaborator records
       const { data: collabRows, error: collabError } = await supabase
-        .from('project_collaborators')
+        .from(T.project_collaborators)
         .select('project_id')
         .eq('user_id', user.id)
 
@@ -168,7 +170,7 @@ export default function DashboardPage() {
       if (collabRows && collabRows.length > 0) {
         const ids = collabRows.map((r) => r.project_id as string)
         const { data: sharedData, error: sharedError } = await supabase
-          .from('projects')
+          .from(T.projects)
           .select('id, user_id, title, preview_url, cf_pages_project_name, created_at, updated_at, starred')
           .in('id', ids)
           .order('created_at', { ascending: false })
@@ -224,7 +226,7 @@ export default function DashboardPage() {
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'projects',
+        table: T.projects,
         filter: `user_id=eq.${user.id}`,
       }, () => { fetchProjects() })
       .subscribe()
@@ -235,7 +237,7 @@ export default function DashboardPage() {
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
-        table: 'project_collaborators',
+        table: T.project_collaborators,
         filter: `user_id=eq.${user.id}`,
       }, () => {
         fetchProjects()
@@ -256,7 +258,7 @@ export default function DashboardPage() {
     const fetchProviderStatus = async () => {
       try {
         const { data, error } = await supabase
-          .from('provider_keys')
+          .from(T.provider_keys)
           .select('id')
           .eq('user_id', user.id)
           .eq('enabled', true)
@@ -276,7 +278,7 @@ export default function DashboardPage() {
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'provider_keys',
+        table: T.provider_keys,
         filter: `user_id=eq.${user.id}`,
       }, () => {
         fetchProviderStatus()
@@ -294,7 +296,7 @@ export default function DashboardPage() {
     if (!user) return
     let cancelled = false
     supabase
-      .from('profiles')
+      .from(T.profiles)
       .select('has_seen_quickstart')
       .eq('id', user.id)
       .single()
@@ -303,8 +305,11 @@ export default function DashboardPage() {
           logError('DashboardQuickstartFlag', error)
           return
         }
+        // Embedded in SmartVideo: never pop the first-visit spotlight tour
+        // over the studio. Mark it seen so it stays off.
         if (!cancelled && shouldShowQuickstart(data?.has_seen_quickstart)) {
-          setShowQuickstart(true)
+          supabase.from(T.profiles).update({ has_seen_quickstart: true }).eq('id', user.id)
+            .then(({ error: markError }) => { if (markError) logError('DashboardQuickstartFlag', markError) })
         }
       })
     return () => { cancelled = true }
@@ -325,7 +330,7 @@ export default function DashboardPage() {
     const fetchNotifications = async () => {
       const seenIds = new Set(parseStoredJson<string[]>(localStorage.getItem(seenKey), []))
       const { data, error } = await supabase
-        .from('notifications')
+        .from(T.notifications)
         .select('id, text, time_label, created_at')
         .order('created_at', { ascending: false })
 
@@ -350,7 +355,7 @@ export default function DashboardPage() {
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
-        table: 'notifications',
+        table: T.notifications,
       }, (payload) => {
         const row = payload.new as NotificationRow
         if (!row?.id) return
@@ -391,7 +396,7 @@ export default function DashboardPage() {
     // Save project to Supabase
     if (user) {
       const { error } = await supabase
-        .from('projects')
+        .from(T.projects)
         .upsert({
           id: projectId,
           user_id: user.id,
@@ -419,7 +424,7 @@ export default function DashboardPage() {
     if (!user) return
     const previousProjects = projects
     setProjects((prev) => prev.filter((p) => p.id !== projectId))
-    const { error } = await supabase.from('projects').delete().eq('id', projectId).eq('user_id', user.id)
+    const { error } = await supabase.from(T.projects).delete().eq('id', projectId).eq('user_id', user.id)
     if (error) {
       logError('DashboardDeleteProject', error)
       setAppError(getErrorMessage(error, 'Could not delete the project.'))
@@ -437,7 +442,7 @@ export default function DashboardPage() {
     if (!renamingProject || !user) return
     const newTitle = renamingProject.title.trim() || 'Untitled project'
     const { error } = await supabase
-      .from('projects')
+      .from(T.projects)
       .update({ title: newTitle })
       .eq('id', renamingProject.id)
       .eq('user_id', user.id)
@@ -469,7 +474,7 @@ export default function DashboardPage() {
     setPublishing(true)
 
     const { data: projectData, error: fetchError } = await supabase
-      .from('projects')
+      .from(T.projects)
       .select('files')
       .eq('id', publishingProject.id)
       .single()
@@ -486,7 +491,7 @@ export default function DashboardPage() {
       user.email?.split('@')[0] ??
       'Anonymous'
 
-    const { error } = await supabase.from('community_posts').insert({
+    const { error } = await supabase.from(T.community_posts).insert({
       project_id: publishingProject.id,
       user_id: user.id,
       title: publishingProject.title,
@@ -516,7 +521,7 @@ export default function DashboardPage() {
     const newStarred = !project.starred
     setProjects((prev) => prev.map((p) => p.id === projectId ? { ...p, starred: newStarred } : p))
     const { error } = await supabase
-      .from('projects')
+      .from(T.projects)
       .update({ starred: newStarred })
       .eq('id', projectId)
       .eq('user_id', user.id)
@@ -535,7 +540,7 @@ export default function DashboardPage() {
     setShowQuickstart(false)
     if (!user) return
     const { error } = await supabase
-      .from('profiles')
+      .from(T.profiles)
       .update({ has_seen_quickstart: true })
       .eq('id', user.id)
     if (error) logError('DashboardQuickstartDismiss', error)
@@ -612,7 +617,7 @@ export default function DashboardPage() {
         particleCount={30}
         particleSize={2}
         particleOpacity={0.25}
-        particleColor="#A78BFA"
+        particleColor="#d9ff00"
         glowIntensity={10}
         movementSpeed={0.25}
         mouseInfluence={100}
@@ -655,9 +660,9 @@ export default function DashboardPage() {
             <line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
         </button>
-        <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
-        </a>
+        <Link to="/dashboard" className={styles.mobileLogo}>
+          <BrandLogo className={styles.mobileLogoImg} />
+        </Link>
       </div>
 
       <main className={`${styles.main} ${hasProjects ? styles.mainWithProjects : ''}`}>
@@ -1081,7 +1086,7 @@ export default function DashboardPage() {
             </button>
             <h2 className={styles.publishTitle}>Publish to Community</h2>
             <p className={styles.publishSubtitle}>
-              Share <strong>{publishingProject.title}</strong> with the Smart Video community.
+              Share <strong>{publishingProject.title}</strong> with the Smart Website Builder community.
             </p>
             <label className={styles.publishLabel}>
               Description <span className={styles.publishOptional}>(optional)</span>

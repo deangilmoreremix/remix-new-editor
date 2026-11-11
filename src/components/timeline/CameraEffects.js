@@ -10,6 +10,11 @@ export class CameraEffects {
     this.timelineState = options.timelineState;
     this.onPreviewUpdate = options.onPreviewUpdate || (() => {});
     this.onKeyframeUpdate = options.onKeyframeUpdate || (() => {});
+    // The editor page supplies these (its clips use items/start/end, not clips/startTime).
+    this.getClip = options.getClip || null;
+    this.clipDuration = options.clipDuration || null;
+    this.applyKeyframes = options.applyKeyframes || null;
+    this.onMessage = options.onMessage || null;
 
     // Camera effect types with their default parameters
     this.effectTypes = {
@@ -285,8 +290,11 @@ export class CameraEffects {
 
   generateEffectKeyframes(effectType, params, clip) {
     const keyframes = [];
-    const clipStart = clip.startTime / 1000; // Convert to seconds
-    const clipDuration = (clip.endTime - clip.startTime) / 1000;
+    // Keyframe times are seconds from the clip's start (what the composition reads).
+    const clipStart = 0;
+    const whole = this.clipDuration ? this.clipDuration(clip) : (clip.endTime - clip.startTime) / 1000;
+    const wanted = Number(params?.duration);
+    const clipDuration = Math.max(0.1, Number.isFinite(wanted) && wanted > 0 ? Math.min(wanted, whole) : whole);
 
     switch (effectType) {
       case 'shake':
@@ -606,32 +614,41 @@ export class CameraEffects {
     return result;
   }
 
-  applyEffect() {
-    if (!this.currentEffect || !this.selectedClipId || !this.keyframeSystem) return;
-
-    const clip = this.getSelectedClip();
-    if (!clip) return;
-
-    const keyframes = this.generateEffectKeyframes(this.currentEffect, this.currentParameters, clip);
-
-    // Apply keyframes to the keyframe system
-    keyframes.forEach(kf => {
-      Object.entries(kf.properties).forEach(([property, value]) => {
-        this.keyframeSystem.createKeyframe(
-          this.selectedClipId,
-          kf.time,
-          property,
-          value,
-          this.currentParameters.easing || 'linear'
-        );
+  /** Pixel distances in the effect's settings → % of a 1920×1080 frame; scale % → 1 = 100%. */
+  toCompositionKeyframes(keyframes, easing) {
+    const byProp = {};
+    keyframes.forEach((kf) => {
+      Object.entries(kf.properties).forEach(([prop, value]) => {
+        let v = Number(value);
+        if (prop === 'x') v = (v / 1920) * 100;
+        else if (prop === 'y') v = (v / 1080) * 100;
+        else if (prop === 'scale') v /= 100;
+        (byProp[prop] = byProp[prop] || []).push({ t: Math.max(0, kf.time), v: Math.round(v * 1000) / 1000, easing: easing || 'linear' });
       });
     });
+    return byProp;
+  }
 
-    // Notify about keyframe updates
+  applyEffect() {
+    const clip = this.getSelectedClip();
+    if (!this.currentEffect) { this.onMessage?.('Choose an effect first.', 'info'); return false; }
+    if (!clip) { this.onMessage?.('Select a clip on the timeline first.', 'info'); return false; }
+
+    const keyframes = this.generateEffectKeyframes(this.currentEffect, this.currentParameters, clip);
+    const byProp = this.toCompositionKeyframes(keyframes, this.currentParameters.easing);
+    if (this.applyKeyframes) this.applyKeyframes(this.selectedClipId, byProp);
     this.onKeyframeUpdate();
+    this.onMessage?.(`${this.effectTypes[this.currentEffect].name} applied.`, 'success');
+    return true;
+  }
 
-    // Show success feedback
-    this.showSuccessMessage('Camera effect applied successfully!');
+  /** Select an effect (by key) and apply it to the selected clip with its default settings. */
+  applyQuick(effectKey, clipId) {
+    if (clipId) this.selectedClipId = clipId;
+    this.selectEffect(effectKey);
+    const select = this.container.querySelector('#effectSelect');
+    if (select) select.value = effectKey;
+    return this.applyEffect();
   }
 
   showSuccessMessage(message) {
@@ -647,14 +664,13 @@ export class CameraEffects {
   }
 
   getSelectedClip() {
-    if (!this.timelineState || !this.selectedClipId) return null;
-
-    // Find the clip across all tracks
+    if (!this.selectedClipId) return null;
+    if (this.getClip) return this.getClip(this.selectedClipId) || null;
+    if (!this.timelineState) return null;
     for (const track of this.timelineState.tracks || []) {
-      const clip = track.clips?.find(c => c.id === this.selectedClipId);
+      const clip = track.clips?.find((c) => c.id === this.selectedClipId);
       if (clip) return clip;
     }
-
     return null;
   }
 

@@ -126,7 +126,7 @@
 .a {
   color: var(--color-accent);
   text-decoration: underline;
-  text-decoration-color: rgba(157, 137, 251, 0.4);
+  text-decoration-color: rgba(217, 255, 0, 0.4);
   text-underline-offset: 3px;
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
@@ -148,7 +148,7 @@
 
 .pre {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(148, 137, 251, 0.15);
+  border: 1px solid rgba(217, 255, 0, 0.15);
   border-radius: 8px;
   padding: 20px 24px;
   overflow-x: auto;
@@ -166,19 +166,19 @@
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 0.875em;
   color: var(--color-accent);
-  background: rgba(157, 137, 251, 0.1);
+  background: rgba(217, 255, 0, 0.1);
   padding: 2px 6px;
   border-radius: 4px;
 }
 
 .hr {
   border: none;
-  border-top: 1px solid rgba(148, 137, 251, 0.15);
+  border-top: 1px solid rgba(217, 255, 0, 0.15);
   margin: 2.5rem 0;
 }
 
 .blockquote {
-  border-left: 3px solid #9d89fb;
+  border-left: 3px solid #d9ff00;
   margin: 1.5rem 0;
   padding: 4px 0 4px 20px;
   color: #9090b8;
@@ -193,5 +193,5 @@
   background: var(--color-surface);
   margin-bottom: 48px;
   display: block;
-  border: 1px solid rgba(148, 137, 251, 0.15);
+  border: 1px solid rgba(217, 255, 0, 0.15);
 }

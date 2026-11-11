@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { thumbnailAuthHeaders } from './thumbnailAuth.js';
 import { apiKeyManager } from './apiKeyManager.js';
 import {
   THUMBNAIL_TEMPLATES,
@@ -85,7 +86,7 @@ export class ThumbnailRecommendationService {
       const userKey = resolveUserOpenAIKey(this.userApiKey);
       if (userKey) body.apiKey = userKey;
 
-      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
 
       if (error || !data?.recommendations) {
         return this._curatedFallback(brief, platforms, category);
@@ -133,7 +134,7 @@ export class ThumbnailRecommendationService {
       const userKey = resolveUserOpenAIKey(this.userApiKey);
       if (userKey) body.apiKey = userKey;
 
-      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
 
       if (error || !data?.concept) {
         return { concept: this._localSurpriseConcept() };

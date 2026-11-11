@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { applyOps, sanitizeProps } from '../../apps/shotcraft/workbench/src/ai/ops.ts';
 import { projectFromAssets, appendAssets, isHostAsset } from '../../apps/shotcraft/workbench/src/host/importAssets.ts';
 import {
   isWorkbenchEligible, toWorkbenchAsset, openInWorkbench, consumeWorkbenchHandoff,
 } from '../lib/workbench.js';
 import { mountGenerationNotifications, notifyGeneration, __resetGenerationNotifications } from '../components/studio/generationNotifications.js';
-import { saveGeneration } from '../lib/generationHistory.js';
-import { parseModelAnswer, extractText } from '../../netlify/functions/workbench-chat.js';
+import { saveGeneration, registerGeneration } from '../lib/generationHistory.js';
+import { parseModelAnswer, extractText, handler as workbenchChat, userOpenAIKey } from '../../netlify/functions/workbench-chat.js';
 
 // src/test/setup.js replaces sessionStorage with no-op mocks; the handoff needs a real store.
 const memoryStorage = () => {
@@ -147,5 +147,117 @@ describe('workbench-chat function helpers', () => {
     expect(r).toEqual({ reply: 'ok', ops: [{ op: 'remove_clip', clipId: 'c1' }] });
     expect(() => parseModelAnswer('not json')).toThrow();
     expect(extractText({ output: [{ type: 'message', content: [{ type: 'output_text', text: '{"reply":"a"}' }] }] })).toBe('{"reply":"a"}');
+  });
+});
+
+describe('registerGeneration: studios that now feed the Workbench', () => {
+  beforeEach(() => { __resetGenerationNotifications(); localStorage.clear(); document.body.innerHTML = ''; });
+
+  it('skips blob: and empty URLs', async () => {
+    expect(await registerGeneration('videotools', 'video', 'blob:https://x/abc')).toBeNull();
+    expect(await registerGeneration('edit', 'image', '')).toBeNull();
+  });
+
+  it.each([
+    ['cinema', 'video', 'https://cdn.muapi.ai/out/cinema.mp4'],
+    ['upscale', 'image', 'https://cdn.muapi.ai/out/up.png'],
+    ['audio', 'audio', 'https://cdn.muapi.ai/out/song.mp3'],
+    ['storyboard', 'image', 'https://cdn.muapi.ai/out/frame.png'],
+    ['edit', 'image', 'https://cdn.muapi.ai/out/edit.png'],
+    ['videotools', 'video', 'https://cdn.muapi.ai/out/tool.mp4'],
+  ])('%s output gets "Edit in Workbench" and opens as %s', async (studio, type, url) => {
+    const navigate = vi.fn();
+    mountGenerationNotifications(navigate);
+    const entry = await registerGeneration(studio, type, url, { prompt: `${studio} result` });
+    expect(entry).toMatchObject({ url, type });
+    const btn = document.querySelector('[data-action="edit-in-workbench"]');
+    expect(btn).toBeTruthy();
+    btn.click();
+    expect(navigate).toHaveBeenCalledWith('workbench');
+    expect(consumeWorkbenchHandoff().assets[0]).toMatchObject({ url, kind: type });
+  });
+
+  it('audio results keep their type in the saved history', async () => {
+    await registerGeneration('audio', 'audio', 'https://cdn.muapi.ai/out/a.mp3', { prompt: 'song' });
+    const stored = JSON.parse(localStorage.getItem('video_history') || '[]');
+    expect(stored[0]).toMatchObject({ url: 'https://cdn.muapi.ai/out/a.mp3', type: 'audio' });
+  });
+});
+
+describe('studio completion points stay wired to the Workbench', () => {
+  it.each([
+    ['CinemaStudio.js', "registerGeneration('cinema', 'video'"],
+    ['UpscaleStudio.js', "registerGeneration('upscale', 'image'"],
+    ['AudioStudio.js', "registerGeneration('audio', 'audio'"],
+    ['StoryboardStudio.js', "registerGeneration('storyboard', 'image'"],
+    ['EditStudio.js', "registerGeneration('edit', 'image'"],
+    ['VideoToolsStudio.js', "registerGeneration('videotools', 'video'"],
+  ])('%s registers its output', async (file, call) => {
+    const fs = await import('node:fs');
+    expect(fs.readFileSync(`src/components/${file}`, 'utf8')).toContain(call);
+  });
+});
+
+describe('Workbench uploads from the computer', () => {
+  it('recognises media by MIME type or extension', async () => {
+    const { kindOfFile } = await import('../../apps/shotcraft/workbench/src/host/uploadRules.ts');
+    expect(kindOfFile({ type: 'video/mp4', name: 'a.mp4' })).toBe('video');
+    expect(kindOfFile({ type: 'image/png', name: 'a.png' })).toBe('image');
+    expect(kindOfFile({ type: 'audio/mpeg', name: 'a.mp3' })).toBe('audio');
+    expect(kindOfFile({ type: '', name: 'clip.MOV' })).toBe('video');
+    expect(kindOfFile({ type: '', name: 'song.m4a' })).toBe('audio');
+    expect(kindOfFile({ type: 'text/plain', name: 'notes.txt' })).toBeNull();
+  });
+
+  it('applies the same size limits as SmartVid uploads', async () => {
+    const { checkFile, UPLOAD_LIMITS } = await import('../../apps/shotcraft/workbench/src/host/uploadRules.ts');
+    const { UPLOAD_LIMITS: SV } = await import('../lib/editor/uploadLimits.js');
+    expect(UPLOAD_LIMITS).toEqual({ image: SV.image, video: SV.video, audio: SV.audio });
+    const big = { name: 'big.png', type: 'image/png', size: SV.image + 1 };
+    expect(checkFile(big).error).toMatch(/too large \(max 10 MB for image\)/);
+    expect(checkFile({ name: 'ok.mp4', type: 'video/mp4', size: 1024 })).toEqual({ kind: 'video' });
+    expect(checkFile({ name: 'x.txt', type: 'text/plain', size: 3 }).error).toMatch(/isn't a video, image or audio/);
+  });
+});
+
+describe('workbench-chat uses the user\'s own OpenAI key (BYOK)', () => {
+  const KEY = 'sk-proj-' + 'c'.repeat(40);
+  const ev = (headers = {}) => ({ httpMethod: 'POST', headers, body: JSON.stringify({ message: 'trim the first clip', project: { name: 'p', fps: 30, tracks: [] }, cards: [] }) });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('reads and validates the X-OpenAI-Key header', () => {
+    expect(userOpenAIKey({ 'x-openai-key': ` ${KEY} ` })).toBe(KEY);
+    expect(userOpenAIKey({ 'X-OpenAI-Key': KEY })).toBe(KEY);
+    expect(userOpenAIKey({ 'x-openai-key': 'hello' })).toBeNull();
+    expect(userOpenAIKey({})).toBeNull();
+  });
+
+  it('asks for a key instead of using a server key', async () => {
+    process.env.OPENAI_API_KEY = 'sk-server-' + 'd'.repeat(32);
+    try {
+      const r = await workbenchChat(ev());
+      expect(r.statusCode).toBe(401);
+      expect(JSON.parse(r.body).error).toMatch(/your own OpenAI key/);
+    } finally {
+      delete process.env.OPENAI_API_KEY;
+    }
+  });
+
+  it('sends the request on the user\'s key and returns the edit ops', async () => {
+    let auth = null;
+    vi.stubGlobal('fetch', async (url, init) => {
+      auth = init.headers.Authorization;
+      return new Response(JSON.stringify({ output_text: '{"reply":"Trimmed.","ops":[{"op":"update_clip","clipId":"c1","duration":60}]}' }), { status: 200 });
+    });
+    const r = await workbenchChat(ev({ 'X-OpenAI-Key': KEY }));
+    expect(auth).toBe(`Bearer ${KEY}`);
+    expect(JSON.parse(r.body)).toEqual({ ok: true, reply: 'Trimmed.', ops: [{ op: 'update_clip', clipId: 'c1', duration: 60 }] });
+  });
+
+  it('explains a rejected key or an empty OpenAI account', async () => {
+    vi.stubGlobal('fetch', async () => new Response('{}', { status: 401 }));
+    expect(JSON.parse((await workbenchChat(ev({ 'X-OpenAI-Key': KEY }))).body).error).toMatch(/OpenAI rejected your API key/);
+    vi.stubGlobal('fetch', async () => new Response('{}', { status: 429 }));
+    expect(JSON.parse((await workbenchChat(ev({ 'X-OpenAI-Key': KEY }))).body).error).toMatch(/out of credit/);
   });
 });

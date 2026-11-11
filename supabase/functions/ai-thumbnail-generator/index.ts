@@ -1,6 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import OpenAI from "npm:openai";
+import {
+  extractBearerToken,
+  readEnv,
+  requireEntitlement,
+} from "../_shared/clerkAuth.ts";
 
 const OPENAI_IMAGE_MODELS = new Set(['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini']);
 
@@ -25,11 +30,11 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
 // Config
 // ---------------------------------------------------------------------------
 
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const OPENAI_API_KEY = readEnv("OPENAI_API_KEY");
+const SUPABASE_URL = readEnv("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = readEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-const IMG_GEN_MAINLINE_MODEL = Deno.env.get("IMG_GEN_MAINLINE_MODEL") || "gpt-4.1";
+const IMG_GEN_MAINLINE_MODEL = readEnv("IMG_GEN_MAINLINE_MODEL") || "gpt-4.1";
 const MODEL_FALLBACK_CHAIN = [IMG_GEN_MAINLINE_MODEL, "gpt-4.1-mini", "gpt-4o"].filter(
   (m, i, arr) => arr.indexOf(m) === i
 );
@@ -236,6 +241,8 @@ interface GenerateRequest {
   platform?: string;
   // User-supplied OpenAI key.
   apiKey?: string;
+  // User-supplied MuAPI key (non-OpenAI models).
+  muapi_api_key?: string;
 }
 
 interface RefineRequest {
@@ -326,6 +333,8 @@ interface SaveRequest {
    * GIF byte stream and the file is saved with a .gif extension. */
   asGif?: boolean;
   gifData?: string;
+  /** Real image type of imageB64 (e.g. image/avif from MuAPI models). */
+  mime?: string;
 }
 
 type RequestBody = PromptsRequest | GenerateRequest | RefineRequest | InpaintRequest | SaveRequest | BrandKitRequest | PlatformRequest | VideoThumbnailRequest | UploadReferenceRequest | RecommendTemplatesRequest | SurpriseMeRequest;
@@ -670,7 +679,7 @@ Each prompt must:
   }
 }
 
-async function handleGenerate(body: GenerateRequest) {
+async function handleGenerate(body: GenerateRequest, clerkToken: string | null = null) {
   let openai: OpenAI;
   let keySource: "user" | "server";
   try {
@@ -687,7 +696,7 @@ async function handleGenerate(body: GenerateRequest) {
     return handleGenerateOpenAI(body, model, openai, keySource);
   }
 
-  return handleGenerateMuapi(body, model, keySource);
+  return handleGenerateMuapi(body, model, keySource, clerkToken);
 }
 
 // ---------------------------------------------------------------------------
@@ -780,76 +789,206 @@ async function handleGenerateOpenAI(
 // muapi-proxy path (all non-OpenAI models)
 // ---------------------------------------------------------------------------
 
+// Map legacy/short model names to the canonical muapi API endpoint names.
+// Kept in sync with the same helper in muapi-proxy/index.ts. (This function
+// was called below but missing, so every MuAPI-model generate request
+// failed with a ReferenceError before reaching the proxy.)
+function normalizeLegacyEndpoint(endpoint: string): string {
+  const map: Record<string, string> = {
+    'flux-dev': 'flux-dev-image',
+    'flux-schnell': 'flux-schnell-image',
+    'latent-sync': 'latentsync-video',
+    'ai-video-effects': 'generate_wan_ai_effects',
+    'ai-image-upscaler': 'ai-image-upscale',
+  };
+  return map[endpoint] || endpoint;
+}
+
+// Pixel sizes for MuAPI models that take width/height instead of aspect_ratio.
+// Models that take aspect_ratio ignore these, so both are always sent.
+// Every edge is a multiple of 16 and at most 1536px.
+const MUAPI_DIMENSIONS: Record<string, [number, number]> = {
+  "16:9": [1344, 768],
+  "9:16": [768, 1344],
+  "1:1": [1024, 1024],
+  "4:3": [1152, 864],
+  "3:4": [864, 1152],
+  "4:5": [896, 1120],
+  "3:2": [1248, 832],
+  "2:3": [832, 1248],
+  "2:1": [1536, 768],
+  "21:9": [1536, 640],
+};
+const MUAPI_MAX_CANDIDATES = 4;
+const MUAPI_POLL_INTERVAL_MS = 2000;
+// One budget for the whole request (submit + poll + download) so it always
+// answers inside the edge function's 150s wall clock, with room to spare.
+const MUAPI_TOTAL_BUDGET_MS = 100_000;
+const MUAPI_CALL_TIMEOUT_MS = 20_000;     // each muapi-proxy hop
+const MUAPI_DOWNLOAD_TIMEOUT_MS = 20_000; // each result image
+const MUAPI_MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+function muapiOutputUrls(result: Record<string, unknown>): string[] {
+  const urls: string[] = [];
+  const pushUrl = (v: unknown) => {
+    if (typeof v === "string") urls.push(v);
+    else if (v && typeof (v as { url?: unknown }).url === "string") urls.push((v as { url: string }).url);
+  };
+  for (const key of ["outputs", "images"]) {
+    const list = result[key];
+    if (Array.isArray(list)) list.forEach(pushUrl);
+  }
+  // Some models return a single `output` (string, { url }, or a list).
+  const output = result.output;
+  if (Array.isArray(output)) output.forEach(pushUrl);
+  else pushUrl(output);
+  if (typeof result.url === "string") urls.push(result.url);
+  return urls;
+}
+
 async function handleGenerateMuapi(
   body: GenerateRequest,
   model: string,
-  keySource: "user" | "server"
+  _keySource: "user" | "server",
+  clerkToken: string | null = null
 ) {
-  const muapiKey = body.muapi_api_key || Deno.env.get("MUAPI_API_KEY");
+  const muapiKey = body.muapi_api_key || readEnv("MUAPI_API_KEY");
   if (!muapiKey) {
     return jsonResponse({
       error: "Muapi API key required for this model. Set MUAPI_API_KEY on the server or provide muapi_api_key in the request.",
     }, 500);
   }
 
+  const deadline = Date.now() + MUAPI_TOTAL_BUDGET_MS;
   const endpoint = normalizeLegacyEndpoint(model);
+  // Same precedence as the OpenAI path: a chosen platform sets the format.
+  let aspectRatio = body.aspectRatio || "16:9";
+  if (body.platform && PLATFORM_SPECS[body.platform]) {
+    aspectRatio = PLATFORM_SPECS[body.platform].aspectRatio;
+  }
+  const [width, height] = MUAPI_DIMENSIONS[aspectRatio] || MUAPI_DIMENSIONS["16:9"];
+  // MuAPI models take num_images / width / height, not OpenAI's n / size.
+  // Each job returns one image, so request one per job and run n jobs.
   const params: Record<string, unknown> = {
     prompt: body.prompt,
+    aspect_ratio: aspectRatio,
+    width,
+    height,
+    num_images: 1,
   };
-  if (body.n) params.n = body.n;
-  if (body.aspectRatio) params.aspect_ratio = body.aspectRatio;
-  if (body.size) params.size = body.size;
   if (body.quality) params.quality = body.quality;
+  const count = Math.min(Math.max(body.n ?? 1, 1), MUAPI_MAX_CANDIDATES);
 
   const proxyUrl = `${SUPABASE_URL}/functions/v1/muapi-proxy`;
+  const proxyHeaders = {
+    "Content-Type": "application/json",
+    // Forward the caller's verified Clerk session token so muapi-proxy
+    // enforces the same entitlement gate on this server-to-server hop.
+    Authorization: `Bearer ${clerkToken || SUPABASE_SERVICE_ROLE_KEY}`,
+    apikey: SUPABASE_SERVICE_ROLE_KEY || "",
+  };
 
-  let proxyRes: Response;
-  try {
-    proxyRes = await fetch(proxyUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        apikey: SUPABASE_SERVICE_ROLE_KEY || "",
-      },
-      body: JSON.stringify({
-        endpoint,
-        params,
-        muapi_api_key: muapiKey,
-        generationType: "image",
-      }),
-    });
-  } catch (err) {
-    return jsonResponse({
-      error: `Failed to reach muapi-proxy: ${err instanceof Error ? err.message : "network error"}`,
-    }, 502);
+  const timeLeft = () => deadline - Date.now();
+  const signalFor = (ms: number) => AbortSignal.timeout(Math.max(1000, Math.min(ms, timeLeft())));
+
+  // Time kept back so a finished job can still download its image.
+  const DOWNLOAD_RESERVE_MS = MUAPI_DOWNLOAD_TIMEOUT_MS / 2;
+
+  async function callProxy(payload: Record<string, unknown>, maxMs = MUAPI_CALL_TIMEOUT_MS): Promise<Record<string, unknown>> {
+    let res: Response;
+    try {
+      res = await fetch(proxyUrl, {
+        method: "POST",
+        headers: proxyHeaders,
+        body: JSON.stringify({ ...payload, muapi_api_key: muapiKey }),
+        signal: signalFor(maxMs),
+      });
+    } catch (err) {
+      const timedOut = err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError");
+      throw new Error(timedOut ? "MuAPI did not respond in time" : `Failed to reach muapi-proxy: ${err instanceof Error ? err.message : "network error"}`);
+    }
+    let json: Record<string, unknown> = {};
+    try { json = await res.json(); } catch { /* non-JSON body */ }
+    if (!res.ok) {
+      const detail = (json.details as string) || (json.message as string) || (json.error as string) || res.statusText;
+      throw new Error(`muapi-proxy error (${res.status}): ${detail}`);
+    }
+    return json;
   }
 
-  if (!proxyRes.ok) {
-    let detail = "";
-    try { detail = await proxyRes.text(); } catch { /* ignore */ }
-    return jsonResponse({
-      error: `muapi-proxy error (${proxyRes.status}): ${detail || proxyRes.statusText}`,
-    }, 502);
+  // Submit, then poll predictions/<id>/result until the job finishes.
+  // (muapi-proxy forwards one request; MuAPI answers image jobs with
+  // { request_id, status: "processing" } and the images come later.)
+  async function waitForUrls(): Promise<string[]> {
+    const submitted = await callProxy({ endpoint, params, generationType: "image" });
+    let urls = muapiOutputUrls(submitted);
+    if (urls.length) return urls;
+    const requestId = (submitted.request_id || submitted.id) as string | undefined;
+    if (!requestId) throw new Error("MuAPI did not return a request id");
+
+    // Stop polling early enough to leave time for the download, and cap
+    // each poll so it cannot eat into that reserve either.
+    while (timeLeft() > DOWNLOAD_RESERVE_MS + MUAPI_POLL_INTERVAL_MS) {
+      await new Promise((r) => setTimeout(r, MUAPI_POLL_INTERVAL_MS));
+      const pollMs = Math.min(MUAPI_CALL_TIMEOUT_MS, timeLeft() - DOWNLOAD_RESERVE_MS);
+      if (pollMs < 1000) break;
+      const polled = await callProxy({ endpoint: `predictions/${requestId}/result`, params: {}, generationType: "poll" }, pollMs);
+      const status = String(polled.status || "").toLowerCase();
+      if (status === "failed" || status === "error") {
+        throw new Error(String(polled.error || "MuAPI generation failed"));
+      }
+      if (status === "completed" || status === "succeeded" || status === "success") {
+        urls = muapiOutputUrls(polled);
+        if (!urls.length) throw new Error("MuAPI finished without an image");
+        return urls;
+      }
+    }
+    throw new Error("MuAPI generation timed out");
   }
 
-  let muapiResult: Record<string, unknown>;
-  try {
-    muapiResult = await proxyRes.json();
-  } catch {
-    return jsonResponse({ error: "Invalid JSON response from muapi-proxy" }, 502);
+  async function toCandidate(url: string) {
+    const res = await fetch(url, { signal: signalFor(MUAPI_DOWNLOAD_TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`Failed to download generated image (${res.status})`);
+    const declared = Number(res.headers.get("content-length") || "0");
+    if (declared > MUAPI_MAX_IMAGE_BYTES) throw new Error("Generated image is too large");
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.byteLength > MUAPI_MAX_IMAGE_BYTES) throw new Error("Generated image is too large");
+    const mime = (res.headers.get("content-type") || "image/png").split(";")[0].trim();
+    return { b64_json: bytesToBase64(bytes), mime, revised_prompt: "", url };
   }
 
-  const images = (muapiResult.images || muapiResult.data || []) as Array<Record<string, unknown>>;
-  const candidates = images.map((img) => ({
-    b64_json: (img.b64 as string) || (img.base64 as string) || "",
-    revised_prompt: (img.revised_prompt as string) || "",
-  }));
+  // Each job downloads its own image as soon as it finishes, so a slow
+  // sibling job cannot use up the time a finished image needs to download.
+  async function runJob() {
+    const urls = await waitForUrls();
+    return toCandidate(urls[0]);
+  }
 
+  const settled = await Promise.allSettled(Array.from({ length: count }, runJob));
+  const candidates = settled.flatMap((s) => (s.status === "fulfilled" ? [s.value] : []));
+  if (!candidates.length) {
+    const firstError = settled.find((s): s is PromiseRejectedResult => s.status === "rejected");
+    const message = firstError
+      ? (firstError.reason instanceof Error ? firstError.reason.message : String(firstError.reason))
+      : "";
+    return jsonResponse({ error: message || "MuAPI returned no images" }, 502);
+  }
+
+  // No key_source: it describes the OpenAI key, which MuAPI models don't use.
   return jsonResponse({
     candidates,
-    params: { size: body.size, quality: body.quality, aspectRatio: body.aspectRatio },
-    key_source: keySource,
+    requested: count,
+    returned: candidates.length,
+    params: { size: `${width}x${height}`, quality: body.quality, aspectRatio },
     model_used: model,
   });
 }
@@ -1598,9 +1737,16 @@ async function handleSave(body: SaveRequest) {
     const imageBuffer = isGif
       ? await base64ToUint8Array(body.gifData || body.imageB64)
       : await base64ToUint8Array(body.imageB64);
-    const fileExt = isGif ? "gif" : (body.controls?.outputFormat || "webp");
+    // MuAPI results keep their upstream bytes (AVIF/PNG/JPEG); the client
+    // sends that type as `mime` so the file is named and served correctly.
+    const MIME_EXT: Record<string, string> = {
+      "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/avif": "avif", "image/gif": "gif",
+    };
+    const mimeExt = body.mime ? MIME_EXT[body.mime] : undefined;
+    const fileExt = isGif ? "gif" : (mimeExt || body.controls?.outputFormat || "webp");
+    const contentType = isGif ? "image/gif" : (mimeExt ? body.mime! : `image/${fileExt === "jpg" ? "jpeg" : fileExt}`);
     const filename = `${body.templateId}/${crypto.randomUUID()}.${fileExt}`;
-    const imageUrl = await uploadBufferToStorage(imageBuffer, filename);
+    const imageUrl = await uploadBufferToStorage(imageBuffer, filename, contentType);
 
     await persistThumbnailRow({
       templateId: body.templateId,
@@ -1652,13 +1798,26 @@ async function handleSave(body: SaveRequest) {
 // Main
 // ---------------------------------------------------------------------------
 
-Deno.serve(async (req: Request) => {
+async function handleThumbnailRequest(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method Not Allowed" }, 405);
   }
+
+  // --- Clerk auth + SmartVideo entitlement gate ---------------------------
+  // Runs BEFORE any OpenAI/Muapi call and before ANY server-key use,
+  // including the OPENAI_API_KEY fallback and the MUAPI_API_KEY fallback in
+  // handleGenerateMuapi. Unauthenticated -> 401 AUTH_REQUIRED; authenticated
+  // but unpaid -> 403 PAYMENT_REQUIRED (upgradeRequired). BYOK does not
+  // replace the required purchase.
+  const denial = await requireEntitlement(req, corsHeaders);
+  if (denial) return denial;
+
+  // The verified Clerk session token is forwarded to muapi-proxy so the
+  // proxy's own gate re-verifies the same session (identical semantics).
+  const clerkToken = extractBearerToken(req);
 
   // Multipart form requests (e.g. upload-reference) bypass JSON parsing.
   const contentType = req.headers.get("content-type") || "";
@@ -1688,7 +1847,7 @@ Deno.serve(async (req: Request) => {
       case "prompts":
         return handlePrompts(parsed as PromptsRequest);
       case "generate":
-        return handleGenerate(parsed as GenerateRequest);
+        return handleGenerate(parsed as GenerateRequest, clerkToken);
       case "refine":
         if ((parsed as RefineRequest).stream) return streamRefine(parsed as RefineRequest);
         return handleRefine(parsed as RefineRequest);
@@ -1715,4 +1874,11 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Unexpected error" }, 500);
   }
-});
+}
+
+// Start the edge server under Deno; exporting the handler keeps the module
+// importable under Node/vitest for unit tests (Deno is undefined there).
+export { handleThumbnailRequest };
+if (typeof Deno !== 'undefined' && Deno.serve) {
+  Deno.serve(handleThumbnailRequest);
+}

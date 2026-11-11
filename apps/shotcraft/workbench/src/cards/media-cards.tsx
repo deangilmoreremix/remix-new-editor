@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Img } from "remotion";
+import { AbsoluteFill, Img, useRemotionEnvironment } from "remotion";
 import { Audio, Video } from "@remotion/media";
 import { pub } from "../pub";
 import type { CardDef } from "./types";
@@ -42,7 +42,7 @@ export const videoClipCard: CardDef = {
   accent: "#30d158",
   component: VideoClip as React.ComponentType<Record<string, unknown>>,
   schema: [
-    { type: "text", key: "file", label: "文件（public/ 下）", default: "" },
+    { type: "text", key: "file", label: "文件 / 链接", default: "" },
     {
       type: "select", key: "fit", label: "适配", default: "contain",
       options: [
@@ -56,11 +56,16 @@ export const videoClipCard: CardDef = {
 };
 
 const ImageClip: React.FC<{ file?: string; fit?: string }> = ({ file = "", fit = "contain" }) => {
+  const { isRendering } = useRemotionEnvironment();
   if (!file) return null;
   return (
     <AbsoluteFill style={{ background: "#000" }}>
+      {/* SmartVid: AI outputs live on other origins (MuAPI CDN, Supabase). While exporting,
+          request them with CORS so @remotion/web-renderer can read the pixels. The live
+          preview loads them plainly, so it still shows files from hosts without CORS. */}
       <Img
         src={pub(file)}
+        crossOrigin={isRendering && /^https?:/i.test(file) ? "anonymous" : undefined}
         style={{ width: "100%", height: "100%", objectFit: fit as React.CSSProperties["objectFit"] }}
       />
     </AbsoluteFill>
@@ -76,7 +81,7 @@ export const imageClipCard: CardDef = {
   accent: "#64d2ff",
   component: ImageClip as React.ComponentType<Record<string, unknown>>,
   schema: [
-    { type: "text", key: "file", label: "文件（public/ 下）", default: "" },
+    { type: "text", key: "file", label: "文件 / 链接", default: "" },
     {
       type: "select", key: "fit", label: "适配", default: "contain",
       options: [
@@ -111,7 +116,7 @@ export const audioClipCard: CardDef = {
   accent: "#ff9f0a",
   component: AudioClip as React.ComponentType<Record<string, unknown>>,
   schema: [
-    { type: "text", key: "file", label: "文件（public/ 下）", default: "" },
+    { type: "text", key: "file", label: "文件 / 链接", default: "" },
     { type: "slider", key: "volume", label: "音量", default: 1, min: 0, max: 1, step: 0.01 },
   ],
 };

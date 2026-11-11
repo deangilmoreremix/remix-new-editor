@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import { pathToFileURL } from 'url';
 import { publicAuditReportPlugin } from './vite/plugins/publicAuditReportPlugin.js';
 // Cache-bust: 2026-07-28
 
@@ -422,6 +423,11 @@ function securityHeaders() {
                 if (url.startsWith('/ai-vfx')) {
                     return next();
                 }
+                // The Remotion export runner sets its own (stricter) CSP via
+                // <meta>; the app CSP below would block its WebAssembly encoder.
+                if (url.startsWith('/export-runner.html') || url.startsWith('/code-preview.html')) {
+                    return next();
+                }
                 // Content Security Policy
                 // NOTE: `script-src` must allow Vite's React Refresh preamble, which
                 // is injected as an INLINE <script> in dev. Without the preamble's
@@ -443,12 +449,15 @@ function securityHeaders() {
 
                 const csp = [
                   "default-src 'self'",
-                  `script-src 'self' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
+                  // 'wasm-unsafe-eval': Remotion's Player/media decoders compile WebAssembly.
+                  `script-src 'self' 'wasm-unsafe-eval' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
                   `worker-src 'self' blob:${clerkHostSrc} https://clerk.smartvid.app`,
                   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com${clerkHostSrc}`,
                   `img-src 'self' data: https: blob:${clerkHostSrc}`,
-                  `font-src 'self' data:${clerkHostSrc}`,
-                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
+                  `font-src 'self' data: https://fonts.gstatic.com${clerkHostSrc}`,
+                  // https: so the Remotion Player (@remotion/media) can fetch clip
+                  // media from stock/storage CDNs, as production (no CSP) allows.
+                  "connect-src 'self' https: blob: data: ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
                   `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}`,
                   "media-src 'self' https: blob:",
                 ].join('; ');
@@ -473,9 +482,10 @@ function securityHeaders() {
                 res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
                 
                 // Permissions Policy
+                // [remix] microphone=(self): the timeline's voice-over recorder and Voice Director use the mic (same origin only)
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=()'
+                    'camera=(), microphone=(self)'
                 );
                 
                 next();
@@ -886,7 +896,7 @@ function modelCatalogDevPlugin() {
           // by returning the requested pool wrapped in { models: [...] }.
           const url = new URL(req.url, 'http://localhost');
           const modelType = url.searchParams.get('modelType');
-          const VALID = ['t2i', 'i2i', 'i2v', 't2v', 'v2v'];
+          const VALID = ['t2i', 'i2i', 'i2v', 't2v', 'v2v', 'audio', 'lipsync'];
           if (modelType && VALID.includes(modelType)) {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ models: data[modelType] || [] }));
@@ -914,10 +924,13 @@ function modelCatalogBuildPlugin() {
   return {
     name: 'model-catalog-build',
     enforce: 'post',
-    generateBundle(_options, _bundle) {
+    async generateBundle(_options, _bundle) {
       try {
-        const modelsMod = require(path.join(PROJECT_ROOT, 'src/lib/models.js'));
-        const descMod   = require(path.join(PROJECT_ROOT, 'src/lib/modelDescriptions.js'));
+        // models.js and modelDescriptions.js are ES modules; require() of them
+        // threw, the plugin was skipped, and the committed (stale) static
+        // catalog was served instead.
+        const modelsMod = await import(pathToFileURL(path.join(PROJECT_ROOT, 'src/lib/models.js')).href);
+        const descMod   = await import(pathToFileURL(path.join(PROJECT_ROOT, 'src/lib/modelDescriptions.js')).href);
         const DESCRIPTIONS = descMod.DESCRIPTIONS || {};
 
         const seen = new Set();
@@ -944,8 +957,10 @@ function modelCatalogBuildPlugin() {
           i2v: unique(modelsMod.i2vModels || [], 'i2v'),
           t2v: unique(modelsMod.t2vModels || [], 't2v'),
           v2v: unique(modelsMod.v2vModels || [], 'v2v'),
+          audio: unique(modelsMod.audioModels || [], 'audio'),
+          lipsync: unique(modelsMod.lipsyncModels || [], 'lipsync'),
         };
-        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length + catalog.v2v.length;
+        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length + catalog.t2v.length + catalog.v2v.length + catalog.audio.length + catalog.lipsync.length;
         this.emitFile({
           type: 'asset',
           fileName: 'api/model-catalog.json',
@@ -1006,6 +1021,7 @@ export default defineConfig({
             'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime.js'),
             'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime.js'),
             'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
+            '@cinegen': path.resolve(__dirname, 'src/cinegen'),
             '@smartvideo/ai-timeline-editor': path.resolve(__dirname, 'packages/ai-timeline-editor/src'),
             '@higgsfield/color-grading': path.resolve(__dirname, 'packages/color-grading/src'),
             '@higgsfield/audio-mixer': path.resolve(__dirname, 'packages/audio-mixer/src'),
@@ -1014,9 +1030,30 @@ export default defineConfig({
             '@higgsfield/style-templates': path.resolve(__dirname, 'packages/style-templates/src'),
             '@higgsfield/video-compiler': path.resolve(__dirname, 'packages/video-compiler/src'),
             '@higgsfield/ai-chat': path.resolve(__dirname, 'packages/ai-chat/src'),
+            // Personalization + Lead Finder system ported from OpenHiggsBolt.
+            // The copied files keep OpenHiggsBolt's folder layout under this root.
+            '@ohb': path.resolve(__dirname, 'src/features/personalization'),
         },
     },
     plugins: [
+        // [remix] OpenChatCut's dev-only plugin (config/vite.config.ts `serveOrtWasmLoader`): serve the prebuilt onnxruntime loader
+        // module from public/models/silero-vad verbatim, since Vite refuses to import JS from /public.
+        {
+            name: 'openchatcut-ort-wasm-loader',
+            apply: 'serve',
+            enforce: 'pre',
+            configureServer(server) {
+                server.middlewares.use((req, res, next) => {
+                    const pathname = (req.url ?? '').split('?')[0];
+                    if (!/^\/models\/silero-vad\/.+\.mjs$/.test(pathname)) { next(); return; }
+                    const file = path.resolve(process.cwd(), 'public', pathname.replace(/^\//, ''));
+                    if (!fs.existsSync(file)) { next(); return; }
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'text/javascript');
+                    res.end(fs.readFileSync(file));
+                });
+            },
+        },
         publicAuditReportPlugin(),
         tailwindcss(),
         {
@@ -1216,6 +1253,10 @@ export default defineConfig({
         // parses them with the plain js loader and fails with
         // "The JSX syntax extension is not currently enabled".
         esbuildOptions: { loader: { '.js': 'jsx' } },
+        // kokoro-js / phonemizer (free on-device voiceover) ship emscripten
+        // asm.js; the jsx loader above misparses it ("(0 | n) is not a
+        // function"). Serve them untouched.
+        exclude: ['kokoro-js', 'phonemizer'],
     },
     // Many legacy modules under components/ are authored as .js files that
     // nevertheless contain JSX. @vitejs/plugin-react only reliably transforms
@@ -1226,13 +1267,37 @@ export default defineConfig({
     esbuild: {
         loader: 'tsx',
         include: /\.jsx?$/,
-        exclude: /\.tsx?$/,
+        // Never re-parse kokoro-js / phonemizer as TSX (their asm.js has
+        // `a < b > (c)` sequences that TSX reads as generics).
+        exclude: [/\.tsx?$/, /node_modules[\\/](kokoro-js|phonemizer)[\\/]/],
         jsx: 'automatic',
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
+    },
+    // Worker bundles are built by a separate pipeline that does not include plugin-react (which strips the types of .ts/.tsx here: the
+    // esbuild option above only covers .js/.jsx). Without this, a TypeScript worker such as
+    // src/openchatcut/audio/intelligence/clap.worker.ts reaches the worker parser untransformed and the production build fails.
+    worker: {
+        format: 'es',
+        plugins: () => [{
+            name: 'worker-typescript',
+            enforce: 'pre',
+            async transform(code, id) {
+                if (!/\.tsx?$/.test(id.split('?')[0]) || id.includes('node_modules')) return null;
+                const { transform } = await import('esbuild');
+                const out = await transform(code, { loader: id.split('?')[0].endsWith('x') ? 'tsx' : 'ts', sourcefile: id, sourcemap: true, target: 'esnext' });
+                return { code: out.code, map: out.map };
+            },
+        }],
     },
     server: {
         host: '127.0.0.1',
         port: 3000,
+        // The Remotion export runner (export-runner.html) runs in a sandboxed
+        // iframe with an opaque origin, so its module requests arrive with
+        // `Origin: null`. Allow that plus localhost only (Vite's default).
+        cors: {
+            origin: (origin, cb) => cb(null, !origin || origin === 'null' || /^https?:\/\/(?:[^:]+\.)?(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin)),
+        },
         // Ignore tool/test scratch dirs so their writes don't trigger dev-server
         // reloads/restarts mid module-graph load (which corrupts the browser
         // module registry during verification).
@@ -1307,10 +1372,59 @@ export default defineConfig({
             // rule so it isn't routed to the MuAPI backend. In dev, serve from the
             // Netlify functions CLI on :8888 if available; otherwise fall back to
             // a same-origin placeholder so the dev server doesn't crash.
+            // Template Generator AI functions (same Netlify functions server as below).
+            '/api/timeline-script': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+                rewrite: () => '/.netlify/functions/timeline-script',
+            },
+            '/api/timeline-image-generate': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+                rewrite: () => '/.netlify/functions/timeline-image-generate',
+            },
             '/api/intelligence': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api\/intelligence/, '/.netlify/functions/intelligence-api'),
+            },
+            // Personalization + Lead Finder API (netlify/functions/personalization-api.mts).
+            // The function declares these paths itself (config.path), so
+            // `netlify dev` serves them as-is on :8888 — no rewrite.
+            '/api/personalization/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/demo/discover': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/video/record': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/proxy/openai-enhance': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // OpenHiggsBolt MuAPI proxy, upload route and template preview clips,
+            // served by the same personalization function.
+            '/api/api/v1/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/v1/upload_file': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            '/api/media/shotcraft/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // Motion Director: director chat + page capture (netlify/functions/personalization-api.mts).
+            '/api/motion-studio/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
             },
             '/api/personalizer': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
@@ -1322,6 +1436,10 @@ export default defineConfig({
                 changeOrigin: true,
             },
             '/api/pexels': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
+            '/api/pixabay': {
                 target: 'http://localhost:3001',
                 changeOrigin: true,
             },
@@ -1359,6 +1477,12 @@ export default defineConfig({
             }
         },
         rollupOptions: {
+            // Second HTML entry: the sandboxed Remotion export runner.
+            input: {
+                main: path.resolve(__dirname, 'index.html'),
+                exportRunner: path.resolve(__dirname, 'export-runner.html'),
+                codePreview: path.resolve(__dirname, 'code-preview.html'),
+            },
             output: {
                 // Group heavy, self-contained vendor libs into stable chunks so
                 // Rollup doesn't auto-merge them into the editor's chunk graph

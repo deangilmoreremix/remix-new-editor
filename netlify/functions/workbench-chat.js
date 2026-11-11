@@ -11,10 +11,13 @@
  * POST body: { message: string, history?: {role,content}[], project: object, cards: object[] }
  * Returns:   { ok: true, reply: string, ops: object[] } | { ok: false, error }
  *
- * Auth: Clerk session (Authorization: Bearer <token>) via withClerkAuth.
- * OPENAI_API_KEY is read from process.env only and never echoed back.
+ * BYOK: SmartVid users bring their own OpenAI key (API key modal). The Workbench
+ * sends it in the X-OpenAI-Key header and the request runs on that key. There is no
+ * fallback to a platform key. The key is used for this one OpenAI call only: never
+ * logged, stored or echoed back.
  */
-import { withClerkAuth } from './_shared/clerkAuth.js';
+
+import { userOpenAIKey } from './_shared/byok.js';
 
 const TIMEOUT_MS = 60_000;
 const MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
@@ -80,10 +83,13 @@ export function parseModelAnswer(text) {
   return { reply, ops };
 }
 
+export const NEED_KEY_MESSAGE = 'AI editing uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).';
+export { userOpenAIKey };
+
 async function chat(event) {
   if (event.httpMethod !== 'POST') return json(405, { ok: false, error: 'Method not allowed' });
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return json(503, { ok: false, error: 'AI editing is not configured (OPENAI_API_KEY missing on server).' });
+  const apiKey = userOpenAIKey(event.headers);
+  if (!apiKey) return json(401, { ok: false, error: NEED_KEY_MESSAGE });
   if ((event.body || '').length > MAX_BODY_CHARS) return json(413, { ok: false, error: 'Project is too large for AI editing.' });
 
   let body;
@@ -119,6 +125,8 @@ async function chat(event) {
     return json(502, { ok: false, error: e?.name === 'AbortError' ? 'AI request timed out' : 'AI request failed' });
   }
   if (!res.ok) {
+    if (res.status === 401) return json(401, { ok: false, error: 'OpenAI rejected your API key. Check it in SmartVid → Settings → API keys.' });
+    if (res.status === 429) return json(429, { ok: false, error: 'Your OpenAI account is rate-limited or out of credit. Check your OpenAI billing, then try again.' });
     let detail = '';
     try { detail = (await res.json())?.error?.message || ''; } catch { /* ignore */ }
     return json(502, { ok: false, error: `AI service error (${res.status})${detail ? `: ${detail}` : ''}` });
@@ -133,4 +141,4 @@ async function chat(event) {
   return json(200, { ok: true, ...answer });
 }
 
-export const handler = withClerkAuth(chat);
+export const handler = chat;

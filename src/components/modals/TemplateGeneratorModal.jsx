@@ -1,3 +1,4 @@
+import '../../../styles/template-generator.css';
 import { BaseModal } from './BaseModal.jsx';
 import { ALL_NICHE_TEMPLATES } from '../../lib/nicheTemplatesIndex.js';
 import { generateScript, rewriteScript, shortenScript, expandScript, applyCta, changeTone, changeAudience } from '../../lib/editor/scriptAiService.js';
@@ -537,12 +538,24 @@ export class TemplateGeneratorModal extends BaseModal {
       { id: 'lead-form', label: 'Lead Form', icon: '📋' },
       { id: 'interactive', label: 'Interactive', icon: '👆' }
     ];
+    const picked = new Set(this.data.overlays.map(o => o.type));
+    const tr = this.data.transitions[0]?.type || '';
     return `
       <h3>Add Overlays</h3>
       <p class="tg-step-desc">Enhance your video with text, branding, and interactive elements.</p>
+      <div class="tg-form-row">
+        <div class="tg-form-group">
+          <label>Transition between clips</label>
+          <select id="tg-transition-type" class="tg-select">
+            <option value="" ${tr === '' ? 'selected' : ''}>None</option>
+            <option value="dissolve" ${tr === 'dissolve' ? 'selected' : ''}>Dissolve</option>
+            <option value="fadeToBlack" ${tr === 'fadeToBlack' ? 'selected' : ''}>Fade through black</option>
+          </select>
+        </div>
+      </div>
       <div class="tg-overlay-grid">
         ${overlayTypes.map(o => `
-          <button class="tg-overlay-card" data-overlay-type="${o.id}">
+          <button class="tg-overlay-card ${picked.has(o.id) ? 'is-selected' : ''}" aria-pressed="${picked.has(o.id)}" data-overlay-type="${o.id}">
             <span class="tg-overlay-icon">${o.icon}</span>
             <span class="tg-overlay-label">${o.label}</span>
           </button>
@@ -885,12 +898,10 @@ export class TemplateGeneratorModal extends BaseModal {
     const backBtn = this.overlay.querySelector('#tg-back');
     const nextBtn = this.overlay.querySelector('#tg-next');
 
-    if (backBtn) {
-      backBtn.addEventListener('click', () => this.goBack());
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => this.goNext());
-    }
+    // onclick (not addEventListener): the nav buttons live outside the step content and survive refresh(), so a listener added on every
+    // refresh would make one click advance several steps.
+    if (backBtn) backBtn.onclick = () => this.goBack();
+    if (nextBtn) nextBtn.onclick = () => this.goNext();
 
     this.setupStepListeners();
   }
@@ -921,6 +932,22 @@ export class TemplateGeneratorModal extends BaseModal {
         break;
       case 4:
         this.setupStep4MediaListeners();
+        break;
+      case 5:
+        // Overlays: each card toggles an overlay of that kind; the transition controls feed the builder's transitions / boundary overlays.
+        this.overlay.querySelectorAll('.tg-overlay-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const type = card.dataset.overlayType;
+            const has = this.data.overlays.some(o => o.type === type);
+            this.data.overlays = has
+              ? this.data.overlays.filter(o => o.type !== type)
+              : [...this.data.overlays, { type, kind: type === 'text' || type === 'caption' ? 'text' : 'overlay', name: card.textContent.trim(), duration: 4, startTime: 0, text: type === 'text' || type === 'caption' ? 'Your text here' : undefined }];
+            this.refresh();
+          });
+        });
+        this.overlay.querySelector('#tg-transition-type')?.addEventListener('change', (e) => {
+          this.data.transitions = e.target.value ? [{ type: e.target.value, duration: 1 }] : [];
+        });
         break;
       case 7:
         this.setupStep7PersonalizationListeners();
@@ -1673,8 +1700,16 @@ export class TemplateGeneratorModal extends BaseModal {
       const content = this.overlay.querySelector('#tg-step-content');
       if (content) {
         content.innerHTML = this.renderStep();
+        // the progress pills, "Step N of 9", Back/Next live outside the step content: keep them in step
+        const bar = this.overlay.querySelector('.tg-progress-bar');
+        if (bar) bar.innerHTML = this.renderProgressSteps();
+        const info = this.overlay.querySelector('.tg-step-info');
+        if (info) info.textContent = `Step ${this.step} of ${this.maxStep}`;
+        const back = this.overlay.querySelector('#tg-back');
+        if (back) back.disabled = this.step === 1;
+        const nxt = this.overlay.querySelector('#tg-next');
+        if (nxt) nxt.textContent = this.step === this.maxStep ? 'Add to Timeline' : 'Next →';
         this.setupStepListeners();
-        this.setupEventListeners();
         // Re-attach video events if we're on the preview step
         if (this.step === 8) {
           setTimeout(() => this._attachVideoEvents(), 50);

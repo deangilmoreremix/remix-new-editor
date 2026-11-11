@@ -1,34 +1,37 @@
 /* ===== Design Tokens ===== */
 :root {
-  /* Base — near-black with subtle warmth */
-  --color-bg: #09070B;
-  --color-bg-soft: #110D12;
-  --color-surface: #120E13;
-  --color-surface-raised: #1A141C;
-  --color-surface-overlay: #211925;
-  --color-surface-warm: #211711;
+  /* Palette — matches the SmartVideo studio theme
+     (src/styles/smartVideoStudio.css: --studio-* tokens). */
+  --color-bg: #050505;
+  --color-bg-soft: #0a0a0a;
+  --color-surface: #0a0a0a;
+  --color-surface-raised: #111111;
+  --color-surface-overlay: #161616;
+  --color-surface-warm: #111111;
 
-  /* Accent — single signature purple */
-  --color-accent: #A78BFA;
-  --color-accent-glow: #8B5CF6;
-  --color-accent-subtle: rgba(139, 92, 246, 0.12);
-  --color-accent-wash: rgba(139, 92, 246, 0.06);
-  --color-secondary: #5EEAD4;
-  --color-secondary-wash: rgba(94, 234, 212, 0.09);
-  --color-warm-accent: #F6C177;
-  --color-warm-wash: rgba(246, 193, 119, 0.1);
+  /* Accent — studio lime */
+  --color-accent: #d9ff00;
+  --color-accent-glow: #c4e600;
+  --color-accent-subtle: rgba(217, 255, 0, 0.15);
+  --color-accent-wash: rgba(217, 255, 0, 0.06);
+  --color-accent-contrast: #050505;
+  --color-secondary: #d9ff00;
+  --color-secondary-wash: rgba(217, 255, 0, 0.08);
+  --color-warm-accent: #a3e635; /* deeper lime: gives the Send button's diagonal gradient its second stop */
+  --color-warm-wash: rgba(217, 255, 0, 0.08);
+  --color-error: #ff4d4d;
 
-  /* Text — never pure white, slightly warm */
-  --color-text: #F4EFF8;
-  --color-text-secondary: #C9C1D3;
-  --color-text-muted: #8B8197;
+  /* Text */
+  --color-text: #ffffff;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
 
-  /* Borders — subtle elevation cues */
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-border-visible: rgba(255, 255, 255, 0.12);
-  --color-border-glow: rgba(139, 92, 246, 0.15);
+  /* Borders */
+  --color-border: #1f1f23;
+  --color-border-visible: #27272a;
+  --color-border-glow: rgba(217, 255, 0, 0.25);
 
-  /* Typography */
+  /* Typography — upstream OpenThorn's fonts (Fraunces display, Roboto body) */
   --font-display: 'Fraunces Variable', Georgia, serif;
   --font-body: 'Roboto', -apple-system, 'Helvetica Neue', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
@@ -97,9 +100,9 @@ body {
   letter-spacing: 0;
   color: var(--color-text);
   background:
-    linear-gradient(180deg, rgba(23, 16, 22, 0.88) 0%, var(--color-bg) 34%, #09070B 100%),
-    linear-gradient(135deg, rgba(94, 234, 212, 0.07) 0%, transparent 32%),
-    linear-gradient(225deg, rgba(246, 193, 119, 0.06) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(23, 16, 22, 0.88) 0%, var(--color-bg) 34%, #050505 100%),
+    linear-gradient(135deg, rgba(217, 255, 0, 0.07) 0%, transparent 32%),
+    linear-gradient(225deg, rgba(217, 255, 0, 0.06) 0%, transparent 36%),
     var(--color-bg);
   overflow-x: hidden;
   position: relative;
@@ -113,12 +116,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 input, textarea { font-family: inherit; font-size: inherit; color: inherit; }
 
 ::selection {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(217, 255, 0, 0.3);
   color: #fff;
 }
 
 :focus-visible {
-  outline: 2px solid rgba(167, 139, 250, 0.65);
+  outline: 2px solid rgba(217, 255, 0, 0.65);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -148,7 +151,7 @@ input, textarea { font-family: inherit; font-size: inherit; color: inherit; }
 }
 .driver-popover.openthorn-tour .driver-popover-navigation-btns button {
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-accent-contrast);
   text-shadow: none;
   border: none;
   border-radius: 8px;

@@ -119,6 +119,25 @@ describe('MuapiClient Fixes', () => {
       ).rejects.toThrow(/placeholder or demo result/);
     }, 10000);
 
+    test('a placeholder result is reported after the first poll (not re-polled)', async () => {
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () => Promise.resolve({
+            status: 'completed',
+            outputs: ['https://d3adwkbyhxyrtq.cloudfront.net/webassets/videomodels/kling-v2.6-pro-i2v.mp4'],
+          }),
+        })
+      );
+
+      await expect(
+        client.pollForResult('req-sandbox-1', 5, 10)
+      ).rejects.toThrow(/sandbox mode/);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    }, 10000);
+
     test('allows real unique generation URLs', async () => {
       global.fetch = vi.fn(() =>
         Promise.resolve({

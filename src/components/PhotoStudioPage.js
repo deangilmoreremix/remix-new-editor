@@ -4,11 +4,10 @@
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { listBrands, savePhotoshoot } from '../lib/brandStore.js';
-import { PHOTO_CATEGORIES, PHOTO_STYLES } from '../lib/photoStudio.js';
+import { PHOTO_CATEGORIES, PHOTO_STYLES, generateProductPhoto } from '../lib/photoStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
-import { apiCall } from '../lib/brandApi.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
 import { i2iModels, v2vModels } from '../lib/models.js';
@@ -378,12 +377,13 @@ export function PhotoStudioPage() {
               };
             }
 
-            const result = await apiCall('/api/photo-studio/generate', {
+            // Open-Pomelli's photo studio (nano-banana-2-edit), client-side.
+            const result = await generateProductPhoto({
               productImageUrl: state.productImageUrl,
+              logoUrl: selectedBrand?.logoUrl || null,
               category,
-              styleId: style,
-              prompt: state.direction || null,
-              brandId: selectedBrand?.id || null,
+              style,
+              direction: state.direction || '',
               resolution: state.resolution,
             });
 
@@ -482,9 +482,29 @@ export function PhotoStudioPage() {
         </div>
         <div class="flex gap-2">
           <a href="${result.imageUrl}" download class="btn-secondary-modern text-xs">Download</a>
+          <button type="button" data-photo-personalize class="btn-secondary-modern text-xs" aria-haspopup="dialog">Personalize</button>
           <a href="/animate?sourceType=photoshoot&sourceId=${result.id}" class="btn-primary-modern text-xs">Animate →</a>
         </div>
       `;
+      // Personalize (OpenHiggsBolt photo-studio page): this photo, 1:1.
+      const personalizeBtn = meta.querySelector('[data-photo-personalize]');
+      if (personalizeBtn && result.imageUrl) {
+        personalizeBtn.addEventListener('click', async () => {
+          const { openPersonalization } = await import('../features/personalization/mount.jsx');
+          openPersonalization({
+            studioId: 'photo-studio',
+            studioName: 'Photo Studio',
+            mediaUrl: result.imageUrl,
+            mediaType: 'image',
+            aspectRatio: '1:1',
+            prompt: result.direction || state.direction || '',
+            title: result.styleLabel || 'Product photo',
+            trigger: personalizeBtn,
+          });
+        });
+      } else if (personalizeBtn) {
+        personalizeBtn.remove();
+      }
       card.appendChild(meta);
       resultSection.appendChild(card);
     });

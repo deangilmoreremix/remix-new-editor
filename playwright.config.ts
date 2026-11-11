@@ -13,6 +13,7 @@ export default defineConfig({
     '**/timeline-healthcheck.spec.js',
     '**/timeline-editing.spec.js',
     '**/timeline-sam3.spec.js',
+    '**/timeline-addons.spec.js',
     '**/public-audit-report.spec.js',
     '**/video-agent-studio.spec.js',
     '**/template-generator.spec.js',

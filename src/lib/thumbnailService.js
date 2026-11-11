@@ -14,6 +14,7 @@
  */
 
 import { supabase, getSupabaseUrl, getSupabaseAnonKey } from './supabase.js';
+import { thumbnailAuthHeaders, thumbnailAuthErrorMessage } from './thumbnailAuth.js';
 import { apiKeyManager } from './apiKeyManager.js';
 import { openaiConfig } from './config/openaiConfig.js';
 
@@ -113,7 +114,9 @@ export class ThumbnailService {
     const userKey = resolveUserOpenAIKey();
     if (userKey) body.apiKey = userKey;
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
+
+    if (error) { const authMsg = await thumbnailAuthErrorMessage(error); if (authMsg) throw new Error(authMsg); }
     if (error) throw new Error(error.message || 'Failed to build prompt variants');
     return { variants: data?.variants || [], responseId: data?.response_id || null };
   }
@@ -147,7 +150,9 @@ export class ThumbnailService {
       if (userKey) body.apiKey = userKey;
     }
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
+
+    if (error) { const authMsg = await thumbnailAuthErrorMessage(error); if (authMsg) throw new Error(authMsg); }
     if (error) {
       const hint = this.moderationHintFromError(error);
       throw new Error(hint ?? (error.message || 'Failed to generate candidates'));
@@ -162,6 +167,9 @@ export class ThumbnailService {
       params: data?.params || null,
       keySource: data?.key_source || null,
       modelUsed: data?.model_used || null,
+      // MuAPI runs one job per thumbnail; some can fail while others succeed.
+      requested: data?.requested ?? null,
+      returned: data?.returned ?? null,
     };
   }
 
@@ -210,8 +218,7 @@ export class ThumbnailService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getSupabaseAnonKey()}`,
-          apikey: getSupabaseAnonKey(),
+          ...(await thumbnailAuthHeaders()),
         },
         body: JSON.stringify(body),
       });
@@ -222,7 +229,9 @@ export class ThumbnailService {
 
     if (!res.ok || !res.body) {
       let detail = '';
-      try { detail = await res.text(); } catch { /* ignore */ }
+      const authMsg = await thumbnailAuthErrorMessage({ context: res });
+      if (authMsg) detail = authMsg;
+      else { try { detail = await res.text(); } catch { /* ignore */ } }
       onError?.(new Error(detail || `Generate stream failed (${res.status})`));
       return;
     }
@@ -230,6 +239,9 @@ export class ThumbnailService {
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let settled = false;
+    const finish = (result) => { if (!settled) { settled = true; onDone?.(result); } };
+    const fail = (err) => { if (!settled) { settled = true; onError?.(err); } };
     try {
       for (;;) {
         const { value, done } = await reader.read();
@@ -246,16 +258,32 @@ export class ThumbnailService {
           let evt;
           try { evt = JSON.parse(payload); } catch { continue; }
           if (evt.type === 'partial') onPartial?.(evt.b64);
-          else if (evt.type === 'done') onDone?.(evt.result);
+          else if (evt.type === 'done') finish(evt.result);
           else if (evt.type === 'error') {
             const err = new Error(evt.message);
             if (evt.moderation_blocked) err.code = 'moderation_blocked';
-            onError?.(err);
+            fail(err);
           }
         }
       }
     } catch (err) {
-      onError?.(err);
+      fail(err);
+      return;
+    }
+
+    // The stream closed without a `done`/`error` event. Callers await one of
+    // the two callbacks, so settle here instead of leaving the UI spinning.
+    // A non-streaming JSON body (e.g. an error or a server that ignored
+    // `stream: true`) is still honoured.
+    if (!settled) {
+      const rest = buffer.trim();
+      let json = null;
+      try { json = rest ? JSON.parse(rest) : null; } catch { /* not JSON */ }
+      if (json?.candidates?.length) {
+        finish({ candidates: json.candidates, params: json.params || null, keySource: json.key_source || null });
+      } else {
+        fail(new Error(json?.error || 'Thumbnail stream ended before any image was returned'));
+      }
     }
   }
 
@@ -276,7 +304,7 @@ export class ThumbnailService {
 
     const TIMEOUT_MS = 120_000;
     const { data, error } = await Promise.race([
-      supabase.functions.invoke(EDGE_FUNCTION, { body }),
+      supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() }),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Video thumbnail generation timed out (120s)')), TIMEOUT_MS)
       ),
@@ -336,7 +364,9 @@ export class ThumbnailService {
     const userKey = resolveUserOpenAIKey(opts.apiKey);
     if (userKey) body.apiKey = userKey;
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
+
+    if (error) { const authMsg = await thumbnailAuthErrorMessage(error); if (authMsg) throw new Error(authMsg); }
     if (error) {
       const hint = this.moderationHintFromError(error);
       throw new Error(hint ?? (error.message || 'Failed to refine image'));
@@ -455,8 +485,7 @@ export class ThumbnailService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getSupabaseAnonKey()}`,
-          apikey: getSupabaseAnonKey(),
+          ...(await thumbnailAuthHeaders()),
         },
         body: JSON.stringify(body),
         signal: controller.signal,
@@ -464,7 +493,9 @@ export class ThumbnailService {
 
       if (!res.ok || !res.body) {
         let detail = '';
-        try { detail = await res.text(); } catch { /* ignore */ }
+        const authMsg = await thumbnailAuthErrorMessage({ context: res });
+        if (authMsg) detail = authMsg;
+        else { try { detail = await res.text(); } catch { /* ignore */ } }
         reportError(new Error(detail || `Refine stream failed (${res.status})`));
         return;
       }
@@ -535,7 +566,9 @@ export class ThumbnailService {
     const userKey = resolveUserOpenAIKey(opts.apiKey);
     if (userKey) body.apiKey = userKey;
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
+
+    if (error) { const authMsg = await thumbnailAuthErrorMessage(error); if (authMsg) throw new Error(authMsg); }
     if (error) throw new Error(error.message || 'Failed to inpaint image');
     return data?.result;
   }
@@ -547,7 +580,9 @@ export class ThumbnailService {
       ...params,
     };
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
+
+    if (error) { const authMsg = await thumbnailAuthErrorMessage(error); if (authMsg) throw new Error(authMsg); }
     if (error) throw new Error(error.message || 'Failed to track thumbnail analytics');
     return data;
   }
@@ -568,12 +603,17 @@ export class ThumbnailService {
     };
     if (opts.presetKey) body.presetKey = opts.presetKey;
     if (opts.controls) body.controls = opts.controls;
+    // Real image type of the bytes (MuAPI results can be AVIF/PNG/JPEG) so
+    // storage gets the right extension and Content-Type.
+    if (opts.mime) body.mime = opts.mime;
     if (opts.asGif) {
       body.asGif = true;
       body.gifData = opts.gifData || opts.imageB64;
     }
 
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
+
+    if (error) { const authMsg = await thumbnailAuthErrorMessage(error); if (authMsg) throw new Error(authMsg); }
     if (error) throw new Error(error.message || 'Failed to save thumbnail');
     return data;
   }
@@ -787,14 +827,15 @@ export class ThumbnailService {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${getSupabaseAnonKey()}`,
-        apikey: getSupabaseAnonKey(),
+        ...(await thumbnailAuthHeaders()),
       },
       body: form,
     });
     if (!res.ok) {
       let detail = '';
-      try { detail = await res.text(); } catch { /* ignore */ }
+      const authMsg = await thumbnailAuthErrorMessage({ context: res });
+      if (authMsg) detail = authMsg;
+      else { try { detail = await res.text(); } catch { /* ignore */ } }
       throw new Error(detail || `File upload failed (${res.status})`);
     }
     const data = await res.json();

@@ -6,6 +6,7 @@
  */
 
 import { ThumbnailTemplateCard } from './ThumbnailTemplateCard.jsx';
+import { thumbnailAuthHeaders } from '../../../lib/thumbnailAuth.js';
 import { ThumbnailTemplateGrid } from './ThumbnailTemplateGrid.jsx';
 import { ThumbnailCategoryFilter } from './ThumbnailCategoryFilter.jsx';
 import { ThumbnailSearch } from './ThumbnailSearch.jsx';
@@ -62,7 +63,7 @@ export class ThumbnailExploreIdeas {
           searchQuery: this.searchQuery,
         },
       };
-      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
       if (!error && data?.templates) {
         this.recommendedTemplates = data.templates.recommended || [];
         this.popularTemplates = data.templates.popular || [];
@@ -90,7 +91,7 @@ export class ThumbnailExploreIdeas {
           searchQuery: this.searchQuery,
         },
       };
-      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+      const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body, headers: await thumbnailAuthHeaders() });
       if (!error && data?.template) {
         return data.template;
       }
@@ -121,7 +122,7 @@ export class ThumbnailExploreIdeas {
 
   render() {
     if (this.selectedTemplateId) {
-      const template = THUMBNAIL_TEMPLATES.find((t) => t.id === this.selectedTemplateId);
+      const template = getAllTemplates().find((t) => t.id === this.selectedTemplateId);
       if (template) {
         return `<div class="explore-ideas-container" style="--app-primary:${this.primary};--app-accent:${this.accent};--app-soft:${this.getSoft()};--app-soft-accent:${this.getSoftAccent()}">
           ${this.renderConfigurator(template)}

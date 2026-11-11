@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -15,6 +16,8 @@ import DashboardSidebar from '../components/DashboardSidebar/DashboardSidebar'
 import { getDisabledProviders } from '../lib/app-config'
 import { usePageTitle } from '../lib/usePageTitle'
 import styles from './ProvidersPage.module.css'
+import BrandLogo from '../components/BrandLogo/BrandLogo'
+import { T } from '../lib/tables'
 
 async function decryptKeys(data: ProviderKey[], userId: string): Promise<ProviderKey[]> {
   return Promise.all(data.map(async (k) => {
@@ -82,7 +85,7 @@ function extractModelList(payload: unknown, providerId: string): ProviderModel[]
 
 export default function ProvidersPage() {
   usePageTitle('API Providers', {
-    description: 'Connect and test the AI provider API keys Smart Video uses to build your projects.',
+    description: 'Connect and test the AI provider API keys Smart Website Builder uses to build your projects.',
   })
   const { user, loading: authLoading } = useAuth()
   const [savedKeys, setSavedKeys] = useState<ProviderKey[]>([])
@@ -111,7 +114,7 @@ export default function ProvidersPage() {
   })
 
   useEffect(() => {
-    supabase.from('default_models').select('*').then(({ data }) => {
+    supabase.from(T.default_models).select('*').then(({ data }) => {
       if (data) {
         const map: Record<string, ProviderModel[]> = { ...DEFAULT_PROVIDER_MODELS }
         data.forEach((d: { provider_id: string; models: string }) => {
@@ -131,7 +134,7 @@ export default function ProvidersPage() {
     if (!user) return
 
     // Initial fetch
-    supabase.from('provider_keys').select('*').eq('user_id', user.id).order('created_at').then(async ({ data, error }) => {
+    supabase.from(T.provider_keys).select('*').eq('user_id', user.id).order('created_at').then(async ({ data, error }) => {
       if (!error && data) setSavedKeys(await decryptKeys(data, user.id))
       setLoading(false)
     })
@@ -142,11 +145,11 @@ export default function ProvidersPage() {
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'provider_keys',
+        table: T.provider_keys,
         filter: `user_id=eq.${user.id}`,
       }, () => {
         // Refetch all keys on any change
-        supabase.from('provider_keys').select('*').eq('user_id', user.id).order('created_at').then(async ({ data, error }) => {
+        supabase.from(T.provider_keys).select('*').eq('user_id', user.id).order('created_at').then(async ({ data, error }) => {
           if (!error && data) setSavedKeys(await decryptKeys(data, user.id))
         })
       })
@@ -206,9 +209,9 @@ export default function ProvidersPage() {
     const existing = savedKeys.find((k) => k.provider_id === editingProvider)
     let result
     if (existing) {
-      result = await supabase.from('provider_keys').update(payload).eq('id', existing.id).eq('user_id', user.id).select()
+      result = await supabase.from(T.provider_keys).update(payload).eq('id', existing.id).eq('user_id', user.id).select()
     } else {
-      result = await supabase.from('provider_keys').insert(payload).select()
+      result = await supabase.from(T.provider_keys).insert(payload).select()
     }
 
     if (!result.error && result.data) {
@@ -249,8 +252,6 @@ export default function ProvidersPage() {
       if (providerId === 'anthropic') {
         headers['x-api-key'] = formKey.trim()
         headers['anthropic-version'] = '2023-06-01'
-      } else if (providerId === 'azure') {
-        headers['api-key'] = formKey.trim()
       } else if (providerId !== 'google' && providerId !== 'ollama') {
         headers.Authorization = `Bearer ${formKey.trim()}`
       }
@@ -280,7 +281,7 @@ export default function ProvidersPage() {
     if (!user || !editingProvider) return
     const existing = savedKeys.find((k) => k.provider_id === editingProvider)
     if (!existing) return
-    const { error } = await supabase.from('provider_keys').delete().eq('id', existing.id).eq('user_id', user.id)
+    const { error } = await supabase.from(T.provider_keys).delete().eq('id', existing.id).eq('user_id', user.id)
     if (!error) {
       setSavedKeys((prev) => prev.filter((k) => k.id !== existing.id))
       setEditingProvider(null)
@@ -292,7 +293,7 @@ export default function ProvidersPage() {
     const def = PROVIDER_DEFS[key.provider_id]
     if (def && !def.testable) return
     const newEnabled = !key.enabled
-    const { error } = await supabase.from('provider_keys')
+    const { error } = await supabase.from(T.provider_keys)
       .update({ enabled: newEnabled, updated_at: new Date().toISOString() })
       .eq('id', key.id).eq('user_id', user.id)
     if (!error) {
@@ -347,16 +348,16 @@ export default function ProvidersPage() {
             <line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
         </button>
-        <a href="/dashboard" className={styles.mobileLogo}>
-          <img src="/assets/logo.png" alt="Smart Video" className={styles.mobileLogoImg} />
-        </a>
+        <Link to="/dashboard" className={styles.mobileLogo}>
+          <BrandLogo className={styles.mobileLogoImg} />
+        </Link>
       </div>
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {/* Smart Video logo */}
+          {/* Smart Website Builder logo */}
           <div className={styles.brandRow}>
-            <img src="/assets/logo.png" alt="Smart Video" className={styles.brandLogo} />
+            <BrandLogo className={styles.brandLogo} />
           </div>
 
           {/* Empty state */}
@@ -369,7 +370,7 @@ export default function ProvidersPage() {
               </div>
               <h2 className={styles.emptyTitle}>No providers configured</h2>
               <p className={styles.emptyText}>
-                Connect your LLM providers to start building with Smart Video.
+                Connect your LLM providers to start building with Smart Website Builder.
                 Your API keys are stored securely in your account.
               </p>
               <button className={styles.recommendedBtn} onClick={() => openEditor('google')} type="button">

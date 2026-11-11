@@ -1,13 +1,15 @@
 import { muapi } from '../lib/muapi.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
-import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { mountModelSelector } from '../lib/modelSelectorUI.js';
 import { showToast } from '../lib/loading.js';
@@ -19,6 +21,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
+import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
 function scopedPersistKey(baseKey, apiKey) {
   if (!apiKey) return baseKey;
@@ -528,6 +531,9 @@ export function AudioStudio() {
   let toneValue = 'neutral';
   let emotionValue = 'none';
   let customThumbnailUrl = getCustomThumbnailFromCache('audio-studio');
+  // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
+  // in-memory copy in sync so the next generation uses it.
+  subscribeToGtmThumbnails(({ imageUrl }) => { customThumbnailUrl = imageUrl; }, { studioId: 'audio-studio' });
   let schemaParams = {};
   let internalHistory = [];
   let activeResultUrl = null;
@@ -588,8 +594,7 @@ export function AudioStudio() {
   // Header with hero banner
   const header = document.createElement('div');
   header.className = 'animate-fade-in-up text-center w-full';
-  // Studios open straight onto the tool; keep the page title for screen readers.
-  header.innerHTML = '<h1 class="sr-only">Audio Studio</h1>';
+  header.appendChild(createStudioHeader('audio', 'Audio Studio', 'Generate music, speech and sound effects'));
   container.appendChild(header);
 
   // Model selector
@@ -644,6 +649,7 @@ export function AudioStudio() {
   promptLabel.textContent = 'Prompt';
   promptGroup.appendChild(promptLabel);
   const promptInput = document.createElement('textarea');
+  promptInput.setAttribute('data-studio-prompt', '');
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none';
   promptInput.rows = 3;
   promptInput.placeholder = 'Describe the music or speech you want to generate...';
@@ -654,12 +660,7 @@ export function AudioStudio() {
 
   // Attachment toolbar for audio references
   const audioAttachmentState = { audio: null, images: [], videos: [] };
-  const attachmentToolbar = createAttachmentToolbar({
-    container: promptGroup,
-    getTextarea: () => promptInput,
-    acceptStartFrame: false,
-    acceptEndFrame: false,
-    onUpload: async (key, file) => {
+  const ingestAttachment = async (key, file) => {
       try {
         if (key === 'audio') {
           const apiKey = apiKeyManager.getKey();
@@ -685,8 +686,37 @@ export function AudioStudio() {
         const { describeMuapiUploadError } = await import('../lib/muapiStudioMedia.js');
         showToast(await describeMuapiUploadError(err), 'error');
       }
-    },
+  };
+  const attachmentToolbar = createAttachmentToolbar({
+    container: promptGroup,
+    getTextarea: () => promptInput,
+    acceptStartFrame: false,
+    acceptEndFrame: false,
+    onUpload: ingestAttachment,
   });
+
+  // Dropping an audio file anywhere on the page uses it as the audio input
+  // (upstream Audio Studio), the same as the Audio button.
+  const dropOverlay = document.createElement('div');
+  dropOverlay.className = 'hidden fixed inset-0 z-[90] items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-none';
+  dropOverlay.innerHTML = '<div class="px-8 py-6 rounded-2xl border-2 border-dashed border-primary text-primary font-bold">Drop audio to use as input</div>';
+  let dropDepth = 0;
+  const hasFiles = (e) => Array.from(e.dataTransfer?.types || []).includes('Files');
+  container.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; e.preventDefault(); dropDepth += 1; dropOverlay.classList.remove('hidden'); dropOverlay.classList.add('flex'); });
+  container.addEventListener('dragover', (e) => { if (hasFiles(e)) e.preventDefault(); });
+  container.addEventListener('dragleave', (e) => { if (!hasFiles(e)) return; dropDepth = Math.max(0, dropDepth - 1); if (!dropDepth) { dropOverlay.classList.add('hidden'); dropOverlay.classList.remove('flex'); } });
+  container.addEventListener('drop', async (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dropDepth = 0;
+    dropOverlay.classList.add('hidden');
+    dropOverlay.classList.remove('flex');
+    const files = Array.from(e.dataTransfer.files || []);
+    const audio = files.find((f) => f.type.startsWith('audio/'));
+    if (!audio) { showToast('Drop an audio file (mp3, wav, m4a…)', 'error'); return; }
+    await ingestAttachment('audio', audio);
+  });
+  container.appendChild(dropOverlay);
 
   const enhanceMenu = document.createElement('div');
   enhanceMenu.className = 'overflow-menu shrink-0';
@@ -724,7 +754,7 @@ export function AudioStudio() {
             promptInput.value = p;
             promptInput.dispatchEvent(new Event('input', { bubbles: true }));
             promptInput.focus();
-          });
+          }, { basePrompt: promptInput.value });
         }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
         openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
@@ -755,7 +785,8 @@ export function AudioStudio() {
   window.addEventListener('click', closeEnhanceMenu);
 
   promptGroup.appendChild(enhanceMenu);
-  mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'audio-studio' });
+  const actionRow = createActionRow();
+  const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => promptInput, appId: 'audio-studio' });
   formCard.appendChild(promptGroup);
 
   // Schema-driven controls (rendered dynamically from model.inputs)
@@ -934,12 +965,14 @@ export function AudioStudio() {
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'btn-action-secondary shrink-0';
   thumbBtn.addEventListener('click', () => {
-    const modal = new StudioThumbnailModal({
+    const modal = new TemplateThumbnailModal({
       appTheme: 'audio-studio',
+      layout: 'panel',
       studioId: 'audio-studio',
       studioName: 'Audio Studio',
-      aspectRatio: '16:9',
-      outputType: 'image',
+      // Cover art for a track — square fits players and social posts.
+      aspectRatio: '1:1',
+      outputType: 'audio',
       onApply: ({ imageUrl }) => {
         customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache('audio-studio', imageUrl);
@@ -949,10 +982,13 @@ export function AudioStudio() {
         clearCustomThumbnailCache('audio-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
+    mountThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  styleThumbnailButton(thumbBtn);
+  // Action row — unified Image Studio layout (Thumbnail · Advanced · Tools · Personalize)
+  const advanced = createAdvancedPanel({ id: 'audio-advanced-btn', elements: [speedGroup, pitchGroup] });
+  arrangeActionRow(actionRow, { thumbnail: thumbBtn, advanced: advanced.button, personalize: personalizeHandle?.button });
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -960,7 +996,8 @@ export function AudioStudio() {
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Generate Audio';
   genBtn.setAttribute('aria-label', 'Generate audio');
-  formCard.appendChild(genBtn);
+  formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
+  formCard.appendChild(advanced.panel);
   container.appendChild(formCard);
 
   // Instructions
@@ -1084,10 +1121,16 @@ export function AudioStudio() {
       <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
         <div id="waveform-container" class="w-full h-24 mb-3 rounded-xl overflow-hidden bg-white/5"></div>
         <div class="flex items-center gap-3 mb-3">
-          <button id="waveform-play-btn" class="w-10 h-10 bg-primary hover:bg-primary/80 text-black rounded-xl flex items-center justify-center transition-all">
+          <button id="waveform-play-btn" aria-label="Play" class="w-12 h-12 bg-primary hover:bg-primary/80 text-black rounded-full flex items-center justify-center transition-all">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </button>
           <span id="waveform-time" class="text-xs font-bold text-secondary tabular-nums">0:00 / 0:00</span>
+          <div class="ml-auto flex items-center gap-2">
+            <button type="button" id="waveform-mute-btn" aria-label="Mute" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-secondary hover:text-white flex items-center justify-center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M19 5a10 10 0 010 14"/></svg>
+            </button>
+            <input type="range" id="waveform-volume" min="0" max="100" step="1" value="100" aria-label="Volume" class="w-24 accent-primary h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer">
+          </div>
         </div>
         <audio id="waveform-audio" class="hidden" src="${url}" type="audio/mpeg"></audio>
         <a href="${url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Audio</a>
@@ -1173,6 +1216,20 @@ export function AudioStudio() {
           playBtn.onclick = () => {
             wavesurfer.playPause();
           };
+        }
+
+        const volume = resultArea.querySelector('#waveform-volume');
+        const muteBtn = resultArea.querySelector('#waveform-mute-btn');
+        let muted = false;
+        const syncVolume = () => {
+          wavesurfer.setVolume(muted ? 0 : Number(volume.value) / 100);
+          muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+          muteBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+          muteBtn.classList.toggle('text-primary', muted);
+        };
+        if (volume && muteBtn) {
+          volume.oninput = () => { if (muted && Number(volume.value) > 0) muted = false; syncVolume(); };
+          muteBtn.onclick = () => { muted = !muted; syncVolume(); };
         }
 
         waveformContainer.onclick = (e) => {
@@ -1294,6 +1351,10 @@ export function AudioStudio() {
 
   function addToHistory(entry) {
     internalHistory = [entry, ...internalHistory].slice(0, 30);
+    // Shared library + "Edit in Workbench" (fresh results and recovered jobs).
+    registerGeneration('audio', 'audio', entry.url, {
+      prompt: entry.prompt || entry.title || '', model: entry.model || '', name: entry.title || undefined,
+    });
     renderHistoryGrid();
     schedulePersist();
   }

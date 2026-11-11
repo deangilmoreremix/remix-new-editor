@@ -160,7 +160,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 60% at 60% 50%, rgba(139, 92, 246, 0.06) 0%, transparent 70%);
+  background: radial-gradient(ellipse 60% 60% at 60% 50%, rgba(217, 255, 0, 0.06) 0%, transparent 70%);
   pointer-events: none;
 }
 
