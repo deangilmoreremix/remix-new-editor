@@ -30,6 +30,11 @@ A RemotionUI layer is a normal `hyperframes` overlay with `blockId` `rui:<name>`
 
 Result: see `docs/remotionui-resource-ledger.md` / `.csv` (one row per component, with the reason for every one that is not enabled).
 
+## Editable fields are measured
+Every inspector field was changed one at a time (first five per item) and the sandboxed render compared with the default (`scripts/remotionui/fields.py`, data in `src/lib/remotionui/fields.json`).
+Only fields that visibly change the picture are offered. An item with no effective field AND visible text was removed (27 items: wrappers whose only text is fixed demo content, and the transitions, whose demo is
+two placeholder scenes). Result: **149 enabled**, 147 with at least one effective field (83 with a text field, 69 with a color field); `confetti-burst` and `subtitle-translate` have no fields and showed no text.
+
 ## Not enabled, and why
 - **Need your own audio/video file** (audiograms, waveform and VU meters, beat grids, footage mattes, split screens with video): the library has no
   file to feed them.
@@ -37,6 +42,7 @@ Result: see `docs/remotionui-resource-ledger.md` / `.csv` (one row per component
   are not installed and not rendered through the sandbox yet.
 - **Export failed in the browser renderer**: CSS masks the web renderer cannot rasterise (`grid-pixelate-wipe`, `svg-mask-reveal`) and one scene that needs an app image
   (`ai-composer-showcase`).
+- **No effective field and fixed text** (27): see above.
 - **Too slow to export** (about 1 fps at 1080p): `effector-field`, `particle-field`, `caustics-bg`.
 
 ## Regenerating

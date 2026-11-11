@@ -12,6 +12,7 @@ const CATEGORY = { atoms: 'Primitives', signals: 'Data & media', vectors: 'Paths
 const HEAVY = ['@react-three/fiber', '@react-three/drei', '@remotion/three', 'maplibre-gl', '@paper-design/shaders-react', '@turf/turf'];
 const SAMPLE = { title: 'Your title here', subtitle: 'A short supporting line', name: 'Alex Morgan', label: 'Label', text: 'Your text here', headline: 'Your headline', description: 'A short description', caption: 'Your caption', badge: 'NEW', eyebrow: 'Chapter 01', quote: 'Say something worth quoting.', author: 'Alex Morgan', role: 'Creator', cta: 'Learn more', message: 'Your message here', question: 'Your question here', value: '42' };
 const skipped = existsSync('src/lib/remotionui/skipped.json') ? JSON.parse(readFileSync('src/lib/remotionui/skipped.json', 'utf8')) : {};
+const fieldsFile = existsSync('src/lib/remotionui/fields.json') ? JSON.parse(readFileSync('src/lib/remotionui/fields.json', 'utf8')) : null; // keys of the fields measured to change the picture
 const byName = new Map(lock.items.map((i) => [i.name, i]));
 const sources = (i) => i.files.map((f) => readFileSync(f.path, 'utf8')).join('\n');
 const closure = (n, seen = new Set()) => { if (seen.has(n) || !byName.has(n)) return seen; seen.add(n); byName.get(n).registryDependencies.forEach((d) => closure(d, seen)); return seen; };
@@ -57,6 +58,7 @@ for (const i of lock.items) {
     byKey.set(k, { key: k, label: pretty(k), hint: '', type: ty === 'string' ? (/colou?r$/i.test(k) && /^#/.test(val) ? 'color' : 'text') : ty, defaultValue: val, ...(ty === 'number' ? { step: Math.abs(val) < 5 ? 0.05 : 1 } : {}) });
   }
   e.props = [...byKey.values()];
+  if (fieldsFile && fieldsFile[i.name]) e.props = e.props.filter((p) => fieldsFile[i.name].includes(p.key));
   const v = ver[i.name] || {};
   items.push({
     id: `rui:${i.name}`, type: 'remotionui', source: 'RemotionUI', name: i.name, title: pretty(i.name), description: i.description,

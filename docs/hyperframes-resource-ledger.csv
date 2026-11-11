@@ -33,21 +33,21 @@ camera-shake,component,specialized,no,no,no,0.677,,worst-sample SSIM 0.677: cont
 canopy-part-title,block,not-tested,no,no,no,,,"native reference is blank at every sample (max non-black 0.0000), so SSIM verifies nothing; needs sample times that catch the visible moment"
 caption-blend-difference,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 caption-camera-follow,component,specialized,no,no,no,0.682,,worst-sample SSIM 0.682: content differs from native
-caption-clip-wipe,component,verified-export,yes,yes,no,0.976,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-editorial-emphasis,component,verified-export,yes,yes,no,0.98,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-emoji-pop,component,verified-export,yes,yes,no,0.967,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-glitch-rgb,component,verified-export,yes,yes,no,0.973,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-gradient-fill,component,verified-export,yes,yes,no,0.859,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-highlight,component,verified-export,yes,yes,no,0.932,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-kinetic-slam,component,verified-export,yes,yes,no,0.926,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-matrix-decode,component,verified-export,yes,yes,no,0.981,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-neon-accent,component,verified-export,yes,yes,no,0.922,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-neon-glow,component,verified-export,yes,yes,no,0.902,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-parallax-layers,component,verified-export,yes,yes,no,0.792,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-particle-burst,component,verified-export,yes,yes,no,0.96,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
-caption-pill-karaoke,component,verified-export,yes,yes,no,0.914,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-clip-wipe,component,verified-export,yes,no,no,0.976,,shows built-in text that cannot be edited
+caption-editorial-emphasis,component,verified-export,yes,no,no,0.98,,shows built-in text that cannot be edited
+caption-emoji-pop,component,verified-export,yes,no,no,0.967,,shows built-in text that cannot be edited
+caption-glitch-rgb,component,verified-export,yes,no,no,0.973,,shows built-in text that cannot be edited
+caption-gradient-fill,component,verified-export,yes,no,no,0.859,,shows built-in text that cannot be edited
+caption-highlight,component,verified-export,yes,no,no,0.932,,shows built-in text that cannot be edited
+caption-kinetic-slam,component,verified-export,yes,no,no,0.926,,shows built-in text that cannot be edited
+caption-matrix-decode,component,verified-export,yes,no,no,0.981,,shows built-in text that cannot be edited
+caption-neon-accent,component,verified-export,yes,no,no,0.922,,shows built-in text that cannot be edited
+caption-neon-glow,component,verified-export,yes,no,no,0.902,,shows built-in text that cannot be edited
+caption-parallax-layers,component,verified-export,yes,no,no,0.792,,shows built-in text that cannot be edited
+caption-particle-burst,component,verified-export,yes,no,no,0.96,,shows built-in text that cannot be edited
+caption-pill-karaoke,component,verified-export,yes,no,no,0.914,,shows built-in text that cannot be edited
 caption-texture,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
-caption-weight-shift,component,verified-export,yes,yes,no,0.982,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-weight-shift,component,verified-export,yes,no,no,0.982,,shows built-in text that cannot be edited
 card-resize,component,verified-export,yes,no,no,0.981,,export throughput 4.5 fps < 8
 caret-swap,component,verified-export,yes,yes,no,0.984,2,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 carousel-circle-1,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.896; exports, with visible differences"
@@ -166,7 +166,7 @@ grain-overlay,component,specialized,no,no,no,0.001,,worst-sample SSIM 0.001: con
 gravitational-lens,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.898; exports, with visible differences"
 grid-card-assemble,component,specialized,no,no,no,0.464,,worst-sample SSIM 0.464: content differs from native
 grid-pixelate-wipe,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
-halftone-dissolve,component,verified-export,yes,yes,no,0.388,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+halftone-dissolve,component,verified-export,yes,no,no,0.388,,shows built-in text that cannot be edited
 halftone-field,block,verified-export,yes,no,no,,,WebGL; not yet rendered through the production adapter path
 headline-slam,component,verified-export,yes,no,no,0.971,,standalone output is (nearly) blank; export throughput 7.8 fps < 8; no editable field with a measured visible effect
 heatmap,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline heatmap: no __timelines entry (data-no-timeline block)

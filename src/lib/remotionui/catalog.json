@@ -84,14 +84,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "Generating"
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -127,14 +119,6 @@
      "hint": "Vertical gridlines and the value axis under the bars.",
      "type": "boolean",
      "defaultValue": true
-    },
-    {
-     "key": "maxBars",
-     "label": "Max Bars",
-     "hint": "Bars beyond this count are dropped rather than squeezed.",
-     "type": "number",
-     "defaultValue": 6,
-     "step": 1
     },
     {
      "key": "title",
@@ -184,61 +168,6 @@
      "hint": "Grain strength, 0–1. Film sits around 0.12–0.25; above 0.4 reads as damage.",
      "type": "number",
      "defaultValue": 0.18,
-     "step": 0.05
-    },
-    {
-     "key": "size",
-     "label": "Size",
-     "hint": "Tile size on screen, in px. Larger grain reads coarser and cheaper.",
-     "type": "number",
-     "defaultValue": 220,
-     "step": 1
-    },
-    {
-     "key": "density",
-     "label": "Density",
-     "hint": "Noise frequency inside the tile. Higher is finer.",
-     "type": "number",
-     "defaultValue": 0.85,
-     "step": 0.05
-    },
-    {
-     "key": "detail",
-     "label": "Detail",
-     "hint": "Octaves of the noise. 1 is smooth, 4 is gritty.",
-     "type": "number",
-     "defaultValue": 3,
-     "step": 0.05
-    },
-    {
-     "key": "holdInFrames",
-     "label": "Hold In Frames",
-     "hint": "Frames each grain pattern is held. 2 gives the 15fps chatter of real film.",
-     "type": "number",
-     "defaultValue": 2,
-     "step": 0.05
-    },
-    {
-     "key": "colored",
-     "label": "Colored",
-     "hint": "Keep the noise coloured instead of desaturating it to silver.",
-     "type": "boolean",
-     "defaultValue": false
-    },
-    {
-     "key": "vignette",
-     "label": "Vignette",
-     "hint": "Extra grain in the corners, 0–1 — real film is heaviest away from centre.",
-     "type": "number",
-     "defaultValue": 0.35,
-     "step": 0.05
-    },
-    {
-     "key": "seed",
-     "label": "Seed",
-     "hint": "Changes the pattern without changing any other prop.",
-     "type": "number",
-     "defaultValue": 1,
      "step": 0.05
     }
    ],
@@ -305,68 +234,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "strokeWidth",
-     "label": "Stroke Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3,
-     "step": 0.05
-    },
-    {
-     "key": "headSize",
-     "label": "Head Size",
-     "hint": "Length of the head's barbs, in box units.",
-     "type": "number",
-     "defaultValue": 18,
-     "step": 1
-    },
-    {
-     "key": "sketch",
-     "label": "Sketch",
-     "hint": "Draws the shaft twice with a small offset, the way a pen does when someone goes over a line. Set false for a clean single stroke.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "Frames to wait before the shaft starts drawing.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Frames the shaft takes to draw. The head lands over the last quarter.",
-     "type": "number",
-     "defaultValue": 70,
-     "step": 1
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Frames the exit takes.",
-     "type": "number",
-     "defaultValue": 14,
-     "step": 1
-    },
-    {
-     "key": "label",
-     "label": "Label",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "this one"
-    },
-    {
-     "key": "exitAtInFrames",
-     "label": "Exit At In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 92,
-     "step": 1
     }
    ],
    "needs": [],
@@ -589,79 +456,6 @@
      "type": "number",
      "defaultValue": 4,
      "step": 0.05
-    },
-    {
-     "key": "gap",
-     "label": "Gap",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3,
-     "step": 0.05
-    },
-    {
-     "key": "playedColor",
-     "label": "Played Color",
-     "hint": "Bars already played.",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "unplayedColor",
-     "label": "Unplayed Color",
-     "hint": "Bars not yet reached.",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.2)"
-    },
-    {
-     "key": "playheadColor",
-     "label": "Playhead Color",
-     "hint": "Playhead rule and its handle.",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.6)"
-    },
-    {
-     "key": "showTime",
-     "label": "Show Time",
-     "hint": "Elapsed and total readouts either side of the track.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "markColor",
-     "label": "Mark Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#2dd4bf"
-    },
-    {
-     "key": "mirrored",
-     "label": "Mirrored",
-     "hint": "Mirror the bars below the centre line, as an editor does.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "Frames before the playhead starts moving.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 120,
-     "step": 1
     }
    ],
    "needs": [],
@@ -856,62 +650,6 @@
      "type": "number",
      "defaultValue": 46,
      "step": 1
-    },
-    {
-     "key": "spread",
-     "label": "Spread",
-     "hint": "How far the band spreads around `centerY`, in percent.",
-     "type": "number",
-     "defaultValue": 34,
-     "step": 1
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Drift speed. 1 is a slow aurora; 0 freezes the sky.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "blur",
-     "label": "Blur",
-     "hint": "Softness in px. This is the prop that decides whether the layer reads as curtains or as blobs — much above 20 and the fold structure is gone",
-     "type": "number",
-     "defaultValue": 14,
-     "step": 1
-    },
-    {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "Overall brightness.",
-     "type": "number",
-     "defaultValue": 1.3,
-     "step": 0.05
-    },
-    {
-     "key": "horizonGlow",
-     "label": "Horizon Glow",
-     "hint": "Ground glow under the band. 0 removes it.",
-     "type": "number",
-     "defaultValue": 0.5,
-     "step": 0.05
-    },
-    {
-     "key": "striation",
-     "label": "Striation",
-     "hint": "Vertical ray structure through the curtains, 0–1. 0 leaves them smooth.",
-     "type": "number",
-     "defaultValue": 0.55,
-     "step": 0.05
-    },
-    {
-     "key": "seed",
-     "label": "Seed",
-     "hint": "Changes the fold layout without changing any other prop.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -955,21 +693,6 @@
      "step": 1
     },
     {
-     "key": "minFontSize",
-     "label": "Min Font Size",
-     "hint": "Floor for the fitted size, so a very long title stays legible.",
-     "type": "number",
-     "defaultValue": 34,
-     "step": 1
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
      "key": "theme",
      "label": "Theme",
      "hint": "",
@@ -979,21 +702,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "subtitle",
-     "label": "Subtitle",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Any resolution"
     }
    ],
    "needs": [],
@@ -1130,60 +838,6 @@
      "type": "number",
      "defaultValue": 220,
      "step": 1
-    },
-    {
-     "key": "color",
-     "label": "Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "rotation",
-     "label": "Rotation",
-     "hint": "Degrees the stamp lands at. It arrives from further round than this.",
-     "type": "number",
-     "defaultValue": -9,
-     "step": 1
-    },
-    {
-     "key": "windUp",
-     "label": "Wind Up",
-     "hint": "How much further round it starts, in degrees.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "Frame the stamp lands on.",
-     "type": "number",
-     "defaultValue": 14,
-     "step": 1
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Frames the exit takes.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "impactRing",
-     "label": "Impact Ring",
-     "hint": "Shockwave ring thrown off on impact. Set false for a plain stamp.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "exitAtInFrames",
-     "label": "Exit At In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 92,
-     "step": 1
     }
    ],
    "needs": [],
@@ -1251,51 +905,6 @@
      "hint": "Space between rows.",
      "type": "number",
      "defaultValue": 14,
-     "step": 1
-    },
-    {
-     "key": "inkColor",
-     "label": "Ink Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.55)"
-    },
-    {
-     "key": "labelWidth",
-     "label": "Label Width",
-     "hint": "Width reserved for the row labels, left of the bars.",
-     "type": "number",
-     "defaultValue": 200,
-     "step": 1
-    },
-    {
-     "key": "showStepLabel",
-     "label": "Show Step Label",
-     "hint": "Big step caption in the bottom-right corner.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
      "step": 1
     }
    ],
@@ -1490,14 +1099,6 @@
      "defaultValue": "#E8B86D"
     },
     {
-     "key": "strokeWidth",
-     "label": "Stroke Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3,
-     "step": 0.05
-    },
-    {
      "key": "periodInFrames",
      "label": "Period In Frames",
      "hint": "Frames for one full trip around the ring of shapes.",
@@ -1512,38 +1113,6 @@
      "type": "number",
      "defaultValue": 4,
      "step": 0.05
-    },
-    {
-     "key": "points",
-     "label": "Points",
-     "hint": "Points around the outline. More points, more detail and more wobble.",
-     "type": "number",
-     "defaultValue": 10,
-     "step": 1
-    },
-    {
-     "key": "amplitude",
-     "label": "Amplitude",
-     "hint": "How far the outline deviates from a circle, as a fraction of the radius.",
-     "type": "number",
-     "defaultValue": 0.22,
-     "step": 0.05
-    },
-    {
-     "key": "seed",
-     "label": "Seed",
-     "hint": "Changes the shape family without changing anything else.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "rotation",
-     "label": "Rotation",
-     "hint": "Degrees the blob turns per period, on top of the morph. The turn is continuous rather than wrapping, so for a seamless loop set it to 0 or t",
-     "type": "number",
-     "defaultValue": 12,
-     "step": 1
     }
    ],
    "needs": [],
@@ -1589,35 +1158,11 @@
      "step": 1
     },
     {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "maxBlur",
-     "label": "Max Blur",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 18,
-     "step": 1
-    },
-    {
      "key": "color",
      "label": "Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#f4f4f5"
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 600,
-     "step": 1
     }
    ],
    "needs": [],
@@ -1646,20 +1191,11 @@
    },
    "fps": 30,
    "duration": 3.2,
-   "editables": [
-    {
-     "key": "maxBlur",
-     "label": "Max Blur",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 12,
-     "step": 1
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "fb45f920aa3b6b73f82681a0df3b406a500b735c2cba6421931b628beb7da49c"
   },
   {
@@ -1680,35 +1216,11 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "maxBlur",
-     "label": "Max Blur",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 24,
-     "step": 1
-    },
-    {
-     "key": "scaleBy",
-     "label": "Scale By",
-     "hint": "Scale headroom the blur rides on. 0 keeps the frame perfectly still.",
-     "type": "number",
-     "defaultValue": 0.03,
-     "step": 0.05
-    },
-    {
-     "key": "shouldBlurOutExitingScene",
-     "label": "Should Blur Out Exiting Scene",
-     "hint": "",
-     "type": "boolean",
-     "defaultValue": true
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "1c33c9a733d1f046b61a2eae7fde7d6ec8ea856dde7415e28b8849e1714de6b5"
   },
   {
@@ -1736,13 +1248,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "remotionui.com/docs"
-    },
-    {
-     "key": "title",
-     "label": "Title",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Browse the registry"
     }
    ],
    "needs": [],
@@ -1809,45 +1314,6 @@
      "type": "number",
      "defaultValue": 6,
      "step": 1
-    },
-    {
-     "key": "inkColor",
-     "label": "Ink Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#0b0b10"
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one bubble's settle.",
-     "type": "number",
-     "defaultValue": 26,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one bubble and the next, largest first.",
-     "type": "number",
-     "defaultValue": 12,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -1912,64 +1378,6 @@
      "type": "number",
      "defaultValue": 15,
      "step": 1
-    },
-    {
-     "key": "gridAtSeconds",
-     "label": "Grid At Seconds",
-     "hint": "Second the grid finishes fading up.",
-     "type": "number",
-     "defaultValue": 0.3,
-     "step": 0.05
-    },
-    {
-     "key": "eventsAtSeconds",
-     "label": "Events At Seconds",
-     "hint": "Second the first event lands.",
-     "type": "number",
-     "defaultValue": 0.95,
-     "step": 0.05
-    },
-    {
-     "key": "staggerSeconds",
-     "label": "Stagger Seconds",
-     "hint": "Seconds between events.",
-     "type": "number",
-     "defaultValue": 0.2,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -2005,14 +1413,6 @@
      "defaultValue": "Click export"
     },
     {
-     "key": "dim",
-     "label": "Dim",
-     "hint": "How far the rest of the frame is knocked back, 0–1.",
-     "type": "number",
-     "defaultValue": 0.72,
-     "step": 0.05
-    },
-    {
      "key": "accentColor",
      "label": "Accent Color",
      "hint": "",
@@ -2029,21 +1429,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "kicker",
-     "label": "Kicker",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Tutorial"
     }
    ],
    "needs": [],
@@ -2097,86 +1482,11 @@
      "defaultValue": "#2dd4bf"
     },
     {
-     "key": "downColor",
-     "label": "Down Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#f472b6"
-    },
-    {
      "key": "gridColor",
      "label": "Grid Color",
      "hint": "",
      "type": "color",
      "defaultValue": "rgba(250,250,250,0.10)"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.55)"
-    },
-    {
-     "key": "showAxis",
-     "label": "Show Axis",
-     "hint": "Gridlines and price labels down the left gutter.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "movingAverage",
-     "label": "Moving Average",
-     "hint": "Moving average over this many candles. `0` hides the line.",
-     "type": "number",
-     "defaultValue": 6,
-     "step": 1
-    },
-    {
-     "key": "averageColor",
-     "label": "Average Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "showLastPrice",
-     "label": "Show Last Price",
-     "hint": "Last close, called out against the right edge.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one candle's growth.",
-     "type": "number",
-     "defaultValue": 12,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one candle and the next.",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -2236,14 +1546,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -2290,14 +1592,6 @@
      "step": 1
     },
     {
-     "key": "size",
-     "label": "Size",
-     "hint": "Base emoji size in px.",
-     "type": "number",
-     "defaultValue": 84,
-     "step": 1
-    },
-    {
      "key": "landInFrames",
      "label": "Land In Frames",
      "hint": "Frames an emoji takes to land.",
@@ -2312,37 +1606,6 @@
      "type": "number",
      "defaultValue": 26,
      "step": 1
-    },
-    {
-     "key": "overshoot",
-     "label": "Overshoot",
-     "hint": "Overshoot on the way in. 1 lands flat.",
-     "type": "number",
-     "defaultValue": 1.35,
-     "step": 0.05
-    },
-    {
-     "key": "wobbleInDegrees",
-     "label": "Wobble In Degrees",
-     "hint": "Wobble after landing, in degrees.",
-     "type": "number",
-     "defaultValue": 9,
-     "step": 1
-    },
-    {
-     "key": "textAtInFrames",
-     "label": "Text At In Frames",
-     "hint": "Frame the caption line arrives on.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "text",
-     "label": "Text",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Punctuate the beat, not the sentence"
     }
    ],
    "needs": [],
@@ -2373,44 +1636,11 @@
    "duration": 4,
    "editables": [
     {
-     "key": "activeColor",
-     "label": "Active Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#60a5fa"
-    },
-    {
      "key": "inactiveColor",
      "label": "Inactive Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#111111"
-    },
-    {
-     "key": "textAlign",
-     "label": "Text Align",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "center",
-     "options": [
-      "left",
-      "center"
-     ]
-    },
-    {
-     "key": "lineHeight",
-     "label": "Line Height",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1.12,
-     "step": 0.05
-    },
-    {
-     "key": "shadow",
-     "label": "Shadow",
-     "hint": "Drop shadow behind every word, tuned for light text over busy real footage. Set `false` to render flat when the caller already controls cont",
-     "type": "boolean",
-     "defaultValue": true
     }
    ],
    "needs": [],
@@ -2446,13 +1676,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "#ffffff"
-    },
-    {
-     "key": "backgroundColor",
-     "label": "Background Color",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "transparent"
     }
    ],
    "needs": [],
@@ -2680,48 +1903,6 @@
      "type": "number",
      "defaultValue": 0.66,
      "step": 0.05
-    },
-    {
-     "key": "staggerSeconds",
-     "label": "Stagger Seconds",
-     "hint": "Seconds between rows.",
-     "type": "number",
-     "defaultValue": 0.28,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -2773,13 +1954,6 @@
      "defaultValue": "Make a sunset over a calm ocean"
     },
     {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#2F6FED"
-    },
-    {
      "key": "theme",
      "label": "Theme",
      "hint": "",
@@ -2789,14 +1963,6 @@
       "light",
       "dark"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -2860,25 +2026,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -2905,28 +2052,11 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "Peak channel separation in px, reached in the middle of the cut.",
-     "type": "number",
-     "defaultValue": 12,
-     "step": 1
-    },
-    {
-     "key": "slide",
-     "label": "Slide",
-     "hint": "Share of the frame the scenes slide across, 0→1.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "6a103bfe61a6ab42613c63df381aba025bbddae176ce4071389705ee759e42cb"
   },
   {
@@ -2984,25 +2114,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "#D97757"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "light",
-     "options": [
-      "light",
-      "dark"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -3059,46 +2170,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "/users/meaghan/code/apps"
-    },
-    {
-     "key": "placeholder",
-     "label": "Placeholder",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Try \"edit <filepath> to ...\""
-    },
-    {
-     "key": "prompt",
-     "label": "Prompt",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "edit src/theme.ts to add a dark mode toggle"
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#D97757"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "light",
-      "dark"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -3142,13 +2213,6 @@
      "type": "number",
      "defaultValue": 0.75,
      "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
     },
     {
      "key": "theme",
@@ -3301,25 +2365,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -3384,47 +2429,6 @@
      "hint": "Substring of `body` to mark up as the creator emphasises the ask. Matched case-insensitively; omit to skip the highlight beat.",
      "type": "text",
      "defaultValue": "a quick video breakdown"
-    },
-    {
-     "key": "reply",
-     "label": "Reply",
-     "hint": "The answer typed back. Omit to end the scene on the comment itself.",
-     "type": "text",
-     "defaultValue": "Dropping it Thursday, here's the short version."
-    },
-    {
-     "key": "likes",
-     "label": "Likes",
-     "hint": "Like count before the creator hearts the comment.",
-     "type": "number",
-     "defaultValue": 128,
-     "step": 1
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#F472B6"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -3494,22 +2498,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -3577,81 +2565,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "rgba(250,250,250,0.22)"
-    },
-    {
-     "key": "afterColor",
-     "label": "After Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "downColor",
-     "label": "Down Color",
-     "hint": "Colour of a delta chip when the change is a fall.",
-     "type": "color",
-     "defaultValue": "#f472b6"
-    },
-    {
-     "key": "barInkColor",
-     "label": "Bar Ink Color",
-     "hint": "Ink for the figure printed inside the coloured bar.",
-     "type": "color",
-     "defaultValue": "#0b0b10"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.55)"
-    },
-    {
-     "key": "showDelta",
-     "label": "Show Delta",
-     "hint": "Percentage-change chip at the end of the second bar.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one bar's growth.",
-     "type": "number",
-     "defaultValue": 30,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one row and the next.",
-     "type": "number",
-     "defaultValue": 18,
-     "step": 1
-    },
-    {
-     "key": "pairOffsetInFrames",
-     "label": "Pair Offset In Frames",
-     "hint": "Frames the second bar trails the first by.",
-     "type": "number",
-     "defaultValue": 6,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -3700,56 +2613,6 @@
      "hint": "Chip pinned above the highlighted column.",
      "type": "text",
      "defaultValue": "Most picked"
-    },
-    {
-     "key": "startAtSeconds",
-     "label": "Start At Seconds",
-     "hint": "Second the first row wipes in.",
-     "type": "number",
-     "defaultValue": 0.5,
-     "step": 0.05
-    },
-    {
-     "key": "rowStaggerSeconds",
-     "label": "Row Stagger Seconds",
-     "hint": "Seconds between rows.",
-     "type": "number",
-     "defaultValue": 0.26,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -3776,39 +2639,7 @@
    },
    "fps": 30,
    "duration": 3.2,
-   "editables": [
-    {
-     "key": "count",
-     "label": "Count",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 48,
-     "step": 1
-    },
-    {
-     "key": "originX",
-     "label": "Origin X",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 50,
-     "step": 1
-    },
-    {
-     "key": "originY",
-     "label": "Origin Y",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 40,
-     "step": 1
-    },
-    {
-     "key": "seed",
-     "label": "Seed",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "launch"
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
    "enabled": true,
@@ -3871,38 +2702,6 @@
      "hint": "Dashes every edge. Useful when the lines are a relationship, not a flow.",
      "type": "boolean",
      "defaultValue": false
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "Frames to wait before the first edge draws.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Frames one edge takes to draw.",
-     "type": "number",
-     "defaultValue": 26,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between edges.",
-     "type": "number",
-     "defaultValue": 10,
-     "step": 1
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Frames the exit takes.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
     }
    ],
    "needs": [],
@@ -3972,47 +2771,6 @@
      "hint": "Accent applied over the last `urgentUnder` seconds.",
      "type": "color",
      "defaultValue": "#F97362"
-    },
-    {
-     "key": "urgentUnder",
-     "label": "Urgent Under",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3,
-     "step": 0.05
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "label",
-     "label": "Label",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Starting in"
-    },
-    {
-     "key": "zeroLabel",
-     "label": "Zero Label",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Live"
     }
    ],
    "needs": [],
@@ -4043,14 +2801,6 @@
    "duration": 3.6666666666666665,
    "editables": [
     {
-     "key": "from",
-     "label": "From",
-     "hint": "Value the count starts from.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
      "key": "durationInFrames",
      "label": "Duration In Frames",
      "hint": "",
@@ -4080,50 +2830,6 @@
      "hint": "Group thousands with the locale's separator.",
      "type": "boolean",
      "defaultValue": true
-    },
-    {
-     "key": "prefix",
-     "label": "Prefix",
-     "hint": "",
-     "type": "text",
-     "defaultValue": ""
-    },
-    {
-     "key": "suffix",
-     "label": "Suffix",
-     "hint": "",
-     "type": "text",
-     "defaultValue": ""
-    },
-    {
-     "key": "roll",
-     "label": "Roll",
-     "hint": "Roll each digit like an odometer instead of swapping it. The lowest column turns continuously; every column above it waits for the carry fro",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "settle",
-     "label": "Settle",
-     "hint": "Small scale pop on the frame the number lands.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 700,
-     "step": 1
-    },
-    {
-     "key": "to",
-     "label": "To",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 124000,
-     "step": 1
     }
    ],
    "needs": [],
@@ -4288,18 +2994,6 @@
      "type": "number",
      "defaultValue": 0.6,
      "step": 0.05
-    },
-    {
-     "key": "trail",
-     "label": "Trail",
-     "hint": "`draw` reveals the route behind the cursor, `guide` shows it up front.",
-     "type": "select",
-     "defaultValue": "draw",
-     "options": [
-      "draw",
-      "guide",
-      "none"
-     ]
     }
    ],
    "needs": [],
@@ -4340,13 +3034,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "Weekly throughput"
-    },
-    {
-     "key": "backgroundColor",
-     "label": "Background Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#080810"
     }
    ],
    "needs": [],
@@ -4391,88 +3078,11 @@
      "step": 1
     },
     {
-     "key": "orient",
-     "label": "Orient",
-     "hint": "Turns the traveller to the path's tangent.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
      "key": "width",
      "label": "Width",
      "hint": "",
      "type": "number",
      "defaultValue": 320,
-     "step": 1
-    },
-    {
-     "key": "height",
-     "label": "Height",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 200,
-     "step": 1
-    },
-    {
-     "key": "trailColor",
-     "label": "Trail Color",
-     "hint": "The dashed route behind the traveller.",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "trackColor",
-     "label": "Track Color",
-     "hint": "The part of the route not yet travelled. Omit to hide it.",
-     "type": "color",
-     "defaultValue": "rgba(255,255,255,0.12)"
-    },
-    {
-     "key": "strokeWidth",
-     "label": "Stroke Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 2.5,
-     "step": 0.05
-    },
-    {
-     "key": "dash",
-     "label": "Dash",
-     "hint": "Dash and gap length, in path units.",
-     "type": "number",
-     "defaultValue": 9,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "Frames to wait before setting off.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Frames the trip takes.",
-     "type": "number",
-     "defaultValue": 86,
-     "step": 1
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Frames the exit takes.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "exitAtInFrames",
-     "label": "Exit At In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 92,
      "step": 1
     }
    ],
@@ -4571,27 +3181,6 @@
    "duration": 14,
    "editables": [
     {
-     "key": "title",
-     "label": "Title",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Quarterly reach by channel"
-    },
-    {
-     "key": "subtitle",
-     "label": "Subtitle",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Short-form climbed while long-form held attention"
-    },
-    {
-     "key": "chartTitle",
-     "label": "Chart Title",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Views by format"
-    },
-    {
      "key": "metricsTitle",
      "label": "Metrics Title",
      "hint": "",
@@ -4604,27 +3193,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "How we read the quarter"
-    },
-    {
-     "key": "insight",
-     "label": "Insight",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Short-form drove reach; long-form kept attention."
-    },
-    {
-     "key": "insightEyebrow",
-     "label": "Insight Eyebrow",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Takeaway"
-    },
-    {
-     "key": "ctaTitle",
-     "label": "Cta Title",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Turn your data into motion"
     }
    ],
    "needs": [],
@@ -4654,8 +3222,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "2ba3308c38b07d232b1a240aeddd76ec9e4e8d6ab139ee2400a1fc0031b82612"
   },
   {
@@ -4716,29 +3284,6 @@
      "type": "number",
      "defaultValue": 2.2,
      "step": 0.05
-    },
-    {
-     "key": "dim",
-     "label": "Dim",
-     "hint": "How much an out-of-focus plane darkens, 0–1.",
-     "type": "number",
-     "defaultValue": 0.35,
-     "step": 0.05
-    },
-    {
-     "key": "breathe",
-     "label": "Breathe",
-     "hint": "Scale a defocused plane picks up — breathing, as a real lens does.",
-     "type": "number",
-     "defaultValue": 0.03,
-     "step": 0.05
-    },
-    {
-     "key": "backgroundColor",
-     "label": "Background Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#07080e"
     }
    ],
    "needs": [],
@@ -4886,28 +3431,11 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "edgeSoftness",
-     "label": "Edge Softness",
-     "hint": "Width of the soft edge as a share of the frame, 0→1. 0 cuts hard.",
-     "type": "number",
-     "defaultValue": 0.12,
-     "step": 0.05
-    },
-    {
-     "key": "depth",
-     "label": "Depth",
-     "hint": "Parallax the scenes carry under the wipe, as a share of the frame.",
-     "type": "number",
-     "defaultValue": 0.08,
-     "step": 0.05
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "bbfe4dc1c33597f0a41a75f3f1cb2c1a01b33516f13697e8b0d2da2abad5548b"
   },
   {
@@ -5049,59 +3577,6 @@
      "hint": "Caption under the total.",
      "type": "text",
      "defaultValue": "Sessions"
-    },
-    {
-     "key": "trackColor",
-     "label": "Track Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.08)"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.58)"
-    },
-    {
-     "key": "inkColor",
-     "label": "Ink Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one segment's sweep. Segments overlap by design.",
-     "type": "number",
-     "defaultValue": 26,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between the start of one segment and the next.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -5151,60 +3626,6 @@
      "hint": "Heading on the source panel.",
      "type": "text",
      "defaultValue": "Media library"
-    },
-    {
-     "key": "label",
-     "label": "Label",
-     "hint": "Idle prompt inside the drop zone.",
-     "type": "text",
-     "defaultValue": "Drop your clip"
-    },
-    {
-     "key": "hint",
-     "label": "Hint",
-     "hint": "Secondary line under the prompt — accepted formats, limits.",
-     "type": "text",
-     "defaultValue": "MP4 or MOV, up to 2 GB"
-    },
-    {
-     "key": "activeLabel",
-     "label": "Active Label",
-     "hint": "Prompt while the file is held over the zone.",
-     "type": "text",
-     "defaultValue": "Release to upload"
-    },
-    {
-     "key": "doneLabel",
-     "label": "Done Label",
-     "hint": "Label once the upload finishes.",
-     "type": "text",
-     "defaultValue": "Uploaded"
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -5249,13 +3670,6 @@
      "defaultValue": "rgba(255,255,255,0.1)"
     },
     {
-     "key": "sweepColor",
-     "label": "Sweep Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(232,184,109,0.55)"
-    },
-    {
      "key": "spacing",
      "label": "Spacing",
      "hint": "",
@@ -5270,22 +3684,6 @@
      "type": "number",
      "defaultValue": 1,
      "step": 0.05
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0.4,
-     "step": 0.05
-    },
-    {
-     "key": "sweepDurationInFrames",
-     "label": "Sweep Duration In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 150,
-     "step": 1
     }
    ],
    "needs": [],
@@ -5466,14 +3864,6 @@
      ]
     },
     {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
      "key": "cta",
      "label": "Cta",
      "hint": "",
@@ -5633,40 +4023,6 @@
      "type": "number",
      "defaultValue": 0.55,
      "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -5711,14 +4067,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     },
     {
      "key": "title",
@@ -5770,14 +4118,6 @@
      "defaultValue": "src/index.ts"
     },
     {
-     "key": "rowStagger",
-     "label": "Row Stagger",
-     "hint": "Seconds between one row appearing and the next.",
-     "type": "number",
-     "defaultValue": 0.18,
-     "step": 0.05
-    },
-    {
      "key": "accentColor",
      "label": "Accent Color",
      "hint": "",
@@ -5794,22 +4134,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -5878,59 +4202,6 @@
      "type": "number",
      "defaultValue": 1,
      "step": 0.05
-    },
-    {
-     "key": "preroll",
-     "label": "Preroll",
-     "hint": "Start the simulation this many frames early, so a looping leader is already in steady motion on frame 0. Set it to the loop length.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "orient",
-     "label": "Orient",
-     "hint": "Rotate each link to face the one ahead of it.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "width",
-     "label": "Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 960,
-     "step": 1
-    },
-    {
-     "key": "height",
-     "label": "Height",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 540,
-     "step": 1
-    },
-    {
-     "key": "stroke",
-     "label": "Stroke",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "strokeWidth",
-     "label": "Stroke Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 6,
-     "step": 1
-    },
-    {
-     "key": "fill",
-     "label": "Fill",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "none"
     }
    ],
    "needs": [],
@@ -5995,47 +4266,6 @@
      "type": "number",
      "defaultValue": 34,
      "step": 1
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "validColor",
-     "label": "Valid Color",
-     "hint": "Tick and valid-border colour. Kept off `accentColor` so focus and validation stay two readable states rather than one.",
-     "type": "color",
-     "defaultValue": "#7FD1A0"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -6062,35 +4292,11 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "blur",
-     "label": "Blur",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
-    },
-    {
-     "key": "panelWidth",
-     "label": "Panel Width",
-     "hint": "Panel width as a share of the frame, 0→1.",
-     "type": "number",
-     "defaultValue": 0.14,
-     "step": 0.05
-    },
-    {
-     "key": "frostColor",
-     "label": "Frost Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(255,255,255,0.12)"
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "69fe204239c75c0ba6b3871ff062b82b345aee64778b0f061b13c52d9c4f6b42"
   },
   {
@@ -6152,73 +4358,6 @@
      "type": "number",
      "defaultValue": 0.5,
      "step": 0.05
-    },
-    {
-     "key": "inkColor",
-     "label": "Ink Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.55)"
-    },
-    {
-     "key": "showDropoff",
-     "label": "Show Dropoff",
-     "hint": "Drop-off percentage printed between consecutive stages.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "dropoffColor",
-     "label": "Dropoff Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#f472b6"
-    },
-    {
-     "key": "showConversion",
-     "label": "Show Conversion",
-     "hint": "Share of the first stage that reached this one, printed beside the value.",
-     "type": "boolean",
-     "defaultValue": false
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one band's wipe.",
-     "type": "number",
-     "defaultValue": 22,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one band and the next.",
-     "type": "number",
-     "defaultValue": 15,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -6286,67 +4425,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "rgba(250,250,250,0.09)"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.58)"
-    },
-    {
-     "key": "markerColor",
-     "label": "Marker Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one bar's wipe.",
-     "type": "number",
-     "defaultValue": 24,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one row and the next.",
-     "type": "number",
-     "defaultValue": 8,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
-    },
-    {
-     "key": "markerAt",
-     "label": "Marker At",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 5.5,
-     "step": 1
-    },
-    {
-     "key": "markerLabel",
-     "label": "Marker Label",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Today"
     }
    ],
    "needs": [],
@@ -6416,88 +4494,6 @@
      "type": "number",
      "defaultValue": 250,
      "step": 1
-    },
-    {
-     "key": "color",
-     "label": "Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "trackColor",
-     "label": "Track Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.10)"
-    },
-    {
-     "key": "inkColor",
-     "label": "Ink Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.58)"
-    },
-    {
-     "key": "unit",
-     "label": "Unit",
-     "hint": "Suffix on the readout, e.g. `\"%\"` or `\" ms\"`.",
-     "type": "text",
-     "defaultValue": "%"
-    },
-    {
-     "key": "tickCount",
-     "label": "Tick Count",
-     "hint": "Tick marks around the arc. `0` hides them.",
-     "type": "number",
-     "defaultValue": 9,
-     "step": 1
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 70,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
-    },
-    {
-     "key": "value",
-     "label": "Value",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 78,
-     "step": 1
-    },
-    {
-     "key": "label",
-     "label": "Label",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Render budget"
     }
    ],
    "needs": [],
@@ -6555,66 +4551,6 @@
      "hint": "Latitude the camera sits at. Positive tilts the north pole toward you.",
      "type": "number",
      "defaultValue": 18,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "Frames to wait before the first arc draws.",
-     "type": "number",
-     "defaultValue": 6,
-     "step": 1
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Frames one arc takes to draw.",
-     "type": "number",
-     "defaultValue": 34,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between arcs, when a route sets no delay of its own.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "sphereColor",
-     "label": "Sphere Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#0E1524"
-    },
-    {
-     "key": "graticuleColor",
-     "label": "Graticule Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(125,211,232,0.22)"
-    },
-    {
-     "key": "arcColor",
-     "label": "Arc Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "cityColor",
-     "label": "City Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#7DD3E8"
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Frames the exit takes.",
-     "type": "number",
-     "defaultValue": 16,
      "step": 1
     }
    ],
@@ -6771,14 +4707,6 @@
      "step": 1
     },
     {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "Brightness at the top of the pulse, 0–1.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
      "key": "floor",
      "label": "Floor",
      "hint": "Brightness at the bottom of the pulse. Never 0 for a live indicator.",
@@ -6793,37 +4721,6 @@
      "type": "number",
      "defaultValue": 36,
      "step": 1
-    },
-    {
-     "key": "scale",
-     "label": "Scale",
-     "hint": "Scale added at the top of the pulse. 0 glows without moving.",
-     "type": "number",
-     "defaultValue": 0.04,
-     "step": 0.05
-    },
-    {
-     "key": "halo",
-     "label": "Halo",
-     "hint": "Halo behind the element, as a multiple of `radius`. 0 removes it.",
-     "type": "number",
-     "defaultValue": 2.4,
-     "step": 0.05
-    },
-    {
-     "key": "echo",
-     "label": "Echo",
-     "hint": "Second beat per cycle, offset by this fraction — a heartbeat's double tap.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "mode",
-     "label": "Mode",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "beat"
     }
    ],
    "needs": [],
@@ -7001,13 +4898,6 @@
      "type": "number",
      "defaultValue": 9,
      "step": 1
-    },
-    {
-     "key": "penColor",
-     "label": "Pen Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#e8b86d"
     }
    ],
    "needs": [],
@@ -7074,60 +4964,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "rgba(250,250,250,0.07)"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.5)"
-    },
-    {
-     "key": "showLegend",
-     "label": "Show Legend",
-     "hint": "\"Less → more\" ramp under the grid.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one cell's fill.",
-     "type": "number",
-     "defaultValue": 14,
-     "step": 1
-    },
-    {
-     "key": "columnStaggerInFrames",
-     "label": "Column Stagger In Frames",
-     "hint": "Frames added per column as the wave crosses the grid.",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
-    },
-    {
-     "key": "rowStaggerInFrames",
-     "label": "Row Stagger In Frames",
-     "hint": "Frames added per row. Keep below the column stagger for a diagonal wave.",
-     "type": "number",
-     "defaultValue": 1.5,
-     "step": 0.05
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -7155,20 +4991,6 @@
    "fps": 30,
    "duration": 6,
    "editables": [
-    {
-     "key": "title",
-     "label": "Title",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Ship on every screen"
-    },
-    {
-     "key": "subtitle",
-     "label": "Subtitle",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Device layers spring into frame"
-    },
     {
      "key": "productName",
      "label": "Product Name",
@@ -7211,23 +5033,11 @@
    },
    "fps": 30,
    "duration": 12,
-   "editables": [
-    {
-     "key": "tone",
-     "label": "Tone",
-     "hint": "Page theme the transparent variant sits on. `light` inks the wordmark dark and lifts the well to the page colour so the lockup reads on #f7f",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": true,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "daa90309d9c3cd768a0a512ffaa1522b8785b6f7c657332f9c85dbe34d3f0556"
   },
   {
@@ -7286,35 +5096,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "kicker",
-     "label": "Kicker",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Creator insight"
-    },
-    {
-     "key": "emphasis",
-     "label": "Emphasis",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "first second"
-    },
-    {
-     "key": "subtitle",
-     "label": "Subtitle",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Hook viewers before they scroll"
     }
    ],
    "needs": [],
@@ -7346,14 +5127,6 @@
    "duration": 8.4,
    "editables": [
     {
-     "key": "softness",
-     "label": "Softness",
-     "hint": "Share of the reach (0–1) over which the arm eases into full extension instead of snapping straight.",
-     "type": "number",
-     "defaultValue": 0.08,
-     "step": 0.05
-    },
-    {
      "key": "thickness",
      "label": "Thickness",
      "hint": "Upper-arm width, px. The rest of the arm is proportioned from it.",
@@ -7369,73 +5142,11 @@
      "defaultValue": "#80848f"
     },
     {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "Status light and pen-down glow.",
-     "type": "color",
-     "defaultValue": "#2dd4bf"
-    },
-    {
      "key": "inkColor",
      "label": "Ink Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "inkWidth",
-     "label": "Ink Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
-     "key": "glow",
-     "label": "Glow",
-     "hint": "Bloom on the ink, 0–1.",
-     "type": "number",
-     "defaultValue": 0.6,
-     "step": 0.05
-    },
-    {
-     "key": "lightAngle",
-     "label": "Light Angle",
-     "hint": "Direction the key light comes from, degrees (screen space, 0 = from the right, -90 = from above).",
-     "type": "number",
-     "defaultValue": -125,
-     "step": 1
-    },
-    {
-     "key": "shadow",
-     "label": "Shadow",
-     "hint": "Opacity of the arm's cast shadows. 0 hides them.",
-     "type": "number",
-     "defaultValue": 0.55,
-     "step": 0.05
-    },
-    {
-     "key": "cable",
-     "label": "Cable",
-     "hint": "The slack service cable from base to elbow.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "width",
-     "label": "Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 960,
-     "step": 1
-    },
-    {
-     "key": "height",
-     "label": "Height",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 540,
-     "step": 1
     }
    ],
    "needs": [],
@@ -7538,22 +5249,6 @@
      "type": "number",
      "defaultValue": 600,
      "step": 1
-    },
-    {
-     "key": "gap",
-     "label": "Gap",
-     "hint": "Space between one copy of the text and the next, in px.",
-     "type": "number",
-     "defaultValue": 48,
-     "step": 1
-    },
-    {
-     "key": "fade",
-     "label": "Fade",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0.08,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -7631,22 +5326,6 @@
    "duration": 4,
    "editables": [
     {
-     "key": "moveSeconds",
-     "label": "Move Seconds",
-     "hint": "How long one card takes to cross from column to column.",
-     "type": "number",
-     "defaultValue": 0.62,
-     "step": 0.05
-    },
-    {
-     "key": "dealStaggerSeconds",
-     "label": "Deal Stagger Seconds",
-     "hint": "Seconds between each card's arrival during the opening stagger.",
-     "type": "number",
-     "defaultValue": 0.08,
-     "step": 0.05
-    },
-    {
      "key": "accentColor",
      "label": "Accent Color",
      "hint": "",
@@ -7670,14 +5349,6 @@
      "hint": "Animation speed multiplier.",
      "type": "number",
      "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
      "step": 0.05
     }
    ],
@@ -7709,39 +5380,11 @@
    "duration": 4,
    "editables": [
     {
-     "key": "activeColor",
-     "label": "Active Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#ff6b00"
-    },
-    {
      "key": "completedColor",
      "label": "Completed Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#111111"
-    },
-    {
-     "key": "inactiveColor",
-     "label": "Inactive Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(17, 17, 17, 0.32)"
-    },
-    {
-     "key": "shadow",
-     "label": "Shadow",
-     "hint": "Drop shadow behind every word, tuned for light text over busy real footage. Set `false` to render flat when the caller already controls cont",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "mode",
-     "label": "Mode",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "scale"
     }
    ],
    "needs": [],
@@ -7771,8 +5414,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "1eb834ea15f8010c9301ed8fb25e2ff70ccc0caefa0a049a80d16f9b1afcdc7f"
   },
   {
@@ -7833,54 +5476,6 @@
      "type": "number",
      "defaultValue": 20,
      "step": 1
-    },
-    {
-     "key": "originX",
-     "label": "Origin X",
-     "hint": "Where the light comes from, in percent of the frame.",
-     "type": "number",
-     "defaultValue": 28,
-     "step": 1
-    },
-    {
-     "key": "originY",
-     "label": "Origin Y",
-     "hint": "",
-     "type": "number",
-     "defaultValue": -14,
-     "step": 1
-    },
-    {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "Overall brightness.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Sway speed. 1 is a slow drift; 0 freezes the fan.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "blur",
-     "label": "Blur",
-     "hint": "Softness of a shaft's edge, in px.",
-     "type": "number",
-     "defaultValue": 13,
-     "step": 1
-    },
-    {
-     "key": "bloom",
-     "label": "Bloom",
-     "hint": "Bloom radius at the source, in percent. 0 removes the bloom.",
-     "type": "number",
-     "defaultValue": 42,
-     "step": 1
     }
    ],
    "needs": [],
@@ -7926,42 +5521,11 @@
      "step": 1
     },
     {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
      "key": "baseColor",
      "label": "Base Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#71717a"
-    },
-    {
-     "key": "shineColor",
-     "label": "Shine Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "bandWidth",
-     "label": "Band Width",
-     "hint": "Half-width of the shine, in percent of the gradient image. The image is 2.2× the line, so 8 is a hard specular streak over roughly a third o",
-     "type": "number",
-     "defaultValue": 8,
-     "step": 1
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 700,
-     "step": 1
     }
    ],
    "needs": [],
@@ -8029,22 +5593,6 @@
      "type": "number",
      "defaultValue": 0.035,
      "step": 0.05
-    },
-    {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "Overall brightness.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Flight speed down the barrel. 0 freezes the tunnel.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -8082,17 +5630,6 @@
      "defaultValue": "#e8b86d"
     },
     {
-     "key": "variant",
-     "label": "Variant",
-     "hint": "Cardinal spline through the points, or straight segments.",
-     "type": "select",
-     "defaultValue": "smooth",
-     "options": [
-      "smooth",
-      "linear"
-     ]
-    },
-    {
      "key": "showAxis",
      "label": "Show Axis",
      "hint": "Gridlines and value labels down the left gutter.",
@@ -8112,71 +5649,6 @@
      "hint": "Gradient fill under the line, wiped in with the draw.",
      "type": "boolean",
      "defaultValue": true
-    },
-    {
-     "key": "showDots",
-     "label": "Show Dots",
-     "hint": "Dot deposited on each data point as the line passes it.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "showHead",
-     "label": "Show Head",
-     "hint": "Glowing dot riding the tip of the line while it draws.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "showEndLabel",
-     "label": "Show End Label",
-     "hint": "Value callout pinned to the final point once the draw lands.",
-     "type": "boolean",
-     "defaultValue": false
-    },
-    {
-     "key": "includeZero",
-     "label": "Include Zero",
-     "hint": "Anchor the value axis at zero. Turn it off for sparklines, where the shape of the recent range matters more than its distance from zero.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "Text colour for axis and category labels.",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.52)"
-    },
-    {
-     "key": "gridColor",
-     "label": "Grid Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.10)"
-    },
-    {
-     "key": "surfaceColor",
-     "label": "Surface Color",
-     "hint": "Ink behind the dots — match the surface the chart sits on.",
-     "type": "color",
-     "defaultValue": "#080810"
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 70,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -8244,21 +5716,6 @@
      "type": "number",
      "defaultValue": 18,
      "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between neighbouring letters melting. Clamped to fit the morph.",
-     "type": "number",
-     "defaultValue": 2,
-     "step": 0.05
-    },
-    {
-     "key": "color",
-     "label": "Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#f4f4f5"
     }
    ],
    "needs": [],
@@ -8401,72 +5858,6 @@
      "type": "number",
      "defaultValue": 4,
      "step": 0.05
-    },
-    {
-     "key": "startAtSeconds",
-     "label": "Start At Seconds",
-     "hint": "Second the first tile arrives.",
-     "type": "number",
-     "defaultValue": 0.32,
-     "step": 0.05
-    },
-    {
-     "key": "arriveStaggerSeconds",
-     "label": "Arrive Stagger Seconds",
-     "hint": "Seconds between tiles arriving, in reading order.",
-     "type": "number",
-     "defaultValue": 0.06,
-     "step": 0.05
-    },
-    {
-     "key": "staggerSeconds",
-     "label": "Stagger Seconds",
-     "hint": "Seconds between diagonals of the colour sweep. Tiles on one diagonal warm together, which is what makes the sweep cross the wall rather than",
-     "type": "number",
-     "defaultValue": 0.24,
-     "step": 0.05
-    },
-    {
-     "key": "warmSeconds",
-     "label": "Warm Seconds",
-     "hint": "How long one tile takes to go from grey to brand colour.",
-     "type": "number",
-     "defaultValue": 0.6,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -8513,13 +5904,6 @@
      ]
     },
     {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#f97316"
-    },
-    {
      "key": "theme",
      "label": "Theme",
      "hint": "",
@@ -8529,21 +5913,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "subtitle",
-     "label": "Subtitle",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Product Designer"
     }
    ],
    "needs": [],
@@ -8858,94 +6227,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "The best motion is code you can read and change."
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of the sweep across one word.",
-     "type": "number",
-     "defaultValue": 12,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one word being struck and the next.",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
-     "key": "tilt",
-     "label": "Tilt",
-     "hint": "Angle of the nib in degrees off vertical — a hand does not hold it level.",
-     "type": "number",
-     "defaultValue": -4,
-     "step": 0.05
-    },
-    {
-     "key": "inkSoftness",
-     "label": "Ink Softness",
-     "hint": "Softness of the leading edge, as a share of the word. 0 is a hard cut.",
-     "type": "number",
-     "defaultValue": 0.16,
-     "step": 0.05
-    },
-    {
-     "key": "color",
-     "label": "Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#f8fafc"
-    },
-    {
-     "key": "markerColor",
-     "label": "Marker Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#f97316"
-    },
-    {
-     "key": "inkColor",
-     "label": "Ink Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#080810"
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 600,
-     "step": 1
-    },
-    {
-     "key": "textAlign",
-     "label": "Text Align",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "left",
-     "options": [
-      "left",
-      "center",
-      "right"
-     ]
-    },
-    {
-     "key": "phrase",
-     "label": "Phrase",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "code you can read and change"
     }
    ],
    "needs": [],
@@ -8976,30 +6257,6 @@
    "duration": 4,
    "editables": [
     {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 6,
-     "step": 1
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
      "key": "color",
      "label": "Color",
      "hint": "",
@@ -9013,26 +6270,6 @@
      "type": "number",
      "defaultValue": 600,
      "step": 1
-    },
-    {
-     "key": "textAlign",
-     "label": "Text Align",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "center",
-     "options": [
-      "left",
-      "center",
-      "right"
-     ]
-    },
-    {
-     "key": "lineGap",
-     "label": "Line Gap",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0.18,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -9078,34 +6315,11 @@
      "step": 1
     },
     {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
      "key": "color",
      "label": "Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#2dd4bf"
-    },
-    {
-     "key": "hotColor",
-     "label": "Hot Color",
-     "hint": "Colour of the single character sitting on the decode front.",
-     "type": "color",
-     "defaultValue": "#5eead4"
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 600,
-     "step": 1
     }
    ],
    "needs": [],
@@ -9317,14 +6531,6 @@
    "duration": 4,
    "editables": [
     {
-     "key": "maxCards",
-     "label": "Max Cards",
-     "hint": "Cards beyond this count are dropped rather than squeezed.",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
      "key": "title",
      "label": "Title",
      "hint": "",
@@ -9366,14 +6572,6 @@
      "step": 1
     },
     {
-     "key": "gapInFrames",
-     "label": "Gap In Frames",
-     "hint": "Frames between echoes. Wider gaps stretch the trail without adding cost.",
-     "type": "number",
-     "defaultValue": 3,
-     "step": 0.05
-    },
-    {
      "key": "opacity",
      "label": "Opacity",
      "hint": "Opacity of the first echo. Every later one fades further.",
@@ -9395,14 +6593,6 @@
      "hint": "Scale of the last echo. 1 keeps them all the same size.",
      "type": "number",
      "defaultValue": 0.82,
-     "step": 0.05
-    },
-    {
-     "key": "blur",
-     "label": "Blur",
-     "hint": "Blur on the last echo, in px. Echoes closer to the subject blur less.",
-     "type": "number",
-     "defaultValue": 4,
      "step": 0.05
     }
    ],
@@ -9440,14 +6630,6 @@
      "step": 0.05
     },
     {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "Frame the first device arrives.",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
      "key": "staggerInFrames",
      "label": "Stagger In Frames",
      "hint": "Frames between devices.",
@@ -9456,33 +6638,11 @@
      "step": 1
     },
     {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Frames the exit takes.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
      "key": "bezelColor",
      "label": "Bezel Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#15171D"
-    },
-    {
-     "key": "screenColor",
-     "label": "Screen Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#0B0C11"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#7A828F"
     }
    ],
    "needs": [],
@@ -9518,13 +6678,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "Open all night"
-    },
-    {
-     "key": "order",
-     "label": "Order",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "random"
     },
     {
      "key": "glowColor",
@@ -9599,20 +6752,6 @@
      "type": "number",
      "defaultValue": 1,
      "step": 0.05
-    },
-    {
-     "key": "strapline",
-     "label": "Strapline",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Live from the newsroom"
-    },
-    {
-     "key": "timestamp",
-     "label": "Timestamp",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "21:04"
     }
    ],
    "needs": [],
@@ -9685,32 +6824,6 @@
      "hint": "Draining line along the toast's bottom edge. Turn off for a static stack.",
      "type": "boolean",
      "defaultValue": true
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -9748,13 +6861,6 @@
      "defaultValue": "Ask anything... "
     },
     {
-     "key": "query",
-     "label": "Query",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "\"What is the tech stack of this project?\""
-    },
-    {
      "key": "agentName",
      "label": "Agent Name",
      "hint": "",
@@ -9774,32 +6880,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "Moonshot AI"
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#2B7FFF"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "light",
-      "dark"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -9866,70 +6946,6 @@
      "type": "number",
      "defaultValue": -12,
      "step": 1
-    },
-    {
-     "key": "direction",
-     "label": "Direction",
-     "hint": "Which way it turns.",
-     "type": "select",
-     "defaultValue": "cw",
-     "options": [
-      "cw",
-      "ccw"
-     ]
-    },
-    {
-     "key": "centerX",
-     "label": "Center X",
-     "hint": "Centre of the orbit, in percent of the frame.",
-     "type": "number",
-     "defaultValue": 50,
-     "step": 1
-    },
-    {
-     "key": "centerY",
-     "label": "Center Y",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 50,
-     "step": 1
-    },
-    {
-     "key": "depth",
-     "label": "Depth",
-     "hint": "Scale difference between the near and far side of the ring. 0 is flat.",
-     "type": "number",
-     "defaultValue": 0.28,
-     "step": 0.05
-    },
-    {
-     "key": "depthFade",
-     "label": "Depth Fade",
-     "hint": "How much the far side dims, 0–1.",
-     "type": "number",
-     "defaultValue": 0.4,
-     "step": 0.05
-    },
-    {
-     "key": "upright",
-     "label": "Upright",
-     "hint": "Keep children upright instead of letting them ride the ring.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "showPath",
-     "label": "Show Path",
-     "hint": "Draw the ring itself.",
-     "type": "boolean",
-     "defaultValue": false
-    },
-    {
-     "key": "pathColor",
-     "label": "Path Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(255,255,255,0.14)"
     }
    ],
    "needs": [],
@@ -9981,46 +6997,11 @@
      "step": 0.05
     },
     {
-     "key": "siblingStaggerSeconds",
-     "label": "Sibling Stagger Seconds",
-     "hint": "Seconds between siblings inside a level.",
-     "type": "number",
-     "defaultValue": 0.12,
-     "step": 0.05
-    },
-    {
      "key": "accentColor",
      "label": "Accent Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -10090,13 +7071,6 @@
       "ease",
       "linear"
      ]
-    },
-    {
-     "key": "backgroundColor",
-     "label": "Background Color",
-     "hint": "Plate behind every plane.",
-     "type": "color",
-     "defaultValue": "#07080e"
     }
    ],
    "needs": [],
@@ -10255,22 +7229,6 @@
      "step": 1
     },
     {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Offset between the start of each path when `d` is an array.",
-     "type": "number",
-     "defaultValue": 8,
-     "step": 1
-    },
-    {
      "key": "stroke",
      "label": "Stroke",
      "hint": "",
@@ -10284,36 +7242,6 @@
      "type": "number",
      "defaultValue": 4,
      "step": 0.05
-    },
-    {
-     "key": "width",
-     "label": "Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 200,
-     "step": 1
-    },
-    {
-     "key": "height",
-     "label": "Height",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 200,
-     "step": 1
-    },
-    {
-     "key": "head",
-     "label": "Head",
-     "hint": "Bright dot riding the tip of the stroke while it draws.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "glow",
-     "label": "Glow",
-     "hint": "",
-     "type": "boolean",
-     "defaultValue": true
     }
    ],
    "needs": [],
@@ -10380,44 +7308,6 @@
      "type": "number",
      "defaultValue": 72,
      "step": 1
-    },
-    {
-     "key": "floorTilt",
-     "label": "Floor Tilt",
-     "hint": "Floor plane tilt in degrees — higher values exaggerate depth.",
-     "type": "number",
-     "defaultValue": 70,
-     "step": 1
-    },
-    {
-     "key": "perspective",
-     "label": "Perspective",
-     "hint": "Perspective distance in px — lower values exaggerate depth.",
-     "type": "number",
-     "defaultValue": 640,
-     "step": 1
-    },
-    {
-     "key": "showFloorGrid",
-     "label": "Show Floor Grid",
-     "hint": "",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "lineWidth",
-     "label": "Line Width",
-     "hint": "Hairline width for the horizon and the floor grid, in px.  A 1px rule is half a device pixel once the frame is rendered below 1× (the still ",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "nearGlow",
-     "label": "Near Glow",
-     "hint": "Halo behind the near row, so the type survives a downscale.",
-     "type": "boolean",
-     "defaultValue": false
     }
    ],
    "needs": [],
@@ -10484,38 +7374,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "#0b0b10"
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one slice's sweep.",
-     "type": "number",
-     "defaultValue": 24,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between the start of one slice and the next.",
-     "type": "number",
-     "defaultValue": 18,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -10637,28 +7495,6 @@
      "type": "number",
      "defaultValue": 1,
      "step": 0.05
-    },
-    {
-     "key": "badge",
-     "label": "Badge",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Poll"
-    },
-    {
-     "key": "totalLabel",
-     "label": "Total Label",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "823 votes · closes in 2m"
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -10721,86 +7557,6 @@
      "hint": "Cadence printed after the price — \"/mo\", \"per seat\", anything short.",
      "type": "text",
      "defaultValue": "/mo"
-    },
-    {
-     "key": "note",
-     "label": "Note",
-     "hint": "Line under the price.",
-     "type": "text",
-     "defaultValue": "Billed annually. Cancel whenever."
-    },
-    {
-     "key": "ctaLabel",
-     "label": "Cta Label",
-     "hint": "Text in the call-to-action button. Omit to drop the button.",
-     "type": "text",
-     "defaultValue": "Start rendering"
-    },
-    {
-     "key": "priceAtSeconds",
-     "label": "Price At Seconds",
-     "hint": "Second the price starts rolling.",
-     "type": "number",
-     "defaultValue": 0.42,
-     "step": 0.05
-    },
-    {
-     "key": "rollSeconds",
-     "label": "Roll Seconds",
-     "hint": "How long the roll takes.",
-     "type": "number",
-     "defaultValue": 0.9,
-     "step": 0.05
-    },
-    {
-     "key": "featuresAtSeconds",
-     "label": "Features At Seconds",
-     "hint": "Second the first feature ticks in.",
-     "type": "number",
-     "defaultValue": 1.05,
-     "step": 0.05
-    },
-    {
-     "key": "featureStaggerSeconds",
-     "label": "Feature Stagger Seconds",
-     "hint": "Seconds between features.",
-     "type": "number",
-     "defaultValue": 0.22,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -10830,8 +7586,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "570f3ae77ed1e22699b0cd03e823f701602ef8c73b428c50a80e52eafa36dc06"
   },
   {
@@ -10988,14 +7744,6 @@
      "step": 0.05
     },
     {
-     "key": "from",
-     "label": "From",
-     "hint": "Value the bar starts from, 0–1.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
      "key": "durationInFrames",
      "label": "Duration In Frames",
      "hint": "",
@@ -11004,69 +7752,11 @@
      "step": 1
     },
     {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
      "key": "indeterminate",
      "label": "Indeterminate",
      "hint": "Loop a shuttle across the track — work with no known end.",
      "type": "boolean",
      "defaultValue": false
-    },
-    {
-     "key": "showValue",
-     "label": "Show Value",
-     "hint": "Percentage readout on the right of the label row.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "color",
-     "label": "Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "trackColor",
-     "label": "Track Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(255, 255, 255, 0.08)"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(248, 250, 252, 0.55)"
-    },
-    {
-     "key": "glow",
-     "label": "Glow",
-     "hint": "Soft light carried by the leading edge of the fill.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "label",
-     "label": "Label",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Rendering"
-    },
-    {
-     "key": "segments",
-     "label": "Segments",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -11125,86 +7815,6 @@
      "hint": "Small line above the question.",
      "type": "text",
      "defaultValue": "Question 3 of 8"
-    },
-    {
-     "key": "optionsAtSeconds",
-     "label": "Options At Seconds",
-     "hint": "Second the first option arrives.",
-     "type": "number",
-     "defaultValue": 0.55,
-     "step": 0.05
-    },
-    {
-     "key": "staggerSeconds",
-     "label": "Stagger Seconds",
-     "hint": "Seconds between options.",
-     "type": "number",
-     "defaultValue": 0.2,
-     "step": 0.05
-    },
-    {
-     "key": "pickAtSeconds",
-     "label": "Pick At Seconds",
-     "hint": "Second the pick lands.",
-     "type": "number",
-     "defaultValue": 1.75,
-     "step": 0.05
-    },
-    {
-     "key": "revealAtSeconds",
-     "label": "Reveal At Seconds",
-     "hint": "Second the right answer is revealed.",
-     "type": "number",
-     "defaultValue": 2.35,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "correctColor",
-     "label": "Correct Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#7FD1A0"
-    },
-    {
-     "key": "wrongColor",
-     "label": "Wrong Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E89B9B"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -11272,20 +7882,6 @@
      "type": "number",
      "defaultValue": 1,
      "step": 0.05
-    },
-    {
-     "key": "emphasis",
-     "label": "Emphasis",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "motion"
-    },
-    {
-     "key": "author",
-     "label": "Author",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Team"
     }
    ],
    "needs": [],
@@ -11351,69 +7947,6 @@
      "hint": "Axis names around the web.",
      "type": "boolean",
      "defaultValue": true
-    },
-    {
-     "key": "showVertices",
-     "label": "Show Vertices",
-     "hint": "Dot on each vertex.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "fillOpacity",
-     "label": "Fill Opacity",
-     "hint": "Fill opacity under each polygon.",
-     "type": "number",
-     "defaultValue": 0.22,
-     "step": 0.05
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one vertex's reach.",
-     "type": "number",
-     "defaultValue": 18,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one axis and the next, sweeping clockwise.",
-     "type": "number",
-     "defaultValue": 5,
-     "step": 1
-    },
-    {
-     "key": "seriesOffsetInFrames",
-     "label": "Series Offset In Frames",
-     "hint": "Frames one series trails the previous one by.",
-     "type": "number",
-     "defaultValue": 10,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
-    },
-    {
-     "key": "maxValue",
-     "label": "Max Value",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 100,
-     "step": 1
     }
    ],
    "needs": [],
@@ -11486,22 +8019,6 @@
      "type": "number",
      "defaultValue": 56,
      "step": 1
-    },
-    {
-     "key": "rise",
-     "label": "Rise",
-     "hint": "Fraction of the frame height a reaction climbs.",
-     "type": "number",
-     "defaultValue": 0.72,
-     "step": 0.05
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -11539,14 +8056,6 @@
      "defaultValue": "SIGNAL LOCK"
     },
     {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
      "key": "color",
      "label": "Color",
      "hint": "",
@@ -11567,30 +8076,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "rgba(232,184,109,0.3)"
-    },
-    {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "sliceCount",
-     "label": "Slice Count",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 5,
-     "step": 1
-    },
-    {
-     "key": "glitchDurationInFrames",
-     "label": "Glitch Duration In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 34,
-     "step": 1
     }
    ],
    "needs": [],
@@ -11642,53 +8127,11 @@
      "step": 0.05
     },
     {
-     "key": "itemStaggerSeconds",
-     "label": "Item Stagger Seconds",
-     "hint": "Seconds between items inside a lane.",
-     "type": "number",
-     "defaultValue": 0.14,
-     "step": 0.05
-    },
-    {
      "key": "fillSeconds",
      "label": "Fill Seconds",
      "hint": "How long a progress bar takes to reach its value.",
      "type": "number",
      "defaultValue": 0.8,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
      "step": 0.05
     }
    ],
@@ -11725,21 +8168,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "x"
-    },
-    {
-     "key": "degrees",
-     "label": "Degrees",
-     "hint": "",
-     "type": "number",
-     "defaultValue": -24,
-     "step": 1
-    },
-    {
-     "key": "origin",
-     "label": "Origin",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "bottom"
     }
    ],
    "needs": [],
@@ -11849,61 +8277,6 @@
      "type": "number",
      "defaultValue": 22,
      "step": 1
-    },
-    {
-     "key": "rollInFrames",
-     "label": "Roll In Frames",
-     "hint": "Frames for the refresh bar to travel the frame. 0 removes it.",
-     "type": "number",
-     "defaultValue": 96,
-     "step": 1
-    },
-    {
-     "key": "rollOpacity",
-     "label": "Roll Opacity",
-     "hint": "Brightness of the refresh bar, 0–1.",
-     "type": "number",
-     "defaultValue": 0.16,
-     "step": 0.05
-    },
-    {
-     "key": "flicker",
-     "label": "Flicker",
-     "hint": "Frame-to-frame brightness jitter, 0–1.",
-     "type": "number",
-     "defaultValue": 0.05,
-     "step": 0.05
-    },
-    {
-     "key": "grille",
-     "label": "Grille",
-     "hint": "Strength of the RGB aperture grille, 0–1.",
-     "type": "number",
-     "defaultValue": 0.22,
-     "step": 0.05
-    },
-    {
-     "key": "vignette",
-     "label": "Vignette",
-     "hint": "Corner darkening, 0–1.",
-     "type": "number",
-     "defaultValue": 0.55,
-     "step": 0.05
-    },
-    {
-     "key": "tint",
-     "label": "Tint",
-     "hint": "Phosphor tint over the whole picture. `transparent` leaves colours alone.",
-     "type": "text",
-     "defaultValue": "transparent"
-    },
-    {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "Overall strength of every overlay at once, 0–1.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -11971,80 +8344,6 @@
      "type": "number",
      "defaultValue": 20,
      "step": 1
-    },
-    {
-     "key": "showTrend",
-     "label": "Show Trend",
-     "hint": "Least-squares trend line, drawn once the points have landed.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "trendColor",
-     "label": "Trend Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.42)"
-    },
-    {
-     "key": "showAxis",
-     "label": "Show Axis",
-     "hint": "Gridlines and value labels on both axes.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "gridColor",
-     "label": "Grid Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.10)"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.52)"
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one dot's pop.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one dot and the next, in ascending x order.",
-     "type": "number",
-     "defaultValue": 3,
-     "step": 0.05
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
-    },
-    {
-     "key": "xLabel",
-     "label": "X Label",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Scenes per project"
     }
    ],
    "needs": [],
@@ -12080,20 +8379,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "Resolve out of noise"
-    },
-    {
-     "key": "order",
-     "label": "Order",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "center"
-    },
-    {
-     "key": "charset",
-     "label": "Charset",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "symbols"
     }
    ],
    "needs": [],
@@ -12131,13 +8416,6 @@
      "defaultValue": "transition between scenes"
     },
     {
-     "key": "placeholder",
-     "label": "Placeholder",
-     "hint": "Greyed prompt shown before the first character lands.",
-     "type": "text",
-     "defaultValue": "Search the docs"
-    },
-    {
      "key": "countLabel",
      "label": "Count Label",
      "hint": "Line above the list. `{n}` is replaced with the result count.",
@@ -12158,48 +8436,6 @@
      "type": "number",
      "defaultValue": 30,
      "step": 1
-    },
-    {
-     "key": "searchSeconds",
-     "label": "Search Seconds",
-     "hint": "Seconds the indeterminate bar runs between the query and the first row.",
-     "type": "number",
-     "defaultValue": 0.34,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -12226,76 +8462,11 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "startAtInFrames",
-     "label": "Start At In Frames",
-     "hint": "Frame the impact lands on.",
-     "type": "number",
-     "defaultValue": 24,
-     "step": 0.05
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "How long the shake takes to die out. Impacts are short — 12 to 24 frames.",
-     "type": "number",
-     "defaultValue": 18,
-     "step": 1
-    },
-    {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "Peak displacement, in px.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "rotation",
-     "label": "Rotation",
-     "hint": "Peak rotation, in degrees. Small values only; 3° already reads as violent.",
-     "type": "number",
-     "defaultValue": 1.6,
-     "step": 0.05
-    },
-    {
-     "key": "punch",
-     "label": "Punch",
-     "hint": "Scale punch on impact. 0 shakes without a hit.",
-     "type": "number",
-     "defaultValue": 0.05,
-     "step": 0.05
-    },
-    {
-     "key": "frequency",
-     "label": "Frequency",
-     "hint": "How fast the element rattles, in shakes per second.",
-     "type": "number",
-     "defaultValue": 22,
-     "step": 1
-    },
-    {
-     "key": "decay",
-     "label": "Decay",
-     "hint": "How fast the shake dies. 1 decays evenly, 3 is a sharp hit.",
-     "type": "number",
-     "defaultValue": 2.2,
-     "step": 0.05
-    },
-    {
-     "key": "seed",
-     "label": "Seed",
-     "hint": "Changes the rattle without changing any other prop.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "7a44fb0ffb058878df858546259ccb5aa0f5a68ac5feffeae76f2749123e4491"
   },
   {
@@ -12321,22 +8492,6 @@
    "duration": 5,
    "editables": [
     {
-     "key": "width",
-     "label": "Width",
-     "hint": "Rendered size in pixels. Shape coordinates are in the same units.",
-     "type": "number",
-     "defaultValue": 480,
-     "step": 1
-    },
-    {
-     "key": "height",
-     "label": "Height",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 480,
-     "step": 1
-    },
-    {
      "key": "origin",
      "label": "Origin",
      "hint": "`center` puts (0, 0) in the middle of the layer, like a centred anchor.",
@@ -12346,38 +8501,6 @@
       "center",
       "top-left"
      ]
-    },
-    {
-     "key": "lineCap",
-     "label": "Line Cap",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "round",
-     "options": [
-      "butt",
-      "round",
-      "square"
-     ]
-    },
-    {
-     "key": "lineJoin",
-     "label": "Line Join",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "round",
-     "options": [
-      "miter",
-      "round",
-      "bevel"
-     ]
-    },
-    {
-     "key": "glow",
-     "label": "Glow",
-     "hint": "Soft bloom radius in pixels. 0 turns it off.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -12442,38 +8565,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "strokeWidth",
-     "label": "Stroke Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3,
-     "step": 0.05
-    },
-    {
-     "key": "rotation",
-     "label": "Rotation",
-     "hint": "Degrees the shape turns across the whole chain. A little rotation stops a symmetrical pair — square to diamond — from looking like a still i",
-     "type": "number",
-     "defaultValue": 18,
-     "step": 1
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Frames the exit takes.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "exitAtInFrames",
-     "label": "Exit At In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 92,
-     "step": 1
     }
    ],
    "needs": [],
@@ -12509,13 +8600,6 @@
      "defaultValue": "Product story"
     },
     {
-     "key": "subtitle",
-     "label": "Subtitle",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Install source, compose scenes, render on your timeline"
-    },
-    {
      "key": "featureTitle",
      "label": "Feature Title",
      "hint": "",
@@ -12529,20 +8613,6 @@
      "type": "number",
      "defaultValue": 3,
      "step": 0.05
-    },
-    {
-     "key": "statLabel",
-     "label": "Stat Label",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Runtime dependencies"
-    },
-    {
-     "key": "statSuffix",
-     "label": "Stat Suffix",
-     "hint": "",
-     "type": "text",
-     "defaultValue": ""
     }
    ],
    "needs": [],
@@ -12570,13 +8640,6 @@
    "fps": 30,
    "duration": 2.4,
    "editables": [
-    {
-     "key": "color",
-     "label": "Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#f4f4f5"
-    },
     {
      "key": "accent",
      "label": "Accent",
@@ -12621,22 +8684,6 @@
    "duration": 4,
    "editables": [
     {
-     "key": "skew",
-     "label": "Skew",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "travel",
-     "label": "Travel",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 72,
-     "step": 1
-    },
-    {
      "key": "durationInFrames",
      "label": "Duration In Frames",
      "hint": "",
@@ -12671,27 +8718,11 @@
    },
    "fps": 30,
    "duration": 3.2,
-   "editables": [
-    {
-     "key": "distance",
-     "label": "Distance",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 60,
-     "step": 1
-    },
-    {
-     "key": "from",
-     "label": "From",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "left"
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "e9b232fbbfeaf3ec945ed365253c0976055ce24de9ad27c3bbc46477b81e212d"
   },
   {
@@ -12780,45 +8811,6 @@
      "type": "number",
      "defaultValue": 120,
      "step": 1
-    },
-    {
-     "key": "angle",
-     "label": "Angle",
-     "hint": "Bands: direction the delay grows along, degrees (0 = left→right, 90 = top→bottom).",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "maxDelay",
-     "label": "Max Delay",
-     "hint": "Delay of the last strip, in frames.",
-     "type": "number",
-     "defaultValue": 30,
-     "step": 1
-    },
-    {
-     "key": "levels",
-     "label": "Levels",
-     "hint": "Distinct delays, i.e. how many times the child renders per frame. Strips are grouped onto these levels. 12–24 reads as smooth.",
-     "type": "number",
-     "defaultValue": 60,
-     "step": 1
-    },
-    {
-     "key": "mode",
-     "label": "Mode",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "radial"
-    },
-    {
-     "key": "loopFrames",
-     "label": "Loop Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 150,
-     "step": 1
     }
    ],
    "needs": [],
@@ -12857,49 +8849,11 @@
      "step": 1
     },
     {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one column starting and the next. A real reel settles left to right; every column landing on the same frame reads as a scramb",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
      "key": "color",
      "label": "Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#f4f4f5"
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 700,
-     "step": 1
-    },
-    {
-     "key": "from",
-     "label": "From",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "1200"
-    },
-    {
-     "key": "to",
-     "label": "To",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "9840"
     }
    ],
    "needs": [],
@@ -13021,66 +8975,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "#2dd4bf"
-    },
-    {
-     "key": "downColor",
-     "label": "Down Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#f472b6"
-    },
-    {
-     "key": "inkColor",
-     "label": "Ink Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.55)"
-    },
-    {
-     "key": "showArea",
-     "label": "Show Area",
-     "hint": "Gradient wash under each line.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one row's draw.",
-     "type": "number",
-     "defaultValue": 34,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between the start of one row and the next.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -13107,36 +9001,11 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "perspective",
-     "label": "Perspective",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1200,
-     "step": 1
-    },
-    {
-     "key": "pushDepth",
-     "label": "Push Depth",
-     "hint": "Share of the frame each scene travels, 0→1. Anything below 1 leaves part of the frame uncovered mid-push, so only lower it over a solid back",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "tilt",
-     "label": "Tilt",
-     "hint": "Degrees each panel rotates away from the camera. Off by default: rotating a full-frame panel in 3D pulls one edge in, and the frame it uncov",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "9ca1f0bcee1b6a5f42ad8fec2b3f0d3d2fa360733fedcdf1d92ead20961e48b4"
   },
   {
@@ -13188,29 +9057,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "rgba(12,12,18,0.82)"
-    },
-    {
-     "key": "maxWidth",
-     "label": "Max Width",
-     "hint": "Width of the card, as a share of the frame.",
-     "type": "number",
-     "defaultValue": 0.7,
-     "step": 0.05
-    },
-    {
-     "key": "showPrevious",
-     "label": "Show Previous",
-     "hint": "Keep the previous speaker's card on screen, dimmed.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "enterInFrames",
-     "label": "Enter In Frames",
-     "hint": "Frames a card takes to arrive.",
-     "type": "number",
-     "defaultValue": 10,
-     "step": 1
     }
    ],
    "needs": [],
@@ -13263,14 +9109,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -13313,13 +9151,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "chars"
-    },
-    {
-     "key": "order",
-     "label": "Order",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "center"
     }
    ],
    "needs": [],
@@ -13391,22 +9222,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "scale",
-     "label": "Scale",
-     "hint": "Size multiplier for the bug itself. Broadcast furniture is deliberately small against a live feed; a preview tile or a wide frame needs it l",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -13436,13 +9251,6 @@
    "fps": 30,
    "duration": 3.5,
    "editables": [
-    {
-     "key": "config",
-     "label": "Config",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "bouncy"
-    },
     {
      "key": "durationInFrames",
      "label": "Duration In Frames",
@@ -13516,33 +9324,6 @@
      "type": "number",
      "defaultValue": 0,
      "step": 0.05
-    },
-    {
-     "key": "contact",
-     "label": "Contact",
-     "hint": "How much of the cycle the contact lasts, 0–1.",
-     "type": "number",
-     "defaultValue": 0.22,
-     "step": 0.05
-    },
-    {
-     "key": "origin",
-     "label": "Origin",
-     "hint": "Pivot. `bottom` is the floor contact; `center` is a free-floating pulse.",
-     "type": "select",
-     "defaultValue": "bottom",
-     "options": [
-      "bottom",
-      "center",
-      "top"
-     ]
-    },
-    {
-     "key": "mode",
-     "label": "Mode",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "bounce"
     }
    ],
    "needs": [],
@@ -13683,67 +9464,6 @@
      "hint": "Series names, in stack order.",
      "type": "boolean",
      "defaultValue": true
-    },
-    {
-     "key": "showBoundaries",
-     "label": "Show Boundaries",
-     "hint": "Hairline along the top of each band.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "gridColor",
-     "label": "Grid Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.10)"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.55)"
-    },
-    {
-     "key": "fillOpacity",
-     "label": "Fill Opacity",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0.85,
-     "step": 0.05
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of the wipe across the whole plot.",
-     "type": "number",
-     "defaultValue": 62,
-     "step": 1
-    },
-    {
-     "key": "bandOffsetInFrames",
-     "label": "Band Offset In Frames",
-     "hint": "Frames one band trails the band below it by.",
-     "type": "number",
-     "defaultValue": 8,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -13772,36 +9492,11 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one child starting and the next.",
-     "type": "number",
-     "defaultValue": 8,
-     "step": 1
-    },
-    {
-     "key": "baseDelayInFrames",
-     "label": "Base Delay In Frames",
-     "hint": "Frames before the first child starts.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitStaggerInFrames",
-     "label": "Exit Stagger In Frames",
-     "hint": "Frames between one child leaving and the next, in the order they arrived. Only affects children that animate out; 0 lands the group together",
-     "type": "number",
-     "defaultValue": 6,
-     "step": 0.05
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "fb99cf1f217ac40e2b7360427dc249456038ce4ccad9847837aa38af903c9767"
   },
   {
@@ -13833,43 +9528,11 @@
      "defaultValue": "Words rise in sequence"
     },
     {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
      "key": "color",
      "label": "Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#f4f4f5"
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 600,
-     "step": 1
     }
    ],
    "needs": [],
@@ -13926,39 +9589,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "Satisfaction"
-    },
-    {
-     "key": "deltaSuffix",
-     "label": "Delta Suffix",
-     "hint": "Unit on the delta chip.",
-     "type": "text",
-     "defaultValue": "%"
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#2DD4BF"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -13987,140 +9617,11 @@
    },
    "fps": 30,
    "duration": 5,
-   "editables": [
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "Frames before the stroke starts travelling.",
-     "type": "number",
-     "defaultValue": 10,
-     "step": 0.05
-    },
-    {
-     "key": "strikeDurationInFrames",
-     "label": "Strike Duration In Frames",
-     "hint": "Length of the stroke's travel across `from`.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
-    },
-    {
-     "key": "holdInFrames",
-     "label": "Hold In Frames",
-     "hint": "Beat held on the struck-out phrase before it leaves.",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
-     "key": "departDurationInFrames",
-     "label": "Depart Duration In Frames",
-     "hint": "Length of the old phrase's departure.",
-     "type": "number",
-     "defaultValue": 12,
-     "step": 1
-    },
-    {
-     "key": "replaceDelayInFrames",
-     "label": "Replace Delay In Frames",
-     "hint": "Frames after the stroke lands before `to` starts arriving.",
-     "type": "number",
-     "defaultValue": 10,
-     "step": 1
-    },
-    {
-     "key": "replaceDurationInFrames",
-     "label": "Replace Duration In Frames",
-     "hint": "Length of the new phrase's arrival.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
-    },
-    {
-     "key": "travel",
-     "label": "Travel",
-     "hint": "Vertical handoff distance, in em. Old lifts by it, new rises from it.",
-     "type": "number",
-     "defaultValue": 0.42,
-     "step": 0.05
-    },
-    {
-     "key": "strikeWeight",
-     "label": "Strike Weight",
-     "hint": "Thickness of the stroke, in em.",
-     "type": "number",
-     "defaultValue": 0.07,
-     "step": 0.05
-    },
-    {
-     "key": "strikeHeight",
-     "label": "Strike Height",
-     "hint": "Height of the stroke above the baseline, in `ex` — that is, in units of the font's own x-height. `0.5` is centred through the lowercase mass",
-     "type": "number",
-     "defaultValue": 0.5,
-     "step": 0.05
-    },
-    {
-     "key": "tilt",
-     "label": "Tilt",
-     "hint": "Angle of the stroke in degrees off level — a hand does not rule it flat.",
-     "type": "number",
-     "defaultValue": -0.6,
-     "step": 0.05
-    },
-    {
-     "key": "color",
-     "label": "Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#ececec"
-    },
-    {
-     "key": "strikeColor",
-     "label": "Strike Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 600,
-     "step": 1
-    },
-    {
-     "key": "textAlign",
-     "label": "Text Align",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "center",
-     "options": [
-      "left",
-      "center",
-      "right"
-     ]
-    },
-    {
-     "key": "from",
-     "label": "From",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Motion you rent"
-    },
-    {
-     "key": "to",
-     "label": "To",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Motion you own"
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "c164d831fd75ea44555b6af24eced08836ca019ff32da3c22eeb95882392cfad"
   },
   {
@@ -14193,87 +9694,7 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "primary",
-     "label": "Primary",
-     "hint": "Which line sits on top.",
-     "type": "select",
-     "defaultValue": "source",
-     "options": [
-      "source",
-      "translation"
-     ]
-    },
-    {
-     "key": "fontSize",
-     "label": "Font Size",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 46,
-     "step": 1
-    },
-    {
-     "key": "secondaryScale",
-     "label": "Secondary Scale",
-     "hint": "Size of the secondary line, as a share of `fontSize`.",
-     "type": "number",
-     "defaultValue": 0.72,
-     "step": 0.05
-    },
-    {
-     "key": "primaryColor",
-     "label": "Primary Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "secondaryColor",
-     "label": "Secondary Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.62)"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "backgroundColor",
-     "label": "Background Color",
-     "hint": "Plate behind both lines. `transparent` drops it.",
-     "type": "color",
-     "defaultValue": "rgba(10,10,14,0.72)"
-    },
-    {
-     "key": "maxWidth",
-     "label": "Max Width",
-     "hint": "Width of the block, as a share of the frame.",
-     "type": "number",
-     "defaultValue": 0.78,
-     "step": 0.05
-    },
-    {
-     "key": "enterInFrames",
-     "label": "Enter In Frames",
-     "hint": "Frames a cue takes to arrive.",
-     "type": "number",
-     "defaultValue": 10,
-     "step": 1
-    },
-    {
-     "key": "secondaryOffsetInFrames",
-     "label": "Secondary Offset In Frames",
-     "hint": "Frames the second line trails the first by.",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
    "enabled": true,
@@ -14380,69 +9801,11 @@
      "defaultValue": "Northstar Studio"
     },
     {
-     "key": "startIndex",
-     "label": "Start Index",
-     "hint": "Tab shown when the scene opens.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
      "key": "firstSwitchAtSeconds",
      "label": "First Switch At Seconds",
      "hint": "Second the first switch fires.",
      "type": "number",
      "defaultValue": 0.95,
-     "step": 0.05
-    },
-    {
-     "key": "switchEverySeconds",
-     "label": "Switch Every Seconds",
-     "hint": "Seconds between switches after the first.",
-     "type": "number",
-     "defaultValue": 0.9,
-     "step": 0.05
-    },
-    {
-     "key": "transitionSeconds",
-     "label": "Transition Seconds",
-     "hint": "How long one tab-to-tab move takes.",
-     "type": "number",
-     "defaultValue": 0.5,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 4,
      "step": 0.05
     }
    ],
@@ -14558,40 +9921,6 @@
      "type": "number",
      "defaultValue": 0.2,
      "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "holdSeconds",
-     "label": "Hold Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3.4,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -14655,40 +9984,6 @@
      "hint": "Shell label on the right of the header.",
      "type": "text",
      "defaultValue": "zsh"
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "zoom",
-     "label": "Zoom",
-     "hint": "Multiplies the fitted stage scale. The window is laid out against a 1280×720 reference, which puts the 21px log type under 5px once a 960-wi",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -14755,31 +10050,6 @@
      "type": "number",
      "defaultValue": -0.02,
      "step": 0.05
-    },
-    {
-     "key": "align",
-     "label": "Align",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "center",
-     "options": [
-      "left",
-      "center",
-      "right"
-     ]
-    },
-    {
-     "key": "anchorGrouping",
-     "label": "Anchor Grouping",
-     "hint": "Pivot for scale and rotation: each glyph, its word, its line, or the block.",
-     "type": "select",
-     "defaultValue": "character",
-     "options": [
-      "character",
-      "word",
-      "line",
-      "all"
-     ]
     }
    ],
    "needs": [],
@@ -15018,85 +10288,6 @@
      "type": "number",
      "defaultValue": 0,
      "step": 0.05
-    },
-    {
-     "key": "duration",
-     "label": "Duration",
-     "hint": "How many frames the sweep takes to cross the frame.",
-     "type": "number",
-     "defaultValue": 78,
-     "step": 1
-    },
-    {
-     "key": "wobble",
-     "label": "Wobble",
-     "hint": "How far the two crossed sines bend the edge. 0 gives a straight wipe.",
-     "type": "number",
-     "defaultValue": 0.06,
-     "step": 0.05
-    },
-    {
-     "key": "bandWidth",
-     "label": "Band Width",
-     "hint": "Width of the refracting band at the edge, in frame widths.",
-     "type": "number",
-     "defaultValue": 0.022,
-     "step": 0.05
-    },
-    {
-     "key": "refraction",
-     "label": "Refraction",
-     "hint": "How far the band displaces the glyph.",
-     "type": "number",
-     "defaultValue": 0.055,
-     "step": 0.05
-    },
-    {
-     "key": "settle",
-     "label": "Settle",
-     "hint": "How long after the edge the interior takes to settle to flat silver.",
-     "type": "number",
-     "defaultValue": 0.16,
-     "step": 0.05
-    },
-    {
-     "key": "fontSize",
-     "label": "Font Size",
-     "hint": "Type size in px, measured against the composition height.",
-     "type": "number",
-     "defaultValue": 170,
-     "step": 1
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 800,
-     "step": 1
-    },
-    {
-     "key": "fontFamily",
-     "label": "Font Family",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
-    },
-    {
-     "key": "letterSpacing",
-     "label": "Letter Spacing",
-     "hint": "Extra tracking in px.",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
-     "key": "lineHeight",
-     "label": "Line Height",
-     "hint": "Line height as a multiple of the type size.",
-     "type": "number",
-     "defaultValue": 1.02,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -15141,14 +10332,6 @@
       "dark",
       "light"
      ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -15184,14 +10367,6 @@
      "defaultValue": "Launch Week"
     },
     {
-     "key": "charsPerLine",
-     "label": "Chars Per Line",
-     "hint": "Characters per line the headline is balanced to.",
-     "type": "number",
-     "defaultValue": 22,
-     "step": 1
-    },
-    {
      "key": "accentColor",
      "label": "Accent Color",
      "hint": "",
@@ -15216,13 +10391,6 @@
      "type": "number",
      "defaultValue": 1,
      "step": 0.05
-    },
-    {
-     "key": "subtitle",
-     "label": "Subtitle",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Day 1"
     }
    ],
    "needs": [],
@@ -15252,8 +10420,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "76d426d635d3b5dbd5432e02654760fabad3cb7cf7e59b5f57954e0539923045"
   },
   {
@@ -15285,13 +10453,6 @@
      "defaultValue": "#050505"
     },
     {
-     "key": "lineColor",
-     "label": "Line Color",
-     "hint": "Contour colour.",
-     "type": "color",
-     "defaultValue": "rgba(232,184,109,0.5)"
-    },
-    {
      "key": "indexColor",
      "label": "Index Color",
      "hint": "Colour of the index contour — every `indexEvery`-th line, drawn heavier.",
@@ -15312,38 +10473,6 @@
      "hint": "Every n-th contour is an index contour. 0 draws them all the same weight.",
      "type": "number",
      "defaultValue": 4,
-     "step": 0.05
-    },
-    {
-     "key": "lineWidth",
-     "label": "Line Width",
-     "hint": "Contour weight in px.",
-     "type": "number",
-     "defaultValue": 1.4,
-     "step": 0.05
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "How fast elevation rises — contours travel outward. 0 freezes the map.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "Overall brightness.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "seed",
-     "label": "Seed",
-     "hint": "Changes the terrain without changing any other prop.",
-     "type": "number",
-     "defaultValue": 1,
      "step": 0.05
     }
    ],
@@ -15480,35 +10609,11 @@
      "step": 1
     },
     {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "fromTracking",
-     "label": "From Tracking",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0.28,
-     "step": 0.05
-    },
-    {
      "key": "color",
      "label": "Color",
      "hint": "",
      "type": "color",
      "defaultValue": "#f4f4f5"
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 600,
-     "step": 1
     }
    ],
    "needs": [],
@@ -15576,57 +10681,6 @@
      "hint": "Ink of the line being spoken.",
      "type": "color",
      "defaultValue": "#fafafa"
-    },
-    {
-     "key": "idleColor",
-     "label": "Idle Color",
-     "hint": "Ink of everything else.",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.3)"
-    },
-    {
-     "key": "showSpeakers",
-     "label": "Show Speakers",
-     "hint": "Speaker name printed above a line when it changes.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "speakerColor",
-     "label": "Speaker Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "showMarker",
-     "label": "Show Marker",
-     "hint": "Accent rule down the left edge of the active line.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "markerColor",
-     "label": "Marker Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "fadeEdges",
-     "label": "Fade Edges",
-     "hint": "Fade at the top and bottom edges, in px. `0` disables it.",
-     "type": "number",
-     "defaultValue": 90,
-     "step": 1
-    },
-    {
-     "key": "settleInFrames",
-     "label": "Settle In Frames",
-     "hint": "Frames the scroll takes to settle on a new line.",
-     "type": "number",
-     "defaultValue": 16,
-     "step": 1
     }
    ],
    "needs": [],
@@ -15656,8 +10710,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "41752f040f06273e6755a097c2535c7ab4c9a4a669e63ecb434a174fd4629549"
   },
   {
@@ -15681,8 +10735,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "168308dc3c25971ae2688dfa4e09c65760ae2b44d1de5e72b3b34863a6b3b24a"
   },
   {
@@ -15706,8 +10760,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "90188a540f4e34bde756507e8ed3b2c90699972f66011baedfde9c3728ba7aed"
   },
   {
@@ -15731,8 +10785,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "14c347668da272cf272d0e909809acfb29d71e3cacb343cff0e2cf780f9b2687"
   },
   {
@@ -15756,8 +10810,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "e082c0c848c8e55c202b73a73d807b06c8bd4d908bc762c3243520900ce4c3fa"
   },
   {
@@ -15778,56 +10832,11 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "seed",
-     "label": "Seed",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 2,
-     "step": 0.05
-    },
-    {
-     "key": "hueShift",
-     "label": "Hue Shift",
-     "hint": "Hue rotation in degrees — warm amber by default",
-     "type": "number",
-     "defaultValue": 45,
-     "step": 1
-    },
-    {
-     "key": "intensity",
-     "label": "Intensity",
-     "hint": "Peak opacity of the leak, 0→1.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "peakAt",
-     "label": "Peak At",
-     "hint": "Where the leak peaks inside its window, 0→1. `TransitionSeries.Overlay` centres the overlay on the cut, so the midpoint of the window is the",
-     "type": "number",
-     "defaultValue": 0.5,
-     "step": 0.05
-    },
-    {
-     "key": "blendMode",
-     "label": "Blend Mode",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "screen",
-     "options": [
-      "screen",
-      "plus-lighter",
-      "normal"
-     ]
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "37f5ecc0924e083ed480c8e41e414350f684ca61bd9edc17364b544e96240673"
   },
   {
@@ -15851,8 +10860,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "f8bea5a05e1a4e48174504aa63dc4d9a030d2e4bf46ccb147a6b127b55daa990"
   },
   {
@@ -15876,8 +10885,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "0031006ee9203b46c497d406ef9a2244f99ac165fd9d41a50acce5d2c51fa29e"
   },
   {
@@ -15901,8 +10910,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "4da43a0451bf0e1db39a0d60497155642a68f12808ca0ea1d188e5f4e570b77f"
   },
   {
@@ -15926,8 +10935,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "5020396577575a4782f436b201b4b1811db1cb89f45d3af6ce65fcef53cb3701"
   },
   {
@@ -15951,8 +10960,8 @@
    "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "9bc0e0968d7ea79ebaafe8de30e588a9a0cb23b580c822ed404e4cb701d8c571"
   },
   {
@@ -16014,45 +11023,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "#0b0b10"
-    },
-    {
-     "key": "showShare",
-     "label": "Show Share",
-     "hint": "Share of the total printed under the value.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one block's arrival.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one block and the next, largest first.",
-     "type": "number",
-     "defaultValue": 12,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -16174,125 +11144,11 @@
      "defaultValue": "Build videos with React.[pause:0.5] One frame at a time."
     },
     {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Total typing length, used when `charFrames` is omitted.",
-     "type": "number",
-     "defaultValue": 60,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "pauseSeconds",
-     "label": "Pause Seconds",
-     "hint": "Length of the `pauseAfter` hold, in seconds.",
-     "type": "number",
-     "defaultValue": 0.6,
-     "step": 0.05
-    },
-    {
      "key": "showCursor",
      "label": "Show Cursor",
      "hint": "",
      "type": "boolean",
      "defaultValue": true
-    },
-    {
-     "key": "cursorBlinkFrames",
-     "label": "Cursor Blink Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 30,
-     "step": 1
-    },
-    {
-     "key": "fontWeight",
-     "label": "Font Weight",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 600,
-     "step": 1
-    },
-    {
-     "key": "color",
-     "label": "Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#ececec"
-    },
-    {
-     "key": "humanize",
-     "label": "Humanize",
-     "hint": "Uneven key rhythm — the difference between typing and a progress bar.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "respectPunctuation",
-     "label": "Respect Punctuation",
-     "hint": "Rest on sentence punctuation.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "punctuationPauseSeconds",
-     "label": "Punctuation Pause Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0.25,
-     "step": 0.05
-    },
-    {
-     "key": "loop",
-     "label": "Loop",
-     "hint": "Type, hold, delete, repeat.",
-     "type": "boolean",
-     "defaultValue": false
-    },
-    {
-     "key": "loopPauseSeconds",
-     "label": "Loop Pause Seconds",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "backspaceCharFrames",
-     "label": "Backspace Char Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "reserveSpace",
-     "label": "Reserve Space",
-     "hint": "Reserve the full block up front so the line never reflows as words land. Turn it off only when the caret must sit against a shrink-wrapped b",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "charFrames",
-     "label": "Char Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 2,
-     "step": 0.05
-    },
-    {
-     "key": "cursorStyle",
-     "label": "Cursor Style",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "block"
     }
    ],
    "needs": [],
@@ -16356,25 +11212,6 @@
      "hint": "",
      "type": "text",
      "defaultValue": "Project"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "light",
-      "dark"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
     }
    ],
    "needs": [],
@@ -16464,14 +11301,6 @@
      "step": 0.05
     },
     {
-     "key": "width",
-     "label": "Width",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 480,
-     "step": 1
-    },
-    {
      "key": "barHeight",
      "label": "Bar Height",
      "hint": "Height of the tallest bar.",
@@ -16486,104 +11315,6 @@
      "type": "number",
      "defaultValue": 4,
      "step": 0.05
-    },
-    {
-     "key": "gap",
-     "label": "Gap",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
-     "key": "bubbleColor",
-     "label": "Bubble Color",
-     "hint": "Bubble plate. `transparent` drops it.",
-     "type": "color",
-     "defaultValue": "rgba(20,20,28,0.92)"
-    },
-    {
-     "key": "playedColor",
-     "label": "Played Color",
-     "hint": "Bars already played.",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "unplayedColor",
-     "label": "Unplayed Color",
-     "hint": "Bars not yet reached.",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.22)"
-    },
-    {
-     "key": "inkColor",
-     "label": "Ink Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "avatarColor",
-     "label": "Avatar Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#2dd4bf"
-    },
-    {
-     "key": "showTime",
-     "label": "Show Time",
-     "hint": "Elapsed / total readout under the bar.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "align",
-     "label": "Align",
-     "hint": "Which side of the frame the bubble sits on.",
-     "type": "select",
-     "defaultValue": "left",
-     "options": [
-      "left",
-      "right"
-     ]
-    },
-    {
-     "key": "showPlayhead",
-     "label": "Show Playhead",
-     "hint": "Dot riding the boundary between played and unplayed.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "Frames before the playhead starts moving.",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 120,
-     "step": 1
-    },
-    {
-     "key": "sender",
-     "label": "Sender",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "Sam"
-    },
-    {
-     "key": "avatar",
-     "label": "Avatar",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "S"
     }
    ],
    "needs": [],
@@ -16880,80 +11611,6 @@
      "hint": "",
      "type": "color",
      "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "gridColor",
-     "label": "Grid Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.10)"
-    },
-    {
-     "key": "labelColor",
-     "label": "Label Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "rgba(250,250,250,0.55)"
-    },
-    {
-     "key": "inkColor",
-     "label": "Ink Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#fafafa"
-    },
-    {
-     "key": "showConnectors",
-     "label": "Show Connectors",
-     "hint": "Dashed connectors between the top of one bar and the base of the next.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "showValues",
-     "label": "Show Values",
-     "hint": "Signed change printed above or below each bar.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "showAxis",
-     "label": "Show Axis",
-     "hint": "Gridlines and value labels down the left gutter.",
-     "type": "boolean",
-     "defaultValue": true
-    },
-    {
-     "key": "durationInFrames",
-     "label": "Duration In Frames",
-     "hint": "Length of one bar's growth.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
-    },
-    {
-     "key": "staggerInFrames",
-     "label": "Stagger In Frames",
-     "hint": "Frames between one step and the next.",
-     "type": "number",
-     "defaultValue": 15,
-     "step": 1
-    },
-    {
-     "key": "delayInFrames",
-     "label": "Delay In Frames",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 0,
-     "step": 0.05
-    },
-    {
-     "key": "exitInFrames",
-     "label": "Exit In Frames",
-     "hint": "Length of the exit.",
-     "type": "number",
-     "defaultValue": 20,
-     "step": 1
     }
    ],
    "needs": [],
@@ -17269,71 +11926,6 @@
      "hint": "Words under the temperature.",
      "type": "text",
      "defaultValue": "Clear, light breeze"
-    },
-    {
-     "key": "temperatureAtSeconds",
-     "label": "Temperature At Seconds",
-     "hint": "Second the temperature starts counting.",
-     "type": "number",
-     "defaultValue": 0.4,
-     "step": 0.05
-    },
-    {
-     "key": "countSeconds",
-     "label": "Count Seconds",
-     "hint": "How long the count takes.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "forecastAtSeconds",
-     "label": "Forecast At Seconds",
-     "hint": "Second the first forecast day arrives.",
-     "type": "number",
-     "defaultValue": 1.4,
-     "step": 0.05
-    },
-    {
-     "key": "staggerSeconds",
-     "label": "Stagger Seconds",
-     "hint": "Seconds between forecast days.",
-     "type": "number",
-     "defaultValue": 0.34,
-     "step": 0.05
-    },
-    {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#E8B86D"
-    },
-    {
-     "key": "theme",
-     "label": "Theme",
-     "hint": "",
-     "type": "select",
-     "defaultValue": "dark",
-     "options": [
-      "dark",
-      "light"
-     ]
-    },
-    {
-     "key": "speed",
-     "label": "Speed",
-     "hint": "Animation speed multiplier.",
-     "type": "number",
-     "defaultValue": 1,
-     "step": 0.05
-    },
-    {
-     "key": "condition",
-     "label": "Condition",
-     "hint": "",
-     "type": "text",
-     "defaultValue": "sun"
     }
    ],
    "needs": [],
@@ -17371,65 +11963,11 @@
      "defaultValue": "#fafafa"
     },
     {
-     "key": "accentColor",
-     "label": "Accent Color",
-     "hint": "Every nth word takes this colour instead. `0` keeps one colour throughout.",
-     "type": "color",
-     "defaultValue": "#e8b86d"
-    },
-    {
-     "key": "accentEvery",
-     "label": "Accent Every",
-     "hint": "",
-     "type": "number",
-     "defaultValue": 3,
-     "step": 0.05
-    },
-    {
      "key": "uppercase",
      "label": "Uppercase",
      "hint": "Uppercase the word. The default look for this style.",
      "type": "boolean",
      "defaultValue": true
-    },
-    {
-     "key": "popScale",
-     "label": "Pop Scale",
-     "hint": "Peak scale on arrival, before it settles to 1.",
-     "type": "number",
-     "defaultValue": 1.16,
-     "step": 0.05
-    },
-    {
-     "key": "tiltInDegrees",
-     "label": "Tilt In Degrees",
-     "hint": "Rotation on arrival, in degrees. Alternates direction word to word.",
-     "type": "number",
-     "defaultValue": 2.5,
-     "step": 0.05
-    },
-    {
-     "key": "popInFrames",
-     "label": "Pop In Frames",
-     "hint": "Frames the pop takes to settle.",
-     "type": "number",
-     "defaultValue": 6,
-     "step": 1
-    },
-    {
-     "key": "strokeWidth",
-     "label": "Stroke Width",
-     "hint": "Chunky outline behind the word, as used on social captions.",
-     "type": "number",
-     "defaultValue": 4,
-     "step": 0.05
-    },
-    {
-     "key": "strokeColor",
-     "label": "Stroke Color",
-     "hint": "",
-     "type": "color",
-     "defaultValue": "#0b0b10"
     }
    ],
    "needs": [],
@@ -17508,28 +12046,11 @@
    },
    "fps": 30,
    "duration": 4,
-   "editables": [
-    {
-     "key": "maxScale",
-     "label": "Max Scale",
-     "hint": "Scale the camera travels through. 2.4 pushes past the frame edge.",
-     "type": "number",
-     "defaultValue": 2.4,
-     "step": 0.05
-    },
-    {
-     "key": "blurPeak",
-     "label": "Blur Peak",
-     "hint": "Blur at the fastest point of the move. Read this as a peak that is actually reached: the blur rides a velocity envelope, so it hits `blurPea",
-     "type": "number",
-     "defaultValue": 8,
-     "step": 1
-    }
-   ],
+   "editables": [],
    "needs": [],
    "slow": false,
-   "enabled": true,
-   "reason": "",
+   "enabled": false,
+   "reason": "shows text that a customer cannot change (no field visibly changes it)",
    "sourceSha256": "49fe0fa89e685b33c01547f3fd2ac8746d363a7493f617c9e8cde260f35b9a9d"
   }
  ]

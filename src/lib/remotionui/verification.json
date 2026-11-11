@@ -53,12 +53,14 @@
   "fps": 21.5
  },
  "blur-in": {
-  "enabled": true,
-  "fps": 35.7
+  "enabled": false,
+  "fps": 35.7,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "blur-reveal": {
-  "enabled": true,
-  "fps": 21
+  "enabled": false,
+  "fps": 21,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "browser-flow": {
   "enabled": true,
@@ -118,8 +120,9 @@
   "fps": 37.4
  },
  "chromatic-aberration-wipe": {
-  "enabled": true,
-  "fps": 40.8
+  "enabled": false,
+  "fps": 40.8,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "claude-code": {
   "enabled": true,
@@ -190,8 +193,9 @@
   "fps": 31.7
  },
  "deploy-reveal": {
-  "enabled": true,
-  "fps": 13.8
+  "enabled": false,
+  "fps": 13.8,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "depth-of-field-blur": {
   "enabled": true,
@@ -203,8 +207,9 @@
   "fps": 43.9
  },
  "directional-wipe": {
-  "enabled": true,
-  "fps": 31.2
+  "enabled": false,
+  "fps": 31.2,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "drag-drop-flow": {
   "enabled": true,
@@ -256,8 +261,9 @@
   "fps": 24.7
  },
  "frosted-glass-wipe": {
-  "enabled": true,
-  "fps": 53.3
+  "enabled": false,
+  "fps": 53.3,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "gantt-timeline": {
   "enabled": true,
@@ -293,9 +299,10 @@
   "fps": 17.9
  },
  "hero-loop": {
-  "enabled": true,
+  "enabled": false,
   "fps": 5.9,
-  "slow": true
+  "slow": true,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "hero-device-assemble": {
   "enabled": true,
@@ -335,8 +342,9 @@
   "slow": true
  },
  "landing-code-showcase": {
-  "enabled": true,
-  "fps": 25.2
+  "enabled": false,
+  "fps": 25.2,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "light-sweep-text": {
   "enabled": true,
@@ -457,8 +465,9 @@
   "fps": 25
  },
  "pricing-focus": {
-  "enabled": true,
-  "fps": 10.3
+  "enabled": false,
+  "fps": 10.3,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "progress-bar": {
   "enabled": true,
@@ -514,8 +523,9 @@
   "fps": 28.4
  },
  "shake-emphasis": {
-  "enabled": true,
-  "fps": 77.6
+  "enabled": false,
+  "fps": 77.6,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "shape-morph": {
   "enabled": true,
@@ -530,8 +540,9 @@
   "fps": 37.3
  },
  "slide-left": {
-  "enabled": true,
-  "fps": 68.7
+  "enabled": false,
+  "fps": 68.7,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "skew-in": {
   "enabled": true,
@@ -554,8 +565,9 @@
   "fps": 72.1
  },
  "spatial-push": {
-  "enabled": true,
-  "fps": 9.4
+  "enabled": false,
+  "fps": 9.4,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "speaker-label-captions": {
   "enabled": true,
@@ -582,16 +594,18 @@
   "fps": 57.9
  },
  "stagger-children": {
-  "enabled": true,
-  "fps": 57.9
+  "enabled": false,
+  "fps": 57.9,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "stacked-area-chart": {
   "enabled": true,
   "fps": 48.3
  },
  "strikethrough-replace": {
-  "enabled": true,
-  "fps": 59.5
+  "enabled": false,
+  "fps": 59.5,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "staggered-fade-up": {
   "enabled": true,
@@ -643,8 +657,9 @@
   "fps": 36.3
  },
  "tool-menu-slide": {
-  "enabled": true,
-  "fps": 25.8
+  "enabled": false,
+  "fps": 25.8,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "topographic-lines-bg": {
   "enabled": true,
@@ -659,44 +674,54 @@
   "fps": 46.8
  },
  "transition-blinds": {
-  "enabled": true,
-  "fps": 38
+  "enabled": false,
+  "fps": 38,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "transition-card-flip": {
-  "enabled": true,
-  "fps": 20.6
+  "enabled": false,
+  "fps": 20.6,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "transition-circle-reveal": {
-  "enabled": true,
-  "fps": 51.5
+  "enabled": false,
+  "fps": 51.5,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "transition-clock-wipe": {
-  "enabled": true,
-  "fps": 46.2
+  "enabled": false,
+  "fps": 46.2,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "transition-fade": {
-  "enabled": true,
-  "fps": 47.1
+  "enabled": false,
+  "fps": 47.1,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "transition-light-leak": {
-  "enabled": true,
-  "fps": 19.7
+  "enabled": false,
+  "fps": 19.7,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "transition-liquid-warp": {
-  "enabled": true,
-  "fps": 40.7
+  "enabled": false,
+  "fps": 40.7,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "transition-morph-shape": {
-  "enabled": true,
-  "fps": 47.9
+  "enabled": false,
+  "fps": 47.9,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "transition-slide": {
-  "enabled": true,
-  "fps": 51.4
+  "enabled": false,
+  "fps": 51.4,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "transition-whip-pan": {
-  "enabled": true,
-  "fps": 50.3
+  "enabled": false,
+  "fps": 50.3,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "typewriter": {
   "enabled": true,
@@ -707,8 +732,9 @@
   "fps": 62.1
  },
  "transition-wipe": {
-  "enabled": true,
-  "fps": 51.4
+  "enabled": false,
+  "fps": 51.4,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  },
  "v0": {
   "enabled": true,
@@ -739,7 +765,8 @@
   "fps": 71.7
  },
  "zoom-through": {
-  "enabled": true,
-  "fps": 20.3
+  "enabled": false,
+  "fps": 20.3,
+  "reason": "shows text that a customer cannot change (no field visibly changes it)"
  }
 }

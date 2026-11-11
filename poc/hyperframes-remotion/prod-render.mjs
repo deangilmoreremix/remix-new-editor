@@ -34,6 +34,7 @@ async function worker() {
       }
       if (process.env.DISCOVER) { // list text leaves of the composed DOM (ids stamped by the adapter) for the editable-field analysis
         const fr = p.frames().find((f) => /code-preview/.test(f.url()));
+        r.bodyText = await fr.evaluate(() => document.body.innerText.trim().slice(0, 300));
         r.leaves = await fr.evaluate(() => [...document.querySelectorAll('[data-hf-id]')].filter((e) => !e.children.length && !['SCRIPT', 'STYLE'].includes(e.tagName)).map((e) => ({ hfId: e.getAttribute('data-hf-id'), text: e.textContent.trim() })).filter((x) => x.text.length >= 2 && x.text.length <= 60).slice(0, 40));
       }
       r.codeErrors = await p.evaluate(() => window.__errs); r.pwn = await p.evaluate(() => window.__pwn);

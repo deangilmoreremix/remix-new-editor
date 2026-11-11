@@ -57,7 +57,7 @@
   "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 132,
+ "enabledCount": 117,
  "items": {
   "ai-answer-rank": {
    "type": "block",
@@ -4986,9 +4986,10 @@
     "nonBlank": 0.0244,
     "viaDemoSsimMin": 0.999
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-editorial-emphasis": {
    "type": "component",
@@ -5006,9 +5007,10 @@
     "nonBlank": 0.0264,
     "viaDemoSsimMin": 0.997
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-emoji-pop": {
    "type": "component",
@@ -5026,9 +5028,10 @@
     "nonBlank": 0.0164,
     "viaDemoSsimMin": 0.998
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-glitch-rgb": {
    "type": "component",
@@ -5046,9 +5049,10 @@
     "nonBlank": 0.0271,
     "viaDemoSsimMin": 0.998
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-gradient-fill": {
    "type": "component",
@@ -5066,9 +5070,10 @@
     "viaDemoSsimMin": 0.993,
     "nonBlank": 0.0318
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-highlight": {
    "type": "component",
@@ -5086,9 +5091,10 @@
     "viaDemoSsimMin": 0.995,
     "nonBlank": 0.0376
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-kinetic-slam": {
    "type": "component",
@@ -5106,9 +5112,10 @@
     "viaDemoSsimMin": 0.991,
     "nonBlank": 0.0613
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-matrix-decode": {
    "type": "component",
@@ -5126,9 +5133,10 @@
     "nonBlank": 0.0187,
     "viaDemoSsimMin": 0.989
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-neon-accent": {
    "type": "component",
@@ -5146,9 +5154,10 @@
     "viaDemoSsimMin": 0.996,
     "nonBlank": 0.0584
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-neon-glow": {
    "type": "component",
@@ -5166,9 +5175,10 @@
     "viaDemoSsimMin": 0.997,
     "nonBlank": 0.0543
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-parallax-layers": {
    "type": "component",
@@ -5186,9 +5196,10 @@
     "viaDemoSsimMin": 0.969,
     "nonBlank": 0.1914
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-particle-burst": {
    "type": "component",
@@ -5206,9 +5217,10 @@
     "nonBlank": 0.0293,
     "viaDemoSsimMin": 1.0
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-pill-karaoke": {
    "type": "component",
@@ -5226,9 +5238,10 @@
     "viaDemoSsimMin": 0.981,
     "nonBlank": 0.0572
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "caption-texture": {
    "type": "component",
@@ -5266,9 +5279,10 @@
     "nonBlank": 0.0151,
     "viaDemoSsimMin": 0.975
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "card-resize": {
    "type": "component",
@@ -6123,9 +6137,10 @@
     "viaDemoSsimMin": 0.984,
     "nonBlank": 0.0117
    },
-   "enabled": true,
-   "enabledBlockedBy": [],
-   "viaDemo": true
+   "enabled": false,
+   "enabledBlockedBy": [
+    "shows built-in text that cannot be edited"
+   ]
   },
   "headline-slam": {
    "type": "component",
