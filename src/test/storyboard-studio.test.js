@@ -50,6 +50,18 @@ describe('Storyboard Studio layout', () => {
 });
 
 describe('frames board', () => {
+  it('never lets the page column squash the frames row (every layout)', () => {
+    const root = mount();
+    const board = root.querySelector('[data-frame-index]').parentElement;
+    const layout = root.querySelector('select[aria-label="Layout"]');
+    for (const value of ['horizontal', 'grid', 'story']) {
+      layout.value = value;
+      layout.dispatchEvent(new Event('change'));
+      expect(root.querySelector('[data-frame-index]').parentElement.classList.contains('shrink-0')).toBe(true);
+    }
+    expect(board).toBeTruthy();
+  });
+
   it('keeps timeline segments in step with add, duplicate, move and delete', () => {
     const root = mount();
     const segs = () => root.querySelectorAll('[role="listitem"]').length;

@@ -281,7 +281,7 @@ export function StoryboardStudio(options = {}) {
   const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 
   const brief = document.createElement('section');
-  brief.className = 'px-4 md:px-8 mb-4';
+  brief.className = 'shrink-0 px-4 md:px-8 mb-4';
   brief.setAttribute('aria-label', 'Story brief');
   brief.innerHTML = `
     <div class="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6">
@@ -434,7 +434,7 @@ export function StoryboardStudio(options = {}) {
   // 3. Toolbar (grouped)
   // =====================================================================
   const toolbar = document.createElement('div');
-  toolbar.className = 'px-4 md:px-8 mb-4 flex flex-col gap-3';
+  toolbar.className = 'shrink-0 px-4 md:px-8 mb-4 flex flex-col gap-3';
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', 'Storyboard tools');
   container.appendChild(toolbar);
@@ -703,7 +703,7 @@ export function StoryboardStudio(options = {}) {
   container.appendChild(fullscreen.element);
 
   const boardHeading = document.createElement('div');
-  boardHeading.className = 'px-4 md:px-8 mb-2 flex items-center justify-between';
+  boardHeading.className = 'shrink-0 px-4 md:px-8 mb-2 flex items-center justify-between';
   boardHeading.innerHTML = `<span class="${CINEMATIC_THEME.text.body} font-bold text-white">2 · Frames</span><span id="board-summary" class="text-[11px] text-secondary tabular-nums"></span>`;
   container.appendChild(boardHeading);
 
@@ -716,7 +716,7 @@ export function StoryboardStudio(options = {}) {
 
   // --- Generation settings (collapsed; only controls the model supports) ---
   const settingsDetails = document.createElement('details');
-  settingsDetails.className = 'mx-4 md:mx-8 mb-8 bg-white/[0.04] border border-white/10 rounded-xl';
+  settingsDetails.className = 'shrink-0 mx-4 md:mx-8 mb-8 bg-white/[0.04] border border-white/10 rounded-xl';
   settingsDetails.innerHTML = '<summary class="cursor-pointer select-none px-4 py-3 text-xs font-bold text-white">Generation settings</summary>';
   const settingsBody = document.createElement('div');
   settingsBody.className = 'px-4 pb-4 flex flex-col gap-4';
@@ -1103,9 +1103,9 @@ export function StoryboardStudio(options = {}) {
   // Frames board
   // =====================================================================
   function getLayoutClasses() {
-    if (layout === 'grid') return 'px-4 md:px-8 pb-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4';
-    if (layout === 'story') return 'px-4 md:px-8 pb-6 flex flex-col gap-6 max-w-3xl';
-    return 'px-4 md:px-8 pb-6 flex gap-4 overflow-x-auto no-scrollbar';
+    if (layout === 'grid') return 'shrink-0 px-4 md:px-8 pb-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4';
+    if (layout === 'story') return 'shrink-0 px-4 md:px-8 pb-6 flex flex-col gap-6 max-w-3xl';
+    return 'shrink-0 px-4 md:px-8 pb-6 flex gap-4 overflow-x-auto no-scrollbar';
   }
 
   function updateSummary() {
