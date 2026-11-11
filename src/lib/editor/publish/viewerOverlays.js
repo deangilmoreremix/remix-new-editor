@@ -34,7 +34,7 @@ export function isSafeLink(v) {
  * @param {object} o         { profile, onSubmit(data) → Promise<{ ok, message? }>, onSkip() }
  * @returns {HTMLElement}
  */
-export function showLeadForm(layer, clip, { profile, onSubmit, onSkip } = {}) {
+export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, preview = false } = {}) {
   const cfg = leadFormToOptin(clip);
   cfg.caption = personalize(cfg.caption, profile);
   cfg.btnText = personalize(cfg.btnText, profile) || 'Submit';
@@ -50,6 +50,7 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip } = {}) {
   const wrap = showOptinOverlay(layer, cfg, {
     name: 'lead-form',
     prefill,
+    preview,
     onSkip,
     onSubmit: async (data) => {
       if (!Object.values(data).some((v) => String(v).trim())) throw new Error('Please fill in the form.');

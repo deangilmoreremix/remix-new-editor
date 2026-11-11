@@ -40,12 +40,12 @@ export function resolveOverlayText(text, profile) {
   if (text == null) return '';
   return String(text).replace(TOKEN_PATTERN, (match, raw) => {
     const body = raw.trim();
-    const fallbackMatch = body.match(/^d\s+(\S+)\s+(["'])(.*)\2$/);
+    const fallbackMatch = body.match(/^(?:d|default)\s+(\S+)\s+(["'])(.*)\2$/);
     if (fallbackMatch) {
       const value = profile ? resolveToken(profile, fallbackMatch[1]) : null;
       return value ?? fallbackMatch[3];
     }
-    const upMatch = body.match(/^up\s+(\S+)$/);
+    const upMatch = body.match(/^(?:up|uppercase)\s+(\S+)$/);
     if (upMatch) {
       const value = profile ? resolveToken(profile, upMatch[1]) : null;
       return value === null ? match : value.toUpperCase();

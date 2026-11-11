@@ -11,12 +11,10 @@ export const TIMELINE_AI_TOOLS = {
   EXTEND: 'extend',
   MUSIC_GENERATION: 'music_generation',
   MASK_TOOL: 'mask_tool',
-  ELEMENT_CREATE: 'element_create',
   LLM_CHAT: 'llm_chat',
   SAM3_SEGMENT: 'sam3_segment',
   AUDIO_SYNC: 'audio_sync',
   LAYER_DECOMPOSE: 'layer_decompose',
-  SHOT_BOARD: 'shot_board',
   PROXY_PLAYBACK: 'proxy_playback',
   COMPOSITION_PLAN: 'composition_plan'
 };
@@ -37,9 +35,18 @@ export async function runTimelineAITool(tool, params = {}) {
   };
 
   try {
+    // Signed-in users on their own MuAPI key (BYOK): session token + X-MuAPI-Key.
+    const headers = { 'Content-Type': 'application/json' };
+    try {
+      const token = await globalThis.window?.Clerk?.session?.getToken?.();
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const { apiKeyManager } = await import('./apiKeyManager.js');
+      const muapi = apiKeyManager?.getMuapiKey?.();
+      if (muapi && muapi !== 'dev') headers['X-MuAPI-Key'] = muapi;
+    } catch { /* unauthenticated: the function will answer 401 */ }
     const res = await fetch(ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload)
     });
 
@@ -73,12 +80,10 @@ export function getTimelineAIFeatureSummary() {
       extend: 'Extend clips forward or backward with AI',
       music_generation: 'Generate background music from scene context',
       mask_tool: 'AI object masking and removal',
-      element_create: 'Create reusable elements from clips',
       llm_chat: 'Context-aware AI assistant',
       sam3_segment: 'SAM3 object segmentation',
       audio_sync: 'Auto-sync audio to video',
       layer_decompose: 'Separate foreground/background layers',
-      shot_board: 'Generate story shot board',
       proxy_playback: 'Toggle proxy/low-res playback',
       composition_plan: 'Create AI composition plan'
     }

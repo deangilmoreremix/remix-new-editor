@@ -63,7 +63,7 @@ export async function inlineLocalMedia(model) {
  * Render `model` to a video Blob.
  * @returns {Promise<Blob>}
  */
-export async function exportModel(model, { container = 'mp4', quality = '1080p', onProgress, signal } = {}) {
+export async function exportModel(model, { container = 'mp4', quality = '1080p', videoBitrate, onProgress, signal } = {}) {
   const r = ensureRunner();
   const payload = await inlineLocalMedia(model);
   await r.ready;
@@ -83,7 +83,7 @@ export async function exportModel(model, { container = 'mp4', quality = '1080p',
     const onAbort = () => r.iframe.contentWindow?.postMessage({ type: 'cancel', id }, '*');
     window.addEventListener('message', onMsg);
     signal?.addEventListener('abort', onAbort, { once: true });
-    r.iframe.contentWindow.postMessage({ type: 'render', id, model: payload, options: { container, quality } }, '*');
+    r.iframe.contentWindow.postMessage({ type: 'render', id, model: payload, options: { container, quality, ...(Number.isFinite(videoBitrate) ? { videoBitrate } : {}) } }, '*');
   });
 }
 

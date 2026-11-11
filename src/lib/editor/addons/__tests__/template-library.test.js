@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import '../index.js';
 import {
-  END_SCREENS, CONNECT_FORMS, TEMPLATE_LIBRARIES, templateToPreset, templateStart, templatePreviewProject, unknownTemplateTypes,
+  END_SCREENS, CONNECT_FORMS, LEAD_FORMS, applyCallSetup, TEMPLATE_LIBRARIES, templateToPreset, templateStart, templatePreviewProject, unknownTemplateTypes,
 } from '../templateLibrary.js';
 import { presetToClips } from '../overlayPresets.js';
 import { openTemplateWindow } from '../templateWindow.js';
@@ -9,12 +9,12 @@ import { ctaTarget } from '../ctaLink.js';
 import { safeHref } from '../overlayRender.js';
 import { timelineToComposition } from '../../remotion/timelineToComposition.js';
 
-const ALL = [...END_SCREENS, ...CONNECT_FORMS];
+const ALL = [...END_SCREENS, ...CONNECT_FORMS, ...LEAD_FORMS];
 
 describe('End Screen and Connect Form templates', () => {
   it('ship starter sets made of registered addons', () => {
     expect(END_SCREENS.length).toBeGreaterThanOrEqual(6);
-    expect(CONNECT_FORMS.length).toBeGreaterThanOrEqual(6);
+    expect(CONNECT_FORMS.length).toBeGreaterThanOrEqual(4);
     expect(unknownTemplateTypes()).toEqual([]);
     expect(new Set(ALL.map((t) => t.id)).size).toBe(ALL.length);
   });
@@ -34,7 +34,7 @@ describe('End Screen and Connect Form templates', () => {
   });
 
   it('flat interactive items keep their own options (and the default style)', () => {
-    const tpl = CONNECT_FORMS.find((t) => t.id === 'cf-book-call');
+    const tpl = LEAD_FORMS.find((t) => t.id === 'cf-book-call');
     const [form, , button] = presetToClips(templateToPreset(tpl), 10, 60);
     expect(form.type).toBe('lead-form');
     expect(form.addon).toBeUndefined();
@@ -50,6 +50,18 @@ describe('End Screen and Connect Form templates', () => {
     const texts = tpl.items.filter((i) => i.type === 'overlay-text').map((i) => ctaTarget(i.addon)).filter(Boolean);
     expect(texts.find((t) => t.kind === 'phone')).toMatchObject({ href: 'tel:+15550100100' });
     expect(texts.map((t) => t.href)).toContain('mailto:hello@example.com');
+  });
+
+  it('Connect Form is click-to-call only, and "Use" swaps in the user\'s number', () => {
+    CONNECT_FORMS.forEach((t) => expect(t.items.some((i) => i.type === 'click-to-call' || i.addon?.linkMode === 'phone')).toBe(true));
+    CONNECT_FORMS.forEach((t) => expect(t.items.some((i) => i.type === 'lead-form')).toBe(false));
+    const tpl = applyCallSetup(CONNECT_FORMS.find((t) => t.id === 'cf-contact-card'), { phone: '212 555 0147', country: '44', buttonText: 'Ring us', notify: 'me@x.io' });
+    const [button] = presetToClips(templateToPreset(applyCallSetup(CONNECT_FORMS[0], { phone: '212 555 0147', country: '44', buttonText: 'Ring us', notify: 'me@x.io' })), 0, 30).filter((c) => c.type === 'click-to-call');
+    expect(button).toMatchObject({ phoneNumber: '+44 212 555 0147', buttonText: 'Ring us', callNotifyAddress: 'me@x.io' });
+    const card = tpl.items.find((i) => i.addon?.linkMode === 'phone');
+    expect(card.addon).toMatchObject({ phoneCountry: '44', phoneNumber: '212 555 0147' });
+    expect(card.addon.text).toContain('212 555 0147');
+    expect(applyCallSetup(CONNECT_FORMS[0], {})).toBe(CONNECT_FORMS[0]);
   });
 
   it('safeHref accepts real mailto links only', () => {
@@ -78,10 +90,11 @@ describe('End Screen and Connect Form templates', () => {
     const win = openTemplateWindow({ library: 'connect', onUse, buildModel, createEngine });
     await vi.waitFor(() => expect(createEngine).toHaveBeenCalled());
     expect(win.el.querySelectorAll('.tpl-win__item')).toHaveLength(CONNECT_FORMS.length);
-    win.el.querySelector('[data-tpl="cf-quote"]').click();
-    await vi.waitFor(() => expect(win.el.querySelector('.tpl-win__layer .addon-overlay--optin')).toBeTruthy());
+    win.el.querySelector('[data-tpl="cf-call-bar"]').click();
+    win.el.querySelector('.tpl-win__phone').value = '212 555 0147';
     win.el.querySelector('.tpl-win__use').click();
-    expect(onUse).toHaveBeenCalledWith(expect.objectContaining({ id: 'cf-quote' }), TEMPLATE_LIBRARIES.connect);
+    expect(onUse).toHaveBeenCalledWith(expect.objectContaining({ id: 'cf-call-bar' }), TEMPLATE_LIBRARIES.connect);
+    expect(onUse.mock.calls[0][0].items[0].flat.phoneNumber).toBe('+1 212 555 0147');
     expect(document.querySelector('.tpl-win')).toBeNull();
     expect(engine.destroy).toHaveBeenCalled();
   });

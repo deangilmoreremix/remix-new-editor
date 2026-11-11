@@ -208,10 +208,11 @@ export function StoryboardStudio(options = {}) {
   let selectedColor = intent.colorGrade || 'None';
   let layout = 'horizontal';
   let projectName = '';
+  let stage = 'describe';
   let enhancedConcept = '';
   let generatedStoryboard = null;
   const settings = { negativePrompt: '', seed: -1, guidanceScale: undefined, steps: undefined, usePreviousFrame: false };
-  const generation = { running: false, stop: false, total: 0, done: 0, failedIds: [] };
+  const generation = { running: false, stop: false, total: 0, done: 0, skipped: 0, failedIds: [] };
   const storyboardAttachments = { images: [], videos: [], audios: [] };
   const activeProfileRef = { value: null };
 
@@ -324,6 +325,11 @@ export function StoryboardStudio(options = {}) {
           <div><label class="${LABEL_CLASS}" for="vi-colorGrade">Color grade</label>
             <select id="vi-colorGrade" class="${FIELD_CLASS} appearance-none cursor-pointer">${optionsHtml(COLOR_OPTIONS, selectedColor)}</select></div>
         </div>
+      </div>
+      <div id="saved-projects" class="hidden mt-4 flex items-center gap-2 flex-wrap">
+        <label class="${LABEL_CLASS} !mb-0" for="saved-select">Saved storyboards</label>
+        <select id="saved-select" class="${FIELD_CLASS} !w-auto appearance-none cursor-pointer"></select>
+        <button id="open-saved" type="button" class="${BTN_CLASS}">Open</button>
       </div>
       <button id="start-blank" type="button" class="mt-4 block text-[11px] text-muted underline hover:text-white transition-colors">or build the frames by hand</button>
     </div>
@@ -501,10 +507,19 @@ export function StoryboardStudio(options = {}) {
   const projectList = document.createElement('datalist');
   projectList.id = 'storyboard-project-list';
   const refreshProjectList = () => {
-    projectList.innerHTML = Object.keys(readProjects()).map((n) => `<option value="${escapeHtml(n)}"></option>`).join('');
+    const names = Object.keys(readProjects());
+    projectList.innerHTML = names.map((n) => `<option value="${escapeHtml(n)}"></option>`).join('');
+    const savedBox = brief.querySelector('#saved-projects');
+    if (savedBox) {
+      brief.querySelector('#saved-select').innerHTML = names.map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      savedBox.classList.toggle('hidden', names.length === 0 || stage === 'board');
+      savedBox.classList.toggle('flex', names.length > 0 && stage !== 'board');
+    }
   };
   refreshProjectList();
-  try { projectInput.value = projectName = localStorage.getItem(LAST_PROJECT_KEY) || ''; } catch { /* storage unavailable */ }
+  // Suggest the last project name, but do not treat it as the active project: autosave only
+  // starts after an explicit Save or Load, so an empty board can never overwrite a saved one.
+  try { projectInput.value = localStorage.getItem(LAST_PROJECT_KEY) || ''; } catch { /* storage unavailable */ }
   const saveBtn = makeBtn('Save', { title: 'Save project (Ctrl+S)' });
   const loadBtn = makeBtn('Load', { title: 'Load the project named in the box' });
   const needFrames = (fn) => () => {
@@ -741,7 +756,6 @@ export function StoryboardStudio(options = {}) {
   const briefCard = brief.querySelector('#brief-card');
   const briefSummary = brief.querySelector('#brief-summary');
   const boardEls = [toolbar, boardHeading, framesArea, timelineStrip, settingsDetails];
-  let stage = 'describe';
   let editingBrief = false;
 
   function setStage(next, { editing = false } = {}) {
@@ -754,6 +768,7 @@ export function StoryboardStudio(options = {}) {
     briefSummary.classList.toggle('flex', onBoard);
     briefCard.classList.toggle('hidden', onBoard && !editingBrief);
     brief.querySelector('#start-blank').classList.toggle('hidden', onBoard);
+    refreshProjectList();
     updateBriefSummary();
   }
 
@@ -1025,7 +1040,7 @@ export function StoryboardStudio(options = {}) {
       const idx = frames.indexOf(frame);
       const refs = [...(frame.referenceImages || [])];
       const prev = idx > 0 ? frames[idx - 1] : null;
-      if (settings.usePreviousFrame && prev?.imageUrl && /^https?:/.test(prev.imageUrl)) refs.push({ url: prev.imageUrl });
+      if (settings.usePreviousFrame && prev?.imageUrl) refs.push({ url: prev.imageUrl });
 
       const prompt = buildFramePrompt({ ...frame, enhancedPrompt: undefined, prompt: resolveFramePrompt(frame) }, { storyBible: readBrief().storyBible });
       const url = await engineGenerateFrameImage(prompt, selectedAr, selectedModel, selectedStyle, selectedLighting, selectedColor, customThumbnailUrl, {
@@ -1051,10 +1066,11 @@ export function StoryboardStudio(options = {}) {
 
   function updateProgress() {
     const failed = generation.failedIds.length;
-    progressWrap.classList.toggle('hidden', generation.total === 0);
-    progressWrap.classList.toggle('flex', generation.total > 0);
-    progressFill.style.width = generation.total ? `${Math.round(((generation.done + failed) / generation.total) * 100)}%` : '0%';
-    progressLabel.textContent = `${generation.done}/${generation.total}${failed ? ` · ${failed} failed` : ''}`;
+    const total = Math.max(0, generation.total - generation.skipped);
+    progressWrap.classList.toggle('hidden', total === 0);
+    progressWrap.classList.toggle('flex', total > 0);
+    progressFill.style.width = total ? `${Math.round(((generation.done + failed) / total) * 100)}%` : '0%';
+    progressLabel.textContent = `${generation.done}/${total}${failed ? ` · ${failed} failed` : ''}`;
     retryBtn.classList.toggle('hidden', failed === 0 || generation.running);
   }
 
@@ -1063,6 +1079,7 @@ export function StoryboardStudio(options = {}) {
     generation.running = true;
     generation.stop = false;
     generation.total = list.length;
+    generation.skipped = 0;
     generation.done = 0;
     generation.failedIds = [];
     genAllBtn.textContent = 'Stop';
@@ -1074,7 +1091,7 @@ export function StoryboardStudio(options = {}) {
     const worker = async () => {
       while (cursor < list.length && !generation.stop) {
         const frame = list[cursor++];
-        if (!frames.includes(frame)) { generation.total -= 1; continue; }
+        if (!frames.includes(frame)) { generation.skipped += 1; continue; }
         try {
           await withRetry(() => generateFrame(frame));
           generation.done += 1;
@@ -1643,9 +1660,8 @@ export function StoryboardStudio(options = {}) {
     }).catch(() => {});
   };
 
-  loadBtn.onclick = async () => {
+  async function loadByName(name) {
     if (!(await requireEntitlement())) return;
-    const name = projectInput.value.trim();
     const saved = readProjects();
     if (!name) {
       const names = Object.keys(saved);
@@ -1655,6 +1671,7 @@ export function StoryboardStudio(options = {}) {
     if (saved[name]) {
       applyLoaded(saved[name]);
       projectName = name;
+      projectInput.value = name;
       try { localStorage.setItem(LAST_PROJECT_KEY, name); } catch { /* ignore */ }
       showToast(`Loaded "${name}"`, 'success');
       return;
@@ -1663,10 +1680,13 @@ export function StoryboardStudio(options = {}) {
       const r = await fetch('/api/storyboard/' + encodeURIComponent(name));
       if (!r.ok) throw new Error('not found');
       const data = await r.json();
-      if (applyLoaded(data)) { projectName = name; showToast(`Loaded "${name}"`, 'success'); return; }
+      if (applyLoaded(data)) { projectName = name; projectInput.value = name; showToast(`Loaded "${name}"`, 'success'); return; }
     } catch { /* fall through */ }
     showToast(`No saved storyboard named "${name}".`, 'warning');
-  };
+  }
+
+  loadBtn.onclick = () => loadByName(projectInput.value.trim());
+  brief.querySelector('#open-saved').addEventListener('click', () => loadByName(brief.querySelector('#saved-select').value));
 
   sendBtn.onclick = () => {
     if (!frames.some((f) => f.prompt.trim())) { showToast('Describe at least one frame first.', 'warning'); return; }

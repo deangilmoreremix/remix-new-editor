@@ -331,6 +331,12 @@ const STYLE_KEYS = {
   captionFontSize: 'captionFontSize',
   width: 'widthPercent',
   height: 'heightPercent',
+  // upstream popcorn.form.js options (added to the Lead Generator clip's style)
+  fontColor: 'fontColor',
+  innerWidth: 'innerWidth',
+  innerHeight: 'innerHeight',
+  innerColor: 'innerColor',
+  innerOpacity: 'innerOpacity',
 };
 
 const OWN_KEYS = new Set(['enabled', 'kind', 'isPersonalizer', 'elements']);

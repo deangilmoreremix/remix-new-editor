@@ -72,20 +72,6 @@ export interface TimelineMarker {
   label: string;
 }
 
-/** Interactive opt-in forms placed on the timeline (List Builder, Personalizer, Lead Generator). */
-export type OverlayKind = 'list-builder' | 'personalizer' | 'lead-generator';
-
-export interface OverlayClip {
-  id: string;
-  kind: OverlayKind;
-  name: string;
-  /** Seconds. A List Builder / Personalizer is a gate at 0s; `end` is only its visual length. */
-  start: number;
-  end: number;
-  /** Opt-in form options (see src/lib/optin/listBuilder.js). */
-  options: Record<string, unknown>;
-}
-
 export interface Timeline {
   id: string;
   name: string;
@@ -94,8 +80,6 @@ export interface Timeline {
   duration: number;
   transitions: Transition[];
   markers: TimelineMarker[];
-  /** Optional so projects saved before overlays existed still load. */
-  overlays?: OverlayClip[];
 }
 
 /** Effective duration of a clip (what plays on the timeline). */

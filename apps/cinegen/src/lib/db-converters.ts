@@ -12,7 +12,7 @@
  */
 
 import type { Asset, MediaFolder } from '../types/project';
-import type { Timeline, Track, Clip, Keyframe, Transition, OverlayKind } from '../types/timeline';
+import type { Timeline, Track, Clip, Keyframe, Transition } from '../types/timeline';
 import type { Element, ElementImage } from '../types/elements';
 import type { ExportJob, ExportPreset, ExportStatus } from '../types/export';
 
@@ -224,23 +224,6 @@ export function timelineFromRows(
     }
   } catch { /* ignore malformed markers */ }
 
-  let overlays: Timeline['overlays'] = [];
-  try {
-    const raw = typeof tlRow['overlays'] === 'string' ? JSON.parse(tlRow['overlays'] as string) : tlRow['overlays'];
-    if (Array.isArray(raw)) {
-      overlays = raw
-        .filter((o: Record<string, unknown>) => o && typeof o === 'object' && typeof o['id'] === 'string')
-        .map((o: Record<string, unknown>) => ({
-          id: str(o['id']),
-          kind: (['list-builder', 'personalizer', 'lead-generator'].includes(str(o['kind'])) ? str(o['kind']) : 'lead-generator') as OverlayKind,
-          name: str(o['name']) || 'Overlay',
-          start: num(o['start']),
-          end: num(o['end']),
-          options: (o['options'] && typeof o['options'] === 'object' ? o['options'] : {}) as Record<string, unknown>,
-        }));
-    }
-  } catch { /* ignore malformed overlays */ }
-
   return {
     id: str(tlRow['id']),
     name: str(tlRow['name']),
@@ -249,7 +232,6 @@ export function timelineFromRows(
     clips,
     transitions,
     markers,
-    overlays,
   };
 }
 

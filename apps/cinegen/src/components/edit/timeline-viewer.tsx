@@ -26,8 +26,6 @@ interface TimelineViewerProps {
   onDropAssetId?: (assetId: string) => void;
   inspectorVisible: boolean;
   onToggleInspector: () => void;
-  /** Rendered over the video (opt-in forms). */
-  overlayLayer?: React.ReactNode;
 }
 
 /* Reusable SVG transport icons */
@@ -47,7 +45,7 @@ const StepForwardIcon = () => <Ico><polyline points="9 6 15 12 9 18" /></Ico>;
 const FRAME_DURATION = 1 / 24;
 
 export function TimelineViewer({
-  timeline, assets = [], onOpenTimeline, overlayLayer,
+  timeline, assets = [], onOpenTimeline,
   videoContainerRef,
   nativeSurfaceRef,
   nativeVideoEnabled = false,
@@ -194,7 +192,6 @@ export function TimelineViewer({
             draggable={false}
           />
         )}
-        {overlayLayer}
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}
       <div className="viewer-scrubber" ref={scrubRef} onMouseDown={handleScrubDown}>
