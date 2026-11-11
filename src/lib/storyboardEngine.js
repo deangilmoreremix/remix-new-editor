@@ -34,6 +34,16 @@ const BEATS = [
   { beat: 'Payoff', shot: 'Medium Shot', move: 'Dolly Out', note: 'Deliver the result.', text: (c) => `The payoff: the result of ${c.subject} delivered with emotional clarity.` },
 ];
 
+const IMAGE_TIMEOUT_MS = 180000;
+
+/** Abort after `ms`, or sooner if the caller's own signal aborts. */
+export function withTimeout(signal, ms) {
+  if (typeof AbortSignal === 'undefined' || typeof AbortSignal.timeout !== 'function') return signal;
+  const timeout = AbortSignal.timeout(ms);
+  if (!signal) return timeout;
+  return typeof AbortSignal.any === 'function' ? AbortSignal.any([signal, timeout]) : signal;
+}
+
 export function resolveOpenAISize(value) {
   if (!value || value === 'auto') return 'auto';
   const ratios = {
@@ -344,8 +354,11 @@ export function buildFramePrompt(frame, { storyBible = '' } = {}) {
  * settings panel: negativePrompt, seed, guidanceScale, steps and referenceImages.
  */
 export async function generateFrameImage(prompt, aspectRatio, model, style, lighting, color, customThumbnailUrl, extras = {}) {
-  const { negativePrompt, seed, guidanceScale, steps, referenceImages, signal } = extras;
+  const { negativePrompt, seed, guidanceScale, steps, referenceImages } = extras;
+  // A hung provider must not stall the whole frame queue.
+  const signal = withTimeout(extras.signal, IMAGE_TIMEOUT_MS);
   const enhancedPrompt = prompt + buildLookSuffix({ style, lighting, color });
+  const allRefs = (referenceImages || []).map((r) => r?.url).filter(Boolean);
 
   if (apiKeyManager.hasOpenAIKey()) {
     try {
@@ -355,6 +368,8 @@ export async function generateFrameImage(prompt, aspectRatio, model, style, ligh
         quality: 'auto',
         outputFormat: 'png',
         customThumbnailUrl: customThumbnailUrl || undefined,
+        // OpenAI accepts both web URLs and inline (data:) images as references.
+        imageInputs: allRefs.map((url) => ({ url })),
         signal,
       });
       const img = images?.[0];
@@ -375,7 +390,8 @@ export async function generateFrameImage(prompt, aspectRatio, model, style, ligh
   if (Number.isFinite(seed) && seed >= 0) params.seed = seed;
   if (Number.isFinite(guidanceScale)) params.guidance_scale = guidanceScale;
   if (Number.isFinite(steps)) params.steps = steps;
-  const refs = (referenceImages || []).map((r) => r?.url).filter(Boolean);
+  // MuAPI needs web URLs; inline (data:) images from OpenAI cannot be sent to it.
+  const refs = allRefs.filter((u) => /^https?:/.test(u));
   if (refs.length) params.reference_images = refs;
   const result = await muapi.generateImage(params, signal);
   return result?.url || null;
