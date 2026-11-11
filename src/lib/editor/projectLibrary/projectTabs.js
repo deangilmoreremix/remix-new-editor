@@ -110,7 +110,7 @@ export function notificationsTab(deps) {
     (async () => {
       try {
         const client = await deps.getClient();
-        let [page, prefs] = await Promise.all([listNotifications(client, ctx.project.id), loadPreferences(client)]);
+        const [page, loadedPrefs] = await Promise.all([listNotifications(client, ctx.project.id), loadPreferences(client)]); let prefs = loadedPrefs;
         let notes = page.rows; let hasMore = page.hasMore;
         if (!alive) return;
         const draw = () => {
