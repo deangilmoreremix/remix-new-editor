@@ -6,6 +6,18 @@ import { hyperframesItems, searchHyperframes, hyperframesOverlayLayer, createHyp
 
 const FPS = 30;
 
+/** The catalog has 24 raw categories; the library shows a handful of customer-friendly groups (display only, the catalog data is unchanged). */
+const GROUPS: Array<[string, string[]]> = [
+  ['Lower thirds', ['lower-third', 'broadcast']],
+  ['Titles & text', ['handwritten', 'typography', 'annotation', 'branding', 'logo']],
+  ['Social & UI', ['social', 'showcase', 'video-primitive']],
+  ['Data & charts', ['data', 'data-viz', 'diagram', 'instrument']],
+  ['Code', ['code']],
+  ['Transitions', ['transition']],
+  ['Backgrounds & effects', ['background', 'snow', 'starfield', 'vfx', 'camcorder', 'motion-primitive', 'placeholder']],
+];
+const groupOf = (category: string): string => GROUPS.find(([, cats]) => cats.includes(category))?.[0] ?? 'More';
+
 function Preview({ item }: { item: HfItem }) {
   const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -32,8 +44,9 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
   const [hover, setHover] = useState<string | null>(null);
   const [live, setLive] = useState<string | null>(null); // the hovered card starts its live preview after a short pause
   useEffect(() => { setLive(null); if (!hover) return undefined; const t = window.setTimeout(() => setLive(hover), 350); return () => window.clearTimeout(t); }, [hover]);
-  const tags = useMemo(() => ['all', ...[...new Set(all.flatMap((i) => [i.category]))].sort()], [all]);
-  const list = searchHyperframes(all, q, tag);
+  const counts = useMemo(() => { const m = new Map<string, number>(); for (const i of all) m.set(groupOf(i.category), (m.get(groupOf(i.category)) ?? 0) + 1); return m; }, [all]);
+  const tags = useMemo(() => ['All', ...[...GROUPS.map(([g]) => g), 'More'].filter((g) => counts.has(g))], [counts]);
+  const list = searchHyperframes(all, q, 'all').filter((i) => tag === 'all' || groupOf(i.category) === tag);
   // Same look as the effects / LUTs / transitions library (occ-library-modal): same dialog, tab row, cards (cc-resource-card) and footer line.
   return (
     <div className="occ-library" role="dialog" aria-label="Animations" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
@@ -41,8 +54,18 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
           <button className="clip-properties-panel__toggle-btn" style={{ borderColor: '#22d3ee' }}>{`Animations (${all.length})`}</button>
           <input type="text" placeholder="Search animations" aria-label="Search animations" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: 1, minWidth: 120, background: '#0d1218', color: 'inherit', border: '1px solid rgba(255,255,255,.18)', borderRadius: 6, padding: '4px 8px' }} />
-          <select aria-label="Category" value={tag} onChange={(e) => setTag(e.target.value)} style={{ background: '#0d1218', color: 'inherit', border: '1px solid rgba(255,255,255,.18)', borderRadius: 6, padding: '4px 6px' }}>{tags.map((c) => <option key={c} value={c}>{c === 'all' ? 'All categories' : c}</option>)}</select>
           <button className="clip-properties-panel__toggle-btn" aria-label="Close library" onClick={onClose}>×</button>
+        </div>
+        <div role="tablist" aria-label="Categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+          {tags.map((c) => {
+            const on = tag === (c === 'All' ? 'all' : c);
+            return (
+              <button key={c} role="tab" aria-selected={on} onClick={() => setTag(c === 'All' ? 'all' : c)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 12, border: `1px solid ${on ? '#22d3ee' : 'rgba(255,255,255,.18)'}`, color: on ? '#22d3ee' : 'inherit', background: on ? 'rgba(34,211,238,.1)' : 'transparent' }}>
+                {c} <span style={{ opacity: 0.6 }}>{c === 'All' ? all.length : counts.get(c)}</span>
+              </button>
+            );
+          })}
         </div>
         <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))', gap: 10, paddingRight: 4 }}>
           {list.map((i) => (
