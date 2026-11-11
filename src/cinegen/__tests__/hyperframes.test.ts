@@ -18,9 +18,10 @@ const item: HfItem = {
 describe('HyperFrames feature flag', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => localStorage.clear());
-  it('is OFF by default', () => expect(isHyperframesEnabled()).toBe(false));
-  it('turns on only for the exact QA value', () => {
-    localStorage.setItem('remix.hyperframes.v1', 'true'); expect(isHyperframesEnabled()).toBe(false);
+  it('is ON by default', () => expect(isHyperframesEnabled()).toBe(true));
+  it('can be hidden on one browser only with the exact QA value "0"', () => {
+    localStorage.setItem('remix.hyperframes.v1', '0'); expect(isHyperframesEnabled()).toBe(false);
+    localStorage.setItem('remix.hyperframes.v1', 'false'); expect(isHyperframesEnabled()).toBe(true);
     localStorage.setItem('remix.hyperframes.v1', '1'); expect(isHyperframesEnabled()).toBe(true);
   });
 });

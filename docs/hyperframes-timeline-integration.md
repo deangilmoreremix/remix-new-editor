@@ -4,7 +4,7 @@
 >
 > | Item | Result |
 > |---|---|
-> | Enabled for customers | **118** = 69 blocks + 48 components + 1 starter project (flag OFF by default) |
+> | Enabled for customers | **118** = 69 blocks + 48 components + 1 starter project (ON for everyone) |
 > | Blocks | 210: 114 verified (84 + 30 recovered by generic adapter fixes) = 67 enabled + 47 held back (exact blocker per id in the ledger); 19 adapter-compatible, 25 specialized, 50 unsupported, 2 not-tested |
 > | Components | 238: 80 verified vs native HyperFrames, 37 host-dependent (blank standalone), 57 adapter-compatible, 62 specialized, 2 adapter errors; **7 enabled** (beat-accent, chat-message, conic-progress-ring, hw-arrow, hw-box-label, text-shimmer, yt-circle-pointer); 56 verified ones are held for browser-export throughput (4-8 fps at 1080p), 19 for blank standalone output, 17 for no measured editable effect |
 > | Starter projects | 9: 3 verified vs native (decision-tree, nyt-graph, product-promo); **1 enabled (product-promo, 12.2 fps, full-scene template, exported in the real editor)**; decision-tree/nyt-graph held for throughput (6.7/6.9 fps); play-mode, swiss-grid, vignelli, warm-grain adapter-compatible (SSIM 0.88-0.94: unfilled `__VIDEO_SRC__` footage slot and caption layout differences); kinetic-type unsupported (remote S3 image not pinned); path-traced-3d unsupported (WebGL path tracer, no timeline) |
@@ -28,10 +28,10 @@
 >
 > Corrections to earlier reporting: (1) "32 blocks failed MP4 export" was a classification bug: 31 of them were never exported (their SSIM was < 0.85, so they are `specialized`), 1 real export timeout; (2) 12 blocks were blocked for "remote images" because of `<link rel=preconnect href=fonts.gstatic.com>`; the manifest builder now ignores preconnect links; (3) `lower-third-bild`, `share-sheet-carousel`, `split-flap-board`, `freeze-frame-dressing` were removed from the enabled list because their built-in text cannot be edited, or edits had no measured effect, or the production-path render differed from native (SSIM 0.823).
 
-Status: integration branch `claude/hyperframes-timeline-integration`, based on `origin/claude/confident-fermi-3azaem` (d50eeb167). Not merged, not deployed. **OFF by default.**
+Status: integration branch `claude/hyperframes-timeline-integration`, based on `origin/claude/confident-fermi-3azaem` (d50eeb167). Merged to develop (PR #90). **ON for everyone** (see "Feature flag").
 
 ## Feature flag and rollback
-- ON: build env `VITE_HYPERFRAMES_TIMELINE=true`, or (QA) `localStorage['remix.hyperframes.v1']='1'`.
+- ON by default. Hide it in one browser (QA): `localStorage['remix.hyperframes.v1']='0'`. `VITE_HYPERFRAMES_TIMELINE` is no longer read. Emergency off for everyone: `VITE_HYPERFRAMES_RUNTIME_DISABLED=true` (build) or `localStorage['remix.hyperframes.kill']='1'`.
 - The flag only controls the library entry point ("HyperFrames animations…" in the overlay lane's add menu). Without it the editor is unchanged (verified: flag-off export matches the pristine build, see below).
 - Rollback: unset the env var / remove the localStorage key and redeploy; no data migration. Hard rollback: revert the branch (all changes additive). Projects that already contain `hyperframes` overlays keep them in `project.json`; older builds drop unknown overlay kinds via `normalizeOverlays` (they are not corrupted).
 
@@ -116,7 +116,7 @@ Full vitest: pristine 193 failing / 8 files; integration 193 failing in the same
 - Only Chromium tested; footage durability depends on storage upload (existing behaviour); WebGL/three.js/WebGPU items stay disabled; 4 starters need a footage slot / caption layout work; kinetic-type needs asset pinning; unmeasured editable fields are hidden.
 
 ## Viewing it on a preview deploy
-HyperFrames is off by default. On a preview, open the app, then in the browser console run `localStorage.setItem('remix.hyperframes.v1','1')` and reload. The Edit tab's "Add overlay…" menu then shows "HyperFrames animations…". Emergency off: `localStorage.setItem('remix.hyperframes.kill','1')`.
+The library is on by default: the Edit tab's "Add overlay…" menu shows "Animations…". Emergency off: `localStorage.setItem('remix.hyperframes.kill','1')`.
 
 Preview build trigger note: PR #90 now targets develop so Netlify builds a Deploy Preview.
 
