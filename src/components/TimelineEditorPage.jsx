@@ -22,7 +22,8 @@ import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import {
   getAddon, isAddonType, createAddonClip, addonOptions, clipTimeRange, AddonRuntime,
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
-  ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
+  ensureOverlayLayer, clearOverlay, showPauseOverlay, showOptinOverlay, formBackground,
+  leadFormToOptin, applyOptinToLeadForm, normalizeListBuilder,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
@@ -1437,6 +1438,7 @@ export function TimelineEditorPage() {
     }
 
     function renderPreviewAsset(selected) {
+      if (!selected || selected.type !== 'lead-form') clearOverlay(addonOverlayLayer(), 'lead-form');
       // Remotion engine: the Player shows the whole composition, so media,
       // text and overlay clips need no separate single-clip preview.
       // Interactive cards (Lead Generator, CTA, Pause/Loop/Skip) still render
@@ -1583,180 +1585,73 @@ export function TimelineEditorPage() {
       }
 
       if (selected.type === 'lead-form') {
-        const card = document.createElement('div');
-        const fields = Array.isArray(selected.fields) && selected.fields.length
-          ? selected.fields
-          : [{ id: 'email', type: 'email', label: 'Email' }];
-        // Adaptive layout: field count changes the arrangement, matching
-        // upstream's per-count flex rules (2/3/4/5 fields laid out
-        // differently rather than always stacking one-per-row).
-        const isMobilePreview = els.previewStage.clientWidth < 640;
-        card.className = `preview-form-card preview-form-card--fields-${Math.min(fields.length, 5)}${isMobilePreview ? ' preview-form-card--mobile' : ''}`;
-        card.dataset.clipId = selected.id;
-        const inputType = (type) => (
-          type === 'phone' ? 'tel'
-            : type === 'email' ? 'email'
-            : type === 'number' ? 'number'
-            : type === 'date' ? 'date'
-            : 'text'
-        );
-
-        // Personalization pre-fill: reuse the fork's existing profile/token
-        // mechanism (same one every Studio page uses for prompts) rather
-        // than inventing a parallel one. {{token}} placeholders in
-        // heading/CTA/privacy text resolve via replaceTokensInPrompt, and
-        // fields whose id maps to a known profile variable (first_name,
-        // email, company, ...) get pre-filled directly, matching upstream
-        // form.js's personalizedTokens[declaration.token] behavior.
+        // Lead Generator: the SAME renderer, schema and design as the List
+        // Builder (see addons/listBuilder.js). The clip keeps its stored
+        // shape; leadFormToOptin adapts it. Shown over the video at the
+        // clip's position; while gating it holds playback until Submit/Skip.
+        const layer = addonOverlayLayer();
+        const cfg = leadFormToOptin(selected);
         const activeProfile = getActivePersonalizationProfile();
-        const heading = activeProfile ? replaceTokensInPrompt(selected.heading || '', activeProfile) : selected.heading;
-        const ctaText = activeProfile ? replaceTokensInPrompt(selected.ctaText || 'Submit', activeProfile) : (selected.ctaText || 'Submit');
-        const privacyText = activeProfile ? replaceTokensInPrompt(selected.privacyText || '', activeProfile) : selected.privacyText;
-
-        const style = selected.style || {};
-        const captionAlign = style.captionAlignment || 'center';
-        const fieldTokens = leadFieldTokens(fields);
-
-        card.innerHTML = `
-          <form class="preview-lead-form">
-            ${selected.brandLogoUrl ? `<img class="preview-form-logo" src="${escapeHtml(selected.brandLogoUrl)}" alt="" />` : ''}
-            ${heading ? `<h3 class="preview-form-heading" style="text-align:${captionAlign};${style.captionFontSize ? `font-size:${style.captionFontSize}%;` : ''}">${escapeHtml(heading)}</h3>` : ''}
-            <div class="preview-form-fields">
-            ${fields.map((f, i) => {
-              const varKey = FIELD_TOKEN_ALIASES[f.id] || f.id;
-              const prefill = activeProfile?.variables?.[varKey];
-              const prefillStr = prefill ? escapeHtml(String(prefill)) : '';
-              // Upstream form.js parity: answers are keyed by the field's
-              // token (upper-cased label), single-line inputs cap at 80
-              // chars and multiline at 250, Number is digits-only text, and
-              // fields are optional unless marked required.
-              const token = escapeHtml(fieldTokens[i]);
-              const req = f.required ? ' required' : '';
-              const fieldInput = f.type === 'multiline'
-                ? `<textarea name="${token}" placeholder="${escapeHtml(f.label || '')}" rows="3" maxlength="250"${req}>${prefillStr}</textarea>`
-                : f.type === 'number'
-                  ? `<input type="text" inputmode="numeric" pattern="\\d*" maxlength="80" data-digits-only name="${token}" placeholder="${escapeHtml(f.label || '')}"${prefillStr ? ` value="${prefillStr}"` : ''}${req} />`
-                  : `<input type="${inputType(f.type)}" name="${token}" placeholder="${escapeHtml(f.label || '')}"${f.type === 'email' || f.type === 'date' ? '' : ' maxlength="80"'}${prefillStr ? ` value="${prefillStr}"` : ''}${req} />`;
-              return `
-              <div class="preview-form-field">
-                <label>${escapeHtml(f.label || f.type)}</label>
-                ${fieldInput}
-              </div>
-            `;
-            }).join('')}
-            </div>
-            ${privacyText ? `<p class="preview-form-privacy">${escapeHtml(privacyText)}</p>` : ''}
-            ${selected.privacyPolicyCaption && selected.privacyPolicyLink
-              ? `<a class="preview-form-privacy-link" href="${escapeHtml(selected.privacyPolicyLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(selected.privacyPolicyCaption)}</a>`
-              : ''}
-            <button type="submit" class="preview-form-submit" style="${style.buttonColor ? `background:${style.buttonColor};` : ''}${style.buttonFontColor ? `color:${style.buttonFontColor};` : ''}${style.buttonBorderRadius !== undefined ? `border-radius:${style.buttonBorderRadius}px;` : ''}${style.buttonBottomBorder ? `border-bottom:3px solid ${style.buttonBottomBorder};` : ''}">${escapeHtml(ctaText)}</button>
-            ${selected.skipButtonEnabled ? `<button type="button" class="preview-form-skip">Skip</button>` : ''}
-          </form>
-        `;
-        if (style.backgroundImage) {
-          card.style.backgroundImage = `url(${style.backgroundImage})`;
-          card.style.backgroundSize = 'cover';
-          card.style.backgroundPosition = 'center';
-        } else if (style.backgroundColor) {
-          // Upstream form background: radial gradient of the chosen colour.
-          card.style.background = formBackground({ backgroundColor: style.backgroundColor });
-        }
-        if (style.fontFamily) {
-          ensureGoogleFontLoaded(style.fontFamily);
-          card.style.fontFamily = `"${style.fontFamily}"`;
-        }
-        if (style.fontSize) {
-          card.querySelectorAll('input, textarea, button, label').forEach((el) => {
-            el.style.fontSize = `${style.fontSize}%`;
-          });
-        }
-        // Configurable size/position as a % of the frame, replacing the
-        // fixed min(82%, 480px) CSS default when the user sets one.
-        if (style.widthPercent) card.style.width = `${style.widthPercent}%`;
-        if (style.heightPercent) {
-          card.style.maxHeight = `${style.heightPercent}%`;
-          card.style.overflowY = 'auto';
-        }
-        card.style.alignSelf = style.position === 'top' ? 'flex-start' : style.position === 'bottom' ? 'flex-end' : 'center';
-        // Entrance transition: mirrors upstream's animation.in classes
-        // (formAnimationStart applying a CSS class to the transition
-        // container) via a plain CSS animation instead of a JS timeline.
-        if (style.transition && style.transition !== 'none') {
-          card.classList.add(`preview-form-card--enter-${style.transition}`);
-        }
-        els.previewStage.appendChild(card);
-
-        card.querySelectorAll('[data-digits-only]').forEach((input) => {
-          input.addEventListener('input', () => {
-            input.value = input.value.replace(/[^0-9]/g, '');
-          });
+        const vars = activeProfile?.variables || {};
+        const prefill = {};
+        cfg.elements.forEach((el) => {
+          const v = vars[FIELD_TOKEN_ALIASES[el.id] || el.id];
+          if (v) prefill[el.token] = String(v);
         });
-
-        const skipBtn = card.querySelector('.preview-form-skip');
-        if (skipBtn) {
-          skipBtn.addEventListener('click', () => {
-            card.classList.add('preview-form-card--exit');
-            card.addEventListener('animationend', () => {
-              card.style.display = 'none';
-            }, { once: true });
+        // The tick re-renders the preview every 120ms: only rebuild when
+        // something the viewer would see actually changed.
+        const sig = `${selected.id}|${selected._gating ? 1 : 0}|${JSON.stringify(cfg)}|${JSON.stringify(prefill)}`;
+        const existing = layer.querySelector('[data-overlay="lead-form"]');
+        if (existing && existing.dataset.sig === sig) return;
+        const base = findBaseClipAtPlayhead();
+        if (base) renderPreviewAsset(base);
+        const wrap = showOptinOverlay(layer, cfg, {
+          name: 'lead-form',
+          preview: !selected._gating,
+          prefill,
+          onSkip: () => {
             selected._gating = false;
             if (!state.playing) togglePlayback();
-          });
-        }
-
-        card.querySelector('form').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const data = Object.fromEntries(new FormData(e.target).entries());
-
-          selected._submittedLeads = selected._submittedLeads || [];
-          selected._submittedLeads.push({ ...data, submittedAt: new Date().toISOString() });
-          // Keep the Download-leads button's count in sync if its settings
-          // panel is currently open for this clip.
-          if (state.selectedClipId === selected.id) {
-            const downloadBtn = els.clipEditorContainer.querySelector('#lf-download-leads');
-            if (downloadBtn) {
-              downloadBtn.disabled = false;
-              downloadBtn.textContent = `Download leads (${selected._submittedLeads.length} this session)`;
+          },
+          onSubmit: async (data) => {
+            selected._submittedLeads = selected._submittedLeads || [];
+            selected._submittedLeads.push({ ...data, submittedAt: new Date().toISOString() });
+            // Stored via the lead-capture edge function (which forwards the
+            // webhooks server-side); falls back to browser-side webhook POSTs
+            // when the backend is unreachable.
+            const res = await captureLead({
+              clipId: selected.id,
+              kind: 'lead-form',
+              data,
+              config: selected,
+              notificationEmail: selected.emailNotificationEnabled ? selected.notificationEmail : '',
+            });
+            const lastLead = selected._submittedLeads[selected._submittedLeads.length - 1];
+            if (lastLead) lastLead._stored = !!res.stored;
+            showToast(
+              leadResultMessage(res, selected.emailNotificationEnabled && selected.notificationEmail),
+              res.failed ? 'error' : 'success',
+            );
+            applyPreviewAnswers(data);
+            // Upstream form: once submitted it never shows again, and a form
+            // that paused the video resumes it.
+            selected._submitted = true;
+            addonRuntime.markSubmitted(selected.id);
+            if (selected.fbPixelId) {
+              if (typeof window.fbq === 'function') {
+                window.fbq('trackSingle', selected.fbPixelId, 'Lead', data);
+              } else {
+                showToast(`Facebook Pixel ${selected.fbPixelId} configured, but the Pixel script isn't loaded on this page`, 'info');
+              }
             }
-          }
-
-          // Stored via the lead-capture edge function (which forwards the
-          // webhooks server-side); falls back to browser-side webhook POSTs
-          // when the backend is unreachable.
-          const res = await captureLead({
-            clipId: selected.id,
-            kind: 'lead-form',
-            data,
-            config: selected,
-            notificationEmail: selected.emailNotificationEnabled ? selected.notificationEmail : '',
-          });
-          const lastLead = selected._submittedLeads[selected._submittedLeads.length - 1];
-          if (lastLead) lastLead._stored = !!res.stored;
-          showToast(
-            leadResultMessage(res, selected.emailNotificationEnabled && selected.notificationEmail),
-            res.failed ? 'error' : 'success',
-          );
-
-          applyPreviewAnswers(data);
-
-          // Upstream form: once submitted it never shows again, and a form
-          // that paused the video resumes it.
-          selected._submitted = true;
-          addonRuntime.markSubmitted(selected.id);
-          if (selected._gating) {
-            selected._gating = false;
-            card.classList.add('preview-form-card--exit');
-            if (!state.playing) togglePlayback();
-          }
-
-          if (selected.fbPixelId) {
-            if (typeof window.fbq === 'function') {
-              window.fbq('trackSingle', selected.fbPixelId, 'Lead', data);
-            } else {
-              showToast(`Facebook Pixel ${selected.fbPixelId} configured, but the Pixel script isn't loaded on this page`, 'info');
+            if (selected._gating) {
+              selected._gating = false;
+              if (!state.playing) togglePlayback();
             }
-          }
+            return '';
+          },
         });
+        wrap.dataset.sig = sig;
         return;
       }
 
@@ -3391,7 +3286,6 @@ export function TimelineEditorPage() {
     // Small curated set rather than the full Google Fonts catalog (upstream
     // pulls from a large constants/fonts list) — enough real choice without
     // shipping a font-directory dependency.
-    const LEAD_FORM_GOOGLE_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Oswald', 'Raleway', 'Nunito', 'Playfair Display', 'Bebas Neue', 'Anton'];
     const loadedGoogleFonts = new Set();
     function ensureGoogleFontLoaded(family) {
       if (!family || loadedGoogleFonts.has(family)) return;
@@ -3402,444 +3296,57 @@ export function TimelineEditorPage() {
       document.head.appendChild(link);
     }
 
+    // Lead Generator settings: the same schema-driven panel as the List
+    // Builder (Styles | Fields | Pointer | Integrations), edited through the
+    // adapter so the clip keeps its stored shape.
+    let leadFormEditor = null;
     function renderLeadFormEditor(clip) {
-      clip.fields = Array.isArray(clip.fields) && clip.fields.length ? clip.fields : [{ id: 'email', type: 'email', label: 'Email' }];
       clip.style = clip.style || {};
-      // Transient UI state, not part of the clip's actual data — persisted
-      // on the clip object purely so the active tab survives re-renders
-      // triggered by field add/remove/reorder/webhook add-remove.
-      const activeTab = clip._activeSettingsTab || 'fields';
-
       els.clipEditorContainer.innerHTML = `
         <div class="clip-editor">
-          <div class="clip-editor__tabs" style="display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--border,rgba(255,255,255,0.1))">
-            <button type="button" class="lf-tab-btn mini-btn${activeTab === 'fields' ? ' active' : ''}" data-tab="fields">Fields</button>
-            <button type="button" class="lf-tab-btn mini-btn${activeTab === 'style' ? ' active' : ''}" data-tab="style">Style</button>
-            <button type="button" class="lf-tab-btn mini-btn${activeTab === 'integrations' ? ' active' : ''}" data-tab="integrations">Integrations</button>
+          <div class="addon-panel__heading" style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap">
+            <span>Lead Generator settings</span>
+            <span>
+              <button type="button" class="mini-btn" id="lfPreview">Preview</button>
+              <button type="button" class="mini-btn" id="lfTestHook">Test Webhook</button>
+              <button type="button" class="mini-btn" id="lfLeads">Leads${(clip._submittedLeads || []).length ? ` (${clip._submittedLeads.length})` : ''}</button>
+            </span>
           </div>
-          <div class="clip-editor__tab-panel" data-tab-panel="fields" ${activeTab === 'fields' ? '' : 'hidden'}>
-          <div class="clip-editor__section">
-            <h3>Content</h3>
-            <div class="clip-editor__field">
-              <label for="lf-heading">Heading</label>
-              <input id="lf-heading" type="text" value="${clip.heading || ''}" placeholder="Get Your Free Guide" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-cta">Button Text</label>
-              <input id="lf-cta" type="text" value="${clip.ctaText || ''}" placeholder="Submit" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-privacy">Privacy Disclaimer</label>
-              <input id="lf-privacy" type="text" value="${clip.privacyText || ''}" placeholder="We respect your privacy." />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-privacy-caption">Privacy Policy Link Text</label>
-              <input id="lf-privacy-caption" type="text" value="${clip.privacyPolicyCaption || ''}" placeholder="Privacy Policy" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-privacy-link">Privacy Policy URL</label>
-              <input id="lf-privacy-link" type="url" value="${clip.privacyPolicyLink || ''}" placeholder="https://example.com/privacy" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-skip-enabled"><input id="lf-skip-enabled" type="checkbox" ${clip.skipButtonEnabled ? 'checked' : ''} /> Show Skip button (dismiss form, resume video)</label>
-            </div>
-          </div>
-          <div class="clip-editor__section">
-            <h3>Fields</h3>
-            <div id="lf-fields-list">
-              ${clip.fields.map((f, i) => `
-                <div class="clip-editor__field lf-field-row" data-index="${i}" draggable="true" style="display:flex;gap:6px;align-items:center;cursor:grab">
-                  <span class="lf-field-drag-handle" title="Drag to reorder" style="cursor:grab;opacity:.5;user-select:none">⠿</span>
-                  <input type="text" class="lf-field-label" value="${f.label || ''}" placeholder="Label" style="flex:1" />
-                  <select class="lf-field-type">
-                    <option value="text" ${f.type === 'text' ? 'selected' : ''}>Text</option>
-                    <option value="multiline" ${f.type === 'multiline' ? 'selected' : ''}>Multiline</option>
-                    <option value="email" ${f.type === 'email' ? 'selected' : ''}>Email</option>
-                    <option value="phone" ${f.type === 'phone' ? 'selected' : ''}>Phone</option>
-                    <option value="number" ${f.type === 'number' ? 'selected' : ''}>Number</option>
-                    <option value="date" ${f.type === 'date' ? 'selected' : ''}>Date</option>
-                  </select>
-                  <label title="Viewer must fill this field" style="display:flex;align-items:center;gap:2px;font-size:11px;white-space:nowrap"><input type="checkbox" class="lf-field-required" ${f.required ? 'checked' : ''} /> req</label>
-                  <button type="button" class="lf-field-remove mini-btn" data-tooltip="Remove field">✕</button>
-                </div>
-              `).join('')}
-            </div>
-            <button id="lf-field-add" class="mini-btn" style="width:100%;margin-top:6px" ${clip.fields.length >= 5 ? 'disabled title="Maximum 5 fields"' : ''}>+ Add Field${clip.fields.length >= 5 ? ' (max 5)' : ''}</button>
-          </div>
-          </div>
-          <div class="clip-editor__tab-panel" data-tab-panel="style" ${activeTab === 'style' ? '' : 'hidden'}>
-          <div class="clip-editor__section">
-            <h3>Style</h3>
-            <div class="clip-editor__field">
-              <label for="lf-brand-logo">Brand Logo URL</label>
-              <input id="lf-brand-logo" type="url" value="${clip.brandLogoUrl || ''}" placeholder="https://example.com/logo.png" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-bg">Background Color</label>
-              <input id="lf-bg" type="color" value="${clip.style.backgroundColor || '#0b1120'}" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-bg-image">Background Image URL</label>
-              <input id="lf-bg-image" type="url" value="${clip.style.backgroundImage || ''}" placeholder="https://example.com/bg.jpg (overrides color)" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-font-family">Font Family</label>
-              <select id="lf-font-family">
-                <option value="">Default</option>
-                ${LEAD_FORM_GOOGLE_FONTS.map((f) => `<option value="${f}" ${clip.style.fontFamily === f ? 'selected' : ''}>${f}</option>`).join('')}
-              </select>
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-font-size">Font Size (${clip.style.fontSize || 100}%)</label>
-              <input id="lf-font-size" type="range" min="60" max="160" value="${clip.style.fontSize || 100}" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-caption-font-size">Heading Size (${clip.style.captionFontSize || 130}%)</label>
-              <input id="lf-caption-font-size" type="range" min="60" max="220" value="${clip.style.captionFontSize || 130}" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-caption-align">Heading Alignment</label>
-              <select id="lf-caption-align">
-                <option value="left" ${clip.style.captionAlignment === 'left' ? 'selected' : ''}>Left</option>
-                <option value="center" ${!clip.style.captionAlignment || clip.style.captionAlignment === 'center' ? 'selected' : ''}>Center</option>
-                <option value="right" ${clip.style.captionAlignment === 'right' ? 'selected' : ''}>Right</option>
-              </select>
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-btn-color">Button Background Color</label>
-              <input id="lf-btn-color" type="color" value="${clip.style.buttonColor || '#22d3ee'}" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-btn-font-color">Button Font Color</label>
-              <input id="lf-btn-font-color" type="color" value="${clip.style.buttonFontColor || '#03131a'}" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-btn-radius">Button Border Radius (${clip.style.buttonBorderRadius ?? 10}px)</label>
-              <input id="lf-btn-radius" type="range" min="0" max="40" value="${clip.style.buttonBorderRadius ?? 10}" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-btn-bottom-border"><input id="lf-btn-bottom-border-enabled" type="checkbox" ${clip.style.buttonBottomBorder ? 'checked' : ''} /> Button Bottom Border</label>
-              <input id="lf-btn-bottom-border" type="color" value="${clip.style.buttonBottomBorder || '#000000'}" ${clip.style.buttonBottomBorder ? '' : 'disabled'} />
-            </div>
-          </div>
-          <div class="clip-editor__section">
-            <h3>Layout &amp; Animation</h3>
-            <div class="clip-editor__field">
-              <label for="lf-transition">Entrance Transition</label>
-              <select id="lf-transition">
-                <option value="none" ${!clip.style.transition || clip.style.transition === 'none' ? 'selected' : ''}>None</option>
-                <option value="fade" ${clip.style.transition === 'fade' ? 'selected' : ''}>Fade</option>
-                <option value="slide-up" ${clip.style.transition === 'slide-up' ? 'selected' : ''}>Slide Up</option>
-                <option value="slide-down" ${clip.style.transition === 'slide-down' ? 'selected' : ''}>Slide Down</option>
-              </select>
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-width-pct">Width (${clip.style.widthPercent || 'auto'}${clip.style.widthPercent ? '%' : ''})</label>
-              <input id="lf-width-pct" type="range" min="30" max="100" value="${clip.style.widthPercent || 82}" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-height-pct">Max Height (${clip.style.heightPercent || 'auto'}${clip.style.heightPercent ? '%' : ''})</label>
-              <input id="lf-height-pct" type="range" min="20" max="100" value="${clip.style.heightPercent || 100}" />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-position">Vertical Position</label>
-              <select id="lf-position">
-                <option value="top" ${clip.style.position === 'top' ? 'selected' : ''}>Top</option>
-                <option value="center" ${!clip.style.position || clip.style.position === 'center' ? 'selected' : ''}>Center</option>
-                <option value="bottom" ${clip.style.position === 'bottom' ? 'selected' : ''}>Bottom</option>
-              </select>
-            </div>
-          </div>
-          </div>
-          <div class="clip-editor__tab-panel" data-tab-panel="integrations" ${activeTab === 'integrations' ? '' : 'hidden'}>
-          <div class="clip-editor__section">
-            <h3>Integrations</h3>
-            <div class="clip-editor__field">
-              <label for="lf-webhook-enabled"><input id="lf-webhook-enabled" type="checkbox" ${clip.webhookEnabled ? 'checked' : ''} /> Send submissions to webhook(s)</label>
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-webhook-url">Webhook URL</label>
-              <input id="lf-webhook-url" type="url" value="${clip.webhookUrl || ''}" placeholder="https://your-endpoint.com/hook" />
-            </div>
-            ${clip.webhookUrl2 !== undefined ? `
-            <div class="clip-editor__field lf-webhook-extra" style="display:flex;gap:6px;align-items:flex-end">
-              <div style="flex:1"><label for="lf-webhook-url2">Webhook URL 2</label><input id="lf-webhook-url2" type="url" value="${clip.webhookUrl2 || ''}" placeholder="https://your-endpoint.com/hook-2" /></div>
-              <button type="button" class="lf-webhook-remove mini-btn" data-target="2" data-tooltip="Remove webhook 2">✕</button>
-            </div>` : ''}
-            ${clip.webhookUrl3 !== undefined ? `
-            <div class="clip-editor__field lf-webhook-extra" style="display:flex;gap:6px;align-items:flex-end">
-              <div style="flex:1"><label for="lf-webhook-url3">Webhook URL 3</label><input id="lf-webhook-url3" type="url" value="${clip.webhookUrl3 || ''}" placeholder="https://your-endpoint.com/hook-3" /></div>
-              <button type="button" class="lf-webhook-remove mini-btn" data-target="3" data-tooltip="Remove webhook 3">✕</button>
-            </div>` : ''}
-            ${clip.webhookUrl3 === undefined ? `
-            <div class="clip-editor__field">
-              <button id="lf-webhook-add" class="mini-btn" style="width:100%">+ Add Webhook Address</button>
-            </div>` : ''}
-            <div class="clip-editor__field">
-              <button id="lf-webhook-test" type="button" class="mini-btn" style="width:100%">Test Webhook</button>
-              <span id="lf-webhook-test-result" style="font-size:11px;color:var(--text-dim)"></span>
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-email-enabled"><input id="lf-email-enabled" type="checkbox" ${clip.emailNotificationEnabled ? 'checked' : ''} /> Email notification on submit</label>
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-email-address">Notification Address</label>
-              <input id="lf-email-address" type="email" value="${clip.notificationEmail || ''}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
-            </div>
-            <div class="clip-editor__field">
-              <label for="lf-fb-pixel">Facebook Pixel ID</label>
-              <input id="lf-fb-pixel" type="text" value="${clip.fbPixelId || ''}" placeholder="1234567890" />
-            </div>
-            <div class="clip-editor__field">
-              <button id="lf-download-leads" class="mini-btn" style="width:100%" >Download leads${(clip._submittedLeads || []).length ? ` (${(clip._submittedLeads || []).length} this session)` : ''}</button>
-            </div>
-          </div>
-          </div>
-        </div>
-      `;
-
-      els.clipEditorContainer.querySelectorAll('.lf-tab-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          clip._activeSettingsTab = btn.dataset.tab;
-          els.clipEditorContainer.querySelectorAll('.lf-tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
-          els.clipEditorContainer.querySelectorAll('.clip-editor__tab-panel').forEach((panel) => {
-            panel.hidden = panel.dataset.tabPanel !== btn.dataset.tab;
-          });
-        });
-      });
-
-      const rerenderFields = () => {
-        renderLeadFormEditor(clip);
-        updatePreview(clip);
-      };
-
-      els.clipEditorContainer.querySelector('#lf-heading').addEventListener('input', (e) => {
-        clip.heading = e.target.value;
-        renderTracks();
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-cta').addEventListener('input', (e) => {
-        clip.ctaText = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-privacy').addEventListener('input', (e) => {
-        clip.privacyText = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-privacy-caption').addEventListener('input', (e) => {
-        clip.privacyPolicyCaption = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-privacy-link').addEventListener('input', (e) => {
-        clip.privacyPolicyLink = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-skip-enabled').addEventListener('change', (e) => {
-        clip.skipButtonEnabled = e.target.checked;
-        updatePreview(clip);
-      });
-      let dragFromIndex = null;
-      els.clipEditorContainer.querySelectorAll('.lf-field-row').forEach((row) => {
-        const index = parseInt(row.dataset.index, 10);
-        row.querySelector('.lf-field-label').addEventListener('input', (e) => {
-          clip.fields[index].label = e.target.value;
-          clip.fields[index].id = e.target.value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_') || clip.fields[index].id;
+          <span id="lfTestResult" class="addon-field__hint"></span>
+          <div id="lfForm"></div>
+        </div>`;
+      leadFormEditor?.destroy();
+      leadFormEditor = renderAddonEditor(els.clipEditorContainer.querySelector('#lfForm'), {
+        options: leadFormToOptin(clip),
+        fieldsFor: (o) => listBuilderFields({ ...o, kind: 'lead-generator' }),
+        idPrefix: 'leadgen',
+        onChange: (next) => {
+          applyOptinToLeadForm(clip, next);
           updatePreview(clip);
-        });
-        row.querySelector('.lf-field-type').addEventListener('change', (e) => {
-          clip.fields[index].type = e.target.value;
-          updatePreview(clip);
-        });
-        row.querySelector('.lf-field-required').addEventListener('change', (e) => {
-          clip.fields[index].required = e.target.checked;
-          updatePreview(clip);
-        });
-        row.querySelector('.lf-field-remove').addEventListener('click', () => {
-          if (clip.fields.length <= 1) return;
-          clip.fields.splice(index, 1);
-          rerenderFields();
-        });
-
-        // Native HTML5 drag-and-drop reorder, matching the same pattern
-        // used for clip drag-and-drop on the timeline itself.
-        row.addEventListener('dragstart', (e) => {
-          dragFromIndex = index;
-          e.dataTransfer.effectAllowed = 'move';
-          row.style.opacity = '0.4';
-        });
-        row.addEventListener('dragend', () => {
-          row.style.opacity = '';
-        });
-        row.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          row.style.borderTop = '2px solid var(--cyan, #22d3ee)';
-        });
-        row.addEventListener('dragleave', () => {
-          row.style.borderTop = '';
-        });
-        row.addEventListener('drop', (e) => {
-          e.preventDefault();
-          row.style.borderTop = '';
-          if (dragFromIndex === null || dragFromIndex === index) return;
-          const [moved] = clip.fields.splice(dragFromIndex, 1);
-          clip.fields.splice(index, 0, moved);
-          dragFromIndex = null;
-          rerenderFields();
-        });
+          debouncedSave();
+        },
       });
-      els.clipEditorContainer.querySelector('#lf-field-add').addEventListener('click', () => {
-        if (clip.fields.length >= 5) {
-          showToast('A lead form can have a maximum of 5 fields', 'info');
-          return;
-        }
-        clip.fields.push({ id: `field_${clip.fields.length + 1}`, type: 'text', label: 'New Field', required: false });
-        rerenderFields();
+      els.clipEditorContainer.querySelector('#lfPreview').addEventListener('click', () => updatePreview(clip));
+      els.clipEditorContainer.querySelector('#lfLeads').addEventListener('click', () => {
+        // Stored leads (lead-capture backend) merged with this session's.
+        downloadLeadsCsv({ clipId: clip.id, local: clip._submittedLeads || [], name: clip.name || 'leads' });
       });
-      els.clipEditorContainer.querySelector('#lf-brand-logo').addEventListener('input', (e) => {
-        clip.brandLogoUrl = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-bg').addEventListener('input', (e) => {
-        clip.style.backgroundColor = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-bg-image').addEventListener('input', (e) => {
-        clip.style.backgroundImage = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-font-family').addEventListener('change', (e) => {
-        clip.style.fontFamily = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-font-size').addEventListener('input', (e) => {
-        clip.style.fontSize = parseInt(e.target.value, 10);
-        e.target.previousElementSibling.textContent = `Font Size (${clip.style.fontSize}%)`;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-caption-font-size').addEventListener('input', (e) => {
-        clip.style.captionFontSize = parseInt(e.target.value, 10);
-        e.target.previousElementSibling.textContent = `Heading Size (${clip.style.captionFontSize}%)`;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-caption-align').addEventListener('change', (e) => {
-        clip.style.captionAlignment = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-btn-color').addEventListener('input', (e) => {
-        clip.style.buttonColor = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-btn-font-color').addEventListener('input', (e) => {
-        clip.style.buttonFontColor = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-btn-radius').addEventListener('input', (e) => {
-        clip.style.buttonBorderRadius = parseInt(e.target.value, 10);
-        e.target.previousElementSibling.textContent = `Button Border Radius (${clip.style.buttonBorderRadius}px)`;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-btn-bottom-border-enabled').addEventListener('change', (e) => {
-        clip.style.buttonBottomBorder = e.target.checked ? (els.clipEditorContainer.querySelector('#lf-btn-bottom-border').value || '#000000') : '';
-        els.clipEditorContainer.querySelector('#lf-btn-bottom-border').disabled = !e.target.checked;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-btn-bottom-border').addEventListener('input', (e) => {
-        clip.style.buttonBottomBorder = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-transition').addEventListener('change', (e) => {
-        clip.style.transition = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-width-pct').addEventListener('input', (e) => {
-        clip.style.widthPercent = parseInt(e.target.value, 10);
-        e.target.previousElementSibling.textContent = `Width (${clip.style.widthPercent}%)`;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-height-pct').addEventListener('input', (e) => {
-        clip.style.heightPercent = parseInt(e.target.value, 10);
-        e.target.previousElementSibling.textContent = `Max Height (${clip.style.heightPercent}%)`;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-position').addEventListener('change', (e) => {
-        clip.style.position = e.target.value;
-        updatePreview(clip);
-      });
-      els.clipEditorContainer.querySelector('#lf-webhook-enabled').addEventListener('change', (e) => {
-        clip.webhookEnabled = e.target.checked;
-      });
-      els.clipEditorContainer.querySelector('#lf-webhook-url').addEventListener('input', (e) => {
-        clip.webhookUrl = e.target.value;
-      });
-      const webhook2Input = els.clipEditorContainer.querySelector('#lf-webhook-url2');
-      if (webhook2Input) {
-        webhook2Input.addEventListener('input', (e) => { clip.webhookUrl2 = e.target.value; });
-      }
-      const webhook3Input = els.clipEditorContainer.querySelector('#lf-webhook-url3');
-      if (webhook3Input) {
-        webhook3Input.addEventListener('input', (e) => { clip.webhookUrl3 = e.target.value; });
-      }
-      const webhookAddBtn = els.clipEditorContainer.querySelector('#lf-webhook-add');
-      if (webhookAddBtn) {
-        webhookAddBtn.addEventListener('click', () => {
-          if (clip.webhookUrl2 === undefined) {
-            clip.webhookUrl2 = '';
-          } else if (clip.webhookUrl3 === undefined) {
-            clip.webhookUrl3 = '';
-          }
-          renderLeadFormEditor(clip);
-        });
-      }
-      els.clipEditorContainer.querySelectorAll('.lf-webhook-remove').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const target = btn.dataset.target;
-          if (target === '2') {
-            // Shift webhook3 into webhook2's slot, matching upstream's
-            // removeWebhook behavior, so there's never a gap between slots.
-            clip.webhookUrl2 = clip.webhookUrl3 !== undefined ? clip.webhookUrl3 : undefined;
-            clip.webhookUrl3 = undefined;
-          } else if (target === '3') {
-            clip.webhookUrl3 = undefined;
-          }
-          renderLeadFormEditor(clip);
-        });
-      });
-      els.clipEditorContainer.querySelector('#lf-webhook-test').addEventListener('click', async () => {
-        const urls = [clip.webhookUrl, clip.webhookUrl2, clip.webhookUrl3].filter(Boolean);
-        const resultEl = els.clipEditorContainer.querySelector('#lf-webhook-test-result');
+      els.clipEditorContainer.querySelector('#lfTestHook').addEventListener('click', async () => {
+        const urls = webhookUrlsFor(clip);
+        const resultEl = els.clipEditorContainer.querySelector('#lfTestResult');
         if (!urls.length) {
-          resultEl.textContent = 'No webhook URL configured';
+          resultEl.textContent = 'Turn on Webhook Call and add a valid https address first.';
           return;
         }
         resultEl.textContent = 'Testing...';
-        const results = await Promise.allSettled(urls.map((url) => fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ test: true, source: 'lead-form-test', clipId: clip.id }),
-        })));
-        const failures = results.filter((r) => r.status === 'rejected' || (r.value && !r.value.ok));
-        if (failures.length) {
-          resultEl.textContent = `${failures.length}/${urls.length} failed`;
+        const res = await postWebhooksDirect(urls, { test: true, source: 'lead-form-test', clipId: clip.id });
+        if (res.failed) {
+          resultEl.textContent = `${res.failed}/${urls.length} failed (browsers may block cross-origin tests; real submissions are sent from the server)`;
           showToast('Webhook test failed for one or more URLs', 'error');
         } else {
           resultEl.textContent = `${urls.length}/${urls.length} succeeded`;
           showToast('Webhook test succeeded', 'success');
         }
-      });
-      els.clipEditorContainer.querySelector('#lf-email-enabled').addEventListener('change', (e) => {
-        clip.emailNotificationEnabled = e.target.checked;
-        els.clipEditorContainer.querySelector('#lf-email-address').disabled = !e.target.checked;
-      });
-      els.clipEditorContainer.querySelector('#lf-email-address').addEventListener('input', (e) => {
-        clip.notificationEmail = e.target.value;
-      });
-      els.clipEditorContainer.querySelector('#lf-fb-pixel').addEventListener('input', (e) => {
-        clip.fbPixelId = e.target.value;
-      });
-      els.clipEditorContainer.querySelector('#lf-download-leads').addEventListener('click', () => {
-        // Stored leads (lead-capture backend) merged with this session's.
-        downloadLeadsCsv({ clipId: clip.id, local: clip._submittedLeads || [], name: clip.name || 'leads' });
       });
     }
 
@@ -5130,6 +4637,7 @@ export function TimelineEditorPage() {
     function renderListBuilderSettings() {
       const box = els.listBuilderSettings;
       if (!box) return;
+      if (state.listBuilder) state.listBuilder = normalizeListBuilder(state.listBuilder);
       const lb = state.listBuilder;
       if (!lb) {
         box.hidden = true;
@@ -5157,6 +4665,9 @@ export function TimelineEditorPage() {
           state.listBuilder = kindChanged ? switchListBuilderKind(next, next.kind) : next;
           if (kindChanged) listBuilderEditor.setOptions(state.listBuilder);
           renderInteractivePanel();
+          // Live edit: a form that is showing re-draws with the new design
+          // (and the pointer re-appears, as upstream re-showed its hint).
+          if (addonOverlayLayer().querySelector('[data-overlay="list-builder"]')) openListBuilderOverlay({ preview: true });
           debouncedSave();
         },
       });
@@ -5285,13 +4796,15 @@ export function TimelineEditorPage() {
     }
 
     function openListBuilderOverlay({ preview = false } = {}) {
+      if (state.listBuilder) state.listBuilder = normalizeListBuilder(state.listBuilder);
       const lb = state.listBuilder;
       if (!lb) return;
       const resume = () => {
         if (!preview && !state.playing) togglePlayback();
       };
-      showListBuilderOverlay(addonOverlayLayer(), lb, {
+      showOptinOverlay(addonOverlayLayer(), lb, {
         prefill: personalizationPrefill(),
+        preview,
         onSkip: resume,
         onSubmit: async (data) => {
           const res = await captureLead({
@@ -6970,10 +6483,8 @@ export function TimelineEditorPage() {
     function openLeadGeneratorModal(state, showToast) {
       try {
         const modal = new LeadGeneratorModal({
-          onComplete: (result) => {
-            // Handle lead saving
-          },
-          onError: (error) => console.log(`Lead generation failed: ${error}`, 'error')
+          onComplete: (lead) => showToast(`Lead saved${lead?.email ? `: ${lead.email}` : ''}`, 'success'),
+          onError: (error) => showToast(`Couldn't save the lead: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {

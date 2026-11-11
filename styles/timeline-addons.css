@@ -172,6 +172,36 @@
 .addon-overlay-layer .popcorn-pulse { animation: popcornPulse 1s linear infinite; }
 .addon-overlay-layer .popcorn-bob { animation: popcornBob 1.5s ease-in-out infinite; }
 .addon-overlay-layer .popcorn-buzz { animation: popcornBuzz 0.15s linear 6; }
+@keyframes popcornTyping { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes popcornWobbleD { 16.65% { transform: translate(5px, 5px); } 33.3% { transform: translate(-4px, -4px); } 49.95% { transform: translate(3px, 3px); } 66.6% { transform: translate(-2px, -2px); } 83.25% { transform: translate(1px, 1px); } 100% { transform: none; } }
+@keyframes popcornPush { 50% { transform: scale(0.94); } 100% { transform: scale(1); } }
+@keyframes popcornBuzzOut { 10% { transform: translateX(3px) rotate(2deg); } 20% { transform: translateX(-3px) rotate(-2deg); } 30% { transform: translateX(3px) rotate(2deg); } 40% { transform: translateX(-3px) rotate(-2deg); } 50% { transform: translateX(2px) rotate(1deg); } 60% { transform: translateX(-2px) rotate(-1deg); } 100% { transform: translateX(0); } }
+@keyframes popcornStrokePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); } 70% { box-shadow: 0 0 0 14px rgba(255, 255, 255, 0); } }
+@keyframes animateFlicker { 0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; } 20%, 24%, 55% { opacity: 0.4; } }
+.addon-overlay-layer .popcorn-typing-form { animation: popcornTyping 1.2s steps(24, end) both; }
+.addon-overlay-layer .popcorn-wobble-diagonal { animation: popcornWobbleD 1s ease-in-out both; }
+.addon-overlay-layer .popcorn-push { animation: popcornPush 0.5s ease-out both; }
+.addon-overlay-layer .popcorn-buzz-out { animation: popcornBuzzOut 0.75s linear both; }
+.addon-overlay-layer .popcorn-stroke-pulse { animation: popcornStrokePulse 1.4s ease-out infinite; }
+.addon-overlay-layer .animate-flicker { animation: animateFlicker 1.6s linear infinite; }
+
+/* Play button hover colour (set from the form's options). */
+.addon-overlay-layer .retarget-form .buttons-inner button:hover:not(:disabled) {
+  background: var(--optin-btn-hover, var(--optin-btn-bg, #eb5054)) !important;
+}
+
+/* ---- Pointer: positions, size, animation ---- */
+.addon-overlay-layer .overlay-arrow .arrow-image { transform: scale(var(--arrow-scale, 1)); transform-origin: center; }
+.addon-overlay-layer .overlay-arrow.hint-pos-bottom-left .arrow-image { right: auto; left: 45.8%; transform: scale(calc(-1 * var(--arrow-scale, 1)), var(--arrow-scale, 1)); }
+.addon-overlay-layer .overlay-arrow.hint-pos-top-right .arrow-image { bottom: auto; top: 20%; transform: scale(var(--arrow-scale, 1), calc(-1 * var(--arrow-scale, 1))); }
+.addon-overlay-layer .overlay-arrow.hint-pos-top-left .arrow-image { right: auto; left: 45.8%; bottom: auto; top: 20%; transform: scale(calc(-1 * var(--arrow-scale, 1))); }
+.addon-overlay-layer .overlay-arrow.hint-pos-bottom-left .container-hint,
+.addon-overlay-layer .overlay-arrow.hint-pos-top-left .container-hint { right: auto; left: 1.6%; }
+.addon-overlay-layer .overlay-arrow.hint-pos-top-right .container-hint,
+.addon-overlay-layer .overlay-arrow.hint-pos-top-left .container-hint { bottom: auto; top: 2.7%; }
+@keyframes pointerNudge { 0%, 100% { translate: 0 0; } 50% { translate: -8px -6px; } }
+.addon-overlay-layer .overlay-arrow.pointer-animated .arrow-image { animation: pointerNudge 1s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .addon-overlay-layer [class*="popcorn-"] { animation: none !important; }
 }
@@ -988,7 +1018,7 @@
 .tpl-win__frame { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #000; border: 1px solid var(--border, rgba(255,255,255,.1)); }
 .tpl-win__stage { position: absolute; inset: 0; }
 .tpl-win__layer { position: absolute; inset: 0; display: flex; justify-content: center; pointer-events: none; z-index: 2; }
-.tpl-win__layer .wf-card { transform: scale(.82); }
+.tpl-win__layer .addon-overlay--optin { transform: scale(.82); }
 .tpl-win__meta { display: flex; align-items: center; gap: 12px; }
 .tpl-win__meta > div { flex: 1; min-width: 0; }
 .tpl-win__name { font-size: 14px; color: var(--text-strong, #fff); }
@@ -1150,3 +1180,43 @@
 .mc-mode.is-on { border-color: var(--cyan, #22d3ee); background: rgba(34, 211, 238, .12); }
 .mc-tracks, .mc-opts { display: grid; gap: 8px; }
 .mc-actions { display: grid; gap: 6px; }
+
+
+/* ---- Opt-in settings panel (List Builder / Lead Generator): one look ---- */
+.addon-panel__optin .addon-field,
+#clipEditorContainer .addon-field { margin-bottom: 10px; }
+.addon-field > label { display: block; font-size: 12px; color: var(--text-dim, rgba(255, 255, 255, 0.6)); margin-bottom: 4px; }
+.addon-field input[type="text"],
+.addon-field input[type="url"],
+.addon-field input[type="number"],
+.addon-field textarea,
+.addon-field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+.addon-field textarea { resize: vertical; min-height: 54px; }
+.addon-field input[type="range"] { accent-color: var(--cyan, #22d3ee); }
+.addon-field input[type="checkbox"] { accent-color: var(--cyan, #22d3ee); width: 16px; height: 16px; margin: 0; }
+.addon-field--toggle label { font-size: 13px; color: #fff; cursor: pointer; }
+.addon-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.addon-designs { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+.addon-design, .addon-theme {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 4px; border-radius: 8px; cursor: pointer; color: #fff;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px; line-height: 1.2; text-align: center;
+}
+.addon-design:hover, .addon-theme:hover { border-color: rgba(255, 255, 255, 0.35); }
+.addon-design.active { border-color: var(--cyan, #22d3ee); background: rgba(34, 211, 238, 0.1); }
+.addon-themes { display: flex; flex-wrap: wrap; gap: 6px; }
+.addon-theme { flex-direction: row; padding: 5px 8px; }
+.addon-theme__swatch { position: relative; width: 22px; height: 16px; border-radius: 5px; border: 2px solid; display: inline-block; }
+.addon-theme__swatch i { position: absolute; right: 2px; bottom: 2px; width: 7px; height: 7px; border-radius: 50%; }

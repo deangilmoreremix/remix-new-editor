@@ -12,11 +12,10 @@
  * popcorn/style.scss). Rendered into an overlay layer above the preview stage.
  */
 
+import { pointerSvg, getPointerDesign, safeColor } from './pointerDesigns.js';
+
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-// Upstream retarget arrow hint path (popcorn.retarget.js _setup).
-const ARROW_PATH = 'M68.7705 61.9585C53.6729 59.1867 41.6596 54.1241 38.166 48.8973C35.213 44.4916 34.8473 38.2327 37.1133 31.2063C31.303 29.1839 25.7175 26.491 21.0438 23.5385C17.1984 21.1142 14.4246 18.6122 12.4284 16.4156L13.8427 21.5047C14.0613 22.3073 13.5957 23.1267 12.8029 23.3472C12.0002 23.5658 11.1808 23.1002 10.9505 22.3056L7.44816 9.70597C7.40279 9.56547 7.37889 9.41874 7.37647 9.26579C7.37666 9.15398 7.39472 9.05563 7.41278 8.95727C7.47137 8.69352 7.5952 8.46207 7.76279 8.26916C7.8515 8.17361 7.94824 8.0897 8.06466 8.00941C8.34225 7.82653 8.69391 7.73858 9.0516 7.78392C9.0516 7.78392 9.0516 7.78392 9.06144 7.78573C9.06144 7.78573 9.08111 7.78934 9.09094 7.79114L23.0426 9.66127C23.8662 9.77181 24.4391 10.5277 24.3286 11.3513C24.218 12.1748 23.4621 12.7478 22.6386 12.6372L12.0617 11.2139C13.8588 13.7196 16.9972 17.4476 22.6376 21.0046C27.0754 23.802 32.5045 26.4052 38.1531 28.3674C41.5023 20.2589 47.5757 13.3725 53.1296 11.586C59.2355 9.22987 67.6878 9.76499 73.5883 12.9021C76.7571 14.5819 78.7336 16.7749 79.3 19.2275C80.5127 24.4727 75.5281 29.6375 65.2843 33.7655C65.2413 33.778 65.1984 33.7904 65.1536 33.8127C58.1439 35.9419 48.9206 34.8992 39.9605 32.1459C38.7213 36.0158 37.466 42.4651 40.6581 47.2299C47.432 57.3495 96.567 67.9973 119.951 54.9861C120.676 54.5803 121.593 54.8503 121.99 55.5638C122.396 56.289 122.138 57.1973 121.412 57.603C110.451 63.7038 92.9863 65.5708 73.4882 62.7332C71.884 62.4997 70.3147 62.2421 68.7705 61.9585ZM41.01 29.3088C49.3587 31.8482 57.8952 32.8664 64.2221 30.9677C72.6454 27.5628 77.1756 23.433 76.3687 19.9093C76.0145 18.3497 74.519 16.8043 72.175 15.5606C67.9223 13.3055 60.4579 11.9859 54.1238 14.4222C49.4013 15.9444 44.0348 22.1371 41.01 29.3088Z';
 
 const INPUT_BORDER_RADIUS = 3;
 
@@ -67,7 +66,7 @@ export function formBackground(config) {
   return `radial-gradient(circle, ${hexToRgba(c, 0.07)} 10%, ${hexToRgba(c, 0.8)} 90%, ${hexToRgba(c, 1)} 100%)`;
 }
 
-function buildInput(declaration, prefill) {
+function buildInput(declaration, prefill, config = {}) {
   let input;
   switch (declaration.type) {
     case 'multiline':
@@ -92,6 +91,11 @@ function buildInput(declaration, prefill) {
       input = document.createElement('input');
       input.type = 'date';
       break;
+    case 'phone':
+      input = document.createElement('input');
+      input.type = 'tel';
+      input.setAttribute('maxlength', '80');
+      break;
     default:
       input = document.createElement('input');
       input.type = 'text';
@@ -102,7 +106,10 @@ function buildInput(declaration, prefill) {
   input.placeholder = `${declaration.label || ''} `;
   input.setAttribute('aria-label', declaration.label || token);
   if (declaration.required) input.required = true;
-  input.style.borderRadius = `${INPUT_BORDER_RADIUS}px`;
+  input.style.borderRadius = `${Number(config.inputBorderRadius ?? INPUT_BORDER_RADIUS)}px`;
+  if (config.inputBackground) input.style.background = config.inputBackground;
+  if (config.inputFontColor) input.style.color = config.inputFontColor;
+  if (config.inputBorderColor) input.style.border = `1px solid ${config.inputBorderColor}`;
   if (prefill?.[token]) input.value = prefill[token];
   return input;
 }
@@ -197,7 +204,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   const inputWrapper = document.createElement('div');
   inputWrapper.className = 'input-wrapper';
   const elements = (config.elements || []).slice(0, 5);
-  elements.forEach((d) => inputWrapper.appendChild(buildInput(d, prefill)));
+  elements.forEach((d) => inputWrapper.appendChild(buildInput(d, prefill, config)));
   Object.assign(inputWrapper.style, { display: 'flex', justifyContent: 'space-between', flexGrow: '4', marginRight: '0.5em', color: '#000000' });
 
   const buttonsInner = document.createElement('div');
@@ -215,6 +222,8 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     color: config.buttonFontColor || '#ffffff',
   });
   if (config.btnBottomBorder && config.btnBottomBorder !== 'none') submitButton.style.borderBottom = `1px solid ${config.btnBottomBorder}`;
+  form.style.setProperty('--optin-btn-bg', config.buttonBackground || '#eb5054');
+  form.style.setProperty('--optin-btn-hover', config.buttonHoverColor || config.buttonBackground || '#eb5054');
   buttonsInner.appendChild(submitButton);
 
   const wrapperContainer = document.createElement('div');
@@ -278,46 +287,84 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   return form;
 }
 
-/** Upstream red-arrow hint: header, "Fill out your <fields>", "Click <btn>", description. */
+/**
+ * Pointer hint: an arrow (any design in ./pointerDesigns.js, any colour) and
+ * the bubble — header, "Fill out your <fields>", "Click <btn>", description.
+ * Upstream hard-coded the red curly arrow and the dark bubble; here the
+ * design, colours, size, corner and mirroring are options. Returns null when
+ * the pointer is turned off.
+ */
 export function buildArrowHint(config) {
+  if (config.pointerEnabled === false) return null;
+  const design = getPointerDesign(config.pointerStyle);
+  const pos = ['bottom-right', 'bottom-left', 'top-right', 'top-left'].includes(config.hintPosition) ? config.hintPosition : 'bottom-right';
   const overlay = document.createElement('div');
-  overlay.className = 'overlay-arrow on';
+  overlay.className = `overlay-arrow on hint-pos-${pos}${design.animated ? ' pointer-animated' : ''}`;
+  overlay.dataset.pointer = design.id;
+  const color = safeColor(config.pointerColor);
+  overlay.style.setProperty('--arrow-scale', String((Number(config.pointerSize) || 100) / 100));
+  const svg = pointerSvg(design.id, color);
+  const bubbleBg = hexToRgba(safeColor(config.hintBackground, '#17171c'), 0.9) || '#17171c';
   overlay.innerHTML = `
-    <svg class="arrow-image" width="129" height="72" viewBox="0 0 129 72" fill="none" aria-hidden="true"><path d="${ARROW_PATH}" fill="#EB5054"/></svg>
+    ${svg ? `<svg class="arrow-image" width="129" height="72" viewBox="0 0 129 72" fill="none" aria-hidden="true">${svg}</svg>` : ''}
     <div class="container-hint">
       <h3 class="title-hint">${esc(config.popupHeaderText)}</h3>
       <p class="container-fill-out"><span class="fill-out">${esc(config.popupFillOutText)}</span>${(config.elements || []).map((e) => `<span class="element-field">${esc(e.label)}</span>`).join('')}</p>
       <p class="try-now-hint">${esc(config.popupClickText)} <span class="btn-form-name">${esc(config.btnText ?? 'Play')}</span></p>
       <p class="experience-hint">${esc(config.popupDescriptionText)}</p>
     </div>`;
+  const bubble = overlay.querySelector('.container-hint');
+  bubble.style.background = bubbleBg;
+  bubble.style.borderColor = safeColor(config.hintBorderColor, '#575773');
+  bubble.style.color = safeColor(config.hintTextColor, '#ffffff');
+  bubble.style.borderRadius = `${Math.max(0, Number(config.hintRadius ?? 12))}px`;
   return overlay;
 }
 
+/** Backdrop behind the form: a registration wall hides the video (100%). */
+export function backdropStyle(config, { preview = false } = {}) {
+  const color = safeColor(config.backdropColor, '#3e3e51');
+  let opacity = Number(config.backdropOpacity ?? 67);
+  if (!Number.isFinite(opacity)) opacity = 67;
+  // While editing, keep the video visible behind the form so it can be styled.
+  if (preview) opacity = Math.min(opacity, 67);
+  return hexToRgba(color, Math.max(0, Math.min(100, opacity)) / 100) || color;
+}
+
 /**
- * Show the List Builder / Personalizer over the video.
+ * Show the opt-in form (List Builder / Personalizer / Lead Generator) over
+ * the video — the one renderer for all three.
  * onSubmit(data) resolves to a status message (or throws); onSkip() fires
- * from the Skip button. The arrow hint hides after 5s or on click, as upstream.
+ * from the Skip button. The pointer hides after `hintDuration` seconds
+ * (default 5, as upstream; 0 = stays until clicked) or on click.
+ * Options: prefill, preview (editor: see-through backdrop).
  */
-export function showListBuilderOverlay(layer, config, { onSubmit, onSkip, prefill = {} } = {}) {
-  clearOverlay(layer, 'list-builder');
+export function showOptinOverlay(layer, config, { onSubmit, onSkip, prefill = {}, preview = false, name = 'list-builder' } = {}) {
+  clearOverlay(layer, name);
   const wrap = document.createElement('div');
   wrap.className = 'addon-overlay addon-overlay--optin';
-  wrap.dataset.overlay = 'list-builder';
+  wrap.dataset.overlay = name;
+  wrap.dataset.kind = config.kind || 'list-builder';
   wrap.setAttribute('role', 'dialog');
   wrap.setAttribute('aria-label', config.caption || 'Sign up');
+  wrap.style.background = backdropStyle(config, { preview });
   const compact = (layer.clientWidth || 1000) < 480;
   const form = buildOptinForm(config, { prefill, compact });
   wrap.appendChild(form);
 
   const hint = buildArrowHint(config);
-  wrap.appendChild(hint);
-  const hideHint = (e) => {
-    e?.stopPropagation?.();
-    hint.classList.remove('on');
-    hint.classList.add('off');
-  };
-  hint.addEventListener('click', hideHint, { once: true });
-  const hintTimer = setTimeout(hideHint, 5000);
+  let hintTimer;
+  if (hint) {
+    wrap.appendChild(hint);
+    const hideHint = (e) => {
+      e?.stopPropagation?.();
+      hint.classList.remove('on');
+      hint.classList.add('off');
+    };
+    hint.addEventListener('click', hideHint, { once: true });
+    const seconds = Number(config.hintDuration ?? 5);
+    if (seconds > 0) hintTimer = setTimeout(hideHint, seconds * 1000);
+  }
 
   form.querySelector('.skip-button')?.addEventListener('click', () => {
     clearTimeout(hintTimer);
@@ -327,9 +374,16 @@ export function showListBuilderOverlay(layer, config, { onSubmit, onSkip, prefil
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const status = form.querySelector('.addon-optin__status');
+    // Whitespace-only answers don't count for required fields.
+    const blank = Array.from(form.elements).find((el) => el.required && !String(el.value || '').trim());
+    if (blank) {
+      status.textContent = 'Please complete all fields.';
+      blank.focus?.({ preventScroll: true });
+      return;
+    }
     const data = Object.fromEntries(new FormData(form).entries());
     const btn = form.querySelector('button[type="submit"]');
-    const status = form.querySelector('.addon-optin__status');
     btn.disabled = true;
     try {
       const message = await onSubmit?.(data);
@@ -344,3 +398,6 @@ export function showListBuilderOverlay(layer, config, { onSubmit, onSkip, prefil
   layer.appendChild(wrap);
   return wrap;
 }
+
+/** Back-compat name for the project-level List Builder / Personalizer. */
+export const showListBuilderOverlay = showOptinOverlay;

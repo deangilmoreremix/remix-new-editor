@@ -79,7 +79,7 @@ describe('End Screen and Connect Form templates', () => {
     await vi.waitFor(() => expect(createEngine).toHaveBeenCalled());
     expect(win.el.querySelectorAll('.tpl-win__item')).toHaveLength(CONNECT_FORMS.length);
     win.el.querySelector('[data-tpl="cf-quote"]').click();
-    await vi.waitFor(() => expect(win.el.querySelector('.tpl-win__layer .wf-card')).toBeTruthy());
+    await vi.waitFor(() => expect(win.el.querySelector('.tpl-win__layer .addon-overlay--optin')).toBeTruthy());
     win.el.querySelector('.tpl-win__use').click();
     expect(onUse).toHaveBeenCalledWith(expect.objectContaining({ id: 'cf-quote' }), TEMPLATE_LIBRARIES.connect);
     expect(document.querySelector('.tpl-win')).toBeNull();

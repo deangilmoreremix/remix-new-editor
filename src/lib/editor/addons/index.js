@@ -2,9 +2,9 @@ export { registerAddon, getAddon, isAddonType, listAddons, createAddonClip, clip
 export { INTERACTIVE_ADDONS, PROJECT_FORMS, PAUSE, LOOP, SKIP, LEAD_FORM, CTA_BUTTON } from './interactiveAddons.js';
 export { AddonRuntime } from './runtime.js';
 export { renderAddonEditor, getPath, setPath } from './addonEditor.js';
-export { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, buildOptinForm, buildArrowHint, formBackground } from './addonOverlay.js';
+export { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, showOptinOverlay, backdropStyle, buildOptinForm, buildArrowHint, formBackground } from './addonOverlay.js';
 export {
-  defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile, LIST_BUILDER_KINDS, FORM_FIELD_TYPES, FORM_TRANSITIONS, fieldToken,
+  defaultOptin, defaultListBuilder, normalizeListBuilder, listBuilderFields, leadFormToOptin, applyOptinToLeadForm, LEAD_FIELD_TYPES, OPTIN_KINDS, POINTER_DEFAULTS, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile, LIST_BUILDER_KINDS, FORM_FIELD_TYPES, FORM_TRANSITIONS, fieldToken,
 } from './listBuilder.js';
 export {
   submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
@@ -29,3 +29,4 @@ export { ctaTarget, COUNTRY_CODES } from './ctaLink.js';
 export { BLEND_CATEGORIES, BLEND_ITEMS, blendItemToAddon, getBlendItem, blendThumbStyle, validateBlendLibrary } from './blendLibrary.js';
 export { END_SCREENS, CONNECT_FORMS, TEMPLATE_LIBRARIES, getTemplate, templateToPreset, templateStart, templatePreviewProject, unknownTemplateTypes } from './templateLibrary.js';
 export { openTemplateWindow } from './templateWindow.js';
+export { POINTER_DESIGNS, POINTER_THEMES, HINT_POSITIONS, pointerSvg, getPointerDesign } from './pointerDesigns.js';

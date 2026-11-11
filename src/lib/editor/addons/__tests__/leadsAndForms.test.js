@@ -61,7 +61,7 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
       btnBottomBorder: '#eb5054', innerWidth: 65, captionFontSize: 76, fontSize: 60,
       popupHeaderText: 'Create your very own personalized video', popupFillOutText: 'Fill out your',
     });
-    expect(lb.elements).toEqual([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email' }]);
+    expect(lb.elements).toEqual([{ id: 0, label: 'Email', token: 'EMAIL', type: 'email', required: true }]);
   });
 
   it('Personalizer uses DEFAULT_OPTIONS_OPTIN and hides integrations / disclaimer', () => {
@@ -70,7 +70,7 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
     expect(p.elements.map((e) => e.token)).toEqual(['EMAIL', 'FIRST NAME', 'LAST NAME']);
     const tabs = new Set(listBuilderFields(p).map((f) => f.tab));
     expect(tabs.has('Integrations')).toBe(false);
-    expect(new Set(listBuilderFields(defaultListBuilder()).map((f) => f.tab))).toEqual(new Set(['Styles', 'Fields', 'Integrations']));
+    expect(new Set(listBuilderFields(defaultListBuilder()).map((f) => f.tab))).toEqual(new Set(['Styles', 'Fields', 'Pointer', 'Integrations']));
   });
 
   it('switching kind keeps enabled and swaps defaults', () => {
@@ -165,7 +165,7 @@ describe('schema settings editor', () => {
     const onChange = vi.fn();
     const lb = defaultListBuilder();
     renderAddonEditor(box, { options: lb, fieldsFor: listBuilderFields, onChange });
-    expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Styles', 'Fields', 'Integrations']);
+    expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Styles', 'Fields', 'Pointer', 'Integrations']);
     box.querySelector('[data-addon-tab="Fields"]').click();
     box.querySelector('.addon-fieldlist__add').click();
     let next = onChange.mock.calls.at(-1)[0];

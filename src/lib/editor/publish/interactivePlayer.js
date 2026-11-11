@@ -10,7 +10,8 @@
 import '../addons/index.js'; // registers the addon descriptors the runtime reads
 import { AddonRuntime } from '../addons/runtime.js';
 import { clipTimeRange } from '../addons/registry.js';
-import { ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay } from '../addons/addonOverlay.js';
+import { ensureOverlayLayer, clearOverlay, showPauseOverlay, showOptinOverlay } from '../addons/addonOverlay.js';
+import { normalizeListBuilder } from '../addons/listBuilder.js';
 import { addonOptions } from '../addons/registry.js';
 import { timelineToComposition } from '../remotion/timelineToComposition.js';
 import { showLeadForm, ctaElement, linkBoxElement } from './viewerOverlays.js';
@@ -48,12 +49,22 @@ export { profileWithAnswers };
  *   onLead({ clipId, kind, data }) → Promise<{ stored, error }>
  *   onChange({ playing, time, duration })
  *   voiceFor(clip, profile) → Promise<url|null>   personalized Smart Speech audio
+ *   rememberKey    id used to remember (in this browser) that the viewer already
+ *                  filled in the List Builder, so they aren't asked again
  *   fps
  */
-export function createInteractivePlayer({ project, stage, frame, createEngine, profile = null, onLead, onChange, voiceFor, fps = 30 }) {
+export function createInteractivePlayer({ project, stage, frame, createEngine, profile = null, onLead, onChange, voiceFor, rememberKey = null, fps = 30 }) {
   const T = Number(project.timelineSeconds) || 60;
   const clips = (project.tracks || []).flatMap((t) => t.items || t.clips || []);
-  const listBuilder = project.listBuilder ? { ...project.listBuilder } : null;
+  const listBuilder = project.listBuilder ? normalizeListBuilder({ ...project.listBuilder }) : null;
+  // A returning viewer who already filled the form in doesn't get the wall again.
+  const storeKey = rememberKey ? `remix-optin:${rememberKey}` : null;
+  if (listBuilder?.enabled && storeKey && !listBuilder.askEveryVisit) {
+    try { if (globalThis.localStorage?.getItem(storeKey) === '1') listBuilder._submitted = true; } catch { /* storage blocked */ }
+  }
+  // The List Builder is a registration wall: until it is submitted the video
+  // engine isn't even created, so nothing can load or play behind the form.
+  const wallUp = () => !!(listBuilder?.enabled && !listBuilder._submitted);
   const runtime = new AddonRuntime();
   const layer = ensureOverlayLayer(frame);
   layer.classList.add('wf-layer');
@@ -98,7 +109,8 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     });
   }
 
-  const engine = createEngine(stage, {
+  let engine = null;
+  const makeEngine = () => createEngine(stage, {
     model,
     onFrame: (f) => {
       if (destroyed) return;
@@ -117,16 +129,18 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     onReady: () => engine?.seekToFrame?.(Math.round(time * fps)),
     onError: (err) => console.warn('[watch] playback error', err),
   });
+  const ensureEngine = () => { if (!engine) engine = makeEngine(); return engine; };
+  if (!wallUp()) ensureEngine();
 
   function seekEngine(sec) {
     time = Math.max(0, Math.min(T, sec));
-    engine.seekToFrame(Math.round(time * fps));
+    engine?.seekToFrame(Math.round(time * fps));
     updateInteractive(time);
   }
 
   function pauseInternal() {
     playing = false;
-    engine.pause();
+    engine?.pause();
     emit();
   }
 
@@ -163,7 +177,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   function applyAnswers(data) {
     currentProfile = profileWithAnswers(currentProfile, data);
     model = buildViewerModel(voicedProject(), currentProfile, { fps });
-    engine.update(model);
+    engine?.update(model);
     loadVoices();
   }
 
@@ -188,33 +202,36 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   function openListBuilder() {
     gateOpen = true;
     const prefill = currentProfile?.variables || {};
-    showListBuilderOverlay(layer, listBuilder, {
+    showOptinOverlay(layer, listBuilder, {
       prefill,
-      onSkip: () => { gateOpen = false; play(); },
+      onSkip: () => { gateOpen = false; ensureEngine(); play(); },
       onSubmit: async (data) => {
         await onLead?.({ clipId: 'list-builder', kind: listBuilder.kind === 'personalizer' ? 'personalizer' : 'list-builder', data });
         listBuilder._submitted = true;
+        if (storeKey) { try { globalThis.localStorage?.setItem(storeKey, '1'); } catch { /* storage blocked */ } }
         applyAnswers(data);
         gateOpen = false;
-        play();
+        play(); // creates the engine now that the viewer is through the wall
         return '';
       },
     });
   }
 
   function play() {
-    if (destroyed || gateOpen) return;
+    if (destroyed) return;
+    if (gateOpen) { emit(); return; }
     clearTimeout(resumeTimer);
     clearOverlay(layer, 'pause-continue');
     if (time >= T - 0.05) seek(0);
     playing = true;
     // A List Builder at the very start gates before the first frame.
     if (apply(runtime.tick(time, time, { clips, timelineSeconds: T, listBuilder }))) return;
-    engine.play();
+    ensureEngine().play();
     emit();
   }
 
   function seek(sec) {
+    if (gateOpen) return; // no scrubbing past an open form
     clearTimeout(resumeTimer);
     seekEngine(sec);
     runtime.handleSeek(time, clips, T);
@@ -235,13 +252,18 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
         if (!url || destroyed) return;
         voices.set(String(clip.id), url);
         model = buildViewerModel(voicedProject(), currentProfile, { fps });
-        engine.update(model);
+        engine?.update(model);
       }).catch(() => {});
     });
   }
   loadVoices();
 
   updateInteractive(0);
+  if (wallUp()) {
+    runtime.listBuilderShown = true;
+    runtime.lastTime = 0;
+    openListBuilder();
+  }
   return {
     play,
     pause: () => { clearTimeout(resumeTimer); pauseInternal(); },
@@ -255,7 +277,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
     destroy() {
       destroyed = true;
       clearTimeout(resumeTimer);
-      engine.destroy?.();
+      engine?.destroy?.();
       layer.remove();
     },
   };
