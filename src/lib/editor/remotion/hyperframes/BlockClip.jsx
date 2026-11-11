@@ -1,3 +1,4 @@
+/* global DOMParser, queueMicrotask */
 /**
  * BlockClip: runs an UNMODIFIED HyperFrames registry block (a standalone HTML document) inside a
  * Remotion composition and seeks it from Remotion's frame clock.
@@ -376,8 +377,7 @@ export function createScope(host) {
     addEventListener: (t, cb, o) => { if (t === 'load') return fire(cb); window.addEventListener(t, cb, o); cleanups.push(() => window.removeEventListener(t, cb, o)); },
     removeEventListener: (t, cb, o) => window.removeEventListener(t, cb, o),
   };
-  let winProxy;
-  winProxy = new Proxy(window, {
+  const winProxy = new Proxy(window, {
     get: (t, p) => { if (p === 'window' || p === 'self' || p === 'globalThis' || p === 'top' || p === 'parent') return winProxy; if (p in store) return store[p]; if (p in winOverrides) return winOverrides[p]; const v = Reflect.get(t, p, t); return typeof v === 'function' && !/^[A-Z]/.test(String(p)) ? v.bind(t) : v; },
     set: (t, p, v) => { store[p] = v; return true; },
     has: () => true,

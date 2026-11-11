@@ -47,6 +47,7 @@ export function validateAssetUrl(input, { allowHosts = [], allowFontHosts = fals
 }
 
 export const validateColor = (v) => typeof v === 'string' && v.length <= 80 && (/^#[0-9a-f]{3,8}$/i.test(v.trim()) || /^(rgb|hsl)a?\(\s*[-\d.%\s,/]+\)$/i.test(v.trim()) || /^[a-z]{3,20}$/i.test(v.trim()));
+// eslint-disable-next-line no-control-regex -- stripping control characters is the point of this function
 export const sanitizeText = (v, max = 200) => (typeof v === 'string' ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').slice(0, max) : null);
 
 const STYLE_ALLOW = {
