@@ -17,6 +17,7 @@ import { validateAssetUrl, stripUnsafeAttributes, validateOverrides } from './se
 import { applyOverrides, stampHfIds } from './overrides.js';
 import { patchConfig } from './config.js';
 import { parseVariableDecls, resolveVariables, bindVariables } from './variables.js';
+import { normalizeRel, computeWindows, childTime, instanceOverrides } from './nested.js';
 
 let cdnMapPromise;
 export const HF_BASE = '/hyperframes/blocks';
@@ -77,12 +78,12 @@ export function applyInsetBars(host, bars) {
  * /blocks/. Only plain relative paths are touched (no scheme, no leading slash, no `..`).
  */
 export const stats = { rebased: 0 };
-export const rebaseUrl = (u) => (/^(?:[a-z][a-z0-9+.-]*:|\/|#)/i.test(u) || u.split('/').includes('..') ? u : `${HF_BASE}/${u.replace(/^\.\//, '')}`);
-export const rebaseCssUrls = (css) => css.replace(/url\(\s*(['"]?)([^)'"]+)\1\s*\)/g, (_, q, u) => `url(${q}${rebaseUrl(u.trim())}${q})`);
+export const rebaseUrl = (u, base = HF_BASE) => (/^(?:[a-z][a-z0-9+.-]*:|\/|#)/i.test(u) || u.split('/').includes('..') ? u : `${base}/${u.replace(/^\.\//, '')}`);
+export const rebaseCssUrls = (css, base = HF_BASE) => css.replace(/url\(\s*(['"]?)([^)'"]+)\1\s*\)/g, (_, q, u) => `url(${q}${rebaseUrl(u.trim(), base)}${q})`);
 /** The sandbox frames' CSP only allows fonts from fonts.gstatic.com and data:, so a block's own vendored font files are inlined as data: URLs
  *  (sha256 of the block bundle is already verified; only files under this block bundle and font extensions are read, 3 MB cap). */
 export async function inlineBlockFonts(css) {
-  const re = /url\(\s*(['"]?)(\/hyperframes\/blocks\/[^)'"]+\.(?:woff2?|ttf|otf))\1\s*\)/gi;
+  const re = /url\(\s*(['"]?)(\/hyperframes\/[^)'"]+\.(?:woff2?|ttf|otf))\1\s*\)/gi;
   const found = [...new Set([...css.matchAll(re)].map((m) => m[2]))];
   const data = {};
   await Promise.all(found.map(async (u) => {
@@ -95,18 +96,18 @@ export async function inlineBlockFonts(css) {
   }));
   return css.replace(re, (all, q, u) => (data[u] ? `url(${q}${data[u]}${q})` : all));
 }
-export function rebaseElementUrls(root) {
+export function rebaseElementUrls(root, base = HF_BASE) {
   for (const el of root.querySelectorAll('[src],[poster],[href],image')) {
     for (const a of ['src', 'poster', 'href', 'xlink:href']) {
       const v = el.getAttribute(a); if (!v || /^<|\s/.test(v)) continue;
       if (a === 'src' || a === 'poster') { // asset policy: relative, blob:, small data images, allow-listed https only
         const chk = validateAssetUrl(v, { allowHosts: allowHosts, allowSvgData: true });
-        if (!chk.ok && !v.startsWith(HF_BASE + '/')) { el.setAttribute(a, ''); report('blocked-url', a, `${chk.reason}: ${v.slice(0, 60)}`); continue; }
+        if (!chk.ok && !v.startsWith(base + '/')) { el.setAttribute(a, ''); report('blocked-url', a, `${chk.reason}: ${v.slice(0, 60)}`); continue; }
       }
-      const r = rebaseUrl(v); if (r !== v) { el.setAttribute(a, r); stats.rebased++; }
+      const r = rebaseUrl(v, base); if (r !== v) { el.setAttribute(a, r); stats.rebased++; }
     }
   }
-  for (const el of root.querySelectorAll('[style*="url("]')) el.setAttribute('style', rebaseCssUrls(el.getAttribute('style')));
+  for (const el of root.querySelectorAll('[style*="url("]')) el.setAttribute('style', rebaseCssUrls(el.getAttribute('style'), base));
 }
 
 /**
@@ -390,7 +391,7 @@ export function createScope(host) {
   return { run, store, dispose: () => { cleanups.splice(0).forEach((f) => f()); } };
 }
 
-async function runScripts(doc, name, scope, cfg = {}) {
+async function runScripts(doc, name, scope, cfg = {}, base = HF_BASE) {
   let cfgUsed = false;
   const map = await cdnMap();
   for (const s of doc.querySelectorAll('script')) {
@@ -403,7 +404,7 @@ async function runScripts(doc, name, scope, cfg = {}) {
       // Remote script URLs are never fetched: only the vendored copies (setup-blocks.mjs) or the block's own folder.
       const local = /^https?:/.test(src) ? map[src] : src;
       if (!local || local.includes('..') || /^[a-z][a-z0-9+.-]*:/i.test(local)) { report('blocked-script', src, 'not vendored'); continue; }
-      try { code = await (await fetch(`${HF_BASE}/${local}`)).text(); } catch (e) { report('fetch', src, e); continue; }
+      try { code = await (await fetch(`${base}/${local}`)).text(); } catch (e) { report('fetch', src, e); continue; }
     } else { code = s.textContent; label = `${name}#inline`; }
     if (Object.keys(cfg).length && !cfgUsed) { const patched = patchConfig(code, cfg); if (patched !== null) { code = patched; cfgUsed = true; } }
     try { scope.run(code, label); } catch (e) { report('script', label, e); }
@@ -422,6 +423,16 @@ const applyClipVisibility = (host, t) => {
   }
 };
 
+/** Nested projects use absolute windows (parent starts add up); plain blocks keep the original flat rule so verified blocks are unaffected. */
+const applyVisibility = (host, t, wins) => {
+  if (!wins) return applyClipVisibility(host, t);
+  for (const w of wins) {
+    if (w.error || w.el === host) continue;
+    const end = Number.isFinite(w.duration) ? w.absStart + w.duration : Infinity;
+    w.el.classList.toggle('hf-hidden', !(t >= w.absStart - 1e-6 && t < end));
+  }
+};
+
 const BLOCK_ID = /^[a-z0-9][a-z0-9-]{0,80}$/;
 const sha256Hex = async (buf) => { const d = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); };
 
@@ -429,7 +440,7 @@ const sha256Hex = async (buf) => { const d = await crypto.subtle.digest('SHA-256
 /** Catalog components (and some blocks) follow the "mount contract": the composition id / variables / duration sit on <html> and the
  *  fragment lives in a <template> that a host clones into a full-frame box. Mounting it here equals a full-frame host composition. */
 export function unwrapTemplate(doc, width, height) {
-  const tpl = [...doc.body.children].find((c) => c.tagName === 'TEMPLATE');
+  const tpl = [...doc.head.children, ...doc.body.children].find((c) => c.tagName === 'TEMPLATE');
   const html = doc.documentElement; const id = html.getAttribute('data-composition-id');
   if (!tpl || doc.body.querySelector('[data-composition-id]')) return false;
   if (!id) { // the composition root itself sits inside the template: mount its content as the body
@@ -447,7 +458,7 @@ export function unwrapTemplate(doc, width, height) {
   return true;
 }
 
-export function BlockClip({ name, width, height, overrides, expectedSha256 }) {
+export function BlockClip({ name, width, height, overrides, expectedSha256, project }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const host = useRef(null);
@@ -463,54 +474,114 @@ export function BlockClip({ name, width, height, overrides, expectedSha256 }) {
     (async () => {
       try {
         if (!BLOCK_ID.test(String(name))) { report('refused', String(name).slice(0, 40), 'invalid block id'); return; }
-        const res = await fetch(`${HF_BASE}/${encodeURIComponent(name)}.html`);
-        if (!res.ok) { report('fetch', name, `HTTP ${res.status}`); return; }
-        const bytes = await res.arrayBuffer();
-        if (expectedSha256) {
-          if (!globalThis.crypto?.subtle) { report('refused', name, 'integrity check unavailable (no crypto.subtle)'); return; }
-          if ((await sha256Hex(bytes)) !== expectedSha256) { report('refused', name, 'source does not match the pinned sha256'); return; }
-        }
-        const html = new TextDecoder().decode(bytes);
+        const base = project ? `${HF_BASE}/${project.dir}` : HF_BASE;
+        const pinned = async (url, sha, label) => { // fetch one file and verify it against its pinned sha256 (fail closed)
+          const res = await fetch(url);
+          if (!res.ok) { report('fetch', label, `HTTP ${res.status}`); return null; }
+          const bytes = await res.arrayBuffer();
+          if (sha) {
+            if (!globalThis.crypto?.subtle) { report('refused', label, 'integrity check unavailable (no crypto.subtle)'); return null; }
+            if ((await sha256Hex(bytes)) !== sha) { report('refused', label, 'source does not match the pinned sha256'); return null; }
+          }
+          return new TextDecoder().decode(bytes);
+        };
+        let html;
+        if (project?.hostHtml) html = project.hostHtml; // generated host composition (components): built in code from validated values only
+        else html = await pinned(project ? `${base}/${project.entry}` : `${HF_BASE}/${encodeURIComponent(name)}.html`, project ? project.files?.[project.entry] : expectedSha256, name);
+        if (html === null) return;
         const doc = new DOMParser().parseFromString(html, 'text/html');
         unwrapTemplate(doc, width, height);
         stampHfIds(doc.body);
-        const css = await inlineBlockFonts([...doc.querySelectorAll('style')].map((s) => rebaseCssUrls(scopeCss(s.textContent))).join('\n'));
-        state.current.bars = extractInsetBars(css);
-        el.innerHTML = `<style>.hf-hidden{visibility:hidden!important}${css}</style>`;
+        const cleanedOv = validateOverrides(overrides || {}, { allowHosts }).cleaned;
+        let css = [...doc.querySelectorAll('style')].map((s) => rebaseCssUrls(scopeCss(s.textContent), base)).join('\n');
+        el.innerHTML = '';
         for (const l of doc.querySelectorAll('link[rel=stylesheet]')) el.appendChild(l.cloneNode());
         doc.querySelectorAll('img,image,source').forEach((x) => x.tagName.toLowerCase() === 'image' ? null : x.setAttribute('crossorigin', 'anonymous'));
         for (const n of doc.body.childNodes) if (n.nodeName !== 'SCRIPT') el.appendChild(document.importNode(n, true));
         el.querySelectorAll('script').forEach((x) => x.remove()); // scripts run from the parsed source below, never from the mounted DOM
         stripUnsafeAttributes(el);
         if (overrides) applyOverrides(el, overrides, { allowHosts, onReject: (r) => report('override-rejected', name, r.map((x) => `${x.key}: ${x.reason}`).join('; ')) });
-        rebaseElementUrls(el);
-        convertVideos(el);
-        // Script-built nodes (innerHTML from block scripts) get the same relative-URL rebasing.
-        const rebaseNode = (n) => { if (n.nodeType !== 1) return; for (const im of (n.tagName === 'IMG' ? [n] : n.querySelectorAll?.('img') || [])) if (!im.crossOrigin) im.crossOrigin = 'anonymous'; for (const a of ['src', 'poster', 'href']) { const v = n.getAttribute(a); if (v && !/^<|\s/.test(v)) { const r = rebaseUrl(v); if (r !== v) n.setAttribute(a, r); } } rebaseElementUrls(n); };
-        observer = new MutationObserver((muts) => { for (const m of muts) { if (m.type === 'attributes') rebaseNode(m.target); else for (const n of m.addedNodes) rebaseNode(n); } });
-        observer.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'poster', 'href'] });
+        rebaseElementUrls(el, base);
         const root = el.querySelector('[data-composition-id]');
         const id = root?.getAttribute('data-composition-id');
         const scope = createScope(el); scope.store.gsap = gsap; state.current.scope = scope;
-        const cleanedOv = validateOverrides(overrides || {}, { allowHosts }).cleaned;
         const varValues = resolveVariables(parseVariableDecls(root), cleanedOv, { allowHosts, onReject: (r) => report('override-rejected', name, `${r.key}: ${r.reason}`) });
-        scope.store.__hyperframes = { getVariables: () => ({ ...varValues }) };
         bindVariables(el, varValues);
-        const fams = fontFamiliesIn(css + ' ' + [...doc.querySelectorAll('[style]')].map((n) => n.getAttribute('style')).join(';'));
+        // ---- nested compositions (data-composition-src): fetched from the pinned file map only, mounted into their host clip ----
+        const jobs = [{ code: doc, name, vars: varValues, cfg: Object.fromEntries(Object.entries(cleanedOv).filter(([k]) => k.startsWith('cfg.'))) }];
+        const childIds = [];
+        let loaded = 0;
+        const loadNested = async (container, depth) => {
+          for (const hostEl of [...container.querySelectorAll('[data-composition-src]')]) {
+            if (hostEl.hasAttribute('data-hf-loaded')) continue;
+            hostEl.setAttribute('data-hf-loaded', '1');
+            if (depth >= 4 || ++loaded > 60) { report('refused', name, 'nested compositions: depth or count limit reached'); continue; }
+            const rel = normalizeRel(hostEl.getAttribute('data-composition-src'));
+            if (!project || !rel) { report('refused', name, `nested composition path not allowed: ${String(hostEl.getAttribute('data-composition-src')).slice(0, 80)}`); continue; }
+            const sha = project.files?.[rel];
+            if (!sha) { report('refused', name, `nested file "${rel}" is not in the pinned file list`); continue; }
+            const text = await pinned(`${base}/${rel}`, sha, rel); if (text === null) continue;
+            const cdoc = new DOMParser().parseFromString(text, 'text/html');
+            const tpl = [...cdoc.head.children, ...cdoc.body.children].find((c) => c.tagName === 'TEMPLATE');
+            const frag = document.createDocumentFragment();
+            for (const n of (tpl ? [...tpl.content.childNodes] : [...cdoc.body.childNodes])) frag.appendChild(document.importNode(n, true));
+            const cid = hostEl.getAttribute('data-composition-id') || cdoc.documentElement.getAttribute('data-composition-id') || frag.querySelector?.('[data-composition-id]')?.getAttribute('data-composition-id');
+            const declHost = frag.querySelector('[data-composition-variables]') || cdoc.documentElement;
+            const inst = { ...instanceOverrides(hostEl), ...Object.fromEntries(Object.entries(cleanedOv).filter(([k]) => k.startsWith(`ivar.${hostEl.id || cid}.`)).map(([k, v]) => [`var.${k.split('.').slice(2).join('.')}`, v])) };
+            const vals = resolveVariables(parseVariableDecls(declHost), inst, { allowHosts, onReject: (r) => report('override-rejected', name, `${rel}: ${r.key}: ${r.reason}`) });
+            const childCss = [...frag.querySelectorAll('style')].map((st) => { const t = rebaseCssUrls(scopeCss(st.textContent), base); st.remove(); return t; }).join('\n');
+            css += '\n' + childCss;
+            for (const l of frag.querySelectorAll('link[rel=stylesheet]')) { el.appendChild(l.cloneNode()); l.remove(); }
+            frag.querySelectorAll('img,source').forEach((x) => x.setAttribute('crossorigin', 'anonymous'));
+            const scripts = document.createDocumentFragment(); for (const sc of [...frag.querySelectorAll('script')]) { scripts.appendChild(sc); }
+            hostEl.replaceChildren(frag);
+            stripUnsafeAttributes(hostEl); rebaseElementUrls(hostEl, base); bindVariables(hostEl, vals);
+            if (cid && !hostEl.hasAttribute('data-composition-id')) hostEl.setAttribute('data-composition-id', cid);
+            if (cid) childIds.push(cid);
+            jobs.push({ code: scripts, name: rel, vars: vals, cfg: {} });
+            await loadNested(hostEl, depth + 1);
+          }
+        };
+        await loadNested(el, 0);
+        css = await inlineBlockFonts(css);
+        state.current.bars = extractInsetBars(css);
+        const styleEl = document.createElement('style'); styleEl.textContent = `.hf-hidden{visibility:hidden!important}${css}`; el.prepend(styleEl);
+        convertVideos(el);
+        // Script-built nodes (innerHTML from block scripts) get the same relative-URL rebasing.
+        const rebaseNode = (n) => { if (n.nodeType !== 1) return; for (const im of (n.tagName === 'IMG' ? [n] : n.querySelectorAll?.('img') || [])) if (!im.crossOrigin) im.crossOrigin = 'anonymous'; for (const a of ['src', 'poster', 'href']) { const v = n.getAttribute(a); if (v && !/^<|\s/.test(v)) { const r = rebaseUrl(v, base); if (r !== v) n.setAttribute(a, r); } } rebaseElementUrls(n, base); };
+        observer = new MutationObserver((muts) => { for (const m of muts) { if (m.type === 'attributes') rebaseNode(m.target); else for (const n of m.addedNodes) rebaseNode(n); } });
+        observer.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'poster', 'href'] });
+        const fams = fontFamiliesIn(css + ' ' + [...el.querySelectorAll('[style]')].map((n) => n.getAttribute('style')).join(';'));
         state.current.fonts = await loadGoogleFonts(fams, el);
-        if (scriptsAllowed()) await runScripts(doc, name, scope, Object.fromEntries(Object.entries(validateOverrides(overrides || {}, { allowHosts }).cleaned).filter(([k]) => k.startsWith('cfg.')))); else report('refused', name, 'scripts not run: not in an opaque-origin sandbox');
-        let tl = null;
+        if (scriptsAllowed()) {
+          for (const j of jobs) { scope.store.__hyperframes = { getVariables: () => ({ ...j.vars }) }; await runScripts(j.code, j.name, scope, j.cfg, base); }
+        } else report('refused', name, 'scripts not run: not in an opaque-origin sandbox');
+        // ---- timelines: the root composition plus every nested composition, each seeked to its own local time ----
+        const want = [id, ...childIds].filter(Boolean);
+        const tls = {};
         for (let i = 0; i < 120 && !cancelled; i++) {
-          tl = (id && scope.store.__timelines[id]) || null;
-          if (tl) break;
+          for (const w of want) if (!tls[w] && scope.store.__timelines?.[w]) tls[w] = scope.store.__timelines[w];
+          if (want.every((w) => tls[w]) || (!project && tls[id])) break;
           await new Promise((r) => setTimeout(r, 50));
         }
-        if (!tl) report('timeline', name, 'no __timelines entry' + (root?.hasAttribute('data-no-timeline') ? ' (data-no-timeline block)' : ''));
-        else {
-          tl.pause(); state.current.tl = tl;
-          const st = await settleTimeline(tl);
-          if (!st.settled) report('timeline', name, `timeline did not settle (duration ${st.duration})`);
+        const tl = (id && tls[id]) || null;
+        if (!tl && !(project && Object.keys(tls).length)) report('timeline', name, 'no __timelines entry' + (root?.hasAttribute('data-no-timeline') ? ' (data-no-timeline block)' : ''));
+        for (const w of childIds) if (!tls[w]) report('timeline', name, `nested composition "${w}" registered no timeline`);
+        const wins = project || childIds.length ? computeWindows(root || el) : null;
+        if (wins) for (const w of wins) if (w.error) report('timeline', name, w.error);
+        const seekers = [];
+        for (const [cid, t2] of Object.entries(tls)) {
+          t2.pause(); const st = await settleTimeline(t2); if (!st.settled) report('timeline', name, `timeline "${cid}" did not settle (duration ${st.duration})`);
+          const win = cid === id ? null : (wins || []).find((w) => !w.error && (w.id === cid || w.el.getAttribute('data-composition-id') === cid));
+          seekers.push({ tl: t2, win });
         }
+        state.current.tl = tl; state.current.seekers = seekers; state.current.wins = wins;
+        state.current.seek = (t) => {
+          for (const { tl: x, win } of seekers) {
+            const lt = win ? childTime(win, t, x.duration()) : t;
+            x.totalTime(0, true); x.totalTime(lt, false);
+          }
+        };
         await Promise.all([...el.querySelectorAll('img')].map((i) => (i.decode ? i.decode().catch(() => {}) : null)));
         state.current.blurs = rasterBlurShapes(el);
         state.current.rasters = rasterRadials(el);
@@ -519,25 +590,24 @@ export function BlockClip({ name, width, height, overrides, expectedSha256 }) {
         state.current.videos = collectVideos(el);
         if (state.current.videos.length) await paintVideos(state.current.videos, frame / fps);
         state.current.ready = true;
-        // initial seek for the frame already requested
         const t = frame / fps;
-        if (tl) { tl.totalTime(0, true); tl.totalTime(t, false); }
-        applyClipVisibility(el, t);
+        state.current.seek(t);
+        applyVisibility(el, t, state.current.wins);
         applyInsetBars(el, state.current.bars || []);
       } catch (e) { report('mount', name, e); }
       finally { if (!cancelled) continueRender(handle.current); }
     })();
     return () => { cancelled = true; observer?.disconnect(); state.current.scope?.dispose(); state.current.tl?.kill?.(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, expectedSha256, JSON.stringify(overrides ?? null)]);
+  }, [name, expectedSha256, JSON.stringify(project ?? null), JSON.stringify(overrides ?? null)]);
 
   useLayoutEffect(() => {
-    const { tl, ready } = state.current;
+    const { ready } = state.current;
     if (!ready) return;
     const t = frame / fps;
-    if (tl) { tl.totalTime(0, true); tl.totalTime(t, false); }
+    state.current.seek?.(t);
     if (state.current.videos?.length) { const h = delayRender('hf-video-frame'); paintVideos(state.current.videos, t).finally(() => continueRender(h)); }
-    if (host.current) { applyClipVisibility(host.current, t); applyInsetBars(host.current, state.current.bars || []); }
+    if (host.current) { applyVisibility(host.current, t, state.current.wins); applyInsetBars(host.current, state.current.bars || []); }
   }, [frame, fps]);
 
   return <div ref={host} className="hf-host" style={{ position: 'absolute', left: 0, top: 0, width, height, overflow: 'hidden' }} />;
