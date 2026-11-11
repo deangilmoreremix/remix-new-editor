@@ -360,16 +360,20 @@ begin
    where session_id = new.id order by score desc, interest_key limit 1;
 
   if top.score is not null and top.score >= pref_threshold then
-    perform public._notify(pv.clerk_user_id, new.video_id, 'high_interest', 'High-interest viewer',
-      format('A viewing session showed strong interest in "%s" on "%s".', top.interest_key, pv.title),
+    -- Aggregated: at most one alert per video, interest and hour (a counter is
+    -- bumped for further sessions), so a busy video cannot flood the owner.
+    perform public._notify(pv.clerk_user_id, new.video_id, 'high_interest', 'High-interest viewers',
+      format('Viewing sessions showed strong interest in "%s" on "%s".', top.interest_key, pv.title),
       format('Create a follow-up about %s.', top.interest_key), top.interest_key,
-      jsonb_build_object('score', top.score, 'threshold', pref_threshold, 'type', top.interest_type, 'returning', new.is_return),
-      'hi:' || new.video_id || ':' || new.id);
+      jsonb_build_object('score', top.score, 'threshold', pref_threshold, 'type', top.interest_type, 'count', 1),
+      'hi:' || new.video_id || ':' || top.interest_key || ':' || to_char(now() at time zone 'utc', 'YYYYMMDDHH24'), true);
     if new.is_return then
+      -- One returning-viewer alert per viewer per day (a viewer reloading must not re-alert).
       perform public._notify(pv.clerk_user_id, new.video_id, 'returning_engagement', 'Returning viewer is more engaged',
         format('A returning viewer engaged again with "%s".', top.interest_key),
         'Review audience insights for this video.', top.interest_key,
-        jsonb_build_object('score', top.score), 'ret:' || new.video_id || ':' || new.id);
+        jsonb_build_object('score', top.score),
+        'ret:' || new.video_id || ':' || coalesce(new.viewer_hash, new.id::text) || ':' || to_char(now() at time zone 'utc', 'YYYYMMDD'));
     end if;
   end if;
 

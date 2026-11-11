@@ -3,6 +3,7 @@ import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
+import { isTypingTarget } from '../lib/editor/keyboard.js';
 import { renderMediaGrid, addMediaToTimeline } from '../lib/editor/mediaLibrary.js';
 import { assetStore } from '../lib/assets/assetStore.js';
 import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, openGTMPromptModal } from '../lib/uiIntegration.js';
@@ -1142,13 +1143,16 @@ export function TimelineEditorPage() {
 
     // Keyboard shortcuts for undo/redo
     function handleKeyboardShortcuts(event) {
-      if (event.key === 'Delete' || event.key === 'Backspace') {
+      // Timeline-editing shortcuts never apply while the user is typing in a field
+      // (otherwise Backspace could not edit a text box and would delete a clip).
+      const typing = isTypingTarget(event.target);
+      if (!typing && (event.key === 'Delete' || event.key === 'Backspace')) {
         event.preventDefault();
         deleteSelectedClip();
         return;
       }
       
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd') {
+      if (!typing && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd') {
         event.preventDefault();
         duplicateSelectedClip();
         return;
@@ -1175,6 +1179,7 @@ export function TimelineEditorPage() {
       if (event.ctrlKey || event.metaKey) {
         switch (event.key) {
           case 'z':
+            if (typing) break; // native undo inside text fields
             if (event.shiftKey) {
               event.preventDefault();
               if (redo(state)) renderAll();
@@ -1184,6 +1189,7 @@ export function TimelineEditorPage() {
             }
             break;
           case 'y':
+            if (typing) break;
             event.preventDefault();
             if (redo(state)) renderAll();
             break;

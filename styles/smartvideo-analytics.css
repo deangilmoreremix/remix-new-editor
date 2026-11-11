@@ -3,8 +3,8 @@
 
 /* ===== ADAPT: additions for the editor integration (supplied rules above are unchanged) ===== */
 /* Dark editor: the supplied dark theme, mapped onto the timeline design tokens. */
-.sv-analytics.sv-dark{--sv-bg:transparent;--sv-panel:var(--surface-2,#192332);--sv-panel-soft:var(--surface-3,#253143);--sv-border:var(--border,#344053);--sv-blue:var(--cyan,#3b82f6)}
-.sv-dark .sv-primary-btn{background:var(--cyan,#2563eb);color:#04121a}
+.sv-analytics.sv-dark{--sv-bg:transparent;--sv-panel:var(--surface-2,#192332);--sv-panel-soft:var(--surface-3,#253143);--sv-border:var(--border,#344053)}
+/* chart/button blue stays exactly as supplied (--sv-blue / .sv-primary-btn are not overridden) */
 .sv-dark .sv-video-preview,.sv-dark .sv-video-placeholder{background:var(--surface-3,#253143);color:var(--sv-muted)}
 /* Inside the side panel the component fills the available width. */
 .prj-tabpanel .sv-analytics{max-width:100%;padding:12px 0}
@@ -15,10 +15,14 @@
 .sv-op-icon{position:relative}
 .sv-op-unread{position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid var(--sv-panel)}
 .sv-segment{flex-wrap:wrap}
-.sv-live-preview-host{position:absolute;inset:0}
+.sv-live-preview-host{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:#000}
+.sv-live-preview-host[hidden]{display:none}
+.sv-live-preview-host .watch-frame{flex:none}
 .sv-live-preview-host .watch-stage{width:100%;height:100%}
 .sv-preview-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:100%;border:0;background:#111827aa;color:#fff;font-size:18px}
 @media(max-width:600px){.sv-segment button{padding:9px 8px}}
 .sv-live-preview-host .watch-frame{background:#000}
 .sv-video-preview .sv-live-preview-host{background:#000}
 .sv-video-preview .sv-preview-play:disabled{opacity:.7}
+/* The editor's global reset flattens heading weights; the supplied design uses the bold UA default for h1/h4. */
+.sv-analytics h1,.sv-analytics h4{font-weight:700}

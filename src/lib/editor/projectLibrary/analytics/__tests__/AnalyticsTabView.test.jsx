@@ -218,3 +218,31 @@ describe('Analytics tab: opportunities and follow-up', () => {
     expect(screen.getByRole('button', { name: /Plan personalized follow-up/ }).disabled).toBe(true);
   });
 });
+
+describe('preview teardown', () => {
+  it('destroys a player that owns a nested React root without unmounting a root mid-commit', async () => {
+    const { createRoot } = await import('react-dom/client');
+    const { mountAnalyticsTab } = await import('../mountAnalyticsTab.jsx');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const panel = document.createElement('div');
+    document.body.appendChild(panel);
+    let nested;
+    const destroy = vi.fn(() => nested.unmount());          // like previewEngine.jsx: destroy() unmounts its own React root
+    const createPlayer = vi.fn(async (host) => {
+      nested = createRoot(host);
+      nested.render(<div data-testid="engine" />);
+      return { seek: vi.fn(), play: vi.fn(), destroy };
+    });
+    const stop = mountAnalyticsTab(panel, { project: ROW }, { client: makeClient(), now: NOW, createPlayer });
+    await waitFor(() => expect(panel.textContent).toContain('Video Analytics'));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Engagement' }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Play preview' }));
+    await waitFor(() => expect(createPlayer).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 30));
+    stop();                                                  // the Projects panel changes tab
+    await new Promise((r) => setTimeout(r, 60));
+    expect(destroy).toHaveBeenCalledTimes(1);               // the player is still cleaned up...
+    expect(errors.mock.calls.flat().join(' ')).not.toMatch(/synchronously unmount/); // ...without the React error
+    errors.mockRestore();
+  });
+});

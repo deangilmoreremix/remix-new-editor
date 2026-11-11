@@ -88,3 +88,10 @@
 .prj-actions .mini-btn{flex:1}
 .prj-metrics{display:none}
 @media(max-width:640px){.prj-stat-lg b{font-size:20px}.prj-body.prj-grid{grid-template-columns:1fr}}
+/* The editor's global .primary-btn is full width; inside the Projects header it must size to its label. */
+.prj-head .prj-new{width:auto;flex:none;white-space:nowrap;margin:0}
+.prj-head{align-items:stretch}
+.prj-filter-btn{height:auto;align-self:stretch;min-height:42px}
+
+/* Touch-friendly target for the editor's panel close button (it is 24px tall by default). */
+#projectsPanel .panel-close{min-width:36px;min-height:36px}

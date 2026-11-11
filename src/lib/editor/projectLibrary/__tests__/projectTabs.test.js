@@ -69,7 +69,8 @@ function client(o = {}) {
   };
   return { from, rpc, calls, state };
 }
-const ORIGINAL = { id: 'orig', name: 'Roofing promo', data: PROJECT_STATE, settings: {}, thumbnail_url: 'https://cdn/t.png' };
+// The Projects LIST row deliberately has no `data` (it is heavy); tabs must load the full project themselves.
+const ORIGINAL = { id: 'orig', name: 'Roofing promo', settings: {}, thumbnail_url: 'https://cdn/t.png' };
 const mount = (tab, c, extra = {}, ctxOver = {}) => {
   const panel = document.createElement('div'); document.body.appendChild(panel);
   const ctx = { project: ORIGINAL, openTab: vi.fn(), ...ctxOver };

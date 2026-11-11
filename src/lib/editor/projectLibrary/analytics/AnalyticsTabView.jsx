@@ -75,6 +75,7 @@ export default function AnalyticsTabView({ client, projectRow, createPlayer, now
         customRange={custom}
         onCustomRangeChange={setCustom}
         renderPreview={renderPreview}
+        theme="dark"
         {...handlers}
       />
     </div>

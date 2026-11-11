@@ -33,6 +33,7 @@ export type SmartVideoAnalyticsProps = {
   onCustomRangeChange?: (range: CustomRange) => void;
   renderPreview?: (project: ProjectAnalyticsData) => React.ReactNode;
   footerNote?: string;
+  theme?: 'light' | 'dark'; // ADAPT: the editor is dark; the supplied default stays light
 };
 const n = (value: number) => new Intl.NumberFormat('en-US').format(value);
 const pct = (value: number | null) => value === null ? '—' : `${Math.round(value)}%`;
@@ -99,13 +100,13 @@ export function MarketingOpportunities({items,onOpen}:{items:Opportunity[];onOpe
    {items.length===0?<p className="sv-subtitle">No opportunities detected for this period.</p>:items.map((i)=><button type="button" className="sv-opportunity" key={i.id} onClick={()=>onOpen?.(i.id)}><span className="sv-op-icon"><Icon name={i.icon}/>{i.unread&&<span className="sv-op-unread" role="img" aria-label="Unread"/>}</span><span className="sv-op-content"><strong>{i.title}</strong><span>{i.explanation}</span><b>{i.suggestion}</b></span><span className="sv-op-chevron">›</span></button>)}
  </div>;
 }
-export default function SmartVideoAnalytics({project,period,onPeriodChange,onCreateFollowup,onSeekTo,onOpenOpportunity,customRange,onCustomRangeChange,renderPreview,footerNote}:SmartVideoAnalyticsProps){
+export default function SmartVideoAnalytics({project,period,onPeriodChange,onCreateFollowup,onSeekTo,onOpenOpportunity,customRange,onCustomRangeChange,renderPreview,footerNote,theme='light'}:SmartVideoAnalyticsProps){
  const [tab,setTab]=useState<AnalyticsTab>('overview');
  const [copied,setCopied]=useState(false);
  const numbers=project.metrics;
  const labels=useMemo(()=>project.playsOverTime.map(p=>p.day),[project.playsOverTime]);
  async function copyUrl(){if (!project.publishedUrl) return;try {await navigator.clipboard.writeText(project.publishedUrl);setCopied(true);}catch {setCopied(false);}}
- return <main className="sv-analytics">
+ return <main className={`sv-analytics${theme==='dark'?' sv-dark':''}`}>
   <div className="sv-heading"><div><div className="sv-breadcrumb"><Icon name="folder"/> Timeline Editor / Projects</div><h1>Video Analytics</h1></div><span className={`sv-status ${project.status==='published'?'sv-status-published':''}`}>{project.status==='published'?'✓ ':''}{project.status}</span></div>
   <div className="sv-toolbar"><div className="sv-project-name"><label>Selected project</label><div>{project.projectName}</div></div><div className="sv-toolbar-actions"><div className="sv-segment" aria-label="Reporting period">{(['today','7d','30d','90d','custom'] as const).map(p=><button key={p} aria-pressed={period===p} className={period===p?'active':''} onClick={()=>onPeriodChange(p)}>{p==='today'?'Today':p==='7d'?'7 days':p==='30d'?'30 days':p==='90d'?'90 days':'Custom'}</button>)}</div><button className="sv-secondary-btn" disabled={!project.publishedUrl} onClick={copyUrl}><Icon name="link"/>{copied?'Copied':'Copy video URL'}</button></div></div>
   {period==='custom'&&customRange&&<div className="sv-custom-range" role="group" aria-label="Custom date range"><label>From<input type="date" value={customRange.from} max={customRange.to} onChange={e=>onCustomRangeChange?.({...customRange,from:e.target.value})}/></label><label>To<input type="date" value={customRange.to} min={customRange.from} onChange={e=>onCustomRangeChange?.({...customRange,to:e.target.value})}/></label></div>}

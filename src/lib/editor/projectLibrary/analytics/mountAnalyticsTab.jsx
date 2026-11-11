@@ -23,5 +23,7 @@ export function mountAnalyticsTab(panel, ctx, deps) {
       onCreateFollowup={deps.onCreateFollowup}
     />,
   );
-  return () => { root.unmount(); host.remove(); };
+  // Tearing down can be triggered from inside a React event handler (e.g. opening an opportunity
+  // switches tabs); React forbids unmounting a root while it is rendering, so defer it.
+  return () => { setTimeout(() => { try { root.unmount(); } catch { /* already gone */ } host.remove(); }, 0); };
 }

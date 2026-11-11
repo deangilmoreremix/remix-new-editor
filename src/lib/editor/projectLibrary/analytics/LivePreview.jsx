@@ -6,7 +6,7 @@
  */
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
-export async function defaultCreatePlayer(host, project) {
+export async function defaultCreatePlayer(host, project, { onTime } = {}) {
   await import('../../../../../styles/watch.css');
   const [{ createInteractivePlayer }, { createPreviewEngine }] = await Promise.all([
     import('../../publish/interactivePlayer.js'),
@@ -17,7 +17,7 @@ export async function defaultCreatePlayer(host, project) {
   const player = createInteractivePlayer({
     project, stage: host.querySelector('[data-stage]'), frame, createEngine: createPreviewEngine, fps: 30,
     onLead: async () => ({ stored: false }), // previewing must never submit a lead
-    onChange() {},
+    onChange: ({ time }) => onTime?.(time),
   });
   frame.style.aspectRatio = `${player.model.width} / ${player.model.height}`;
   frame.style.height = '100%';
@@ -39,7 +39,7 @@ const LivePreview = forwardRef(function LivePreview({ project, snapshot, thumbna
     setState('loading');
     starting.current = (async () => {
       try {
-        const p = await createPlayer(host.current, snapshot);
+        const p = await createPlayer(host.current, snapshot, { onTime: (t) => { if (host.current) host.current.dataset.currentTime = Number(t).toFixed(2); } });
         player.current = p;
         setState('ready');
         return p;
@@ -65,7 +65,13 @@ const LivePreview = forwardRef(function LivePreview({ project, snapshot, thumbna
     get player() { return player.current; },
   }), [ensure]);
 
-  useEffect(() => () => { try { player.current?.destroy(); } catch { /* already gone */ } player.current = null; }, [snapshot]);
+  // The player owns a nested React root (the preview engine). Unmounting it from inside this effect's
+  // cleanup would unmount a root while React is committing, so tear the player down right after.
+  useEffect(() => () => {
+    const p = player.current;
+    player.current = null;
+    setTimeout(() => { try { p?.destroy(); } catch { /* already gone */ } }, 0);
+  }, [snapshot]);
 
   return (
     <>

@@ -7,6 +7,11 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
+
+// Read a header the way the SDK sends it: current supabase-js exposes a `Headers` instance
+// (property reads on it are NOT what goes on the wire); older SDKs expose a plain object.
+const hdr = (h, name) => (h && typeof h.get === 'function' ? h.get(name) ?? undefined : h?.[name]);
+
 vi.mock('../lib/apiKeyManager.js', () => ({
   apiKeyManager: {
     getMuapiKey: () => 'test-muapi-key',
@@ -35,8 +40,8 @@ describe('shared Supabase client identity header', () => {
     const { supabase } = await import('../lib/supabase.js');
     supabase.from('media');
     supabase.storage.from('uploads');
-    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-42');
-    expect(supabase.storage.headers['x-user-key']).toBe('user-clerk-42');
+    expect(hdr(supabase.rest.headers, 'x-user-key')).toBe('user-clerk-42');
+    expect(hdr(supabase.storage.headers, 'x-user-key')).toBe('user-clerk-42');
   });
 
   test('signed-out callers are strictly anonymous — never the offline BYOK hash', async () => {
@@ -44,21 +49,21 @@ describe('shared Supabase client identity header', () => {
     const { supabase } = await import('../lib/supabase.js');
     supabase.from('media');
     supabase.storage.from('uploads');
-    expect(supabase.rest.headers['x-user-key']).toBe('anonymous');
-    expect(supabase.storage.headers['x-user-key']).toBe('anonymous');
-    expect(supabase.rest.headers['x-user-key']).not.toBe('user_offlinehash');
+    expect(hdr(supabase.rest.headers, 'x-user-key')).toBe('anonymous');
+    expect(hdr(supabase.storage.headers, 'x-user-key')).toBe('anonymous');
+    expect(hdr(supabase.rest.headers, 'x-user-key')).not.toBe('user_offlinehash');
   });
 
   test('refreshSupabaseUserHeader follows a sign-in change', async () => {
     const { supabase, refreshSupabaseUserHeader } = await import('../lib/supabase.js');
     setClerkUser('user-clerk-1');
     refreshSupabaseUserHeader();
-    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-1');
+    expect(hdr(supabase.rest.headers, 'x-user-key')).toBe('user-clerk-1');
     setClerkUser('user-clerk-2');
     refreshSupabaseUserHeader();
-    expect(supabase.rest.headers['x-user-key']).toBe('user-clerk-2');
+    expect(hdr(supabase.rest.headers, 'x-user-key')).toBe('user-clerk-2');
     setClerkUser(null);
     refreshSupabaseUserHeader();
-    expect(supabase.rest.headers['x-user-key']).toBe('anonymous');
+    expect(hdr(supabase.rest.headers, 'x-user-key')).toBe('anonymous');
   });
 });

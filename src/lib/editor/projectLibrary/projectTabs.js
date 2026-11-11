@@ -9,7 +9,7 @@ import {
   listNotifications, markRead, NOTIFICATION_TYPES, loadPreferences, savePreferences,
 } from './tabsData.js';
 import { recommend, SEGMENT_LABELS, SCORE_EXPLANATION } from './retarget/recommendations.js';
-import { listFollowups } from './projectStore.js';
+import { listFollowups, loadProject } from './projectStore.js';
 import { launchFollowup } from './retarget/followup.js';
 import { canonicalUrl } from '../publish/publishClient.js';
 
@@ -64,7 +64,8 @@ export function retargetTab(deps) {
   return (panel, ctx) => {
     let alive = true;
     withVideo(panel, ctx, deps, async (client, video) => {
-      const original = ctx.project;
+      // The list row omits the heavy `data` column; the mapping editor needs the project's scenes.
+      const original = (await loadProject(client, ctx.project.id)) || ctx.project;
       const [aud, followups] = await Promise.all([loadAudience(client, video.id, '30d', deps.now?.()), listFollowups(client, original.id)]);
       if (!alive) return;
       const map = seedInterestMap(original.data, video.project?.interestMap || original.settings?.interestMap);
