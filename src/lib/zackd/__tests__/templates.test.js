@@ -45,8 +45,8 @@ describe('zackd templates', () => {
     let tracked;
     try { tracked = new Set(execFileSync('git', ['ls-files', 'public/zackd'], { encoding: 'utf8' }).split('\n').filter(Boolean)); } catch { return; } // no git checkout: skip
     const t = getTemplate('swallow-gum-demo');
-    const { HERO_THUMBNAILS } = await import('../../thumbnails.js');
-    const files = [t.poster, t.demo, HERO_THUMBNAILS.zackd, ...Object.values(t.assets).flatMap((a) => [a.keyframe, a.clip])];
+    const { getHeroThumbnail } = await import('../../thumbnails.js');
+    const files = [t.poster, t.demo, getHeroThumbnail('zackd'), ...Object.values(t.assets).flatMap((a) => [a.keyframe, a.clip])];
     for (const f of files) expect(tracked.has(`public${f}`), `${f} is not tracked by git`).toBe(true);
   });
 
