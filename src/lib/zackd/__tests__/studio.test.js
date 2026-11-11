@@ -350,4 +350,15 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(live.querySelectorAll('#zackd-history-sidebar video').length).toBe(2);
     uploadSupabase = vi.fn(async () => ({ url: 'https://store.example.com/f.mp4' }));
   });
+
+  it('a recovered captioned video goes to the history even when another project is open by then', async () => {
+    localStorage.setItem('zackd_project_v1', JSON.stringify({ pid: 'P2', topic: 'Another project', shots: {} }));
+    savePendingJob({ requestId: 'req_cap2', studioType: 'zackd', historyMeta: { slot: 'captions', pid: 'P1' }, maxAttempts: 10, interval: 10, submittedAt: Date.now() });
+    vi.mocked(pollJob).mockReset();
+    vi.mocked(pollJob).mockImplementation(async () => ({ url: 'https://cdn.example.com/captioned-other-project.mp4' }));
+    const root = mount();
+    await tick(40);
+    expect(JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url)).toContain('https://cdn.example.com/captioned-other-project.mp4');
+    expect(root.querySelectorAll('#zackd-history-sidebar video').length).toBe(1);
+  });
 });

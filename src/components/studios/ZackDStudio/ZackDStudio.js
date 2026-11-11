@@ -550,6 +550,12 @@ export function ZackDStudio() {
   // have returned to the studio and changed the project since; this instance's own copy is stale).
   function applyResultToStored(meta, url) {
     const latest = load();
+    if (meta.slot === 'captions') { // a finished standalone video: it belongs in the history whichever project is open now
+      const h = [{ id: `${Date.now()}`, url, prompt: meta.topic || latest.topic, ts: Date.now() }, ...loadHistory().filter((x) => x.url !== url)].slice(0, 30);
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); } catch { /* ignore */ }
+      window.dispatchEvent(new CustomEvent('zackd:stored-updated', { detail: { slot: 'captions' } })); // a live studio reloads its history
+      return;
+    }
     if (meta.pid && meta.pid !== latest.pid) return;
     if (meta.slot === 'narration' && meta.rev !== undefined && meta.rev !== (latest.narrRev || 0)) return;
     if (meta.slot === 'sheet') latest.sheets = { ...latest.sheets, [meta.id]: { url } };
@@ -557,12 +563,7 @@ export function ZackDStudio() {
     else if (meta.slot === 'clip') latest.shots = { ...latest.shots, [meta.id]: { ...(latest.shots[meta.id] || {}), clip: url } };
     else if (meta.slot === 'narration') { latest.narration = url; latest.mixVoice = true; }
     else if (meta.slot === 'music') { latest.music = url; latest.mixVoice = true; }
-    else if (meta.slot === 'captions') {
-      const h = [{ id: `${Date.now()}`, url, prompt: latest.topic, ts: Date.now() }, ...loadHistory().filter((x) => x.url !== url)].slice(0, 30);
-      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); } catch { /* ignore */ }
-      window.dispatchEvent(new CustomEvent('zackd:stored-updated', { detail: { slot: 'captions' } })); // a live studio reloads its history
-      return;
-    } else return;
+    else return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(latest)); } catch { /* ignore */ }
     window.dispatchEvent(new CustomEvent('zackd:stored-updated', { detail: { slot: meta.slot } })); // a studio opened since then holds an older copy: tell it to reload
   }
@@ -584,6 +585,7 @@ export function ZackDStudio() {
   }
   function applyResult(meta, url) {
     if (disposed) { applyResultToStored(meta, url); return; }
+    if (meta.slot === 'captions') { addHistory(url, meta.topic || s.topic); showToast('Recovered your captioned video. It is in the history.', 'info', 4000); return; } // a finished standalone video: history, whichever project is open
     if (meta.pid && meta.pid !== s.pid) return; // belongs to an earlier project
     if (meta.slot === 'narration' && meta.rev !== undefined && meta.rev !== (s.narrRev || 0)) return; // made from narration text that has since been edited
     if (meta.slot === 'sheet') s.sheets[meta.id] = { url };
@@ -591,7 +593,6 @@ export function ZackDStudio() {
     else if (meta.slot === 'clip') s.shots[meta.id] = { ...(s.shots[meta.id] || {}), clip: url };
     else if (meta.slot === 'narration') { s.narration = url; s.mixVoice = true; }
     else if (meta.slot === 'music') { s.music = url; s.mixVoice = true; }
-    else if (meta.slot === 'captions') { addHistory(url, s.topic); showToast('Recovered your captioned video. It is in the history.', 'info', 4000); } // the cut it came from is gone after a reload
     else return;
     invalidateCuts(meta.slot);
     save();
