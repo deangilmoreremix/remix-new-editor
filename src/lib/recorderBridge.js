@@ -54,14 +54,17 @@ export async function remuxForTimeline(blob) {
 }
 
 const OVERLAY_ID = 'smartvid-recorder-overlay';
-const DOCK_ID = 'smartvid-recorder-dock';
-const DOCK_STYLE_ID = 'smartvid-recorder-dock-style';
-const HEIGHT_KEY = 'smartvid.recorder.dockHeight';
+const PANEL_ID = 'smartvid-recorder-panel';
+const PANEL_STYLE_ID = 'smartvid-recorder-panel-style';
+const WIDTH_KEY = 'smartvid.recorder.panelWidth';
 const IFRAME_ALLOW = 'display-capture *; camera *; microphone *; autoplay *; clipboard-write *; fullscreen *';
-const BAR_H = 34;
+const HEADER_H = 40;
+const TAB_W = 44;
+const MIN_W = 400;
+const DEFAULT_W = 440;
 
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-const savedHeight = () => { try { return Number(localStorage.getItem(HEIGHT_KEY)) || 0; } catch (_) { return 0; } };
+const savedWidth = () => { try { return Number(localStorage.getItem(WIDTH_KEY)) || 0; } catch (_) { return 0; } };
 
 function makeFrame() {
   const frame = document.createElement('iframe');
@@ -71,13 +74,13 @@ function makeFrame() {
   return frame;
 }
 
-// Opens the Screenity web recorder. mode 'dock' (default) pins it to a pane at the top of the
-// page and shrinks the editor to the space below, so you can record and edit at the same time.
-// mode 'overlay' covers the whole window. Narrow windows always use the overlay.
-export function openScreenityRecorder({ mode = 'dock', onClose } = {}) {
-  if (document.getElementById(OVERLAY_ID) || document.getElementById(DOCK_ID)) return null;
-  if (mode === 'dock' && window.innerWidth < 900) mode = 'overlay';
-  return mode === 'dock' ? openDock({ onClose }) : openOverlay({ onClose });
+// Opens the Screenity web recorder. mode 'panel' (default) docks it as a full-height side panel
+// on the right and narrows the editor to the space beside it; 'overlay' covers the whole window.
+// Narrow windows always use the overlay.
+export function openScreenityRecorder({ mode = 'panel', onClose } = {}) {
+  if (document.getElementById(OVERLAY_ID) || document.getElementById(PANEL_ID)) return null;
+  if ((mode === 'panel' || mode === 'dock') && window.innerWidth < 900) mode = 'overlay';
+  return mode === 'overlay' ? openOverlay({ onClose }) : openPanel({ onClose });
 }
 
 function openOverlay({ onClose }) {
@@ -108,70 +111,67 @@ function openOverlay({ onClose }) {
   return { close, frame, mode: 'overlay' };
 }
 
-function openDock({ onClose }) {
-  const defaultH = clamp(Math.round(window.innerHeight * 0.62), 380, 680);
-  const state = { base: clamp(savedHeight() || defaultH, 260, Math.round(window.innerHeight * 0.85)), recording: false, editorOpen: false, collapsed: false };
+function openPanel({ onClose }) {
+  const state = { width: clamp(savedWidth() || DEFAULT_W, MIN_W, Math.round(window.innerWidth * 0.5)), editorOpen: false, collapsed: false, recording: false };
 
-  const dock = document.createElement('div');
-  dock.id = DOCK_ID;
-  dock.dataset.mode = 'dock';
-  dock.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:900;background:#0b1020;border-bottom:1px solid #232c47;box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column';
+  const panel = document.createElement('aside');
+  panel.id = PANEL_ID;
+  panel.dataset.mode = 'panel';
+  panel.setAttribute('aria-label', 'Screen recorder');
+  panel.style.cssText = 'position:fixed;top:0;right:0;bottom:0;z-index:900;display:flex;flex-direction:column;background:#0a0e1a;color:#e8ecf6;'
+    + 'border-left:1px solid #1f2740;box-shadow:-12px 0 32px rgba(0,0,0,.35);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;transition:width .18s ease';
 
-  const bar = document.createElement('div');
-  bar.style.cssText = `height:${BAR_H}px;flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;font:600 12px system-ui,sans-serif;color:#e8ecf6;background:#131a2e;border-bottom:1px solid #232c47`;
+  const header = document.createElement('div');
+  header.style.cssText = `height:${HEADER_H}px;flex:none;display:flex;align-items:center;gap:10px;padding:0 10px 0 14px;border-bottom:1px solid #1f2740`;
+  const dot = document.createElement('span');
+  dot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#22d3ee,#6366f1);flex:none';
   const title = document.createElement('span');
   title.textContent = 'Recorder';
-  title.style.cssText = 'flex:1';
-  const mkBtn = (label, tip) => {
+  title.style.cssText = 'flex:1;font-size:13px;font-weight:600;letter-spacing:.01em';
+  const mkBtn = (svg, tip) => {
     const b = document.createElement('button');
-    b.textContent = label; b.title = tip; b.setAttribute('aria-label', tip);
-    b.style.cssText = 'height:24px;min-width:26px;padding:0 8px;border-radius:6px;border:1px solid #2c3658;background:#0b1020;color:#e8ecf6;font:600 12px system-ui;cursor:pointer';
+    b.innerHTML = svg; b.title = tip; b.setAttribute('aria-label', tip);
+    b.style.cssText = 'width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:#9aa6c4;cursor:pointer;padding:0';
+    b.onmouseenter = () => { b.style.background = '#1a2036'; b.style.color = '#fff'; };
+    b.onmouseleave = () => { b.style.background = 'transparent'; b.style.color = '#9aa6c4'; };
     return b;
   };
-  const collapseBtn = mkBtn('▾', 'Collapse recorder');
-  const closeBtn = mkBtn('✕', 'Close recorder');
-  bar.append(title, collapseBtn, closeBtn);
+  const ICON_COLLAPSE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+  const ICON_CLOSE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  const collapseBtn = mkBtn(ICON_COLLAPSE, 'Collapse recorder');
+  const closeBtn = mkBtn(ICON_CLOSE, 'Close recorder');
+  header.append(dot, title, collapseBtn, closeBtn);
+
+  // Collapsed state: a slim tab on the right edge that re-opens the panel.
+  const tab = document.createElement('button');
+  tab.title = 'Open recorder'; tab.setAttribute('aria-label', 'Open recorder');
+  tab.style.cssText = 'display:none;flex:1;border:0;background:transparent;color:#e8ecf6;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:10px;font:600 12px Inter,system-ui,sans-serif;writing-mode:vertical-rl;letter-spacing:.06em';
+  tab.innerHTML = '<span style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#22d3ee,#6366f1);display:inline-block"></span>RECORDER';
 
   const frame = makeFrame();
-  frame.style.cssText = 'position:absolute;left:0;top:0;border:0;background:#f4f4f6;color-scheme:normal;transform-origin:0 0';
-  const view = document.createElement('div');
-  view.style.cssText = 'flex:1;min-height:0;position:relative;overflow:hidden';
-  view.appendChild(frame);
+  frame.style.cssText = 'flex:1;min-height:0;width:100%;border:0;background:transparent;color-scheme:normal';
 
   const grip = document.createElement('div');
   grip.title = 'Drag to resize';
-  grip.style.cssText = 'height:8px;flex:none;cursor:ns-resize;background:linear-gradient(#131a2e,#232c47)';
+  grip.style.cssText = 'position:absolute;left:-4px;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2';
 
-  dock.append(bar, view, grip);
+  panel.append(grip, header, frame, tab);
 
   const css = document.createElement('style');
-  css.id = DOCK_STYLE_ID;
+  css.id = PANEL_STYLE_ID;
   document.head.appendChild(css);
 
-  // The editor's root is a fixed 100vw x 100vh box: push it down and shrink it by the dock height.
-  const height = () => {
-    if (state.collapsed) return BAR_H;
-    if (state.editorOpen) return Math.round(window.innerHeight * 0.88);
-    if (state.recording) return Math.min(state.base, 220);
-    return state.base;
-  };
-  // Screenity's popup is ~650px tall. In a shorter pane the recorder is scaled down to fit
-  // (never below MIN_SCALE) rather than cropping its buttons off.
-  const NEEDS_H = 690, MIN_SCALE = 0.6;
+  const panelWidth = () => (state.collapsed ? TAB_W : state.editorOpen ? Math.min(1240, window.innerWidth) : state.width);
+  // The editor's root is a fixed 100vw box: narrow it by the panel width so the two sit side by side.
   const apply = (announce = true) => {
-    const h = height();
-    const total = h + (state.collapsed ? 0 : 8);
-    dock.style.height = `${total}px`;
-    view.style.display = state.collapsed ? 'none' : 'block';
-    grip.style.display = state.collapsed ? 'none' : 'block';
-    collapseBtn.textContent = state.collapsed ? '▸' : '▾';
-    collapseBtn.title = state.collapsed ? 'Expand recorder' : 'Collapse recorder';
-    const paneH = Math.max(40, h - BAR_H);
-    const k = state.editorOpen ? 1 : clamp(paneH / NEEDS_H, MIN_SCALE, 1);
-    frame.style.width = `${100 / k}%`;
-    frame.style.height = `${paneH / k}px`;
-    frame.style.transform = k === 1 ? 'none' : `scale(${k})`;
-    css.textContent = `.app-shell{height:calc(100vh - ${total}px) !important;margin-top:${total}px}`;
+    const w = panelWidth();
+    panel.style.width = `${w}px`;
+    header.style.display = state.collapsed ? 'none' : 'flex';
+    frame.style.display = state.collapsed ? 'none' : 'block';
+    tab.style.display = state.collapsed ? 'flex' : 'none';
+    grip.style.display = state.collapsed || state.editorOpen ? 'none' : 'block';
+    const reserve = state.editorOpen ? 0 : w; // the post-recording editor floats over the page instead
+    css.textContent = `.app-shell{width:calc(100vw - ${reserve}px) !important}`;
     if (announce) window.dispatchEvent(new Event('resize')); // let the timeline re-measure
   };
 
@@ -183,36 +183,37 @@ function openDock({ onClose }) {
   };
   window.addEventListener('message', onMsg);
 
-  // drag to resize
+  // drag the left edge to resize
   let drag = null;
-  grip.addEventListener('pointerdown', (e) => { drag = { y: e.clientY, h: state.base }; grip.setPointerCapture(e.pointerId); frame.style.pointerEvents = 'none'; });
+  grip.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, w: state.width }; grip.setPointerCapture(e.pointerId); frame.style.pointerEvents = 'none'; panel.style.transition = 'none'; });
   grip.addEventListener('pointermove', (e) => {
     if (!drag) return;
-    state.base = clamp(drag.h + (e.clientY - drag.y), 260, Math.round(window.innerHeight * 0.85));
+    state.width = clamp(drag.w - (e.clientX - drag.x), MIN_W, Math.round(window.innerWidth * 0.5));
     apply();
   });
-  const endDrag = () => { if (!drag) return; drag = null; frame.style.pointerEvents = ''; try { localStorage.setItem(HEIGHT_KEY, String(state.base)); } catch (_) {} };
+  const endDrag = () => { if (!drag) return; drag = null; frame.style.pointerEvents = ''; panel.style.transition = 'width .18s ease'; try { localStorage.setItem(WIDTH_KEY, String(state.width)); } catch (_) {} };
   grip.addEventListener('pointerup', endDrag);
   grip.addEventListener('pointercancel', endDrag);
 
-  collapseBtn.onclick = () => { state.collapsed = !state.collapsed; apply(); };
-  const onWinResize = () => { if (!state.collapsed) apply(false); }; // announce=false: don't re-fire our own resize
+  collapseBtn.onclick = () => { state.collapsed = true; apply(); };
+  tab.onclick = () => { state.collapsed = false; apply(); };
+  const onWinResize = () => { state.width = clamp(state.width, MIN_W, Math.max(MIN_W, Math.round(window.innerWidth * 0.5))); apply(false); }; // false: don't re-fire our own resize
   window.addEventListener('resize', onWinResize);
 
   const close = () => {
     if (state.recording && !window.confirm('A recording is in progress. Close the recorder and lose it?')) return;
     window.removeEventListener('message', onMsg);
     window.removeEventListener('resize', onWinResize);
-    dock.remove();
+    panel.remove();
     css.remove();
     window.dispatchEvent(new Event('resize'));
     if (onClose) onClose();
   };
   closeBtn.onclick = close;
 
-  document.body.appendChild(dock);
+  document.body.appendChild(panel);
   apply();
-  return { close, frame, mode: 'dock' };
+  return { close, frame, mode: 'panel' };
 }
 
 // Called after a recording has been added to the timeline: closes the full-window overlay, but a
@@ -222,5 +223,5 @@ export function closeScreenityRecorder() {
 }
 
 export function isScreenityRecorderOpen() {
-  return !!(document.getElementById(OVERLAY_ID) || document.getElementById(DOCK_ID));
+  return !!(document.getElementById(OVERLAY_ID) || document.getElementById(PANEL_ID));
 }
