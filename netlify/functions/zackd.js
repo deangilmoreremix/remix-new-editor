@@ -154,7 +154,9 @@ async function submit(body, keys) {
     } catch (err) {
       if ([401, 402, 403].includes(err?.status)) return fail(401, 'bad_key', BAD_MUAPI_KEY);
       // The request may have been accepted (and billed) even though no answer came back: do not submit the fallback model on top of it.
-      if (err?.name === 'TimeoutError' || err?.name === 'AbortError') return fail(504, 'submit_timeout', 'The media service did not answer in time. The job may still have started: check your MuAPI dashboard before trying again so you are not charged twice.');
+      // A transport failure (reset connection, unreadable reply) is the same: no HTTP rejection was seen, so the outcome is unknown.
+      const unknownOutcome = !err?.status && (err?.name === 'TimeoutError' || err?.name === 'AbortError' || err instanceof TypeError || err instanceof SyntaxError);
+      if (unknownOutcome) return fail(504, 'submit_timeout', 'The media service did not answer in time. The job may still have started: check your MuAPI dashboard before trying again so you are not charged twice.');
       lastErr = err;
     }
   }

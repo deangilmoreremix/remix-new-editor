@@ -109,6 +109,23 @@ describe('zackd function', () => {
     expect(muapiPost.mock.calls.length - before).toBe(1);
   });
 
+  it('a transport failure (connection reset, unreadable reply) is also unknown: no fallback to a second paid model', async () => {
+    for (const err of [new TypeError('fetch failed'), new SyntaxError('Unexpected end of JSON input')]) {
+      const before = muapiPost.mock.calls.length;
+      muapiPost.mockRejectedValueOnce(err);
+      const out = await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u-transport', { keys });
+      expect(out.statusCode).toBe(504);
+      expect(muapiPost.mock.calls.length - before).toBe(1);
+    }
+  });
+
+  it('an HTTP rejection (with a status) still falls back to the second model', async () => {
+    const before = muapiPost.mock.calls.length;
+    muapiPost.mockRejectedValueOnce(Object.assign(new Error('MuAPI failed: 404'), { status: 404 }));
+    await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u-reject', { keys });
+    expect(muapiPost.mock.calls.length - before).toBe(2);
+  });
+
   it('requires the right BYOK key per action', async () => {
     expect((await handle({ action: 'script', topic: 'x' }, 'u1', { keys: { muapi: keys.muapi } })).statusCode).toBe(401);
     expect(body(await handle({ action: 'submit', kind: 'image', prompt: 'x' }, 'u1', { keys: { openai: keys.openai } })).error.message).toMatch(/MuAPI/);
