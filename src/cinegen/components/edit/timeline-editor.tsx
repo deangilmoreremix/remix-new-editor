@@ -3227,6 +3227,10 @@ export function TimelineEditor({
                   <svg className="timeline-editor__marker-flag" width="10" height="14" viewBox="0 0 10 14">
                     <path d="M1 0v14M1 0h8l-2.5 4L9 8H1" fill="var(--marker-color)" stroke="var(--marker-color)" strokeWidth="0.5" />
                   </svg>
+                  {/* [remix] visible remove button (right-click -> Remove marker still works) */}
+                  <button type="button" className="timeline-editor__marker-remove" title="Remove marker" aria-label="Remove marker"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => { e.stopPropagation(); handleRemoveMarker(marker.id); }}>&times;</button>
                 </div>
               ))}
               <div className="timeline-editor__playhead-head" style={{ left: playheadLeft }} />
