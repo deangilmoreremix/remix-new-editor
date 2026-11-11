@@ -7,13 +7,13 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_PATH || 'playwright');
 const BASE = process.env.BASE || 'http://127.0.0.1:3101'; const OUT = process.env.OUT || 'out/prod';
 const spec = JSON.parse(readFileSync(process.env.SPEC, 'utf8')); const FPS = 30; const CONC = +(process.env.CONC || 2);
-const b = await chromium.launch({ executablePath: process.env.CHROME_PATH });
+const b = await chromium.launch({ executablePath: process.env.CHROME_PATH, args: (process.env.CHROME_ARGS || '').split(' ').filter(Boolean) });
 const results = []; let idx = 0;
 async function worker() {
   while (idx < spec.length) {
     const s = spec[idx++]; const r = { id: s.id, frames: [], logs: [] };
     const ctx = await b.newContext({ viewport: { width: s.width, height: s.height }, deviceScaleFactor: 1 }); const p = await ctx.newPage();
-    p.on('console', (m) => { const t = m.text(); if (/\[hyperframes\]/.test(t)) r.logs.push(t.slice(0, 220)); });
+    p.on('console', (m) => { const t = m.text(); if (/\[hyperframes\]/.test(t) || process.env.ALLLOGS) r.logs.push(t.slice(0, 260)); });
     p.on('pageerror', (e) => { if (!/sandboxed|localStorage|sessionStorage/.test(e.message)) r.logs.push('pageerror ' + e.message.slice(0, 160)); });
     const guard = setTimeout(() => { r.fatal = 'timeout'; ctx.close().catch(() => {}); }, +(process.env.ITEM_MS || 100000));
     try {

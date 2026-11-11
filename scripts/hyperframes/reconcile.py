@@ -10,6 +10,7 @@ dis = set(j('src/lib/hyperframes/catalog.disabled.json')['ids'])
 man = {i['id']: i for i in j('src/lib/hyperframes/catalog.manifest.json')['items']}
 vend = {f[:-5] for f in os.listdir(os.path.join(R, 'public/hyperframes/blocks')) if f.endswith('.html')}
 vend |= {f[:-5] for f in os.listdir(os.path.join(R, 'public/hyperframes/components')) if f.endswith('.html')} if os.path.isdir(os.path.join(R, 'public/hyperframes/components')) else set()
+vend |= set(os.listdir(os.path.join(R, 'public/hyperframes/component-demos'))) if os.path.isdir(os.path.join(R, 'public/hyperframes/component-demos')) else set()  # components shown through their own demo composition
 vend |= set(os.listdir(os.path.join(R, 'public/hyperframes/examples'))) if os.path.isdir(os.path.join(R, 'public/hyperframes/examples')) else set()
 errs = []
 rows = []
@@ -21,7 +22,7 @@ for k, v in sorted(items.items()):
     if enabled and not v.get('enabled'): errs.append(f'{k}: in enabled.json but classification says not enabled')
     if v.get('enabled') and not enabled: errs.append(f'{k}: classification enabled but missing from enabled.json')
     if enabled and k not in vend: errs.append(f'{k}: enabled but not vendored')
-    want = next((f['sha256'] for f in man[k]['files'] if f['path'] == 'index.html'), '') if t == 'example' else man[k]['sourceSha256']
+    want = next((f['sha256'] for f in man[k]['files'] if f['path'] == 'index.html'), '') if t == 'example' else (en[k]['project']['files']['demo.html'] if enabled and en[k].get('project', {}).get('demo') else man[k]['sourceSha256'])
     if enabled and en[k]['sourceSha256'] != want: errs.append(f'{k}: enabled sha differs from manifest')
     reason = '; '.join(v['enabledBlockedBy']) if (st == 'verified-export' and not enabled and v['enabledBlockedBy']) else v['reason']
     if st == 'verified-export' and not enabled and not v['enabledBlockedBy']: reason = 'verified but held back without a recorded blocker'; errs.append(f'{k}: held back with no blocker')

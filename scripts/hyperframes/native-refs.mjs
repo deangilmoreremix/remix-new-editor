@@ -17,7 +17,8 @@ const run = (cmd, args, cwd) => new Promise((res) => execFile(cmd, args, { cwd, 
 async function worker() {
   while (idx < spec.length) {
     const s = spec[idx++]; const dir = join(out, s.id); rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
-    if (s.type === 'example') cpSync(join(up, 'registry/examples', s.id), dir, { recursive: true });
+    if (s.type === 'demo') { cpSync(join(up, 'registry/components', s.id), dir, { recursive: true }); cpSync(join(dir, 'demo.html'), join(dir, 'index.html')); } // the component's own demo composition plus the files it mounts (./<id>.html)
+    else if (s.type === 'example') cpSync(join(up, 'registry/examples', s.id), dir, { recursive: true });
     else { mkdirSync(join(dir, 'compositions'), { recursive: true }); cpSync(join(up, 'registry/components', s.id, s.id + '.html'), join(dir, 'compositions', s.id + '.html')); writeFileSync(join(dir, 'index.html'), hostFor(s.id, s.duration)); }
     writeFileSync(join(dir, 'hyperframes.json'), CFG);
     const r = await run('npx', ['-y', 'hyperframes@0.9.28', 'snapshot', '.', '--at', s.times.join(','), '--no-end', '-o', 'snap'], dir);

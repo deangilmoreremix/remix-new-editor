@@ -65,7 +65,8 @@ function HyperframesBlockLayer({ layer }) {
   // components are mounted through a generated host; starter projects through their own pinned index.html
   const isHost = item.project?.host === true;
   const project = isHost ? { dir: item.project.dir, files: item.project.files, hostHtml: componentHostHtml({ id: item.id, duration: item.duration, width: bw, height: bh }) } : item.project;
-  const overrides = isHost ? routeVarsToInstance(layer.overrides) : layer.overrides;
+  // a component shown through its own demo composition mounts the component as a nested instance: its variables are addressed by that instance
+  const overrides = isHost ? routeVarsToInstance(layer.overrides) : (item.project?.instance ? routeVarsToInstance(layer.overrides, item.project.instance) : layer.overrides);
   return (
     <div style={{ position: 'absolute', left: (width - bw * k) / 2, top: (height - bh * k) / 2, width: bw, height: bh, transform: `scale(${k})`, transformOrigin: 'top left' }}>
       <BlockClip name={item.id} width={bw} height={bh} overrides={overrides} expectedSha256={item.sourceSha256} project={project} />

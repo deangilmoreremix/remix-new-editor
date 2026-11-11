@@ -19,8 +19,8 @@ export function componentHostHtml({ id, duration, width = 1920, height = 1080 })
 }
 
 /** Customer `var.<id>` overrides address the component's own variables: route them to the generated host's single instance. */
-export function routeVarsToInstance(overrides) {
+export function routeVarsToInstance(overrides, instanceId = HOST_INSTANCE_ID) {
   const out = {};
-  for (const [k, v] of Object.entries(overrides || {})) out[k.startsWith('var.') ? `ivar.${HOST_INSTANCE_ID}.${k.slice(4)}` : k] = v;
+  for (const [k, v] of Object.entries(overrides || {})) out[k.startsWith('var.') ? `ivar.${instanceId}.${k.slice(4)}` : k] = v;
   return out;
 }

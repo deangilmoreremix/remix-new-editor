@@ -374,7 +374,8 @@ export function createScope(host) {
   const winOverrides = {
     document: docProxy,
     Image: function (w, h) { const i = new Image(w, h); i.crossOrigin = 'anonymous'; return i; },
-    addEventListener: (t, cb, o) => { if (t === 'load') return fire(cb); window.addEventListener(t, cb, o); cleanups.push(() => window.removeEventListener(t, cb, o)); },
+    // `hf-seek` is HyperFrames' protocol for content that is not a GSAP timeline (WebGPU/WebGL shader backgrounds, three.js): the listener renders the given time. Kept per instance, never on the shared window.
+    addEventListener: (t, cb, o) => { if (t === 'load') return fire(cb); if (t === 'hf-seek') { (store.__hfSeek ||= []).push(cb); return undefined; } window.addEventListener(t, cb, o); cleanups.push(() => window.removeEventListener(t, cb, o)); },
     removeEventListener: (t, cb, o) => window.removeEventListener(t, cb, o),
   };
   const winProxy = new Proxy(window, {
@@ -405,7 +406,7 @@ async function runScripts(doc, name, scope, cfg = {}, base = HF_BASE, owner = na
       // Remote script URLs are never fetched: only the vendored copies (setup-blocks.mjs) or the block's own folder.
       const local = /^(https?:)?\/\//.test(src) ? map[src.startsWith('//') ? `https:${src}` : src] : src;
       if (!local || local.includes('..') || /^[a-z][a-z0-9+.-]*:/i.test(local)) { report('blocked-script', owner, `${src}: not vendored`); continue; }
-      try { code = await (await fetch(`${base}/${local}`)).text(); } catch (e) { report('fetch', owner, `${src}: ${e?.message || e}`); continue; }
+      try { code = await (await fetch(`${/^(https?:)?\/\//.test(src) ? HF_BASE : base}/${local}`)).text(); } catch (e) { report('fetch', owner, `${src}: ${e?.message || e}`); continue; }
     } else { code = s.textContent; label = `${name}#inline`; }
     if (Object.keys(cfg).length && !cfgUsed) { const patched = patchConfig(code, cfg); if (patched !== null) { code = patched; cfgUsed = true; } }
     try { scope.run(code, label); } catch (e) { report('script', owner, `${label}: ${e?.message || e}`); }
@@ -577,13 +578,16 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         // ---- timelines: the root composition plus every nested composition, each seeked to its own local time ----
         const want = [...new Set([id, ...childIds, ...[...el.querySelectorAll('[data-composition-id]')].map((x) => x.getAttribute('data-composition-id'))])].filter(Boolean); // inline compositions (no src) register timelines too
         const tls = {};
-        for (let i = 0; i < 120 && !cancelled; i++) {
+        const hfBuild = Object.values(scope.store.__hf?.buildReady || {}); // promises the block's runtime publishes while it builds (e.g. the shader library creating its GPU pipeline)
+        if (hfBuild.length) { try { await Promise.race([Promise.all(hfBuild), new Promise((_, rej) => setTimeout(() => rej(new Error('block runtime did not become ready in 30s')), 30000))]); } catch (e) { report('build', name, e); } }
+        const seekOnly = !!scope.store.__hfSeek?.length && root?.hasAttribute('data-no-timeline');
+        for (let i = 0; i < (seekOnly ? 0 : 120) && !cancelled; i++) {
           for (const w of want) if (!tls[w] && scope.store.__timelines?.[w]) tls[w] = scope.store.__timelines[w];
           if (want.every((w) => tls[w]) || (!project && want.length <= 1 && tls[id])) break;
           await new Promise((r) => setTimeout(r, 50));
         }
         const tl = (id && tls[id]) || null;
-        if (!tl && !project) report('timeline', name, 'no __timelines entry' + (root?.hasAttribute('data-no-timeline') ? ' (data-no-timeline block)' : ''));
+        if (!tl && !project && !scope.store.__hfSeek?.length) report('timeline', name, 'no __timelines entry' + (root?.hasAttribute('data-no-timeline') ? ' (data-no-timeline block)' : ''));
         // a nested composition that registers no timeline is a static (CSS/markup only) composition: valid, nothing to seek
         const wins = project || childIds.length || want.length > 1 ? computeWindows(root || el) : null;
         if (wins) for (const w of wins) if (w.error) report('timeline', name, w.error);
@@ -601,6 +605,11 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
             x.totalTime(0, true); x.totalTime(lt, false);
           }
         };
+        state.current.ext = scope.store.__hfSeek?.length ? (t) => { // ask every hf-seek listener to render time t and wait for the ones that say they are busy
+          const waits = []; const detail = { time: t, waitUntil: (p) => { waits.push(Promise.resolve(p)); } };
+          for (const cb of scope.store.__hfSeek) { try { cb(new CustomEvent('hf-seek', { detail })); } catch (e) { report('seek', name, e); } }
+          return Promise.all(waits).catch((e) => report('seek', name, e));
+        } : null;
         await Promise.all([...el.querySelectorAll('img')].map((i) => (i.decode ? i.decode().catch(() => {}) : null)));
         state.current.blurs = rasterBlurShapes(el);
         state.current.rasters = rasterRadials(el);
@@ -611,6 +620,7 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         state.current.ready = true;
         const t = frame / fps;
         state.current.seek(t);
+        await state.current.ext?.(t);
         applyVisibility(el, t, state.current.wins);
         applyInsetBars(el, state.current.bars || []);
       } catch (e) { report('mount', name, e); }
@@ -625,6 +635,7 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
     if (!ready) return;
     const t = frame / fps;
     state.current.seek?.(t);
+    if (state.current.ext) { const h = delayRender('hf-seek-frame'); state.current.ext(t).finally(() => continueRender(h)); }
     if (state.current.videos?.length) { const h = delayRender('hf-video-frame'); paintVideos(state.current.videos, t).finally(() => continueRender(h)); }
     if (host.current) { applyVisibility(host.current, t, state.current.wins); applyInsetBars(host.current, state.current.bars || []); }
   }, [frame, fps]);

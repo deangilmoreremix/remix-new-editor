@@ -7610,6 +7610,2079 @@
     }
    },
    "motion": "static"
+  },
+  {
+   "id": "bottom-up-letters",
+   "type": "component",
+   "title": "Bottom Up Letters",
+   "description": "Splits text into letters and reveals each glyph from below with deterministic staggered timing",
+   "tags": [
+    "motion-primitive",
+    "text",
+    "letters",
+    "reveal"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.0,
+   "sourceSha256": "951f8fa4601bda10eb81d1b9dc3b3ca3c7e47dbfdc46e918f9e03e21a975d00c",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/bottom-up-letters/demo.html",
+     "sha256": "951f8fa4601bda10eb81d1b9dc3b3ca3c7e47dbfdc46e918f9e03e21a975d00c"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_direction",
+     "label": "Direction",
+     "target": {
+      "kind": "var",
+      "id": "direction"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "up",
+       "label": "Up"
+      },
+      {
+       "value": "down",
+       "label": "Down"
+      }
+     ],
+     "defaultValue": "up"
+    },
+    {
+     "key": "var_travel",
+     "label": "Travel",
+     "target": {
+      "kind": "var",
+      "id": "travel"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "close",
+       "label": "Close"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "far",
+       "label": "Far"
+      }
+     ],
+     "defaultValue": "standard"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/bottom-up-letters",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "951f8fa4601bda10eb81d1b9dc3b3ca3c7e47dbfdc46e918f9e03e21a975d00c"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-clip-wipe",
+   "type": "component",
+   "title": "Clip Wipe",
+   "description": "Left-to-right clip-path wipe reveal per word",
+   "tags": [
+    "captions",
+    "caption-style",
+    "wipe",
+    "clip-path",
+    "reveal"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "7896fbe59f072bf09e3c8e80dab411348f50ac8425d633a04b6070fbc9d1f261",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-clip-wipe/demo.html",
+     "sha256": "7896fbe59f072bf09e3c8e80dab411348f50ac8425d633a04b6070fbc9d1f261"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-clip-wipe",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "7896fbe59f072bf09e3c8e80dab411348f50ac8425d633a04b6070fbc9d1f261"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-editorial-emphasis",
+   "type": "component",
+   "title": "Editorial Emphasis",
+   "description": "Dual-font system with dramatic size contrast for emphasis words",
+   "tags": [
+    "captions",
+    "caption-style",
+    "editorial",
+    "typography",
+    "emphasis"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "28ce0b30f7e671d555315c348b5f300bf19697959bdbd267d721d906f1e5fdf8",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-editorial-emphasis/demo.html",
+     "sha256": "28ce0b30f7e671d555315c348b5f300bf19697959bdbd267d721d906f1e5fdf8"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-editorial-emphasis",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "28ce0b30f7e671d555315c348b5f300bf19697959bdbd267d721d906f1e5fdf8"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-emoji-pop",
+   "type": "component",
+   "title": "Emoji Pop",
+   "description": "Emoji integration with stroked text and horizontal squeeze entrance",
+   "tags": [
+    "captions",
+    "caption-style",
+    "emoji",
+    "social"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "f68bd5e53b93052ebc46ae7266e8728eb0e4cabe57cfff0dffecda5f2bc83211",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-emoji-pop/demo.html",
+     "sha256": "f68bd5e53b93052ebc46ae7266e8728eb0e4cabe57cfff0dffecda5f2bc83211"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-emoji-pop",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "f68bd5e53b93052ebc46ae7266e8728eb0e4cabe57cfff0dffecda5f2bc83211"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-glitch-rgb",
+   "type": "component",
+   "title": "Glitch RGB",
+   "description": "RGB chromatic aberration with CRT scanline overlay",
+   "tags": [
+    "captions",
+    "caption-style",
+    "glitch",
+    "cyber",
+    "tech"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "0710e71a44509d6ce6e132e187717adb45212ce7c249440c7c5272aa01467985",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-glitch-rgb/demo.html",
+     "sha256": "0710e71a44509d6ce6e132e187717adb45212ce7c249440c7c5272aa01467985"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-glitch-rgb",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "0710e71a44509d6ce6e132e187717adb45212ce7c249440c7c5272aa01467985"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-gradient-fill",
+   "type": "component",
+   "title": "Gradient Fill",
+   "description": "Gradient-clipped text with elastic bounce entrance",
+   "tags": [
+    "captions",
+    "caption-style",
+    "gradient",
+    "colorful"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "db515201d4e3411fb56bbfd2a807c30a593e555c2e6c49668e0e9669b4fcab8e",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-gradient-fill/demo.html",
+     "sha256": "db515201d4e3411fb56bbfd2a807c30a593e555c2e6c49668e0e9669b4fcab8e"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-gradient-fill",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "db515201d4e3411fb56bbfd2a807c30a593e555c2e6c49668e0e9669b4fcab8e"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-highlight",
+   "type": "component",
+   "title": "Highlight",
+   "description": "Red background sweep behind each active word, TikTok-style",
+   "tags": [
+    "captions",
+    "caption-style",
+    "highlight",
+    "social",
+    "tiktok"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "3c8de04959615a4a69f0094757abdcd677a7d363f50ad0027845a85de1790aa5",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-highlight/demo.html",
+     "sha256": "3c8de04959615a4a69f0094757abdcd677a7d363f50ad0027845a85de1790aa5"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-highlight",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "3c8de04959615a4a69f0094757abdcd677a7d363f50ad0027845a85de1790aa5"
+    }
+   },
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "caption-kinetic-slam",
+   "type": "component",
+   "title": "Kinetic Slam",
+   "description": "Full-screen single-word display with alternating entrance directions",
+   "tags": [
+    "captions",
+    "caption-style",
+    "kinetic",
+    "typography",
+    "slam"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "3764f023efb7fe48649785a868c3a8cf6501549eac4dc8a20040e1f1ece54c22",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-kinetic-slam/demo.html",
+     "sha256": "3764f023efb7fe48649785a868c3a8cf6501549eac4dc8a20040e1f1ece54c22"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-kinetic-slam",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "3764f023efb7fe48649785a868c3a8cf6501549eac4dc8a20040e1f1ece54c22"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-matrix-decode",
+   "type": "component",
+   "title": "Matrix Decode",
+   "description": "Character scramble animation before text reveal",
+   "tags": [
+    "captions",
+    "caption-style",
+    "matrix",
+    "scramble",
+    "decode"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "1aa5564ad1ad8e08ef85c19d6e759d6c4f71f112e7d394b4df5ec28ddcbf30d1",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-matrix-decode/demo.html",
+     "sha256": "1aa5564ad1ad8e08ef85c19d6e759d6c4f71f112e7d394b4df5ec28ddcbf30d1"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-matrix-decode",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "1aa5564ad1ad8e08ef85c19d6e759d6c4f71f112e7d394b4df5ec28ddcbf30d1"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-neon-accent",
+   "type": "component",
+   "title": "Neon Accent",
+   "description": "Multi-color neon glow accents with wiggle drift animation",
+   "tags": [
+    "captions",
+    "caption-style",
+    "neon",
+    "glow",
+    "accent"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "29f95dd7d652de48c7153e37b2cc59b354b6109744b38f18b53d3ae703dcd6ea",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-neon-accent/demo.html",
+     "sha256": "29f95dd7d652de48c7153e37b2cc59b354b6109744b38f18b53d3ae703dcd6ea"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-neon-accent",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "29f95dd7d652de48c7153e37b2cc59b354b6109744b38f18b53d3ae703dcd6ea"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-neon-glow",
+   "type": "component",
+   "title": "Neon Glow",
+   "description": "Cyan and magenta neon glow with keyword accent colors",
+   "tags": [
+    "captions",
+    "caption-style",
+    "neon",
+    "glow",
+    "gaming"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "9381a3382882abd65af1ad989a389f921bcbb820dcdf88a5487be7531c312bc9",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-neon-glow/demo.html",
+     "sha256": "9381a3382882abd65af1ad989a389f921bcbb820dcdf88a5487be7531c312bc9"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-neon-glow",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "9381a3382882abd65af1ad989a389f921bcbb820dcdf88a5487be7531c312bc9"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-parallax-layers",
+   "type": "component",
+   "title": "Parallax Layers",
+   "description": "Behind-subject 3D text layering with vertical stretch effect",
+   "tags": [
+    "captions",
+    "caption-style",
+    "parallax",
+    "3d",
+    "depth"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "418081cf9b97d57de34e0b3fad121c23b7f73e94e810c34aa7921e635394c312",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-parallax-layers/demo.html",
+     "sha256": "418081cf9b97d57de34e0b3fad121c23b7f73e94e810c34aa7921e635394c312"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-parallax-layers",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "418081cf9b97d57de34e0b3fad121c23b7f73e94e810c34aa7921e635394c312"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-particle-burst",
+   "type": "component",
+   "title": "Particle Burst",
+   "description": "Keyword words trigger colored particle explosions",
+   "tags": [
+    "captions",
+    "caption-style",
+    "particles",
+    "burst",
+    "effects"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "ffd3280edfe184c0a0fa27b531da1ac6722c5096c8e4bcf178bb1f19fe10aa7e",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-particle-burst/demo.html",
+     "sha256": "ffd3280edfe184c0a0fa27b531da1ac6722c5096c8e4bcf178bb1f19fe10aa7e"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-particle-burst",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "ffd3280edfe184c0a0fa27b531da1ac6722c5096c8e4bcf178bb1f19fe10aa7e"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-pill-karaoke",
+   "type": "component",
+   "title": "Pill Karaoke",
+   "description": "Pill-shaped container with per-word karaoke color highlight",
+   "tags": [
+    "captions",
+    "caption-style",
+    "karaoke",
+    "pill"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "62b4a7e5fa6004fd72fed8497bc8aad9360ef7f89c315d026ccd08cdc76c82a6",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-pill-karaoke/demo.html",
+     "sha256": "62b4a7e5fa6004fd72fed8497bc8aad9360ef7f89c315d026ccd08cdc76c82a6"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-pill-karaoke",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "62b4a7e5fa6004fd72fed8497bc8aad9360ef7f89c315d026ccd08cdc76c82a6"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caption-weight-shift",
+   "type": "component",
+   "title": "Weight Shift",
+   "description": "Elegant font-weight transition between caption lines",
+   "tags": [
+    "captions",
+    "caption-style",
+    "minimal",
+    "typography"
+   ],
+   "category": "captions",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8.0,
+   "sourceSha256": "bbc3e009f9c079e0a3840d55931379d36352b1bf4be9ad294e61361d419fdff9",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caption-weight-shift/demo.html",
+     "sha256": "bbc3e009f9c079e0a3840d55931379d36352b1bf4be9ad294e61361d419fdff9"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/caption-weight-shift",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "bbc3e009f9c079e0a3840d55931379d36352b1bf4be9ad294e61361d419fdff9"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "caret-swap",
+   "type": "component",
+   "title": "Caret Swap",
+   "description": "A gradient caret expands over one phrase, collapses to the left, then types its replacement with a blinking caret.",
+   "tags": [
+    "motion-primitive",
+    "text-effects",
+    "typography",
+    "swap",
+    "typewriter",
+    "remocn-port"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1280,
+    "height": 720
+   },
+   "duration": 3.3333333333333335,
+   "sourceSha256": "daa76eeba0250499dc3942a74d5240b9859bf4c9c6a2a60030df418c26a14d88",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/caret-swap/demo.html",
+     "sha256": "daa76eeba0250499dc3942a74d5240b9859bf4c9c6a2a60030df418c26a14d88"
+    },
+    {
+     "path": "caret-swap.html",
+     "target": "component-demos/caret-swap/caret-swap.html",
+     "sha256": "984f2d648d676f408be3ead124555d7700b147d349e376b3dec6fbcb0640ba3c"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_from_text",
+     "label": "From text",
+     "target": {
+      "kind": "var",
+      "id": "from_text"
+     },
+     "type": "text",
+     "defaultValue": "Executing it?"
+    },
+    {
+     "key": "var_font_weight",
+     "label": "Font weight",
+     "target": {
+      "kind": "var",
+      "id": "font_weight"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "400",
+       "label": "Regular"
+      },
+      {
+       "value": "500",
+       "label": "Medium"
+      },
+      {
+       "value": "600",
+       "label": "Semibold"
+      },
+      {
+       "value": "700",
+       "label": "Bold"
+      }
+     ],
+     "defaultValue": "400"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/caret-swap",
+    "entry": "demo.html",
+    "demo": true,
+    "instance": "cs-demo-mount",
+    "files": {
+     "demo.html": "daa76eeba0250499dc3942a74d5240b9859bf4c9c6a2a60030df418c26a14d88",
+     "caret-swap.html": "984f2d648d676f408be3ead124555d7700b147d349e376b3dec6fbcb0640ba3c"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "halftone-dissolve",
+   "type": "component",
+   "title": "Halftone Dissolve",
+   "description": "Scene A dissolves into scene B through a growing halftone dot field: accent ink dots pop onto a fixed grid smallest-first, each opens into a window onto B, until the windows merge and B fully replaces A.",
+   "tags": [
+    "motion-primitive",
+    "transition",
+    "texture",
+    "halftone",
+    "dissolve"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 3.5,
+   "sourceSha256": "067f300d98e63194d08527198efa7c9ba7da5372db21cf2ddc0e16d126e9219c",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/halftone-dissolve/demo.html",
+     "sha256": "067f300d98e63194d08527198efa7c9ba7da5372db21cf2ddc0e16d126e9219c"
+    },
+    {
+     "path": "halftone-dissolve.html",
+     "target": "component-demos/halftone-dissolve/halftone-dissolve.html",
+     "sha256": "46e08482e6c2a336ca1c82125f93bbeb09d74942b20cb68d457882e987bf7abd"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/halftone-dissolve",
+    "entry": "demo.html",
+    "demo": true,
+    "instance": "halftone-dissolve-mount",
+    "files": {
+     "demo.html": "067f300d98e63194d08527198efa7c9ba7da5372db21cf2ddc0e16d126e9219c",
+     "halftone-dissolve.html": "46e08482e6c2a336ca1c82125f93bbeb09d74942b20cb68d457882e987bf7abd"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "micro-transitions",
+   "type": "component",
+   "title": "Micro Transitions",
+   "description": "A transitions.dev-inspired pack of badge, dropdown, modal, tabs, tooltip, and success-check micro transitions",
+   "tags": [
+    "transition-primitive",
+    "motion-primitive",
+    "transitions-dev-port",
+    "ui",
+    "transition",
+    "microinteraction"
+   ],
+   "category": "transition-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "b0c092e8861b069d5fab539461a0ff684a9caa0364dc592dfe5880c21e49ebd8",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/micro-transitions/demo.html",
+     "sha256": "b0c092e8861b069d5fab539461a0ff684a9caa0364dc592dfe5880c21e49ebd8"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_badge",
+     "label": "Badge",
+     "target": {
+      "kind": "var",
+      "id": "badge"
+     },
+     "type": "text",
+     "defaultValue": "3"
+    },
+    {
+     "key": "var_tooltip",
+     "label": "Tooltip",
+     "target": {
+      "kind": "var",
+      "id": "tooltip"
+     },
+     "type": "text",
+     "defaultValue": "Copied"
+    },
+    {
+     "key": "var_tone",
+     "label": "Badge tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "red",
+       "label": "Red"
+      },
+      {
+       "value": "amber",
+       "label": "Amber"
+      },
+      {
+       "value": "violet",
+       "label": "Violet"
+      }
+     ],
+     "defaultValue": "red"
+    },
+    {
+     "key": "var_travel",
+     "label": "Travel",
+     "target": {
+      "kind": "var",
+      "id": "travel"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "close",
+       "label": "Close"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "far",
+       "label": "Far"
+      }
+     ],
+     "defaultValue": "standard"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/micro-transitions",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "b0c092e8861b069d5fab539461a0ff684a9caa0364dc592dfe5880c21e49ebd8"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "multiplayer-cursors",
+   "type": "component",
+   "title": "Multiplayer Cursors",
+   "description": "Labeled collaborator cursors with token-derived colors and soft glows drift from spread positions into a shared center zone, proving live multiplayer presence.",
+   "tags": [
+    "cursor",
+    "pointer",
+    "multiplayer",
+    "collaboration",
+    "presence",
+    "loop",
+    "prove"
+   ],
+   "category": "cursor",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6.0,
+   "sourceSha256": "c0d063540840806aaeeba8bf8086c7881ee1469f0662466dcdd11c86e5da5fda",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/multiplayer-cursors/demo.html",
+     "sha256": "c0d063540840806aaeeba8bf8086c7881ee1469f0662466dcdd11c86e5da5fda"
+    },
+    {
+     "path": "multiplayer-cursors.html",
+     "target": "component-demos/multiplayer-cursors/multiplayer-cursors.html",
+     "sha256": "9ffcd3b73e81cb297e04df810db8b862f75b4409a894b377a15fe468618a4ac9"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_labels",
+     "label": "Labels",
+     "target": {
+      "kind": "var",
+      "id": "labels"
+     },
+     "type": "text",
+     "defaultValue": "Ana,Ken,Wen,Mia"
+    },
+    {
+     "key": "var_cursorCount",
+     "label": "Cursor count",
+     "target": {
+      "kind": "var",
+      "id": "cursorCount"
+     },
+     "type": "number",
+     "defaultValue": 4,
+     "min": 2,
+     "max": 6,
+     "step": 1
+    }
+   ],
+   "project": {
+    "dir": "component-demos/multiplayer-cursors",
+    "entry": "demo.html",
+    "demo": true,
+    "instance": "multiplayer-cursors-mount",
+    "files": {
+     "demo.html": "c0d063540840806aaeeba8bf8086c7881ee1469f0662466dcdd11c86e5da5fda",
+     "multiplayer-cursors.html": "9ffcd3b73e81cb297e04df810db8b862f75b4409a894b377a15fe468618a4ac9"
+    }
+   },
+   "motion": "static",
+   "slow": true
+  },
+  {
+   "id": "number-pop-in",
+   "type": "component",
+   "title": "Number Pop In",
+   "description": "A transitions.dev-inspired digit pop-in with blur, lift, and staggered value reveal",
+   "tags": [
+    "video-primitive",
+    "transition-primitive",
+    "transitions-dev-port",
+    "number",
+    "pop"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "b12a62158e7b25eb015e5b5e219fa67d5d7da4ba5821c03438dd5ef23732947c",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/number-pop-in/demo.html",
+     "sha256": "b12a62158e7b25eb015e5b5e219fa67d5d7da4ba5821c03438dd5ef23732947c"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_value",
+     "label": "Value",
+     "target": {
+      "kind": "var",
+      "id": "value"
+     },
+     "type": "text",
+     "defaultValue": "5.7"
+    },
+    {
+     "key": "var_unit",
+     "label": "Unit",
+     "target": {
+      "kind": "var",
+      "id": "unit"
+     },
+     "type": "text",
+     "defaultValue": "k"
+    },
+    {
+     "key": "var_lift",
+     "label": "Lift",
+     "target": {
+      "kind": "var",
+      "id": "lift"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "close",
+       "label": "Close"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "far",
+       "label": "Far"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "ink",
+       "label": "Ink"
+      },
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "accent",
+       "label": "Accent"
+      }
+     ],
+     "defaultValue": "ink"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/number-pop-in",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "b12a62158e7b25eb015e5b5e219fa67d5d7da4ba5821c03438dd5ef23732947c"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "panel-reveal",
+   "type": "component",
+   "title": "Panel Reveal",
+   "description": "A panel reveal primitive with height expansion and content fade",
+   "tags": [
+    "transition-primitive",
+    "transitions-dev-port",
+    "panel",
+    "reveal"
+   ],
+   "category": "transition-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "c814d6593c4e32621cb7952aa48db0c1a235d4b732fae0fb3a1ba354af5db74f",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/panel-reveal/demo.html",
+     "sha256": "c814d6593c4e32621cb7952aa48db0c1a235d4b732fae0fb3a1ba354af5db74f"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_title",
+     "label": "Title",
+     "target": {
+      "kind": "var",
+      "id": "title"
+     },
+     "type": "text",
+     "defaultValue": "Motion tokens"
+    },
+    {
+     "key": "var_width",
+     "label": "Width",
+     "target": {
+      "kind": "var",
+      "id": "width"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "narrow",
+       "label": "Narrow"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "wide",
+       "label": "Wide"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "ink",
+       "label": "Ink"
+      }
+     ],
+     "defaultValue": "paper"
+    },
+    {
+     "key": "var_reveal",
+     "label": "Reveal",
+     "target": {
+      "kind": "var",
+      "id": "reveal"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "fade",
+       "label": "Fade"
+      },
+      {
+       "value": "solid",
+       "label": "Solid"
+      }
+     ],
+     "defaultValue": "fade"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/panel-reveal",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "c814d6593c4e32621cb7952aa48db0c1a235d4b732fae0fb3a1ba354af5db74f"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "skeleton-reveal",
+   "type": "component",
+   "title": "Skeleton Reveal",
+   "description": "A skeleton loader transition that pulses, then cross-fades into content",
+   "tags": [
+    "video-primitive",
+    "transition-primitive",
+    "transitions-dev-port",
+    "skeleton",
+    "reveal"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "0af54c7b6cee6cc1d91565c6fe989dfebde4eeaca20aa095c871ed56babb19e1",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/skeleton-reveal/demo.html",
+     "sha256": "0af54c7b6cee6cc1d91565c6fe989dfebde4eeaca20aa095c871ed56babb19e1"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_name",
+     "label": "Name",
+     "target": {
+      "kind": "var",
+      "id": "name"
+     },
+     "type": "text",
+     "defaultValue": "Jane Cooper"
+    },
+    {
+     "key": "var_detail",
+     "label": "Detail",
+     "target": {
+      "kind": "var",
+      "id": "detail"
+     },
+     "type": "text",
+     "defaultValue": "jane@example.com"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "light",
+       "label": "Light"
+      },
+      {
+       "value": "dark",
+       "label": "Dark"
+      }
+     ],
+     "defaultValue": "light"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/skeleton-reveal",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "0af54c7b6cee6cc1d91565c6fe989dfebde4eeaca20aa095c871ed56babb19e1"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "slot-machine-roll",
+   "type": "component",
+   "title": "Slot Machine Roll",
+   "description": "A vertical reel scrolls characters from one value to another.",
+   "tags": [
+    "video-primitive",
+    "motion-primitive",
+    "typography"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "6600277b31f7219ef3a929a08c20810e7197e2149fd77330b4336a75585fbc6f",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/slot-machine-roll/demo.html",
+     "sha256": "6600277b31f7219ef3a929a08c20810e7197e2149fd77330b4336a75585fbc6f"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_result",
+     "label": "Result",
+     "target": {
+      "kind": "var",
+      "id": "result"
+     },
+     "type": "text",
+     "defaultValue": "A7K"
+    },
+    {
+     "key": "var_direction",
+     "label": "Direction",
+     "target": {
+      "kind": "var",
+      "id": "direction"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "up",
+       "label": "Up"
+      },
+      {
+       "value": "down",
+       "label": "Down"
+      }
+     ],
+     "defaultValue": "up"
+    },
+    {
+     "key": "var_size",
+     "label": "Size",
+     "target": {
+      "kind": "var",
+      "id": "size"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "small",
+       "label": "Small"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "large",
+       "label": "Large"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "ink",
+       "label": "Ink"
+      },
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "accent",
+       "label": "Accent"
+      }
+     ],
+     "defaultValue": "ink"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/slot-machine-roll",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "6600277b31f7219ef3a929a08c20810e7197e2149fd77330b4336a75585fbc6f"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "social-proof-card",
+   "type": "component",
+   "title": "Social Proof Card",
+   "description": "The app-store close as one mountable scene: wordmark, five stars, a proof line, three feature icons and a CTA capsule build in a quiet stagger and hold - measured from reference ad footage. For an animated star sweep use star-rating-fill; for a quote card use testimonial-proof-card; for a bare lockup use cta-lockup",
+   "tags": [
+    "motion-primitive",
+    "social-proof",
+    "end-card",
+    "cta",
+    "vertical"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.0,
+   "sourceSha256": "439e8a23b56f399c5ead7d3b80ce164bc3a7d3a899fb78bee312643ef2058887",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/social-proof-card/demo.html",
+     "sha256": "439e8a23b56f399c5ead7d3b80ce164bc3a7d3a899fb78bee312643ef2058887"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_brand",
+     "label": "Brand",
+     "target": {
+      "kind": "var",
+      "id": "brand"
+     },
+     "type": "text",
+     "defaultValue": "HyperFrames"
+    },
+    {
+     "key": "var_proof",
+     "label": "Proof line",
+     "target": {
+      "kind": "var",
+      "id": "proof"
+     },
+     "type": "text",
+     "defaultValue": "12,000+ creators"
+    },
+    {
+     "key": "var_cta",
+     "label": "CTA",
+     "target": {
+      "kind": "var",
+      "id": "cta"
+     },
+     "type": "text",
+     "defaultValue": "Start rendering free"
+    },
+    {
+     "key": "var_f1",
+     "label": "Feature 1",
+     "target": {
+      "kind": "var",
+      "id": "f1"
+     },
+     "type": "text",
+     "defaultValue": "Write|plain HTML"
+    },
+    {
+     "key": "var_f2",
+     "label": "Feature 2",
+     "target": {
+      "kind": "var",
+      "id": "f2"
+     },
+     "type": "text",
+     "defaultValue": "Render|pixel-perfect"
+    },
+    {
+     "key": "var_f3",
+     "label": "Feature 3",
+     "target": {
+      "kind": "var",
+      "id": "f3"
+     },
+     "type": "text",
+     "defaultValue": "Own|every line"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/social-proof-card",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "439e8a23b56f399c5ead7d3b80ce164bc3a7d3a899fb78bee312643ef2058887"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "spring-pop",
+   "type": "component",
+   "title": "Spring Pop",
+   "description": "A badge pops in from a visible near-rest scale, overshoots full size once, and settles cleanly.",
+   "tags": [
+    "motion-primitive",
+    "effects",
+    "spring",
+    "overshoot",
+    "pop",
+    "reveal"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 2.0,
+   "sourceSha256": "e5d4d6720b50cdec787b0838ab9bb80787b926d85a1e50c3fe1d42ae933ecaa8",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/spring-pop/demo.html",
+     "sha256": "e5d4d6720b50cdec787b0838ab9bb80787b926d85a1e50c3fe1d42ae933ecaa8"
+    },
+    {
+     "path": "spring-pop.html",
+     "target": "component-demos/spring-pop/spring-pop.html",
+     "sha256": "542423b2d98bb48400280b621e7421b16ae026c2abc1ee8f64d5cca18fd8f51d"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_text",
+     "label": "Label",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "New"
+    },
+    {
+     "key": "var_overshoot",
+     "label": "Overshoot",
+     "target": {
+      "kind": "var",
+      "id": "overshoot"
+     },
+     "type": "number",
+     "defaultValue": 1.7,
+     "min": 1.1,
+     "max": 2,
+     "step": 0.1
+    },
+    {
+     "key": "var_fromScale",
+     "label": "Starting scale",
+     "target": {
+      "kind": "var",
+      "id": "fromScale"
+     },
+     "type": "number",
+     "defaultValue": 0.9,
+     "min": 0.8,
+     "max": 0.97,
+     "step": 0.01
+    }
+   ],
+   "project": {
+    "dir": "component-demos/spring-pop",
+    "entry": "demo.html",
+    "demo": true,
+    "instance": "spring-pop-mount",
+    "files": {
+     "demo.html": "e5d4d6720b50cdec787b0838ab9bb80787b926d85a1e50c3fe1d42ae933ecaa8",
+     "spring-pop.html": "542423b2d98bb48400280b621e7421b16ae026c2abc1ee8f64d5cca18fd8f51d"
+    }
+   },
+   "motion": "static",
+   "slow": true
+  },
+  {
+   "id": "stagger-lattice",
+   "type": "component",
+   "title": "Stagger Lattice",
+   "description": "A staggered grid reveal inspired by Anime.js v4 stagger utilities, implemented with GSAP for HyperFrames.",
+   "tags": [
+    "advanced-motion",
+    "anime-inspired",
+    "hyperframes-native"
+   ],
+   "category": "advanced-motion",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "db0f5265c3430dfec0955f72266e703a83fed0ad3f328937ec2329197e85836d",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/stagger-lattice/demo.html",
+     "sha256": "db0f5265c3430dfec0955f72266e703a83fed0ad3f328937ec2329197e85836d"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/stagger-lattice",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "db0f5265c3430dfec0955f72266e703a83fed0ad3f328937ec2329197e85836d"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "stop-motion-cadence",
+   "type": "component",
+   "title": "Stop Motion Cadence",
+   "description": "The stepped-time law as a demo primitive: one driver quantizes timeline time to floor(t * fps) / fps and feeds ALL motion; four token paper-cut shapes throw-and-land with squash on hits, 2-frame boil jitter seeded per step, and sparkle accents living exactly 2 to 3 frames.",
+   "tags": [
+    "motion-primitive",
+    "time-law",
+    "stop-motion",
+    "stepped",
+    "boil",
+    "deterministic",
+    "experiment"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.0,
+   "sourceSha256": "9e76d8019b4c44943606d68a19e4bd39f1130f711cef243440b50cdf5e6ef153",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/stop-motion-cadence/demo.html",
+     "sha256": "9e76d8019b4c44943606d68a19e4bd39f1130f711cef243440b50cdf5e6ef153"
+    },
+    {
+     "path": "stop-motion-cadence.html",
+     "target": "component-demos/stop-motion-cadence/stop-motion-cadence.html",
+     "sha256": "52a64f69cc03cd90ff9b4d313b7f2fb8e12c88abdfef3c7198cef8c96362e0ee"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_fps",
+     "label": "Cadence",
+     "target": {
+      "kind": "var",
+      "id": "fps"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "8",
+       "label": "8 fps"
+      },
+      {
+       "value": "10",
+       "label": "10 fps"
+      },
+      {
+       "value": "12",
+       "label": "12 fps"
+      }
+     ],
+     "defaultValue": "10"
+    },
+    {
+     "key": "var_boil",
+     "label": "Boil",
+     "target": {
+      "kind": "var",
+      "id": "boil"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "on",
+       "label": "On"
+      },
+      {
+       "value": "off",
+       "label": "Off"
+      }
+     ],
+     "defaultValue": "on"
+    },
+    {
+     "key": "var_accent",
+     "label": "Accent",
+     "target": {
+      "kind": "var",
+      "id": "accent"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "green",
+       "label": "Green"
+      },
+      {
+       "value": "blue",
+       "label": "Blue"
+      },
+      {
+       "value": "violet",
+       "label": "Violet"
+      }
+     ],
+     "defaultValue": "green"
+    },
+    {
+     "key": "var_exit",
+     "label": "Exit",
+     "target": {
+      "kind": "var",
+      "id": "exit"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "none",
+       "label": "None"
+      },
+      {
+       "value": "fade",
+       "label": "Fade"
+      },
+      {
+       "value": "up",
+       "label": "Up"
+      }
+     ],
+     "defaultValue": "none"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/stop-motion-cadence",
+    "entry": "demo.html",
+    "demo": true,
+    "instance": "stop-motion-cadence-mount",
+    "files": {
+     "demo.html": "9e76d8019b4c44943606d68a19e4bd39f1130f711cef243440b50cdf5e6ef153",
+     "stop-motion-cadence.html": "52a64f69cc03cd90ff9b4d313b7f2fb8e12c88abdfef3c7198cef8c96362e0ee"
+    }
+   },
+   "motion": "static",
+   "slow": true
+  },
+  {
+   "id": "svg-line-draw-loader",
+   "type": "component",
+   "title": "SVG Line Draw Loader",
+   "description": "An Anime.js-style path drawing loader implemented as a seekable GSAP stroke timeline.",
+   "tags": [
+    "video-primitive",
+    "advanced-motion",
+    "anime-inspired",
+    "hyperframes-native"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "4a5aacdfa6d980c1981f793e7e9eea4e597d2dba0f76c4115e9fd826e89b180e",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/svg-line-draw-loader/demo.html",
+     "sha256": "4a5aacdfa6d980c1981f793e7e9eea4e597d2dba0f76c4115e9fd826e89b180e"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/svg-line-draw-loader",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "4a5aacdfa6d980c1981f793e7e9eea4e597d2dba0f76c4115e9fd826e89b180e"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "text-state-swap",
+   "type": "component",
+   "title": "Text State Swap",
+   "description": "A text state swap primitive with outgoing blur and incoming lift",
+   "tags": [
+    "video-primitive",
+    "transition-primitive",
+    "transitions-dev-port",
+    "text",
+    "swap"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "4d5fb394202e09b85b7c28410af93d824a7807ab8086d9331abdbf360b7406db",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/text-state-swap/demo.html",
+     "sha256": "4d5fb394202e09b85b7c28410af93d824a7807ab8086d9331abdbf360b7406db"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_from-text",
+     "label": "From text",
+     "target": {
+      "kind": "var",
+      "id": "from-text"
+     },
+     "type": "text",
+     "defaultValue": "Saving draft"
+    },
+    {
+     "key": "var_to-text",
+     "label": "To text",
+     "target": {
+      "kind": "var",
+      "id": "to-text"
+     },
+     "type": "text",
+     "defaultValue": "Saved"
+    },
+    {
+     "key": "var_distance",
+     "label": "Distance",
+     "target": {
+      "kind": "var",
+      "id": "distance"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "close",
+       "label": "Close"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "far",
+       "label": "Far"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "ink",
+       "label": "Ink"
+      },
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "accent",
+       "label": "Accent"
+      }
+     ],
+     "defaultValue": "ink"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/text-state-swap",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "4d5fb394202e09b85b7c28410af93d824a7807ab8086d9331abdbf360b7406db"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "typewriter",
+   "type": "component",
+   "title": "Typewriter",
+   "description": "Character-by-character text reveal with a deterministic blinking cursor.",
+   "tags": [
+    "video-primitive",
+    "motion-primitive",
+    "typography"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "bae71823d558a166118a94ac032a3704b9e736beaf727b3329db5ce1916e3be1",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/typewriter/demo.html",
+     "sha256": "bae71823d558a166118a94ac032a3704b9e736beaf727b3329db5ce1916e3be1"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_text",
+     "label": "Text",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "hyperframes add typewriter"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "ink",
+       "label": "Ink"
+      },
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "accent",
+       "label": "Accent"
+      }
+     ],
+     "defaultValue": "ink"
+    },
+    {
+     "key": "var_caret",
+     "label": "Caret",
+     "target": {
+      "kind": "var",
+      "id": "caret"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "line",
+       "label": "Line"
+      },
+      {
+       "value": "block",
+       "label": "Block"
+      },
+      {
+       "value": "none",
+       "label": "None"
+      }
+     ],
+     "defaultValue": "line"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/typewriter",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "bae71823d558a166118a94ac032a3704b9e736beaf727b3329db5ce1916e3be1"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "yt-feather-highlight",
+   "type": "component",
+   "title": "Feathered Spotlight",
+   "description": "Dims the frame except a feathered ellipse; the hole's position and size are CSS variables, so helpers glide the spotlight between targets",
+   "tags": [
+    "highlight",
+    "spotlight",
+    "effect",
+    "overlay"
+   ],
+   "category": "highlight",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "3679a41ec5b51d0fb71fff24bb6537ef887d8459b277212175baff2a3007e893",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/yt-feather-highlight/demo.html",
+     "sha256": "3679a41ec5b51d0fb71fff24bb6537ef887d8459b277212175baff2a3007e893"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "component-demos/yt-feather-highlight",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "3679a41ec5b51d0fb71fff24bb6537ef887d8459b277212175baff2a3007e893"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "zoom-through-transition",
+   "type": "component",
+   "title": "Zoom Through Transition",
+   "description": "A transition that zooms through a focal card into the next scene.",
+   "tags": [
+    "transition-primitive"
+   ],
+   "category": "transition-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "3a42bdbc5fa9663df55b930fa06bba2778d4b7f7fda5d0e6ce3d3dfbbcf2a69a",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "demo.html",
+     "target": "component-demos/zoom-through-transition/demo.html",
+     "sha256": "3a42bdbc5fa9663df55b930fa06bba2778d4b7f7fda5d0e6ce3d3dfbbcf2a69a"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_from-label",
+     "label": "Outgoing label",
+     "target": {
+      "kind": "var",
+      "id": "from-label"
+     },
+     "type": "text",
+     "defaultValue": "Before"
+    },
+    {
+     "key": "var_to-label",
+     "label": "Incoming label",
+     "target": {
+      "kind": "var",
+      "id": "to-label"
+     },
+     "type": "text",
+     "defaultValue": "Zoom Through Transition"
+    },
+    {
+     "key": "var_depth",
+     "label": "Depth",
+     "target": {
+      "kind": "var",
+      "id": "depth"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "close",
+       "label": "Close"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "far",
+       "label": "Far"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_accent",
+     "label": "Accent",
+     "target": {
+      "kind": "var",
+      "id": "accent"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "blue",
+       "label": "Blue"
+      },
+      {
+       "value": "green",
+       "label": "Green"
+      },
+      {
+       "value": "violet",
+       "label": "Violet"
+      }
+     ],
+     "defaultValue": "blue"
+    }
+   ],
+   "project": {
+    "dir": "component-demos/zoom-through-transition",
+    "entry": "demo.html",
+    "demo": true,
+    "files": {
+     "demo.html": "3a42bdbc5fa9663df55b930fa06bba2778d4b7f7fda5d0e6ce3d3dfbbcf2a69a"
+    }
+   },
+   "motion": "animated"
   }
  ]
 }

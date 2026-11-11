@@ -6,7 +6,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_PATH || 'playwright');
 const BASE = process.env.BASE || 'http://127.0.0.1:3101'; const OUT = process.env.OUT || 'out/exp'; const FPS = 30; const FRAMES = +(process.env.FRAMES || 60);
 const spec = JSON.parse(readFileSync(process.env.SPEC, 'utf8')); mkdirSync(OUT, { recursive: true });
-const b = await chromium.launch({ executablePath: process.env.CHROME_PATH }); const results = []; let idx = 0;
+const b = await chromium.launch({ executablePath: process.env.CHROME_PATH, args: (process.env.CHROME_ARGS || '').split(' ').filter(Boolean) }); const results = []; let idx = 0;
 async function worker() {
   while (idx < spec.length) {
     const s = spec[idx++]; const r = { id: s.id }; const ctx = await b.newContext({ viewport: { width: 800, height: 600 } }); const p = await ctx.newPage(); if (process.env.VERBOSE) { p.on('console', (m) => console.log('  [console]', m.type(), m.text().slice(0, 200))); p.on('pageerror', (e) => console.log('  [pageerror]', e.message.slice(0, 200))); }

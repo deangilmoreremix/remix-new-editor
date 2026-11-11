@@ -23,7 +23,7 @@ blob,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. sha
 blue-sweater-intro-video,block,verified-export,yes,no,no,,,audio element; no editable fields detected; not yet rendered through the production adapter path
 blur-in,component,verified-export,yes,no,no,1.0,,export throughput 4.6 fps < 8
 blur-out-up,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
-bottom-up-letters,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
+bottom-up-letters,component,verified-export,yes,yes,no,1.0,2,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 browser-device-stage,component,specialized,no,no,no,0.43,,worst-sample SSIM 0.430: content differs from native
 camcorder-hud,block,verified-export,yes,yes,no,0.997,2,SSIM >= 0.95 at all samples; MP4 export OK
 camera-dolly-zoom,block,verified-export,yes,no,no,0.998,,export throughput 3.2 fps < 8
@@ -33,23 +33,23 @@ camera-shake,component,specialized,no,no,no,0.677,,worst-sample SSIM 0.677: cont
 canopy-part-title,block,not-tested,no,no,no,,,"native reference is blank at every sample (max non-black 0.0000), so SSIM verifies nothing; needs sample times that catch the visible moment"
 caption-blend-difference,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 caption-camera-follow,component,specialized,no,no,no,0.682,,worst-sample SSIM 0.682: content differs from native
-caption-clip-wipe,component,verified-export,yes,no,no,0.976,,standalone output is (nearly) blank; export throughput 7.2 fps < 8; shows built-in content and exposes no editable field
-caption-editorial-emphasis,component,verified-export,yes,no,no,0.98,,standalone output is (nearly) blank; shows built-in content and exposes no editable field
-caption-emoji-pop,component,verified-export,yes,no,no,0.967,,standalone output is (nearly) blank; export throughput 7 fps < 8; shows built-in content and exposes no editable field
-caption-glitch-rgb,component,verified-export,yes,no,no,0.973,,standalone output is (nearly) blank; export throughput 7.1 fps < 8; shows built-in content and exposes no editable field
-caption-gradient-fill,component,adapter-compatible,no,no,no,0.859,,worst-sample SSIM 0.859
-caption-highlight,component,adapter-compatible,no,no,no,0.932,,worst-sample SSIM 0.932
-caption-kinetic-slam,component,adapter-compatible,no,no,no,0.926,,worst-sample SSIM 0.926
-caption-matrix-decode,component,verified-export,yes,no,no,0.981,,standalone output is (nearly) blank; shows built-in content and exposes no editable field
-caption-neon-accent,component,adapter-compatible,no,no,no,0.922,,worst-sample SSIM 0.922
-caption-neon-glow,component,adapter-compatible,no,no,no,0.902,,worst-sample SSIM 0.902
-caption-parallax-layers,component,specialized,no,no,no,0.792,,worst-sample SSIM 0.792: content differs from native
-caption-particle-burst,component,verified-export,yes,no,no,0.96,,standalone output is (nearly) blank; shows built-in content and exposes no editable field
-caption-pill-karaoke,component,adapter-compatible,no,no,no,0.914,,worst-sample SSIM 0.914
+caption-clip-wipe,component,verified-export,yes,yes,no,0.976,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-editorial-emphasis,component,verified-export,yes,yes,no,0.98,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-emoji-pop,component,verified-export,yes,yes,no,0.967,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-glitch-rgb,component,verified-export,yes,yes,no,0.973,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-gradient-fill,component,verified-export,yes,yes,no,0.859,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-highlight,component,verified-export,yes,yes,no,0.932,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-kinetic-slam,component,verified-export,yes,yes,no,0.926,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-matrix-decode,component,verified-export,yes,yes,no,0.981,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-neon-accent,component,verified-export,yes,yes,no,0.922,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-neon-glow,component,verified-export,yes,yes,no,0.902,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-parallax-layers,component,verified-export,yes,yes,no,0.792,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-particle-burst,component,verified-export,yes,yes,no,0.96,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
+caption-pill-karaoke,component,verified-export,yes,yes,no,0.914,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 caption-texture,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
-caption-weight-shift,component,verified-export,yes,no,no,0.982,,standalone output is (nearly) blank; export throughput 7.8 fps < 8; shows built-in content and exposes no editable field
+caption-weight-shift,component,verified-export,yes,yes,no,0.982,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 card-resize,component,verified-export,yes,no,no,0.981,,export throughput 4.5 fps < 8
-caret-swap,component,unsupported,no,no,no,0.984,,adapter errors: [hyperframes] script https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js: Unexpected token '<'
+caret-swap,component,verified-export,yes,yes,no,0.984,2,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 carousel-circle-1,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.896; exports, with visible differences"
 carousel-circle-2,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.886; exports, with visible differences"
 carousel-circle-3,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.815: content differs from native (export not attempted)"
@@ -166,7 +166,7 @@ grain-overlay,component,specialized,no,no,no,0.001,,worst-sample SSIM 0.001: con
 gravitational-lens,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.898; exports, with visible differences"
 grid-card-assemble,component,specialized,no,no,no,0.464,,worst-sample SSIM 0.464: content differs from native
 grid-pixelate-wipe,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
-halftone-dissolve,component,specialized,no,no,no,0.388,,worst-sample SSIM 0.388: content differs from native
+halftone-dissolve,component,verified-export,yes,yes,no,0.388,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 halftone-field,block,verified-export,yes,no,no,,,WebGL; not yet rendered through the production adapter path
 headline-slam,component,verified-export,yes,no,no,0.971,,standalone output is (nearly) blank; export throughput 7.8 fps < 8; no editable field with a measured visible effect
 heatmap,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline heatmap: no __timelines entry (data-no-timeline block)
@@ -236,7 +236,7 @@ menu-morph,component,verified-export,yes,yes,no,0.999,2,SSIM >= 0.95 at all samp
 mesh-gradient,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline mesh-gradient: no __timelines entry (data-no-timeline block)
 mesh-gradient-bg,component,verified-export,yes,no,no,1.0,,export throughput 4.2 fps < 8
 message-thread-reveal,block,verified-export,yes,no,no,0.994,,export throughput 1.8 fps < 8
-micro-transitions,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
+micro-transitions,component,verified-export,yes,yes,no,1.0,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 mk-background,block,verified-export,yes,yes,no,1.0,8,SSIM >= 0.95 at all samples; MP4 export OK
 mk-callout-highlight,block,verified-export,yes,yes,no,0.992,7,SSIM >= 0.95 at all samples; MP4 export OK
 mk-clone-wall-transition,block,verified-export,yes,no,no,,,shows built-in text that cannot be edited; not yet rendered through the production adapter path
@@ -251,7 +251,7 @@ morph-swap,component,adapter-compatible,no,no,no,0.9,,worst-sample SSIM 0.900
 morph-text,component,adapter-compatible,no,no,no,0.928,,worst-sample SSIM 0.928
 motion-blur,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 multi-device-splay,component,specialized,no,no,no,0.518,,worst-sample SSIM 0.518: content differs from native
-multiplayer-cursors,component,specialized,no,no,no,0.759,,worst-sample SSIM 0.759: content differs from native
+multiplayer-cursors,component,verified-export,yes,yes,no,0.759,2,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 native-notification-pop,component,adapter-compatible,no,no,no,0.95,,worst-sample SSIM 0.950
 nebula,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline nebula: no __timelines entry (data-no-timeline block)
 news-ticker,block,verified-export,yes,yes,no,0.96,6,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
@@ -261,7 +261,7 @@ notes-typing,component,verified-export,yes,yes,no,0.986,1,SSIM >= 0.95 at all sa
 notification-cascade,block,verified-export,yes,yes,no,0.967,4,SSIM >= 0.95 at all samples; MP4 export OK
 notification-pileup,component,adapter-compatible,no,no,no,0.854,,worst-sample SSIM 0.854
 notification-stack,component,specialized,no,no,no,0.723,,worst-sample SSIM 0.723: content differs from native
-number-pop-in,component,host-dependent,no,no,no,0.999,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
+number-pop-in,component,verified-export,yes,yes,no,0.999,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 number-wheel,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 nyc-paris-flight,block,verified-export,yes,no,no,0.99,,audio feature; no real browser export run
 nyt-graph,example,verified-export,yes,no,no,0.995,,export throughput 6.9 fps < 8
@@ -277,7 +277,7 @@ oversized-cursor,component,verified-export,yes,yes,no,0.99,3,SSIM >= 0.95 at all
 overwhelm-surround,component,adapter-compatible,no,no,no,0.907,,worst-sample SSIM 0.907
 page-slide,component,verified-export,yes,yes,no,1.0,3,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
 pan-stations,component,specialized,no,no,no,0.801,,worst-sample SSIM 0.801: content differs from native
-panel-reveal,component,verified-export,yes,no,no,0.998,,export throughput 4.7 fps < 8
+panel-reveal,component,verified-export,yes,yes,no,0.998,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 paper-collage-reveal,component,specialized,no,no,no,0.142,,worst-sample SSIM 0.142: content differs from native
 parallax-device-dive,component,adapter-compatible,no,no,no,0.862,,worst-sample SSIM 0.862
 parallax-unzoom,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
@@ -325,12 +325,12 @@ shimmer-sweep,component,host-dependent,no,no,no,1.0,,"native standalone referenc
 shutter-slam,component,adapter-compatible,no,no,no,0.93,,worst-sample SSIM 0.930
 signup-flow,component,verified-export,yes,no,no,0.969,,export throughput 4.6 fps < 8
 sine-wave,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline sine-wave: no __timelines entry (data-no-timeline block)
-skeleton-reveal,component,verified-export,yes,no,no,1.0,,export throughput 4.7 fps < 8; shows built-in text that cannot be edited
+skeleton-reveal,component,verified-export,yes,yes,no,1.0,3,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 slack-notification-ad,block,verified-export,yes,yes,no,0.966,5,SSIM >= 0.95 at all samples; MP4 export OK
 slit-scan-reveal,component,verified-export,yes,no,no,0.953,,standalone output is (nearly) blank; no editable field with a measured visible effect
-slot-machine-roll,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
+slot-machine-roll,component,verified-export,yes,yes,no,1.0,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 snow,block,verified-export,yes,yes,no,0.985,2,SSIM >= 0.95 at all samples; MP4 export OK
-social-proof-card,component,verified-export,yes,no,no,0.96,,no real browser export run; no editable field with a measured visible effect
+social-proof-card,component,verified-export,yes,yes,no,0.96,6,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 soft-blob-touch,component,specialized,no,no,no,0.806,,worst-sample SSIM 0.806: content differs from native
 soft-blur-in,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 spain-map,block,verified-export,yes,yes,no,1.0,5,SSIM >= 0.95 at all samples; MP4 export OK
@@ -340,17 +340,17 @@ split-flap-board,block,verified-export,yes,no,no,0.995,,no editable field with a
 split-tilt-cards,component,adapter-compatible,no,no,no,0.868,,worst-sample SSIM 0.868
 spotify-card,block,adapter-compatible,no,no,no,0.929,,production adapter path worst-sample SSIM 0.929 (research harness reached 0.986)
 spotlight-card,component,verified-export,yes,no,no,1.0,,export throughput 4.3 fps < 8
-spring-pop,component,specialized,no,no,no,0.792,,worst-sample SSIM 0.792: content differs from native
+spring-pop,component,verified-export,yes,yes,no,0.792,3,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 spring-stack-shuffle,component,adapter-compatible,no,no,no,0.922,,worst-sample SSIM 0.922
 stagger-cascade,component,specialized,no,no,no,0.735,,worst-sample SSIM 0.735: content differs from native
-stagger-lattice,component,adapter-compatible,no,no,no,0.88,,worst-sample SSIM 0.880
+stagger-lattice,component,verified-export,yes,yes,no,0.88,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 staggered-fade-up,component,verified-export,yes,yes,no,1.0,2,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
 star-rating-fill,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 starfield,block,verified-export,yes,yes,no,0.993,1,SSIM >= 0.95 at all samples; MP4 export OK
 state-chip-rail,component,verified-export,yes,no,no,0.958,,standalone output is (nearly) blank; export throughput 7.9 fps < 8; no editable field with a measured visible effect
 sticky-mock-swap,component,verified-export,yes,yes,no,0.972,0,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
 stitched-text-draw,component,verified-export,yes,no,no,0.972,,standalone output is (nearly) blank; no editable field with a measured visible effect
-stop-motion-cadence,component,verified-export,yes,no,no,0.966,,export throughput 6.3 fps < 8; no editable field with a measured visible effect
+stop-motion-cadence,component,verified-export,yes,yes,no,0.966,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 store-badge-lockup,component,adapter-compatible,no,no,no,0.904,,worst-sample SSIM 0.904
 strands,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline strands: no __timelines entry (data-no-timeline block)
 streaming-text,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
@@ -358,7 +358,7 @@ strikethrough-replace,component,host-dependent,no,no,no,1.0,,"native standalone 
 stripes,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline stripes: no __timelines entry (data-no-timeline block)
 success-check,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 sun-burst,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline sun-burst: no __timelines entry (data-no-timeline block)
-svg-line-draw-loader,component,adapter-compatible,no,no,no,0.92,,worst-sample SSIM 0.920
+svg-line-draw-loader,component,verified-export,yes,yes,no,0.92,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 svg-mask-reveal,component,adapter-compatible,no,no,no,0.91,,worst-sample SSIM 0.910
 svg-stroke-trace,component,adapter-compatible,no,no,no,0.867,,worst-sample SSIM 0.867
 swipe-rail,component,specialized,no,no,no,0.595,,worst-sample SSIM 0.595: content differs from native
@@ -373,7 +373,7 @@ testimonial-proof-card,component,adapter-compatible,no,no,no,0.894,,worst-sample
 text-match-cut,component,adapter-compatible,no,no,no,0.912,,worst-sample SSIM 0.912
 text-shimmer,component,verified-export,yes,yes,no,0.993,1,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
 text-stagger,component,verified-export,yes,no,no,1.0,,browser export failed: Error: page.evaluate: Page crashed
-text-state-swap,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
+text-state-swap,component,verified-export,yes,yes,no,1.0,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 texture-mask-text,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 thermal-distortion,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
 thin-film,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline thin-film: no __timelines entry (data-no-timeline block)
@@ -406,7 +406,7 @@ transitions-scale,block,verified-export,yes,yes,no,0.997,2,SSIM >= 0.95 at all s
 trust-strip,component,verified-export,yes,no,no,0.987,,standalone output is (nearly) blank; export throughput 7.6 fps < 8; no editable field with a measured visible effect
 type-match-cut,component,specialized,no,no,no,0.315,,worst-sample SSIM 0.315: content differs from native
 typed-prompt,component,specialized,no,no,no,0.844,,worst-sample SSIM 0.844: content differs from native
-typewriter,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
+typewriter,component,verified-export,yes,yes,no,1.0,3,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 typing-indicator,component,verified-export,yes,yes,no,1.0,2,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
 ui-3d-reveal,block,verified-export,yes,yes,no,0.994,3,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 ui-focus-zoom,component,specialized,no,no,no,0.0,,worst-sample SSIM 0.000: content differs from native
@@ -448,11 +448,11 @@ x-post,block,verified-export,yes,yes,no,0.992,6,SSIM >= 0.95 at all samples; MP4
 yt-camera-move,component,specialized,no,no,no,0.828,,worst-sample SSIM 0.828: content differs from native
 yt-circle-pointer,component,verified-export,yes,yes,no,0.991,2,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 yt-comment-card,block,verified-export,yes,no,no,,,shows built-in text that cannot be edited; not yet rendered through the production adapter path
-yt-feather-highlight,component,specialized,no,no,no,0.794,,worst-sample SSIM 0.794: content differs from native
+yt-feather-highlight,component,verified-export,yes,yes,no,0.794,0,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 yt-lcd-background,block,verified-export,yes,yes,no,0.994,5,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
 yt-logo-intro,block,verified-export,yes,yes,no,0.999,6,SSIM >= 0.95 at all samples; MP4 export OK
 yt-lower-third,block,verified-export,yes,yes,no,0.999,4,SSIM >= 0.95 at all samples; MP4 export OK
 yt-prism-title,block,verified-export,yes,yes,no,0.961,6,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 yt-screen-warp,component,specialized,no,no,no,0.587,,worst-sample SSIM 0.587: content differs from native
 yt-vertical-fill,block,verified-export,yes,no,no,,,export throughput 4.6 fps < 8.0; not yet rendered through the production adapter path
-zoom-through-transition,component,specialized,no,no,no,0.683,,worst-sample SSIM 0.683: content differs from native
+zoom-through-transition,component,verified-export,yes,yes,no,0.683,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK

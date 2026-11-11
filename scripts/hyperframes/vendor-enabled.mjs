@@ -16,10 +16,18 @@ const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: up, encoding: 'utf
 if (sha !== enabled.upstreamCommit) throw new Error(`upstream checkout is ${sha}, but the enabled list is pinned to ${enabled.upstreamCommit}`);
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 // start clean so nothing that is no longer enabled stays shipped
-for (const d of [out, join(out, '..', 'components'), join(out, '..', 'examples')]) rmSync(d, { recursive: true, force: true });
+for (const d of [out, join(out, '..', 'components'), join(out, '..', 'examples'), join(out, '..', 'component-demos')]) rmSync(d, { recursive: true, force: true });
 mkdirSync(join(out, '_cdn'), { recursive: true });
 const urls = new Set(); let files = 0;
 for (const item of enabled.items) {
+  if (item.project?.demo) { // a component shown in the demo composition that ships with it (registry/components/<id>/demo.html), pinned by sha256
+    const src = join(up, 'registry/components', item.id, 'demo.html'); const buf = readFileSync(src);
+    if (sha256(buf) !== item.project.files['demo.html']) throw new Error(`${item.id}/demo.html: sha256 does not match the pinned value`);
+    const dest = join(out, '..', 'component-demos', item.id, 'demo.html'); mkdirSync(dirname(dest), { recursive: true }); cpSync(src, dest); files++;
+    for (const [rel, want] of Object.entries(item.project.files)) { if (rel === 'demo.html') continue; const b = readFileSync(join(up, 'registry/components', item.id, rel)); if (sha256(b) !== want) throw new Error(`${item.id}/${rel}: sha256 does not match the pinned value`); const d2 = join(out, '..', 'component-demos', item.id, rel); mkdirSync(dirname(d2), { recursive: true }); cpSync(join(up, 'registry/components', item.id, rel), d2); files++; }
+    for (const rel of Object.keys(item.project.files)) for (const m of readFileSync(join(up, 'registry/components', item.id, rel), 'utf8').matchAll(/<script[^>]*\ssrc="((?:https?:)?\/\/[^"]+)"/g)) urls.add(m[1].startsWith('//') ? `https:${m[1]}` : m[1]);
+    continue;
+  }
   const kind = item.type === 'example' ? 'examples' : item.type === 'component' ? 'components' : 'blocks';
   for (const f of item.files) {
     const src = join(up, 'registry', kind, item.id, f.path);
