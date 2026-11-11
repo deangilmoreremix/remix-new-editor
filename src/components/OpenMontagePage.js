@@ -91,7 +91,7 @@ function formatCredits(total) {
 
 export function OpenMontagePage() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative overflow-x-hidden';
+  container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative overflow-y-auto custom-scrollbar overflow-x-hidden';
   mountStudioChrome(container, { currentRoute: 'video-agent' });
 
   const state = {
