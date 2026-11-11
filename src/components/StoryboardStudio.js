@@ -215,12 +215,8 @@ export function StoryboardStudio(options = {}) {
   const storyboardAttachments = { images: [], videos: [], audios: [] };
   const activeProfileRef = { value: null };
 
-  const frames = [
-    createFrame({ shot: 'Wide Shot' }),
-    createFrame({ shot: 'Medium Shot' }),
-    createFrame({ shot: 'Close-Up' }),
-  ];
-  renumberFrames(frames);
+  // Empty until the user describes a story (or chooses to build by hand).
+  const frames = [];
   /** id -> { imageArea, genBtn, card } for the cards currently on screen */
   const frameRefs = new Map();
 
@@ -281,19 +277,26 @@ export function StoryboardStudio(options = {}) {
   brief.className = 'shrink-0 px-4 md:px-8 mb-4';
   brief.setAttribute('aria-label', 'Story brief');
   brief.innerHTML = `
-    <div class="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6">
-      <button id="video-intent-toggle" type="button" aria-expanded="true" class="flex items-center justify-between w-full text-left">
-        <span class="${CINEMATIC_THEME.text.body} font-bold text-white">1 · Story brief</span>
-        <svg id="video-intent-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-white/60 transition-transform" style="transform:rotate(180deg)"><polyline points="6 9 12 15 18 9"/></svg>
+    <div id="brief-card" class="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6">
+      <h2 class="${CINEMATIC_THEME.text.body} font-bold text-white mb-1">Describe your storyboard</h2>
+      <p class="text-[11px] text-muted mb-4">Tell us what you want to make. We plan the shots, then your storyboard appears here.</p>
+      <label class="${LABEL_CLASS}" for="vi-premise">What do you want your storyboard to be about?</label>
+      <textarea id="vi-premise" rows="4" placeholder="e.g. A 30-second launch ad for a trail-running shoe: a runner climbs a misty ridge at dawn, laces tighten, the city wakes below. End on 'Run further'." class="${FIELD_CLASS} resize-none">${escapeHtml(deepLinkPrompt || intent.premise)}</textarea>
+      <div class="flex items-center gap-3 flex-wrap mt-4">
+        <button id="vi-generate-btn" type="button" class="${PRIMARY_BTN_CLASS}">Generate storyboard</button>
+        <label class="flex items-center gap-2 text-[11px] text-secondary cursor-pointer">
+          <input type="checkbox" id="vi-with-images" checked class="accent-primary" /> Also generate frame images
+        </label>
+        <span id="vi-status" class="text-[10px] text-muted" role="status" aria-live="polite"></span>
+      </div>
+      <button id="video-intent-toggle" type="button" aria-expanded="false" aria-controls="video-intent-form" class="mt-4 flex items-center gap-2 text-[11px] font-bold text-muted hover:text-secondary transition-colors">
+        <svg id="video-intent-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+        Customize (type, tone, length, frames, characters, style)
       </button>
-      <div id="video-intent-form" class="mt-4">
+      <div id="video-intent-form" class="hidden mt-4">
         <div class="mb-4">
-          <label class="${LABEL_CLASS}" for="vi-subject">What is the video about?</label>
-          <input type="text" id="vi-subject" value="${escapeHtml(intent.subject)}" placeholder="e.g. A trail-running shoe launch" class="${FIELD_CLASS}" />
-        </div>
-        <div class="mb-4">
-          <label class="${LABEL_CLASS}" for="vi-premise">Story / key message</label>
-          <textarea id="vi-premise" rows="3" placeholder="The core narrative or value proposition..." class="${FIELD_CLASS} resize-none">${escapeHtml(deepLinkPrompt || intent.premise)}</textarea>
+          <label class="${LABEL_CLASS}" for="vi-subject">Title or subject (optional)</label>
+          <input type="text" id="vi-subject" value="${escapeHtml(intent.subject)}" placeholder="e.g. Trail-running shoe launch" class="${FIELD_CLASS}" />
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div><label class="${LABEL_CLASS}" for="vi-videoType">Video type</label>
@@ -313,7 +316,7 @@ export function StoryboardStudio(options = {}) {
           <label class="${LABEL_CLASS}" for="vi-storyBible">Characters, setting and look (kept the same in every frame)</label>
           <textarea id="vi-storyBible" rows="2" placeholder="e.g. Mara, 30s, red jacket, short dark hair. Rainy neon city at night." class="${FIELD_CLASS} resize-none">${escapeHtml(intent.storyBible)}</textarea>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div><label class="${LABEL_CLASS}" for="vi-stylePreset">Visual style</label>
             <select id="vi-stylePreset" class="${FIELD_CLASS} appearance-none cursor-pointer">${optionsHtml(STYLE_OPTIONS, selectedStyle)}</select></div>
           <div><label class="${LABEL_CLASS}" for="vi-lightingPreset">Lighting</label>
@@ -321,29 +324,31 @@ export function StoryboardStudio(options = {}) {
           <div><label class="${LABEL_CLASS}" for="vi-colorGrade">Color grade</label>
             <select id="vi-colorGrade" class="${FIELD_CLASS} appearance-none cursor-pointer">${optionsHtml(COLOR_OPTIONS, selectedColor)}</select></div>
         </div>
-        <div class="flex items-center gap-3 flex-wrap">
-          <button id="vi-generate-btn" type="button" class="${PRIMARY_BTN_CLASS}">Generate storyboard</button>
-          <label class="flex items-center gap-2 text-[11px] text-secondary cursor-pointer">
-            <input type="checkbox" id="vi-with-images" checked class="accent-primary" /> Also generate frame images
-          </label>
-          <span id="vi-status" class="text-[10px] text-muted" role="status" aria-live="polite"></span>
-        </div>
-        <p class="text-[10px] text-muted mt-3">We plan the shots, camera moves, timing and narration. You can edit every frame afterwards. Add reference images or video with the paperclip below.</p>
       </div>
+      <button id="start-blank" type="button" class="mt-4 block text-[11px] text-muted underline hover:text-white transition-colors">or build the frames by hand</button>
+    </div>
+    <div id="brief-summary" class="hidden bg-white/5 border border-white/10 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
+      <span id="brief-summary-text" class="text-xs text-white truncate flex-1 min-w-0"></span>
+      <span id="brief-summary-meta" class="text-[11px] text-secondary tabular-nums"></span>
+      <button id="edit-brief" type="button" class="${BTN_CLASS}">Edit brief</button>
+      <button id="new-storyboard" type="button" class="${BTN_CLASS}">New storyboard</button>
     </div>
   `;
   container.appendChild(brief);
 
-  // How-to steps sit under the brief, like Image and Video Studio.
-  const inlineInstructions = createInlineInstructions('storyboard');
-  inlineInstructions.classList.add('shrink-0', 'px-4', 'md:px-8', 'mb-4');
-  container.appendChild(inlineInstructions);
+  // How-to steps: under the brief like Image/Video Studio, folded away until wanted.
+  const howTo = document.createElement('details');
+  howTo.className = 'shrink-0 mx-4 md:mx-8 mb-4';
+  howTo.innerHTML = '<summary class="cursor-pointer select-none text-[11px] font-bold text-muted hover:text-secondary mb-3">How it works</summary>';
+  howTo.appendChild(createInlineInstructions('storyboard'));
+  container.appendChild(howTo);
 
   const $ = (sel) => brief.querySelector(sel);
   const premiseEl = $('#vi-premise');
   const durationEl = $('#vi-duration');
   const frameCountEl = $('#vi-frameCount');
   let frameCountTouched = false;
+  let durationTouched = false;
 
   createAttachmentToolbar({
     container: brief,
@@ -370,7 +375,7 @@ export function StoryboardStudio(options = {}) {
     const willOpen = formEl.classList.contains('hidden');
     formEl.classList.toggle('hidden', !willOpen);
     toggleBtn.setAttribute('aria-expanded', String(willOpen));
-    $('#video-intent-chevron').style.transform = willOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    $('#video-intent-chevron').style.transform = willOpen ? 'rotate(180deg)' : '';
   });
 
   /** Read the brief form into one intent object. */
@@ -424,6 +429,7 @@ export function StoryboardStudio(options = {}) {
   });
   frameCountEl.addEventListener('input', () => { frameCountTouched = true; });
   durationEl.addEventListener('input', () => {
+    durationTouched = true;
     if (frameCountTouched) return;
     frameCountEl.value = frameCountForDuration(durationEl.value);
   });
@@ -501,10 +507,14 @@ export function StoryboardStudio(options = {}) {
   try { projectInput.value = projectName = localStorage.getItem(LAST_PROJECT_KEY) || ''; } catch { /* storage unavailable */ }
   const saveBtn = makeBtn('Save', { title: 'Save project (Ctrl+S)' });
   const loadBtn = makeBtn('Load', { title: 'Load the project named in the box' });
+  const needFrames = (fn) => () => {
+    if (!frames.length) { showToast('Nothing to export yet. Generate a storyboard first.', 'warning'); return; }
+    fn();
+  };
   const exportMenu = makeMenu('Export ▾', [
-    { id: 'pdf', label: 'PDF shot sheet', run: () => exportPdf() },
-    { id: 'csv', label: 'CSV shot list', run: () => downloadText('storyboard-shot-list.csv', buildCsv(), 'text/csv') },
-    { id: 'json', label: 'JSON', run: () => downloadText('storyboard.json', JSON.stringify(buildStoryboardPayload(), null, 2), 'application/json') },
+    { id: 'pdf', label: 'PDF shot sheet', run: needFrames(() => exportPdf()) },
+    { id: 'csv', label: 'CSV shot list', run: needFrames(() => downloadText('storyboard-shot-list.csv', buildCsv(), 'text/csv')) },
+    { id: 'json', label: 'JSON', run: needFrames(() => downloadText('storyboard.json', JSON.stringify(buildStoryboardPayload(), null, 2), 'application/json')) },
   ]);
   projectRow.append(projectInput, projectList, saveBtn, loadBtn, exportMenu);
 
@@ -724,6 +734,50 @@ export function StoryboardStudio(options = {}) {
   settingsBody.className = 'px-4 pb-4 flex flex-col gap-4';
   settingsDetails.appendChild(settingsBody);
   container.appendChild(settingsDetails);
+
+  // =====================================================================
+  // Two stages: "describe" (just the brief) and "board" (the storyboard)
+  // =====================================================================
+  const briefCard = brief.querySelector('#brief-card');
+  const briefSummary = brief.querySelector('#brief-summary');
+  const boardEls = [toolbar, boardHeading, framesArea, timelineStrip, settingsDetails];
+  let stage = 'describe';
+  let editingBrief = false;
+
+  function setStage(next, { editing = false } = {}) {
+    stage = next;
+    editingBrief = next === 'board' && editing;
+    const onBoard = next === 'board';
+    boardEls.forEach((el) => el.classList.toggle('hidden', !onBoard));
+    howTo.classList.toggle('hidden', onBoard);
+    briefSummary.classList.toggle('hidden', !onBoard);
+    briefSummary.classList.toggle('flex', onBoard);
+    briefCard.classList.toggle('hidden', onBoard && !editingBrief);
+    brief.querySelector('#start-blank').classList.toggle('hidden', onBoard);
+    updateBriefSummary();
+  }
+
+  function updateBriefSummary() {
+    const text = (premiseEl.value || $('#vi-subject').value || '').replace(/\s+/g, ' ').trim();
+    brief.querySelector('#brief-summary-text').textContent = text || 'Untitled storyboard';
+    brief.querySelector('#brief-summary-meta').textContent = `${frames.length} frames · ${totalDuration(frames)}s`;
+  }
+
+  /** Placeholder cards shown while the plan is being written. */
+  function renderPlanningSkeleton(count) {
+    frameRefs.clear();
+    framesArea.className = getLayoutClasses();
+    framesArea.innerHTML = '';
+    for (let i = 0; i < count; i += 1) {
+      const card = document.createElement('div');
+      card.className = 'w-full bg-white/[0.03] border border-white/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse';
+      card.setAttribute('data-skeleton', '');
+      card.innerHTML = `<div class="text-xs font-bold text-primary">Frame ${i + 1}</div>
+        <div class="w-full aspect-video bg-white/[0.04] rounded-lg flex items-center justify-center text-muted text-xs">Planning shots...</div>
+        <div class="h-3 bg-white/[0.06] rounded w-3/4"></div><div class="h-3 bg-white/[0.06] rounded w-1/2"></div>`;
+      framesArea.appendChild(card);
+    }
+  }
 
   function refreshSettingsPanel() {
     const inputs = getExtendedModel(getModelById(selectedModel) || { id: selectedModel, inputs: {} })?.inputs || {};
@@ -1059,15 +1113,43 @@ export function StoryboardStudio(options = {}) {
   // =====================================================================
   // Generate a whole storyboard from the brief
   // =====================================================================
+  const firstSentence = (text) => {
+    const t = (text || '').replace(/\s+/g, ' ').trim();
+    const m = t.match(/^(.{8,80}?[.!?:])(\s|$)/);
+    return (m ? m[1] : t.slice(0, 70)).replace(/[.!?:]$/, '');
+  };
+
+  /** "a 30 second ad" / "2 minute film" in the description sets the length, unless it was set by hand. */
+  const lengthFromText = (text) => {
+    const m = (text || '').match(/\b(\d{1,3})\s*[- ]?\s*(seconds?|secs?|minutes?|mins?)\b/i);
+    if (!m) return null;
+    const n = Number(m[1]) * (/^m/i.test(m[2]) ? 60 : 1);
+    return n >= MIN_FRAMES * 2 && n <= 300 ? n : null;
+  };
+
   generateBtn.addEventListener('click', async () => {
+    if (!durationTouched) {
+      const fromText = lengthFromText(premiseEl.value);
+      if (fromText) {
+        durationEl.value = fromText;
+        if (!frameCountTouched) frameCountEl.value = frameCountForDuration(fromText);
+      }
+    }
+    const b = readBrief();
+    if (!b.premise.trim() && !b.subject.trim()) {
+      statusEl.textContent = 'Describe what you want to make first.';
+      premiseEl.focus();
+      return;
+    }
     if (!(await requireEntitlement())) return;
-    const hasContent = frames.some((f) => f.prompt.trim() || f.imageUrl);
-    if (hasContent && typeof window.confirm === 'function' && !window.confirm('Replace the current frames with a new storyboard?')) return;
+    const hadFrames = frames.some((f) => f.prompt.trim() || f.imageUrl);
+    if (hadFrames && typeof window.confirm === 'function' && !window.confirm('Replace the current frames with a new storyboard?')) return;
 
     const { resolveMuapiMediaRefs } = await import('../lib/muapiStudioMedia.js');
-    const b = readBrief();
     const request = {
       ...b,
+      // The description is enough on its own: a missing title comes from its first sentence.
+      subject: b.subject.trim() || firstSentence(b.premise),
       model: selectedModel,
       customThumbnailUrl: customThumbnailUrl || undefined,
       reference_images: storyboardAttachments.images?.length ? await resolveMuapiMediaRefs(storyboardAttachments.images) : undefined,
@@ -1075,31 +1157,53 @@ export function StoryboardStudio(options = {}) {
       reference_audios: storyboardAttachments.audios?.length ? await resolveMuapiMediaRefs(storyboardAttachments.audios) : undefined,
     };
 
+    const previousStage = stage;
     generateBtn.disabled = true;
     generateBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Planning...';
-    statusEl.textContent = 'Planning shots...';
+    statusEl.textContent = '';
+    layout = 'grid';
+    layoutSelect.value = 'grid';
+    setStage('board');
+    renderPlanningSkeleton(b.frameCount);
+    boardHeading.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
     try {
       const result = await generateStoryboardFromIntent(request, { generateImages: false });
       generatedStoryboard = result;
-      pushUndo();
+      if (hadFrames) pushUndo();
       replaceFrames(result.frames);
-      layout = 'grid';
-      layoutSelect.value = 'grid';
-      renderFrames();
-      statusEl.textContent = `${result.frames.length} frames planned${result.source === 'ai' ? '' : ' (template; add an OpenAI key for a custom story)'}`;
-      showToast('Storyboard planned', 'success');
-      boardHeading.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+      showToast(result.source === 'ai' ? 'Storyboard planned' : 'Storyboard planned from a template. Add an OpenAI key in Settings for a custom story.', 'success');
       if (withImagesEl.checked && (apiKeyManager.hasOpenAIKey() || apiKeyManager.hasMuapiKey())) {
         await runQueue(frames.filter((f) => f.prompt.trim()));
       }
     } catch (err) {
-      statusEl.textContent = '';
       showToast('Could not plan the storyboard: ' + err.message, 'error');
+      statusEl.textContent = 'Could not plan the storyboard: ' + err.message;
+      if (hadFrames) { renderFrames(); } else { setStage(previousStage === 'board' ? 'board' : 'describe', { editing: true }); renderFrames(); }
     } finally {
       generateBtn.disabled = false;
       generateBtn.textContent = 'Generate storyboard';
     }
   });
+
+  brief.querySelector('#edit-brief').addEventListener('click', () => {
+    setStage('board', { editing: !editingBrief });
+  });
+  brief.querySelector('#new-storyboard').addEventListener('click', () => {
+    if (frames.some((f) => f.prompt.trim() || f.imageUrl) && typeof window.confirm === 'function' && !window.confirm('Start over? The current frames will be cleared (you can Undo).')) return;
+    pushUndo();
+    frames.length = 0;
+    generatedStoryboard = null;
+    renderFrames();
+    setStage('describe');
+    premiseEl.focus();
+  });
+  brief.querySelector('#start-blank').addEventListener('click', () => {
+    frames.push(createFrame({ shot: 'Wide Shot' }));
+    renumberFrames(frames);
+    setStage('board');
+    renderFrames();
+  });
+  premiseEl.addEventListener('input', () => { statusEl.textContent = ''; updateBriefSummary(); });
 
   // =====================================================================
   // Frames board
@@ -1113,6 +1217,7 @@ export function StoryboardStudio(options = {}) {
   function updateSummary() {
     const el = container.querySelector('#board-summary');
     if (el) el.textContent = `${frames.length} frames · ${totalDuration(frames)}s`;
+    updateBriefSummary();
   }
 
   function fieldLabel(text) {
@@ -1516,6 +1621,7 @@ export function StoryboardStudio(options = {}) {
     writeBrief({ ...(state.brief || {}), stylePreset: state.selectedStyle || state.brief?.stylePreset, lightingPreset: state.selectedLighting || state.brief?.lightingPreset, colorGrade: state.selectedColor || state.brief?.colorGrade });
     refreshSettingsPanel();
     renumberFrames(frames);
+    setStage('board');
     renderFrames();
     return true;
   }
@@ -1661,6 +1767,10 @@ export function StoryboardStudio(options = {}) {
 
   // First paint. The story brief sits above the frames, and the board reflects the saved/last state.
   renderFrames();
+  setStage('describe');
+  // Focusable so End / PageDown / Space scroll the page after a click on empty space.
+  container.tabIndex = -1;
+  container.style.outline = 'none';
 
   // Cleanup hook called by the router when the page is left.
   container.cleanup = () => {
