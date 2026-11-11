@@ -50,6 +50,7 @@ async function render(id, rawModel, options = {}) {
   const urls = [];
   const model = materializeBlobs(rawModel, urls);
   try {
+    takeCodeErrors(); // [hyperframes] this runner frame is reused: start every export with a clean error list
     if (typeof window.VideoEncoder !== 'function') {
       throw new Error('This browser cannot encode video. Use Chrome or Edge 94+, Firefox 130+ or Safari 26+.');
     }
@@ -79,7 +80,10 @@ async function render(id, rawModel, options = {}) {
       onProgress: (p) => post({ type: 'progress', id, progress: p.progress, encodedFrames: p.encodedFrames }),
     });
     const blob = await result.getBlob();
-    post({ type: 'done', id, blob, mimeType: blob.type, codeErrors: takeCodeErrors() });
+    const codeErrors = takeCodeErrors();
+    // [hyperframes] fatal HyperFrames problems make the export fail instead of producing a video that silently lacks or garbles an animation
+    const hfErrors = Object.fromEntries(Object.entries(codeErrors).filter(([, m]) => String(m).startsWith('[hyperframes:error] ')));
+    post({ type: 'done', id, blob, mimeType: blob.type, codeErrors, hfErrors });
   } catch (err) {
     post({ type: 'error', id, message: controller.signal.aborted ? 'Export cancelled' : (err?.message || String(err)) });
   } finally {

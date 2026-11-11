@@ -1,0 +1,458 @@
+id,type,status,verified,enabled,catalogDisabled,prodSsimMin,editableFields,reason
+agent-cursor,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+ai-answer-rank,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.923; exports, with visible differences"
+ai-chat-reveal,block,verified-export,yes,no,no,,,export throughput 5.1 fps < 8.0; not yet rendered through the production adapter path
+animated-bar-chart,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+app-showcase,block,unsupported,no,no,no,,,needs a resource from a host that is not allow-listed: blocked-url src: host not allow-listed: cdn.jsdelivr.net: https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.m
+apple-money-count,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.950; exports, with visible differences"
+arc-motion-path,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+ascii-render-pass,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+ascii-trail-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+aurora,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline aurora: no __timelines entry (data-no-timeline block)
+aurora-drift,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+avatar-cloud,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+avatar-group-hover,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+badge-pop,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+bar-chart-race,block,verified-export,yes,yes,no,0.993,11,SSIM >= 0.95 at all samples; MP4 export OK
+beat-accent,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+beat-freeze-cut,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.792: content differs from native (export not attempted)"
+beat-pulse-background,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+beat-timeline,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+before-after-wipe,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+blob,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline blob: no __timelines entry (data-no-timeline block)
+blue-sweater-intro-video,block,verified-export,yes,no,no,,,audio element; no editable fields detected; not yet rendered through the production adapter path
+blur-in,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+blur-out-up,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+bottom-up-letters,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+browser-device-stage,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+camcorder-hud,block,verified-export,yes,yes,no,0.997,2,SSIM >= 0.95 at all samples; MP4 export OK
+camera-dolly-zoom,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.497: content differs from native (export not attempted)"
+camera-rig-depth-stack,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+camera-scan-gate,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+camera-shake,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+canopy-part-title,block,verified-export,yes,no,no,,,WebGL; three.js; not yet rendered through the production adapter path
+caption-blend-difference,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-camera-follow,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-clip-wipe,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-editorial-emphasis,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-emoji-pop,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-glitch-rgb,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-gradient-fill,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-highlight,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-kinetic-slam,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-matrix-decode,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-neon-accent,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-neon-glow,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-parallax-layers,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-particle-burst,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-pill-karaoke,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-texture,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caption-weight-shift,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+card-resize,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+caret-swap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+carousel-circle-1,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.896; exports, with visible differences"
+carousel-circle-2,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.886; exports, with visible differences"
+carousel-circle-3,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.815: content differs from native (export not attempted)"
+carousel-circle-4,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.786: content differs from native (export not attempted)"
+carousel-circle-5,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.586: content differs from native (export not attempted)"
+carousel-orbit-1,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.834: content differs from native (export not attempted)"
+carousel-orbit-2,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.837: content differs from native (export not attempted)"
+carousel-orbit-3,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.792: content differs from native (export not attempted)"
+carousel-orbit-4,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.796: content differs from native (export not attempted)"
+carousel-orbit-5,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.889; exports, with visible differences"
+carousel-path-1,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.850: content differs from native (export not attempted)"
+carousel-path-2,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.848: content differs from native (export not attempted)"
+carousel-path-3,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.785: content differs from native (export not attempted)"
+carousel-path-4,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.837: content differs from native (export not attempted)"
+carousel-path-5,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.827: content differs from native (export not attempted)"
+carousel-text-circle-1,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.931; exports, with visible differences"
+carousel-text-circle-2,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.943; exports, with visible differences"
+carousel-text-circle-3,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.746: content differs from native (export not attempted)"
+carousel-text-circle-4,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.891; exports, with visible differences"
+carousel-text-circle-5,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.665: content differs from native (export not attempted)"
+carousel-vision-1,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.776: content differs from native (export not attempted)"
+carousel-vision-2,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.762: content differs from native (export not attempted)"
+carousel-vision-3,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.759: content differs from native (export not attempted)"
+carousel-vision-4,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.783: content differs from native (export not attempted)"
+carousel-vision-5,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.537: content differs from native (export not attempted)"
+char-slam-explode,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+chart-story,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+chat-message,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+chat-thread,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+chatgpt-exchange,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.894; exports, with visible differences"
+chromatic-aberration-wipe,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+chromatic-radial-split,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+chrome-orb,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline chrome-orb: no __timelines entry (data-no-timeline block)
+cinemagraph,block,verified-export,yes,no,no,,,video element; unseeded Math.random; no editable fields detected; not yet rendered through the production adapter path
+cinematic-zoom,block,verified-export,yes,no,no,,,WebGL; export throughput 5.6 fps < 8.0; no editable fields detected; not yet rendered through the production adapter path
+claude-exchange,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.900; exports, with visible differences"
+code-3d-extrude,block,verified-export,yes,no,no,,,WebGL; three.js; no editable fields detected; not yet rendered through the production adapter path
+code-diff,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.947; exports, with visible differences"
+code-highlight,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.944; exports, with visible differences"
+code-morph,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.948; exports, with visible differences"
+code-particle-assemble,block,verified-export,yes,no,no,,,WebGL; three.js; no editable fields detected; not yet rendered through the production adapter path
+code-scroll,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.931; exports, with visible differences"
+code-shader-dissolve,block,verified-export,yes,no,no,,,WebGL; three.js; no editable fields detected; not yet rendered through the production adapter path
+code-slice-hero,block,unsupported,no,no,no,,,a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'
+code-snippet-apple-terminal-pro,block,verified-export,yes,yes,no,0.974,6,SSIM >= 0.95 at all samples; MP4 export OK
+code-snippet-dark-2026,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline code-snippet-dark-2026: no __timelines entry
+code-snippet-dark-modern,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline code-snippet-dark-modern: no __timelines entry
+code-terminal-run,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+code-typing,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.945; exports, with visible differences"
+color-wheel,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline color-wheel: no __timelines entry (data-no-timeline block)
+colorama-wipe,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+comparison-split,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+confetti,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+conic-progress-ring,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+constellation-hub,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cosmic-orb,block,verified-export,yes,no,no,,,WebGL; export throughput 2.9 fps < 8.0; not yet rendered through the production adapter path
+count-up,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cross-warp-morph,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+cta-close,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cta-lockup,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cuboid-carousel,block,unsupported,no,no,no,,,a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'
+cursor-annotate,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cursor-context-menu,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cursor-drag-drop,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cursor-glyph-trail,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cursor-marquee-select,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cursor-text-select,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cursor-zoom-follow,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+curtain-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+cut-the-curve,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+dart-cursor,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+data-chart,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.926; exports, with visible differences"
+decision-tree,example,not-tested,no,no,no,,,starter projects (multi-composition) are not supported by the timeline overlay model yet
+decline-chart,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+device-frame-stage,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+directional-wipe,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+domain-warp-dissolve,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+drift-hold,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+dynamic-grid,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+echo-smear,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+echo-trail,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+editorial-flash-overlay,block,verified-export,yes,yes,no,1.0,0,SSIM >= 0.95 at all samples; MP4 export OK
+exploded-stack,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.921; exports, with visible differences"
+extended-keyframe,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+extruded-logo,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.839: content differs from native (export not attempted)"
+facet-morph,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+fade-through,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+falling-lines,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline falling-lines: no __timelines entry (data-no-timeline block)
+filmed-screen,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+flash-through-white,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+flowchart,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.947; exports, with visible differences"
+flowchart-vertical,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.950; exports, with visible differences"
+flowing-gradient,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline flowing-gradient: no __timelines entry (data-no-timeline block)
+focus-blur-resolve,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+focus-rack,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+focus-swap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+fractal-noise,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline fractal-noise: no __timelines entry (data-no-timeline block)
+freeze-frame-dressing,block,specialized,no,no,no,0.823,,production adapter path worst-sample SSIM 0.823 (research harness reached 0.977)
+frost,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline frost: no __timelines entry (data-no-timeline block)
+frost-sequence-camera-orbit,block,unsupported,no,no,no,,,a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'
+gabor-noise,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline gabor-noise: no __timelines entry (data-no-timeline block)
+gallery-tunnel,block,verified-export,yes,no,no,,,WebGL; three.js; sub-composition; not yet rendered through the production adapter path
+gesture-tap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+glass-hero,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.838: content differs from native (export not attempted)"
+glass-shard-title,block,unsupported,no,no,no,,,a block script failed to run: script assets/glass-main.js: Unexpected token '<'
+glitch,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+gloss-sweep,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+godrays,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline godrays: no __timelines entry (data-no-timeline block)
+goo,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline goo: no __timelines entry (data-no-timeline block)
+gooey-split,block,verified-export,yes,no,no,,,export throughput 5.9 fps < 8.0; no editable fields detected; not yet rendered through the production adapter path
+grade-split-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+grain-field,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+grain-overlay,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+gravitational-lens,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.898; exports, with visible differences"
+grid-card-assemble,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+grid-pixelate-wipe,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+halftone-dissolve,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+halftone-field,block,verified-export,yes,no,no,,,WebGL; not yet rendered through the production adapter path
+headline-slam,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+heatmap,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline heatmap: no __timelines entry (data-no-timeline block)
+heygen-avatar-promo-card,block,verified-export,yes,no,no,,,video element; audio element; asset files hosted remotely (not pinned/vendored); export throughput 7.8 fps < 8.0; not yet rendered through the production adapter path
+hologram,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline hologram: no __timelines entry (data-no-timeline block)
+holographic,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline holographic: no __timelines entry (data-no-timeline block)
+hw-arrow,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+hw-boil,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+hw-box-label,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+hw-callout-circle,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+hw-frame,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.663: content differs from native (export not attempted)"
+hw-path-text,block,verified-export,yes,yes,no,0.991,8,SSIM >= 0.95 at all samples; MP4 export OK
+hw-pipeline,block,verified-export,yes,no,no,,,shows built-in text that cannot be edited; not yet rendered through the production adapter path
+hw-scribble-transition,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.928; exports, with visible differences"
+hw-text-cloud,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.944; exports, with visible differences"
+hw-title,block,verified-export,yes,yes,no,0.957,12,SSIM >= 0.95 at all samples; MP4 export OK
+hw-underline,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+hw-write-title,block,verified-export,yes,yes,no,0.996,7,SSIM >= 0.95 at all samples; MP4 export OK
+icon-morph-beat,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+icon-swap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+ink-bleed-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+inline-highlight,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+input-feedback,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+instagram-follow,block,verified-export,yes,yes,no,0.986,6,SSIM >= 0.95 at all samples; MP4 export OK
+ios26-liquid-glass,block,verified-export,yes,no,no,,,WebGL; three.js; HTML-in-canvas API; export throughput 7.0 fps < 8.0; no editable fields detected; not yet rendered through the production adapter path
+iris-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+keyframe-scrub-stack,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+kinetic-center-build,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+kinetic-type,example,not-tested,no,no,no,,,starter projects (multi-composition) are not supported by the timeline overlay model yet
+kinetic-type-swap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+lens-flare,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline lens-flare: no __timelines entry (data-no-timeline block)
+light-edge,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline light-edge: no __timelines entry (data-no-timeline block)
+light-leak,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.906; exports, with visible differences"
+light-sweep-pass,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+line-by-line-slide,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+line-swap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+liquid-glass-notification,block,unsupported,no,no,no,,,a block script failed to run: script liquid-glass-notification#inline: LiquidGlass is not defined
+liquid-glass-widgets,block,unsupported,no,no,no,,,a block script failed to run: script liquid-glass-widgets#inline: LiquidGlass is not defined
+liquid-metal,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline liquid-metal: no __timelines entry (data-no-timeline block)
+locked-nucleus-orbit,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+logo-brand-close,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+logo-outro,block,verified-export,yes,yes,no,1.0,2,SSIM >= 0.95 at all samples; MP4 export OK
+logo-sting,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+logo-wall,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+lottie-character-walk,block,verified-export,yes,no,no,0.996,,adapter reported errors in the production render
+lower-third-bild,block,verified-export,yes,yes,no,1.0,4,SSIM >= 0.95 at all samples; MP4 export OK
+lt-accent-underline,block,verified-export,yes,yes,no,0.997,2,SSIM >= 0.95 at all samples; MP4 export OK
+lt-bold-block,block,verified-export,yes,yes,no,0.999,2,SSIM >= 0.95 at all samples; MP4 export OK
+lt-clean-bar,block,verified-export,yes,yes,no,0.999,2,SSIM >= 0.95 at all samples; MP4 export OK
+lt-color-block,block,verified-export,yes,yes,no,0.973,2,SSIM >= 0.95 at all samples; MP4 export OK
+lt-dark-card,block,verified-export,yes,yes,no,0.998,2,SSIM >= 0.95 at all samples; MP4 export OK
+lt-kicker-name,block,verified-export,yes,yes,no,0.998,2,SSIM >= 0.95 at all samples; MP4 export OK
+lt-mask-reveal,block,verified-export,yes,yes,no,0.996,2,SSIM >= 0.95 at all samples; MP4 export OK
+lt-neon-border,block,verified-export,yes,yes,no,0.957,9,SSIM >= 0.95 at all samples; MP4 export OK
+lt-side-rule,block,verified-export,yes,yes,no,0.997,2,SSIM >= 0.95 at all samples; MP4 export OK
+lt-soft-pill,block,verified-export,yes,yes,no,0.993,2,SSIM >= 0.95 at all samples; MP4 export OK
+lt-stack-bars,block,verified-export,yes,yes,no,0.999,2,SSIM >= 0.95 at all samples; MP4 export OK
+macos-notification,block,verified-export,yes,yes,no,0.997,2,SSIM >= 0.95 at all samples; MP4 export OK
+macos-tahoe-liquid-glass,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.862; exports, with visible differences"
+magnetic-cursor,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+marble,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline marble: no __timelines entry (data-no-timeline block)
+marker-checklist-card,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+marker-highlight,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+match-cut,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+matrix-decode,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+menu-morph,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+mesh-gradient,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline mesh-gradient: no __timelines entry (data-no-timeline block)
+mesh-gradient-bg,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+message-thread-reveal,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.927; exports, with visible differences"
+micro-transitions,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+mk-background,block,verified-export,yes,yes,no,1.0,8,SSIM >= 0.95 at all samples; MP4 export OK
+mk-callout-highlight,block,verified-export,yes,yes,no,0.992,7,SSIM >= 0.95 at all samples; MP4 export OK
+mk-clone-wall-transition,block,verified-export,yes,no,no,,,shows built-in text that cannot be edited; not yet rendered through the production adapter path
+mk-emphasis-type,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+mk-line-graph,block,verified-export,yes,no,no,,,shows built-in text that cannot be edited; not yet rendered through the production adapter path
+mk-placeholder-grid,block,verified-export,yes,yes,no,0.995,6,SSIM >= 0.95 at all samples; MP4 export OK
+mk-progress-stat,block,verified-export,yes,yes,no,0.994,6,SSIM >= 0.95 at all samples; MP4 export OK
+mk-specs-list,block,verified-export,yes,no,no,,,shows built-in text that cannot be edited; not yet rendered through the production adapter path
+mk-usage-arc,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+modal-morph,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+morph-swap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+morph-text,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+motion-blur,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+multi-device-splay,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+multiplayer-cursors,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+native-notification-pop,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+nebula,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline nebula: no __timelines entry (data-no-timeline block)
+news-ticker,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.929; exports, with visible differences"
+north-korea-locked-down,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.881; exports, with visible differences"
+notes-reveal,block,verified-export,yes,no,no,,,export throughput 5.1 fps < 8.0; not yet rendered through the production adapter path
+notes-typing,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+notification-cascade,block,verified-export,yes,yes,no,0.967,4,SSIM >= 0.95 at all samples; MP4 export OK
+notification-pileup,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+notification-stack,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+number-pop-in,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+number-wheel,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+nyc-paris-flight,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.897; exports, with visible differences"
+nyt-graph,example,not-tested,no,no,no,,,starter projects (multi-composition) are not supported by the timeline overlay model yet
+obsidian,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline obsidian: no __timelines entry (data-no-timeline block)
+offset-path-traveler,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+onboarding-stepper-flow,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+orbit-card,block,unsupported,no,no,no,,,a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'
+ordered-dither-pass,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+organic-light-leak-overlay,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.733: content differs from native (export not attempted)"
+oscilloscope-trace,block,verified-export,yes,yes,no,0.999,11,SSIM >= 0.95 at all samples; MP4 export OK
+outline-draw,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+oversized-cursor,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+overwhelm-surround,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+page-slide,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+pan-stations,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+panel-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+paper-collage-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+parallax-device-dive,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+parallax-unzoom,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+parallax-zoom,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+particle-image-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+particle-text-dissolve,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+path-traced-3d,example,not-tested,no,no,no,,,starter projects (multi-composition) are not supported by the timeline overlay model yet
+pendulum-swing,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+per-word-crossfade,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+per-word-rise,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+perspective-marquee,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+physical-exit,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+plasma,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline plasma: no __timelines entry (data-no-timeline block)
+plastic,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline plastic: no __timelines entry (data-no-timeline block)
+play-mode,example,not-tested,no,no,no,,,starter projects (multi-composition) are not supported by the timeline overlay model yet
+press-ripple,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+prism,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline prism: no __timelines entry (data-no-timeline block)
+product-promo,example,not-tested,no,no,no,,,starter projects (multi-composition) are not supported by the timeline overlay model yet
+product-turntable,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.906; exports, with visible differences"
+pull-back-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+pull-to-refresh,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+push-in,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+rack-focus,block,verified-export,yes,no,no,,,WebGL; export throughput 7.8 fps < 8.0; not yet rendered through the production adapter path
+radial-surround,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+reddit-post,block,verified-export,yes,yes,no,0.998,6,SSIM >= 0.95 at all samples; MP4 export OK
+rgb-glitch-text,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+ridged-burn,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+ripple-waves,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+ripples,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline ripples: no __timelines entry (data-no-timeline block)
+rubber-band-bumper,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+scan-band,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+scramble-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+screen-flow-carousel,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+scroll-camera-story,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+scroll-feed,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+sdf-iris,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.909; exports, with visible differences"
+segmentation-flood,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+separator,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+settings-toggle-flow,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+share-sheet-carousel,block,verified-export,yes,no,no,0.997,,shows built-in text that cannot be edited
+shared-axis-y,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+shared-axis-z,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+sheet-spring-up,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+shimmer-sweep,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+shutter-slam,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+signup-flow,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+sine-wave,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline sine-wave: no __timelines entry (data-no-timeline block)
+skeleton-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+slack-notification-ad,block,verified-export,yes,yes,no,0.966,5,SSIM >= 0.95 at all samples; MP4 export OK
+slit-scan-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+slot-machine-roll,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+snow,block,verified-export,yes,yes,no,0.985,2,SSIM >= 0.95 at all samples; MP4 export OK
+social-proof-card,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+soft-blob-touch,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+soft-blur-in,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+spain-map,block,verified-export,yes,yes,no,1.0,5,SSIM >= 0.95 at all samples; MP4 export OK
+spiral,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline spiral: no __timelines entry (data-no-timeline block)
+spiral-galaxy,block,verified-export,yes,no,no,,,WebGL; three.js; not yet rendered through the production adapter path
+split-flap-board,block,verified-export,yes,no,no,0.995,,no editable field with a measured visible effect
+split-tilt-cards,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+spotify-card,block,adapter-compatible,no,no,no,0.929,,production adapter path worst-sample SSIM 0.929 (research harness reached 0.986)
+spotlight-card,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+spring-pop,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+spring-stack-shuffle,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+stagger-cascade,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+stagger-lattice,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+staggered-fade-up,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+star-rating-fill,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+starfield,block,verified-export,yes,yes,no,0.993,1,SSIM >= 0.95 at all samples; MP4 export OK
+state-chip-rail,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+sticky-mock-swap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+stitched-text-draw,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+stop-motion-cadence,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+store-badge-lockup,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+strands,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline strands: no __timelines entry (data-no-timeline block)
+streaming-text,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+strikethrough-replace,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+stripes,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline stripes: no __timelines entry (data-no-timeline block)
+success-check,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+sun-burst,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline sun-burst: no __timelines entry (data-no-timeline block)
+svg-line-draw-loader,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+svg-mask-reveal,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+svg-stroke-trace,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+swipe-rail,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+swirl,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline swirl: no __timelines entry (data-no-timeline block)
+swirl-vortex,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+swiss-grid,example,not-tested,no,no,no,,,starter projects (multi-composition) are not supported by the timeline overlay model yet
+tabs-slide-indicator,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+telemetry-hud,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+terminal-simulator,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+testimonial-card,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+testimonial-proof-card,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+text-match-cut,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+text-shimmer,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+text-stagger,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+text-state-swap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+texture-mask-text,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+thermal-distortion,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+thin-film,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline thin-film: no __timelines entry (data-no-timeline block)
+thread-message-stack,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline thread-message-stack: no __timelines entry
+three-orbiting-cards,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+ticker-takeover,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+tiktok-follow,block,verified-export,yes,yes,no,0.987,6,SSIM >= 0.95 at all samples; MP4 export OK
+tilt-card,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+titlecard-calm,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+titlecard-lockup,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+toggle-flip,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+top-down-letters,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+torn-paper-rip,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+touch-indicator,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+tracing-beam,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+tracking-in,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+transitions-3d,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.864; exports, with visible differences"
+transitions-blur,block,verified-export,yes,yes,no,0.998,3,SSIM >= 0.95 at all samples; MP4 export OK
+transitions-cover,block,verified-export,yes,yes,no,0.998,2,SSIM >= 0.95 at all samples; MP4 export OK
+transitions-destruction,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.858; exports, with visible differences"
+transitions-dissolve,block,verified-export,yes,yes,no,0.999,2,SSIM >= 0.95 at all samples; MP4 export OK
+transitions-distortion,block,verified-export,yes,yes,no,0.997,3,SSIM >= 0.95 at all samples; MP4 export OK
+transitions-grid,block,verified-export,yes,yes,no,0.998,3,SSIM >= 0.95 at all samples; MP4 export OK
+transitions-light,block,verified-export,yes,yes,no,0.998,2,SSIM >= 0.95 at all samples; MP4 export OK
+transitions-mechanical,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.857; exports, with visible differences"
+transitions-other,block,verified-export,yes,yes,no,0.999,3,SSIM >= 0.95 at all samples; MP4 export OK
+transitions-push,block,verified-export,yes,yes,no,0.999,2,SSIM >= 0.95 at all samples; MP4 export OK
+transitions-radial,block,verified-export,yes,yes,no,0.999,4,SSIM >= 0.95 at all samples; MP4 export OK
+transitions-scale,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.863; exports, with visible differences"
+trust-strip,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+type-match-cut,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+typed-prompt,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+typewriter,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+typing-indicator,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+ui-3d-reveal,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.825: content differs from native (export not attempted)"
+ui-focus-zoom,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+us-map,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.895; exports, with visible differences"
+us-map-bubble,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.769: content differs from native (export not attempted)"
+us-map-flow,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.803: content differs from native (export not attempted)"
+us-map-hex,block,verified-export,yes,yes,no,0.996,4,SSIM >= 0.95 at all samples; MP4 export OK
+variable-axis-type,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+variable-font-flex,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+vector-editor-rig,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+velocity-throw-snap,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+vfx-anamorphic-flare,block,verified-export,yes,yes,no,1.0,7,SSIM >= 0.95 at all samples; MP4 export OK
+vfx-iphone-device,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline vfx-iphone-device: no __timelines entry
+vfx-liquid-background,block,unsupported,no,no,no,,,needs a resource from a host that is not allow-listed: blocked-url src: host not allow-listed: cdn.jsdelivr.net: https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.m
+vfx-liquid-glass,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.744: content differs from native (export not attempted)"
+vfx-magnetic,block,verified-export,yes,no,no,,,WebGL; HTML-in-canvas API; no editable fields detected; not yet rendered through the production adapter path
+vfx-portal,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.000: content differs from native (export not attempted)"
+vfx-shatter,block,unsupported,no,no,no,,,the block failed to mount: mount vfx-shatter: ctxA.drawElementImage is not a function
+vfx-text-cursor,block,unsupported,no,no,no,,,MP4 export failed: export timeout
+vignelli,example,not-tested,no,no,no,,,starter projects (multi-composition) are not supported by the timeline overlay model yet
+vignette,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+voronoi,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline voronoi: no __timelines entry (data-no-timeline block)
+vox-annotate,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+vpn-youtube-spot,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.919; exports, with visible differences"
+warm-grain,example,not-tested,no,no,no,,,starter projects (multi-composition) are not supported by the timeline overlay model yet
+water,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline water: no __timelines entry (data-no-timeline block)
+waveform,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline waveform: no __timelines entry (data-no-timeline block)
+week-in-merges,block,verified-export,yes,yes,no,0.991,7,SSIM >= 0.95 at all samples; MP4 export OK
+weight-wave,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.927; exports, with visible differences"
+whip-pan,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+whip-pan-cut,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+whiteboard-ink,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+wireframe-portal-title,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.930; exports, with visible differences"
+wordmark-tiles,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+world-map,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.688: content differs from native (export not attempted)"
+worley-noise,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline worley-noise: no __timelines entry (data-no-timeline block)
+x-follow-card,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+x-post,block,verified-export,yes,yes,no,0.992,6,SSIM >= 0.95 at all samples; MP4 export OK
+yt-camera-move,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+yt-circle-pointer,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+yt-comment-card,block,verified-export,yes,no,no,,,shows built-in text that cannot be edited; not yet rendered through the production adapter path
+yt-feather-highlight,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+yt-lcd-background,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.908; exports, with visible differences"
+yt-logo-intro,block,verified-export,yes,yes,no,0.999,6,SSIM >= 0.95 at all samples; MP4 export OK
+yt-lower-third,block,verified-export,yes,yes,no,0.999,4,SSIM >= 0.95 at all samples; MP4 export OK
+yt-prism-title,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.948; exports, with visible differences"
+yt-screen-warp,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept
+yt-vertical-fill,block,verified-export,yes,no,no,,,export throughput 4.6 fps < 8.0; not yet rendered through the production adapter path
+zoom-through-transition,component,not-tested,no,no,no,,,components are HTML fragments that need a host composition; only the four caption styles were measured in the proof of concept

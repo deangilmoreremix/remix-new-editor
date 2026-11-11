@@ -449,9 +449,15 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
       const { scope } = (event as CustomEvent<{ scope: string }>).detail;
       setAppToast(current => current?.id === `cloud-sync:${scope}` ? null : current);
     };
+    const handleHyperframesNotice = (event: Event) => {
+      const n = (event as CustomEvent<{ id: string; title: string; message: string }>).detail;
+      if (n) setAppToast({ id: n.id, title: n.title, message: n.message });
+    };
+    window.addEventListener('cinegen:hyperframes-notice', handleHyperframesNotice);
     window.addEventListener('cinegen:cloud-sync-error', handleCloudSyncError);
     window.addEventListener('cinegen:cloud-sync-recovered', handleRecovered);
     return () => {
+      window.removeEventListener('cinegen:hyperframes-notice', handleHyperframesNotice);
       window.removeEventListener('cinegen:cloud-sync-error', handleCloudSyncError);
       window.removeEventListener('cinegen:cloud-sync-recovered', handleRecovered);
     };

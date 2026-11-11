@@ -328,10 +328,18 @@ export const scriptsAllowed = () => isSandboxed();
 const errors = [];
 /** Problems seen while mounting blocks (blocked URLs, failed scripts). Read and cleared by the renderer pages. */
 export const takeHyperframesErrors = () => errors.splice(0).slice(0, 20);
+/** Kinds that make the rendered output wrong or empty (fatal for export) vs. notes that leave a usable result. */
+export const FATAL_KINDS = new Set(['refused', 'fetch', 'script', 'mount', 'timeline', 'blocked-script', 'integrity']);
+const errorListeners = new Set();
+/** Subscribe to adapter problems as they happen: fn({ kind, name, message, fatal }). Returns the unsubscribe function. */
+export const onHyperframesError = (fn) => { errorListeners.add(fn); return () => errorListeners.delete(fn); };
 const report = (kind, name, err) => {
-  const msg = `${kind} ${name}: ${err?.message || err}`;
-  if (!errors.includes(msg)) console.warn(`[hyperframes] ${msg}`); // surfaced for diagnostics; also returned by takeHyperframesErrors()
-  errors.push(msg);
+  const message = err?.message || String(err);
+  const msg = `${kind} ${name}: ${message}`;
+  if (!errors.includes(msg)) console.warn(`[hyperframes] ${msg}`);
+  // always notify (no de-duplication): the export frame is reused, so a repeat failure must still fail the next export
+  errorListeners.forEach((fn) => { try { fn({ kind, name, message, fatal: FATAL_KINDS.has(kind) }); } catch { /* listener errors never break rendering */ } });
+  errors.push(msg); if (errors.length > 50) errors.splice(0, errors.length - 50);
 };
 
 /**

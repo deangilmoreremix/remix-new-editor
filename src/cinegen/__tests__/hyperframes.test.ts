@@ -82,3 +82,34 @@ describe('hyperframes config / variable editables', () => {
     for (const i of hyperframesItems()) { expect(i.sourceSha256).toMatch(/^[0-9a-f]{64}$/); expect(Array.isArray(i.editables)).toBe(true); }
   });
 });
+
+describe('hyperframes disable modes', () => {
+  afterEach(() => { try { localStorage.removeItem('remix.hyperframes.kill'); localStorage.removeItem('remix.hyperframes.v1'); } catch { /* ignore */ } });
+  it('emergency runtime disable is off by default and reads the kill key', async () => {
+    const { isHyperframesRuntimeDisabled } = await import('../../lib/hyperframes/featureFlag.js');
+    expect(isHyperframesRuntimeDisabled()).toBe(false);
+    localStorage.setItem('remix.hyperframes.kill', '1');
+    expect(isHyperframesRuntimeDisabled()).toBe(true);
+  });
+  it('a saved overlay keeps its data and layer in both modes; only the kill switch marks the layer disabled', async () => {
+    const { hyperframesItems, hyperframesOverlayLayer, createHyperframesOverlay } = await import('@cinegen/lib/hyperframes/overlay');
+    const it = hyperframesItems()[0]; const o = createHyperframesOverlay(it, 2);
+    const before = JSON.stringify(o);
+    expect(hyperframesOverlayLayer(o, 30).runtimeDisabled).toBeUndefined();
+    localStorage.setItem('remix.hyperframes.kill', '1');
+    expect(hyperframesOverlayLayer(o, 30)).toMatchObject({ runtimeDisabled: true, blockId: it.id });
+    expect(JSON.stringify(o)).toBe(before); // the saved overlay is never rewritten
+    expect(normalizeOverlays([o])).toHaveLength(1);
+  });
+  it('catalog disable hides an id from the library but it still resolves for saved projects', async () => {
+    const ov = await import('@cinegen/lib/hyperframes/overlay');
+    expect(ov.hyperframesItems().length).toBeGreaterThan(0);
+    expect(ov.isCatalogDisabled('definitely-not-listed')).toBe(false);
+    const first = ov.hyperframesItems()[0];
+    expect(ov.hyperframesItem(first.id)).toBeDefined();
+  });
+  it('notice helper strips the code-layer prefixes', async () => {
+    const { stripHfPrefix } = await import('@cinegen/lib/hyperframes/notify');
+    expect(stripHfPrefix('[hyperframes:error] boom')).toBe('boom'); expect(stripHfPrefix('plain')).toBe('plain');
+  });
+});

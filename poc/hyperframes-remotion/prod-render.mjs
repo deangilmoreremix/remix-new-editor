@@ -21,7 +21,7 @@ async function worker() {
       await p.goto(`${BASE}/__hf_host`);
       await p.evaluate(() => new Promise((res, rej) => { window.__ready.then(res); setTimeout(() => rej(new Error('preview never became ready')), 40000); }));
       const dur = Math.max(1, Math.ceil(s.durationSec * FPS));
-      const layer = { id: 'L1', kind: 'hyperframes', trackIndex: 99, from: 0, durationInFrames: dur, effects: [], blockId: s.blockId, overrides: s.overrides || {}, blockWidth: s.width, blockHeight: s.height, title: s.id, ...(s.hostHtml ? { hostHtml: s.hostHtml } : {}) };
+      const layer = { id: 'L1', kind: 'hyperframes', trackIndex: 99, from: 0, durationInFrames: dur, effects: [], blockId: s.blockId, overrides: s.overrides || {}, blockWidth: s.width, blockHeight: s.height, title: s.id, ...(s.extra || {}), ...(s.hostHtml ? { hostHtml: s.hostHtml } : {}) };
       await p.evaluate(([model]) => { window.__errs = []; window.addEventListener('message', (e) => { if (e.data?.type === 'code-error') window.__errs.push(e.data.message); }); document.getElementById('f').contentWindow.postMessage({ type: 'model', model }, '*'); },
         [{ version: 1, fps: FPS, width: s.width, height: s.height, durationInFrames: dur, background: 'transparent', layers: [layer], audio: [], transitions: [], fonts: [] }]);
       await p.waitForTimeout(+(process.env.MOUNT_MS || 3500));

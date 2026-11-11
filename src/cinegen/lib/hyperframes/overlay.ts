@@ -4,6 +4,10 @@
 import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JSON from the main app's lib
 import enabledJson from '../../../lib/hyperframes/catalog.enabled.json';
+// @ts-expect-error plain JSON from the main app's lib
+import disabledJson from '../../../lib/hyperframes/catalog.disabled.json';
+// @ts-expect-error plain JS flag module
+import { isHyperframesRuntimeDisabled } from '../../../lib/hyperframes/featureFlag.js';
 
 export interface HfEditable {
   key: string; label: string; type: 'text' | 'color' | 'number' | 'boolean' | 'select'; defaultValue: string | number | boolean;
@@ -16,8 +20,12 @@ export interface HfItem {
   dimensions: { width: number; height: number }; duration: number; sourceSha256: string; editables: HfEditable[];
 }
 
-export const hyperframesItems = (): HfItem[] => (enabledJson as { items: HfItem[] }).items;
-export const hyperframesItem = (id: string): HfItem | undefined => hyperframesItems().find((i) => i.id === id);
+const catalogDisabled = new Set<string>((disabledJson as { ids: string[] }).ids ?? []);
+/** Items a customer can ADD (library). Catalog-disabled ids are hidden here but still resolve below, so saved projects keep working. */
+export const hyperframesItems = (): HfItem[] => (enabledJson as { items: HfItem[] }).items.filter((i) => !catalogDisabled.has(i.id));
+/** Every pinned item, including catalog-disabled ones: used to render and export what is already in a project. */
+export const hyperframesItem = (id: string): HfItem | undefined => (enabledJson as { items: HfItem[] }).items.find((i) => i.id === id);
+export const isCatalogDisabled = (id: string): boolean => catalogDisabled.has(id);
 
 /** Search over title, description, tags and id; `tag` narrows to one category tag. */
 export function searchHyperframes(items: HfItem[], query: string, tag = 'all'): HfItem[] {
@@ -61,5 +69,6 @@ export function hyperframesOverlayLayer(o: OverlayClip, fps: number) {
     id: o.id, kind: 'hyperframes', trackIndex: 99, from, durationInFrames: Math.max(1, Math.round((o.end - o.start) * fps)), effects: [],
     blockId: String(o.blockId ?? ''), overrides: item ? overridesFromProps(item, (o.props as Record<string, unknown>) ?? {}) : {},
     blockWidth: Number(o.blockWidth) || 1920, blockHeight: Number(o.blockHeight) || 1080, title: o.name,
+    ...(isHyperframesRuntimeDisabled() ? { runtimeDisabled: true } : {}),
   };
 }

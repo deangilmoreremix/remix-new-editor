@@ -215,6 +215,7 @@ export function registerWebApi() {
         } catch (err) {
           job.status = 'failed';
           job.error = err instanceof Error ? err.message : String(err);
+          if ((err as { hyperframes?: boolean })?.hyperframes) void import('@cinegen/lib/hyperframes/notify').then((m) => m.notifyHyperframes({ id: 'hf:export', title: 'Export stopped', message: job.error as string }));
         }
       })();
       return { ...job };
