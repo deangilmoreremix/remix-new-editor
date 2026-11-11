@@ -28,17 +28,18 @@ describe('studio banners', () => {
     expect(paths).not.toContain(getHeroThumbnail('video-agent'));
   });
 
-  it('is 128px / 176px tall (the old 96-112px box showed only a thin strip of the picture)', () => {
+  it('is 128px tall on phones and 176-264px on desktop (scales with width so the picture is not a thin strip)', () => {
     const el = createStudioHeader('image', 'Image Studio', 'x');
     expect(el.className).toContain('h-32');
-    expect(el.className).toContain('md:h-44');
+    expect(el.className).toContain('md:h-[clamp(176px,14vw,264px)]');
     expect(el.className).toContain('hero-banner');
     expect(el.querySelector('img')).not.toBeNull();
   });
 
   it('aims the crop at the subject instead of the exact centre', () => {
-    expect(createStudioHeader('audio', 'Audio Studio').querySelector('img').style.objectPosition).toBe('50% 47%');
-    expect(createStudioHeader('character', 'Character Studio').querySelector('img').style.objectPosition).toBe('50% 20%');
+    const sharp = (id) => createStudioHeader(id, 'x').querySelector('.absolute img:not([aria-hidden])');
+    expect(sharp('audio').style.objectPosition).toBe('50% 47%');
+    expect(sharp('character').style.objectPosition).toBe('50% 20%');
   });
 
   it('the editor banner is the compact variant inside a non-shrinking row', () => {
@@ -47,7 +48,7 @@ describe('studio banners', () => {
     const banner = row.querySelector('.hero-banner');
     expect(banner.className).toContain('h-20');
     expect(banner.querySelector('h1').textContent).toBe('Director');
-    expect(banner.querySelector('img').getAttribute('src')).toContain('/thumbnails/heroes/director.webp');
+    expect(banner.querySelector('img:not([aria-hidden])').getAttribute('src')).toContain('/thumbnails/heroes/director.webp');
   });
 
   it('the Timeline Editor banner is added after the editor mounts (the editor replaces the container contents)', () => {

@@ -695,28 +695,43 @@ export function createStudioHeader(studioId, title, subtitle = '', className = '
   const wrapper = document.createElement('div');
   // 'compact' is for the full-screen editors (Director, Timeline, Workbench, Video Agent,
   // Website Builder), which need every pixel of height for the editor itself.
-  const height = size === 'compact' ? 'h-20 md:h-24' : 'h-32 md:h-44';
+  const height = size === 'compact' ? 'h-20 md:h-24' : 'h-32 md:h-[clamp(176px,14vw,264px)]';
   wrapper.className = `hero-banner studio-header relative w-full ${height} overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d10] shrink-0 ${className}`;
   wrapper.dataset.studioHeader = studioId;
   if (src) {
     wrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
+    // Ambient backdrop: the same picture, blurred and dimmed, fills the width so the
+    // banner never shows a hard edge or a dark void next to the sharp picture.
+    const ambient = createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40');
+    ambient.setAttribute('aria-hidden', 'true');
+    wrapper.appendChild(ambient);
+    // The sharp picture sits on the right at its own shape, so all of it is visible
+    // (a full-width 176px strip showed only ~25% of a 2.4:1 picture). Below md it
+    // goes full-bleed behind the title instead.
+    const pic = document.createElement('div');
+    pic.className = 'absolute inset-0 md:inset-y-0 md:left-auto md:right-0 md:w-auto md:aspect-[2.36/1] md:max-w-[68%]';
     const img = createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover');
-    // Aim the crop at the part of the picture that matters (see BANNER_FOCUS).
     img.style.objectPosition = BANNER_FOCUS[studioId] || '50% 50%';
-    wrapper.appendChild(img);
+    pic.appendChild(img);
+    const seam = document.createElement('div');
+    seam.className = 'absolute inset-y-0 left-0 w-20 hidden md:block pointer-events-none bg-gradient-to-r from-[#0d0d10]/90 to-transparent';
+    pic.appendChild(seam);
+    wrapper.appendChild(pic);
   }
+  // Mobile: lift the title off the picture. Desktop: only a short fade at the picture's
+  // left edge (the seam above), nothing over the picture itself.
   const shade = document.createElement('div');
-  shade.className = 'absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10';
+  shade.className = 'absolute inset-0 pointer-events-none bg-gradient-to-t from-black/80 via-black/30 to-transparent md:hidden';
   wrapper.appendChild(shade);
   const text = document.createElement('div');
-  text.className = 'absolute inset-y-0 left-0 z-10 flex flex-col justify-center px-5 md:px-7 text-left max-w-[80%]';
+  text.className = 'absolute z-10 flex flex-col justify-end md:justify-center inset-x-0 bottom-0 md:inset-y-0 md:right-auto px-5 md:px-7 pb-3 md:pb-0 text-left md:max-w-[34%]';
   const h1 = document.createElement('h1');
   h1.className = 'text-xl md:text-2xl font-black text-white tracking-tight leading-tight';
   h1.textContent = title;
   text.appendChild(h1);
   if (subtitle) {
     const p = document.createElement('p');
-    p.className = 'text-white/65 text-xs md:text-sm mt-1 line-clamp-1';
+    p.className = 'text-white/65 text-xs md:text-sm mt-1 line-clamp-2 md:line-clamp-3';
     p.textContent = subtitle;
     text.appendChild(p);
   }
