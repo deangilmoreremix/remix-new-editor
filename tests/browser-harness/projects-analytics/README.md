@@ -15,3 +15,8 @@ Setup, in short: create a database, apply `supabase/tests/00_shim_local_postgres
 `supabase/tests/README.md`, `python3 seed.py && psql -f seed.sql`, set the `postgres` password to `browsertest`,
 mint test JWTs (HS256, `sub` = `userA` / `userB`) into `tokens.json`, serve `media/kitchen.mp4` and
 `media/thumb-kitchen.png` on :8099 (any CORS-enabled static server), then `node bridge.mjs` and `node e2e.cjs`.
+
+## Real-chain scripts
+- `fn-adapter.mjs` serves the REAL `netlify/functions/video-events.js` handler on :8890 (start it with `SUPABASE_URL` = the bridge and `SUPABASE_SERVICE_ROLE_KEY` = an HS256 JWT with `role: service_role`).
+- `chain.cjs`: hosted player (`/v/<business>/<slug>`) -> analyticsClient -> function -> database -> Analytics tab, plus consent (DNT), idempotency, unpublished/forged/malformed/rate-limit checks. Only stub: the Deno `lead-capture` edge function.
+- `publish.cjs`: editor Share panel publish, readable link, slug change + redirect, reserved names, namespace protection, privacy, unpublish/republish/revisions, and the interest map producing server-calculated scores.

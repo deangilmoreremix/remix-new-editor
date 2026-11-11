@@ -160,9 +160,11 @@ export function renderSharePanel(container, opts) {
     if (!b || !container.contains(b)) return;
     const d = b.dataset;
     if (d.sharePublish !== undefined) {
+      // Read the title BEFORE redrawing: draw() rebuilds the input from saved state and would discard what was typed.
+      const typedTitle = container.querySelector('[data-share-title]')?.value || opts.defaultTitle;
       ui.busy = true; ui.error = ''; draw();
       try {
-        ui.info = await opts.publish({ title: container.querySelector('[data-share-title]')?.value || opts.defaultTitle });
+        ui.info = await opts.publish({ title: typedTitle });
         ui.leads = await opts.countLeads?.().catch(() => null);
       } catch (err) {
         ui.error = err?.message || 'Publishing failed';

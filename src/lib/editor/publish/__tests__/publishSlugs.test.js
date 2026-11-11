@@ -114,3 +114,17 @@ describe('share panel link editor', () => {
     expect(box.querySelector('[data-share-link]').value).toMatch(/\/v\/acme\/spring-promo$/);
   });
 });
+
+describe('share panel publish title', () => {
+  it('publishes with the title the owner typed (not the redrawn default)', async () => {
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const publish = vi.fn(async ({ title }) => ({ id: 'abcdefgh12', title, published: true, view_count: 0 }));
+    renderSharePanel(box, { defaultTitle: 'Project name', getInfo: async () => null, publish, setPublished: async () => {}, copy: async () => {} });
+    await new Promise((r) => setTimeout(r, 0)); await new Promise((r) => setTimeout(r, 0));
+    box.querySelector('[data-share-title]').value = 'My custom title';
+    box.querySelector('[data-share-publish]').click();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(publish).toHaveBeenCalledWith({ title: 'My custom title' });
+  });
+});
