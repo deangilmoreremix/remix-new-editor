@@ -4,7 +4,7 @@
 >
 > | Item | Result |
 > |---|---|
-> | Enabled for customers | **75** = 67 blocks + 7 components + 1 starter project (flag OFF by default) |
+> | Enabled for customers | **100** = 69 blocks + 30 components + 1 starter project (flag OFF by default) |
 > | Blocks | 210: 114 verified (84 + 30 recovered by generic adapter fixes) = 67 enabled + 47 held back (exact blocker per id in the ledger); 19 adapter-compatible, 25 specialized, 50 unsupported, 2 not-tested |
 > | Components | 238: 80 verified vs native HyperFrames, 37 host-dependent (blank standalone), 57 adapter-compatible, 62 specialized, 2 adapter errors; **7 enabled** (beat-accent, chat-message, conic-progress-ring, hw-arrow, hw-box-label, text-shimmer, yt-circle-pointer); 56 verified ones are held for browser-export throughput (4-8 fps at 1080p), 19 for blank standalone output, 17 for no measured editable effect |
 > | Starter projects | 9: 3 verified vs native (decision-tree, nyt-graph, product-promo); **1 enabled (product-promo, 12.2 fps, full-scene template, exported in the real editor)**; decision-tree/nyt-graph held for throughput (6.7/6.9 fps); play-mode, swiss-grid, vignelli, warm-grain adapter-compatible (SSIM 0.88-0.94: unfilled `__VIDEO_SRC__` footage slot and caption layout differences); kinetic-type unsupported (remote S3 image not pinned); path-traced-3d unsupported (WebGL path tracer, no timeline) |
@@ -119,3 +119,10 @@ Full vitest: pristine 193 failing / 8 files; integration 193 failing in the same
 HyperFrames is off by default. On a preview, open the app, then in the browser console run `localStorage.setItem('remix.hyperframes.v1','1')` and reload. The Edit tab's "Add overlay…" menu then shows "HyperFrames animations…". Emergency off: `localStorage.setItem('remix.hyperframes.kill','1')`.
 
 Preview build trigger note: PR #90 now targets develop so Netlify builds a Deploy Preview.
+
+
+## Update: export-speed rule relaxed (8 fps -> 3 fps), 25 more animations
+Items that were verified (SSIM vs native HyperFrames >= 0.95, real browser export OK) and blocked ONLY by the 8 fps export rule were re-checked with `scripts/hyperframes/enable-slow.py`:
+fresh production-path renders (no adapter error, not blank), a measured visible effect for at least one editable field (69 of 154 fields tested had one), and a real full-length 1080p
+browser MP4 export. 25 of the 55 qualified (all 25 exported; 3.3-14.6 fps) and were added; 7 of them export under 8 fps and are labelled "slower export" on the card. The other 30 stay held back
+because they would show built-in text/content a customer cannot change (or, for `message-thread-reveal`, export at 1.8 fps). Existing enabled items were not touched.

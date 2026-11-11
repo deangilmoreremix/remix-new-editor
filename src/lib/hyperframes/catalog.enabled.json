@@ -5856,6 +5856,1760 @@
      "index.html": "e66d18050fa0863f31a1da06ad8564aed7f09b3c7b9cd59e08ed56f3fecb024e"
     }
    }
+  },
+  {
+   "id": "yt-lcd-background",
+   "type": "block",
+   "title": "Scanline Board Background",
+   "description": "Textured paper board: scanlines with slow drift, optional pixel grid, static grain, and display text with a blur-focus entrance and chromatic-fringe title",
+   "tags": [
+    "background",
+    "texture",
+    "creator"
+   ],
+   "category": "background",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 10,
+   "sourceSha256": "07574891f92b7d4be545a3050723bd7ac8d639d6add943509916e8a06a0e8e58",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "yt-lcd-background.html",
+     "target": "compositions/yt-lcd-background.html",
+     "sha256": "07574891f92b7d4be545a3050723bd7ac8d639d6add943509916e8a06a0e8e58"
+    }
+   ],
+   "editables": [
+    {
+     "key": "cfg_title",
+     "label": "Title",
+     "defaultValue": "yt-lcd",
+     "target": {
+      "kind": "cfg",
+      "path": "title"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_subtitle",
+     "label": "Subtitle",
+     "defaultValue": "background 01",
+     "target": {
+      "kind": "cfg",
+      "path": "subtitle"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_scheme",
+     "label": "Scheme",
+     "defaultValue": "light",
+     "target": {
+      "kind": "cfg",
+      "path": "scheme"
+     },
+     "type": "select",
+     "options": [
+      "light",
+      "dark"
+     ]
+    },
+    {
+     "key": "cfg_prism_enabled",
+     "label": "Prism \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "prism.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_bow_enabled",
+     "label": "Bow \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "bow.enabled"
+     },
+     "type": "boolean"
+    }
+   ],
+   "motion": "static",
+   "slow": true
+  },
+  {
+   "id": "yt-prism-title",
+   "type": "block",
+   "title": "Chromatic Fringe Title",
+   "description": "Display title on a transparent root: blur-focus entrance, red/blue fringe that settles then breathes, perspective bow, slow scale drift",
+   "tags": [
+    "typography",
+    "title-card",
+    "creator"
+   ],
+   "category": "typography",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "db0dd9c48989fed988565f286dfba5c0692584e5c2a1f70952df2e6570b97a25",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "yt-prism-title.html",
+     "target": "compositions/yt-prism-title.html",
+     "sha256": "db0dd9c48989fed988565f286dfba5c0692584e5c2a1f70952df2e6570b97a25"
+    }
+   ],
+   "editables": [
+    {
+     "key": "cfg_title",
+     "label": "Title",
+     "defaultValue": "yt-prism",
+     "target": {
+      "kind": "cfg",
+      "path": "title"
+     },
+     "type": "text"
+    },
+    {
+     "key": "cfg_color",
+     "label": "Color",
+     "defaultValue": "#35c8d9",
+     "target": {
+      "kind": "cfg",
+      "path": "color"
+     },
+     "type": "color"
+    },
+    {
+     "key": "cfg_prism_enabled",
+     "label": "Prism \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "prism.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_bow_enabled",
+     "label": "Bow \u203a enabled",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "bow.enabled"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_drift",
+     "label": "Drift",
+     "defaultValue": true,
+     "target": {
+      "kind": "cfg",
+      "path": "drift"
+     },
+     "type": "boolean"
+    },
+    {
+     "key": "cfg_fontSize",
+     "label": "Font Size",
+     "defaultValue": 260,
+     "target": {
+      "kind": "cfg",
+      "path": "fontSize"
+     },
+     "type": "number",
+     "min": 0,
+     "max": 780,
+     "step": 1
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "aurora-drift",
+   "type": "component",
+   "title": "Aurora Drift",
+   "description": "Three soft accent-derived aurora fields drift in an exact ambient loop over a deep base and faint vignette.",
+   "tags": [
+    "motion-primitive",
+    "background",
+    "aurora",
+    "gradient",
+    "ambient",
+    "loopable"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.0,
+   "sourceSha256": "bf700650e032fc4f81ece1b88ab0bfb92f042f4ae40a4be02509b6e50be34c23",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "aurora-drift.html",
+     "target": "compositions/components/aurora-drift.html",
+     "sha256": "bf700650e032fc4f81ece1b88ab0bfb92f042f4ae40a4be02509b6e50be34c23"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_mood",
+     "label": "Mood",
+     "target": {
+      "kind": "var",
+      "id": "mood"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "deep",
+       "label": "Deep"
+      },
+      {
+       "value": "bright",
+       "label": "Bright"
+      }
+     ],
+     "defaultValue": "deep"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "aurora-drift.html": "bf700650e032fc4f81ece1b88ab0bfb92f042f4ae40a4be02509b6e50be34c23"
+    }
+   },
+   "motion": "static",
+   "slow": true
+  },
+  {
+   "id": "avatar-group-hover",
+   "type": "component",
+   "title": "Avatar Group Hover",
+   "description": "A distance-falloff avatar group lift with bouncy hover return",
+   "tags": [
+    "video-primitive",
+    "transition-primitive",
+    "transitions-dev-port",
+    "avatar",
+    "hover"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "2417f219fa4db0bcfc250b5823b4e9d5b68a6be3d920911b19305cd10c3f4d89",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "avatar-group-hover.html",
+     "target": "compositions/components/avatar-group-hover.html",
+     "sha256": "2417f219fa4db0bcfc250b5823b4e9d5b68a6be3d920911b19305cd10c3f4d89"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_size",
+     "label": "Size",
+     "target": {
+      "kind": "var",
+      "id": "size"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "small",
+       "label": "Small"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "large",
+       "label": "Large"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_overlap",
+     "label": "Overlap",
+     "target": {
+      "kind": "var",
+      "id": "overlap"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "tight",
+       "label": "Tight"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "loose",
+       "label": "Loose"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_accent",
+     "label": "Accent",
+     "target": {
+      "kind": "var",
+      "id": "accent"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "blue",
+       "label": "Blue"
+      },
+      {
+       "value": "violet",
+       "label": "Violet"
+      },
+      {
+       "value": "green",
+       "label": "Green"
+      }
+     ],
+     "defaultValue": "blue"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "avatar-group-hover.html": "2417f219fa4db0bcfc250b5823b4e9d5b68a6be3d920911b19305cd10c3f4d89"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "cursor-drag-drop",
+   "type": "component",
+   "title": "Drag and Drop Cursor",
+   "description": "A cursor grabs a task card, lifts and tilts it into its motion, carries it in lockstep to an empty column, drops it with a small settle, and the list closes the gap behind it.",
+   "tags": [
+    "cursor",
+    "motion-primitive",
+    "drag",
+    "drop",
+    "kanban",
+    "product-demo"
+   ],
+   "category": "cursor",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 3.6,
+   "sourceSha256": "c89ba20707cefb71022808c742029da1ce6726a404ea88577a373569267be7d4",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "cursor-drag-drop.html",
+     "target": "compositions/components/cursor-drag-drop.html",
+     "sha256": "c89ba20707cefb71022808c742029da1ce6726a404ea88577a373569267be7d4"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_card_label",
+     "label": "Dragged card",
+     "target": {
+      "kind": "var",
+      "id": "card_label"
+     },
+     "type": "text",
+     "defaultValue": "Fix checkout validation"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "cursor-drag-drop.html": "c89ba20707cefb71022808c742029da1ce6726a404ea88577a373569267be7d4"
+    }
+   },
+   "motion": "static",
+   "slow": true
+  },
+  {
+   "id": "cut-the-curve",
+   "type": "component",
+   "title": "Cut the Curve",
+   "description": "A velocity-matched directional hard cut: the outgoing subject accelerates with power4.in, swaps at peak velocity, and the incoming subject continues in the same direction with power4.out.",
+   "tags": [
+    "transition",
+    "directional-cut",
+    "velocity-match",
+    "whip",
+    "bridge",
+    "demonstrate"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 1.0,
+   "sourceSha256": "e027fabc13bd758da04bf636a6519f8a7b1abd0b62ea1ced887316b129c125b1",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "cut-the-curve.html",
+     "target": "compositions/components/cut-the-curve.html",
+     "sha256": "e027fabc13bd758da04bf636a6519f8a7b1abd0b62ea1ced887316b129c125b1"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_subject",
+     "label": "Subject",
+     "target": {
+      "kind": "var",
+      "id": "subject"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "cursor",
+       "label": "Cursor"
+      },
+      {
+       "value": "card",
+       "label": "Card"
+      },
+      {
+       "value": "scene",
+       "label": "Scene"
+      }
+     ],
+     "defaultValue": "cursor"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "cut-the-curve.html": "e027fabc13bd758da04bf636a6519f8a7b1abd0b62ea1ced887316b129c125b1"
+    }
+   },
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "icon-morph-beat",
+   "type": "component",
+   "title": "Icon Morph Beat",
+   "description": "An icon morphs between authored state silhouettes, shifts to an accent color, and marks completion with one restrained pulse.",
+   "tags": [
+    "motion-primitive",
+    "product-demo",
+    "icon",
+    "morph",
+    "state-change",
+    "completion"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 2.5,
+   "sourceSha256": "e0b8bcd72028d9d7309726133a3c6f72e6b3f99c001670afcf3edbe1483297b8",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "icon-morph-beat.html",
+     "target": "compositions/components/icon-morph-beat.html",
+     "sha256": "e0b8bcd72028d9d7309726133a3c6f72e6b3f99c001670afcf3edbe1483297b8"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_pair",
+     "label": "Icon pair",
+     "target": {
+      "kind": "var",
+      "id": "pair"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "mic-check",
+       "label": "Mic to check"
+      },
+      {
+       "value": "play-check",
+       "label": "Play to check"
+      },
+      {
+       "value": "lock-unlock",
+       "label": "Lock to unlock"
+      }
+     ],
+     "defaultValue": "mic-check"
+    },
+    {
+     "key": "var_accent",
+     "label": "Accent",
+     "target": {
+      "kind": "var",
+      "id": "accent"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "green",
+       "label": "Green"
+      },
+      {
+       "value": "blue",
+       "label": "Blue"
+      },
+      {
+       "value": "violet",
+       "label": "Violet"
+      }
+     ],
+     "defaultValue": "green"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "icon-morph-beat.html": "e0b8bcd72028d9d7309726133a3c6f72e6b3f99c001670afcf3edbe1483297b8"
+    }
+   },
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "input-feedback",
+   "type": "component",
+   "title": "Input Feedback",
+   "description": "A transitions.dev-inspired input feedback primitive with shake, clear affordance, and success state",
+   "tags": [
+    "transition-primitive",
+    "transitions-dev-port",
+    "input",
+    "feedback"
+   ],
+   "category": "transition-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "13d7c828ac2fe5905cdb26ba8752678e3578d6cafbbfbc5e4c28a4fdae65dbb8",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "input-feedback.html",
+     "target": "compositions/components/input-feedback.html",
+     "sha256": "13d7c828ac2fe5905cdb26ba8752678e3578d6cafbbfbc5e4c28a4fdae65dbb8"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_value",
+     "label": "Value",
+     "target": {
+      "kind": "var",
+      "id": "value"
+     },
+     "type": "text",
+     "defaultValue": "mia@example.com"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "input-feedback.html": "13d7c828ac2fe5905cdb26ba8752678e3578d6cafbbfbc5e4c28a4fdae65dbb8"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "locked-nucleus-orbit",
+   "type": "component",
+   "title": "Locked Nucleus Orbit",
+   "description": "A fixed center nucleus anchors deterministic satellite orbits that settle into a composed lockup.",
+   "tags": [
+    "motion-primitive",
+    "intro",
+    "reveal",
+    "orbit",
+    "lockup",
+    "deterministic"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.0,
+   "sourceSha256": "5e0a46494786f26ce2ffb549a5267259171ac8e94aaf1585213e08a6d7af74dd",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "locked-nucleus-orbit.html",
+     "target": "compositions/components/locked-nucleus-orbit.html",
+     "sha256": "5e0a46494786f26ce2ffb549a5267259171ac8e94aaf1585213e08a6d7af74dd"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_label",
+     "label": "Nucleus label",
+     "target": {
+      "kind": "var",
+      "id": "label"
+     },
+     "type": "text",
+     "defaultValue": "core"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "locked-nucleus-orbit.html": "5e0a46494786f26ce2ffb549a5267259171ac8e94aaf1585213e08a6d7af74dd"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "magnetic-cursor",
+   "type": "component",
+   "title": "Magnetic Cursor",
+   "description": "A soft dot pointer glides across an editor toolbar, is pulled into each button and morphs into its rounded hover plate while the icon leans toward it, presses one, and leaves as a dot.",
+   "tags": [
+    "cursor",
+    "motion-primitive",
+    "pointer",
+    "hover",
+    "morph",
+    "toolbar"
+   ],
+   "category": "cursor",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 3.6,
+   "sourceSha256": "bf6be7611f569c977bea037587970e350a7d7aa80eb5d6cb674323f33a9c1a7b",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "magnetic-cursor.html",
+     "target": "compositions/components/magnetic-cursor.html",
+     "sha256": "bf6be7611f569c977bea037587970e350a7d7aa80eb5d6cb674323f33a9c1a7b"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "magnetic-cursor.html": "bf6be7611f569c977bea037587970e350a7d7aa80eb5d6cb674323f33a9c1a7b"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "matrix-decode",
+   "type": "component",
+   "title": "Matrix Decode",
+   "description": "Random scramble resolves left-to-right into the target text.",
+   "tags": [
+    "motion-primitive",
+    "typography"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "9fcc15beab2f840c95d631eab1f17eb1008a6d256ffee37870b4b3d9a4f7030f",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "matrix-decode.html",
+     "target": "compositions/components/matrix-decode.html",
+     "sha256": "9fcc15beab2f840c95d631eab1f17eb1008a6d256ffee37870b4b3d9a4f7030f"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_text",
+     "label": "Target text",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "HYPERFRAMES"
+    },
+    {
+     "key": "var_accent",
+     "label": "Accent",
+     "target": {
+      "kind": "var",
+      "id": "accent"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "green",
+       "label": "Green"
+      },
+      {
+       "value": "blue",
+       "label": "Blue"
+      },
+      {
+       "value": "violet",
+       "label": "Violet"
+      }
+     ],
+     "defaultValue": "green"
+    },
+    {
+     "key": "var_glow",
+     "label": "Glow",
+     "target": {
+      "kind": "var",
+      "id": "glow"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "none",
+       "label": "None"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "strong",
+       "label": "Strong"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_size",
+     "label": "Size",
+     "target": {
+      "kind": "var",
+      "id": "size"
+     },
+     "type": "number",
+     "defaultValue": 64,
+     "min": 24,
+     "max": 160,
+     "step": 4
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "matrix-decode.html": "9fcc15beab2f840c95d631eab1f17eb1008a6d256ffee37870b4b3d9a4f7030f"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "menu-morph",
+   "type": "component",
+   "title": "Menu Morph",
+   "description": "A transitions.dev-inspired hamburger and plus-menu morph primitive for compact action menus",
+   "tags": [
+    "video-primitive",
+    "transition-primitive",
+    "transitions-dev-port",
+    "menu",
+    "morph"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "e58a7480f9dd19e2a596d8e9c35bb5aa4588807a2ba1993bb8cf97d09c1f6b0d",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "menu-morph.html",
+     "target": "compositions/components/menu-morph.html",
+     "sha256": "e58a7480f9dd19e2a596d8e9c35bb5aa4588807a2ba1993bb8cf97d09c1f6b0d"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_actions",
+     "label": "Actions",
+     "target": {
+      "kind": "var",
+      "id": "actions"
+     },
+     "type": "text",
+     "defaultValue": "Text, Image, Audio"
+    },
+    {
+     "key": "var_size",
+     "label": "Button size",
+     "target": {
+      "kind": "var",
+      "id": "size"
+     },
+     "type": "number",
+     "defaultValue": 68,
+     "min": 52,
+     "max": 112,
+     "step": 4
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "menu-morph.html": "e58a7480f9dd19e2a596d8e9c35bb5aa4588807a2ba1993bb8cf97d09c1f6b0d"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "notes-typing",
+   "type": "component",
+   "title": "Notes Typing",
+   "description": "The notes-app confession as a mountable scene: a bold title, then body lines typed character by character on the measured human keystroke rhythm, the caret riding every landed character and jumping down at each paragraph. For a bare prompt line use typed-prompt; for an even mechanical reveal use typewriter",
+   "tags": [
+    "motion-primitive",
+    "notes",
+    "typing",
+    "mock-ui",
+    "vertical"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 10.0,
+   "sourceSha256": "d1e0ad020fb0fd17b9e5abdddb1c125c40806d4f2f31c08bb6fffcd8867d495a",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "notes-typing.html",
+     "target": "compositions/components/notes-typing.html",
+     "sha256": "d1e0ad020fb0fd17b9e5abdddb1c125c40806d4f2f31c08bb6fffcd8867d495a"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_title",
+     "label": "Title",
+     "target": {
+      "kind": "var",
+      "id": "title"
+     },
+     "type": "text",
+     "defaultValue": "Things nobody told me|about video."
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "notes-typing.html": "d1e0ad020fb0fd17b9e5abdddb1c125c40806d4f2f31c08bb6fffcd8867d495a"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "oversized-cursor",
+   "type": "component",
+   "title": "Oversized Cursor",
+   "description": "The look-here pointer for a video: the macOS arrow at 3.5x its normal size lands its tip on one control, clicks it on, settles just below it so the result stays in view, then exits off-screen",
+   "tags": [
+    "cursor",
+    "motion-primitive",
+    "actor",
+    "pointer",
+    "interaction"
+   ],
+   "category": "cursor",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 2.6,
+   "sourceSha256": "1562eb4a3ce01384461feb016bd30ab7c816e17e3ebbc33da06491c628b9f4d1",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "oversized-cursor.html",
+     "target": "compositions/components/oversized-cursor.html",
+     "sha256": "1562eb4a3ce01384461feb016bd30ab7c816e17e3ebbc33da06491c628b9f4d1"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_click_label",
+     "label": "Click label",
+     "target": {
+      "kind": "var",
+      "id": "click_label"
+     },
+     "type": "text",
+     "defaultValue": "Generate"
+    },
+    {
+     "key": "var_target_x",
+     "label": "Target X",
+     "target": {
+      "kind": "var",
+      "id": "target_x"
+     },
+     "type": "number",
+     "defaultValue": 55,
+     "min": 15,
+     "max": 85,
+     "step": 1
+    },
+    {
+     "key": "var_target_y",
+     "label": "Target Y",
+     "target": {
+      "kind": "var",
+      "id": "target_y"
+     },
+     "type": "number",
+     "defaultValue": 55,
+     "min": 15,
+     "max": 85,
+     "step": 1
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "oversized-cursor.html": "1562eb4a3ce01384461feb016bd30ab7c816e17e3ebbc33da06491c628b9f4d1"
+    }
+   },
+   "motion": "static",
+   "slow": true
+  },
+  {
+   "id": "page-slide",
+   "type": "component",
+   "title": "Page Slide",
+   "description": "A transitions.dev-inspired page slide primitive with outgoing and incoming panels",
+   "tags": [
+    "video-primitive",
+    "transition-primitive",
+    "transitions-dev-port",
+    "page",
+    "slide"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "70720f1c32f36c7ca613ca50616928d85814f89d36a8f237cb707da6ff16d0e0",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "page-slide.html",
+     "target": "compositions/components/page-slide.html",
+     "sha256": "70720f1c32f36c7ca613ca50616928d85814f89d36a8f237cb707da6ff16d0e0"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_label_b",
+     "label": "Incoming label",
+     "target": {
+      "kind": "var",
+      "id": "label_b"
+     },
+     "type": "text",
+     "defaultValue": "Analytics"
+    },
+    {
+     "key": "var_accent",
+     "label": "Accent",
+     "target": {
+      "kind": "var",
+      "id": "accent"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "green",
+       "label": "Green"
+      },
+      {
+       "value": "blue",
+       "label": "Blue"
+      },
+      {
+       "value": "violet",
+       "label": "Violet"
+      }
+     ],
+     "defaultValue": "green"
+    },
+    {
+     "key": "var_corner",
+     "label": "Corner",
+     "target": {
+      "kind": "var",
+      "id": "corner"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "square",
+       "label": "Square"
+      },
+      {
+       "value": "soft",
+       "label": "Soft"
+      },
+      {
+       "value": "round",
+       "label": "Round"
+      }
+     ],
+     "defaultValue": "round"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "page-slide.html": "70720f1c32f36c7ca613ca50616928d85814f89d36a8f237cb707da6ff16d0e0"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "per-word-crossfade",
+   "type": "component",
+   "title": "Per-Word Crossfade",
+   "description": "Words gently fade into place with a short vertical drift for calm keynote rhythm.",
+   "tags": [
+    "motion-primitive",
+    "typography"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "5d170bb346f147e05eab0e6edfa43f906b4e5757dd2255ac4a8fb3d69175373a",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "per-word-crossfade.html",
+     "target": "compositions/components/per-word-crossfade.html",
+     "sha256": "5d170bb346f147e05eab0e6edfa43f906b4e5757dd2255ac4a8fb3d69175373a"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_text",
+     "label": "Text",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "Create once reuse everywhere"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "ink",
+       "label": "Ink"
+      },
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "accent",
+       "label": "Accent"
+      }
+     ],
+     "defaultValue": "ink"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "per-word-crossfade.html": "5d170bb346f147e05eab0e6edfa43f906b4e5757dd2255ac4a8fb3d69175373a"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "perspective-marquee",
+   "type": "component",
+   "title": "Perspective Marquee",
+   "description": "A 3D tilted marquee with depth feel as items roll toward the horizon.",
+   "tags": [
+    "motion-primitive",
+    "typography"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "14d4544b748881f564ee3a2ffd55b1a630179b47b9d17bc3ee24667baf7c1698",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "perspective-marquee.html",
+     "target": "compositions/components/perspective-marquee.html",
+     "sha256": "14d4544b748881f564ee3a2ffd55b1a630179b47b9d17bc3ee24667baf7c1698"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_tilt",
+     "label": "Tilt",
+     "target": {
+      "kind": "var",
+      "id": "tilt"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "flat",
+       "label": "Flat"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "steep",
+       "label": "Steep"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "ink",
+       "label": "Ink"
+      },
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "accent",
+       "label": "Accent"
+      }
+     ],
+     "defaultValue": "ink"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "perspective-marquee.html": "14d4544b748881f564ee3a2ffd55b1a630179b47b9d17bc3ee24667baf7c1698"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "push-in",
+   "type": "component",
+   "title": "Push In",
+   "description": "A centered headline gains focus through one slow, continuous camera push and a gentle fade out.",
+   "tags": [
+    "motion-primitive",
+    "camera",
+    "push-in",
+    "focus",
+    "emphasize",
+    "holdable"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.0,
+   "sourceSha256": "e6b899e011c238430f86218d952360fb66ccd7d5c8d1c60e42251a302671f242",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "push-in.html",
+     "target": "compositions/components/push-in.html",
+     "sha256": "e6b899e011c238430f86218d952360fb66ccd7d5c8d1c60e42251a302671f242"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_text",
+     "label": "Headline",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "Focus"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "push-in.html": "e6b899e011c238430f86218d952360fb66ccd7d5c8d1c60e42251a302671f242"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "rgb-glitch-text",
+   "type": "component",
+   "title": "RGB Glitch Text",
+   "description": "RGB-offset text copies jitter briefly for a controlled glitch window.",
+   "tags": [
+    "motion-primitive",
+    "typography"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "ca732686dde84890e658b9f3900b9e58735d8e7fe0f516ba8dbce094caa9099b",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "rgb-glitch-text.html",
+     "target": "compositions/components/rgb-glitch-text.html",
+     "sha256": "ca732686dde84890e658b9f3900b9e58735d8e7fe0f516ba8dbce094caa9099b"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_text",
+     "label": "Text",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "GLITCH"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "ink",
+       "label": "Ink"
+      },
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "accent",
+       "label": "Accent"
+      }
+     ],
+     "defaultValue": "ink"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "rgb-glitch-text.html": "ca732686dde84890e658b9f3900b9e58735d8e7fe0f516ba8dbce094caa9099b"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "staggered-fade-up",
+   "type": "component",
+   "title": "Staggered Fade Up",
+   "description": "Words fade in and slide up one after another with configurable delay.",
+   "tags": [
+    "video-primitive",
+    "motion-primitive",
+    "typography"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "7953224e9c08cf90ad5bcfe256392916b48a293c85579a52ba67ae8fea9b9de1",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "staggered-fade-up.html",
+     "target": "compositions/components/staggered-fade-up.html",
+     "sha256": "7953224e9c08cf90ad5bcfe256392916b48a293c85579a52ba67ae8fea9b9de1"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_words",
+     "label": "Words",
+     "target": {
+      "kind": "var",
+      "id": "words"
+     },
+     "type": "text",
+     "defaultValue": "Staggered fade up"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "ink",
+       "label": "Ink"
+      },
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "accent",
+       "label": "Accent"
+      }
+     ],
+     "defaultValue": "ink"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "staggered-fade-up.html": "7953224e9c08cf90ad5bcfe256392916b48a293c85579a52ba67ae8fea9b9de1"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "sticky-mock-swap",
+   "type": "component",
+   "title": "Sticky Mock Swap",
+   "description": "A pinned product mock cross-fades through accent-tinted feature states while matching captions rise, hold, and exit beside it.",
+   "tags": [
+    "motion-primitive",
+    "product-demo",
+    "sticky",
+    "mock",
+    "crossfade",
+    "feature-tour"
+   ],
+   "category": "motion-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6.0,
+   "sourceSha256": "ab64462a7e027304add5cb6453f508e03e959cc89425408ecf69189e472228e9",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "sticky-mock-swap.html",
+     "target": "compositions/components/sticky-mock-swap.html",
+     "sha256": "ab64462a7e027304add5cb6453f508e03e959cc89425408ecf69189e472228e9"
+    }
+   ],
+   "editables": [],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "sticky-mock-swap.html": "ab64462a7e027304add5cb6453f508e03e959cc89425408ecf69189e472228e9"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "tabs-slide-indicator",
+   "type": "component",
+   "title": "Tabs Slide Indicator",
+   "description": "A pill indicator transition that slides between active tabs",
+   "tags": [
+    "transition-primitive",
+    "transitions-dev-port",
+    "tabs",
+    "indicator"
+   ],
+   "category": "transition-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "fddf7cf3ef477c90eba29c945e1a277d41092b4bc24f535470797f1ee7537ee5",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "tabs-slide-indicator.html",
+     "target": "compositions/components/tabs-slide-indicator.html",
+     "sha256": "fddf7cf3ef477c90eba29c945e1a277d41092b4bc24f535470797f1ee7537ee5"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_labels",
+     "label": "Labels",
+     "target": {
+      "kind": "var",
+      "id": "labels"
+     },
+     "type": "text",
+     "defaultValue": "Plan,Debug,Ask"
+    },
+    {
+     "key": "var_width",
+     "label": "Tab width",
+     "target": {
+      "kind": "var",
+      "id": "width"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "compact",
+       "label": "Compact"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "wide",
+       "label": "Wide"
+      }
+     ],
+     "defaultValue": "standard"
+    },
+    {
+     "key": "var_shape",
+     "label": "Shape",
+     "target": {
+      "kind": "var",
+      "id": "shape"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "pill",
+       "label": "Pill"
+      },
+      {
+       "value": "rounded",
+       "label": "Rounded"
+      },
+      {
+       "value": "square",
+       "label": "Square"
+      }
+     ],
+     "defaultValue": "pill"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "tabs-slide-indicator.html": "fddf7cf3ef477c90eba29c945e1a277d41092b4bc24f535470797f1ee7537ee5"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "tilt-card",
+   "type": "component",
+   "title": "Tilt Card",
+   "description": "A transitions.dev-inspired tilt card primitive with depth layers and hover-style parallax",
+   "tags": [
+    "video-primitive",
+    "transition-primitive",
+    "transitions-dev-port",
+    "card",
+    "tilt"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "93fd5b9f28c0945a83b82a229f9d2f9d8866ea40b4435f77b424ddf539fd6b2f",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "tilt-card.html",
+     "target": "compositions/components/tilt-card.html",
+     "sha256": "93fd5b9f28c0945a83b82a229f9d2f9d8866ea40b4435f77b424ddf539fd6b2f"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_headline",
+     "label": "Headline",
+     "target": {
+      "kind": "var",
+      "id": "headline"
+     },
+     "type": "text",
+     "defaultValue": "Agent-ready motion"
+    },
+    {
+     "key": "var_glow",
+     "label": "Glow",
+     "target": {
+      "kind": "var",
+      "id": "glow"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "tight",
+       "label": "Tight"
+      },
+      {
+       "value": "standard",
+       "label": "Standard"
+      },
+      {
+       "value": "wide",
+       "label": "Wide"
+      }
+     ],
+     "defaultValue": "standard"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "tilt-card.html": "93fd5b9f28c0945a83b82a229f9d2f9d8866ea40b4435f77b424ddf539fd6b2f"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "top-down-letters",
+   "type": "component",
+   "title": "Top-Down Letters",
+   "description": "Letters descend from above in a pronounced staircase with zero blur.",
+   "tags": [
+    "video-primitive",
+    "motion-primitive",
+    "typography"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "e09580472585fc12089b939e981e78f6e4d6529920cedd003bbf15a40e64b396",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "top-down-letters.html",
+     "target": "compositions/components/top-down-letters.html",
+     "sha256": "e09580472585fc12089b939e981e78f6e4d6529920cedd003bbf15a40e64b396"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_text",
+     "label": "Text",
+     "target": {
+      "kind": "var",
+      "id": "text"
+     },
+     "type": "text",
+     "defaultValue": "CASCADE"
+    },
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "ink",
+       "label": "Ink"
+      },
+      {
+       "value": "paper",
+       "label": "Paper"
+      },
+      {
+       "value": "accent",
+       "label": "Accent"
+      }
+     ],
+     "defaultValue": "ink"
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "top-down-letters.html": "e09580472585fc12089b939e981e78f6e4d6529920cedd003bbf15a40e64b396"
+    }
+   },
+   "motion": "static"
+  },
+  {
+   "id": "typing-indicator",
+   "type": "component",
+   "title": "Typing Indicator",
+   "description": "The three-dot chat bubble that says someone is writing: it pops in at the thread's edge exactly as messaging apps do, holds while the reply is coming, and vanishes when the message lands",
+   "tags": [
+    "video-primitive",
+    "chat",
+    "mock-ui",
+    "overlay"
+   ],
+   "category": "video-primitive",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.0,
+   "sourceSha256": "f6a054da8292e732d4084a15772070329daf41287489420f9b3acac37a206415",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "typing-indicator.html",
+     "target": "compositions/components/typing-indicator.html",
+     "sha256": "f6a054da8292e732d4084a15772070329daf41287489420f9b3acac37a206415"
+    }
+   ],
+   "editables": [
+    {
+     "key": "var_tone",
+     "label": "Tone",
+     "target": {
+      "kind": "var",
+      "id": "tone"
+     },
+     "type": "select",
+     "options": [
+      {
+       "value": "dark",
+       "label": "Dark"
+      },
+      {
+       "value": "light",
+       "label": "Light"
+      }
+     ],
+     "defaultValue": "dark"
+    },
+    {
+     "key": "var_size",
+     "label": "Size",
+     "target": {
+      "kind": "var",
+      "id": "size"
+     },
+     "type": "number",
+     "defaultValue": 124,
+     "min": 80,
+     "max": 220,
+     "step": 2
+    }
+   ],
+   "project": {
+    "dir": "components",
+    "host": true,
+    "files": {
+     "typing-indicator.html": "f6a054da8292e732d4084a15772070329daf41287489420f9b3acac37a206415"
+    }
+   },
+   "motion": "static"
   }
  ]
 }

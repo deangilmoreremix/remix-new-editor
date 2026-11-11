@@ -1,10 +1,10 @@
 # HyperFrames resource ledger
 
-Blocks: 210 total, **114 verified = 67 enabled + 47 held back**. Items of other types: 247.
+Blocks: 210 total, **114 verified = 69 enabled + 45 held back**. Items of other types: 247.
 
 ## Enabled blocks
 
-bar-chart-race, camcorder-hud, code-diff, code-highlight, code-morph, code-snippet-apple-terminal-pro, code-typing, data-chart, flowchart, flowchart-vertical, hw-frame, hw-path-text, hw-scribble-transition, hw-text-cloud, hw-title, hw-write-title, instagram-follow, logo-outro, lower-third-bild, lt-accent-underline, lt-bold-block, lt-clean-bar, lt-color-block, lt-dark-card, lt-kicker-name, lt-mask-reveal, lt-neon-border, lt-side-rule, lt-soft-pill, lt-stack-bars, macos-notification, mk-background, mk-callout-highlight, mk-placeholder-grid, mk-progress-stat, news-ticker, notification-cascade, oscilloscope-trace, reddit-post, slack-notification-ad, snow, spain-map, starfield, tiktok-follow, transitions-blur, transitions-cover, transitions-destruction, transitions-dissolve, transitions-distortion, transitions-grid, transitions-light, transitions-mechanical, transitions-other, transitions-push, transitions-radial, transitions-scale, ui-3d-reveal, us-map, us-map-bubble, us-map-flow, us-map-hex, vfx-anamorphic-flare, week-in-merges, world-map, x-post, yt-logo-intro, yt-lower-third
+bar-chart-race, camcorder-hud, code-diff, code-highlight, code-morph, code-snippet-apple-terminal-pro, code-typing, data-chart, flowchart, flowchart-vertical, hw-frame, hw-path-text, hw-scribble-transition, hw-text-cloud, hw-title, hw-write-title, instagram-follow, logo-outro, lower-third-bild, lt-accent-underline, lt-bold-block, lt-clean-bar, lt-color-block, lt-dark-card, lt-kicker-name, lt-mask-reveal, lt-neon-border, lt-side-rule, lt-soft-pill, lt-stack-bars, macos-notification, mk-background, mk-callout-highlight, mk-placeholder-grid, mk-progress-stat, news-ticker, notification-cascade, oscilloscope-trace, reddit-post, slack-notification-ad, snow, spain-map, starfield, tiktok-follow, transitions-blur, transitions-cover, transitions-destruction, transitions-dissolve, transitions-distortion, transitions-grid, transitions-light, transitions-mechanical, transitions-other, transitions-push, transitions-radial, transitions-scale, ui-3d-reveal, us-map, us-map-bubble, us-map-flow, us-map-hex, vfx-anamorphic-flare, week-in-merges, world-map, x-post, yt-lcd-background, yt-logo-intro, yt-lower-third, yt-prism-title
 
 ## Verified but held back (exact blocker)
 
@@ -54,6 +54,4 @@ bar-chart-race, camcorder-hud, code-diff, code-highlight, code-morph, code-snipp
 | vpn-youtube-spot | audio feature; no real browser export run |
 | whip-pan | WebGL; no editable fields detected; not yet rendered through the production adapter path |
 | yt-comment-card | shows built-in text that cannot be edited; not yet rendered through the production adapter path |
-| yt-lcd-background | export throughput 4 fps < 8 |
-| yt-prism-title | export throughput 4.9 fps < 8 |
 | yt-vertical-fill | export throughput 4.6 fps < 8.0; not yet rendered through the production adapter path |

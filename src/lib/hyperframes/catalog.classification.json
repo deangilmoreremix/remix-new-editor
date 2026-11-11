@@ -57,7 +57,7 @@
   "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 75,
+ "enabledCount": 100,
  "items": {
   "ai-answer-rank": {
    "type": "block",
@@ -4450,12 +4450,15 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 1.0
+    "nonBlank": 1.0,
+    "exportFullLength1080p": {
+     "fps": 3.3,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "slow": true
   },
   "yt-logo-intro": {
    "type": "block",
@@ -4529,12 +4532,15 @@
      "hfErrors": {}
     },
     "kind": "animated",
-    "nonBlank": 0.0599
+    "nonBlank": 0.0602,
+    "exportFullLength1080p": {
+     "fps": 4.1,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.9 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "slow": true
   },
   "yt-vertical-fill": {
    "type": "block",
@@ -4670,12 +4676,15 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.7385
+    "nonBlank": 0.7394,
+    "exportFullLength1080p": {
+     "fps": 3.8,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 3.4 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "slow": true
   },
   "avatar-cloud": {
    "type": "component",
@@ -4708,12 +4717,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0043
+    "nonBlank": 0.0043,
+    "exportFullLength1080p": {
+     "fps": 9.8,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.5 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "badge-pop": {
    "type": "component",
@@ -5592,12 +5603,15 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.468
+    "nonBlank": 0.4681,
+    "exportFullLength1080p": {
+     "fps": 6.5,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 5.2 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "slow": true
   },
   "cursor-glyph-trail": {
    "type": "component",
@@ -5696,12 +5710,15 @@
      "hfErrors": {}
     },
     "kind": "animated",
-    "nonBlank": 0.9985
+    "nonBlank": 0.9986,
+    "exportFullLength1080p": {
+     "fps": 3.5,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 6.5 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "slow": true
   },
   "dart-cursor": {
    "type": "component",
@@ -6249,12 +6266,15 @@
      "hfErrors": {}
     },
     "kind": "animated",
-    "nonBlank": 0.0949
+    "nonBlank": 0.0949,
+    "exportFullLength1080p": {
+     "fps": 7.2,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 6.2 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "slow": true
   },
   "icon-swap": {
    "type": "component",
@@ -6329,12 +6349,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0157
+    "nonBlank": 0.0157,
+    "exportFullLength1080p": {
+     "fps": 9.9,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.7 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "iris-reveal": {
    "type": "component",
@@ -6469,12 +6491,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0147
+    "nonBlank": 0.0147,
+    "exportFullLength1080p": {
+     "fps": 11.5,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 6.8 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "logo-brand-close": {
    "type": "component",
@@ -6535,12 +6559,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0662
+    "nonBlank": 0.0665,
+    "exportFullLength1080p": {
+     "fps": 11.3,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 7.4 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "marker-checklist-card": {
    "type": "component",
@@ -6601,12 +6627,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0093
+    "nonBlank": 0.0092,
+    "exportFullLength1080p": {
+     "fps": 10.5,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.6 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "menu-morph": {
    "type": "component",
@@ -6625,12 +6653,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0053
+    "nonBlank": 0.0053,
+    "exportFullLength1080p": {
+     "fps": 10.2,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.5 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "mesh-gradient-bg": {
    "type": "component",
@@ -6819,13 +6849,15 @@
      "fps": 6.5,
      "hfErrors": {}
     },
-    "kind": "animated",
-    "nonBlank": 0.9962
+    "kind": "static",
+    "nonBlank": 0.9965,
+    "exportFullLength1080p": {
+     "fps": 11.3,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 6.5 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "notification-pileup": {
    "type": "component",
@@ -6984,12 +7016,15 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0041
+    "nonBlank": 0.0041,
+    "exportFullLength1080p": {
+     "fps": 7.3,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 6.1 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "slow": true
   },
   "overwhelm-surround": {
    "type": "component",
@@ -7022,12 +7057,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0863
+    "nonBlank": 0.0863,
+    "exportFullLength1080p": {
+     "fps": 10.4,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.6 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "pan-stations": {
    "type": "component",
@@ -7206,12 +7243,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0061
+    "nonBlank": 0.0059,
+    "exportFullLength1080p": {
+     "fps": 10,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.5 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "per-word-rise": {
    "type": "component",
@@ -7244,12 +7283,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0163
+    "nonBlank": 0.0163,
+    "exportFullLength1080p": {
+     "fps": 8.8,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.4 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "physical-exit": {
    "type": "component",
@@ -7328,13 +7369,15 @@
      "fps": 7.8,
      "hfErrors": {}
     },
-    "kind": "animated",
-    "nonBlank": 0.9725
+    "kind": "static",
+    "nonBlank": 0.9344,
+    "exportFullLength1080p": {
+     "fps": 12.9,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 7.8 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "radial-surround": {
    "type": "component",
@@ -7367,12 +7410,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0039
+    "nonBlank": 0.005,
+    "exportFullLength1080p": {
+     "fps": 10.7,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.7 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "rubber-band-bumper": {
    "type": "component",
@@ -7888,12 +7933,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0044
+    "nonBlank": 0.0043,
+    "exportFullLength1080p": {
+     "fps": 10.2,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.6 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "star-rating-fill": {
    "type": "component",
@@ -7952,12 +7999,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.3311
+    "nonBlank": 0.3309,
+    "exportFullLength1080p": {
+     "fps": 14.6,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 7.3 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "stitched-text-draw": {
    "type": "component",
@@ -8152,12 +8201,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.006
+    "nonBlank": 0.0061,
+    "exportFullLength1080p": {
+     "fps": 10.3,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.6 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "telemetry-hud": {
    "type": "component",
@@ -8373,12 +8424,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0536
+    "nonBlank": 0.0536,
+    "exportFullLength1080p": {
+     "fps": 10.1,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.6 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "titlecard-calm": {
    "type": "component",
@@ -8439,12 +8492,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0041
+    "nonBlank": 0.0042,
+    "exportFullLength1080p": {
+     "fps": 10.5,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.6 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "torn-paper-rip": {
    "type": "component",
@@ -8608,12 +8663,14 @@
      "hfErrors": {}
     },
     "kind": "static",
-    "nonBlank": 0.0036
+    "nonBlank": 0.0036,
+    "exportFullLength1080p": {
+     "fps": 11,
+     "ok": true
+    }
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.9 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "ui-focus-zoom": {
    "type": "component",
