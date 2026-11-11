@@ -11,11 +11,9 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector } from '../lib/modelSelectorUI.js';
+import { ModelSelectorDropdown } from './modals/ModelSelectorDropdown.jsx';
 import { showToast } from '../lib/loading.js';
 import { formatErrorMessage } from '../lib/errorMessages.js';
-import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
-import ExampleGallery from './studios/ExampleGallery.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
@@ -603,38 +601,35 @@ export function AudioStudio() {
   modelWrapper.style.animationDelay = '0.1s';
   container.appendChild(modelWrapper);
 
-  let modelSelectorEl = null;
-  let selectedProvider = 'all';
-  let searchQuery = '';
+  const modelBtn = document.createElement('button');
+  modelBtn.type = 'button';
+  modelBtn.className = 'w-full bg-zinc-900 border border-zinc-700 hover:border-zinc-600 rounded-xl px-4 py-3 text-sm text-left font-bold text-white flex items-center justify-between gap-3 transition-all cursor-pointer';
+  modelWrapper.appendChild(modelBtn);
 
-  const refreshModelSelector = () => {
-    if (modelSelectorEl) {
-      modelSelectorEl.remove();
-    }
-    modelSelectorEl = mountModelSelector(modelWrapper, {
-      models: audioModels,
-      selectedModelId: selectedModel.id,
-      selectedProvider,
-      search: searchQuery,
-      showProviderName: true,
-      onSelectModel: (model) => {
-        selectedModel = model;
-        selectedModelId = model.id;
-        schemaParams = {};
-        updateFormVisibility();
-        schedulePersist();
-      },
-      onSelectProvider: (provider) => {
-        selectedProvider = provider;
-        refreshModelSelector();
-      },
-      onSearch: (query) => {
-        searchQuery = query;
-        refreshModelSelector();
-      },
-    });
+  const refreshModelButton = () => {
+    const provider = selectedModel.provider_name ? `<span class="text-[11px] font-medium text-white/40">${selectedModel.provider_name}</span>` : '';
+    modelBtn.innerHTML = `<span class="flex items-center gap-2 min-w-0"><span class="truncate">${selectedModel.name || selectedModel.id}</span>${provider}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>`;
   };
-  refreshModelSelector();
+  refreshModelButton();
+
+  const modelDropdown = new ModelSelectorDropdown(modelBtn, {
+    models: audioModels,
+    selectedModel: selectedModel.id,
+    onSelect: (picked) => {
+      const model = audioModels.find(m => m.id === picked.id) || picked;
+      selectedModel = model;
+      selectedModelId = model.id;
+      modelDropdown.selectedModel = model.id;
+      schemaParams = {};
+      refreshModelButton();
+      updateFormVisibility();
+      schedulePersist();
+    },
+  });
+  modelBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    modelDropdown._isOpen ? modelDropdown.close() : modelDropdown.open();
+  });
 
   // Form card
   const formCard = document.createElement('div');
@@ -1515,28 +1510,6 @@ export function AudioStudio() {
       addToHistory({ id: job.requestId, url, ...job.historyMeta, timestamp: new Date().toISOString() });
       showToast('Recovered a generation that finished while you were away', 'success');
     },
-  });
-
-  // MiniMax H3 example styles — demos that align with this studio, shown as
-  // examples at the bottom of the controls. Each card opens a detail modal;
-  // "Create This Style" opens this studio pre-filled with the selected style.
-  Promise.all([
-    import('./demos/DemoRail.jsx'),
-    import('../data/minimax/presets.js'),
-  ]).then(([{ createDemoRail }, { minimaxPresets }]) => {
-    const items = minimaxPresets.filter((p) => p.targetStudio === 'AudioStudio');
-    if (!items.length) return;
-    const rail = createDemoRail({
-      items,
-      source: 'minimax',
-      variant: 'rail',
-      title: 'MiniMax H3 Example Styles',
-      subtitle: 'Examples for this studio — click any clip, or create in this style',
-      className: 'mt-10 max-w-6xl mx-auto',
-    });
-    container.appendChild(rail);
-  }).catch((e) => {
-    console.error('[AudioStudio] demo rail failed', e);
   });
 
   return container;
