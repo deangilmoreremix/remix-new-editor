@@ -55,7 +55,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
           style={{ flex: 1, minWidth: 0, background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 11, padding: '3px 4px', cursor: 'pointer' }}>
           <option value="">+ Add overlay…</option>
           {onBrowseMotion && <option value="mg:">Motion graphics…</option>}
-          {onBrowseHyperframes && <option value="hf:">HyperFrames animations…</option>}
+          {onBrowseHyperframes && <option value="hf:">Animations…</option>}
           {onOpenSpeech && <option value="speech:">Smart Speech…</option>}
           {onOpenGenerator && <option value="generator:">Template Generator…</option>}
           {onOpenPersonalization && <option value="personalize:">Personalization…</option>}

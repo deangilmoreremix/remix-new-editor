@@ -139,7 +139,7 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onGeom
     let live = true;
     void import('../../../lib/editor/remotion/codePreviewClient.js').then(({ createCodePreview }: { createCodePreview: (h: HTMLElement, o?: { onError?: (layerId: string, message: string) => void }) => NonNullable<typeof previewRef.current> }) => {
       if (!live) return;
-      previewRef.current ??= createCodePreview(host, { onError: (layerId: string, message: string) => { if (String(message).startsWith('[hyperframes:')) void import('../../lib/hyperframes/notify').then((m) => m.notifyHyperframes({ id: `hf:${layerId}`, title: 'HyperFrames animation', message: m.stripHfPrefix(message) })); } });
+      previewRef.current ??= createCodePreview(host, { onError: (layerId: string, message: string) => { if (String(message).startsWith('[hyperframes:')) void import('../../lib/hyperframes/notify').then((m) => m.notifyHyperframes({ id: `hf:${layerId}`, title: 'Animation', message: m.stripHfPrefix(message) })); } });
       const fps = 30;
       const layers = [...mgOverlays.map((o) => mgOverlayLayer(o, fps)), ...hfOverlays.map((o) => hyperframesOverlayLayer(o, fps))];
       void previewRef.current.update({ version: 1, fps, width: frame.width, height: frame.height, durationInFrames: Math.max(1, ...layers.map((l) => l.from + l.durationInFrames)), background: 'transparent', layers, audio: [], transitions: [], fonts: [] });

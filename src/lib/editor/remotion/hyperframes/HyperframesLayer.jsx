@@ -36,7 +36,7 @@ export function HyperframesLayer({ layer }) {
   const fatal = useRef(false);
   const title = layer.title || layer.blockId;
   useEffect(() => { // problems that exist before the adapter runs: emergency disable, unknown or no-longer-pinned block
-    if (layer.runtimeDisabled) { fatal.current = true; reportCodeError(layer.id, `${HF_ERROR}"${title}" was not rendered: HyperFrames animations are temporarily switched off. Your project data is unchanged.`); }
+    if (layer.runtimeDisabled) { fatal.current = true; reportCodeError(layer.id, `${HF_ERROR}"${title}" was not rendered: Animations are temporarily switched off. Your project data is unchanged.`); }
     else if (!item) { fatal.current = true; reportCodeError(layer.id, `${HF_ERROR}"${title}" is not available in this version of the editor and was not rendered.`); }
   }, [layer.id, layer.runtimeDisabled, !!item]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { // adapter problems while mounting the block
