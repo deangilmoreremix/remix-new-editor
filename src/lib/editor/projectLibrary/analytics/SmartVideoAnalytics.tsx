@@ -33,7 +33,7 @@ export type SmartVideoAnalyticsProps = {
   onCustomRangeChange?: (range: CustomRange) => void;
   renderPreview?: (project: ProjectAnalyticsData) => React.ReactNode;
   footerNote?: string;
-  theme?: 'light' | 'dark'; // ADAPT: the editor is dark; the supplied default stays light
+  theme?: 'light' | 'dark' | 'editor'; // ADAPT: 'editor' = the Timeline Editor palette (cyan/emerald on near-black); the supplied default stays light
 };
 const n = (value: number) => new Intl.NumberFormat('en-US').format(value);
 const pct = (value: number | null) => value === null ? '—' : `${Math.round(value)}%`;
@@ -106,7 +106,7 @@ export default function SmartVideoAnalytics({project,period,onPeriodChange,onCre
  const numbers=project.metrics;
  const labels=useMemo(()=>project.playsOverTime.map(p=>p.day),[project.playsOverTime]);
  async function copyUrl(){if (!project.publishedUrl) return;try {await navigator.clipboard.writeText(project.publishedUrl);setCopied(true);}catch {setCopied(false);}}
- return <main className={`sv-analytics${theme==='dark'?' sv-dark':''}`}>
+ return <main className={`sv-analytics${theme==='dark'?' sv-dark':theme==='editor'?' sv-editor':''}`}>
   <div className="sv-heading"><div><div className="sv-breadcrumb"><Icon name="folder"/> Timeline Editor / Projects</div><h1>Video Analytics</h1></div><span className={`sv-status ${project.status==='published'?'sv-status-published':''}`}>{project.status==='published'?'✓ ':''}{project.status}</span></div>
   <div className="sv-toolbar"><div className="sv-project-name"><label>Selected project</label><div>{project.projectName}</div></div><div className="sv-toolbar-actions"><div className="sv-segment" aria-label="Reporting period">{(['today','7d','30d','90d','custom'] as const).map(p=><button key={p} aria-pressed={period===p} className={period===p?'active':''} onClick={()=>onPeriodChange(p)}>{p==='today'?'Today':p==='7d'?'7 days':p==='30d'?'30 days':p==='90d'?'90 days':'Custom'}</button>)}</div><button className="sv-secondary-btn" disabled={!project.publishedUrl} onClick={copyUrl}><Icon name="link"/>{copied?'Copied':'Copy video URL'}</button></div></div>
   {period==='custom'&&customRange&&<div className="sv-custom-range" role="group" aria-label="Custom date range"><label>From<input type="date" value={customRange.from} max={customRange.to} onChange={e=>onCustomRangeChange?.({...customRange,from:e.target.value})}/></label><label>To<input type="date" value={customRange.to} min={customRange.from} onChange={e=>onCustomRangeChange?.({...customRange,to:e.target.value})}/></label></div>}

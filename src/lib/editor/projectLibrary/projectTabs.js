@@ -15,7 +15,7 @@ import { canonicalUrl } from '../publish/publishClient.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
-const wrap = (panel, html) => { panel.innerHTML = `<div class="sv-analytics sv-dark">${html}</div>`; return panel.firstElementChild; };
+const wrap = (panel, html) => { panel.innerHTML = `<div class="sv-analytics sv-editor">${html}</div>`; return panel.firstElementChild; };
 const note = (text, role = 'status') => `<div class="sv-card"><p class="sv-subtitle" role="${role}">${esc(text)}</p></div>`;
 const PERIOD_LABEL = { '7d': '7 days', '30d': '30 days', '90d': '90 days' };
 

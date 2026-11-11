@@ -9,7 +9,7 @@ import LivePreview from './LivePreview.jsx';
 import { loadAnalytics, defaultCustomRange } from './analyticsData.js';
 
 const Skeleton = () => (
-  <div className="sv-analytics sv-dark" aria-busy="true" aria-label="Loading analytics">
+  <div className="sv-analytics sv-editor" aria-busy="true" aria-label="Loading analytics">
     <div className="prj-skel"><i /><i /><i /></div>
   </div>
 );
@@ -45,7 +45,7 @@ export default function AnalyticsTabView({ client, projectRow, createPlayer, now
 
   if (error) {
     return (
-      <div className="sv-analytics sv-dark"><div className="sv-card" role="alert">
+      <div className="sv-analytics sv-editor"><div className="sv-card" role="alert">
         <h3>Analytics could not be loaded</h3>
         <p className="sv-subtitle">{error}</p>
         <button type="button" className="sv-primary-btn" onClick={load}>Try again</button>
@@ -55,7 +55,7 @@ export default function AnalyticsTabView({ client, projectRow, createPlayer, now
   if (loading && !result) return <Skeleton />;
   if (result?.status === 'unpublished') {
     return (
-      <div className="sv-analytics sv-dark"><div className="sv-card">
+      <div className="sv-analytics sv-editor"><div className="sv-card">
         <h3>Publish this video to see analytics</h3>
         <p className="sv-subtitle">Analytics come from viewers of the hosted video page, where clicks, calls and forms can be measured. An exported MP4 file cannot report them. Your editable project is kept when you publish.</p>
         {onPublish && <button type="button" className="sv-primary-btn" onClick={onPublish}>Publish video <span>→</span></button>}
@@ -66,7 +66,7 @@ export default function AnalyticsTabView({ client, projectRow, createPlayer, now
   return (
     <div style={{ opacity: loading ? 0.6 : 1, transition: 'opacity .15s' }} aria-busy={loading}>
       {!result.hasTracking && (
-        <div className="sv-analytics sv-dark" style={{ paddingBottom: 0 }}><p className="sv-hint" role="status">No viewing data has been collected for this period yet. Share the published link to start collecting it; zeros below are real, and "—" means not enough data to calculate.</p></div>
+        <div className="sv-analytics sv-editor" style={{ paddingBottom: 0 }}><p className="sv-hint" role="status">No viewing data has been collected for this period yet. Share the published link to start collecting it; zeros below are real, and "—" means not enough data to calculate.</p></div>
       )}
       <SmartVideoAnalytics
         project={result.data}
@@ -75,7 +75,7 @@ export default function AnalyticsTabView({ client, projectRow, createPlayer, now
         customRange={custom}
         onCustomRangeChange={setCustom}
         renderPreview={renderPreview}
-        theme="dark"
+        theme="editor"
         {...handlers}
       />
     </div>

@@ -30,3 +30,36 @@
 .sv-explorer .sv-video-preview{margin-left:auto;margin-right:auto}
 @media(max-width:600px){.sv-tabs button{padding:9px 4px;min-width:0}.sv-segment button{padding:9px 6px}}
 @media(max-width:600px){.sv-segment{flex-wrap:nowrap;flex:1 1 100%}.sv-segment button{padding:9px 2px;font-size:11.5px;min-width:0}.sv-toolbar-actions .sv-secondary-btn{flex:1 1 100%;justify-content:center}}
+
+/* ===== EDITOR THEME START: Timeline Editor palette. Accent colours are read from the editor's live tokens
+   (--cyan / --emerald / --cyan-soft / --accent-grad), which the editor overrides at runtime with its lime brand,
+   so nothing here hard-codes an accent. ===== */
+.sv-analytics.sv-editor{--sv-bg:transparent;--sv-panel:var(--surface-1);--sv-panel-soft:var(--surface-3);--sv-text:var(--text);--sv-muted:var(--text-muted);--sv-grid:var(--border-soft);--sv-border:var(--border);--sv-blue:var(--cyan);--sv-green:var(--emerald);--sv-radius:var(--r-lg)}
+.sv-editor button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;box-shadow:var(--shadow-focus)}
+.sv-editor .sv-project-name div,.sv-editor .sv-custom-range input{background:var(--surface-sunken);border-color:var(--border);color:var(--text-strong)}
+.sv-editor .sv-segment,.sv-editor .sv-tabs{background:var(--surface-sunken);border:1px solid var(--border-soft)}
+.sv-editor .sv-segment button,.sv-editor .sv-tabs button{color:var(--text-muted)}
+.sv-editor .sv-segment button:not(.active):hover,.sv-editor .sv-tabs button:not(.active):hover{color:var(--text-strong)}
+.sv-editor .sv-segment .active,.sv-editor .sv-tabs .active{background:var(--cyan-soft);color:#cffafe;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cyan) 45%,transparent)}
+.sv-editor .sv-secondary-btn{background:var(--surface-2);color:var(--text);border-color:var(--border)}
+.sv-editor .sv-secondary-btn:hover:not(:disabled){border-color:color-mix(in srgb,var(--cyan) 40%,transparent);background:var(--surface-3)}
+.sv-editor .sv-primary-btn{background:var(--accent-grad);color:#03131a;font-weight:700}
+.sv-editor .sv-primary-btn:hover:not(:disabled){filter:brightness(1.08)}
+.sv-editor .sv-stat,.sv-editor .sv-insight,.sv-editor .sv-section{background:var(--surface-2)}
+.sv-editor .sv-section:hover{background:var(--surface-3);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cyan) 40%,transparent)}
+.sv-editor .sv-card{box-shadow:var(--shadow-card)}
+.sv-editor .sv-insight p{color:var(--text-muted)}
+.sv-editor .sv-status,.sv-editor .sv-pill{background:var(--surface-3);color:var(--text)}
+.sv-editor .sv-status-published{background:var(--success-soft);color:var(--success-text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--success-dot) 35%,transparent)}
+.sv-editor .sv-bar-track,.sv-editor .sv-progress{background:var(--surface-sunken)}
+.sv-editor .sv-bar-fill,.sv-editor .sv-progress span{background:var(--accent-grad)}
+.sv-editor .sv-heatmap span{background:var(--cyan)}
+.sv-editor .sv-heatmap span.sv-heat-highlight{background:var(--emerald)}
+.sv-editor .sv-video-preview,.sv-editor .sv-video-placeholder{background:var(--surface-sunken);color:var(--text-muted)}
+.sv-editor .sv-op-icon{background:var(--surface-3)}
+.sv-editor .sv-op-unread{background:var(--danger);border-color:var(--bg)}
+.sv-editor .sv-opportunity{border-top-color:var(--border-soft)}
+.sv-editor .sv-opportunity:hover .sv-op-chevron{color:var(--cyan)}
+.sv-editor .sv-preview-play{background:var(--panel-solid);border:1px solid color-mix(in srgb,var(--cyan) 30%,transparent);color:var(--cyan)}
+.sv-editor .sv-hint,.sv-editor .sv-subtitle,.sv-editor .sv-footer-note,.sv-editor .sv-breadcrumb{color:var(--text-dim)}
+/* ===== EDITOR THEME END ===== */

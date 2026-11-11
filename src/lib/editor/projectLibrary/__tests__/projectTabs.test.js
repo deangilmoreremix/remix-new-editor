@@ -220,3 +220,14 @@ describe('Notifications tab', () => {
     expect(panel.querySelector('[data-prefs-msg]').textContent).toBe('Saved.');
   });
 });
+
+describe('editor palette on the other tabs', () => {
+  it('Audience, Retarget and Notifications use the editor theme class', async () => {
+    for (const tab of [audienceTab, retargetTab, notificationsTab]) {
+      const { panel } = mount(tab, client({ rpcs: { video_audience_segments: [], video_interest_summary: [] } }));
+      await tick(10);
+      expect(panel.querySelector('.sv-analytics').classList.contains('sv-editor')).toBe(true);
+      expect(panel.querySelector('.sv-analytics').classList.contains('sv-dark')).toBe(false);
+    }
+  });
+});

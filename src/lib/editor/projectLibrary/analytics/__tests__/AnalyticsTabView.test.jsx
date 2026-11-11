@@ -258,3 +258,21 @@ describe('long date ranges', () => {
     for (let i = 1; i < xs.length; i += 1) expect(xs[i] - xs[i - 1]).toBeGreaterThan(50); // 12px labels of ~45px width never touch
   });
 });
+
+describe('editor palette', () => {
+  it('the Analytics tab renders with the editor theme class in every state', async () => {
+    const ok = view();
+    await screen.findByText('Video Analytics');
+    expect(document.querySelector('main.sv-analytics').classList.contains('sv-editor')).toBe(true);
+    expect(document.querySelector('main.sv-analytics').classList.contains('sv-dark')).toBe(false);
+    cleanup();
+    view({ client: makeClient({ video: null }) });
+    await screen.findByText('Publish this video to see analytics');
+    expect(document.querySelector('.sv-analytics').classList.contains('sv-editor')).toBe(true);
+    cleanup();
+    view({ client: makeClient({ fail: 'x' }) });
+    await screen.findByText('Analytics could not be loaded');
+    expect(document.querySelector('.sv-analytics').classList.contains('sv-editor')).toBe(true);
+    void ok;
+  });
+});
