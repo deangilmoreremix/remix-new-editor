@@ -160,4 +160,21 @@ describe('projects panel', () => {
     expect(fmtDuration(59.6)).toBe('1:00');
     expect(fmtDuration(65)).toBe('1:05');
   });
+
+  it('replaces the list title, stats and search with the project header while a detail is open', async () => {
+    renderProjectsPanel(host, deps);
+    await tick(); await tick();
+    host.querySelector('[data-id="a"] [data-act="details"]').click();
+    for (const sel of ['.prj-title', '.prj-summary', '.prj-head']) expect(host.querySelector(sel).hidden, sel).toBe(true);
+    host.querySelector('[data-act="back"]').click();
+    for (const sel of ['.prj-title', '.prj-summary', '.prj-head']) expect(host.querySelector(sel).hidden, sel).toBe(false);
+    expect(host.querySelector('#prj-filters').hidden).toBe(true); // filters stay behind their toggle
+  });
+
+  it('status chips use the panel\'s own chip class (not the editor-scoped pz-chip)', async () => {
+    renderProjectsPanel(host, deps);
+    await tick(); await tick();
+    expect(host.querySelectorAll('.pz-chip').length).toBe(0);
+    expect(host.querySelector('[data-id="a"] .prj-status').classList.contains('is-published')).toBe(true);
+  });
 });

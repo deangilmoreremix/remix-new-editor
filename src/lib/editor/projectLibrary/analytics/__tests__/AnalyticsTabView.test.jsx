@@ -246,3 +246,15 @@ describe('preview teardown', () => {
     errors.mockRestore();
   });
 });
+
+describe('long date ranges', () => {
+  it('never draws the last two axis labels on top of each other', async () => {
+    const days = Array.from({ length: 30 }, (_, i) => ({ day: `2026-10-${String(i + 1).padStart(2, '0')}`, plays: i }));
+    view({ client: makeClient({ rpcs: { ...defaults(), video_analytics_timeseries: days } }), initialPeriod: '30d' });
+    await screen.findByText('Video plays over time');
+    const svg = screen.getByRole('img', { name: /Line chart/ });
+    const xs = [...svg.querySelectorAll('text')].map((t) => Number(t.getAttribute('x'))).sort((a, b) => a - b);
+    expect(xs.length).toBeGreaterThan(2);
+    for (let i = 1; i < xs.length; i += 1) expect(xs[i] - xs[i - 1]).toBeGreaterThan(50); // 12px labels of ~45px width never touch
+  });
+});

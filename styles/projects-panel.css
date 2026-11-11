@@ -81,7 +81,7 @@
 .prj-meta{padding:14px 14px 8px;gap:8px}
 .prj-name{font-size:15px;white-space:normal}
 .prj-line{display:flex;justify-content:space-between;font-size:13px;color:var(--text-dim,#9aa4b2)}
-.pz-chip.prj-status.is-published{background:#134e34;color:#9be6b5}
+
 .prj-actions{padding:0 14px 14px}
 .prj-primary{flex:1 0 100%;border:1px solid var(--border,#263041);background:none;color:inherit;border-radius:99px;padding:10px;font:inherit;font-weight:600;cursor:pointer}
 .prj-primary:hover,.prj-primary:focus-visible{border-color:var(--cyan,#22d3ee)}
@@ -95,3 +95,33 @@
 
 /* Touch-friendly target for the editor's panel close button (it is 24px tall by default). */
 #projectsPanel .panel-close{min-width:36px;min-height:36px}
+
+/* Chips: self-contained (the editor's .pz-chip is only styled inside its own .pz-ui wrapper). */
+.prj-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:650;line-height:1;padding:5px 10px;border-radius:99px;background:var(--surface-3,#253143);color:var(--text-dim,#c3ccda);border:1px solid var(--border,#344053);white-space:nowrap}
+.prj-chip.is-published{background:#134e34;border-color:#1d6b49;color:#9be6b5}
+/* Wider cards (the concept shows two large thumbnails per row on desktop). */
+.prj-body.prj-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));gap:16px}
+.prj-title[hidden],.prj-summary[hidden],.prj-head[hidden],.prj-filters[hidden]{display:none}
+.sv-live-preview-host .watch-frame{margin:0 auto}
+
+/* Phones: the panel is exactly as wide as the visible screen (the editor shell behind it can be wider),
+   and nothing inside may force it wider. */
+@media (max-width: 640px) {
+  #projectsPanel { width: calc(100vw - 24px); max-width: calc(100vw - 24px); box-sizing: border-box; overflow-x: hidden; }
+  #projectsPanel .prj-root, #projectsPanel .prj-detail, #projectsPanel .prj-tabpanel, #projectsPanel .sv-analytics { min-width: 0; max-width: 100%; }
+}
+/* Comparison table (Retarget): real spacing between columns. */
+#projectsPanel .pz-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#projectsPanel .pz-table th { text-align: left; font-weight: 600; color: var(--text-dim, #a6b1c2); padding: 8px 10px; border-bottom: 1px solid var(--border, #344053); white-space: nowrap; }
+#projectsPanel .pz-table td { padding: 10px; border-bottom: 1px solid var(--border, #344053); }
+#projectsPanel .pz-table th:not(:first-child), #projectsPanel .pz-table td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .prj-head { flex-wrap: wrap; }
+  .prj-searchbox { flex: 1 1 60%; }
+  .prj-head .prj-new { flex: 1 0 100%; }
+}
+@media (max-width: 640px) {
+  #projectsPanel .pz-table { font-size: 11px; }
+  #projectsPanel .pz-table th, #projectsPanel .pz-table td { padding: 8px 4px; }
+  #projectsPanel .pz-table td:first-child { max-width: 96px; overflow-wrap: anywhere; }
+}

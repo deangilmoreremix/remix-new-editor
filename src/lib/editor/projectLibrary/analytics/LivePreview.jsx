@@ -19,10 +19,8 @@ export async function defaultCreatePlayer(host, project, { onTime } = {}) {
     onLead: async () => ({ stored: false }), // previewing must never submit a lead
     onChange: ({ time }) => onTime?.(time),
   });
-  frame.style.aspectRatio = `${player.model.width} / ${player.model.height}`;
-  frame.style.height = '100%';
-  frame.style.width = 'auto';
-  frame.style.margin = '0 auto';
+  // Fit the frame inside the 16:9 preview box at the video's own aspect ratio and centre it.
+  frame.style.cssText = `position:relative;height:100%;width:auto;max-width:100%;aspect-ratio:${player.model.width} / ${player.model.height};margin:0 auto;background:#000;overflow:hidden`;
   return player;
 }
 

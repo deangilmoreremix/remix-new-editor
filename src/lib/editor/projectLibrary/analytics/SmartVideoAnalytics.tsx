@@ -58,7 +58,7 @@ function LineChart({values, labels, suffix = ''}: {values:number[];labels:string
     {[36,77.5,119,160.5,202].map(y=><line key={y} x1="36" x2="658" y1={y} y2={y} stroke="var(--sv-grid)" strokeDasharray="4 5"/>)}
     <polyline points={coords} fill="none" stroke="var(--sv-blue)" strokeWidth="3.5" strokeLinejoin="round" strokeLinecap="round"/>
     {points.map((v,i)=><circle key={i} cx={36+(i/Math.max(1,points.length-1))*622} cy={202-(v/high)*166} r="4" fill="var(--sv-blue)" stroke="var(--sv-panel)" strokeWidth="2"/>)}
-    {labels.map((v,i)=>(i%Math.max(1,Math.ceil(labels.length/8))===0||i===labels.length-1)&&<text key={i} x={36+(i/Math.max(1,labels.length-1))*622} y="228" textAnchor="middle" fill="var(--sv-muted)" fontSize="12">{v}</text>)}{/* ADAPT: thin the x labels for 30/90-day ranges */}
+    {labels.map((v,i)=>{const step=Math.max(1,Math.ceil(labels.length/8));const last=labels.length-1;return (i===last||(i%step===0&&last-i>=Math.ceil(step/2)))&&<text key={i} x={36+(i/Math.max(1,labels.length-1))*622} y="228" textAnchor="middle" fill="var(--sv-muted)" fontSize="12">{v}</text>;})}{/* ADAPT: thin the x labels for 30/90-day ranges; the last label never collides with its neighbour */}
   </svg></div>;
 }
 function RetentionChart({points}: {points: AudiencePoint[]}) {

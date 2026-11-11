@@ -133,10 +133,10 @@ export function renderProjectsPanel(host, deps) {
         <div class="prj-meta">
           <h4 class="prj-name">${esc(c.name)}</h4>
           <div class="prj-tags">
-            <span class="pz-chip prj-status ${c.published ? 'is-published' : ''}">${c.published ? 'Published' : 'Draft'}</span>
-            <span class="pz-chip">${RENDER_LABEL[c.renderStatus] || esc(c.renderStatus)}</span>
-            ${c.needsFollowUp ? '<span class="pz-chip">Follow-up</span>' : ''}
-            ${c.parentProjectId ? '<span class="pz-chip">Follow-up video</span>' : ''}
+            <span class="prj-chip prj-status ${c.published ? 'is-published' : ''}">${c.published ? 'Published' : 'Draft'}</span>
+            <span class="prj-chip">${RENDER_LABEL[c.renderStatus] || esc(c.renderStatus)}</span>
+            ${c.needsFollowUp ? '<span class="prj-chip">Follow-up</span>' : ''}
+            ${c.parentProjectId ? '<span class="prj-chip">Follow-up video</span>' : ''}
           </div>
           <div class="prj-line"><span>${c.plays == null ? '<span class="prj-na" title="Not collected yet">—</span>' : Number(c.plays).toLocaleString('en-US')} plays</span><span>${c.completionPct == null ? '<span class="prj-na" title="Not enough data">—</span>' : `${c.completionPct}%`} complete</span></div>
           <div class="prj-sub">${fmtDuration(c.durationS)} · ${esc(c.aspectRatio || '—')} · Edited ${fmtDate(c.updatedAt)}</div>
@@ -184,8 +184,10 @@ export function renderProjectsPanel(host, deps) {
   function drawDetail() {
     if (tabCleanup) { try { tabCleanup(); } catch { /* already unmounted */ } tabCleanup = null; }
     const c = cards.find((x) => x.id === ui.selected);
-    if (!c) { detail.hidden = true; detail.innerHTML = ''; body.hidden = false; return; }
-    body.hidden = true; detail.hidden = false;
+    const chrome = [...host.querySelectorAll('.prj-title, .prj-summary, .prj-head, .prj-filters')];
+    if (!c) { detail.hidden = true; detail.innerHTML = ''; body.hidden = false; chrome.forEach((e) => { if (!e.matches('.prj-filters')) e.hidden = false; }); return; }
+    // The list's title, stats and search are replaced by the project's own header while its detail is open.
+    body.hidden = true; detail.hidden = false; chrome.forEach((e) => { e.hidden = true; });
     detail.innerHTML = `
       <div class="prj-detail-head">
         <button type="button" class="mini-btn" data-act="back">← Projects</button>
