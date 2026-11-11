@@ -10,7 +10,7 @@ import { mountStudioChrome } from '../../../lib/studioChrome.js';
 import { createStudioHeader } from '../../../lib/thumbnails.js';
 import { saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
-import { createPendingJobTracker, resumePendingJobs } from '../../../lib/pendingJobs.js';
+import { createPendingJobTracker, resumePendingJobs, getPendingJobs, removePendingJob } from '../../../lib/pendingJobs.js';
 import { categorizeGenerationError, createAbortAwareGenerateButton, showInlineError, hideInlineError } from '../../../lib/studioHelpers.js';
 import { showToast, createProgressBar } from '../../../lib/loading.js';
 import { positionModelSelectorDropdown } from '../../../lib/modelSelectorUI.js';
@@ -587,17 +587,28 @@ export function ZackDStudio() {
     invalidateCuts(meta.slot);
     save();
   }
+  // The browser stopped waiting without the provider confirming a result: the paid job may still finish, so keep its record.
+  const stoppedWaiting = (e) => e?.name === 'AbortError' || e?.code === 'network' || e?.code === 'timeout';
+  // A new request for a slot replaces any retained (cancelled / interrupted) request for the same slot of this project:
+  // resuming the older one later must not overwrite the newer asset.
+  function supersedeRetained(slot, id, pid, keepRid) {
+    for (const j of getPendingJobs('zackd')) {
+      const m = j.historyMeta || {};
+      if (j.requestId !== keepRid && m.slot === slot && m.id === id && m.pid === pid) removePendingJob(j.requestId);
+    }
+  }
   // Every media job goes through the app's pending-job tracker so it can be resumed after a reload.
   async function tracked(slot, id, body) {
     const pid = s.pid;
     const rev = slot === 'narration' ? (s.narrRev || 0) : undefined;
     const tracker = createPendingJobTracker('zackd', { slot, id, pid, rev }, { maxAttempts: 180, interval: 4000 });
+    const onRequestId = (rid) => { supersedeRetained(slot, id, pid, rid); tracker.onRequestId(rid); };
     let keep = false;
     try {
-      const r = await runJob(body, { signal: abort.current.signal, onRequestId: tracker.onRequestId });
+      const r = await runJob(body, { signal: abort.current.signal, onRequestId });
       applyResult({ slot, id, pid, rev }, r.url);
       return r;
-    } catch (e) { keep = e?.name === 'AbortError'; throw e; } // we stopped waiting (cancel or navigation); the paid job may still finish
+    } catch (e) { keep = stoppedWaiting(e); throw e; } // we stopped waiting (cancel, navigation, lost connection, poll timeout); the paid job may still finish
     finally { tracker.finish({ keep }); }
   }
   const genSheet = (sheet) => tracked('sheet', sheet.id, { kind: 'image', aspect: '16:9', prompt: characterSheetPrompt(sheet, { look: s.look, boost: s.consistencyBoost }) });
@@ -743,7 +754,7 @@ export function ZackDStudio() {
       const r = await runJob({ kind: 'captions', videoUrl, language: s.captionLang, theme: s.captionTheme }, { signal: abort.current.signal, onRequestId: tracker.onRequestId });
       cut.captioned = { url: r.url, saved: false };
       showToast('Captions ready', 'success', 2500);
-    } catch (e) { fail(e); keepJob = e?.name === 'AbortError'; }
+    } catch (e) { fail(e); keepJob = stoppedWaiting(e); }
     tracker.finish({ keep: keepJob });
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
     busy = false; progress = null; paint();

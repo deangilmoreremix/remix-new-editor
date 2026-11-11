@@ -34,7 +34,7 @@ vi.mock('../../../components/studio/generationNotifications.js', () => ({ notify
 const { ZackDStudio } = await import('../../../components/studios/ZackDStudio/ZackDStudio.js');
 const { runAssembly } = await import('../assemble.js');
 const { runJob, pollJob } = await import('../api.js');
-const { savePendingJob } = await import('../../pendingJobs.js');
+const { savePendingJob, getPendingJobs } = await import('../../pendingJobs.js');
 const { saveGeneration } = await import('../../generationHistory.js');
 const { mountStudioChrome } = await import('../../studioChrome.js');
 
@@ -278,5 +278,27 @@ describe('ZackDStudio (built like the other video studios)', () => {
     finishOld({ url: 'https://cdn.example.com/late-clip3.mp4' });
     await tick(40);
     expect(btnText(live, 'Download MP4')).toBeFalsy(); // the cut was built from the replaced clip
+  });
+
+  it('keeps the saved request when polling stops on a lost connection, so reopening can still recover the paid job', async () => {
+    runJob.mockImplementationOnce(async (b, opts) => { opts.onRequestId('req_net'); const e = new Error('Could not reach the server.'); e.code = 'network'; throw e; });
+    const root = mount();
+    await click(root, 'Use as template');
+    await click(root, 'Generate narration');
+    await tick(40);
+    expect(getPendingJobs('zackd').map((j) => j.requestId)).toContain('req_net');
+  });
+
+  it('a new request for a slot removes the older retained request for it, so resuming that one cannot overwrite the newer asset', async () => {
+    const root = mount();
+    await click(root, 'Use as template');
+    const pid = JSON.parse(localStorage.getItem('zackd_project_v1')).pid;
+    savePendingJob({ requestId: 'req_old', studioType: 'zackd', historyMeta: { slot: 'narration', id: 'narration', pid, rev: 0 }, maxAttempts: 10, interval: 10, submittedAt: Date.now() });
+    savePendingJob({ requestId: 'req_other', studioType: 'zackd', historyMeta: { slot: 'music', id: 'music', pid }, maxAttempts: 10, interval: 10, submittedAt: Date.now() });
+    await click(root, 'Generate narration');
+    await tick(40);
+    const ids = getPendingJobs('zackd').map((j) => j.requestId);
+    expect(ids).not.toContain('req_old');
+    expect(ids).toContain('req_other'); // other slots are untouched
   });
 });
