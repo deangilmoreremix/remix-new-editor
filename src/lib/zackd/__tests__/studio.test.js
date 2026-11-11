@@ -316,4 +316,19 @@ describe('ZackDStudio (built like the other video studios)', () => {
     await tick(40);
     expect(JSON.parse(localStorage.getItem('zackd_project_v1')).topic).toBe('Changed by the studio opened since');
   });
+
+  it('a caption job recovered by a studio that was left shows up in the reopened studio\'s history and survives its next save', async () => {
+    localStorage.setItem('zackd_project_v1', JSON.stringify({ pid: 'P1', topic: 'Topic', shots: {} }));
+    savePendingJob({ requestId: 'req_cap', studioType: 'zackd', historyMeta: { slot: 'captions', pid: 'P1' }, maxAttempts: 10, interval: 10, submittedAt: Date.now() });
+    let finishOld;
+    vi.mocked(pollJob).mockReset();
+    vi.mocked(pollJob).mockImplementationOnce(() => new Promise((resolve) => { finishOld = resolve; }));
+    vi.mocked(pollJob).mockImplementation(() => new Promise(() => {}));
+    const old = mount(); old.cleanup(); document.body.replaceChildren();
+    const live = mount();
+    finishOld({ url: 'https://cdn.example.com/captioned-late.mp4' });
+    await tick(40);
+    expect(live.querySelector('#zackd-history-sidebar video')).toBeTruthy(); // the live studio shows it
+    expect(JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url)).toContain('https://cdn.example.com/captioned-late.mp4');
+  });
 });

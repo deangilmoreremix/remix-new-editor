@@ -557,6 +557,7 @@ export function ZackDStudio() {
     else if (meta.slot === 'captions') {
       const h = [{ id: `${Date.now()}`, url, prompt: latest.topic, ts: Date.now() }, ...loadHistory().filter((x) => x.url !== url)].slice(0, 30);
       try { localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); } catch { /* ignore */ }
+      window.dispatchEvent(new CustomEvent('zackd:stored-updated', { detail: { slot: 'captions' } })); // a live studio reloads its history
       return;
     } else return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(latest)); } catch { /* ignore */ }
@@ -564,7 +565,11 @@ export function ZackDStudio() {
   }
   // Another (disposed) instance merged a recovered result into the saved project: reload it, so this instance's next
   // save does not overwrite that result with its older copy. Everything this instance changes is already saved.
-  const onStoredUpdated = (ev) => { if (disposed) return; s = load(); invalidateCuts(ev?.detail?.slot); paint(); };
+  const onStoredUpdated = (ev) => {
+    if (disposed) return;
+    if (ev?.detail?.slot === 'captions') { history = loadHistory(); renderHistory(); return; } // only the history changed
+    s = load(); invalidateCuts(ev?.detail?.slot); paint();
+  };
   window.addEventListener('zackd:stored-updated', onStoredUpdated);
   // A changed clip/keyframe/narration/music makes any cut built from it stale: flag an in-flight render and drop a finished one.
   function invalidateCuts(slot) {
