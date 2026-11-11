@@ -103,7 +103,7 @@ function buildInput(declaration, prefill, config = {}) {
   }
   const token = declaration.token || String(declaration.label || '').toUpperCase();
   input.name = token;
-  input.placeholder = `${declaration.label || ''} `;
+  input.placeholder = declaration.placeholder != null && declaration.placeholder !== '' ? String(declaration.placeholder) : `${declaration.label || ''} `;
   input.setAttribute('aria-label', declaration.label || token);
   if (declaration.required) input.required = true;
   input.style.borderRadius = `${Number(config.inputBorderRadius ?? INPUT_BORDER_RADIUS)}px`;
@@ -114,37 +114,28 @@ function buildInput(declaration, prefill, config = {}) {
   return input;
 }
 
-/** Apply upstream's per-field-count layout rules (2/3/4/5 fields). */
-function applyCountLayout(count, wrapperContainer, inputWrapper, buttonsInner, submitButton) {
-  const kids = () => Array.from(inputWrapper.children);
-  if (count === 2) {
-    wrapperContainer.style.flexDirection = 'column';
-    inputWrapper.style.flexDirection = 'column';
-    inputWrapper.style.width = '70%';
-    inputWrapper.style.marginRight = '0';
-    kids()[0].style.marginBottom = '1em';
-    buttonsInner.style.width = '70%';
-  } else if (count === 3) {
-    Object.assign(inputWrapper.style, { flexGrow: '0', marginRight: '0', flexWrap: 'wrap', alignItems: 'center', width: '90%' });
-    wrapperContainer.style.flexDirection = 'column';
-    kids().forEach((k, i) => { if (i < 2) k.style.width = '49%'; });
-    Object.assign(kids()[2].style, { width: '10%', flexGrow: '5', marginRight: '0.5em' });
-    inputWrapper.appendChild(buttonsInner);
-  } else if (count === 4) {
-    wrapperContainer.style.flexDirection = 'column';
-    Object.assign(inputWrapper.style, { flexGrow: '0', marginRight: '0', flexWrap: 'wrap', alignItems: 'center', width: '100%' });
-    buttonsInner.style.maxWidth = '100%';
-    submitButton.style.padding = '0 1em';
-    kids().forEach((k) => { k.style.width = '49%'; k.style.marginBottom = '0.5em'; });
-  } else if (count === 5) {
-    Object.assign(inputWrapper.style, { flexGrow: '0', marginRight: '0', flexDirection: 'column', width: '80%' });
-    kids().forEach((k, i) => { if (i < 4) k.style.marginBottom = '0.5em'; });
-    buttonsInner.style.width = '100%';
-    buttonsInner.style.maxWidth = '100%';
-    submitButton.style.boxSizing = 'border-box';
-    wrapperContainer.style.justifyContent = 'center';
-    inputWrapper.appendChild(buttonsInner);
-  }
+/**
+ * One consistent layout for 1-5 boxes (upstream used a different hack per count, which left
+ * uneven rows and a stretched last box): the boxes sit in ONE centred block, all the same width,
+ * with the same gap, and the Play button is centred under them.
+ *   auto    1 box = box + Play on one row; 2-3 = stacked; 4 = 2x2; 5 = stacked
+ *   stacked one column
+ *   grid    two columns (an odd last box is centred)
+ *   inline  boxes and Play on one row (up to 2 boxes; more fall back to stacked)
+ */
+export const FIELD_LAYOUTS = [
+  ['auto', 'Auto (best for the number of boxes)'],
+  ['stacked', 'Stacked (one column)'],
+  ['grid', 'Two columns'],
+  ['inline', 'Inline (boxes and Play on one row)'],
+];
+
+export function resolveFieldLayout(count, wanted = 'auto') {
+  if (wanted === 'stacked' || wanted === 'grid') return count < 2 ? 'stacked' : wanted;
+  if (wanted === 'inline') return count <= 2 ? 'inline' : 'stacked';
+  if (count <= 1) return 'inline';
+  if (count === 4) return 'grid';
+  return 'stacked';
 }
 
 /** Load a Google Font once, as upstream's buildForm did with its fontSheet. */
@@ -199,38 +190,54 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   caption.style.textAlign = config.captionAlignment || 'center';
   caption.style.marginBottom = '0.5em';
   caption.style.width = '100%';
+  caption.dataset.editKey = 'caption';
+  if (config.captionColor) caption.style.color = config.captionColor;
+  if (config.captionBold === false) caption.style.fontWeight = '400';
   scrollInner.appendChild(caption);
 
   const inputWrapper = document.createElement('div');
   inputWrapper.className = 'input-wrapper';
   const elements = (config.elements || []).slice(0, 5);
-  elements.forEach((d) => inputWrapper.appendChild(buildInput(d, prefill, config)));
-  Object.assign(inputWrapper.style, { display: 'flex', justifyContent: 'space-between', flexGrow: '4', marginRight: '0.5em', color: '#000000' });
+  elements.forEach((d, i) => {
+    const input = buildInput(d, prefill, config);
+    input.dataset.editKey = `elements.${i}.placeholder`;
+    inputWrapper.appendChild(input);
+  });
 
   const buttonsInner = document.createElement('div');
   buttonsInner.className = 'buttons-inner';
-  Object.assign(buttonsInner.style, { width: 'auto', flexGrow: '0.5', display: 'grid' });
   const submitButton = document.createElement('button');
   submitButton.type = 'submit';
   submitButton.textContent = config.btnText ?? 'Play';
+  submitButton.dataset.editKey = 'btnText';
   Object.assign(submitButton.style, {
-    width: '100%',
-    boxSizing: 'border-box',
     borderColor: 'transparent',
     background: config.buttonBackground || '#eb5054',
     borderRadius: `${config.buttonBorderRadius ?? 5}px`,
     color: config.buttonFontColor || '#ffffff',
   });
+  if (config.buttonFontWeight) submitButton.style.fontWeight = String(config.buttonFontWeight);
   if (config.btnBottomBorder && config.btnBottomBorder !== 'none') submitButton.style.borderBottom = `1px solid ${config.btnBottomBorder}`;
   form.style.setProperty('--optin-btn-bg', config.buttonBackground || '#eb5054');
   form.style.setProperty('--optin-btn-hover', config.buttonHoverColor || config.buttonBackground || '#eb5054');
+  form.style.setProperty('--optin-placeholder', config.placeholderColor || '#6b7280');
   buttonsInner.appendChild(submitButton);
 
   const wrapperContainer = document.createElement('div');
   wrapperContainer.className = 'input-wrapper-container';
+  const layout = resolveFieldLayout(elements.length, config.fieldLayout);
+  wrapperContainer.dataset.layout = layout;
+  wrapperContainer.dataset.count = String(elements.length);
+  wrapperContainer.dataset.align = config.fieldAlign === 'left' ? 'left' : 'center';
+  // fieldWidth = % of the form the boxes (and Play) take; fieldGap in tenths of an em
+  const w = Math.max(30, Math.min(100, Number(config.fieldWidth) || 70));
+  const gap = Math.max(0, Math.min(40, Number(config.fieldGap ?? 6)));
+  // on the shared parent, so the privacy text lines up with the boxes too
+  scrollInner.style.setProperty('--field-w', `${w}%`);
+  scrollInner.style.setProperty('--field-gap', `${gap / 10}em`);
+  if (config.buttonWidth === 'auto') wrapperContainer.dataset.button = 'auto';
   wrapperContainer.appendChild(inputWrapper);
   wrapperContainer.appendChild(buttonsInner);
-  applyCountLayout(elements.length, wrapperContainer, inputWrapper, buttonsInner, submitButton);
   scrollInner.appendChild(wrapperContainer);
 
   if (config.privacyDisclaimer && !config.isPersonalizer) {
@@ -238,6 +245,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     disclaimer.className = 'privacy-disclaimer';
     disclaimer.style.fontSize = '40%';
     disclaimer.textContent = config.privacyDisclaimer;
+    disclaimer.dataset.editKey = 'privacyDisclaimer';
     scrollInner.appendChild(disclaimer);
   }
   if (config.privacyPolicyCaption && config.privacyPolicyLink && /^https?:\/\//i.test(config.privacyPolicyLink)) {
@@ -263,7 +271,8 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     const skip = document.createElement('button');
     skip.type = 'button';
     skip.className = 'skip-button';
-    skip.textContent = 'Skip';
+    skip.textContent = config.skipText || 'Skip';
+    skip.dataset.editKey = 'skipText';
     skip.style.color = config.fontColor || '#ffffff';
     form.appendChild(skip);
   }
@@ -284,6 +293,10 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     el.style.fontSize = `${Number(config.fontSize) || 60}%`;
     if (config.fontFamily) el.style.fontFamily = `"${config.fontFamily}"`;
   });
+  // Play button text size, as a % of the form text size (100 = same)
+  if (Number(config.buttonFontSize) > 0 && Number(config.buttonFontSize) !== 100) {
+    submitButton.style.fontSize = `${(Number(config.fontSize) || 60) * Number(config.buttonFontSize) / 100}%`;
+  }
   return form;
 }
 
@@ -336,10 +349,10 @@ export function buildArrowHint(config) {
   overlay.innerHTML = `
     ${pointer}
     <div class="container-hint">
-      <h3 class="title-hint">${esc(config.popupHeaderText)}</h3>
-      <p class="container-fill-out"><span class="fill-out">${esc(config.popupFillOutText)}</span>${(config.elements || []).map((e) => `<span class="element-field">${esc(e.label)}</span>`).join('')}</p>
-      <p class="try-now-hint">${esc(config.popupClickText)} <span class="btn-form-name">${esc(config.btnText ?? 'Play')}</span></p>
-      <p class="experience-hint">${esc(config.popupDescriptionText)}</p>
+      <h3 class="title-hint" data-edit-key="popupHeaderText">${esc(config.popupHeaderText)}</h3>
+      <p class="container-fill-out"><span class="fill-out" data-edit-key="popupFillOutText">${esc(config.popupFillOutText)}</span>${(config.elements || []).map((e, i) => `<span class="element-field" data-edit-key="elements.${i}.label">${esc(e.label)}</span>`).join('')}</p>
+      <p class="try-now-hint"><span class="click-text" data-edit-key="popupClickText">${esc(config.popupClickText)}</span> <span class="btn-form-name" data-edit-key="btnText">${esc(config.btnText ?? 'Play')}</span></p>
+      <p class="experience-hint" data-edit-key="popupDescriptionText">${esc(config.popupDescriptionText)}</p>
     </div>`;
   const bubble = overlay.querySelector('.container-hint');
   bubble.style.background = bubbleBg;
@@ -464,6 +477,79 @@ export function backdropStyle(config, { preview = false } = {}) {
 }
 
 /**
+ * Click-to-edit for the editor preview: click a piece of text on the form (caption, Play button,
+ * bubble lines, privacy text, Skip) - or double-click a box to edit its placeholder - and a small
+ * input opens over it. Enter / click away keeps the change (Shift+Enter = new line in long text),
+ * Esc cancels. `onEditText(key, value)` receives the option key ("caption", "btnText",
+ * "elements.0.placeholder", ...). Capture phase, so it wins over the pointer's own click handler.
+ */
+export function attachTextEditing(wrap, onEditText) {
+  let open = null;
+  const LONG = new Set(['caption', 'privacyDisclaimer', 'popupDescriptionText', 'popupHeaderText']);
+  const currentText = (el) => {
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') return el.getAttribute('placeholder') || '';
+    return el.textContent || '';
+  };
+  const close = (commit) => {
+    if (!open) return;
+    const { box, el, key, original } = open;
+    open = null;
+    const value = box.value;
+    box.remove();
+    if (commit && value !== original) onEditText(key, key.endsWith('.placeholder') ? value.trimEnd() : value);
+    el.classList.remove('is-editing');
+  };
+  const begin = (el) => {
+    close(true);
+    const key = el.dataset.editKey;
+    const wr = wrap.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const long = LONG.has(key);
+    const box = document.createElement(long ? 'textarea' : 'input');
+    box.className = 'optin-text-edit';
+    box.setAttribute('aria-label', 'Edit text');
+    const original = currentText(el).trim();
+    box.value = original;
+    Object.assign(box.style, {
+      position: 'absolute',
+      left: `${r.left - wr.left - 6}px`,
+      top: `${r.top - wr.top - 4}px`,
+      width: `${Math.max(140, r.width + 12)}px`,
+      minHeight: `${Math.max(28, r.height + 8)}px`,
+      zIndex: '300',
+    });
+    if (long) box.rows = Math.min(4, Math.max(2, Math.round(r.height / 18)));
+    el.classList.add('is-editing');
+    wrap.appendChild(box);
+    open = { box, el, key, original };
+    box.focus();
+    box.select();
+    box.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Escape') close(false);
+      else if (e.key === 'Enter' && !(long && e.shiftKey)) { e.preventDefault(); close(true); }
+    });
+    box.addEventListener('blur', () => close(true));
+  };
+  wrap.addEventListener('click', (e) => {
+    if (e.target.closest?.('.optin-text-edit')) return;
+    const el = e.target.closest?.('[data-edit-key]');
+    if (!el || !wrap.contains(el)) { close(true); return; }
+    // typing into a box still works: its placeholder is edited with a double-click
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') return;
+    e.preventDefault();
+    e.stopPropagation();
+    begin(el);
+  }, true);
+  wrap.addEventListener('dblclick', (e) => {
+    const el = e.target.closest?.('input[data-edit-key], textarea[data-edit-key]');
+    if (el) { e.preventDefault(); e.stopPropagation(); begin(el); }
+  }, true);
+  wrap.classList.add('is-editable');
+  return () => { close(false); wrap.classList.remove('is-editable'); };
+}
+
+/**
  * Show the opt-in form (List Builder / Personalizer / Lead Generator) over
  * the video — the one renderer for all three.
  * onSubmit(data) resolves to a status message (or throws); onSkip() fires
@@ -471,7 +557,7 @@ export function backdropStyle(config, { preview = false } = {}) {
  * (default 5, as upstream; 0 = stays until clicked) or on click.
  * Options: prefill, preview (editor: see-through backdrop).
  */
-export function showOptinOverlay(layer, config, { onSubmit, onSkip, prefill = {}, preview = false, name = 'list-builder' } = {}) {
+export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, prefill = {}, preview = false, name = 'list-builder' } = {}) {
   clearOverlay(layer, name);
   const wrap = document.createElement('div');
   wrap.className = 'addon-overlay addon-overlay--optin';
@@ -494,7 +580,8 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, prefill = {}
       hint.classList.add('off');
     };
     hint.addEventListener('click', hideHint, { once: true });
-    const seconds = Number(config.hintDuration ?? 5);
+    // while editing text the pointer stays up (click the dimmed area to dismiss it)
+    const seconds = onEditText && preview ? 0 : Number(config.hintDuration ?? 5);
     if (seconds > 0) hintTimer = setTimeout(hideHint, seconds * 1000);
   }
 
@@ -528,6 +615,7 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, prefill = {}
     }
   });
   layer.appendChild(wrap);
+  if (onEditText && preview) attachTextEditing(wrap, onEditText);
   // Click-demo pointers need layout: place them on the Play button now.
   if (hint) {
     let stop = () => {};

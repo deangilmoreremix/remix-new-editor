@@ -39,6 +39,8 @@ interface TimelineViewerProps {
   /** [remix] Overlays drawn over the video (Lead Generator, List Builder, CTA). */
   overlays?: OverlayClip[];
   onOverlayGeometry?: (id: string, geometry: Record<string, number>) => void;
+  /** click-to-edit text on a form overlay */
+  onOverlayText?: (id: string, key: string, value: string) => void;
 }
 
 /* Reusable SVG transport icons */
@@ -58,7 +60,7 @@ const StepForwardIcon = () => <Ico><polyline points="9 6 15 12 9 18" /></Ico>;
 const FRAME_DURATION = 1 / 24;
 
 export function TimelineViewer({
-  timeline, assets = [], onOpenTimeline, overlays = [], onOverlayGeometry,
+  timeline, assets = [], onOpenTimeline, overlays = [], onOverlayGeometry, onOverlayText,
   videoContainerRef,
   nativeSurfaceRef,
   nativeVideoEnabled = false,
@@ -225,7 +227,7 @@ export function TimelineViewer({
         </div>
         </div>
         <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />
-        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onResume={onPlayPause} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
+        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onResume={onPlayPause} onEditText={onOverlayText} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
         </div>
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}

@@ -192,3 +192,70 @@ describe('pointer motions and click demos (ported from Remotion ScreenshotScene 
     expect(seen.at(-1).pointerStyle).toBe('click-cursor');
   });
 });
+
+describe('editable text', () => {
+  it('the Text tab comes first and holds all the copy, incl. the bubble lines', () => {
+    const f = listBuilderFields(defaultOptin('list-builder'));
+    expect([...new Set(f.map((x) => x.tab))][0]).toBe('Text');
+    const textKeys = f.filter((x) => x.tab === 'Text').map((x) => x.key);
+    expect(textKeys).toEqual(expect.arrayContaining(['caption', 'btnText', 'skipText', 'successMessage', 'privacyDisclaimer', 'popupHeaderText', 'popupFillOutText', 'popupClickText', 'popupDescriptionText']));
+    // a Personalizer has no privacy text
+    expect(listBuilderFields(defaultOptin('personalizer')).find((x) => x.key === 'privacyDisclaimer').showIf()).toBe(false);
+  });
+
+  it('box hint text can differ from the label (and falls back to it)', () => {
+    const form = buildOptinForm({ ...defaultOptin(), elements: [{ id: 0, label: 'Email', token: 'EMAIL', type: 'email', placeholder: 'you@company.com' }, { id: 1, label: 'Name', token: 'NAME', type: 'singleline' }] });
+    expect(form.querySelector('[name="EMAIL"]').placeholder).toBe('you@company.com');
+    expect(form.querySelector('[name="NAME"]').placeholder.trim()).toBe('Name');
+  });
+
+  it('text styling options reach the caption and the Play button', () => {
+    const form = buildOptinForm({ ...defaultOptin(), captionColor: '#ffcc00', captionBold: false, buttonFontWeight: '800', buttonFontSize: 150, fontSize: 60, skipText: 'Not now', enableSkipButton: true });
+    expect(form.querySelector('.retarget-caption').style.color).toBe('rgb(255, 204, 0)');
+    expect(form.querySelector('.retarget-caption').style.fontWeight).toBe('400');
+    const btn = form.querySelector('.buttons-inner button');
+    expect(btn.style.fontWeight).toBe('800');
+    expect(btn.style.fontSize).toBe('90%');
+    expect(form.querySelector('.skip-button').textContent).toBe('Not now');
+  });
+
+  it('click-to-edit: click the caption / Play / bubble text, type, Enter keeps it, Esc cancels', async () => {
+    const layer = document.createElement('div');
+    document.body.append(layer);
+    const edits = [];
+    showOptinOverlay(layer, defaultOptin('list-builder'), { preview: true, onEditText: (k, v) => edits.push([k, v]) });
+    const click = (sel) => layer.querySelector(sel).dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    const type = (value, key) => {
+      const box = layer.querySelector('.optin-text-edit');
+      box.value = value;
+      box.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    };
+    click('.retarget-caption');
+    expect(layer.querySelector('.optin-text-edit')).not.toBeNull();
+    type('Join the club', 'Enter');
+    click('.buttons-inner button'); // the Play button edits its text instead of submitting
+    expect(layer.querySelector('.optin-text-edit').value).toBe('Play');
+    type('Watch now', 'Enter');
+    click('.title-hint'); // bubble text, even with the pointer on top
+    type('Never saved', 'Escape');
+    click('.title-hint');
+    type('Your video, your way', 'Enter');
+    expect(edits).toEqual([['caption', 'Join the club'], ['btnText', 'Watch now'], ['popupHeaderText', 'Your video, your way']]);
+    // a double-click on a box edits its hint text
+    layer.querySelector('input[data-edit-key]').dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+    type('name@company.com', 'Enter');
+    expect(edits.at(-1)).toEqual(['elements.0.placeholder', 'name@company.com']);
+    layer.remove();
+  });
+
+  it('click-to-edit is off while playing (no preview) and without a handler', () => {
+    const layer = document.createElement('div');
+    showOptinOverlay(layer, defaultOptin(), { preview: false, onEditText: () => {} });
+    layer.querySelector('.retarget-caption').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(layer.querySelector('.optin-text-edit')).toBeNull();
+    const l2 = document.createElement('div');
+    showOptinOverlay(l2, defaultOptin(), { preview: true });
+    l2.querySelector('.retarget-caption').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(l2.querySelector('.optin-text-edit')).toBeNull();
+  });
+});

@@ -70,7 +70,7 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
     expect(p.elements.map((e) => e.token)).toEqual(['EMAIL', 'FIRST NAME', 'LAST NAME']);
     const tabs = new Set(listBuilderFields(p).map((f) => f.tab));
     expect(tabs.has('Integrations')).toBe(false);
-    expect(new Set(listBuilderFields(defaultListBuilder()).map((f) => f.tab))).toEqual(new Set(['Styles', 'Fields', 'Pointer', 'Integrations']));
+    expect(new Set(listBuilderFields(defaultListBuilder()).map((f) => f.tab))).toEqual(new Set(['Text', 'Styles', 'Fields', 'Pointer', 'Integrations']));
   });
 
   it('switching kind keeps enabled and swaps defaults', () => {
@@ -107,13 +107,27 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
     expect(formBackground({ backgroundColor: '#000000' })).toMatch(/^radial-gradient\(circle, rgba\(0, 0, 0, 0.07\) 10%/);
   });
 
-  it('applies the per-field-count layout (3 fields → 49% / 49% / grow)', () => {
-    const lb = defaultListBuilder('personalizer');
-    const form = buildOptinForm(lb);
-    const inputs = form.querySelectorAll('.input-wrapper input');
-    expect(inputs[0].style.width).toBe('49%');
-    expect(inputs[2].style.flexGrow).toBe('5');
-    expect(form.querySelector('.input-wrapper .buttons-inner')).not.toBeNull();
+  it('lays 1-5 boxes out in one centred block, Play centred under them', () => {
+    const mk = (n, over = {}) => buildOptinForm({ ...defaultListBuilder(), elements: Array.from({ length: n }, (_, i) => ({ id: i, label: `Box ${i + 1}`, token: `BOX ${i + 1}`, type: 'singleline' })), ...over });
+    const layoutOf = (form) => form.querySelector('.input-wrapper-container').dataset.layout;
+    expect([1, 2, 3, 4, 5].map((n) => layoutOf(mk(n)))).toEqual(['inline', 'stacked', 'stacked', 'grid', 'stacked']);
+    // the Play button is always a child of the same container (never squeezed into the last row of the boxes)
+    for (const n of [1, 2, 3, 4, 5]) {
+      const form = mk(n);
+      expect(form.querySelector('.input-wrapper .buttons-inner')).toBeNull();
+      expect(form.querySelector('.input-wrapper-container > .buttons-inner button')).not.toBeNull();
+      expect(form.querySelectorAll('.input-wrapper > *')).toHaveLength(n);
+    }
+    // no per-box inline widths: every box is sized by the same rule
+    expect([...mk(3).querySelectorAll('.input-wrapper input')].every((i) => !i.style.width && !i.style.flexGrow)).toBe(true);
+    // options
+    const wide = mk(2, { fieldLayout: 'grid', fieldWidth: 90, fieldGap: 10, fieldAlign: 'left', buttonWidth: 'auto' });
+    const box = wide.querySelector('.input-wrapper-container');
+    expect(box.dataset).toMatchObject({ layout: 'grid', align: 'left', button: 'auto' });
+    expect(wide.querySelector('.form-scrollable-inner').style.getPropertyValue('--field-w')).toBe('90%');
+    expect(wide.querySelector('.form-scrollable-inner').style.getPropertyValue('--field-gap')).toBe('1em');
+    // inline only fits 1-2 boxes; more fall back to stacked
+    expect(layoutOf(mk(4, { fieldLayout: 'inline' }))).toBe('stacked');
   });
 
   it('personalizer omits the privacy disclaimer; number fields strip non-digits', () => {
@@ -165,7 +179,7 @@ describe('schema settings editor', () => {
     const onChange = vi.fn();
     const lb = defaultListBuilder();
     renderAddonEditor(box, { options: lb, fieldsFor: listBuilderFields, onChange });
-    expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Styles', 'Fields', 'Pointer', 'Integrations']);
+    expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Text', 'Styles', 'Fields', 'Pointer', 'Integrations']);
     box.querySelector('[data-addon-tab="Fields"]').click();
     box.querySelector('.addon-fieldlist__add').click();
     let next = onChange.mock.calls.at(-1)[0];

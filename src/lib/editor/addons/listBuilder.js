@@ -30,6 +30,7 @@ import {
   POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, isTargetDesign,
 } from './pointerDesigns.js';
 import { leadFieldTokens } from './leadClient.js';
+import { FIELD_LAYOUTS } from './addonOverlay.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -156,6 +157,20 @@ export function defaultOptin(kind = 'list-builder') {
     inputBorderRadius: 5,
     // Play / submit button.
     btnText: 'Play',
+    skipText: 'Skip',
+    successMessage: 'Thanks!',
+    // text styling
+    captionColor: '', // '' = the form font colour
+    captionBold: true,
+    placeholderColor: '#6b7280',
+    buttonFontSize: 100, // % of the form text size
+    buttonFontWeight: '',
+    // layout of the boxes + Play (one centred block)
+    fieldLayout: 'auto',
+    fieldWidth: 70,
+    fieldGap: 6,
+    fieldAlign: 'center',
+    buttonWidth: 'full',
     buttonBackground: '#eb5054',
     buttonFontColor: '#ffffff',
     buttonHoverColor: '#d23f43',
@@ -201,9 +216,10 @@ const STYLE_FIELDS = [
   { key: 'kind', label: 'Form type', type: 'select', options: Object.entries(LIST_BUILDER_KINDS), showIf: (o) => o.kind !== 'lead-generator' },
   { key: 'brandLogoSrc', label: 'Brand Logo URL', type: 'url' },
   { key: 'enableSkipButton', label: 'Enable Skip Button (lets viewers bypass the form)', type: 'toggle' },
-  { key: 'caption', label: 'Caption', type: 'textarea' },
   { key: 'captionFontSize', label: 'Caption Font Size', type: 'range', min: 10, max: 200 },
   { key: 'captionAlignment', label: 'Caption Alignment', type: 'select', options: [['left', 'Left'], ['center', 'Center'], ['right', 'Right']] },
+  { key: 'captionColor', label: 'Caption color (empty = form font color)', type: 'color' },
+  { key: 'captionBold', label: 'Caption in bold', type: 'toggle' },
   { key: 'fontFamily', label: 'Font', type: 'select', options: FORM_FONTS },
   { key: 'fontSize', label: 'Font Size', type: 'range', min: 10, max: 200 },
   { key: 'fontColor', label: 'Font color', type: 'color' },
@@ -221,13 +237,38 @@ const STYLE_FIELDS = [
   { key: 'inputFontColor', label: 'Input Text color', type: 'color' },
   { key: 'inputBorderColor', label: 'Input Border color', type: 'color' },
   { key: 'inputBorderRadius', label: 'Input border radius', type: 'range', min: 0, max: 30 },
-  { key: 'btnText', label: 'Submit Button Label', type: 'text' },
+  { key: 'placeholderColor', label: 'Box hint text color', type: 'color' },
   { key: 'buttonBackground', label: 'Play Button Background color', type: 'color' },
   { key: 'buttonFontColor', label: 'Play Button Font color', type: 'color' },
+  { key: 'buttonFontSize', label: 'Play Button text size (% of form text)', type: 'range', min: 50, max: 250 },
+  { key: 'buttonFontWeight', label: 'Play Button text weight', type: 'select', options: [['', 'Default'], ['400', 'Regular'], ['600', 'Semibold'], ['700', 'Bold'], ['800', 'Extra bold']] },
   { key: 'buttonHoverColor', label: 'Play Button Hover color', type: 'color' },
   { key: 'buttonBorderRadius', label: 'Button border radius', type: 'range', min: 0, max: 50 },
   { key: 'btnBottomBorder', label: 'Button Bottom Border color', type: 'color' },
   { key: 'transition', label: 'Transition', type: 'select', options: FORM_TRANSITIONS },
+];
+
+// All the copy on the form, in one place (the first tab).
+const TEXT_FIELDS = (personalizer) => [
+  { key: 'caption', label: 'Caption (the title above the boxes)', type: 'textarea', rows: 3 },
+  { key: 'btnText', label: 'Play button text', type: 'text' },
+  { key: 'skipText', label: 'Skip button text', type: 'text', showIf: (o) => o.enableSkipButton },
+  { key: 'successMessage', label: 'Message after the form is sent', type: 'text' },
+  { key: 'privacyDisclaimer', label: 'Privacy text', type: 'textarea', showIf: () => !personalizer },
+  { key: 'privacyPolicyCaption', label: 'Privacy policy link text', type: 'text' },
+  { key: 'privacyPolicyLink', label: 'Privacy policy link (URL)', type: 'url' },
+  { key: 'popupHeaderText', label: 'Pointer bubble: title', type: 'text', showIf: (o) => o.pointerEnabled },
+  { key: 'popupFillOutText', label: 'Pointer bubble: "Fill out your" line', type: 'text', showIf: (o) => o.pointerEnabled },
+  { key: 'popupClickText', label: 'Pointer bubble: "Click" line', type: 'text', showIf: (o) => o.pointerEnabled },
+  { key: 'popupDescriptionText', label: 'Pointer bubble: description', type: 'text', showIf: (o) => o.pointerEnabled },
+];
+
+const LAYOUT_FIELDS = [
+  { key: 'fieldLayout', label: 'Box layout', type: 'select', options: FIELD_LAYOUTS },
+  { key: 'fieldWidth', label: 'Boxes width (% of the form)', type: 'range', min: 30, max: 100 },
+  { key: 'fieldGap', label: 'Space between boxes', type: 'range', min: 0, max: 20 },
+  { key: 'fieldAlign', label: 'Align boxes', type: 'select', options: [['center', 'Center'], ['left', 'Left']] },
+  { key: 'buttonWidth', label: 'Play button width', type: 'select', options: [['full', 'Same width as the boxes'], ['auto', 'Fit the text']] },
 ];
 
 const POINTER_FIELDS = [
@@ -245,10 +286,6 @@ const POINTER_FIELDS = [
   { key: 'hintRadius', label: 'Bubble corner radius', type: 'range', min: 0, max: 40, showIf: (o) => o.pointerEnabled },
   { key: 'hintPosition', label: 'Bubble position', type: 'select', options: HINT_POSITIONS, showIf: (o) => o.pointerEnabled },
   { key: 'hintDuration', label: 'Show for (seconds, 0 = until clicked)', type: 'range', min: 0, max: 30, showIf: (o) => o.pointerEnabled },
-  { key: 'popupHeaderText', label: 'Pop-up Header Text', type: 'text', showIf: (o) => o.pointerEnabled },
-  { key: 'popupFillOutText', label: 'Pop-up Fill Out Text', type: 'text', showIf: (o) => o.pointerEnabled },
-  { key: 'popupClickText', label: 'Pop-up Click Text', type: 'text', showIf: (o) => o.pointerEnabled },
-  { key: 'popupDescriptionText', label: 'Pop-up Description Text', type: 'text', showIf: (o) => o.pointerEnabled },
 ];
 
 /** Schema for ./addonEditor.js, grouped into upstream's tabs (+ Pointer). */
@@ -256,11 +293,10 @@ export function listBuilderFields(config) {
   const personalizer = config?.kind === 'personalizer';
   const lead = config?.kind === 'lead-generator';
   const fields = [
+    ...TEXT_FIELDS(personalizer).map((f) => ({ ...f, tab: 'Text' })),
     ...STYLE_FIELDS.map((f) => ({ ...f, tab: 'Styles' })),
-    { key: 'elements', label: lead ? 'Form fields (1–5)' : 'Form fields (1–5, required)', type: 'fieldList', min: 1, max: 5, fieldTypes: lead ? LEAD_FIELD_TYPES : FORM_FIELD_TYPES, tab: 'Fields' },
-    { key: 'privacyDisclaimer', label: 'Privacy Disclaimer', type: 'textarea', tab: 'Fields', showIf: () => !personalizer },
-    { key: 'privacyPolicyCaption', label: 'Privacy Policy Label', type: 'text', tab: 'Fields' },
-    { key: 'privacyPolicyLink', label: 'Privacy Policy Link', type: 'url', tab: 'Fields' },
+    { key: 'elements', label: lead ? 'Form boxes (1–5)' : 'Form boxes (1–5, required)', type: 'fieldList', min: 1, max: 5, placeholders: true, fieldTypes: lead ? LEAD_FIELD_TYPES : FORM_FIELD_TYPES, tab: 'Fields' },
+    ...LAYOUT_FIELDS.map((f) => ({ ...f, tab: 'Fields' })),
     ...POINTER_FIELDS.map((f) => ({ ...f, tab: 'Pointer', ...(f.optionsFor ? { options: f.optionsFor(config || {}) } : {}) })),
   ];
   if (!lead) fields.push({ key: 'askEveryVisit', label: 'Ask returning viewers every visit', type: 'toggle', tab: 'Fields' });
@@ -364,6 +400,7 @@ export function leadFormToOptin(clip) {
     type: f.type === 'text' || !f.type ? 'singleline' : f.type,
     token: tokens[i],
     required: !!f.required,
+    placeholder: f.placeholder || '',
   }));
   Object.assign(out, clip?.design || {});
   out.kind = 'lead-generator';
@@ -389,7 +426,7 @@ export function applyOptinToLeadForm(clip, next) {
     let id = (typeof e.id === 'string' && e.id) ? e.id : slug(e.label);
     if (used.has(id)) id = `${id}_${i + 1}`;
     used.add(id);
-    return { id, type: e.type === 'singleline' ? 'text' : e.type, label: e.label, required: !!e.required };
+    return { id, type: e.type === 'singleline' ? 'text' : e.type, label: e.label, required: !!e.required, ...(e.placeholder ? { placeholder: e.placeholder } : {}) };
   });
   if (!clip.fields.length) clip.fields = [{ id: 'email', type: 'email', label: 'Email' }];
   return clip;

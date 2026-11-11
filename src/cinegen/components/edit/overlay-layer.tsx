@@ -23,7 +23,7 @@ import { useSelectedOverlay, selectOverlay } from '@cinegen/lib/overlays/selecti
 import '../../../../styles/timeline-addons.css';
 import '../../../../styles/watch.css';
 
-interface Props { overlays: OverlayClip[]; currentTime: number; isPlaying: boolean; onPause: () => void; /** play again once the form that held the video is submitted or skipped */ onResume?: () => void; onGeometry?: (id: string, geometry: Record<string, number>) => void; frame?: { width: number; height: number } }
+interface Props { overlays: OverlayClip[]; currentTime: number; isPlaying: boolean; onPause: () => void; /** play again once the form that held the video is submitted or skipped */ onResume?: () => void; /** click-to-edit text on the form while stopped: the option key and its new text */ onEditText?: (id: string, key: string, value: string) => void; onGeometry?: (id: string, geometry: Record<string, number>) => void; frame?: { width: number; height: number } }
 
 const GATES = new Set(['lead-form', 'list-builder']);
 
@@ -39,7 +39,7 @@ async function sendLead(o: OverlayClip, data: Record<string, unknown>) {
   return { ok: true };
 }
 
-export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResume, onGeometry, frame = { width: 1280, height: 720 } }: Props) {
+export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResume, onEditText, onGeometry, frame = { width: 1280, height: 720 } }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const addonRef = useRef<HTMLDivElement>(null);
   const selected = useSelectedOverlay();
@@ -76,10 +76,10 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResu
       };
       const live = isPlaying || gating.current === o.id;
       if (o.type === 'lead-form') {
-        showLeadForm(host, o, { preview: !live, onSubmit: async (data: Record<string, unknown>) => { const r = await sendLead(o, data); done(); return r; }, onSkip: done });
+        showLeadForm(host, o, { preview: !live, onEditText: onEditText ? (key: string, value: string) => onEditText(o.id, key, value) : undefined, onSubmit: async (data: Record<string, unknown>) => { const r = await sendLead(o, data); done(); return r; }, onSkip: done });
         gated = true; if (isPlaying) gating.current ??= o.id;
       } else if (o.type === 'list-builder') {
-        showListBuilderOverlay(host, normalizeListBuilder({ ...(o.config as object) }), { preview: !live, onSubmit: async (data: Record<string, unknown>) => { await sendLead(o, data); done(); return 'Thanks!'; }, onSkip: done });
+        showListBuilderOverlay(host, normalizeListBuilder({ ...(o.config as object) }), { preview: !live, onEditText: onEditText ? (key: string, value: string) => onEditText(o.id, key, value) : undefined, onSubmit: async (data: Record<string, unknown>) => { await sendLead(o, data); done(); return String((o.config as { successMessage?: string } | undefined)?.successMessage ?? 'Thanks!'); }, onSkip: done });
         gated = true; if (isPlaying) gating.current ??= o.id;
       } else if (o.type === 'click-to-call') {
         const style = (o.style ?? {}) as { buttonColor?: string };

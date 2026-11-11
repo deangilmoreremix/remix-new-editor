@@ -85,14 +85,43 @@
 }
 .addon-overlay-layer .retarget-form .brand-logo { width: 40%; margin-bottom: 3%; }
 .addon-overlay-layer .retarget-form .retarget-caption { padding: 0 0 2% 0; font-weight: bold; }
-.addon-overlay-layer .retarget-form .input-wrapper { padding: 1% 0; display: block; }
+/* One centred block for the boxes + Play (layout: data-layout = inline | stacked | grid; --field-w / --field-gap set by JS) */
 .addon-overlay-layer .retarget-form .input-wrapper-container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
   width: 100%;
+  gap: var(--field-gap, 0.6em);
   margin-bottom: 2%;
 }
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-align="left"] { align-items: flex-start; }
+.addon-overlay-layer .retarget-form .input-wrapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--field-gap, 0.6em);
+  width: var(--field-w, 70%);
+  padding: 0;
+  margin: 0;
+}
+.addon-overlay-layer .retarget-form .input-wrapper > * { min-width: 0; margin: 0; }
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="grid"] .input-wrapper { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* an odd last box is centred under the pair above it (and is as wide as one column) */
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="grid"] .input-wrapper > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc(50% - var(--field-gap, 0.6em) / 2);
+}
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="inline"] {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: var(--field-w, 70%);
+  margin-inline: auto;
+}
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="inline"][data-align="left"] { margin-inline: 0; justify-content: flex-start; }
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="inline"] .input-wrapper { width: auto; flex: 1 1 auto; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); grid-template-columns: none; }
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="inline"] .buttons-inner { width: auto; flex: 0 0 auto; }
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="inline"] .buttons-inner button { padding: 0 1.2em; }
 .addon-overlay-layer .retarget-form textarea,
 .addon-overlay-layer .retarget-form input {
   box-sizing: border-box;
@@ -106,19 +135,22 @@
 }
 .addon-overlay-layer .retarget-form textarea { resize: none; height: auto; padding-top: 0.5em; }
 .addon-overlay-layer .retarget-form .buttons-inner {
-  display: inline-block;
-  width: 100%;
-  margin: 2% 0;
+  display: block;
+  width: var(--field-w, 70%);
+  max-width: 100%;
+  margin: 0;
   height: auto;
-  max-width: 75%;
 }
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-button="auto"] .buttons-inner { width: auto; }
 .addon-overlay-layer .retarget-form .buttons-inner button {
   position: relative;
   height: 2.5em;
   display: block;
+  width: 100%;
   min-width: 85px;
+  box-sizing: border-box;
   margin: 0 auto;
-  padding: 0;
+  padding: 0 1em;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -127,7 +159,7 @@
   font-family: inherit;
 }
 .addon-overlay-layer .retarget-form .buttons-inner button:disabled { opacity: 0.6; cursor: progress; }
-.addon-overlay-layer .retarget-form .privacy-disclaimer { font-size: 35%; display: inline-block; }
+.addon-overlay-layer .retarget-form .privacy-disclaimer { font-size: 35%; display: block; width: var(--field-w, 70%); text-align: center; }
 .addon-overlay-layer .retarget-form .privacy-policy-link {
   font-size: 35%;
   display: block;
@@ -1294,3 +1326,22 @@
 .tg-overlay-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 10px; }
 .tg-overlay-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04); color: inherit; cursor: pointer; }
 .tg-overlay-card.is-selected { border-color: #22d3ee; background: rgba(34,211,238,.14); }
+
+
+/* Placeholder colour (option) and the click-to-edit input */
+.addon-overlay-layer .retarget-form input::placeholder,
+.addon-overlay-layer .retarget-form textarea::placeholder { color: var(--optin-placeholder, #6b7280); opacity: 1; }
+.addon-overlay-layer .is-editable [data-edit-key]:not(input):not(textarea) { cursor: text; outline: 1px dashed transparent; outline-offset: 3px; border-radius: 3px; }
+.addon-overlay-layer .is-editable [data-edit-key]:not(input):not(textarea):hover { outline-color: rgba(34, 211, 238, 0.8); }
+.addon-overlay-layer .is-editable [data-edit-key].is-editing { opacity: 0.25; }
+.addon-overlay-layer .optin-text-edit {
+  box-sizing: border-box; padding: 4px 8px; border-radius: 6px; font: 600 13px/1.3 system-ui, sans-serif;
+  color: #fff; background: #0b1220; border: 2px solid #22d3ee; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5); resize: none; outline: none;
+}
+
+.addon-fieldlist__placeholder { grid-column: 1 / -1; }
+
+/* Editing preview (click-to-edit): the pointer overlay must not dim or block the form; only its bubble is clickable */
+.addon-overlay-layer .is-editable .overlay-arrow { background: transparent !important; pointer-events: none; }
+.addon-overlay-layer .is-editable .overlay-arrow .container-hint { pointer-events: auto; }
+.addon-overlay-layer .overlay-arrow .click-text { font-weight: 300 !important; }

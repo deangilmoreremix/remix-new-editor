@@ -42,6 +42,9 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
   const box = useRef<HTMLDivElement>(null);
   const latest = useRef(overlay);
   latest.current = overlay;
+  const editorRef = useRef<{ setOptions?: (o: Record<string, unknown>) => void } | null>(null);
+  // true while a change came from this panel itself (so its own echo doesn't redraw the form under the caret)
+  const ownEdit = useRef(false);
 
   useEffect(() => {
     if (!box.current || latest.current.type === 'mg-template') return;
@@ -49,6 +52,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
     const editor = renderAddonEditor(box.current, {
       fields: schema.fields, fieldsFor: schema.fieldsFor, options: schema.options, onFieldChange: schema.onFieldChange, idPrefix: `ov-${overlay.id}`,
       onChange: (next: Record<string, unknown>) => {
+        ownEdit.current = true;
         const cur = latest.current;
         if (cur.type === 'list-builder') {
           // Switching List Builder <-> Personalizer swaps in that kind's own defaults
@@ -75,9 +79,18 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         }
       },
     });
-    return () => editor?.destroy?.();
+    editorRef.current = editor;
+    return () => { editor?.destroy?.(); editorRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay.id]);
+
+  // the form was edited by clicking its text: show the new text in the panel too
+  useEffect(() => {
+    if (ownEdit.current) { ownEdit.current = false; return; }
+    if (!box.current || overlay.type === 'mg-template' || isRegistryOverlay(overlay.type)) return;
+    editorRef.current?.setOptions?.(overlaySchema(overlay).options);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlay]);
 
   const num = (v: string, fallback: number) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
   return (

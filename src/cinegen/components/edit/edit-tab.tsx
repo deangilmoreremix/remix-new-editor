@@ -15,6 +15,7 @@ import { SoundLibraryPopup } from './sound-library-popup';
 import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
+import { textEditUpdates } from '@cinegen/lib/overlays/text-edit';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { useEditorLayout } from './use-editor-layout';
 import { usePlaybackEngine } from './use-playback-engine';
@@ -1070,6 +1071,10 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           inspectorVisible={layout.inspectorVisible}
           onToggleInspector={handleToggleInspector}
           overlays={state.overlays}
+          onOverlayText={(id, key, value) => {
+            const o = state.overlays.find((x) => x.id === id);
+            if (o) dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates: textEditUpdates(o, key, value) });
+          }}
           onOverlayGeometry={(id, geometry) => {
             const o = state.overlays.find((x) => x.id === id);
             if (o) dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates: { addon: { ...((o.addon as Record<string, unknown>) ?? {}), geometry } } });
