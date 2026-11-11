@@ -10,6 +10,8 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
   const { state } = useWorkspace();
   const [title, setTitle] = useState(pub.title);
   const [copied, setCopied] = useState('');
+  const [preview, setPreview] = useState(false);
+  const [nonce, setNonce] = useState(0);
   useEffect(() => setTitle(pub.title), [pub.title]);
   const includes = publishIncludes(state.overlays ?? []);
   const live = !!pub.info?.published;
@@ -32,6 +34,19 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
         <div className="leads-links">
           <div className="leads-copy"><span className="leads-label">Link</span><input readOnly value={watchUrl(pub.id)} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('link', watchUrl(pub.id!))}>{copied === 'link' ? 'Copied' : 'Copy'}</button></div>
           <div className="leads-copy"><span className="leads-label">Embed</span><input readOnly value={embedCode(pub.id)} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('embed', embedCode(pub.id!))}>{copied === 'embed' ? 'Copied' : 'Copy'}</button></div>
+          <div className="leads-row">
+            <button type="button" className="leads-btn" data-testid="preview-btn" disabled={!live} onClick={() => { setPreview(true); setNonce((n) => n + 1); }}>Preview as viewer</button>
+            <a className="leads-btn" data-testid="view-link" href={watchUrl(pub.id)} target="_blank" rel="noreferrer">View published page ↗</a>
+          </div>
+          {preview && live && (
+            <div className="leads-modal" role="dialog" aria-label="Viewer preview" onClick={() => setPreview(false)}>
+              <div className="leads-modal__box" onClick={(e) => e.stopPropagation()}>
+                <div className="leads-modal__bar"><span>Viewer preview — what people see at your link</span><button type="button" className="leads-btn" onClick={() => setPreview(false)}>Close</button></div>
+                <iframe key={nonce} className="leads-preview" data-testid="preview-frame" title="Published video preview" src={watchUrl(pub.id)} allow="autoplay; fullscreen" />
+              </div>
+            </div>
+          )}
+          {!live && <p className="leads-note">Republish to preview and share the link.</p>}
           <p className="leads-stats">{pub.info.view_count ?? 0} views · {leadCount} leads</p>
         </div>
       )}

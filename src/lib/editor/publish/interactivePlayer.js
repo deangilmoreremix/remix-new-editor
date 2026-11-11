@@ -201,6 +201,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
 
   function openListBuilder() {
     gateOpen = true;
+    emit(); // tells the page a form is up (hides the big play button)
     const prefill = currentProfile?.variables || {};
     showOptinOverlay(layer, listBuilder, {
       prefill,

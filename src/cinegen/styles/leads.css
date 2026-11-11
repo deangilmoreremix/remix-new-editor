@@ -29,3 +29,9 @@
 .leads-tag{font-size:10px;padding:2px 8px;border-radius:99px}
 .leads-tag--wall{background:rgba(235,80,84,.2);color:#ff8a8d}.leads-tag--lead{background:rgba(34,211,238,.18);color:#67e8f9}
 .leads-x{background:none;border:none;color:var(--text-secondary,#9aa4b5);cursor:pointer}.leads-x:hover{color:#f87171}
+.leads-preview{width:100%;aspect-ratio:16/10;border:1px solid var(--border-medium,rgba(255,255,255,.18));border-radius:10px;background:#000}
+a.leads-btn{text-decoration:none;display:inline-block}
+.leads-modal{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:24px}
+.leads-modal__box{width:min(1100px,100%);background:var(--bg-raised,#10141c);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.leads-modal__bar{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.leads-modal .leads-preview{aspect-ratio:auto;height:min(720px,80vh)}
