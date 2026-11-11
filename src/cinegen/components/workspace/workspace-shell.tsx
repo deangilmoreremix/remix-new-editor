@@ -32,6 +32,7 @@ import {
   resolveExistingLocalPath,
 } from '@cinegen/lib/media/asset-local-storage';
 import { ExportTab } from '@cinegen/components/export/export-tab';
+import { LeadsTab } from '@cinegen/components/leads/leads-tab';
 import { SettingsPage } from '@cinegen/components/settings/settings-page';
 import { AppToastHost, type AppToast } from '@cinegen/components/ui/app-toast';
 import { AssistantDrawer } from '@cinegen/components/assistant/assistant-drawer';
@@ -1514,6 +1515,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
               />
             </div>
             {state.activeTab === 'export' && <ExportTab />}
+            {state.activeTab === 'leads' && <LeadsTab />}
             {state.activeTab === 'settings' && (
               <SettingsPage
                 projectId={projectId}

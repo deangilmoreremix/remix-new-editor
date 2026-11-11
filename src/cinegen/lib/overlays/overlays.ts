@@ -26,6 +26,14 @@ export const OVERLAY_KINDS: Array<{ kind: OverlayKind; label: string; blurb: str
   { kind: 'overlay-lower-third', label: 'Lower Thirds', blurb: 'Name and title bars that animate in and out.' },
 ];
 
+/** Length of the List Builder's marker on the lane (only visual: the video waits at 0s until the form is submitted). */
+export const GATE_SECONDS = 3;
+/** List Builder / Personalizer are gates: locked at 0s, and only one per video. */
+export const isGateOverlay = (o: { type: string }) => o.type === 'list-builder';
+export const findGate = (overlays: OverlayClip[]) => overlays.find(isGateOverlay);
+/** A new overlay never lands on top of the gate's marker (the gate holds the video at 0s, so it would show two forms at once). */
+export const startAfterGate = (overlays: OverlayClip[], startSec: number) => (findGate(overlays) ? Math.max(startSec, GATE_SECONDS) : startSec);
+
 const KINDS = new Set<string>([...OVERLAY_KINDS.map((k) => k.kind), 'mg-template']);
 
 /** Add-ons driven by the old registry's schema (options live under `addon`), as opposed to the flat forms. */
@@ -40,9 +48,8 @@ export function normalizeOverlays(value: unknown): OverlayClip[] {
 export function createOverlay(kind: OverlayKind, startSec: number, timelineSeconds: number): OverlayClip {
   const id = `ov-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
   if (kind === 'list-builder') {
-    const length = 5;
-    const start = Math.max(0, Math.min(startSec, Math.max(0, timelineSeconds - length)));
-    return { id, type: kind, name: 'List Builder', start, end: start + length, config: defaultListBuilder('list-builder') };
+    // The List Builder is a registration wall on the whole video: a locked gate at 0s (it takes no video time), one per video.
+    return { id, type: kind, name: 'List Builder', start: 0, end: GATE_SECONDS, config: { ...defaultListBuilder('list-builder'), enabled: true } };
   }
   const clip = createAddonClip(kind, { startSec, timelineSeconds, id }) as Record<string, unknown>;
   if (isRegistryOverlay(kind)) clip.name = getAddon(kind).label;

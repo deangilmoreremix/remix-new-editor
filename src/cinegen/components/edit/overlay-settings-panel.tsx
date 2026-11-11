@@ -4,8 +4,11 @@ import { useEffect, useRef } from 'react';
 import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS settings renderer from the main app
 import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
+// @ts-expect-error plain JS opt-in form schema + the Lead Generator clip adapter
+import { applyOptinToLeadForm, switchListBuilderKind } from '../../../lib/editor/addons/listBuilder.js';
 import type { MgPropField } from '@cinegen/lib/occ/mg-templates';
 import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
+import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 
 /** [remix] Props of an OpenChatCut motion-graphics template, drawn from the template's own propSchema. */
@@ -40,6 +43,9 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
   const box = useRef<HTMLDivElement>(null);
   const latest = useRef(overlay);
   latest.current = overlay;
+  const editorRef = useRef<{ setOptions?: (o: Record<string, unknown>) => void } | null>(null);
+  // true while a change came from this panel itself (so its own echo doesn't redraw the form under the caret)
+  const ownEdit = useRef(false);
 
   useEffect(() => {
     if (!box.current || latest.current.type === 'mg-template') return;
@@ -47,18 +53,45 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
     const editor = renderAddonEditor(box.current, {
       fields: schema.fields, fieldsFor: schema.fieldsFor, options: schema.options, onFieldChange: schema.onFieldChange, idPrefix: `ov-${overlay.id}`,
       onChange: (next: Record<string, unknown>) => {
-        if (latest.current.type === 'list-builder') onUpdate({ config: next });
-        else if (isRegistryOverlay(latest.current.type)) onUpdate({ addon: next });
-        else {
+        ownEdit.current = true;
+        const cur = latest.current;
+        if (cur.type === 'list-builder') {
+          // Switching List Builder <-> Personalizer swaps in that kind's own defaults
+          const curKind = (cur.config as { kind?: string } | undefined)?.kind ?? 'list-builder';
+          if (next.kind && next.kind !== curKind) {
+            const switched = switchListBuilderKind(next, next.kind);
+            onUpdate({ config: switched });
+            editor?.setOptions?.(switched);
+            return;
+          }
+          onUpdate({ config: next });
+        } else if (isRegistryOverlay(cur.type)) onUpdate({ addon: next });
+        else if (cur.type === 'lead-form') {
+          // the shared form options -> the flat Lead Generator clip the old editor saved (style / design are copied, never mutated)
+          const clip = { ...cur, style: { ...((cur.style as object) ?? {}) }, design: { ...((cur.design as object) ?? {}) } } as Record<string, unknown>;
+          applyOptinToLeadForm(clip, next);
+          const { id: _id, type: _type, start: _start, end: _end, ...rest } = clip;
+          void _id; void _type; void _start; void _end;
+          onUpdate(rest as Partial<OverlayClip>);
+        } else {
           const { id: _id, type: _type, start: _start, end: _end, ...rest } = next as Record<string, unknown>;
           void _id; void _type; void _start; void _end;
           onUpdate(rest as Partial<OverlayClip>);
         }
       },
     });
-    return () => editor?.destroy?.();
+    editorRef.current = editor;
+    return () => { editor?.destroy?.(); editorRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay.id]);
+
+  // the form was edited by clicking its text: show the new text in the panel too
+  useEffect(() => {
+    if (ownEdit.current) { ownEdit.current = false; return; }
+    if (!box.current || overlay.type === 'mg-template' || isRegistryOverlay(overlay.type)) return;
+    editorRef.current?.setOptions?.(overlaySchema(overlay).options);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlay]);
 
   const num = (v: string, fallback: number) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
   return (
@@ -79,6 +112,10 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
           <button type="button" className="mini-btn" onClick={onClose} aria-label="Close">✕</button>
         </span>
       </div>
+      {(overlay.type === 'list-builder' || overlay.type === 'lead-form') && <FormLeadsButton overlayId={overlay.id} type={overlay.type} />}
+      {overlay.type === 'list-builder' ? (
+        <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>Viewers fill this out before the video plays. It sits at the start of the timeline and takes no video time.</p>
+      ) : (
       <div style={{ display: 'flex', gap: 8, padding: '0 12px 8px' }}>
         <label style={{ fontSize: 11 }}>Start (s)<br />
           <input type="number" min={0} max={Math.max(0, overlay.end - 0.5)} step={0.1} value={Number(overlay.start.toFixed(2))}
@@ -89,6 +126,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
             onChange={(e) => onUpdate({ end: Math.max(overlay.start + 0.5, num(e.target.value, overlay.end)) })} style={{ width: 80 }} />
         </label>
       </div>
+      )}
       {overlay.type === 'mg-template' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
     </aside>
   );

@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { OverlayLane } from './overlay-lane';
 import { CaptionLane } from './caption-lane';
-import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, createTemplateOverlays, isConnectTemplate, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
@@ -3259,7 +3259,10 @@ export function TimelineEditor({
         labelWidth={LABEL_WIDTH}
         sequenceDuration={sequenceDuration}
         onAdd={(kind) => {
-          const overlay = createOverlay(kind, currentTime, Math.max(sequenceDuration, 10));
+          // one List Builder per video: open the one that is there
+          const gate = kind === 'list-builder' ? findGate(state.overlays) : undefined;
+          if (gate) { selectOverlay(gate.id); return; }
+          const overlay = createOverlay(kind, kind === 'list-builder' ? currentTime : startAfterGate(state.overlays, currentTime), Math.max(sequenceDuration, 10));
           dispatch({ type: 'ADD_OVERLAY', overlay });
           selectOverlay(overlay.id);
         }}

@@ -2,7 +2,7 @@
 // move it, drag its edges to trim, click to select (opens its settings), and add new ones at the playhead from the lane header.
 import { useRef } from 'react';
 import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
-import { OVERLAY_KINDS, overlayTemplates } from '@cinegen/lib/overlays/overlays';
+import { OVERLAY_KINDS, overlayTemplates, isGateOverlay } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
 
 interface Props {
@@ -30,6 +30,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   const begin = (e: React.PointerEvent, o: OverlayClip, mode: 'move' | 'start' | 'end') => {
     e.stopPropagation();
     selectOverlay(o.id);
+    if (isGateOverlay(o)) return; // the List Builder is a gate locked at 0s
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     drag.current = { id: o.id, mode, x: e.clientX, start: o.start, end: o.end };
   };
@@ -65,13 +66,13 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
           {overlays.map((o) => {
             const on = selected === o.id;
             return (
-              <div key={o.id} role="button" tabIndex={0} title={`${o.name} · ${o.start.toFixed(1)}s–${o.end.toFixed(1)}s`}
+              <div key={o.id} role="button" tabIndex={0} title={isGateOverlay(o) ? `${o.name} · viewers fill this in before the video plays` : `${o.name} · ${o.start.toFixed(1)}s–${o.end.toFixed(1)}s`}
                 onPointerDown={(e) => begin(e, o, 'move')}
                 style={{ position: 'absolute', top: 4, bottom: 4, left: o.start * pxPerSecond, width: Math.max(8, (o.end - o.start) * pxPerSecond), borderRadius: 6,
-                  background: on ? 'rgba(235,80,84,.55)' : 'rgba(235,80,84,.32)', border: `1px solid ${on ? '#eb5054' : 'rgba(235,80,84,.6)'}`, color: '#fff', fontSize: 10, padding: '0 8px', display: 'flex', alignItems: 'center', cursor: 'grab', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                <span onPointerDown={(e) => begin(e, o, 'start')} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, cursor: 'ew-resize' }} />
-                {o.name}
-                <span onPointerDown={(e) => begin(e, o, 'end')} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 6, cursor: 'ew-resize' }} />
+                  background: on ? 'rgba(235,80,84,.55)' : 'rgba(235,80,84,.32)', border: `1px solid ${on ? '#eb5054' : 'rgba(235,80,84,.6)'}`, color: '#fff', fontSize: 10, padding: '0 8px', display: 'flex', alignItems: 'center', cursor: isGateOverlay(o) ? 'default' : 'grab', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                {!isGateOverlay(o) && <span onPointerDown={(e) => begin(e, o, 'start')} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, cursor: 'ew-resize' }} />}
+                {isGateOverlay(o) ? `🔒 ${o.name}` : o.name}
+                {!isGateOverlay(o) && <span onPointerDown={(e) => begin(e, o, 'end')} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 6, cursor: 'ew-resize' }} />}
               </div>
             );
           })}

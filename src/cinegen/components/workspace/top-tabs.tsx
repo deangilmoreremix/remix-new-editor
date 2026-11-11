@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { LayersIcon, DashboardIcon, VideoIcon, MixerHorizontalIcon, ChatBubbleIcon, UploadIcon, GearIcon, CheckIcon } from '@radix-ui/react-icons';
+import { LayersIcon, DashboardIcon, VideoIcon, MixerHorizontalIcon, ChatBubbleIcon, UploadIcon, EnvelopeClosedIcon, GearIcon, CheckIcon } from '@radix-ui/react-icons';
 
 import type { ProjectTab } from '@cinegen/types/workspace';
 
@@ -15,6 +15,7 @@ export const PROJECT_TABS: { id: ProjectTab; label: string }[] = [
   { id: 'edit', label: 'Edit' },
   { id: 'llm', label: 'LLM' },
   { id: 'export', label: 'Export' },
+  { id: 'leads', label: 'Leads' }, // [remix] publish an interactive version + collect the leads from its forms
 ];
 
 const PAGE_PRESENTATION = {
@@ -24,6 +25,7 @@ const PAGE_PRESENTATION = {
   edit: { icon: MixerHorizontalIcon, detail: 'Shape the story' },
   llm: { icon: ChatBubbleIcon, detail: 'Your AI workspace' },
   export: { icon: UploadIcon, detail: 'Finish & deliver' },
+  leads: { icon: EnvelopeClosedIcon, detail: 'Publish & collect leads' },
   settings: { icon: GearIcon, detail: 'Preferences & connections' },
 };
 
