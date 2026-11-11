@@ -361,4 +361,22 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url)).toContain('https://cdn.example.com/captioned-other-project.mp4');
     expect(root.querySelectorAll('#zackd-history-sidebar video').length).toBe(1);
   });
+
+  it('a caption burn whose cut was invalidated meanwhile still puts the paid result in the history', async () => {
+    const root = mount();
+    await click(root, 'Use as template');
+    await step(root, 'Render final cut'); generate(root).click();
+    await until(() => btnText(root, 'Burn captions'), 'captions panel');
+    await click(root, 'Generate narration');
+    await until(() => root.querySelector('audio'), 'narration');
+    await step(root, 'Render again'); generate(root).click();
+    await until(() => !btnText(root, 'Burn captions')?.disabled, 'burn enabled');
+    let finishCaptions;
+    runJob.mockImplementationOnce((b, opts) => new Promise((resolve) => { opts.onRequestId('req_burn'); finishCaptions = () => resolve({ url: 'https://cdn.example.com/captioned-orphan.mp4', model: 'm' }); }));
+    btnText(root, 'Burn captions').click();
+    await until(() => finishCaptions, 'burn submitted');
+    window.dispatchEvent(new CustomEvent('zackd:stored-updated', { detail: { slot: 'clip' } })); // a recovered clip replaces what the cut was built from
+    finishCaptions(); await tick(40);
+    expect(JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url)).toContain('https://cdn.example.com/captioned-orphan.mp4');
+  });
 });

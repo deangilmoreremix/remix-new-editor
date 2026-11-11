@@ -763,7 +763,8 @@ export function ZackDStudio() {
       setLabel('Burning captions (2-3 minutes)…');
       const r = await runJob({ kind: 'captions', videoUrl, language: s.captionLang, theme: s.captionTheme }, { signal: abort.current.signal, onRequestId: tracker.onRequestId });
       cut.captioned = { url: r.url, saved: false };
-      showToast('Captions ready', 'success', 2500);
+      if (final !== cut || disposed) { addHistory(r.url, s.topic); showToast('Captions ready. The cut changed meanwhile, so the captioned video is in the history.', 'info', 4000); } // its cut is no longer shown: keep the paid result reachable
+      else showToast('Captions ready', 'success', 2500);
     } catch (e) { fail(e); keepJob = stoppedWaiting(e); }
     tracker.finish({ keep: keepJob });
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
