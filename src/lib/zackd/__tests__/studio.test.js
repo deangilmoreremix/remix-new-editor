@@ -379,4 +379,19 @@ describe('ZackDStudio (built like the other video studios)', () => {
     finishCaptions(); await tick(40);
     expect(JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url)).toContain('https://cdn.example.com/captioned-orphan.mp4');
   });
+
+  it('a library upload still records its result when a recovered clip clears the cut while it uploads', async () => {
+    const root = mount();
+    await click(root, 'Use as template');
+    await step(root, 'Render final cut'); generate(root).click();
+    await until(() => btnText(root, 'Save to library'), 'final cut');
+    let finishUpload;
+    uploadSupabase = vi.fn(() => new Promise((resolve) => { finishUpload = () => resolve({ url: 'https://store.example.com/orphan-upload.mp4' }); }));
+    btnText(root, 'Save to library').click(); await tick(10);
+    window.dispatchEvent(new CustomEvent('zackd:stored-updated', { detail: { slot: 'clip' } })); // clears the cut mid-upload
+    finishUpload(); await tick(40);
+    expect(JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url)).toContain('https://store.example.com/orphan-upload.mp4');
+    expect(root.textContent).not.toContain("Couldn't save to library");
+    uploadSupabase = vi.fn(async () => ({ url: 'https://store.example.com/f.mp4' }));
+  });
 });

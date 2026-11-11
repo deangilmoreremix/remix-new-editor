@@ -731,11 +731,12 @@ export function ZackDStudio() {
   async function saveToLibrary() {
     if (!final?.blob || busy) return;
     busy = true; paint();
+    const cut = final; // a recovered result may clear `final` while the upload runs: finish against the cut this save belongs to
     try {
-      const file = new File([final.blob], `zackd-${(s.map?.title || 'short').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.mp4`, { type: 'video/mp4' });
+      const file = new File([cut.blob], `zackd-${(s.map?.title || 'short').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.mp4`, { type: 'video/mp4' });
       const { url } = await uploadFileToSupabase(file, { category: 'video' });
       saveGeneration({ studio: 'zackd', type: 'video', url, prompt: s.topic });
-      final.saved = true; addHistory(url, s.topic); showToast('Saved to your library', 'success', 2500);
+      cut.saved = true; addHistory(url, s.topic); showToast('Saved to your library', 'success', 2500);
     } catch (e) { fail(new Error(`Couldn't save to library (${e?.message || 'upload failed'}). You can still download it.`)); }
     busy = false; paint();
   }
