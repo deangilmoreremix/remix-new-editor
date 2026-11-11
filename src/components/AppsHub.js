@@ -1,5 +1,6 @@
 import { navigate } from '../lib/router.js';
-import { getStudioThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { getStudioThumbnail, getHeroThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { NAV_GROUPS } from '../lib/studioRoutes.js';
 
 const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
@@ -29,15 +30,23 @@ const AI_APPS = [
   { id: 'brand', name: 'Brand Studio', description: 'Brand-consistent content generation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', badge: 'Brand', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
 ];
 
-const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS].map((a) => [a.id, a]));
+// Side-menu apps that have no studio card above.
+const MENU_APPS = [
+  { id: 'cinema-template', name: 'Cinema Templates', description: 'Ready-made cinematic templates: add your media and generate', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>', badge: 'Templates', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  { id: 'director', name: 'Director', description: 'AI editor that cuts and directs your footage', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6l4-4h4l4 4"/><path d="M2 6h20v14a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>', badge: 'AI Editor', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
+  { id: 'timeline', name: 'Timeline Editor', description: 'Multi-track timeline for editing and rendering', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="2" y1="15" x2="22" y2="15"/></svg>', badge: 'Editor', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
+  { id: 'workbench', name: 'Workbench', description: 'Node-based workspace to chain generations together', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="13" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>', badge: 'Workflow', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
+  { id: 'website-builder', name: 'Website Builder', description: 'Generate and publish a site from a prompt', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="2" y1="7" x2="22" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', badge: 'Websites', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  { id: 'library', name: 'Library', description: 'Everything you have generated, in one place', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>', badge: 'My work', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
+  { id: 'content-library', name: 'Content', description: 'Browse and reuse your saved content', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>', badge: 'My work', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
+];
+
+const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS, ...MENU_APPS].map((a) => [a.id, a]));
 const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
 
-// Grouped the same way as the side menu.
-const APP_SECTIONS = [
-  ['Image Studios', pick(['image', 'edit', 'upscale', 'character', 'commercial', 'brand'])],
-  ['Video Studios', pick(['video', 'cinema', 'storyboard', 'effects', 'ai-vfx', 'animate', 'lipsync', 'videotools', 'avatar', 'audio'])],
-  ['Agents & Editors', pick(['video-agent', 'viral', 'personalizer'])],
-];
+// Built from the side menu itself (NAV_GROUPS) so the two can't drift apart.
+// The first group (Apps / Explore / Templates) is navigation, not an app.
+const APP_SECTIONS = NAV_GROUPS.slice(1).map((g) => [`${g.title} apps`.replace('My Work apps', 'My Work'), pick(g.items.map((it) => it.id))]);
 
 export function AppsHub() {
   const container = document.createElement('div');
@@ -75,7 +84,7 @@ export function AppsHub() {
   searchWrapper.style.animationDelay = '0.1s';
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
-  searchInput.placeholder = 'Search tools and templates...';
+  searchInput.placeholder = 'Search apps...';
   searchInput.className = 'w-full max-w-md bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
   searchWrapper.appendChild(searchInput);
   inner.appendChild(searchWrapper);
@@ -86,7 +95,7 @@ export function AppsHub() {
   APP_SECTIONS.forEach(([title, apps]) => {
     inner.appendChild(createSection(title, apps.map(s => ({
       ...s,
-      thumbnail: getStudioThumbnail(s.id),
+      thumbnail: getStudioThumbnail(s.id) || getHeroThumbnail(s.id),
       onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
     })), true));
   });
@@ -186,8 +195,6 @@ function createSection(title, items, isStudio = false) {
   return section;
 }
 
-const KNOWN_APP_IDS = new Set([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS].map((s) => s.id));
-
 function createRecentRow() {
   try {
     const recent = JSON.parse(localStorage.getItem('recent_tools') || '[]');
@@ -209,10 +216,7 @@ function createRecentRow() {
       chip.className = 'px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white hover:bg-white/10 transition-all whitespace-nowrap';
       chip.textContent = r.name;
       chip.onclick = () => {
-        // Studio ids like 'video-agent' or 'ai-vfx' contain dashes too, so only
-        // ids that aren't a known app are treated as templates.
-        if (KNOWN_APP_IDS.has(r.id)) navigate(r.id);
-        else navigate(`template/${r.id}`);
+        navigate(r.id);
       };
       row.appendChild(chip);
     });

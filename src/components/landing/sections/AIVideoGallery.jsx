@@ -23,6 +23,7 @@ import {
   sectionHeading,
   createStyleLink,
   createViewPromptButton,
+  createPersonalizeButton,
   createStudioIcon,
   metaPill,
   escapeHtml,
@@ -79,6 +80,7 @@ function createGalleryCard(demo) {
   const studioIconsHost = card.querySelector('[data-mmx-studio-icons]');
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt, { label: 'View Prompt', loadPrompt: loadDemoPrompt }));
+  primaryActions.appendChild(createPersonalizeButton(demo, { loadPrompt: loadDemoPrompt }));
   primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video', variant: 'ghost', loadPrompt: loadDemoPrompt }));
 
   const target = getCreateTarget(demo);

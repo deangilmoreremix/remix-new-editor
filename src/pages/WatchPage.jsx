@@ -88,6 +88,7 @@ export async function mountWatchPage(container, id, deps = {}) {
     frame,
     createEngine,
     profile: viewerProfile,
+    rememberKey: video.id,
     fps: FPS,
     voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
     onLead: async ({ clipId, kind, data }) => {
@@ -95,12 +96,13 @@ export async function mountWatchPage(container, id, deps = {}) {
       if (kind !== 'call-attempt' && res?.stored !== false) track('lead', clipId);
       return res;
     },
-    onChange: ({ playing, time, duration }) => {
+    onChange: ({ playing, time, duration, gating }) => {
       if (playing && !playedOnce) { playedOnce = true; track('play'); }
       if (!completedOnce && duration > 0 && time >= duration - 0.3) { completedOnce = true; track('complete'); }
       $('[data-play]').textContent = playing ? '❚❚' : '▶';
       $('[data-play]').setAttribute('aria-label', playing ? 'Pause' : 'Play');
-      $('[data-bigplay]').hidden = playing || time > 0.05;
+      // The big play button never covers a form the viewer must fill in.
+      $('[data-bigplay]').hidden = playing || time > 0.05 || !!gating;
       $('[data-time]').textContent = fmt(time);
       $('[data-dur]').textContent = fmt(duration);
       if (!scrubbing) $('[data-seek]').value = String(Math.round((time / Math.max(0.001, duration)) * 1000));

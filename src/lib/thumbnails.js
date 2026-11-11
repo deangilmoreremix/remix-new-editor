@@ -352,7 +352,7 @@ const HERO_THUMBNAILS = {
   render: '/thumbnails/heroes/render.webp.png',
   chat: '/thumbnails/heroes/chat.webp.png',
   templates: '/thumbnails/pages/templates.webp.png',
-  viral: '/thumbnails/heroes/video.webp',
+  viral: '/thumbnails/heroes/viral.webp',
   'cinema-template': '/thumbnails/heroes/cinema.webp',
   'ai-vfx': '/thumbnails/categories/vfx.webp',
   animate: '/thumbnails/pages/assist.webp',
@@ -360,8 +360,34 @@ const HERO_THUMBNAILS = {
   library: '/thumbnails/pages/library.webp',
   'content-library': '/thumbnails/categories/entertainment.webp',
   explore: '/thumbnails/pages/explore.webp.png',
-  personalizer: '/thumbnails/heroes/videoagent.webp.png',
+  personalizer: '/thumbnails/heroes/personalizer.webp',
   'video-agent': '/thumbnails/heroes/videoagent.webp.png',
+  director: '/thumbnails/heroes/director.webp',
+  timeline: '/thumbnails/heroes/timeline.webp.png',
+  workbench: '/thumbnails/heroes/workbench.webp',
+  'website-builder': '/thumbnails/heroes/website-builder.webp',
+};
+
+// Where to aim the banner crop (CSS object-position) per page. The default is the
+// centre; pages whose picture has its subject elsewhere are listed here.
+const BANNER_FOCUS = {
+  // Apps-page (studios/) pictures are ~1.8:1 and the banner box ~2.4:1, so only a
+  // little is cropped; aim at the subject.
+  character: '50% 25%', // faces are in the upper half
+  audio: '50% 40%',
+  avatar: '50% 40%',
+  edit: '50% 40%',
+  lipsync: '50% 40%',
+  // hero (heroes/) pictures for pages without Apps-page art
+  workbench: '50% 58%',
+  personalizer: '50% 67%',
+  'website-builder': '50% 41%',
+  'video-agent': '50% 45%',
+  timeline: '50% 50%',
+  library: '50% 40%',
+  'content-library': '50% 40%',
+  brand: '50% 75%',
+  'ai-vfx': '50% 38%',
 };
 
 const TOOL_THUMBNAILS = {
@@ -378,6 +404,10 @@ const TOOL_THUMBNAILS = {
   'ai-image-face-swap': '/thumbnails/tools/face-swap.webp',
   'ai-product-shot': '/thumbnails/tools/product-shot.webp',
   'ai-ghibli-style': '/thumbnails/tools/ghibli-style.webp',
+  // New Edit Studio cards. Reuse existing artwork until dedicated images exist.
+  'image-effects': '/thumbnails/tools/ghibli-style.webp',
+  'qwen-image-edit-plus-lora': '/thumbnails/tools/reframe.webp',
+  'ideogram-character': '/thumbnails/tools/face-swap.webp',
 };
 
 const CATEGORY_THUMBNAILS = {
@@ -397,6 +427,18 @@ const PAGE_THUMBNAILS = {
   assist: '/thumbnails/pages/assist.webp',
   placeholder: '/thumbnails/pages/placeholder.webp',
 };
+
+// Pages whose banner uses the same picture as their Apps-page card (studios/*): clean
+// photo-style art with no baked-in captions or black bars. Pages not listed keep their
+// hero picture (heroes/*), because the studio map only has a stand-in for them.
+const BANNER_USES_STUDIO_ART = new Set([
+  'image', 'video', 'cinema', 'storyboard', 'effects', 'edit', 'upscale', 'character',
+  'commercial', 'audio', 'avatar', 'training', 'videotools', 'lipsync', 'render', 'chat',
+]);
+
+export function getBannerThumbnail(studioId) {
+  return (BANNER_USES_STUDIO_ART.has(studioId) && getStudioThumbnail(studioId)) || getHeroThumbnail(studioId) || getStudioThumbnail(studioId);
+}
 
 export function getStudioThumbnail(studioId) {
   return STUDIO_THUMBNAILS[studioId] || null;
@@ -631,7 +673,7 @@ export function createThumbnailImg(src, alt, className = '', fallbackTemplate = 
 }
 
 export function createHeroSection(studioId, className = '') {
-  const src = getHeroThumbnail(studioId);
+  const src = getBannerThumbnail(studioId);
   if (!src) return null;
   const wrapper = document.createElement('div');
   wrapper.className = `hero-banner relative w-full overflow-hidden rounded-2xl ${className}`;
@@ -646,35 +688,84 @@ export function createHeroSection(studioId, className = '') {
 
 /**
  * Compact AI-image header shown at the top of every studio: the studio's AI
- * artwork as a slim banner with the title and one line of description. It is
- * deliberately short (96–112px) so the tool itself stays above the fold, and
- * it carries the page's h1. Returns a `.hero-banner` so shared layouts can
+ * artwork as a banner with the title and one line of description. It is
+ * 128px tall on phones and 176px on desktop: tall enough that the picture is
+ * recognisable (a 112px box showed only a ~20% strip of the landscape art and
+ * ~9% of the square art), short enough that the tool stays above the fold.
+ * It carries the page's h1. Returns a `.hero-banner` so shared layouts can
  * shrink it further once results exist.
  */
-export function createStudioHeader(studioId, title, subtitle = '', className = '') {
-  const src = getHeroThumbnail(studioId) || getStudioThumbnail(studioId);
+export function createStudioHeader(studioId, title, subtitle = '', className = '', size = 'default') {
+  const src = getBannerThumbnail(studioId);
   const wrapper = document.createElement('div');
-  wrapper.className = `hero-banner studio-header relative w-full h-24 md:h-28 overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d10] shrink-0 ${className}`;
+  // 'compact' is for the full-screen editors (Director, Timeline, Workbench, Video Agent,
+  // Website Builder), which need every pixel of height for the editor itself.
+  const height = size === 'compact' ? 'h-20 md:h-24' : 'h-32 md:h-[clamp(176px,14vw,264px)]';
+  wrapper.className = `hero-banner studio-header relative w-full ${height} overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d10] shrink-0 ${className}`;
   wrapper.dataset.studioHeader = studioId;
   if (src) {
     wrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-    wrapper.appendChild(createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover'));
+    // Ambient backdrop: the same picture, blurred and dimmed, fills the width so the
+    // banner never shows a hard edge or a dark void next to the sharp picture.
+    const ambient = createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40');
+    ambient.setAttribute('aria-hidden', 'true');
+    wrapper.appendChild(ambient);
+    // The sharp picture sits on the right at its own shape, so all of it is visible
+    // (a full-width 176px strip showed only ~25% of a 2.4:1 picture). Below md it
+    // goes full-bleed behind the title instead.
+    const pic = document.createElement('div');
+    pic.className = 'absolute inset-0 md:inset-y-0 md:left-auto md:right-0 md:w-auto md:aspect-[2.36/1] md:max-w-[68%]';
+    const img = createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover');
+    img.style.objectPosition = BANNER_FOCUS[studioId] || '50% 50%';
+    pic.appendChild(img);
+    const seam = document.createElement('div');
+    seam.className = 'absolute inset-y-0 left-0 w-20 hidden md:block pointer-events-none bg-gradient-to-r from-[#0d0d10]/90 to-transparent';
+    pic.appendChild(seam);
+    wrapper.appendChild(pic);
   }
+  // Mobile: lift the title off the picture. Desktop: only a short fade at the picture's
+  // left edge (the seam above), nothing over the picture itself.
   const shade = document.createElement('div');
-  shade.className = 'absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/10';
+  shade.className = 'absolute inset-0 pointer-events-none bg-gradient-to-t from-black/80 via-black/30 to-transparent md:hidden';
   wrapper.appendChild(shade);
   const text = document.createElement('div');
-  text.className = 'absolute inset-y-0 left-0 z-10 flex flex-col justify-center px-5 md:px-7 text-left max-w-[80%]';
+  text.className = 'absolute z-10 flex flex-col justify-end md:justify-center inset-x-0 bottom-0 md:inset-y-0 md:right-auto px-5 md:px-7 pb-3 md:pb-0 text-left md:max-w-[34%]';
   const h1 = document.createElement('h1');
   h1.className = 'text-xl md:text-2xl font-black text-white tracking-tight leading-tight';
   h1.textContent = title;
   text.appendChild(h1);
   if (subtitle) {
     const p = document.createElement('p');
-    p.className = 'text-white/65 text-xs md:text-sm mt-1 line-clamp-1';
+    p.className = 'text-white/65 text-xs md:text-sm mt-1 line-clamp-2 md:line-clamp-3';
     p.textContent = subtitle;
     text.appendChild(p);
   }
   wrapper.appendChild(text);
   return wrapper;
+}
+
+/**
+ * For pages that already have their own <h1>: turns the banner's title into a plain
+ * element so the page keeps a single heading. Returns the same element.
+ */
+export function demoteBannerHeading(el) {
+  const h = el.querySelector('h1');
+  if (h) {
+    const d = document.createElement('div');
+    d.className = h.className;
+    d.textContent = h.textContent;
+    h.replaceWith(d);
+  }
+  return el;
+}
+
+/**
+ * The banner for a full-screen editor: the compact studio banner inside a padded,
+ * non-shrinking row so it sits above the editor without squeezing it sideways.
+ */
+export function createEditorBanner(studioId, title, subtitle = '') {
+  const row = document.createElement('div');
+  row.className = 'px-3 pt-3 shrink-0';
+  row.appendChild(createStudioHeader(studioId, title, subtitle, '', 'compact'));
+  return row;
 }

@@ -296,9 +296,11 @@ export class SceneDetector {
   async detectScenes() {
     if (this.isProcessing) return;
 
-    const videoTrack = this.timeline.tracks.find(track => track.type === 'video');
-    if (!videoTrack || videoTrack.clips.length === 0) {
-      this.showToast('No video clips found for scene detection', 'error');
+    const tracks = (typeof this.timeline.getTracks === 'function' ? this.timeline.getTracks() : this.timeline.tracks) || [];
+    const clips = tracks.flatMap((t) => t.items || t.clips || [])
+      .filter((c) => (c.type === 'video' || !c.type) && (c.src || c.mediaUrl));
+    if (!clips.length) {
+      this.showToast('Add a video clip with media to the timeline first.', 'error');
       return;
     }
 
@@ -306,9 +308,11 @@ export class SceneDetector {
     this.showProgress(true);
 
     try {
-      // Get the first video clip's source
-      const primaryClip = videoTrack.clips[0];
+      // Scan the selected video clip when there is one, else the first.
+      const picked = clips.find((c) => c.id === this.timeline.selectedClipId) || clips[0];
+      const primaryClip = picked;
       const videoUrl = primaryClip.src || primaryClip.mediaUrl;
+      this.clipOffset = Number(this.timeline.clipStartSec?.(primaryClip) ?? 0) - Number(primaryClip.trimIn ?? 0);
 
       if (!videoUrl) {
         throw new Error('No video URL found');
@@ -319,8 +323,8 @@ export class SceneDetector {
 
       this.scenes = result.scenes.map(scene => ({
         ...scene,
-        startTime: scene.timestamp,
-        endTime: scene.timestamp + (scene.duration || 0),
+        startTime: scene.timestamp + (this.clipOffset || 0),
+        endTime: scene.timestamp + (scene.duration || 0) + (this.clipOffset || 0),
         confidence: scene.confidence || 0.8,
         thumbnail: scene.thumbnail || this.generateThumbnailPlaceholder(scene.timestamp)
       }));
@@ -427,7 +431,7 @@ export class SceneDetector {
     if (!timelineBody) return;
 
     const timelineWidth = timelineBody.clientWidth - 100; // Account for track labels
-    const totalDuration = this.timeline.timelineSeconds;
+    const totalDuration = this.timeline.getTimelineSeconds?.() ?? this.timeline.timelineSeconds;
 
     this.scenes.forEach((scene, index) => {
       const marker = document.createElement('div');

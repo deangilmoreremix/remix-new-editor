@@ -7,6 +7,10 @@ import type { OverlayKind } from '@cinegen/types/workspace';
 import { OVERLAY_KINDS, overlayTemplates } from '@cinegen/lib/overlays/overlays';
 import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
 import { buildAnimationCatalog, animationGroups, filterAnimations } from '@cinegen/lib/occ/animation-catalog';
+import { hyperframesItems, type HfItem } from '@cinegen/lib/hyperframes/overlay';
+import { groupOf, thumbOf } from './hyperframes-modal';
+// @ts-expect-error plain JS flag module
+import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 import { GL_TRANSITION_ORDER, glTransitionLabel } from '@cinegen/lib/occ/transitions';
 import { userLutIds } from '@cinegen/lib/occ/user-luts';
 import { availableSounds, soundEffectSrc } from '@cinegen/lib/occ/sound-library';
@@ -36,6 +40,7 @@ export interface LibraryActions {
   onAddOverlay: (kind: OverlayKind) => string | void;
   onAddTemplate: (templateId: string) => string | void;
   onAddMg: (template: MgTemplate) => string | void;
+  onAddHf: (item: HfItem) => string | void;
   onApplyFx: (id: string) => string | void | Promise<string | void>;
   onApplyLut: (id: string) => string | void | Promise<string | void>;
   onApplyTransition: (id: string) => string | void | Promise<string | void>;
@@ -73,6 +78,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
   const trIds = useMemo(() => [...GL_TRANSITION_ORDER, ...pluginResourceItems(packs, 'transition').map((i) => i.id)], [packs]);
   const fxName = (id: string) => t(ALL_FX[id]?.name ?? id);
   const trName = (id: string) => (id.startsWith('plugin:') ? getCustomTransition(id)?.label ?? id : glTransitionLabel(id));
+  const hfItems = useMemo(() => (isHyperframesEnabled() ? hyperframesItems() : []), []);
   const sounds = useMemo(() => availableSounds(), []);
 
   const play = (s: SoundEffect) => {
@@ -102,7 +108,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
 
   const body = () => {
     if (cat === 'animations') {
-      const items = buildAnimationCatalog({ mg: mg ?? [] });
+      const items = hfItems.length || mg ? buildAnimationCatalog({ mg: mg ?? [], hf: hfItems, hfGroup: groupOf }) : [];
       const list = filterAnimations(items, group, q);
       return (
         <div className="library-panel__stack">
@@ -116,9 +122,10 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
             {!mg && <span className="library-panel__empty">Loading…</span>}
             {mg && !list.length && <span className="library-panel__empty">No animations match.</span>}
             {list.map((x) => (
-              <button key={x.id} style={card} title={x.description} data-testid={`library-mg-${x.id}`} onClick={() => void run(() => actions.onAddMg(x.mg))}>
+              <button key={x.id} style={card} title={x.description} data-testid={`library-mg-${x.id}`} onClick={() => void run(() => (x.kind === 'hf' && x.hf ? actions.onAddHf(x.hf) : actions.onAddMg(x.mg!)))}>
+                {x.kind === 'hf' && <img src={thumbOf(x.id)} alt="" loading="lazy" style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'contain', background: '#000', borderRadius: 6 }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
                 <strong style={{ fontSize: 12 }}>{x.name}</strong>
-                <span style={{ fontSize: 10, opacity: 0.65 }}>{x.group} · {x.seconds.toFixed(1)}s</span>
+                <span style={{ fontSize: 10, opacity: 0.65 }}>{x.group} · {x.seconds.toFixed(x.seconds < 10 ? 1 : 0)}s</span>
               </button>
             ))}
           </div>

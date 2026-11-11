@@ -125,6 +125,8 @@ export const HELP: Record<string, HelpEntry> = {
   'library sounds': e('Sounds', 'Sound effects.', 'A library of short sound effects. Preview with the play button and press Add to place one on an audio track at the playhead.', ['Open Sounds, press ▶ to listen, then Add.']),
   'add sound to timeline': e('Add sound', 'Place this sound at the playhead.', 'Adds the sound effect to an audio track starting at the playhead.', ['Move the playhead, then press Add.']),
   'preview sound': e('Preview sound', 'Listen before you add it.', 'Plays or stops a preview of this sound.', ['Press the button.']),
+  'animations': e('Animations', 'Add a ready-made animation over your video.', 'Browse 267 animations (lower thirds, titles, charts, scenes and more). Click one to place it at the playhead, then edit its text, colours and timing in the panel on the right.', ['Pick a group, optionally search, then click a card.']),
+  'search animations': e('Search animations', 'Find an animation by name.', 'Filters the cards by name or description.', ['Type in the box; clear it to see everything again.']),
   'library group': e('Animation group', 'Filter animations by what they are.', 'Groups animations by type: lower thirds, data and charts, titles and text, social, transitions and more. Everything shows them all.', ['Press a group to show only those animations; press Everything to see all.']),
   'library item': e('Library item', 'Click to apply it.', 'Effects and looks apply to the selected clip; transitions go on the cut after the selected clip. Hover it to see the effect play.', ['Select a clip, then click the card.']),
 

@@ -1,0 +1,86 @@
+[
+ {
+  "label": "lt-clean-bar-1080p",
+  "ok": true,
+  "ms": 3127,
+  "bytes": 167019,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 144,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 4.8
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 4.8
+  },
+  "errors": []
+ },
+ {
+  "label": "lt-clean-bar-720p",
+  "ok": true,
+  "ms": 3663,
+  "bytes": 112735,
+  "video": {
+   "codec": "h264",
+   "w": 1280,
+   "h": 720,
+   "frames": 144,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 4.8
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 4.8
+  },
+  "errors": []
+ },
+ {
+  "label": "glitch-1080p",
+  "ok": true,
+  "ms": 12055,
+  "bytes": 712942,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 120,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 4
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 4.010667
+  },
+  "errors": []
+ },
+ {
+  "label": "footage-overlay-audio-1080p",
+  "ok": true,
+  "ms": 5290,
+  "bytes": 1646896,
+  "video": {
+   "codec": "h264",
+   "w": 1920,
+   "h": 1080,
+   "frames": 120,
+   "fps": "30/1",
+   "pix": "yuvj420p",
+   "dur": 4
+  },
+  "audio": {
+   "codec": "aac",
+   "rate": "48000",
+   "dur": 4.010667
+  },
+  "errors": []
+ }
+]

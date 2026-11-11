@@ -1,4 +1,5 @@
 import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById, i2vModels } from './models.js';
+import { getRecastModelById, getMotionControlModelById } from './motionModels.js';
 import { apiKeyManager } from './apiKeyManager.js';
 import { uploadFileToStorage } from './supabase.js';
 import { validateMuAPIUpload, uploadImageToMuAPI, uploadVideoToMuAPI, uploadFileToMuapi } from './muapiUpload.js';
@@ -12,6 +13,36 @@ import {
   EFFECT_PARAM_SCHEMA,
   EffectParamError,
 } from './effectParamValidator.js';
+
+/**
+ * The effect-param schema, widened with the aspect ratios, resolutions and
+ * durations a model itself declares (e.g. Seedance 2.5's `adaptive`, still models' `2k`),
+ * so settings the studios offer for that model aren't rejected before submit.
+ */
+function schemaForModel(modelInfo) {
+  const widen = (rule, extra) => (extra?.length
+    ? { ...rule, values: [...new Set([...rule.values, ...extra.map(String)])] }
+    : rule);
+  const ratios = modelInfo?.inputs?.aspect_ratio?.enum;
+  const resolutions = modelInfo?.inputs?.resolution?.enum;
+  const formats = modelInfo?.inputs?.output_format?.enum;
+  // Duration bounds the model declares (a range, or an enum of seconds).
+  const dur = modelInfo?.inputs?.duration;
+  const declared = Array.isArray(dur?.enum)
+    ? dur.enum.map(Number).filter((n) => Number.isFinite(n))
+    : [dur?.minValue ?? dur?.minimum, dur?.maxValue ?? dur?.maximum].filter((n) => Number.isFinite(n));
+  if (!ratios?.length && !resolutions?.length && !formats?.length && !declared.length) return EFFECT_PARAM_SCHEMA;
+  const base = EFFECT_PARAM_SCHEMA.duration;
+  return {
+    ...EFFECT_PARAM_SCHEMA,
+    aspect_ratio: widen(EFFECT_PARAM_SCHEMA.aspect_ratio, ratios),
+    resolution: widen(EFFECT_PARAM_SCHEMA.resolution, resolutions),
+    output_format: widen(EFFECT_PARAM_SCHEMA.output_format, formats),
+    duration: declared.length
+      ? { ...base, min: Math.min(base.min, ...declared), max: Math.max(base.max, ...declared) }
+      : base,
+  };
+}
 
 async function acquireRateLimitToken() {
     try {
@@ -140,6 +171,168 @@ export class MuapiClient {
         return Number.isFinite(balance) ? balance : null;
     }
 
+    // ─── Calls ported from upstream Open-Generative-AI's muapi.js ────────────
+    // All go through the same edge proxy as every other generate call, so the
+    // user's key never leaves the proxy header path.
+
+    /** POST a job, report its request id, and poll to completion. */
+    async _submitAndPoll(endpoint, payload, params = {}, signal, { generationType = 'video', studioType = 'video', maxAttempts = 900, interval = 2000 } = {}) {
+        this._requireMuapiKey();
+        await acquireRateLimitToken();
+        const effectiveSignal = signal ?? params?.signal;
+        const response = await fetch(this.proxyUrl, {
+            method: 'POST',
+            headers: this._getMuapiHeaders(),
+            body: JSON.stringify({ endpoint, params: payload, generationType, studioType }),
+            signal: effectiveSignal,
+        });
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+        }
+        const submitData = await response.json();
+        this.validateResponse(submitData, 'submit');
+        const requestId = submitData.request_id || submitData.id;
+        if (requestId) params?.onRequestId?.(requestId);
+        if (!requestId) {
+            const url = submitData.outputs?.[0] || submitData.url || submitData.output?.url;
+            return { ...submitData, url };
+        }
+        const result = await this.pollForResult(requestId, maxAttempts, interval, effectiveSignal);
+        const url = result.outputs?.[0] || result.url || result.output?.url;
+        return { ...result, id: result.id || requestId, request_id: requestId, url };
+    }
+
+    /** Vibe Motion: generate a motion-graphics clip from a prompt. */
+    async runMotionGraphics(params, signal) {
+        if (!params?.prompt?.trim()) throw new Error('Describe the motion graphic you want first.');
+        return this._submitAndPoll('motion-graphics', {
+            prompt: params.prompt,
+            aspect_ratio: params.aspect_ratio || '16:9',
+            duration_seconds: params.duration_seconds || 6,
+        }, params, signal, { studioType: 'effects' });
+    }
+
+    /** Recast: drive a character image with the motion in a video (upstream processRecast). */
+    async processRecast(params, signal) {
+        const model = getRecastModelById(params?.model);
+        const endpoint = model?.endpoint || params?.model;
+        if (!endpoint) throw new Error('Pick a recast model first.');
+        if (!params.video_url) throw new Error('Please upload a motion video first.');
+        if (!params.image_url) throw new Error('Please upload a character image first.');
+        const payload = { [model?.videoField || 'video_url']: params.video_url };
+        if (model?.imageField && params.image_url) payload[model.imageField] = params.image_url;
+        if (model?.hasPrompt && params.prompt) payload.prompt = params.prompt;
+        if (params.aspect_ratio) payload.aspect_ratio = params.aspect_ratio;
+        if (params.character_orientation) payload.character_orientation = params.character_orientation;
+        return this._submitAndPoll(endpoint, payload, params, signal, { studioType: 'video' });
+    }
+
+    /** Motion Control: rebuild a performance video with new characters/assets (upstream processMotionControl). */
+    async processMotionControl(params, signal) {
+        const model = getMotionControlModelById(params?.model);
+        if (!params?.video_url) throw new Error('Please upload a motion video first.');
+        const images = (Array.isArray(params.images_list) ? params.images_list : params.image_url ? [params.image_url] : []).filter(Boolean);
+        if (!images.length) throw new Error('Please add at least one character image.');
+        const mode = params.mode || 'motion_transfer';
+        const base = mode === 'objects_swap'
+            ? 'Keep the rest of the scene as filmed, swap the characters, products, or clothes with the reference images.'
+            : 'Extract motion from the reference video and rebuild the scene with the new characters and assets, preserving the original motion, choreography, and camera movements.';
+        const user = String(params.prompt || '').trim();
+        const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+        const payload = {
+            video_url: params.video_url,
+            images_list: images.slice(0, model.maxImages),
+            aspect_ratio: params.aspect_ratio || model.defaultAspectRatio,
+            duration: clamp(Number(params.duration) || model.defaultDuration, model.minDuration, model.maxDuration),
+            generate_audio: !!params.generate_audio,
+            prompt: user ? `${base} ${user}` : base,
+        };
+        if (model.supportsQuality) payload.quality = params.quality === 'basic' ? 'basic' : 'high';
+        if (model.supportsBitrate) payload.high_bitrate = !!params.high_bitrate;
+        if (model.supportsSeed && params.seed !== undefined && params.seed !== null && Number(params.seed) !== -1) payload.seed = Number(params.seed);
+        return this._submitAndPoll(model.endpoint, payload, params, signal, { studioType: 'video' });
+    }
+
+    /** Vibe Motion: edit an earlier motion-graphics generation (needs its request id). */
+    async runMotionGraphicsEdit(params, signal) {
+        if (!params?.request_id) throw new Error('Pick the generation you want to edit.');
+        if (!params?.edit_prompt?.trim()) throw new Error('Describe the change you want to make.');
+        return this._submitAndPoll('motion-graphics-edit', {
+            request_id: params.request_id,
+            edit_prompt: params.edit_prompt,
+            aspect_ratio: params.aspect_ratio || '16:9',
+            duration_seconds: params.duration_seconds || 6,
+        }, params, signal, { studioType: 'effects' });
+    }
+
+    /** Marketing: product + avatar + reference ad video (Seedance 2 omni-reference). */
+    async generateMarketingStudioAd(params, signal) {
+        const endpoint = params.resolution === '1080p' ? 'sd-2-vip-omni-reference-1080p' : 'seedance-2-vip-omni-reference';
+        return this._submitAndPoll(endpoint, {
+            prompt: params.prompt,
+            aspect_ratio: params.aspect_ratio || '16:9',
+            duration: params.duration || 5,
+            images_list: params.images_list || [],
+            video_files: params.video_files || [],
+        }, params, signal, { studioType: 'commercial' });
+    }
+
+    /** Call a MuAPI route through the proxy and return its JSON (no polling). */
+    async _proxyRequest(endpoint, { params = {}, generationType = 'list', apiMethod, studioType = 'social' } = {}, signal) {
+        this._requireMuapiKey();
+        const body = { endpoint, params, generationType, studioType };
+        if (apiMethod) body.apiMethod = apiMethod;
+        const response = await fetch(this.proxyUrl, {
+            method: 'POST',
+            headers: this._getMuapiHeaders(),
+            body: JSON.stringify(body),
+            signal,
+        });
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Request failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+        }
+        return response.json();
+    }
+
+    /** Server-side generation history, one page at a time. */
+    async getHistory({ cursor, limit = 50 } = {}, signal) {
+        const query = [];
+        if (cursor) query.push(`cursor=${encodeURIComponent(cursor)}`);
+        if (limit) query.push(`limit=${encodeURIComponent(String(limit))}`);
+        return this._proxyRequest(`history${query.length ? `?${query.join('&')}` : ''}`, { generationType: 'list' }, signal);
+    }
+
+    /** Remove a generation's stored media on the server. */
+    async deleteMedia(requestId, signal) {
+        if (!requestId) throw new Error('A request id is required to delete media.');
+        return this._proxyRequest(`predictions/${encodeURIComponent(requestId)}/media`, { generationType: 'list', apiMethod: 'DELETE' }, signal);
+    }
+
+    /** Price a task before running it. Returns the raw cost payload. */
+    async calculateDynamicCost(taskName, payload, signal) {
+        return this._proxyRequest('app/calculate_dynamic_cost', { params: { task_name: taskName, payload }, generationType: 'social' }, signal);
+    }
+
+    /** Price a video-to-video run. `params.model` is a catalog id; the rest is the job payload. */
+    async estimateV2VCost(params, signal) {
+        const { model, signal: _s, onRequestId: _o, ...payload } = params || {};
+        const endpoint = (getModelById(model)?.endpoint || model || '').toLowerCase();
+        if (!endpoint) throw new Error('A video-to-video model is required to estimate cost.');
+        return this._proxyRequest(`models/${endpoint}/estimate-cost`, { params: payload, generationType: 'social' }, signal);
+    }
+
+    /** Apps: tell MuAPI which template app the user wants (proxy routes this outside /api/v1). */
+    async registerAppInterest(appName, signal) {
+        if (!appName) throw new Error('An app name is required.');
+        return this._proxyRequest('app/interest', { params: { app_name: appName }, generationType: 'social' }, signal);
+    }
+
+    async getAppInterests(signal) {
+        return this._proxyRequest('app/interests', { generationType: 'list' }, signal);
+    }
+
     async getModelSchema(modelId) {
         const url = `${this.muapiBaseUrl}/models/${encodeURIComponent(modelId)}`;
         const res = await fetch(url, { headers: this._getMuapiHeaders() });
@@ -222,7 +415,12 @@ export class MuapiClient {
         if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
         if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
 
-        if (params.image_url) {
+        // Edit-style models declare `imageField: 'images_list'`: they take their
+        // reference(s) as a list, not as image_url.
+        const referenceImages = params.images_list?.length ? params.images_list : (params.image_url ? [params.image_url] : null);
+        if (modelInfo?.imageField === 'images_list' && referenceImages) {
+            finalPayload.images_list = referenceImages;
+        } else if (params.image_url) {
             finalPayload.image_url = params.image_url;
             finalPayload.strength = params.strength || 0.6;
         }
@@ -384,12 +582,17 @@ export class MuapiClient {
                   try {
                     checkOutputIntegrity(data);
                   } catch (integrityError) {
-                    throw new Error(
+                    const placeholderError = new Error(
                       `Received a placeholder or demo result instead of a unique generation. ` +
                       `This usually means your MuAPI key is in sandbox mode or has no credits. ` +
                       `Please check your key at https://muapi.ai/access-keys. ` +
                       `(detected URL: ${integrityError.url})`
                     );
+                    // A completed job will not change: report it now instead of
+                    // re-polling until the attempt limit.
+                    placeholderError.terminal = true;
+                    placeholderError.requestId = requestId;
+                    throw placeholderError;
                   }
                 }
 
@@ -532,7 +735,7 @@ export class MuapiClient {
         analytics.trackGeneration(params.model, 'i2i', { endpoint, studioType: params.studioType });
 
         // ─── Validate & sanitize ─────────────────────────────────────────
-        const validation = validateEffectParams(params, EFFECT_PARAM_SCHEMA);
+        const validation = validateEffectParams(params, schemaForModel(modelInfo));
         if (!validation.valid) {
             const firstError = validation.errors[0];
             throw new EffectParamError(firstError.message, firstError.field, firstError.code);
@@ -544,7 +747,10 @@ export class MuapiClient {
         if (p.prompt) finalPayload.prompt = p.prompt;
 
         const imageField = modelInfo?.imageField || 'image_url';
-        const imagesList = p.images_list?.length > 0 ? p.images_list : (p.image_url ? [p.image_url] : null);
+        // The validated copy drops unknown keys (images_list is not in the schema), so read the
+        // caller's own list: Edit Studio sends its source and extra references that way.
+        const callerList = Array.isArray(params.images_list) ? params.images_list.filter(Boolean) : [];
+        const imagesList = callerList.length > 0 ? callerList : (p.image_url ? [p.image_url] : null);
         if (imagesList) {
             if (imageField === 'images_list') {
                 finalPayload.images_list = imagesList;
@@ -579,6 +785,9 @@ export class MuapiClient {
         if (params.reference_audios?.length) finalPayload.reference_audios = params.reference_audios;
         if (params.last_image_url) finalPayload.last_image_url = params.last_image_url;
         if (params.sheet_url) finalPayload.sheet_url = params.sheet_url;
+
+        // Face-swap style models name their second image through `swapField`.
+        if (modelInfo?.swapField && params.swap_url) finalPayload[modelInfo.swapField] = params.swap_url;
 
         // Character consistency params
         if (params.first_frame_url) finalPayload.first_frame_url = params.first_frame_url;
@@ -682,7 +891,7 @@ export class MuapiClient {
         analytics.trackGeneration(params.model, 'i2v', { endpoint, studioType: params.studioType });
 
         // ─── Validate & sanitize ─────────────────────────────────────────
-        const validation = validateEffectParams(params, EFFECT_PARAM_SCHEMA);
+        const validation = validateEffectParams(params, schemaForModel(modelInfo));
         if (!validation.valid) {
             const firstError = validation.errors[0];
             throw new EffectParamError(firstError.message, firstError.field, firstError.code);
@@ -696,15 +905,25 @@ export class MuapiClient {
         const imageField = modelInfo?.imageField || 'image_url';
         if (p.image_url) {
             if (imageField === 'images_list') {
-                finalPayload.images_list = [p.image_url];
+                // Keyframe models take [start, end] in one list.
+                const endFrame = params.lastFrameUrl || params.last_frame_url || params.last_image_url;
+                finalPayload.images_list = endFrame ? [p.image_url, endFrame] : [p.image_url];
+            } else if (modelInfo?.inputs?.[imageField]?.type === 'array') {
+                // Any other list-typed image input (image_urls, reference_images, …).
+                finalPayload[imageField] = [p.image_url];
             } else {
                 finalPayload[imageField] = p.image_url;
             }
         }
 
-        if (p.aspect_ratio) finalPayload.aspect_ratio = p.aspect_ratio;
+        // Opt-in (template studios): send only the settings this model
+        // declares — the validator fills aspect_ratio / resolution defaults
+        // that models such as Kling v2.6 I2V do not accept.
+        const declaresInput = (key) => !params.onlyDeclaredInputs || !modelInfo?.inputs
+            || Object.prototype.hasOwnProperty.call(modelInfo.inputs, key);
+        if (p.aspect_ratio && declaresInput('aspect_ratio')) finalPayload.aspect_ratio = p.aspect_ratio;
         if (p.duration) finalPayload.duration = p.duration;
-        if (p.resolution) finalPayload.resolution = p.resolution;
+        if (p.resolution && declaresInput('resolution')) finalPayload.resolution = p.resolution;
         if (p.quality) finalPayload.quality = p.quality;
         // First/last-frame control (start + end image). Forwarded from the raw
         // params (not the sanitized object, which strips unknown keys) so
@@ -713,6 +932,24 @@ export class MuapiClient {
         // conventions since different model endpoints expect different keys.
         if (params.firstFrameUrl || params.first_frame_url) finalPayload.firstFrameUrl = params.firstFrameUrl || params.first_frame_url;
         if (params.lastFrameUrl || params.last_frame_url) finalPayload.lastFrameUrl = params.lastFrameUrl || params.last_frame_url;
+        // Models that declare the snake_case input (e.g. Seedance 2.5 I2V) get it under that name too.
+        if (params.last_frame_url && modelInfo?.inputs && Object.prototype.hasOwnProperty.call(modelInfo.inputs, 'last_frame_url')) {
+            finalPayload.last_frame_url = params.last_frame_url;
+        }
+        // Models that name their own end-frame input (last_image, last_image_url,
+        // end_image_url, last_frame_url, …) get the end frame under that name,
+        // whichever alias the studio supplied it as. (images_list models take it
+        // inside the list, handled above.)
+        const endFrameAlias = params.lastFrameUrl || params.last_frame_url || params.last_image_url;
+        const declaredEndField = modelInfo?.lastImageField;
+        if (endFrameAlias && declaredEndField && declaredEndField !== 'images_list' && finalPayload[declaredEndField] === undefined) {
+            finalPayload[declaredEndField] = endFrameAlias;
+        }
+        // Character Lock: only for models that declare it.
+        if (params.character_consistency !== undefined && modelInfo?.inputs
+            && Object.prototype.hasOwnProperty.call(modelInfo.inputs, 'character_consistency')) {
+            finalPayload.character_consistency = params.character_consistency;
+        }
         if (p.startImageUrl) finalPayload.startImageUrl = p.startImageUrl;
         if (p.endImageUrl) finalPayload.endImageUrl = p.endImageUrl;
         // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
@@ -916,9 +1153,12 @@ export class MuapiClient {
             'thumbnail_url',
             'webhook_url',
         ]);
+        // Models that require instructions (edit / extend) don't list `prompt` in
+        // `inputs`, but still need it forwarded.
+        const acceptsPrompt = modelInputKeys.has('prompt') || modelInfo?.promptRequired === true;
         for (const [key, value] of Object.entries(params)) {
             if (alreadyForwarded.has(key)) continue;
-            if (!modelInputKeys.has(key)) continue;
+            if (!modelInputKeys.has(key) && !(key === 'prompt' && acceptsPrompt)) continue;
             if (value === undefined || value === null || value === '') continue;
             finalPayload[key] = value;
         }

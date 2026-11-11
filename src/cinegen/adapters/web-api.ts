@@ -128,7 +128,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; glDef?: unknown; clipAId: string; clipBId: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
+      const a = p as { preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; clips: Array<{ id?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ glType: string; glDef?: unknown; clipAId: string; clipBId: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -167,6 +167,12 @@ export function registerWebApi() {
             const { mgOverlayLayer } = await import('@cinegen/lib/occ/mg-templates');
             const m = model as { layers: unknown[]; durationInFrames: number };
             for (const o of a.mgOverlays ?? []) { const l = mgOverlayLayer({ ...o, type: 'mg-template' } as never, a.fps); m.layers.push(l); m.durationInFrames = Math.max(m.durationInFrames, l.from + l.durationInFrames); }
+          }
+          // [hyperframes] verified HyperFrames animations → layers on top (rendered by the sandboxed runner; only enabled, pinned blocks execute)
+          if ((a.hfOverlays ?? []).length) {
+            const { hyperframesOverlayLayer } = await import('@cinegen/lib/hyperframes/overlay');
+            const m = model as { layers: unknown[]; durationInFrames: number };
+            for (const o of a.hfOverlays ?? []) { const l = hyperframesOverlayLayer({ ...o, type: 'hyperframes' } as never, a.fps); m.layers.push(l); m.durationInFrames = Math.max(m.durationInFrames, l.from + l.durationInFrames); }
           }
           // [remix] OpenChatCut captions (words already in timeline ms) → one caption layer per captioned clip
           (model as { occCaptions?: unknown[] }).occCaptions = a.clips.flatMap((c) => (c.captions ? [c.captions] : []));
@@ -209,6 +215,7 @@ export function registerWebApi() {
         } catch (err) {
           job.status = 'failed';
           job.error = err instanceof Error ? err.message : String(err);
+          if ((err as { hyperframes?: boolean })?.hyperframes) void import('@cinegen/lib/hyperframes/notify').then((m) => m.notifyHyperframes({ id: 'hf:export', title: 'Export stopped', message: job.error as string }));
         }
       })();
       return { ...job };

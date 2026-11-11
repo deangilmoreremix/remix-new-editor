@@ -13,6 +13,7 @@
  */
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { createEditorBanner } from '../lib/thumbnails.js';
 import { showToast } from '../lib/loading.js';
 import { navigate } from '../lib/router.js';
 import { escapeHtml } from '../lib/security.js';
@@ -352,6 +353,9 @@ export function Personalizer() {
   const chromeContainer = document.createElement('div');
   chromeContainer.style.cssText = 'flex: 0 0 auto;';
   mountStudioChrome(chromeContainer, { currentRoute: 'personalizer', title: 'Personalizer' });
+  // The banner carries the page title, so the bar below it keeps only the controls.
+  chromeContainer.querySelector('.studio-topbar__title')?.remove();
+  container.appendChild(createEditorBanner('personalizer', 'Personalizer', 'Design one video or page, then personalise it for every viewer'));
   container.appendChild(chromeContainer);
 
   // Main layout: sidebar + canvas

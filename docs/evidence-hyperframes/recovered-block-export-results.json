@@ -1,0 +1,210 @@
+[
+ {
+  "id": "app-showcase",
+  "ok": true,
+  "ms": 8997,
+  "bytes": 939447,
+  "fps": 6.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "beat-freeze-cut",
+  "ok": true,
+  "ms": 8643,
+  "bytes": 667174,
+  "fps": 6.9,
+  "hfErrors": {}
+ },
+ {
+  "id": "camera-dolly-zoom",
+  "ok": true,
+  "ms": 18951,
+  "bytes": 46841,
+  "fps": 3.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "code-diff",
+  "ok": true,
+  "ms": 5349,
+  "bytes": 379394,
+  "fps": 11.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "code-highlight",
+  "ok": true,
+  "ms": 5815,
+  "bytes": 534273,
+  "fps": 10.3,
+  "hfErrors": {}
+ },
+ {
+  "id": "code-morph",
+  "ok": true,
+  "ms": 6218,
+  "bytes": 538304,
+  "fps": 9.6,
+  "hfErrors": {}
+ },
+ {
+  "id": "code-scroll",
+  "ok": true,
+  "ms": 13213,
+  "bytes": 716227,
+  "fps": 4.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "code-typing",
+  "ok": true,
+  "ms": 5745,
+  "bytes": 279579,
+  "fps": 10.4,
+  "hfErrors": {}
+ },
+ {
+  "id": "data-chart",
+  "ok": true,
+  "ms": 3323,
+  "bytes": 63312,
+  "fps": 18.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "flowchart",
+  "ok": true,
+  "ms": 3694,
+  "bytes": 89322,
+  "fps": 16.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "flowchart-vertical",
+  "ok": true,
+  "ms": 4301,
+  "bytes": 82042,
+  "fps": 14,
+  "hfErrors": {}
+ },
+ {
+  "id": "hw-frame",
+  "ok": true,
+  "ms": 2246,
+  "bytes": 81491,
+  "fps": 26.7,
+  "hfErrors": {}
+ },
+ {
+  "id": "hw-scribble-transition",
+  "ok": true,
+  "ms": 1426,
+  "bytes": 117463,
+  "fps": 42.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "hw-text-cloud",
+  "ok": true,
+  "ms": 2733,
+  "bytes": 43174,
+  "fps": 22,
+  "hfErrors": {}
+ },
+ {
+  "id": "message-thread-reveal",
+  "ok": true,
+  "ms": 33201,
+  "bytes": 172559,
+  "fps": 1.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "news-ticker",
+  "ok": true,
+  "ms": 5814,
+  "bytes": 364829,
+  "fps": 10.3,
+  "hfErrors": {}
+ },
+ {
+  "id": "transitions-destruction",
+  "ok": true,
+  "ms": 2384,
+  "bytes": 31376,
+  "fps": 25.2,
+  "hfErrors": {}
+ },
+ {
+  "id": "transitions-mechanical",
+  "ok": true,
+  "ms": 2451,
+  "bytes": 31396,
+  "fps": 24.5,
+  "hfErrors": {}
+ },
+ {
+  "id": "transitions-scale",
+  "ok": true,
+  "ms": 2523,
+  "bytes": 31332,
+  "fps": 23.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "ui-3d-reveal",
+  "ok": true,
+  "ms": 5299,
+  "bytes": 270463,
+  "fps": 11.3,
+  "hfErrors": {}
+ },
+ {
+  "id": "us-map",
+  "ok": true,
+  "ms": 4300,
+  "bytes": 357995,
+  "fps": 14,
+  "hfErrors": {}
+ },
+ {
+  "id": "us-map-bubble",
+  "ok": true,
+  "ms": 3727,
+  "bytes": 413930,
+  "fps": 16.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "us-map-flow",
+  "ok": true,
+  "ms": 3565,
+  "bytes": 396491,
+  "fps": 16.8,
+  "hfErrors": {}
+ },
+ {
+  "id": "world-map",
+  "ok": true,
+  "ms": 2978,
+  "bytes": 282484,
+  "fps": 20.1,
+  "hfErrors": {}
+ },
+ {
+  "id": "yt-lcd-background",
+  "ok": true,
+  "ms": 15019,
+  "bytes": 735408,
+  "fps": 4,
+  "hfErrors": {}
+ },
+ {
+  "id": "yt-prism-title",
+  "ok": true,
+  "ms": 12358,
+  "bytes": 502845,
+  "fps": 4.9,
+  "hfErrors": {}
+ }
+]

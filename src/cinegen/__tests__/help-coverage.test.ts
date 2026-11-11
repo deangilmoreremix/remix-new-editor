@@ -25,7 +25,7 @@ function labels(): Array<{ file: string; label: string }> {
 
 // Labels that are not controls (they name content, not an action) or that only repeat visible text next to them.
 const NOT_CONTROLS = new Set<string>([
-  'Left panel', 'Library categories', 'Animation groups', // [remix] landmark/tablist containers, not controls
+  'Left panel', 'Library categories', 'Animation groups', 'Categories', 'Type', // [remix] landmark/tablist containers, not controls
   'Loading project', 'Processing media...', 'Copilot is thinking', 'Copilot response ready', 'Response ready', 'Navigate to page', 'Go up', 'Back to list',
   'Edit workspace', 'File not found — source file has been moved or deleted', 'Add overlay', 'Pack URL', 'Expected SHA-256 (optional)', 'Click to select',
 ]);

@@ -7,6 +7,7 @@
  */
 
 import { composeNegativePrompt } from './templateEngine.js';
+import { toNicheKey } from './templatePromptComposer.js';
 import { getV2VModelById } from './models.js';
 
 /**
@@ -40,6 +41,13 @@ export function resolveModel(template, preferred, modelListsByType) {
   }
 
   const list = getFallbackList(template.modelType);
+  // Prefer a general-purpose model: the lists start with effect / tool models
+  // (AI Video Effects, Image Upscaler, …) that need extra inputs.
+  const PREFERRED = { i2v: 'kling-v2.6-pro-i2v', t2v: 'kling-v2.6-pro-t2v' };
+  const preferredId = PREFERRED[template.modelType];
+  if (preferredId && list.some(m => m && m.id === preferredId)) return preferredId;
+  const general = list.find(m => m && m.id && m.family !== 'effects' && m.family !== 'tools');
+  if (general) return general.id;
   if (list.length > 0 && list[0]?.id) {
     return list[0].id;
   }
@@ -112,9 +120,9 @@ export function attachThumbnail(params, customThumbnailUrl) {
  * Build a negative prompt from template metadata, form state, and enhanced specs.
  */
 export function buildNegativePrompt(template, formState, specs) {
-  const negNiche = (formState.niche && formState.niche !== 'auto-detect')
+  const negNiche = toNicheKey((formState.niche && formState.niche !== 'auto-detect')
     ? formState.niche
-    : (template.niche || '');
+    : (template.niche || ''));
   return composeNegativePrompt(
     template.filmFamily || '',
     negNiche,

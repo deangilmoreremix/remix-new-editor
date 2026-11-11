@@ -335,7 +335,7 @@ const pexelsBtn = document.createElement('button');
 
     formCard.appendChild(enhanceMenu);
 
-  // Personalize trigger (opens PersonalizeModal as a pop-up)
+  // Personalize trigger (opens the Personalization + Lead Finder modal)
   const actionRow = createActionRow();
   const personalizeHandle = mountPersonalizeTrigger({
       controlsContainer: actionRow,

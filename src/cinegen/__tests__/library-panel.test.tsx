@@ -12,7 +12,7 @@ beforeEach(() => {
 
 function mount(overrides: Partial<LibraryActions> = {}) {
   const actions: LibraryActions = {
-    onAddOverlay: vi.fn(() => 'Added.'), onAddTemplate: vi.fn(), onAddMg: vi.fn(),
+    onAddOverlay: vi.fn(() => 'Added.'), onAddTemplate: vi.fn(), onAddMg: vi.fn(), onAddHf: vi.fn(),
     onApplyFx: vi.fn(() => 'Select a clip first.'), onApplyLut: vi.fn(), onApplyTransition: vi.fn(), onAddSound: vi.fn(),
     ...overrides,
   };

@@ -14,6 +14,7 @@ import { useRecorder } from '../../../openchatcut/audio/recorder';
 import { SoundLibraryPopup } from './sound-library-popup';
 import { LibraryPanel, type LibraryActions } from './library-panel'; // [remix] one Library for animations, effects, transitions, looks, overlays & forms, sounds
 import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
+import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
 import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
 import { nextClipOnTrack, transitionBetween, transitionHandle, addGlTransition, setGlType, transitionSnapshotFor } from '@cinegen/lib/occ/transitions';
 import { snapshotFor } from '@cinegen/lib/occ/plugins';
@@ -23,6 +24,7 @@ import { t as occT } from '../../../openchatcut/i18n/t';
 import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
+import { textEditUpdates } from '@cinegen/lib/overlays/text-edit';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { useEditorLayout } from './use-editor-layout';
 import { usePlaybackEngine } from './use-playback-engine';
@@ -960,6 +962,12 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         selectOverlay(overlay.id);
         return `Added “${tpl.name}” at the playhead. Edit its text in the panel on the right.`;
       },
+      onAddHf: (item) => {
+        const overlay = createHyperframesOverlay(item, currentTime);
+        dispatch({ type: 'ADD_OVERLAY', overlay });
+        selectOverlay(overlay.id);
+        return `Added “${item.title}” at the playhead. Edit its fields in the panel on the right.`;
+      },
       onApplyFx: async (id) => {
         if (!selectedClip) return needClip('an effect');
         const def = await snapshotFor(id);
@@ -1135,6 +1143,10 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           inspectorVisible={layout.inspectorVisible}
           onToggleInspector={handleToggleInspector}
           overlays={state.overlays}
+          onOverlayText={(id, key, value) => {
+            const o = state.overlays.find((x) => x.id === id);
+            if (o) dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates: textEditUpdates(o, key, value) });
+          }}
           onOverlayGeometry={(id, geometry) => {
             const o = state.overlays.find((x) => x.id === id);
             if (o) dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates: { addon: { ...((o.addon as Record<string, unknown>) ?? {}), geometry } } });

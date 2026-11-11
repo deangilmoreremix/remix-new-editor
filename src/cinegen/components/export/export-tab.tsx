@@ -3,7 +3,6 @@
 import { resolveFit, DEFAULT_ASPECT } from '@cinegen/lib/occ/frame-geometry';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
-import { SharePanel } from './share-panel';
 import { ExportSettings, type ExportExtras } from './export-settings';
 import { RenderProgress } from './render-progress';
 import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
@@ -59,8 +58,10 @@ export function ExportTab() {
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
         // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
         // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only
-        overlays: (state.overlays ?? []).filter((o) => o.type !== 'mg-template'),
+        overlays: (state.overlays ?? []).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
         mgOverlays: (state.overlays ?? []).filter((o) => o.type === 'mg-template').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, code: o.code, props: o.props })),
+        // [hyperframes] verified HyperFrames animations on the overlay lane (rendered by the sandboxed export runner)
+        hfOverlays: (state.overlays ?? []).filter((o) => o.type === 'hyperframes').map((o) => ({ id: o.id, name: o.name, start: o.start, end: o.end, blockId: o.blockId, props: o.props, blockWidth: o.blockWidth, blockHeight: o.blockHeight })),
         // [remix] OpenChatCut GL transitions on dissolve cuts
         transitions: (activeTimeline.transitions ?? []).filter((t) => t.glType && t.type === 'dissolve' && t.clipBId).map((t) => ({ glType: t.glType, glDef: t.glDef, clipAId: t.clipAId, clipBId: t.clipBId })),
       });
@@ -123,12 +124,10 @@ export function ExportTab() {
           <span style={{ fontSize: 11, opacity: 0.65 }}>For Final Cut Pro, Premiere and DaVinci Resolve. Relink the media after import.</span>
         </div>
 
-        {/* [remix] Share / Publish the interactive video (old editor's share panel) */}
-        <div style={{ marginTop: 16 }}>
-          <div className="export-settings__label">Share as an interactive video</div>
-          <p className="export-tab__hint" style={{ marginTop: 4 }}>Forms, buttons and end screens on the overlay lane play on the shared page; the MP4 above is plain video.</p>
-          <SharePanel timeline={activeTimeline} assets={state.assets} overlays={state.overlays ?? []} projectKey={String((state as { projectId?: string }).projectId ?? 'project')} />
-        </div>
+        {/* [remix] interactive sharing moved to the Leads tab */}
+        <p className="export-tab__hint" style={{ marginTop: 16 }}>
+          Publish an interactive version (forms, buttons) and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Leads</button> tab.
+        </p>
 
         {latestJob && (
           <div className="export-tab__progress">

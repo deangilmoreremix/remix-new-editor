@@ -9,6 +9,7 @@
 //   ← sv:exported       in-browser rendered MP4 → uploaded and saved to the library
 //   ← sv:upload         user's own file → uploaded to storage → sv:uploaded / sv:upload-failed
 import { mountStudioChrome } from '../../../lib/studioChrome.js';
+import { createEditorBanner } from '../../../lib/thumbnails.js';
 import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { WORKBENCH_APP_PATH, consumeWorkbenchHandoff, isWorkbenchEligible, toWorkbenchAsset } from '../../../lib/workbench.js';
 import { loadGenerationHistory, saveGeneration } from '../../../lib/generationHistory.js';
@@ -53,6 +54,9 @@ export function WorkbenchStudio() {
   requestAnimationFrame(fit);
   window.addEventListener('resize', fit);
   const { topbar } = mountStudioChrome(container, { currentRoute: 'workbench', title: 'Workbench' });
+  // The banner carries the page title, so the bar below it only holds status and actions.
+  topbar.querySelector('.studio-topbar__title')?.remove();
+  container.insertBefore(createEditorBanner('workbench', 'Workbench', 'Edit your generations with motion cards, sound and AI chat'), container.firstChild);
 
   const status = el('span', 'text-xs text-secondary mr-3');
   status.setAttribute('aria-live', 'polite');

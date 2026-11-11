@@ -15,8 +15,12 @@
 import { resolveOverlayText } from '../addons/overlayRender.js';
 import { TOKEN_PATTERN, resolveToken, canonicalTokenKey } from '../../../components/personalize/tokenSchema.js';
 import { isImageTokenKey, shareableImageValue } from '../../personalization/imageReadiness.js';
+import { assetForUrl } from '../../personalization/imageStyle.js';
 
 export const CONTACT_PARAM = 'c';
+// Link params that carry an image's crop focus and brightness: `<token>__f=x,y`, `<token>__l=0.9`.
+export const FOCUS_SUFFIX = '__f';
+export const LUMINANCE_SUFFIX = '__l';
 const ID_RE = /^[A-Za-z0-9_-]{1,80}$/;
 
 /** Display name for a contact profile. */
@@ -74,7 +78,21 @@ export function personalLink(baseUrl, profile, tokens = []) {
     if (value == null || !String(value).trim()) return;
     if (isImageTokenKey(key)) {
       const href = shareableImageValue(value);
-      if (href) url.searchParams.set(key, href);
+      if (href) {
+        url.searchParams.set(key, href);
+        // The viewer has no saved assets, so carry what shapes the image:
+        // its crop focus and (for logos) its measured brightness.
+        const asset = assetForUrl(profile, value) || assetForUrl(profile, href);
+        const fx = Number(asset?.focus?.x);
+        const fy = Number(asset?.focus?.y);
+        if (Number.isFinite(fx) && Number.isFinite(fy)) {
+          url.searchParams.set(`${key}${FOCUS_SUFFIX}`, `${Math.round(fx * 10) / 10},${Math.round(fy * 10) / 10}`);
+        }
+        const lum = Number(asset?.luminance);
+        if (asset?.luminance != null && Number.isFinite(lum)) {
+          url.searchParams.set(`${key}${LUMINANCE_SUFFIX}`, String(Math.round(lum * 1000) / 1000));
+        }
+      }
       return;
     }
     url.searchParams.set(key, String(value).slice(0, 200));
@@ -144,4 +162,22 @@ export async function voiceForContacts({ text, contacts, generate, onProgress, s
 export function contactIdFromQuery(search = globalThis.location?.search || '') {
   const id = new URLSearchParams(search).get(CONTACT_PARAM);
   return id && ID_RE.test(id) ? id : null;
+}
+
+/**
+ * Form answers ("FIRST NAME": "Ann") → token variables, from the Personalizer,
+ * the List Builder or a Lead Generator form. Also stored under the studio's
+ * canonical token (NAME → fullName, FIRST NAME → firstName, COMPANY → company).
+ */
+export function profileWithAnswers(profile, data) {
+  const variables = { ...(profile?.variables || {}) };
+  Object.entries(data || {}).forEach(([k, v]) => {
+    const key = String(k).toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (!key || !v) return;
+    variables[key] = String(v);
+    variables[k] = String(v);
+    const canonical = canonicalTokenKey(k);
+    if (canonical) variables[canonical] = String(v);
+  });
+  return { ...(profile || {}), variables };
 }
