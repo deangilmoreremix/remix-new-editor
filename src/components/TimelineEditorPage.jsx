@@ -6624,7 +6624,7 @@ export function TimelineEditorPage() {
     // The Recorder menu opens the Screenity web recorder (public/recorder/) as an overlay.
     function openRecorderModal(state, showToast) {
       try {
-        const opened = openScreenityRecorder({});
+        const opened = openScreenityRecorder({ mode: 'dock' });
         if (!opened) return;
       } catch (error) {
         console.error('Recorder failed to open:', error);
