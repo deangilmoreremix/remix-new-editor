@@ -331,8 +331,11 @@ async function openTemplateBrowser(clip, state, showToast) {
 async function openVideoRecorder(state, showToast) {
   try {
     const modal = new RecorderModal({
-      onComplete: (videoUrl) => {
-        addVideoToTimeline({ src: videoUrl, name: 'Recorded Video' }, state);
+      onComplete: (result) => {
+        const src = typeof result === 'string'
+          ? result
+          : (result?.blob ? URL.createObjectURL(result.blob) : result?.src);
+        if (src) addVideoToTimeline({ src, name: result?.name || 'Recorded Video' }, state);
       }
     });
     modal.open();
@@ -381,7 +384,8 @@ function addVideoToTimeline(videoData, state) {
       src: videoData.src,
       poster: videoData.poster
     };
-    videoTrack.clips.push(newClip);
+    // renderTracks reads track.items
+    (videoTrack.items = videoTrack.items || []).push(newClip);
   }
 }
 

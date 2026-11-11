@@ -7001,6 +7001,15 @@ export function TimelineEditorPage() {
       const isAudio = videoData.type === 'audio' || videoData.mode === 'audio';
       const label = videoData.name || (isAudio ? 'Audio Recording' : 'Recording');
       saveStateSnapshot(state);
+      state.mediaLibrary = state.mediaLibrary || [];
+      state.mediaLibrary.push({
+        id: `rec-${Date.now()}`,
+        name: label,
+        type: isAudio ? 'audio' : 'recording',
+        url: src,
+        duration: videoData.duration || null,
+        generatedAt: new Date().toISOString()
+      });
       insertClipIntoTrack({
         id: Date.now() + Math.floor(Math.random() * 1000),
         name: label,

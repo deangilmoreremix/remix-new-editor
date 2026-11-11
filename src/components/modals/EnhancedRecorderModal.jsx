@@ -396,24 +396,96 @@ export class EnhancedRecorderModal extends BaseModal {
     if (downloadBtn) {
       downloadBtn.addEventListener('click', () => this.downloadRecording());
     }
+    const saveBtn = this.overlay.querySelector('.save-btn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => this.saveToLibrary());
+    }
   }
 
-  startRecording() {
+  getMimeType() {
+    const types = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+    return types.find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || 'video/webm';
+  }
+
+  // Quality preset id (e.g. '1080p') -> capture constraints.
+  getVideoConstraints() {
+    const heights = { '4k': 2160, '2160p': 2160, '1440p': 1440, '1080p': 1080, '720p': 720, '480p': 480 };
+    const height = heights[String(this.selectedQuality).toLowerCase()] || 1080;
+    return { height: { ideal: height }, frameRate: { ideal: 30 } };
+  }
+
+  async startRecording() {
+    try {
+      const wantsCamera0 = this.selectedSources.includes('webcam') || this.selectedSources.includes('camera');
+      const wantsScreen = this.selectedSources.some((id) => id !== 'webcam' && id !== 'camera') || !wantsCamera0;
+      const wantsCamera = this.selectedSources.includes('webcam') || this.selectedSources.includes('camera');
+      const tracks = [];
+      this.streams = [];
+
+      if (wantsScreen) {
+        const display = await navigator.mediaDevices.getDisplayMedia({
+          video: this.getVideoConstraints(),
+          audio: !!this.systemAudioEnabled
+        });
+        this.streams.push(display);
+        tracks.push(...display.getVideoTracks(), ...display.getAudioTracks());
+      }
+      if (wantsCamera && (!wantsScreen || this.webcamEnabled)) {
+        const cam = await navigator.mediaDevices.getUserMedia({ video: true });
+        this.streams.push(cam);
+        // Camera-only recording uses the camera video; with screen the screen track wins.
+        if (!wantsScreen) tracks.push(...cam.getVideoTracks());
+      }
+      if (this.microphoneEnabled && this.audioEnabled) {
+        try {
+          const mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+          this.streams.push(mic);
+          tracks.push(...mic.getAudioTracks());
+        } catch (micErr) {
+          console.warn('Microphone unavailable, recording without it:', micErr);
+        }
+      }
+      if (!tracks.some((t) => t.kind === 'video')) throw new Error('No video source available');
+
+      this.chunks = [];
+      this.recorder = new MediaRecorder(new MediaStream(tracks), { mimeType: this.getMimeType() });
+      this.recorder.ondataavailable = (e) => { if (e.data && e.data.size) this.chunks.push(e.data); };
+      this.recorder.onstop = () => {
+        this.recordedBlob = new Blob(this.chunks, { type: this.getMimeType() });
+        this.streams.forEach((st) => st.getTracks().forEach((t) => t.stop()));
+        this.streams = [];
+      };
+      // If the user ends sharing from the browser UI, stop cleanly.
+      tracks.filter((t) => t.kind === 'video').forEach((t) => { t.onended = () => this.stopRecording(); });
+      this.recorder.start(1000);
+    } catch (err) {
+      console.error('Enhanced recording failed to start:', err);
+      this.streams?.forEach((st) => st.getTracks().forEach((t) => t.stop()));
+      this.recordingState = 'idle';
+      this.updateBody(this.renderBody());
+      this.setupEventListeners();
+      if (typeof this.onError === 'function') this.onError(err);
+      return;
+    }
+
     this.recordingState = 'recording';
     this.recordingTime = 0;
     this.updateBody(this.renderBody());
     this.setupEventListeners();
+    this.startTimer();
+  }
 
+  startTimer() {
+    clearInterval(this.recordingInterval);
     this.recordingInterval = setInterval(() => {
       this.recordingTime++;
-      const timerEl = this.overlay.querySelector('.timer-text');
-      if (timerEl) {
-        timerEl.textContent = this.formatTime(this.recordingTime);
-      }
+      const timerEl = this.overlay?.querySelector('.timer-text');
+      if (timerEl) timerEl.textContent = this.formatTime(this.recordingTime);
     }, 1000);
   }
 
   pauseRecording() {
+    if (this.recorder?.state === 'recording') this.recorder.pause();
     this.recordingState = 'paused';
     clearInterval(this.recordingInterval);
     this.updateBody(this.renderBody());
@@ -421,20 +493,16 @@ export class EnhancedRecorderModal extends BaseModal {
   }
 
   resumeRecording() {
+    if (this.recorder?.state === 'paused') this.recorder.resume();
     this.recordingState = 'recording';
     this.updateBody(this.renderBody());
     this.setupEventListeners();
-
-    this.recordingInterval = setInterval(() => {
-      this.recordingTime++;
-      const timerEl = this.overlay.querySelector('.timer-text');
-      if (timerEl) {
-        timerEl.textContent = this.formatTime(this.recordingTime);
-      }
-    }, 1000);
+    this.startTimer();
   }
 
   stopRecording() {
+    if (this.recordingState === 'stopped') return;
+    if (this.recorder && this.recorder.state !== 'inactive') this.recorder.stop();
     this.recordingState = 'stopped';
     clearInterval(this.recordingInterval);
     this.updateBody(this.renderBody());
@@ -442,16 +510,48 @@ export class EnhancedRecorderModal extends BaseModal {
   }
 
   resetRecording() {
+    if (this.recorder && this.recorder.state !== 'inactive') this.recorder.stop();
     this.recordingState = 'idle';
     this.recordingTime = 0;
     this.recordedBlob = null;
+    this.chunks = [];
     this.updateBody(this.renderBody());
     this.setupEventListeners();
   }
 
+  // Save the file to disk only; does not touch the timeline.
   downloadRecording() {
-    this.onConfirm({ action: 'download', duration: this.recordingTime, quality: this.selectedQuality });
+    if (!this.recordedBlob) return;
+    const url = URL.createObjectURL(this.recordedBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `recording-${Date.now()}.webm`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+
+  // Hand the finished recording to the editor (timeline).
+  saveToLibrary() {
+    if (!this.recordedBlob) return;
+    this.onConfirm({
+      action: 'recordingComplete',
+      blob: this.recordedBlob,
+      duration: this.recordingTime,
+      type: 'screen',
+      quality: this.selectedQuality,
+      name: `Screen Recording ${new Date().toLocaleTimeString()}`
+    });
     this.close();
+  }
+
+  close(...args) {
+    if (this.recorder && this.recorder.state !== 'inactive') {
+      this.recorder.onstop = null;
+      this.recorder.stop();
+    }
+    this.streams?.forEach((st) => st.getTracks().forEach((t) => t.stop()));
+    clearInterval(this.recordingInterval);
+    return super.close(...args);
   }
 }
 
