@@ -207,4 +207,18 @@ describe('ZackDStudio (built like the other video studios)', () => {
     await until(() => !root.querySelector('audio'), 'voice-over dropped');
     expect(btnText(root, 'Generate narration')).toBeTruthy();
   });
+
+  it('offers Rewrite script until the script is approved, so a changed topic can get a new script', async () => {
+    const root = mount();
+    typeTopic(root, 'Gum'); await step(root, 'Write script'); generate(root).click();
+    await until(() => btnText(root, 'Rewrite script'), 'rewrite offered');
+    const scriptCalls = () => calls.filter((c) => c.action === 'script').length;
+    expect(scriptCalls()).toBe(1);
+    typeTopic(root, 'Sleep');
+    btnText(root, 'Rewrite script').click();
+    await until(() => scriptCalls() === 2, 'second script request');
+    expect(calls.filter((c) => c.action === 'script').at(-1).topic).toBe('Sleep');
+    await step(root, 'Approve script'); generate(root).click();
+    await until(() => !btnText(root, 'Rewrite script'), 'gone once approved');
+  });
 });

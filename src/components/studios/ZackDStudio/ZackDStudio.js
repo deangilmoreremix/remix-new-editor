@@ -338,6 +338,11 @@ export function ZackDStudio() {
     if (s.map) {
       // 1. script: editable beat cards (Gate 1 is the "Approve script" action)
       const sc = section('Script', s.approved ? `${s.map.beats.length} beats · ${shotList().length} shots · about ${Math.round(totalDuration(s.map))}s planned` : `Gate 1: review the beat map (${s.map.beats.length} beats, ${shotList().length} shots). Edit anything, then approve.`);
+      if (!s.approved) {
+        const rewrite = el('button', CANVAS_BTN, 'Rewrite script'); rewrite.type = 'button'; rewrite.disabled = busy || !s.topic.trim();
+        rewrite.onclick = () => { if (window.confirm('Write a new script from the topic? Your edits to this script are replaced.')) writeScript(); };
+        sc.appendChild(rewrite);
+      }
       const grid = el('div', 'grid gap-3 md:grid-cols-3');
       s.map.beats.forEach((b, bi) => {
         const card = el('div', `${CARD} p-3 gap-2`);
@@ -544,6 +549,7 @@ export function ZackDStudio() {
     else if (meta.slot === 'clip') s.shots[meta.id] = { ...(s.shots[meta.id] || {}), clip: url };
     else if (meta.slot === 'narration') { s.narration = url; s.mixVoice = true; }
     else if (meta.slot === 'music') { s.music = url; s.mixVoice = true; }
+    else if (meta.slot === 'captions') { addHistory(url, s.topic); showToast('Recovered your captioned video. It is in the history.', 'info', 4000); } // the cut it came from is gone after a reload
     else return;
     if (assembling && (meta.slot === 'clip' || meta.slot === 'keyframe' || meta.slot === 'narration' || meta.slot === 'music')) renderStale = true;
     // A rendered cut that was built from the media that just changed is stale: drop it so it cannot be downloaded, saved or captioned.
@@ -696,15 +702,18 @@ export function ZackDStudio() {
     const setLabel = (t) => { const l = progress?.querySelector('.progress-label'); if (l) l.textContent = t; };
     setLabel('Uploading the video…');
     const cut = final; // the cut this burn belongs to
+    // recorded like the other paid jobs, so a reload while it runs can still recover the result (into the history)
+    const tracker = createPendingJobTracker('zackd', { slot: 'captions', id: 'captions', pid: s.pid }, { maxAttempts: 300, interval: 4000 });
     try {
       const { muapi } = await import('../../../lib/muapi.js');
       const file = new File([final.blob], 'zackd-cut.mp4', { type: 'video/mp4' });
       const videoUrl = await muapi.uploadFile(file, { signal: abort.current.signal });
       setLabel('Burning captions (2-3 minutes)…');
-      const r = await runJob({ kind: 'captions', videoUrl, language: s.captionLang, theme: s.captionTheme }, { signal: abort.current.signal });
+      const r = await runJob({ kind: 'captions', videoUrl, language: s.captionLang, theme: s.captionTheme }, { signal: abort.current.signal, onRequestId: tracker.onRequestId });
       cut.captioned = { url: r.url, saved: false };
       showToast('Captions ready', 'success', 2500);
     } catch (e) { fail(e); }
+    tracker.finish();
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
     busy = false; progress = null; paint();
   }
