@@ -640,15 +640,17 @@ export function ZackDStudio() {
     cancelCtl = createAbortAwareGenerateButton(generateBtn); cancelCtl.showCancel(); abort.current = cancelCtl.controller;
     paint();
     const setLabel = (t) => { const l = progress?.querySelector('.progress-label'); if (l) l.textContent = t; };
+    // What this cut is built from, fixed now: the options can still be toggled while it encodes, and the cut's metadata must describe its real inputs.
+    const mixVoice = !!s.mixVoice; const narrationUrl = s.narration; const musicUrl = s.music;
     try {
       const { blob, duration, durations } = await runAssembly({
         clips: shots.map((x) => ({ url: s.shots[x.shot_id].clip, planned: x.duration_sec, zoom: x.zoom_impact })),
-        narrationUrl: s.narration, musicUrl: s.music, keepClipAudio: s.keepClipAudio !== false, mixVoice: !!s.mixVoice, trimToPlanned: !!s.trimToPlanned,
+        narrationUrl, musicUrl, keepClipAudio: s.keepClipAudio !== false, mixVoice, trimToPlanned: !!s.trimToPlanned,
         transition: DEFAULT_TRANSITION_SEC, signal: abort.current.signal,
         onProgress: (phase, p) => { if (phase === 'encode') { progress?.setProgress(p * 100); setLabel(`Encoding ${Math.round(p * 100)}%`); } else setLabel(phase === 'download' ? 'Downloading clips…' : 'Loading encoder…'); },
       });
       if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
-      final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false, hasNarration: !!(s.mixVoice && s.narration), mixed: !!s.mixVoice }; // captions are transcribed from the cut's audio
+      final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false, hasNarration: !!(mixVoice && narrationUrl), mixed: mixVoice }; // captions are transcribed from the cut's audio
       showToast('Final cut ready', 'success', 2500);
     } catch (e) { fail(e); }
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
