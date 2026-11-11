@@ -5635,7 +5635,63 @@ export function TimelineEditorPage() {
         onExport(row) { if (row?.id === state.projectId) openExportModal(state, showToast); else showToast('Open the project, then choose Export', 'info'); },
         onShare(row) { if (row?.id === state.projectId) openPanel('sharePanel'); else showToast('Open the project, then use Share to publish', 'info'); },
         onToast: showToast,
+        // Card numbers come from the owner-only analytics RPCs; absent rows stay "unavailable".
+        async getStats(ids) {
+          const client = await publishOwnerClient();
+          const { periodRange } = await import('../lib/editor/projectLibrary/analytics/analyticsData.js');
+          const { from, to } = periodRange('30d');
+          const { data, error } = await client.rpc('owner_video_stats', { p_from: from, p_to: to });
+          if (error) throw error;
+          const notes = await client.from('owner_notifications').select('project_id, type').is('read_at', null).in('project_id', ids);
+          const unread = {}; const follow = {};
+          for (const n of notes.data || []) { unread[n.project_id] = (unread[n.project_id] || 0) + 1; if (['followup_opportunity', 'high_interest'].includes(n.type)) follow[n.project_id] = true; }
+          const out = {};
+          for (const r of data || []) {
+            if (!r.project_id) continue;
+            const plays = Number(r.plays) || 0; const uniq = Number(r.unique_viewers) || 0;
+            out[r.project_id] = {
+              plays, unique_viewers: plays > 0 && uniq === 0 ? null : uniq,
+              completion_pct: r.completion_pct == null ? null : Number(r.completion_pct),
+              cta_clicks: (Number(r.cta_clicks) || 0) + (Number(r.call_clicks) || 0), leads: Number(r.leads) || 0,
+              needs_follow_up: !!follow[r.project_id], unread_notifications: unread[r.project_id] || 0,
+            };
+          }
+          return out;
+        },
+        async getUnread() { return (await import('../lib/editor/projectLibrary/tabsData.js')).unreadCount(await publishOwnerClient()); },
+        tabs: await projectTabs(),
       });
+    }
+    // Detail-tab renderers (Analytics = the supplied dashboard component; the rest share its look).
+    async function projectTabs() {
+      const [{ audienceTab, retargetTab, notificationsTab }, { mountAnalyticsTab }] = await Promise.all([
+        import('../lib/editor/projectLibrary/projectTabs.js'),
+        import('../lib/editor/projectLibrary/analytics/mountAnalyticsTab.jsx'),
+      ]);
+      const tabDeps = {
+        getClient: publishOwnerClient,
+        navigate: (page) => import('../lib/router.js').then((m) => m.navigate(page)),
+        onToast: showToast,
+        onUnreadChanged: () => projectsPanel?.refresh(),
+      };
+      return {
+        audience: audienceTab(tabDeps),
+        retarget: retargetTab(tabDeps),
+        notifications: notificationsTab(tabDeps),
+        analytics: (panel, ctx) => {
+          let stop = null; let cancelled = false;
+          publishOwnerClient().then((client) => {
+            if (cancelled) return;
+            stop = mountAnalyticsTab(panel, ctx, {
+              client,
+              onPublish: () => (ctx.project.id === state.projectId ? openPanel('sharePanel') : showToast('Open the project, then use Share to publish', 'info')),
+              onOpenOpportunity: (id) => ctx.openTab('notifications', { focusId: id }),
+              onCreateFollowup: () => ctx.openTab('retarget'),
+            });
+          }).catch((err) => { panel.textContent = err.message; });
+          return () => { cancelled = true; stop?.(); };
+        },
+      };
     }
     async function recordRender(info) {
       if (!state.projectId || !window.Clerk?.user) return;
@@ -5697,6 +5753,10 @@ export function TimelineEditorPage() {
           if (uploaded) {
             renderTracks();
             scheduleEngineUpdate();
+          }
+          // Interest mapping lives with the project (Projects > Retarget); publishing carries it to viewers.
+          if (state.projectId) {
+            try { state.interestMap = (await (await projectStore()).loadProject(client, state.projectId))?.settings?.interestMap || undefined; } catch { /* publish without a mapping */ }
           }
           const project = pub.preparePublishProject(state, { title });
           const id = videoId() || pub.makeSlug();

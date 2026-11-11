@@ -46,14 +46,19 @@ export function renderProjectsPanel(host, deps) {
   let loading = true;
   let error = null;
   let alive = true;
+  let unread = null;
+  let tabCleanup = null; // set by tabs that mount something (e.g. React) and need tearing down
 
   host.classList.add('prj-root');
   host.innerHTML = `
+    <div class="prj-title"><div><h3 class="prj-h">My Video Projects</h3><p class="prj-sub">Everything you have saved, published and measured</p></div><span class="prj-pill">Timeline Editor</span></div>
+    <div class="prj-summary" data-role="summary"></div>
     <div class="prj-head">
-      <input class="text-input prj-search" type="search" placeholder="Search projects" aria-label="Search projects" />
+      <label class="prj-searchbox"><span aria-hidden="true">⌕</span><input class="prj-search" type="search" placeholder="Search projects..." aria-label="Search projects" /></label>
+      <button type="button" class="prj-filter-btn" data-toggle-filters aria-expanded="false" aria-controls="prj-filters" aria-label="Filters and sorting">☰</button>
       <button class="primary-btn prj-new" type="button">＋ New project</button>
     </div>
-    <div class="prj-filters" role="group" aria-label="Project filters">
+    <div class="prj-filters" id="prj-filters" role="group" aria-label="Project filters" hidden>
       <select class="text-input" data-f="published" aria-label="Published status">
         <option value="all">All</option><option value="published">Published</option><option value="unpublished">Unpublished</option></select>
       <select class="text-input" data-f="render" aria-label="Render status">
@@ -67,12 +72,12 @@ export function renderProjectsPanel(host, deps) {
         <button type="button" class="mini-btn" data-view="list" aria-pressed="false">☰</button>
       </span>
     </div>
-    <div class="prj-summary" data-role="summary"></div>
     <div class="prj-body" data-role="body"></div>
     <div class="prj-detail" data-role="detail" hidden></div>`;
 
   const $ = (s) => host.querySelector(s);
   const body = $('[data-role="body"]');
+  host.querySelector('[data-toggle-filters]').addEventListener('click', (e) => { const f = $('#prj-filters'); f.hidden = !f.hidden; e.currentTarget.setAttribute('aria-expanded', String(!f.hidden)); });
   const detail = $('[data-role="detail"]');
 
   const toast = (m, t) => deps.onToast?.(m, t);
@@ -87,6 +92,7 @@ export function renderProjectsPanel(host, deps) {
         deps.getPublished ? deps.getPublished(ids).catch(() => ({})) : {},
         deps.getStats ? deps.getStats(ids).catch(() => null) : null,
       ]);
+      unread = deps.getUnread ? await deps.getUnread().catch(() => null) : null;
       rows = Object.fromEntries(list.map((r) => [r.id, r]));
       cards = list.map((r) => toCard(r, { published: pub?.[r.id] || null, stats: stats?.[r.id] || null }));
     } catch (e) {
@@ -100,17 +106,24 @@ export function renderProjectsPanel(host, deps) {
     const published = cards.filter((c) => c.published).length;
     const withStats = cards.filter((c) => c.hasStats);
     const sum = (k) => (withStats.length ? withStats.reduce((a, c) => a + (c[k] || 0), 0) : null);
-    const items = [
-      ['Projects', cards.length], ['Published', published],
-      ['Total plays', sum('plays')], ['CTA clicks', sum('ctaClicks')], ['Leads', sum('leads')],
-      ['Follow-ups', cards.filter((c) => c.needsFollowUp).length],
-    ];
+    const compact = (v) => (v == null ? '—' : v >= 10000 ? `${(v / 1000).toFixed(1)}K`.replace('.0K', 'K') : v >= 1000 ? `${(v / 1000).toFixed(1)}K` : String(v));
+    const main = [['Published videos', published], ['Total plays · 30 days', sum('plays')], ['Leads · 30 days', sum('leads')]];
+    const rest = [['CTA clicks', sum('ctaClicks')], ['Unread alerts', unread], ['Follow-ups', cards.filter((c) => c.needsFollowUp).length]];
     // Per-video unique viewers are intentionally NOT summed here (would not be unique people).
-    return items.map(([l, v]) => `<div class="prj-stat"><b>${v == null ? '—' : v}</b><span>${l}</span></div>`).join('');
+    return `<div class="prj-stats-main">${main.map(([l, v]) => `<div class="prj-stat prj-stat-lg"><span>${l}</span><b>${compact(v)}</b></div>`).join('')}</div>
+      <div class="prj-stats-rest">${rest.map(([l, v]) => `<div class="prj-stat"><b>${compact(v)}</b><span>${l}</span></div>`).join('')}</div>`;
+  }
+
+  /** The one obvious next step for a project. */
+  function primaryAction(c) {
+    if (!c.published) return ['publish', 'Publish'];
+    if (c.needsFollowUp) return ['retarget', 'Retarget'];
+    return ['analytics', 'Analytics'];
   }
 
   function cardHtml(c) {
     const active = deps.getCurrentProjectId?.() === c.id;
+    const [act, label] = primaryAction(c);
     const thumb = c.thumbnailUrl
       ? `<img src="${esc(c.thumbnailUrl)}" alt="" loading="lazy" />`
       : '<div class="prj-thumb-empty" aria-hidden="true">🎬</div>';
@@ -120,22 +133,17 @@ export function renderProjectsPanel(host, deps) {
         <div class="prj-meta">
           <h4 class="prj-name">${esc(c.name)}</h4>
           <div class="prj-tags">
-            <span class="pz-chip">${c.published ? 'Published' : 'Draft'}</span>
+            <span class="pz-chip prj-status ${c.published ? 'is-published' : ''}">${c.published ? 'Published' : 'Draft'}</span>
             <span class="pz-chip">${RENDER_LABEL[c.renderStatus] || esc(c.renderStatus)}</span>
             ${c.needsFollowUp ? '<span class="pz-chip">Follow-up</span>' : ''}
             ${c.parentProjectId ? '<span class="pz-chip">Follow-up video</span>' : ''}
           </div>
+          <div class="prj-line"><span>${c.plays == null ? '<span class="prj-na" title="Not collected yet">—</span>' : Number(c.plays).toLocaleString('en-US')} plays</span><span>${c.completionPct == null ? '<span class="prj-na" title="Not enough data">—</span>' : `${c.completionPct}%`} complete</span></div>
           <div class="prj-sub">${fmtDuration(c.durationS)} · ${esc(c.aspectRatio || '—')} · Edited ${fmtDate(c.updatedAt)}</div>
-          <dl class="prj-metrics">
-            <div><dt>Plays</dt><dd>${metric(c.plays)}</dd></div>
-            <div><dt>Viewers</dt><dd>${metric(c.uniqueViewers)}</dd></div>
-            <div><dt>Completed</dt><dd>${metric(c.completionPct, '%')}</dd></div>
-            <div><dt>CTA</dt><dd>${metric(c.ctaClicks)}</dd></div>
-            <div><dt>Leads</dt><dd>${metric(c.leads)}</dd></div>
-          </dl>
         </div>
         <div class="prj-actions">
-          <button type="button" class="mini-btn" data-act="open">Open</button>
+          <button type="button" class="prj-primary" data-act="${act}">${label}</button>
+          <button type="button" class="mini-btn" data-act="open">Open in editor</button>
           <button type="button" class="mini-btn" data-act="details">Details</button>
           <button type="button" class="mini-btn" data-act="duplicate">Duplicate</button>
         </div>
@@ -171,8 +179,10 @@ export function renderProjectsPanel(host, deps) {
     drawDetail();
   }
   function closeDetail() { ui.selected = null; drawDetail(); }
+  const openTab = (tab, opts = {}) => { ui.tab = tab; ui.tabOpts = opts; drawDetail(); };
 
   function drawDetail() {
+    if (tabCleanup) { try { tabCleanup(); } catch { /* already unmounted */ } tabCleanup = null; }
     const c = cards.find((x) => x.id === ui.selected);
     if (!c) { detail.hidden = true; detail.innerHTML = ''; body.hidden = false; return; }
     body.hidden = true; detail.hidden = false;
@@ -185,10 +195,10 @@ export function renderProjectsPanel(host, deps) {
         `<button type="button" role="tab" class="mini-btn${k === ui.tab ? ' active' : ''}" aria-selected="${k === ui.tab}" data-tab="${k}">${l}</button>`).join('')}</div>
       <div class="prj-tabpanel" data-role="tabpanel" role="tabpanel"></div>`;
     const panel = detail.querySelector('[data-role="tabpanel"]');
-    const ctx = { project: rows[c.id], card: c, deps, refresh };
+    const ctx = { project: rows[c.id], card: c, deps, refresh, openTab };
     if (ui.tab === 'overview') overviewTab(panel, c);
     else if (ui.tab === 'share') shareTab(panel, c);
-    else if (deps.tabs?.[ui.tab]) deps.tabs[ui.tab](panel, ctx);
+    else if (deps.tabs?.[ui.tab]) { const r = deps.tabs[ui.tab](panel, ctx, ui.tabOpts || {}); ui.tabOpts = {}; if (typeof r === 'function') tabCleanup = r; }
     else panel.innerHTML = `<div class="prj-empty"><p>${c.published
       ? 'No data has been collected for this video yet.'
       : 'Publish this video to start collecting viewer data.'}</p></div>`;
@@ -231,6 +241,9 @@ export function renderProjectsPanel(host, deps) {
     try {
       if (name === 'open') await deps.onOpen(row ? await loadProject(await deps.getClient(), id) : row);
       else if (name === 'details') openDetail(id);
+      else if (name === 'analytics') openDetail(id, 'analytics');
+      else if (name === 'retarget') openDetail(id, 'retarget');
+      else if (name === 'publish') deps.onShare?.(row);
       else if (name === 'preview') deps.onPreview?.(row);
       else if (name === 'export') deps.onExport?.(row);
       else if (name === 'share') deps.onShare?.(row);
@@ -256,7 +269,7 @@ export function renderProjectsPanel(host, deps) {
       host.querySelectorAll('[data-view]').forEach((b) => { const on = b === t; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); });
       draw(); return;
     }
-    if (t.dataset.tab) { ui.tab = t.dataset.tab; drawDetail(); return; }
+    if (t.dataset.tab) { ui.tab = t.dataset.tab; ui.tabOpts = {}; drawDetail(); return; }
     const a = t.dataset.act;
     if (a === 'retry') return refresh();
     if (a === 'create') return deps.onCreate?.().then?.(refresh);
@@ -278,7 +291,7 @@ export function renderProjectsPanel(host, deps) {
   return {
     refresh,
     openDetail,
-    destroy() { alive = false; },
+    destroy() { alive = false; if (tabCleanup) { try { tabCleanup(); } catch { /* noop */ } tabCleanup = null; } },
     _state: () => ({ ui, cards }),
   };
 }

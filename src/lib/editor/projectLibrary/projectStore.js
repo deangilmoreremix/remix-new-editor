@@ -118,6 +118,49 @@ export async function duplicateProject(client, id) {
   return data;
 }
 
+/**
+ * A personalized follow-up: a NEW, separately saved project that starts from a
+ * copy of the original's timeline (its media references are reused) and stays
+ * linked to it (parent_project_id) with the brief that produced it
+ * (followup_context). The original is never modified.
+ */
+export async function createFollowupProject(client, originalId, context = {}) {
+  const src = await loadProject(client, originalId);
+  if (!src) throw new Error('The original project was not found');
+  const topic = String(context.interest || 'follow-up').slice(0, 60);
+  const ctx = {
+    interest: context.interest || null,
+    interestType: context.interestType || null,
+    product: context.product || null,
+    service: context.service || null,
+    ctaPurpose: context.ctaPurpose || null,
+    suggestedMessage: context.suggestedMessage || null,
+    originalProjectName: src.name,
+    createdFrom: 'retarget',
+  };
+  const { data, error } = await client.from(TABLE).insert({
+    name: cleanName(`${src.name}: ${topic} follow-up`),
+    data: { ...(src.data || {}), projectId: undefined, publishedVideos: {} }, // fresh project: nothing published yet
+    tags: [...new Set([...(src.tags || []), 'follow-up'])].slice(0, 12),
+    thumbnail_url: src.thumbnail_url,
+    duration_s: src.duration_s,
+    aspect_ratio: src.aspect_ratio,
+    settings: src.settings,
+    parent_project_id: src.id,
+    followup_context: ctx,
+  }).select('*').single();
+  fail(error, 'Could not create the follow-up project');
+  return data;
+}
+
+/** Follow-up projects created from an original. */
+export async function listFollowups(client, parentId) {
+  const { data, error } = await client.from(TABLE).select('id, name, followup_context, created_at, updated_at, render')
+    .eq('parent_project_id', parentId).is('deleted_at', null).order('created_at', { ascending: false }).limit(50);
+  fail(error, 'Could not load follow-ups');
+  return data || [];
+}
+
 /** Soft delete (recoverable); published videos are unpublished by the caller. */
 export async function deleteProject(client, id) {
   const { error } = await client.from(TABLE).update({ deleted_at: new Date().toISOString() }).eq('id', id);

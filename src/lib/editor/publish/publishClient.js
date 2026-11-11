@@ -127,6 +127,9 @@ export function preparePublishProject(state, { title } = {}) {
     tracks,
     listBuilder: state?.listBuilder ? clean(state.listBuilder) : null,
     multiCam: state?.multiCam ? clean(state.multiCam) : null,
+    // The owner's mapping of sections to products/services (Projects > Retarget): lets the
+    // server score viewer interest from observed behaviour. Absent when not mapped.
+    ...(Array.isArray(state?.interestMap) && state.interestMap.length ? { interestMap: clean(state.interestMap.slice(0, 20)) } : {}),
   };
 }
 

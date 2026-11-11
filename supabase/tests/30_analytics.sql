@@ -23,7 +23,6 @@ select 'daily: visits=' || page_visits || ' plays=' || plays || ' sessions=' || 
 select 'distinct cta events: ' || count(*) from video_events where type='cta_click';
 select 'bogus stored: ' || count(*) from video_events where type='bogus';
 select 'view_count: ' || view_count from published_videos where id='vidAn00001';
-select 'retention buckets covered: ' || count(*) || ' max viewers=' || max(viewers) from video_retention_buckets where video_id='vidAn00001';
 \echo '--- rejects'
 set role service_role;
 select 'unknown video: ' || (ingest_video_events('nopenope12','sess-aaaaaaaaaaaaaaaa',null,null,null,null,'[]'))::text;
@@ -48,7 +47,7 @@ set role authenticated; set request.jwt.claims = '{"sub":"userA"}';
 select 'A summary: ' || (video_analytics_summary('vidAn00001', current_date - 1, current_date + 1))::text;
 select 'A portfolio: ' || (owner_portfolio_summary(current_date - 1, current_date + 1))::text;
 select 'A stats rows: ' || count(*) from owner_video_stats(current_date - 1, current_date + 1);
-select 'A retention b0/b25/b26: ' || (select string_agg(viewers::text, '/' order by bucket) from video_retention_curve('vidAn00001') where bucket in (0,25,26));
+select 'A retention b0/b25/b26: ' || (select string_agg(viewers::text, '/' order by bucket) from video_retention_curve('vidAn00001', current_date - 1, current_date + 1) where bucket in (0,25,26));
 select 'A ctas: ' || count(*) from video_cta_performance('vidAn00001', current_date - 1, current_date + 1);
 select 'A timeseries rows: ' || count(*) from video_analytics_timeseries('vidAn00001', current_date - 2, current_date);
 select 'A by contact: ' || count(*) from video_events_by_contact('vidAn00001');

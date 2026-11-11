@@ -39,17 +39,69 @@ describe('projects panel', () => {
     renderProjectsPanel(host, deps);
     expect(host.querySelector('.prj-skel')).toBeTruthy();
     await tick(); await tick();
-    const cards = host.querySelectorAll('.prj-card');
-    expect(cards).toHaveLength(2);
+    expect(host.querySelectorAll('.prj-card')).toHaveLength(2);
     const a = host.querySelector('[data-id="a"]');
     expect(a.textContent).toContain('Published');
     expect(a.textContent).toContain('1:05');
-    // plays = 0 is a real zero; viewers were never collected => unavailable marker
-    expect(a.querySelector('.prj-metrics div:nth-child(1) dd').textContent).toBe('0');
-    expect(a.querySelector('.prj-metrics div:nth-child(2) .prj-na')).toBeTruthy();
-    // project without any stats shows unavailable everywhere
-    expect(host.querySelector('[data-id="b"]').querySelectorAll('.prj-na').length).toBe(5);
+    // plays = 0 is a real zero; completion was never computed => unavailable marker, not 0%
+    const line = a.querySelector('.prj-line');
+    expect(line.children[0].textContent).toBe('0 plays');
+    expect(line.children[1].querySelector('.prj-na')).toBeTruthy();
+    // a project without any stats shows unavailable for both
+    expect(host.querySelector('[data-id="b"] .prj-line').querySelectorAll('.prj-na').length).toBe(2);
     expect(host.querySelector('[data-id="b"]').classList.contains('is-current')).toBe(true);
+  });
+
+  it('summary uses real totals and shows unavailable instead of inventing numbers', async () => {
+    renderProjectsPanel(host, { ...deps, getStats: async () => ({ a: { plays: 12800, leads: 86 } }), getUnread: async () => 3 });
+    await tick(); await tick();
+    const main = [...host.querySelectorAll('.prj-stat-lg')].map((e) => [e.querySelector('span').textContent, e.querySelector('b').textContent]);
+    expect(main).toEqual([['Published videos', '1'], ['Total plays · 30 days', '12.8K'], ['Leads · 30 days', '86']]);
+    expect(host.querySelector('.prj-stats-rest').textContent).toContain('3Unread alerts');
+    const none = document.createElement('div'); document.body.appendChild(none);
+    renderProjectsPanel(none, { ...deps, getStats: async () => null, getPublished: async () => ({}) });
+    await tick(); await tick();
+    expect([...none.querySelectorAll('.prj-stat-lg b')].map((e) => e.textContent)).toEqual(['0', '—', '—']);
+  });
+
+  it('offers one contextual primary action per card', async () => {
+    renderProjectsPanel(host, { ...deps, getStats: async () => ({ a: { plays: 5, needs_follow_up: false } }) });
+    await tick(); await tick();
+    expect(host.querySelector('[data-id="a"] .prj-primary').textContent).toBe('Analytics');
+    expect(host.querySelector('[data-id="b"] .prj-primary').textContent).toBe('Publish');
+    const h2 = document.createElement('div'); document.body.appendChild(h2);
+    renderProjectsPanel(h2, { ...deps, getStats: async () => ({ a: { plays: 5, needs_follow_up: true } }) });
+    await tick(); await tick();
+    expect(h2.querySelector('[data-id="a"] .prj-primary').textContent).toBe('Retarget');
+    h2.querySelector('[data-id="a"] .prj-primary').click();
+    expect(h2.querySelector('.prj-tabs .active').textContent).toBe('Retarget');
+  });
+
+  it('filters sit behind a toggle', async () => {
+    renderProjectsPanel(host, deps);
+    await tick(); await tick();
+    const f = host.querySelector('#prj-filters');
+    expect(f.hidden).toBe(true);
+    host.querySelector('[data-toggle-filters]').click();
+    expect(f.hidden).toBe(false);
+    expect(host.querySelector('[data-toggle-filters]').getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('mounts tab content, tears it down on change, and passes tab options', async () => {
+    const cleanup = vi.fn();
+    const analytics = vi.fn(() => cleanup);
+    const notifications = vi.fn();
+    renderProjectsPanel(host, { ...deps, tabs: { analytics, notifications } });
+    await tick(); await tick();
+    host.querySelector('[data-id="a"] [data-act="details"]').click();
+    host.querySelector('[data-tab="analytics"]').click();
+    expect(analytics).toHaveBeenCalledTimes(1);
+    const ctx = analytics.mock.calls[0][1];
+    expect(ctx.project.id).toBe('a');
+    ctx.openTab('notifications', { focusId: 'n1' });          // e.g. clicking an opportunity
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(notifications.mock.calls[0][2]).toEqual({ focusId: 'n1' });
+    expect(host.querySelector('.prj-tabs .active').textContent).toBe('Notifications');
   });
 
   it('searches and toggles list view', async () => {

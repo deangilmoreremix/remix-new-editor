@@ -450,28 +450,6 @@ as $$
   ) x;
 $$;
 
--- Section engagement from real retention buckets (average share of the section's
--- 1% slices that played sessions covered).
-create or replace function public.video_section_engagement(p_video_id text, p_sections jsonb)
-returns table (section_id text, engagement_percent numeric)
-language sql
-stable
-security invoker
-set search_path = ''
-as $$
-  with base as (select count(*) as n from public.video_view_sessions where video_id = p_video_id and played),
-  dur as (select (project ->> 'timelineSeconds')::numeric as d from public.published_videos where id = p_video_id)
-  select sec ->> 'id',
-         case when (select n from base) = 0 or (select d from dur) is null or (select d from dur) <= 0 then null
-              else round(100.0 * coalesce((
-                select avg(r.viewers)::numeric from public.video_retention_buckets r
-                 where r.video_id = p_video_id
-                   and r.bucket between least(99, greatest(0, floor((sec ->> 'start')::numeric / (select d from dur) * 100)::int))
-                                    and least(99, greatest(0, ceil((sec ->> 'end')::numeric / (select d from dur) * 100)::int - 1))
-              ), 0) / (select n from base), 1) end
-    from jsonb_array_elements(p_sections) sec;
-$$;
-
 -- Notifications: list, count, mark read, preferences.
 create or replace function public.owner_unread_notifications()
 returns bigint
@@ -570,11 +548,9 @@ grant execute on function public.build_daily_digests(boolean) to service_role;
 
 revoke all on function public.video_interest_summary(text, date, date) from public;
 revoke all on function public.video_audience_segments(text, date, date) from public;
-revoke all on function public.video_section_engagement(text, jsonb) from public;
 revoke all on function public.owner_unread_notifications() from public;
 revoke all on function public.mark_notifications_read(uuid[]) from public;
 grant execute on function public.video_interest_summary(text, date, date) to authenticated;
 grant execute on function public.video_audience_segments(text, date, date) to authenticated;
-grant execute on function public.video_section_engagement(text, jsonb) to authenticated;
 grant execute on function public.owner_unread_notifications() to authenticated;
 grant execute on function public.mark_notifications_read(uuid[]) to authenticated;

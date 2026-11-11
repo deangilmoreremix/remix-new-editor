@@ -20,9 +20,10 @@
 --   CTA clicks   distinct CTA / call / product / overlay interactions per
 --                session (a repeated click on the same target counts once)
 --
--- Storage is bounded: watch segments are aggregated (not stored as rows), raw
--- events are capped per session and pruned after 90 days, daily aggregates
--- are kept.
+-- Storage is bounded: watch segments are aggregated into per-session coverage
+-- (not stored as rows), raw events are capped per session and pruned after 90
+-- days, daily aggregates are kept. Retention and section engagement are computed
+-- from session coverage, so they follow any reporting period within that window.
 -- ===========================================================================
 
 create table if not exists public.video_view_sessions (
@@ -107,19 +108,10 @@ create table if not exists public.video_daily_viewers (
   primary key (video_id, day, viewer_hash)
 );
 
--- Retention: sessions that watched each 1% slice of the video (distinct per session).
-create table if not exists public.video_retention_buckets (
-  video_id text not null references public.published_videos (id) on delete cascade,
-  revision integer not null,
-  bucket smallint not null check (bucket between 0 and 99),
-  viewers bigint not null default 0,
-  primary key (video_id, revision, bucket)
-);
-
 do $$
 declare t text;
 begin
-  foreach t in array array['video_view_sessions', 'video_events', 'video_analytics_daily', 'video_daily_viewers', 'video_retention_buckets']
+  foreach t in array array['video_view_sessions', 'video_events', 'video_analytics_daily', 'video_daily_viewers']
   loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists "Owners read own video analytics" on public.%I', t);
@@ -260,11 +252,6 @@ begin
         nb := '{}';
         for b in b0..b1 loop
           if not (b::smallint = any(w_covered)) then nb := nb || b::smallint; end if;
-        end loop;
-        foreach b in array nb loop
-          insert into public.video_retention_buckets (video_id, revision, bucket, viewers)
-          values (p_video_id, v.revision, b, 1)
-          on conflict (video_id, revision, bucket) do update set viewers = public.video_retention_buckets.viewers + 1;
         end loop;
         w_covered := w_covered || nb;
         w_progress := greatest(w_progress, least(1, (t0 + credit) / dur));
@@ -432,19 +419,51 @@ as $$
    order by g.day;
 $$;
 
--- Share of played sessions that watched each 1% slice (base = played sessions).
-create or replace function public.video_retention_curve(p_video_id text)
+-- Retention for a reporting period: share of played sessions (started in the
+-- range) that watched each 1% slice of the video. Computed from per-session
+-- coverage, so it follows the selected dates exactly.
+create or replace function public.video_retention_curve(p_video_id text, p_from date, p_to date)
 returns table (bucket integer, viewers bigint, base bigint)
 language sql
 stable
 security invoker
 set search_path = ''
 as $$
-  with base as (select count(*) as n from public.video_view_sessions where video_id = p_video_id and played)
-  select g.b, coalesce(sum(r.viewers), 0)::bigint, (select n from base)
-    from generate_series(0, 99) as g(b)
-    left join public.video_retention_buckets r on r.video_id = p_video_id and r.bucket = g.b
-   group by g.b order by g.b;
+  with ss as (
+    select covered from public.video_view_sessions
+     where video_id = p_video_id and played and (started_at at time zone 'utc')::date between p_from and p_to),
+  base as (select count(*) as n from ss),
+  cnt as (select b::integer as bucket, count(*) as viewers from ss, unnest(ss.covered) b group by b)
+  select g.b, coalesce(c.viewers, 0)::bigint, (select n from base)
+    from generate_series(0, 99) as g(b) left join cnt c on c.bucket = g.b
+   order by g.b;
+$$;
+
+-- Average share of each section (given as [{id,start,end}] in seconds) that
+-- played sessions in the range actually watched. null when nothing was played.
+create or replace function public.video_section_engagement(p_video_id text, p_sections jsonb, p_from date, p_to date)
+returns table (section_id text, engagement_percent numeric)
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  with d as (select (project ->> 'timelineSeconds')::numeric as dur from public.published_videos where id = p_video_id),
+  sec as (
+    select x ->> 'id' as id,
+           least(99, greatest(0, floor((x ->> 'start')::numeric / (select dur from d) * 100)::int)) as b0,
+           least(99, greatest(0, ceil((x ->> 'end')::numeric / (select dur from d) * 100)::int - 1)) as b1
+      from jsonb_array_elements(p_sections) x
+     where (select dur from d) is not null and (select dur from d) > 0),
+  ss as (
+    select covered from public.video_view_sessions
+     where video_id = p_video_id and played and (started_at at time zone 'utc')::date between p_from and p_to)
+  select sec.id,
+         case when count(ss.covered) = 0 then null
+              else round(100.0 * avg((select count(*) from unnest(ss.covered) b where b between sec.b0 and greatest(sec.b0, sec.b1))::numeric
+                                     / (greatest(sec.b0, sec.b1) - sec.b0 + 1)), 1) end
+    from sec left join ss on true
+   group by sec.id, sec.b0, sec.b1;
 $$;
 
 create or replace function public.video_cta_performance(p_video_id text, p_from date, p_to date)
@@ -569,7 +588,6 @@ begin
   get diagnostics n_sessions = row_count;
   delete from public.video_analytics_daily where video_id = p_video_id;
   delete from public.video_daily_viewers where video_id = p_video_id;
-  delete from public.video_retention_buckets where video_id = p_video_id;
   delete from public.published_video_events where video_id = p_video_id;
   update public.published_videos set view_count = 0 where id = p_video_id;
   return jsonb_build_object('ok', true, 'sessions_deleted', n_sessions);
@@ -599,13 +617,15 @@ grant execute on function public.prune_video_analytics(integer) to service_role;
 
 revoke all on function public.video_analytics_summary(text, date, date) from public;
 revoke all on function public.video_analytics_timeseries(text, date, date) from public;
-revoke all on function public.video_retention_curve(text) from public;
+revoke all on function public.video_retention_curve(text, date, date) from public;
+revoke all on function public.video_section_engagement(text, jsonb, date, date) from public;
 revoke all on function public.video_cta_performance(text, date, date) from public;
 revoke all on function public.owner_video_stats(date, date) from public;
 revoke all on function public.owner_portfolio_summary(date, date) from public;
 grant execute on function public.video_analytics_summary(text, date, date) to anon, authenticated;
 grant execute on function public.video_analytics_timeseries(text, date, date) to anon, authenticated;
-grant execute on function public.video_retention_curve(text) to anon, authenticated;
+grant execute on function public.video_retention_curve(text, date, date) to authenticated;
+grant execute on function public.video_section_engagement(text, jsonb, date, date) to authenticated;
 grant execute on function public.video_cta_performance(text, date, date) to anon, authenticated;
 grant execute on function public.owner_video_stats(date, date) to anon, authenticated;
 grant execute on function public.owner_portfolio_summary(date, date) to anon, authenticated;

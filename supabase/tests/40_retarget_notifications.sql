@@ -51,7 +51,7 @@ select 'session2 interests: ' || coalesce(string_agg(i.interest_key || '=' || i.
 set role authenticated; set request.jwt.claims = '{"sub":"userA"}';
 select 'summary: ' || string_agg(interest || '/' || interest_type || ' sessions=' || sessions || ' score=' || decayed_score || ' high=' || high_interest_sessions, '; ') from video_interest_summary('vidRt00001', current_date-1, current_date+1);
 select 'segments: ' || string_agg(segment || '=' || sessions, ', ') from video_audience_segments('vidRt00001', current_date-1, current_date+1);
-select 'section engagement: ' || string_agg(section_id || '=' || coalesce(engagement_percent::text,'null'), ', ') from video_section_engagement('vidRt00001', '[{"id":"roof","start":0,"end":40},{"id":"kitchen","start":40,"end":100}]'::jsonb);
+select 'section engagement: ' || string_agg(section_id || '=' || coalesce(engagement_percent::text,'null'), ', ') from video_section_engagement('vidRt00001', '[{"id":"roof","start":0,"end":40},{"id":"kitchen","start":40,"end":100}]'::jsonb, current_date-1, current_date+1);
 select 'unread: ' || owner_unread_notifications();
 select 'mark one read: ' || mark_notifications_read(array[(select id from owner_notifications order by created_at limit 1)]);
 select 'unread now: ' || owner_unread_notifications();

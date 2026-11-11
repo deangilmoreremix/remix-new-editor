@@ -637,9 +637,11 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // readable-link / privacy / revision controls in the Share panel. No
     // upload-pipeline behaviour changed: every new call goes through the
     // existing signed-in Supabase client (publishOwnerClient) and the
-    // dynamically imported projectStore / publishClient modules. Semantic
-    // coverage in section 5.
-    ['src/components/TimelineEditorPage.jsx', '1641b377ae08485dae3c5160ff765fdd8e69b83ecd9062784e37aef259ae5809'],
+    // dynamically imported projectStore / publishClient modules. Also: Projects
+    // tabs (Analytics dashboard, Audience, Retarget, Notifications) are
+    // dynamically imported and use the same owner client; publishing carries
+    // the owner's interest map. Semantic coverage in section 5.
+    ['src/components/TimelineEditorPage.jsx', '4f0a04fbb861c3d8eb9dd4a9aff3f24ff34b29c968ee38f6d288ee0f8f4ba907'],
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -924,6 +926,8 @@ describe('protected files — semantic integrity assertions', () => {
     // owner client, via the dynamically imported store modules.
     expect(source).toContain("import('../lib/editor/projectLibrary/projectStore.js')");
     expect(source).toContain("import('../lib/editor/projectLibrary/projectsPanel.js')");
+    expect(source).toContain("import('../lib/editor/projectLibrary/projectTabs.js')");
+    expect(source).toContain("import('../lib/editor/projectLibrary/analytics/mountAnalyticsTab.jsx')");
     expect(source).toContain('async function publishOwnerClient()');
     // Opening a project must never silently replace an unsaved timeline.
     expect(source).toContain('is not saved as a project and will be replaced');
