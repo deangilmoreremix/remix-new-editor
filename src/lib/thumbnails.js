@@ -371,30 +371,23 @@ const HERO_THUMBNAILS = {
 // Where to aim the banner crop (CSS object-position) per page. The default is the
 // centre; pages whose picture has its subject elsewhere are listed here.
 const BANNER_FOCUS = {
-  // landscape (2.36:1) pictures: a 176px banner shows about a third of the height
-  image: '50% 43%',
-  cinema: '50% 35%',
-  'cinema-template': '50% 35%',
-  effects: '50% 43%',
-  edit: '50% 43%',
-  upscale: '50% 35%',   // keeps the picture, drops the baked-in caption at the bottom
-  character: '50% 20%', // faces are in the upper half
-  commercial: '50% 45%',
-  'ai-vfx': '50% 38%',
-  library: '50% 40%',
-  'content-library': '50% 40%',
-  // square pictures: only a thin strip fits, so aim it at the subject and away from baked-in captions
-  audio: '50% 47%',
-  avatar: '50% 33%',
-  training: '50% 48%',
-  videotools: '50% 44%',
-  timeline: '50% 57%',
-  'video-agent': '50% 45%',
-  brand: '50% 75%',
-  // new 3:1 banners
+  // Apps-page (studios/) pictures are ~1.8:1 and the banner box ~2.4:1, so only a
+  // little is cropped; aim at the subject.
+  character: '50% 25%', // faces are in the upper half
+  audio: '50% 40%',
+  avatar: '50% 40%',
+  edit: '50% 40%',
+  lipsync: '50% 40%',
+  // hero (heroes/) pictures for pages without Apps-page art
   workbench: '50% 58%',
   personalizer: '50% 67%',
   'website-builder': '50% 41%',
+  'video-agent': '50% 45%',
+  timeline: '50% 50%',
+  library: '50% 40%',
+  'content-library': '50% 40%',
+  brand: '50% 75%',
+  'ai-vfx': '50% 38%',
 };
 
 const TOOL_THUMBNAILS = {
@@ -434,6 +427,18 @@ const PAGE_THUMBNAILS = {
   assist: '/thumbnails/pages/assist.webp',
   placeholder: '/thumbnails/pages/placeholder.webp',
 };
+
+// Pages whose banner uses the same picture as their Apps-page card (studios/*): clean
+// photo-style art with no baked-in captions or black bars. Pages not listed keep their
+// hero picture (heroes/*), because the studio map only has a stand-in for them.
+const BANNER_USES_STUDIO_ART = new Set([
+  'image', 'video', 'cinema', 'storyboard', 'effects', 'edit', 'upscale', 'character',
+  'commercial', 'audio', 'avatar', 'training', 'videotools', 'lipsync', 'render', 'chat',
+]);
+
+export function getBannerThumbnail(studioId) {
+  return (BANNER_USES_STUDIO_ART.has(studioId) && getStudioThumbnail(studioId)) || getHeroThumbnail(studioId) || getStudioThumbnail(studioId);
+}
 
 export function getStudioThumbnail(studioId) {
   return STUDIO_THUMBNAILS[studioId] || null;
@@ -668,7 +673,7 @@ export function createThumbnailImg(src, alt, className = '', fallbackTemplate = 
 }
 
 export function createHeroSection(studioId, className = '') {
-  const src = getHeroThumbnail(studioId);
+  const src = getBannerThumbnail(studioId);
   if (!src) return null;
   const wrapper = document.createElement('div');
   wrapper.className = `hero-banner relative w-full overflow-hidden rounded-2xl ${className}`;
@@ -691,7 +696,7 @@ export function createHeroSection(studioId, className = '') {
  * shrink it further once results exist.
  */
 export function createStudioHeader(studioId, title, subtitle = '', className = '', size = 'default') {
-  const src = getHeroThumbnail(studioId) || getStudioThumbnail(studioId);
+  const src = getBannerThumbnail(studioId);
   const wrapper = document.createElement('div');
   // 'compact' is for the full-screen editors (Director, Timeline, Workbench, Video Agent,
   // Website Builder), which need every pixel of height for the editor itself.

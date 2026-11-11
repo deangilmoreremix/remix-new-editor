@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
-import { createStudioHeader, createEditorBanner, getHeroThumbnail } from '../lib/thumbnails.js';
+import { createStudioHeader, createEditorBanner, getHeroThumbnail, getBannerThumbnail, getStudioThumbnail } from '../lib/thumbnails.js';
 
 // Every picture a banner points at must exist, otherwise the banner is a blank box.
 const heroPaths = () => {
@@ -38,8 +38,8 @@ describe('studio banners', () => {
 
   it('aims the crop at the subject instead of the exact centre', () => {
     const sharp = (id) => createStudioHeader(id, 'x').querySelector('.absolute img:not([aria-hidden])');
-    expect(sharp('audio').style.objectPosition).toBe('50% 47%');
-    expect(sharp('character').style.objectPosition).toBe('50% 20%');
+    expect(sharp('audio').style.objectPosition).toBe('50% 40%');
+    expect(sharp('character').style.objectPosition).toBe('50% 25%');
   });
 
   it('the editor banner is the compact variant inside a non-shrinking row', () => {
@@ -55,5 +55,15 @@ describe('studio banners', () => {
     const src = fs.readFileSync('src/components/TimelineEditorPage.jsx', 'utf-8');
     expect(src.indexOf('createTimelineEditorApp(container);')).toBeLessThan(src.indexOf("createEditorBanner('timeline'"));
     expect(src).not.toContain("createHeroSection('timeline'");
+  });
+
+  it('banners use the same picture as the Apps-page card where the studio has its own art', () => {
+    for (const id of ['image', 'video', 'cinema', 'audio', 'avatar', 'videotools', 'training', 'upscale', 'lipsync', 'render']) {
+      expect(getBannerThumbnail(id), id).toBe(getStudioThumbnail(id));
+    }
+    // no studio art of their own -> keep the hero picture
+    for (const id of ['director', 'workbench', 'timeline', 'website-builder', 'viral', 'personalizer']) {
+      expect(getBannerThumbnail(id), id).toBe(getHeroThumbnail(id));
+    }
   });
 });
