@@ -126,3 +126,10 @@
 .library-panel__subhead { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #22d3ee; margin-top: 4px; }
 .library-panel__sound { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); }
 .library-panel__empty { font-size: 12px; opacity: 0.65; padding: 6px 2px; }
+
+/* [remix] The editor lives inside the app frame (header + left menu stay visible). `contain: layout` makes it the containing block for
+   its own position:fixed parts (Project Manager window, drawers, dialogs), and the shell sizes to the island instead of the viewport. */
+.cinegen-root .app-root { flex: 1 1 auto; min-height: 0; height: 100%; display: flex; flex-direction: column; }
+.cinegen-root .app-root > * { min-height: 0; }
+.cinegen-root .workspace-content { height: auto; flex: 1 1 auto; min-height: 0; }
+.cinegen-root .pm-backdrop { position: absolute; }
