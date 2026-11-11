@@ -10,6 +10,8 @@ export default [
       'out',
       'public/static/js/lamejs',
       'dist',
+      // vendored third-party source (RemotionUI, MIT), pinned and hashed in src/lib/remotionui/registry.lock.json
+      'src/lib/editor/remotion/remotionui/vendored',
     ],
   },
   js.configs.recommended,

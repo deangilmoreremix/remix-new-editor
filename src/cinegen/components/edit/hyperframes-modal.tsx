@@ -16,7 +16,11 @@ const GROUPS: Array<[string, string[]]> = [
   ['Transitions', ['transition']],
   ['Backgrounds & effects', ['background', 'snow', 'starfield', 'vfx', 'camcorder', 'motion-primitive', 'placeholder']],
 ];
-const groupOf = (category: string): string => GROUPS.find(([, cats]) => cats.includes(category))?.[0] ?? 'More';
+// Items that come from the second vendored library already carry customer-friendly categories; they are shown as they are.
+const RUI_CATEGORIES = ['Scenes', 'Primitives', 'Compositions', 'Data & media', 'Paths & shapes', 'Motion graphics', 'Maps & device', '3D', 'Shaders'];
+const groupOf = (i: HfItem): string => (i.type === 'remotionui' ? i.category : (GROUPS.find(([, cats]) => cats.includes(i.category))?.[0] ?? 'More'));
+const typeOf = (i: HfItem): string => (i.type === 'remotionui' ? 'block' : (i.type ?? 'block'));
+const thumbOf = (id: string): string => `/hyperframes/thumbs/${id.replace(':', '-')}.jpg`;
 
 function Preview({ item }: { item: HfItem }) {
   const host = useRef<HTMLDivElement>(null);
@@ -37,8 +41,8 @@ function Preview({ item }: { item: HfItem }) {
   return <div ref={host} aria-label={`Preview of ${item.title}`} style={{ position: 'relative', width: '100%', aspectRatio: String(ratio), maxHeight: '100%', margin: '0 auto', height: '100%', overflow: 'hidden' }} />;
 }
 
-const GLYPH: Record<string, string> = { All: '▦', 'Lower thirds': '▭', 'Titles & text': 'T', 'Social & UI': '◎', 'Data & charts': '▤', Code: '</>', Transitions: '⇄', 'Backgrounds & effects': '▨', More: '…' };
-const TYPE_LABEL: Record<string, string> = { block: 'Animation', component: 'Component', example: 'Scene template' };
+const GLYPH: Record<string, string> = { All: '▦', 'Lower thirds': '▭', 'Titles & text': 'T', 'Social & UI': '◎', 'Data & charts': '▤', Code: '</>', Transitions: '⇄', 'Backgrounds & effects': '▨', Scenes: '▣', Primitives: '◇', Compositions: '▶', 'Data & media': '♪', 'Paths & shapes': '✎', 'Motion graphics': '✺', 'Maps & device': '⌖', '3D': '◈', Shaders: '◐', More: '…' };
+const TYPE_LABEL: Record<string, string> = { block: 'Animation', component: 'Component', example: 'Scene template', remotionui: 'Animation' };
 const aspectOf = (w: number, h: number) => (Math.abs(w - h) < 8 ? '1:1' : w > h ? '16:9' : '9:16');
 const INK = 'rgba(229,237,245,.9)';
 const field: CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', color: 'inherit', border: '1px solid var(--border-medium)', borderRadius: 10, padding: '11px 12px', fontSize: 13 };
@@ -53,10 +57,10 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
   const [hover, setHover] = useState<string | null>(null);
   const [live, setLive] = useState<string | null>(null); // the hovered card starts its live preview after a short pause
   useEffect(() => { setLive(null); if (!hover) return undefined; const t = window.setTimeout(() => setLive(hover), 350); return () => window.clearTimeout(t); }, [hover]);
-  const counts = useMemo(() => { const m = new Map<string, number>(); for (const i of all) m.set(groupOf(i.category), (m.get(groupOf(i.category)) ?? 0) + 1); return m; }, [all]);
-  const tags = useMemo(() => ['All', ...[...GROUPS.map(([g]) => g), 'More'].filter((g) => counts.has(g))], [counts]);
-  const types = useMemo(() => [...new Set(all.map((i) => i.type ?? 'block'))], [all]);
-  const list = searchHyperframes(all, q, 'all').filter((i) => (tag === 'all' || groupOf(i.category) === tag) && (type === 'all' || (i.type ?? 'block') === type) && (ratio === 'all' || aspectOf(i.dimensions.width, i.dimensions.height) === ratio));
+  const counts = useMemo(() => { const m = new Map<string, number>(); for (const i of all) m.set(groupOf(i), (m.get(groupOf(i)) ?? 0) + 1); return m; }, [all]);
+  const tags = useMemo(() => ['All', ...[...GROUPS.map(([g]) => g), ...RUI_CATEGORIES.filter((g) => !GROUPS.some(([n]) => n === g)), 'More'].filter((g) => counts.has(g))], [counts]);
+  const types = useMemo(() => [...new Set(all.map(typeOf))], [all]);
+  const list = searchHyperframes(all, q, 'all').filter((i) => (tag === 'all' || groupOf(i) === tag) && (type === 'all' || typeOf(i) === type) && (ratio === 'all' || aspectOf(i.dimensions.width, i.dimensions.height) === ratio));
   // Layout follows the Personalize modal's demo picker: header, rounded panel, category pills with count badges, labelled filters, big cards.
   return (
     <div role="dialog" aria-label="Animations" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
@@ -100,12 +104,12 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
               <button key={i.id} className="hf-card2" onMouseEnter={() => setHover(i.id)} onMouseLeave={() => setHover(null)} onClick={() => onPick(i)} aria-label={i.title} data-testid={`animation-${i.id}`}
                 style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' }}>
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
-                  <img src={`/hyperframes/thumbs/${i.id}.jpg`} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <img src={thumbOf(i.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
                   {live === i.id && <div style={{ position: 'absolute', inset: 0, background: '#000' }}><Preview item={i} /></div>}
-                  <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{TYPE_LABEL[i.type ?? 'block']}</span>
+                  <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{TYPE_LABEL[typeOf(i)]}</span>
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10 }}>{i.title}</div>
-                <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{i.duration.toFixed(0)}s · {aspectOf(i.dimensions.width, i.dimensions.height)}</div>
+                <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{i.duration.toFixed(0)}s · {aspectOf(i.dimensions.width, i.dimensions.height)}{i.slow ? ' · slower export' : ''}</div>
               </button>
             ))}
             {!list.length && <span style={{ fontSize: 13, opacity: 0.7 }}>No animations match your search.</span>}

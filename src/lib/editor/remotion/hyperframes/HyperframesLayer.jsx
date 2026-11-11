@@ -21,7 +21,18 @@ export const isEnabledBlock = (id) => byId.has(id);
 export const HF_ERROR = '[hyperframes:error] ';
 export const HF_NOTE = '[hyperframes:note] ';
 
+const RuiClip = React.lazy(() => import('../remotionui/RemotionUiClip.jsx').then((m) => ({ default: m.RemotionUiClip })));
+
 export function HyperframesLayer({ layer }) {
+  // RemotionUI items share this layer kind (blockId "rui:<name>") so the lane, persistence, toasts, kill switch and export gating are the same
+  if (String(layer.blockId || '').startsWith('rui:')) {
+    if (layer.runtimeDisabled) { reportCodeError(layer.id, `${HF_ERROR}"${layer.title || layer.blockId}" was not rendered: Animations are temporarily switched off. Your project data is unchanged.`); return null; }
+    return <React.Suspense fallback={null}><RuiClip layer={layer} /></React.Suspense>;
+  }
+  return <HyperframesBlockLayer layer={layer} />;
+}
+
+function HyperframesBlockLayer({ layer }) {
   const { width, height } = useVideoConfig();
   const { delayRender, continueRender } = useDelayRender();
   const [mod, setMod] = useState(null);
