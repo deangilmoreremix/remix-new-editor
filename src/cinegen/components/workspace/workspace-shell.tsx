@@ -72,6 +72,7 @@ import {
 } from '@cinegen/lib/utils/api-key';
 import { markWorkspaceSavePending } from './workspace-persistence';
 import { useMcpBridge } from './use-mcp-bridge';
+import { HelpTooltipLayer } from '@cinegen/components/ui/help-tooltip-layer'; // [remix] hover help for every control
 
 /* ------------------------------------------------------------------
    Actions
@@ -1462,6 +1463,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
 
   return (
     <WorkspaceContext.Provider value={{ state, dispatch: wrappedDispatch, projectId }}>
+      <HelpTooltipLayer />
       <TopTabs
         activeTab={state.activeTab}
         onTabChange={handleTabChange}
