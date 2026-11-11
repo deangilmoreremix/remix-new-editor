@@ -75,6 +75,7 @@ export function ZackDStudio() {
 
   // ---- state -------------------------------------------------------------------------------------------------
   let s = load();
+  let assembling = false; let renderStale = false; // an input changed while a render was encoding
   let narrStale = false; // narration was dropped by an edit; the panel repaints on blur
   let history = loadHistory();
   let final = null; // { objectUrl, blob, duration, captioned?: { url } }: in memory only (blob URLs die with the page)
@@ -171,8 +172,10 @@ export function ZackDStudio() {
 
   // One shared dropdown, as in VideoStudio.js
   const dropdown = el('div', 'fixed left-2 z-[200] transition-all opacity-0 pointer-events-none scale-95 origin-bottom-left glass rounded-3xl p-3 -translate-y-2 w-[calc(100vw-3rem)] max-w-xs shadow-4xl border border-white/10 flex flex-col');
+  dropdown.inert = true; // closed: not focusable or clickable
   container.appendChild(dropdown);
   const closeDropdown = () => {
+    dropdown.inert = true;
     dropdown.classList.add('opacity-0', 'pointer-events-none');
     dropdown.classList.remove('opacity-100', 'pointer-events-auto');
     dropdownOpen = null;
@@ -195,6 +198,7 @@ export function ZackDStudio() {
       list.appendChild(row);
     });
     dropdown.appendChild(list);
+    dropdown.inert = false;
     dropdown.classList.remove('opacity-0', 'pointer-events-none');
     dropdown.classList.add('opacity-100', 'pointer-events-auto');
     positionModelSelectorDropdown(dropdown, anchor, 8, container);
@@ -341,6 +345,7 @@ export function ZackDStudio() {
         const nar = el('textarea', `${FIELD} text-sm`); nar.rows = 3; nar.maxLength = 400; nar.value = b.narration; nar.disabled = busy; nar.setAttribute('aria-label', `Narration, beat ${bi + 1}`);
         nar.oninput = () => {
           b.narration = nar.value;
+          s.narrRev = (s.narrRev || 0) + 1; // any narration job started before this edit was made from older text
           // the generated voice-over speaks the old text: drop it, and a cut that mixed it in, so it has to be regenerated
           if (s.narration) {
             s.narration = null; narrStale = true;
@@ -533,12 +538,14 @@ export function ZackDStudio() {
   const slotOf = (job) => job?.historyMeta || {};
   function applyResult(meta, url) {
     if (meta.pid && meta.pid !== s.pid) return; // belongs to an earlier project
+    if (meta.slot === 'narration' && meta.rev !== undefined && meta.rev !== (s.narrRev || 0)) return; // made from narration text that has since been edited
     if (meta.slot === 'sheet') s.sheets[meta.id] = { url };
     else if (meta.slot === 'keyframe') s.shots[meta.id] = { ...(s.shots[meta.id] || {}), keyframe: url, clip: null };
     else if (meta.slot === 'clip') s.shots[meta.id] = { ...(s.shots[meta.id] || {}), clip: url };
     else if (meta.slot === 'narration') { s.narration = url; s.mixVoice = true; }
     else if (meta.slot === 'music') { s.music = url; s.mixVoice = true; }
     else return;
+    if (assembling && (meta.slot === 'clip' || meta.slot === 'keyframe' || meta.slot === 'narration' || meta.slot === 'music')) renderStale = true;
     // A rendered cut that was built from the media that just changed is stale: drop it so it cannot be downloaded, saved or captioned.
     if (final && (meta.slot === 'clip' || meta.slot === 'keyframe' || ((meta.slot === 'narration' || meta.slot === 'music') && final.mixed))) {
       if (final.objectUrl) URL.revokeObjectURL(final.objectUrl);
@@ -549,10 +556,11 @@ export function ZackDStudio() {
   // Every media job goes through the app's pending-job tracker so it can be resumed after a reload.
   async function tracked(slot, id, body) {
     const pid = s.pid;
-    const tracker = createPendingJobTracker('zackd', { slot, id, pid }, { maxAttempts: 180, interval: 4000 });
+    const rev = slot === 'narration' ? (s.narrRev || 0) : undefined;
+    const tracker = createPendingJobTracker('zackd', { slot, id, pid, rev }, { maxAttempts: 180, interval: 4000 });
     try {
       const r = await runJob(body, { signal: abort.current.signal, onRequestId: tracker.onRequestId });
-      applyResult({ slot, id, pid }, r.url);
+      applyResult({ slot, id, pid, rev }, r.url);
       return r;
     } finally { tracker.finish(); }
   }
@@ -642,6 +650,7 @@ export function ZackDStudio() {
     const setLabel = (t) => { const l = progress?.querySelector('.progress-label'); if (l) l.textContent = t; };
     // What this cut is built from, fixed now: the options can still be toggled while it encodes, and the cut's metadata must describe its real inputs.
     const mixVoice = !!s.mixVoice; const narrationUrl = s.narration; const musicUrl = s.music;
+    assembling = true; renderStale = false;
     try {
       const { blob, duration, durations } = await runAssembly({
         clips: shots.map((x) => ({ url: s.shots[x.shot_id].clip, planned: x.duration_sec, zoom: x.zoom_impact })),
@@ -649,10 +658,15 @@ export function ZackDStudio() {
         transition: DEFAULT_TRANSITION_SEC, signal: abort.current.signal,
         onProgress: (phase, p) => { if (phase === 'encode') { progress?.setProgress(p * 100); setLabel(`Encoding ${Math.round(p * 100)}%`); } else setLabel(phase === 'download' ? 'Downloading clips…' : 'Loading encoder…'); },
       });
-      if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
-      final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false, hasNarration: !!(mixVoice && narrationUrl), mixed: mixVoice }; // captions are transcribed from the cut's audio
-      showToast('Final cut ready', 'success', 2500);
+      if (renderStale) {
+        fail(new Error('A clip or the narration changed while this was rendering, so the cut is out of date. Render it again.'));
+      } else {
+        if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
+        final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false, hasNarration: !!(mixVoice && narrationUrl), mixed: mixVoice }; // captions are transcribed from the cut's audio
+        showToast('Final cut ready', 'success', 2500);
+      }
     } catch (e) { fail(e); }
+    assembling = false;
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
     busy = false; progress = null; paint();
   }
