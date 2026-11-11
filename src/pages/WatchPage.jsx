@@ -8,7 +8,9 @@
  */
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
-import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery, recordVideoEvent } from '../lib/editor/publish/publishClient.js';
+import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery } from '../lib/editor/publish/publishClient.js';
+import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
+import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 
@@ -27,7 +29,7 @@ function message(container, title, text) {
  * @param {HTMLElement} container
  * @param {string} id
  * @param {string|{business:string,slug:string}} ref  a video id (/watch/<id>) or a readable link (/v/<business>/<slug>)
- * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, recordEvent }
+ * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, analytics }
  */
 export async function mountWatchPage(container, ref, deps = {}) {
   const params = new URLSearchParams(globalThis.location?.search || '');
@@ -100,9 +102,15 @@ export async function mountWatchPage(container, ref, deps = {}) {
   let scrubbing = false;
   // Per-contact analytics (personal links carry ?c=<contactId>).
   const viewerProfile = profileFromQuery();
-  const track = (kind, clipId = null) => (deps.recordEvent || recordVideoEvent)(video.id, { kind, contactId: viewerProfile?.id || null, clipId });
-  let playedOnce = false;
-  let completedOnce = false;
+  // First-party analytics (netlify/functions/video-events.js): batched, idempotent,
+  // consent-aware. Playback milestones / watch time come from onChange below.
+  const analytics = deps.analytics || createAnalytics({
+    videoId: video.id,
+    contactId: viewerProfile?.id || null,
+    sections: projectSections(video.project).map((x) => ({ id: x.id, start: x.start, end: x.end })),
+  });
+  const labels = ctaLabels(video.project);
+  const labelFor = (clipId) => (clipId != null ? labels[String(clipId)] || null : null);
   const player = createInteractivePlayer({
     project: video.project,
     stage: $('[data-stage]'),
@@ -113,12 +121,11 @@ export async function mountWatchPage(container, ref, deps = {}) {
     voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
     onLead: async ({ clipId, kind, data }) => {
       const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data });
-      if (kind !== 'call-attempt' && res?.stored !== false) track('lead', clipId);
+      if (kind !== 'call-attempt' && res?.stored !== false) analytics.track('lead_submit', { clip: clipId, props: labelFor(clipId) ? { label: labelFor(clipId) } : undefined });
       return res;
     },
     onChange: ({ playing, time, duration, gating }) => {
-      if (playing && !playedOnce) { playedOnce = true; track('play'); }
-      if (!completedOnce && duration > 0 && time >= duration - 0.3) { completedOnce = true; track('complete'); }
+      analytics.onPlayerChange({ playing, time, duration });
       $('[data-play]').textContent = playing ? '❚❚' : '▶';
       $('[data-play]').setAttribute('aria-label', playing ? 'Pause' : 'Play');
       // The big play button never covers a form the viewer must fill in.
@@ -169,10 +176,15 @@ export async function mountWatchPage(container, ref, deps = {}) {
   frame.addEventListener('click', (e) => {
     const a = e.target.closest('a[href]');
     if (!a || !frame.contains(a)) return;
-    track('cta_click', a.closest('[data-clip-id]')?.dataset.clipId || null);
+    const clip = a.closest('[data-clip-id]')?.dataset.clipId || null;
+    const label = labelFor(clip) || String(a.textContent || '').trim().slice(0, 60) || null;
+    const isCall = /^tel:/i.test(a.getAttribute('href') || '');
+    const props = { ...(label ? { label } : {}), ...(isPricingLabel(label) ? { pricing: true } : {}) };
+    analytics.track(isCall ? 'call_click' : 'cta_click', { clip, t: player.time, props: Object.keys(props).length ? props : undefined });
   }, true);
+  // Playback errors are measured too (the viewer sees the player's own message).
+  frame.addEventListener('error', (e) => { if (e.target?.tagName === 'VIDEO' || e.target?.tagName === 'AUDIO') analytics.track('error', { props: { reason: 'media' } }); }, true);
+  globalThis.addEventListener?.('pagehide', () => analytics.destroy(), { once: true });
 
-  // One view source: the 'view' event also bumps the video's view count.
-  track('view');
   return player;
 }

@@ -257,39 +257,6 @@ export async function fetchPublishedVideo(ref, { url, key, fetchImpl = fetch } =
   return data && typeof data === 'object' ? data : null;
 }
 
-export async function countView(id, { url, key, fetchImpl = fetch } = env()) {
-  if (!url || !key) return;
-  try {
-    await fetchImpl(`${url}/rest/v1/rpc/increment_video_view`, {
-      method: 'POST',
-      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ video_id: id }),
-    });
-  } catch { /* counting is best-effort */ }
-}
-
-export const VIDEO_EVENT_KINDS = Object.freeze(['view', 'play', 'complete', 'cta_click', 'lead']);
-
-/**
- * Record what a viewer did on /watch/<id> (best-effort). Personal links
- * (?c=<contactId>) attribute it to that contact.
- */
-export async function recordVideoEvent(id, { kind, contactId = null, clipId = null } = {}, { url, key, fetchImpl = fetch } = env()) {
-  if (!url || !key || !VIDEO_EVENT_KINDS.includes(kind)) return;
-  try {
-    await fetchImpl(`${url}/rest/v1/rpc/record_video_event`, {
-      method: 'POST',
-      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        video_id: id,
-        kind,
-        contact_id: contactId && /^[A-Za-z0-9_-]{1,80}$/.test(String(contactId)) ? String(contactId) : null,
-        clip_id: clipId != null ? String(clipId).slice(0, 80) : null,
-      }),
-    });
-  } catch { /* analytics is best-effort */ }
-}
-
 /** Owner: totals per contact for one of their videos. */
 export async function fetchVideoStats(client, id) {
   const { data, error } = await client.rpc('video_events_by_contact', { video_id: id });

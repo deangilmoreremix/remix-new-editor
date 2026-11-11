@@ -60,8 +60,8 @@ describe('watch page for readable links', () => {
     const fetchVideo = vi.fn()
       .mockResolvedValueOnce({ redirect: { id: 'abcdefgh12', business: 'acme', slug: 'new-name' } })
       .mockResolvedValueOnce({ id: 'abcdefgh12', title: 'Demo', project: proj, business: 'acme', slug: 'new-name', privacy: 'public' });
-    const recordEvent = vi.fn();
-    await mountWatchPage(box, { business: 'acme', slug: 'old-name' }, { fetchVideo, createEngine: engine().create, recordEvent });
+    const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+    await mountWatchPage(box, { business: 'acme', slug: 'old-name' }, { fetchVideo, createEngine: engine().create, analytics });
     expect(fetchVideo).toHaveBeenNthCalledWith(1, { business: 'acme', slug: 'old-name' });
     expect(fetchVideo).toHaveBeenNthCalledWith(2, { business: 'acme', slug: 'new-name' });
     expect(box.querySelector('h1').textContent).toBe('Demo');
@@ -72,7 +72,7 @@ describe('watch page for readable links', () => {
   it('marks unlisted videos noindex and shows not-found for missing ones', async () => {
     const box = document.createElement('div');
     document.body.appendChild(box);
-    await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'D', project: proj, privacy: 'unlisted' }), createEngine: engine().create, recordEvent: vi.fn() });
+    await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'D', project: proj, privacy: 'unlisted' }), createEngine: engine().create, analytics: { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() } });
     expect(document.querySelector('meta[name="robots"]').content).toContain('noindex');
 
     const box2 = document.createElement('div');

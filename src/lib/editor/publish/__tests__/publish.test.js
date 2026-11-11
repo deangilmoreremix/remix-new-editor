@@ -286,14 +286,13 @@ describe('share panel and watch page', () => {
     expect(box.textContent).toContain('2 leads');
   });
 
-  it('watch page loads a video, plays it and records one view event', async () => {
+  it('watch page loads a video and plays it', async () => {
     const box = document.createElement('div');
     document.body.appendChild(box);
     const { e, create } = fakeEngine();
-    const recordEvent = vi.fn();
-    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, recordEvent, onLead: vi.fn() });
+    const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, analytics, onLead: vi.fn() });
     expect(box.querySelector('h1').textContent).toBe('Demo');
-    expect(recordEvent.mock.calls.filter(([, o]) => o.kind === 'view')).toHaveLength(1);
     box.querySelector('[data-bigplay]').click();
     expect(e.playing).toBe(true);
     e.advance(1);
