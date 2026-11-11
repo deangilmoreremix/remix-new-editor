@@ -60,6 +60,7 @@ import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos 
 import '../../styles/timeline-tokens.css';
 import '../../styles/timeline-editor-page.css';
 import '../../styles/personalize-ui.css';
+import '../../styles/projects-panel.css';
 import '../../styles/timeline-addons.css';
 // Import rendiv animation primitives
 import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } from '../lib/editor/animationControls.jsx';
@@ -592,6 +593,10 @@ export function TimelineEditorPage() {
         <div class="card-title">🎬 Stock Media</div>
         <div id="stockBrowser"></div>
       </aside>
+      <aside class="side-card" id="projectsPanel" hidden data-tooltip="Projects - every saved video, its status and performance">
+        <div class="card-title">📁 Projects</div>
+        <div id="projectsBody"></div>
+      </aside>
       <aside class="side-card" id="sharePanel" hidden data-tooltip="Share - publish an interactive video link and embed code">
         <div class="card-title">🔗 Share</div>
         <div id="shareBody"></div>
@@ -756,6 +761,7 @@ export function TimelineEditorPage() {
       quickCommands: ['⚡Generate','Retake','Extend','B-Roll','🎬 Detect Scenes'],
       railActions: [
         ['＋', 'Media'],
+        ['📁', 'Projects'],
         ['✨', 'Generate', true],
         ['⬆', 'Export'],
         ['⚡', 'Interactive'],
@@ -1225,6 +1231,7 @@ export function TimelineEditorPage() {
         try {
           syncCurrentTimelineFromState(state);
           saveProjectToStorage(state);
+          scheduleCloudSave();
         } catch (err) {
           // QuotaExceededError or serialization failure: surface to user
           if (err && err.name === 'QuotaExceededError') {
@@ -2174,8 +2181,13 @@ export function TimelineEditorPage() {
       try {
         const modal = new SaveProjectModal({
           projectData: state,
-          onComplete: (result) => {
-            state.projectId = result.projectId;
+          projectName: state.projectTitle && state.projectTitle !== 'Untitled Sequence' ? state.projectTitle : '',
+          onComplete: async (result) => {
+            try {
+              await saveAsProject(result);
+            } catch (err) {
+              showToast(`Project save failed: ${err.message || err}`, 'error');
+            }
           },
           onError: (error) => console.log(`Project save failed: ${error}`, 'error')
         });
@@ -5539,6 +5551,98 @@ export function TimelineEditorPage() {
     }
 
     // ---------------------------------------------------------------
+    // Projects: durable, per-owner project library (timeline_projects).
+    // The editor keeps working from localStorage; a project is that same state
+    // mirrored to Supabase under state.projectId. Publishing and rendering never
+    // overwrite the editable source.
+    // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
+    var projectsPanel = null;
+    // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
+    var cloudSaveTimer = null;
+    // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
+    var cloudSaveWarned = false;
+    async function projectStore() { return import('../lib/editor/projectLibrary/projectStore.js'); }
+    function scheduleCloudSave() {
+      if (!state.projectId || !window.Clerk?.user) return;
+      if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(async () => {
+        cloudSaveTimer = null;
+        try {
+          const store = await projectStore();
+          await store.saveProjectData(await publishOwnerClient(), state.projectId, state);
+          cloudSaveWarned = false;
+        } catch (err) {
+          if (!cloudSaveWarned) { cloudSaveWarned = true; showToast(`Cloud save failed (kept locally): ${err.message || err}`, 'error'); }
+        }
+      }, 3000);
+      cleanup.addTimer(cloudSaveTimer);
+    }
+    async function saveAsProject({ projectName, tags } = {}) {
+      const store = await projectStore();
+      const client = await publishOwnerClient();
+      syncCurrentTimelineFromState(state);
+      const name = store.cleanName(projectName, state.projectTitle);
+      if (state.projectId) {
+        await store.renameProject(client, state.projectId, name);
+        if (Array.isArray(tags)) await store.setProjectTags(client, state.projectId, tags);
+        await store.saveProjectData(client, state.projectId, state);
+      } else {
+        const row = await store.createProject(client, { name, state, tags });
+        state.projectId = row.id;
+        await store.saveProjectData(client, row.id, state); // persist projectId inside data
+      }
+      state.projectTitle = name;
+      if (els.projectTitle) els.projectTitle.textContent = name;
+      saveProjectToStorage(state);
+      projectsPanel?.refresh();
+      showToast(`Saved project "${name}"`, 'success');
+    }
+    async function openProjectRow(row) {
+      if (!row) return;
+      if (row.id === state.projectId) { showToast('This project is already open', 'info'); return; }
+      if (!state.projectId && !window.confirm('Your current timeline is not saved as a project and will be replaced. Open the selected project anyway?')) return;
+      // Flush the current project first so no edits are lost.
+      if (state.projectId) {
+        try { syncCurrentTimelineFromState(state); await (await projectStore()).saveProjectData(await publishOwnerClient(), state.projectId, state); } catch { /* local copy remains */ }
+      }
+      const data = { ...(row.data || {}), projectId: row.id, projectTitle: row.name };
+      localStorage.setItem('timeline-editor-project', JSON.stringify(data));
+      window.location.reload();
+    }
+    async function mountProjectsPanel() {
+      const host = root.querySelector('#projectsBody');
+      if (!host) return;
+      if (projectsPanel) { projectsPanel.refresh(); return; }
+      const { renderProjectsPanel } = await import('../lib/editor/projectLibrary/projectsPanel.js');
+      projectsPanel = renderProjectsPanel(host, {
+        getClient: publishOwnerClient,
+        getCurrentProjectId: () => state.projectId || null,
+        async getPublished(ids) {
+          if (!ids.length) return {};
+          const client = await publishOwnerClient();
+          const me = window.Clerk?.user?.id;
+          const { data } = await client.from('published_videos').select('id, published, project_id, clerk_user_id').in('project_id', ids);
+          const out = {};
+          for (const v of data || []) if (v.clerk_user_id === me && v.project_id) out[v.project_id] = v;
+          return out;
+        },
+        async onCreate() {
+          if (state.projectId) { showToast('The open timeline is already a project', 'info'); return; }
+          openSaveProjectModal(state, showToast);
+        },
+        onOpen: openProjectRow,
+        onPreview(row) { if (row?.id === state.projectId) { showToast('Use the player above to preview the open project', 'info'); } else { openProjectRow(row); } },
+        onExport(row) { if (row?.id === state.projectId) openExportModal(state, showToast); else showToast('Open the project, then choose Export', 'info'); },
+        onShare(row) { if (row?.id === state.projectId) openPanel('sharePanel'); else showToast('Open the project, then use Share to publish', 'info'); },
+        onToast: showToast,
+      });
+    }
+    async function recordRender(info) {
+      if (!state.projectId || !window.Clerk?.user) return;
+      try { await (await projectStore()).setRenderInfo(await publishOwnerClient(), state.projectId, info); projectsPanel?.refresh(); } catch { /* non-fatal */ }
+    }
+
+    // ---------------------------------------------------------------
     // Share: publish the timeline as an interactive video (/watch/<id>).
     // eslint-disable-next-line no-var -- created on first open
     var sharePanel = null;
@@ -7130,6 +7234,7 @@ export function TimelineEditorPage() {
       if (id === 'stockPanel') mountStockBrowser();
       if (id === 'aiAgentPanel') mountAgentPanel();
       if (id === 'sharePanel') mountSharePanel();
+      if (id === 'projectsPanel') mountProjectsPanel();
       if (id === 'colorScopesPanel') mountColorScopesPanel();
       if (id === 'multiCameraPanel') renderMultiCamera();
       el.hidden = false;
@@ -7197,6 +7302,7 @@ export function TimelineEditorPage() {
       'Stock Media': 'stockPanel',
       'AI Agent': 'aiAgentPanel',
       'Share': 'sharePanel',
+      'Projects': 'projectsPanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
       'Color Scopes': 'colorScopesPanel',
@@ -7610,6 +7716,7 @@ export function TimelineEditorPage() {
             onProgress: (p) => setProgress(p * 100, `Rendering... ${Math.round(p * 100)}%`),
           });
           downloadBlob(blob, `${name}.${EXTENSIONS[container] || 'mp4'}`);
+          recordRender({ status: 'complete', container, quality, bytes: blob.size, duration_s: state.timelineSeconds });
           setProgress(100, `Export complete (${(blob.size / 1048576).toFixed(1)} MB)`);
           showToast('Export complete — your video is downloading', 'success');
           setTimeout(closeModal, 1500);
