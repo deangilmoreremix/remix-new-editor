@@ -26,7 +26,9 @@
  * written into the personalization profile store so {{first_name}} tokens in
  * the rest of the video resolve to them.
  */
-import { POINTER_DESIGNS, POINTER_THEMES, HINT_POSITIONS, pointerSvg } from './pointerDesigns.js';
+import {
+  POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, isTargetDesign,
+} from './pointerDesigns.js';
 import { leadFieldTokens } from './leadClient.js';
 
 export const LIST_BUILDER_KINDS = {
@@ -93,6 +95,9 @@ export const POINTER_DEFAULTS = {
   pointerStyle: 'curly',
   pointerColor: '#eb5054',
   pointerSize: 100,
+  pointerMotion: 'nudge', // see POINTER_MOTIONS / TARGET_MOTIONS
+  hintStyle: 'card', // see HINT_STYLES
+  hintDim: 80, // % the form is dimmed while the pointer shows (upstream .8)
   hintBackground: '#17171c',
   hintBorderColor: '#575773',
   hintTextColor: '#ffffff',
@@ -182,7 +187,14 @@ export function normalizeListBuilder(config) {
   return { ...defaultOptin(kind), ...config, kind, isPersonalizer: kind === 'personalizer' };
 }
 
-const pointerThumb = (design, options) => `<svg viewBox="0 0 129 72" width="64" height="36" aria-hidden="true">${pointerSvg(design.id, options.pointerColor || '#eb5054') || '<text x="64" y="42" text-anchor="middle" fill="currentColor" font-size="22">none</text>'}</svg>`;
+const pointerThumb = (design, options) => {
+  const color = options.pointerColor || '#eb5054';
+  if (design.mode === 'target') {
+    const ring = `<circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="1.6" opacity=".8"/>`;
+    return `<svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true">${ring}${pointerSvg(design.id, color)}</svg>`;
+  }
+  return `<svg viewBox="0 0 129 72" width="64" height="36" aria-hidden="true">${pointerSvg(design.id, color) || '<text x="64" y="42" text-anchor="middle" fill="currentColor" font-size="22">none</text>'}</svg>`;
+};
 
 const STYLE_FIELDS = [
   { key: 'enabled', label: 'Require viewers to fill this out before the video plays', type: 'toggle', showIf: (o) => o.kind !== 'lead-generator' },
@@ -220,10 +232,13 @@ const STYLE_FIELDS = [
 
 const POINTER_FIELDS = [
   { key: 'pointerEnabled', label: 'Show the pointer (arrow + bubble) when the form appears', type: 'toggle' },
-  { key: 'pointerStyle', label: 'Arrow design', type: 'designPicker', designs: POINTER_DESIGNS, thumb: pointerThumb, showIf: (o) => o.pointerEnabled },
+  { key: 'pointerStyle', label: 'Pointer design', type: 'designPicker', designs: POINTER_DESIGNS, categories: POINTER_CATEGORIES, thumb: pointerThumb, showIf: (o) => o.pointerEnabled },
+  { key: 'pointerMotion', label: 'Animation', type: 'select', optionsFor: (o) => (isTargetDesign(o.pointerStyle) ? TARGET_MOTIONS : POINTER_MOTIONS), showIf: (o) => o.pointerEnabled },
   { key: 'pointerTheme', label: 'Color scheme', type: 'themePicker', themes: POINTER_THEMES, showIf: (o) => o.pointerEnabled },
-  { key: 'pointerColor', label: 'Arrow color', type: 'color', showIf: (o) => o.pointerEnabled },
-  { key: 'pointerSize', label: 'Arrow size', type: 'range', min: 40, max: 200, showIf: (o) => o.pointerEnabled },
+  { key: 'pointerColor', label: 'Pointer color', type: 'color', showIf: (o) => o.pointerEnabled },
+  { key: 'pointerSize', label: 'Pointer size', type: 'range', min: 40, max: 200, showIf: (o) => o.pointerEnabled },
+  { key: 'hintStyle', label: 'Bubble style', type: 'select', options: HINT_STYLES, showIf: (o) => o.pointerEnabled },
+  { key: 'hintDim', label: 'Dim the form while it shows', type: 'range', min: 0, max: 100, showIf: (o) => o.pointerEnabled },
   { key: 'hintBackground', label: 'Bubble Background color', type: 'color', showIf: (o) => o.pointerEnabled },
   { key: 'hintBorderColor', label: 'Bubble Border color', type: 'color', showIf: (o) => o.pointerEnabled },
   { key: 'hintTextColor', label: 'Bubble Text color', type: 'color', showIf: (o) => o.pointerEnabled },
@@ -246,7 +261,7 @@ export function listBuilderFields(config) {
     { key: 'privacyDisclaimer', label: 'Privacy Disclaimer', type: 'textarea', tab: 'Fields', showIf: () => !personalizer },
     { key: 'privacyPolicyCaption', label: 'Privacy Policy Label', type: 'text', tab: 'Fields' },
     { key: 'privacyPolicyLink', label: 'Privacy Policy Link', type: 'url', tab: 'Fields' },
-    ...POINTER_FIELDS.map((f) => ({ ...f, tab: 'Pointer' })),
+    ...POINTER_FIELDS.map((f) => ({ ...f, tab: 'Pointer', ...(f.optionsFor ? { options: f.optionsFor(config || {}) } : {}) })),
   ];
   if (!lead) fields.push({ key: 'askEveryVisit', label: 'Ask returning viewers every visit', type: 'toggle', tab: 'Fields' });
   if (!personalizer) {

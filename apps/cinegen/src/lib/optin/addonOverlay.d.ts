@@ -15,3 +15,4 @@ export function buildArrowHint(config: Record<string, unknown>): HTMLElement | n
 export function backdropStyle(config: Record<string, unknown>, opts?: { preview?: boolean }): string;
 export function formBackground(config: Record<string, unknown>): string;
 export function ensureFormFont(family: string): void;
+export function startPointer(hint: HTMLElement, form: HTMLElement, config: Record<string, unknown>): () => void;

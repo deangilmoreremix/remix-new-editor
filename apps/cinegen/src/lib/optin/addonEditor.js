@@ -252,9 +252,16 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
       </div>`;
     }
     case 'designPicker': {
-      // A grid of design thumbnails (field.designs, field.thumb(design, options) → markup).
-      const tiles = (field.designs || []).map((d) => `<button type="button" class="addon-design${d.id === value ? ' active' : ''}" data-design-pick="${esc(d.id)}" data-pick-key="${esc(field.key)}" aria-pressed="${d.id === value}" title="${esc(d.label)}">${field.thumb ? field.thumb(d, options) : ''}<span>${esc(d.label)}</span></button>`).join('');
-      return `<div class="clip-editor__field addon-field addon-field--designs"><label>${esc(field.label)}</label><div class="addon-designs" role="group" aria-label="${esc(field.label)}">${tiles}</div></div>`;
+      // A grid of design thumbnails (field.designs, field.thumb(design, options) → markup),
+      // grouped under field.categories headings when given.
+      const tile = (d) => `<button type="button" class="addon-design${d.id === value ? ' active' : ''}" data-design-pick="${esc(d.id)}" data-pick-key="${esc(field.key)}" aria-pressed="${d.id === value}" title="${esc(d.label)}">${field.thumb ? field.thumb(d, options) : ''}<span>${esc(d.label)}</span></button>`;
+      const groups = field.categories
+        ? field.categories.map(([cid, clabel]) => {
+          const items = (field.designs || []).filter((d) => (d.category || 'arrow') === cid);
+          return items.length ? `<div class="addon-designs__heading">${esc(clabel)}</div><div class="addon-designs" role="group" aria-label="${esc(clabel)}">${items.map(tile).join('')}</div>` : '';
+        }).join('')
+        : `<div class="addon-designs" role="group" aria-label="${esc(field.label)}">${(field.designs || []).map(tile).join('')}</div>`;
+      return `<div class="clip-editor__field addon-field addon-field--designs"><label>${esc(field.label)}</label>${groups}</div>`;
     }
     case 'themePicker': {
       // One-click colour schemes: each theme sets several keys at once.

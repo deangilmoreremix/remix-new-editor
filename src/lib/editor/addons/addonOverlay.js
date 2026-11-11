@@ -12,7 +12,7 @@
  * popcorn/style.scss). Rendered into an overlay layer above the preview stage.
  */
 
-import { pointerSvg, getPointerDesign, safeColor } from './pointerDesigns.js';
+import { pointerSvg, getPointerDesign, safeColor, HINT_STYLES } from './pointerDesigns.js';
 
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -297,16 +297,44 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
 export function buildArrowHint(config) {
   if (config.pointerEnabled === false) return null;
   const design = getPointerDesign(config.pointerStyle);
+  const target = design.mode === 'target';
   const pos = ['bottom-right', 'bottom-left', 'top-right', 'top-left'].includes(config.hintPosition) ? config.hintPosition : 'bottom-right';
-  const overlay = document.createElement('div');
-  overlay.className = `overlay-arrow on hint-pos-${pos}${design.animated ? ' pointer-animated' : ''}`;
-  overlay.dataset.pointer = design.id;
+  const style = HINT_STYLES.some(([id]) => id === config.hintStyle) ? config.hintStyle : 'card';
+  // A saved motion that doesn't fit this kind of design falls back sensibly.
+  const arrowMotions = new Set(['nudge', 'bounce', 'pulse', 'wiggle', 'float', 'draw', 'ping', 'none']);
+  const targetMotions = new Set(['travel-click', 'tap', 'hover', 'none']);
+  const wanted = String(config.pointerMotion || '');
+  const motion = (target ? targetMotions : arrowMotions).has(wanted) ? wanted : (target ? 'travel-click' : 'nudge');
   const color = safeColor(config.pointerColor);
-  overlay.style.setProperty('--arrow-scale', String((Number(config.pointerSize) || 100) / 100));
   const svg = pointerSvg(design.id, color);
+  const overlay = document.createElement('div');
+  overlay.className = [
+    'overlay-arrow', 'on', `hint-pos-${pos}`, `pt-style-${style}`, `pt-motion-${motion}`,
+    target ? 'pt-target-mode' : '',
+    design.animated ? 'pointer-animated' : '',
+    svg && !svg.includes('pt-stroke') ? 'pt-nostroke' : '',
+  ].filter(Boolean).join(' ');
+  overlay.dataset.pointer = design.id;
+  overlay.dataset.motion = motion;
+  overlay.style.setProperty('--arrow-scale', String((Number(config.pointerSize) || 100) / 100));
+  overlay.style.setProperty('--pointer-color', color);
+  // How strongly the form is dimmed while the pointer shows (upstream: 0.8).
+  const dim = Number(config.hintDim ?? 80);
+  overlay.style.backgroundColor = `rgba(34, 34, 40, ${Math.max(0, Math.min(100, Number.isFinite(dim) ? dim : 80)) / 100})`;
   const bubbleBg = hexToRgba(safeColor(config.hintBackground, '#17171c'), 0.9) || '#17171c';
+
+  let pointer = '';
+  if (target) {
+    // Placed on the Play button by startPointer(); the tip lands on its centre.
+    pointer = `<div class="pointer-target" data-tip="${design.tip.join(',')}">
+      <span class="pointer-ring" style="border-color:${esc(color)}"></span>
+      ${design.cursor === false ? '' : `<svg class="pointer-cursor" viewBox="${design.viewBox}" aria-hidden="true">${svg}</svg>`}
+    </div>`;
+  } else if (svg) {
+    pointer = `<div class="arrow-image"><svg viewBox="0 0 129 72" fill="none" aria-hidden="true">${svg}</svg>${motion === 'ping' ? `<span class="pt-ping" style="border-color:${esc(color)}"></span>` : ''}</div>`;
+  }
   overlay.innerHTML = `
-    ${svg ? `<svg class="arrow-image" width="129" height="72" viewBox="0 0 129 72" fill="none" aria-hidden="true">${svg}</svg>` : ''}
+    ${pointer}
     <div class="container-hint">
       <h3 class="title-hint">${esc(config.popupHeaderText)}</h3>
       <p class="container-fill-out"><span class="fill-out">${esc(config.popupFillOutText)}</span>${(config.elements || []).map((e) => `<span class="element-field">${esc(e.label)}</span>`).join('')}</p>
@@ -318,7 +346,111 @@ export function buildArrowHint(config) {
   bubble.style.borderColor = safeColor(config.hintBorderColor, '#575773');
   bubble.style.color = safeColor(config.hintTextColor, '#ffffff');
   bubble.style.borderRadius = `${Math.max(0, Number(config.hintRadius ?? 12))}px`;
+  // Bubble variants read these (see .pt-style-* in the stylesheet).
+  bubble.style.setProperty('--hint-bg', safeColor(config.hintBackground, '#17171c'));
+  bubble.style.setProperty('--hint-border', safeColor(config.hintBorderColor, '#575773'));
+  bubble.style.setProperty('--hint-text', safeColor(config.hintTextColor, '#ffffff'));
   return overlay;
+}
+
+const reducedMotion = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * Click-demo pointers (cursor / finger / pulse ring) sit ON the Play button
+ * and play a click. Ported from two animation sources in this repo:
+ *
+ *  - HyperFrames cta-morph-press + physics-press-reaction: the cursor
+ *    hard-cuts in from off-screen bottom-right, travels to the button, then
+ *    cursor AND button press down together (scale 0.9, PRESS_INTENSITY 0.1)
+ *    and spring back with overshoot.
+ *  - Remotion ScreenshotScene: ease-out-cubic travel (1 - (1 - p)^3) and the
+ *    `click_pulse` ripple (a 3px ring growing 10 → 80px while alpha 0.85 → 0).
+ *
+ * Needs layout, so it runs after the form is in the document; where there is
+ * none (tests) or reduced motion is on, the pointer is only placed.
+ */
+export function startPointer(hint, form, config) {
+  const holder = hint?.querySelector?.('.pointer-target');
+  if (!holder) return () => {};
+  const button = form.querySelector('.buttons-inner button');
+  const hr = hint.getBoundingClientRect();
+  const br = button?.getBoundingClientRect();
+  if (!br || !hr.width || !br.width) return () => {};
+  const scale = (Number(config.pointerSize) || 100) / 100;
+  const size = Math.max(28, Math.round(br.height * 1.5)) * scale;
+  const [tx, ty] = (holder.dataset.tip || '0.5,0.5').split(',').map(Number);
+  const cx = br.left - hr.left + br.width / 2;
+  const cy = br.top - hr.top + br.height / 2;
+  Object.assign(holder.style, { width: `${size}px`, height: `${size}px`, left: `${cx - size * tx}px`, top: `${cy - size * ty}px` });
+  const ring = holder.querySelector('.pointer-ring');
+  const cursor = holder.querySelector('.pointer-cursor');
+  // The ring is centred on the button, whatever the cursor tip offset is.
+  Object.assign(ring.style, { left: `${size * tx}px`, top: `${size * ty}px` });
+
+  const motion = hint.dataset.motion;
+  if (reducedMotion() || typeof holder.animate !== 'function' || motion === 'none') return () => {};
+  const anims = [];
+  const run = (el, frames, opts) => { const a = el.animate(frames, { fill: 'both', ...opts }); anims.push(a); return a; };
+  // Ripple: Remotion click_pulse (10 → 80px, alpha .85 → 0), as a scale of a 10px ring.
+  const ripple = (offset, span) => [
+    { opacity: 0, transform: 'translate(-50%, -50%) scale(1)', offset: 0 },
+    { opacity: 0, transform: 'translate(-50%, -50%) scale(1)', offset },
+    { opacity: 0.85, transform: 'translate(-50%, -50%) scale(1)', offset: offset + 0.001 },
+    { opacity: 0, transform: 'translate(-50%, -50%) scale(8)', offset: Math.min(1, offset + span) },
+    { opacity: 0, transform: 'translate(-50%, -50%) scale(8)', offset: 1 },
+  ];
+  const press = 1 - 0.1; // PRESS_INTENSITY
+  const spring = 'cubic-bezier(0.34, 1.56, 0.64, 1)'; // release with overshoot
+  const easeOutCubic = 'cubic-bezier(0.33, 1, 0.68, 1)'; // 1 - (1 - p)^3
+
+  if (!cursor) {
+    // Pulse ring: two ripples, staggered, looping.
+    run(ring, ripple(0, 0.6), { duration: 1800, iterations: Infinity });
+    return () => anims.forEach((a) => a.cancel());
+  }
+  if (motion === 'travel-click') {
+    const sx = hr.width - cx + 60;
+    const sy = hr.height - cy + 80;
+    const D = 3600;
+    // cut in (0.001s hard-cut) → travel → press ↓ → release ↑ (spring) → hold → fade
+    run(cursor, [
+      { transform: `translate(${sx}px, ${sy}px) scale(1)`, opacity: 0, offset: 0 },
+      { transform: `translate(${sx}px, ${sy}px) scale(1)`, opacity: 1, offset: 0.01 },
+      { transform: 'translate(0, 0) scale(1)', opacity: 1, offset: 0.4, easing: 'ease' },
+      { transform: `translate(0, 0) scale(${press})`, opacity: 1, offset: 0.48, easing: spring },
+      { transform: 'translate(0, 0) scale(1)', opacity: 1, offset: 0.58 },
+      { transform: 'translate(0, 0) scale(1)', opacity: 1, offset: 0.9 },
+      { transform: 'translate(0, 0) scale(1)', opacity: 0, offset: 1 },
+    ].map((k, i, all) => (i === 1 ? { ...k, easing: easeOutCubic } : k)), { duration: D, iterations: Infinity });
+    run(ring, ripple(0.48, 0.3), { duration: D, iterations: Infinity });
+    // The button presses in sync with the cursor.
+    run(button, [
+      { transform: 'scale(1)', offset: 0 },
+      { transform: 'scale(1)', offset: 0.4 },
+      { transform: `scale(${press})`, offset: 0.48, easing: spring },
+      { transform: 'scale(1)', offset: 0.58 },
+      { transform: 'scale(1)', offset: 1 },
+    ], { duration: D, iterations: Infinity });
+  } else if (motion === 'tap') {
+    const D = 1500;
+    run(cursor, [
+      { transform: 'translate(0, 0) scale(1)', offset: 0 },
+      { transform: `translate(2px, 2px) scale(${press})`, offset: 0.3, easing: spring },
+      { transform: 'translate(0, 0) scale(1)', offset: 0.5 },
+      { transform: 'translate(0, 0) scale(1)', offset: 1 },
+    ], { duration: D, iterations: Infinity });
+    run(ring, ripple(0.3, 0.45), { duration: D, iterations: Infinity });
+    run(button, [
+      { transform: 'scale(1)', offset: 0 }, { transform: `scale(${press})`, offset: 0.3, easing: spring },
+      { transform: 'scale(1)', offset: 0.5 }, { transform: 'scale(1)', offset: 1 },
+    ], { duration: D, iterations: Infinity });
+  } else {
+    // hover: parked on Play, floating
+    run(cursor, [
+      { transform: 'translate(0, 0)' }, { transform: 'translate(5px, 6px)' }, { transform: 'translate(0, 0)' },
+    ], { duration: 1600, iterations: Infinity, easing: 'ease-in-out' });
+  }
+  return () => anims.forEach((a) => { try { a.cancel(); } catch { /* element gone */ } });
 }
 
 /** Backdrop behind the form: a registration wall hides the video (100%). */
@@ -396,6 +528,14 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, prefill = {}
     }
   });
   layer.appendChild(wrap);
+  // Click-demo pointers need layout: place them on the Play button now.
+  if (hint) {
+    let stop = () => {};
+    const go = () => { stop(); if (wrap.isConnected) stop = startPointer(hint, form, config); };
+    requestAnimationFrame?.(go);
+    // The hint hides itself after hintDuration; stop the animations with it.
+    new MutationObserver(() => { if (hint.classList.contains('off') || !wrap.isConnected) { stop(); } }).observe(hint, { attributes: true, attributeFilter: ['class'] });
+  }
   return wrap;
 }
 

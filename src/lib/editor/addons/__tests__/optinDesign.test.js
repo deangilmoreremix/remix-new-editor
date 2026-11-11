@@ -2,12 +2,14 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   defaultOptin, buildOptinForm, buildArrowHint, showOptinOverlay, backdropStyle, renderAddonEditor, listBuilderFields,
   POINTER_DESIGNS, POINTER_THEMES, pointerSvg,
+  POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, startPointer,
 } from '../index.js';
 
 describe('pointer designs', () => {
   it('ships several designs, each recolourable, plus "none"', () => {
-    expect(POINTER_DESIGNS.length).toBeGreaterThanOrEqual(8);
-    for (const d of POINTER_DESIGNS.filter((x) => x.id !== 'none')) {
+    expect(POINTER_DESIGNS.length).toBeGreaterThanOrEqual(20);
+    expect(POINTER_THEMES.length).toBeGreaterThanOrEqual(10);
+    for (const d of POINTER_DESIGNS.filter((x) => x.id !== 'none' && x.cursor !== false)) {
       expect(pointerSvg(d.id, '#12ab34')).toContain('#12ab34');
     }
     expect(pointerSvg('none', '#fff')).toBe('');
@@ -111,5 +113,82 @@ describe('settings panel pickers', () => {
     const cyan = POINTER_THEMES.find((t) => t.id === 'cyan');
     box.querySelector('[data-theme-pick="cyan"]').click();
     expect(seen.at(-1)).toMatchObject({ pointerColor: cyan.pointerColor, hintBackground: cyan.hintBackground, hintBorderColor: cyan.hintBorderColor });
+  });
+});
+
+describe('pointer motions and click demos (ported from Remotion ScreenshotScene + HyperFrames physics-press-reaction)', () => {
+  it('has arrow motions, click-demo motions and bubble styles', () => {
+    expect(POINTER_MOTIONS.map(([id]) => id)).toEqual(expect.arrayContaining(['nudge', 'bounce', 'pulse', 'wiggle', 'float', 'draw', 'ping', 'none']));
+    expect(TARGET_MOTIONS.map(([id]) => id)).toEqual(expect.arrayContaining(['travel-click', 'tap', 'hover']));
+    expect(HINT_STYLES.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it('applies the motion, bubble style and dim to the hint; mismatched motions fall back', () => {
+    const hint = buildArrowHint({ ...defaultOptin(), pointerStyle: 'sketch', pointerMotion: 'draw', hintStyle: 'neon', hintDim: 30 });
+    expect(hint.classList.contains('pt-motion-draw')).toBe(true);
+    expect(hint.classList.contains('pt-style-neon')).toBe(true);
+    expect(hint.style.backgroundColor).toContain('0.3');
+    expect(hint.querySelector('.pt-stroke')).not.toBeNull(); // stroke can draw itself
+    // a click-demo motion on an arrow design is not valid: falls back to nudge
+    expect(buildArrowHint({ ...defaultOptin(), pointerStyle: 'curly', pointerMotion: 'travel-click' }).dataset.motion).toBe('nudge');
+    // an arrow motion on a click demo falls back to travel-click
+    expect(buildArrowHint({ ...defaultOptin(), pointerStyle: 'click-cursor', pointerMotion: 'bounce' }).dataset.motion).toBe('travel-click');
+    expect(buildArrowHint({ ...defaultOptin(), pointerMotion: 'ping' }).querySelector('.pt-ping')).not.toBeNull();
+  });
+
+  it('click demos sit on the Play button instead of a corner arrow', () => {
+    const hint = buildArrowHint({ ...defaultOptin(), pointerStyle: 'click-hand' });
+    expect(hint.classList.contains('pt-target-mode')).toBe(true);
+    expect(hint.querySelector('.pointer-target .pointer-cursor')).not.toBeNull();
+    expect(hint.querySelector('.arrow-image')).toBeNull();
+    expect(buildArrowHint({ ...defaultOptin(), pointerStyle: 'ripple' }).querySelector('.pointer-cursor')).toBeNull();
+  });
+
+  it('travel-click: cursor travels in, cursor AND button press to 0.9 together, ripple 10 -> 80px', () => {
+    const cfg = { ...defaultOptin(), pointerStyle: 'click-cursor', pointerMotion: 'travel-click' };
+    const form = buildOptinForm(cfg);
+    const hint = buildArrowHint(cfg);
+    const wrap = document.createElement('div');
+    wrap.append(form, hint);
+    document.body.append(wrap);
+    const button = form.querySelector('.buttons-inner button');
+    const rect = (l, t, w, h) => ({ left: l, top: t, width: w, height: h, right: l + w, bottom: t + h });
+    hint.getBoundingClientRect = () => rect(0, 0, 1000, 600);
+    button.getBoundingClientRect = () => rect(700, 300, 120, 40);
+    const calls = [];
+    Element.prototype.animate = vi.fn(function animate(frames, opts) { calls.push({ el: this, frames, opts }); return { cancel: vi.fn() }; });
+    const stop = startPointer(hint, form, cfg);
+    const holder = hint.querySelector('.pointer-target');
+    // tip lands on the button centre (760, 320)
+    const [tx, ty] = holder.dataset.tip.split(',').map(Number);
+    const size = parseFloat(holder.style.width);
+    expect(parseFloat(holder.style.left) + size * tx).toBeCloseTo(760, 0);
+    expect(parseFloat(holder.style.top) + size * ty).toBeCloseTo(320, 0);
+    const byEl = (el) => calls.find((c) => c.el === el);
+    const cursorFrames = byEl(hint.querySelector('.pointer-cursor')).frames;
+    expect(cursorFrames[0].opacity).toBe(0); // hard-cut in from off-screen
+    expect(cursorFrames.some((f) => f.transform.includes('scale(0.9)'))).toBe(true);
+    const buttonFrames = byEl(button).frames;
+    expect(buttonFrames.some((f) => f.transform === 'scale(0.9)')).toBe(true);
+    const ringFrames = byEl(hint.querySelector('.pointer-ring')).frames;
+    expect(ringFrames.some((f) => f.opacity === 0.85)).toBe(true);
+    expect(ringFrames.some((f) => f.transform.includes('scale(8)'))).toBe(true); // 10px -> 80px
+    expect(byEl(button).opts.iterations).toBe(Infinity);
+    stop();
+    wrap.remove();
+    delete Element.prototype.animate;
+  });
+
+  it('settings: grouped design picker, motion list follows the design, one-click motion change', () => {
+    const box = document.createElement('div');
+    const seen = [];
+    renderAddonEditor(box, { options: defaultOptin(), fieldsFor: listBuilderFields, idPrefix: 'm', onChange: (o) => seen.push(o) });
+    box.querySelector('[data-addon-tab="Pointer"]').click();
+    expect(box.querySelectorAll('.addon-designs__heading').length).toBe(2);
+    expect([...box.querySelectorAll('select[data-key="pointerMotion"] option')].map((o) => o.value)).toContain('bounce');
+    box.querySelector('[data-design-pick="click-cursor"]').click();
+    box.querySelector('[data-addon-tab="Pointer"]')?.click();
+    expect([...box.querySelectorAll('select[data-key="pointerMotion"] option')].map((o) => o.value)).toContain('travel-click');
+    expect(seen.at(-1).pointerStyle).toBe('click-cursor');
   });
 });
