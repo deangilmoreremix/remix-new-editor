@@ -106,9 +106,9 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         .addon-panel .mini-btn{border:1px solid var(--border-medium,rgba(255,255,255,.18));background:transparent;color:inherit;border-radius:6px;padding:2px 6px;cursor:pointer}
       `}</style>
       <div className="clip-properties-panel__header">
-        <span className="clip-properties-panel__title">{overlay.name} overlay</span>
-        <span>
-          <button type="button" className="mini-btn" onClick={onRemove}>Delete</button>{' '}
+        <span className="clip-properties-panel__title" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{overlay.name} overlay</span>
+        <span style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          <button type="button" className="mini-btn" onClick={onRemove}>Delete</button>
           <button type="button" className="mini-btn" onClick={onClose} aria-label="Close">✕</button>
         </span>
       </div>

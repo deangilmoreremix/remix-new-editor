@@ -133,3 +133,19 @@
 .cinegen-root .app-root > * { min-height: 0; }
 .cinegen-root .workspace-content { height: auto; flex: 1 1 auto; min-height: 0; }
 .cinegen-root .pm-backdrop { position: absolute; }
+
+/* [remix] Overlays lane in CineGen's track style: stacked rows for overlapping overlays, blocks that show their content, collapsible. */
+.overlay-track .track-row__label { gap: 4px; }
+.overlay-lane__toggle { background: transparent; border: 0; color: var(--text-secondary); cursor: pointer; font-size: 11px; padding: 0 2px; line-height: 1; }
+.overlay-lane__toggle:hover { color: var(--text-primary); }
+.overlay-lane__add { width: 100%; min-width: 0; background: var(--bg-input, transparent); color: inherit; border: 1px solid var(--border-medium); border-radius: 6px; font-size: 11px; padding: 2px 4px; cursor: pointer; }
+.overlay-card { display: flex; align-items: center; gap: 8px; padding: 0 22px 0 8px; border: 2px solid var(--border-medium); background: var(--bg-elevated); color: var(--text-primary); font-size: 11px; }
+.overlay-card--selected { border-color: var(--accent); }
+.overlay-card:hover { border-color: var(--accent); }
+.overlay-card__thumb { height: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #000; border-radius: 4px; flex: 0 0 auto; }
+.overlay-card__body { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.overlay-card__name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.overlay-card__meta { font-size: 10px; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.overlay-card--compact { padding-top: 0; padding-bottom: 0; }
+.overlay-card__handle { position: absolute; top: 0; bottom: 0; width: 6px; cursor: ew-resize; z-index: 1; }
+.overlay-card__handle--start { left: 0; } .overlay-card__handle--end { right: 0; }

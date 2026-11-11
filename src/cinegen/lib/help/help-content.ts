@@ -127,6 +127,8 @@ export const HELP: Record<string, HelpEntry> = {
   'preview sound': e('Preview sound', 'Listen before you add it.', 'Plays or stops a preview of this sound.', ['Press the button.']),
   'animations': e('Animations', 'Add a ready-made animation over your video.', 'Browse 267 animations (lower thirds, titles, charts, scenes and more). Click one to place it at the playhead, then edit its text, colours and timing in the panel on the right.', ['Pick a group, optionally search, then click a card.']),
   'search animations': e('Search animations', 'Find an animation by name.', 'Filters the cards by name or description.', ['Type in the box; clear it to see everything again.']),
+  'collapse overlays': e('Collapse overlays', 'Shrink the Overlays track.', 'Shows every overlay as one compact row so the timeline has more room. Expand it again to see each overlay on its own row with its preview and text.', ['Press the arrow next to Overlays.']),
+  'expand overlays': e('Expand overlays', 'Show each overlay on its own row.', 'Overlays that overlap in time are stacked on separate rows, and each block shows its preview or text.', ['Press the arrow next to Overlays.']),
   'library group': e('Animation group', 'Filter animations by what they are.', 'Groups animations by type: lower thirds, data and charts, titles and text, social, transitions and more. Everything shows them all.', ['Press a group to show only those animations; press Everything to see all.']),
   'library item': e('Library item', 'Click to apply it.', 'Effects and looks apply to the selected clip; transitions go on the cut after the selected clip. Hover it to see the effect play.', ['Select a clip, then click the card.']),
 
