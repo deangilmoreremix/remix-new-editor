@@ -163,7 +163,8 @@ const MUAPI_BASE = 'https://api.muapi.ai/api/v1';
 
 /** MuAPI result lookup. The endpoint is GET-only (POST answers 405). */
 async function muapiGet(path, key, fetchImpl = fetch) {
-  const res = await fetchImpl(`${MUAPI_BASE}${path}`, { headers: { 'x-api-key': key } });
+  // a slow or unreachable MuAPI must not hold the function open: the client just polls again
+  const res = await fetchImpl(`${MUAPI_BASE}${path}`, { headers: { 'x-api-key': key }, signal: AbortSignal.timeout(15_000) });
   if (!res.ok) throw Object.assign(new Error(`MuAPI ${path} failed: ${res.status}`), { status: res.status });
   return res.json();
 }
