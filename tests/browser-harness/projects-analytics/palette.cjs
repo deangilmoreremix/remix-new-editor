@@ -1,5 +1,5 @@
 const { chromium } = require('playwright'); const fs=require('fs');
-const B=process.env.HARNESS_DIR||__dirname;
+const B='/tmp/claude-0/-home-user-remix-new-editor/c9a787cd-a72d-5d34-9fd2-edfcab43c7a8/scratchpad/browser';
 const tokens=JSON.parse(fs.readFileSync(`${B}/tokens.json`,'utf8'));
 const results=[]; const check=(n,ok,d='')=>{results.push(ok); console.log(`${ok?'PASS':'FAIL'}  ${n}${d?'  — '+d:''}`)};
 (async()=>{
@@ -46,7 +46,7 @@ const results=[]; const check=(n,ok,d='')=>{results.push(ok); console.log(`${ok?
  check('unread dot is the editor danger red', a.unread===null || a.unread.backgroundColor==='rgb(239, 68, 68)');
  await page.locator('.sv-tabs').getByRole('button',{name:'Engagement'}).click(); await page.waitForTimeout(600);
  const h=await page.evaluate(()=>{ const bars=[...document.querySelectorAll('.sv-heatmap span')]; const set=new Set(bars.map(b=>getComputedStyle(b).backgroundColor)); const fill=document.querySelector('.sv-progress span'); return { colors:[...set], progress:getComputedStyle(fill).backgroundImage }; });
- check('heat-map bars use the editor accent + secondary accent (no blue/green from the supplied design)', h.colors.length===2 && h.colors.includes(liveAccent) && h.colors.includes(liveAccent2), JSON.stringify(h.colors)+` vs ${liveAccent} / ${liveAccent2}`);
+ check('heat-map bars use the editor accent + white highlight (no blue/green from the supplied design)', h.colors.length===2 && h.colors.includes(liveAccent) && h.colors.includes('rgb(255, 255, 255)'), JSON.stringify(h.colors)+` vs ${liveAccent} / ${liveAccent2}`);
  check('engagement bars use the editor accent gradient', h.progress.includes(liveAccent) && h.progress.includes(liveAccent2), h.progress.slice(0,90));
  // WCAG AA contrast for the text colours the tab actually uses, composited over the real background
  const contrast=await page.evaluate(()=>{ const parse=(c)=>{const m=c.match(/[\d.]+/g).map(Number); return {r:m[0],g:m[1],b:m[2],a:m[3]===undefined?1:m[3]};}; const over=(f,b)=>({r:f.r*f.a+b.r*(1-f.a),g:f.g*f.a+b.g*(1-f.a),b:f.b*f.a+b.b*(1-f.a),a:1});

@@ -138,7 +138,7 @@ export async function loadAnalytics(client, { projectRow, period = '30d', custom
       plays,
       // Unique viewers need a viewer id: unavailable (null) when plays exist but none carried one.
       uniqueViewers: plays > 0 && unique === 0 ? null : unique,
-      completionRate: s.completion_rate == null ? null : Math.round(Number(s.completion_rate) * 1000) / 10,
+      completionRate: s.completion_rate == null ? null : Number(s.completion_rate) * 100,
       avgWatchSeconds: s.avg_watch_seconds == null ? null : Number(s.avg_watch_seconds),
       ctaClicks: (Number(s.cta_clicks) || 0) + (Number(s.call_clicks) || 0),
       leads: Number(s.leads) || 0,

@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const { execFileSync } = require('child_process');
 const fs = require('fs');
-const B = process.env.HARNESS_DIR || __dirname;
+const B = '/tmp/claude-0/-home-user-remix-new-editor/c9a787cd-a72d-5d34-9fd2-edfcab43c7a8/scratchpad/browser';
 const SHOTS = `${B}/shots`;
 fs.mkdirSync(SHOTS, { recursive: true });
 const tokens = JSON.parse(fs.readFileSync(`${B}/tokens.json`, 'utf8'));

@@ -52,6 +52,8 @@ Types: `page_open play pause resume complete progress_25 progress_50 progress_75
 | 10,000 | ~60 MB | ~40,000 |
 | 100,000 | ~600 MB | ~400,000 |
 
+**Measured** (local Postgres 16, 5 videos, 100,000 sessions, 600,000 events, 180 daily rows): sessions 40 MB, events 114 MB, aggregates 18 MB, i.e. about 1.7 KB per session of six events including indexes, in line with the estimate. Owner RPCs over a 90-day range for one 20,000-session video (RLS on, `supabase/tests/60_perf_seed.sql` + `61_perf_queries.sql`): summary 46 ms, timeseries 36 ms, retention 42 ms, CTA performance 62 ms, audience segments 218 ms, section engagement 352 ms, portfolio (5 videos) 68 ms, per-video stats 17 ms. No extra index was needed. Plain Postgres on one machine, not a Supabase instance; expect the same order of magnitude, not identical numbers.
+
 Supabase free is 500 MB of database and Netlify free is 125k function invocations/month (check current plan limits). The 10k/month tier fits both; ~30k plays/month is about where the invocation allowance runs out, and ~80k where raw storage does unless retention is shortened. Lower `prune_video_analytics(days)` or batch less often to stretch it.
 
 ## Configuration

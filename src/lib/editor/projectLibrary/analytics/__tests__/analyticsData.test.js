@@ -106,7 +106,7 @@ describe('loadAnalytics', () => {
     expect(nq).toContainEqual(['eq', 'video_id', 'abcdefgh12']);
 
     const d = r.data;
-    expect(d.metrics).toEqual({ plays: 30, uniqueViewers: 12, completionRate: 43.3, avgWatchSeconds: 41.2, ctaClicks: 7, leads: 3 });
+    expect(d.metrics).toEqual({ plays: 30, uniqueViewers: 12, completionRate: expect.closeTo(43.33, 6), avgWatchSeconds: 41.2, ctaClicks: 7, leads: 3 });
     expect(d.thumbnailUrl).toBe('https://cdn/x.png'); // the saved project thumbnail
     expect(d.publishedUrl).toBe('https://smartvid.app/v/acme/kitchen'); // readable canonical link (slug + business set)
     expect(d.sections).toEqual([
