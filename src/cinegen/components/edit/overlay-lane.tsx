@@ -19,17 +19,20 @@ interface Props {
   onOpenGenerator?: () => void;
   onOpenPersonalization?: () => void;
   onUpdate: (id: string, updates: Partial<OverlayClip>) => void;
+  /** Remove an overlay from the timeline (the × on its block, or Delete / Backspace while it is selected). */
+  onRemove: (id: string) => void;
 }
 
 const MIN = 0.5;
 
-export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onAdd, onAddTemplate, onBrowseMotion, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate }: Props) {
+export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onAdd, onAddTemplate, onBrowseMotion, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate, onRemove }: Props) {
   const selected = useSelectedOverlay();
   const drag = useRef<{ id: string; mode: 'move' | 'start' | 'end'; x: number; start: number; end: number } | null>(null);
 
   const begin = (e: React.PointerEvent, o: OverlayClip, mode: 'move' | 'start' | 'end') => {
     e.stopPropagation();
     selectOverlay(o.id);
+    (e.currentTarget as HTMLElement).focus?.(); // so Delete / Backspace act on this block
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     drag.current = { id: o.id, mode, x: e.clientX, start: o.start, end: o.end };
   };
@@ -65,12 +68,16 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
           {overlays.map((o) => {
             const on = selected === o.id;
             return (
-              <div key={o.id} role="button" tabIndex={0} title={`${o.name} · ${o.start.toFixed(1)}s–${o.end.toFixed(1)}s`}
+              <div key={o.id} role="button" tabIndex={0} className={`overlay-lane__item${on ? ' overlay-lane__item--selected' : ''}`} title={`${o.name} · ${o.start.toFixed(1)}s–${o.end.toFixed(1)}s`}
                 onPointerDown={(e) => begin(e, o, 'move')}
+                onKeyDown={(e) => { if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); onRemove(o.id); } }}
                 style={{ position: 'absolute', top: 4, bottom: 4, left: o.start * pxPerSecond, width: Math.max(8, (o.end - o.start) * pxPerSecond), borderRadius: 6,
                   background: on ? 'rgba(235,80,84,.55)' : 'rgba(235,80,84,.32)', border: `1px solid ${on ? '#eb5054' : 'rgba(235,80,84,.6)'}`, color: '#fff', fontSize: 10, padding: '0 8px', display: 'flex', alignItems: 'center', cursor: 'grab', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                 <span onPointerDown={(e) => begin(e, o, 'start')} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, cursor: 'ew-resize' }} />
                 {o.name}
+                <button type="button" className="overlay-lane__remove" title="Remove overlay" aria-label="Remove overlay"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onRemove(o.id); }}>&times;</button>
                 <span onPointerDown={(e) => begin(e, o, 'end')} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 6, cursor: 'ew-resize' }} />
               </div>
             );

@@ -6,7 +6,7 @@ import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/w
 import { OverlayLane } from './overlay-lane';
 import { CaptionLane } from './caption-lane';
 import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
-import { selectOverlay } from '@cinegen/lib/overlays/selection';
+import { selectOverlay, getSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
 import { MusicGenerationPopup } from './music-generation-popup';
@@ -3263,6 +3263,7 @@ export function TimelineEditor({
           dispatch({ type: 'ADD_OVERLAY', overlay });
           selectOverlay(overlay.id);
         }}
+        onRemove={(id) => { dispatch({ type: 'REMOVE_OVERLAY', overlayId: id }); if (getSelectedOverlay() === id) selectOverlay(null); }}
         onBrowseMotion={() => setMgOpen(true)}
         onOpenSpeech={handleOpenSpeech}
         onOpenGenerator={handleOpenGenerator}

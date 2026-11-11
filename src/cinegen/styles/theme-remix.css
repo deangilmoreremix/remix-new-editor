@@ -75,3 +75,17 @@
 .help-tip__how li { margin: 2px 0; }
 @keyframes help-tip-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .help-tip { animation: none; } }
+
+/* [remix] Remove (×) button on overlay and caption blocks of the timeline lanes. Visible on hover, focus and when the block is selected. */
+.overlay-lane__remove, .caption-lane__remove {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%); z-index: 3;
+  width: 16px; height: 16px; padding: 0; border: 0; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 13px; line-height: 1; cursor: pointer;
+  opacity: 0; transition: opacity 0.12s ease, background 0.12s ease;
+}
+.overlay-lane__item:hover .overlay-lane__remove, .overlay-lane__item:focus-within .overlay-lane__remove, .overlay-lane__item--selected .overlay-lane__remove,
+.caption-lane__item:hover .caption-lane__remove, .caption-lane__item:focus-within .caption-lane__remove { opacity: 1; }
+.overlay-lane__remove:hover, .caption-lane__remove:hover { background: #ef4444; }
+.overlay-lane__remove:focus-visible, .caption-lane__remove:focus-visible { outline: 2px solid #22d3ee; outline-offset: 1px; opacity: 1; }
+.overlay-lane__item:focus { outline: none; }

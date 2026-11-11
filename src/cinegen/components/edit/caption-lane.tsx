@@ -104,11 +104,14 @@ export function CaptionLane({ clips, pxPerSecond, scrollLeft, labelWidth, sequen
           {cues.map((c) => {
             const on = selected.has(c.key); const s = shift(c);
             return (
-              <div key={c.key} role="button" tabIndex={-1} data-testid="caption-cue" title={`${c.text} · ${(s.start / 1000).toFixed(2)}s–${(s.end / 1000).toFixed(2)}s`}
+              <div key={c.key} role="button" tabIndex={-1} className="caption-lane__item" data-testid="caption-cue" title={`${c.text} · ${(s.start / 1000).toFixed(2)}s–${(s.end / 1000).toFixed(2)}s`}
                 onPointerDown={(e) => begin(e, c, 'move')}
                 style={{ position: 'absolute', top: 4, bottom: 4, left: (s.start / 1000) * pxPerSecond, width: Math.max(8, ((s.end - s.start) / 1000) * pxPerSecond), borderRadius: 5, background: on ? 'rgba(34,211,238,.45)' : 'rgba(34,211,238,.22)', border: `1px solid ${on ? '#22d3ee' : 'rgba(34,211,238,.5)'}`, color: '#e5f9ff', fontSize: 10, padding: '0 8px', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', cursor: drag ? 'grabbing' : 'grab', touchAction: 'none', userSelect: 'none' }}>
                 <span onPointerDown={(e) => begin(e, c, 'start')} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, cursor: 'ew-resize' }} />
                 {c.text}
+                <button type="button" className="caption-lane__remove" title="Remove caption" aria-label="Remove caption"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onUpdateCaptions(c.clipId, deleteCues(clipCaptions(byClip(c.clipId))!, [c])); setSelected((prev) => { const n = new Set(prev); n.delete(c.key); return n; }); }}>&times;</button>
                 <span onPointerDown={(e) => begin(e, c, 'end')} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 6, cursor: 'ew-resize' }} />
               </div>
             );

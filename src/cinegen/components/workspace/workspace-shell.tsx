@@ -197,6 +197,7 @@ const UNDOABLE_ACTIONS: WorkspaceAction['type'][] = [
   'MOVE_ELEMENTS', 'ADD_ELEMENT_FOLDER', 'UPDATE_ELEMENT_FOLDER', 'REMOVE_ELEMENT_FOLDER',
   'SET_DIRECTOR',
   'ADD_SET', 'UPDATE_SET', 'REMOVE_SET',
+  'ADD_OVERLAY', 'REMOVE_OVERLAY', // [remix] adding / removing an overlay can be undone (moving one is not pushed per pixel)
 ];
 
 interface HistoryState {

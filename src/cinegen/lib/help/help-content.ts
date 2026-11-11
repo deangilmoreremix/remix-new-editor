@@ -106,6 +106,8 @@ export const HELP: Record<string, HelpEntry> = {
   'fit timeline to view': e('Fit timeline to view', 'Zoom the whole timeline into view.', 'Changes the horizontal zoom so the full length of the timeline fits on screen.', ['Press the button.']),
   'add an overlay at the playhead': e('Add overlay', 'Place a form, button or motion graphic over the video.', 'Overlays are interactive or graphic elements drawn on top of the picture: call-to-action buttons, lead forms, end screens, motion-graphics templates and more. They have their own lane under the ruler.',
     ['Move the playhead to where it should appear.', 'Open "Add overlay…" and choose a type.', 'Edit its text and style in the inspector; drag it on the lane to time it.']),
+  'remove overlay': e('Remove overlay', 'Take this overlay off the timeline.', 'Deletes the overlay (lead form, button, graphic, motion template or end screen) from the timeline and the video. Use Undo to bring it back.', ['Press the × on its block, or select it and press Delete.']),
+  'remove caption': e('Remove caption', 'Delete this caption.', 'Removes this single caption line from the clip. The other captions are not affected. Use Undo to bring it back.', ['Press the × on the caption block, or select it and press Delete.']),
   'overlays: forms and buttons drawn over the video': e('Overlay lane', 'Timing for forms, buttons and graphics.', 'This lane shows every overlay as a block. Drag a block to change when it appears, drag its edges to change how long it stays, and click it to edit it.', ['Click a block to select it.', 'Drag to move, drag the edges to resize.']),
 
   // ── Project Manager ──────────────────────────────────────────────────────
