@@ -1315,6 +1315,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         }),
         transitions: tl.transitions.map((tr) => transitionToRow(tr, tl.id)),
         markers: JSON.stringify(tl.markers ?? []),
+        overlays: JSON.stringify(tl.overlays ?? []),
       }));
 
       const dbState = {

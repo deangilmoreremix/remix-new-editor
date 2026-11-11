@@ -70,6 +70,8 @@ interface TimelineEditorProps {
   onClipDoubleClick?: (clipId: string) => void;
   draggingAsset?: Asset | null;
   onZoomChange?: (pps: number) => void;
+  /** Row rendered between the ruler and the tracks (overlay lane). */
+  overlayLane?: React.ReactNode;
 }
 
 export function TimelineEditor({
@@ -94,6 +96,7 @@ export function TimelineEditor({
   onClipDoubleClick,
   draggingAsset,
   onZoomChange,
+  overlayLane,
 }: TimelineEditorProps) {
   const { state, dispatch, projectId } = useWorkspace();
   const timeline = getActiveTimeline(state);
@@ -3148,6 +3151,8 @@ export function TimelineEditor({
           </div>
         </div>
       </div>
+
+      {overlayLane}
 
       {/* Global playhead — spans across all sections including divider */}
       <div className="timeline-editor__playhead-clip" style={{ left: LABEL_WIDTH }}>

@@ -1,4 +1,5 @@
 import '@/styles/edit-tab.css';
+import '@/styles/optin.css';
 import { useState, useCallback, useMemo, useEffect, useRef, useLayoutEffect } from 'react';
 import { useWorkspace, getActiveTimeline } from '@/components/workspace/workspace-shell';
 import { TimelineEditor } from './timeline-editor';
@@ -10,6 +11,11 @@ import { TimelineTabs } from './timeline-tabs';
 import { TimelineBottomBar } from './timeline-bottom-bar';
 import { ResizeHandle } from './resize-handle';
 import { ClipPropertiesPanel } from './clip-properties-panel';
+import { OverlayLane } from './overlay-lane';
+import { OverlayPropertiesPanel } from './overlay-properties-panel';
+import { OptinViewerLayer } from './optin-viewer-layer';
+import { newOverlay } from '@/lib/optin/overlay-kinds';
+import type { OverlayClip, OverlayKind } from '@/types/timeline';
 import { useEditorLayout } from './use-editor-layout';
 import { usePlaybackEngine } from './use-playback-engine';
 import { useNativeVideoSurface } from './use-native-video-surface';
@@ -347,6 +353,45 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     }
     setSelectedClipIdsRaw(expanded);
   }, [timeline.clips]);
+
+  // Opt-in overlays (List Builder / Personalizer / Lead Generator)
+  const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
+  const overlays: OverlayClip[] = timeline.overlays ?? [];
+  const selectedOverlay = overlays.find((o) => o.id === selectedOverlayId) ?? null;
+  const setOverlays = useCallback((next: OverlayClip[]) => {
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: { ...timeline, overlays: next } });
+  }, [dispatch, timeline]);
+  const handleSelectOverlay = useCallback((id: string | null) => {
+    setSelectedOverlayId(id);
+    if (id) {
+      setSelectedClipIdsRaw(new Set());
+      if (!layout.inspectorVisible) setLayout({ inspectorVisible: true });
+    }
+  }, [layout.inspectorVisible, setLayout]);
+  const handleAddOverlay = useCallback((kind: OverlayKind) => {
+    const overlay = newOverlay(kind, currentTime, overlays.some((o) => o.kind !== 'lead-generator'));
+    setOverlays([...overlays, overlay]);
+    handleSelectOverlay(overlay.id);
+  }, [currentTime, overlays, setOverlays, handleSelectOverlay]);
+  const handleUpdateOverlay = useCallback((id: string, patch: Partial<OverlayClip>) => {
+    setOverlays(overlays.map((o) => (o.id === id ? { ...o, ...patch } : o)));
+  }, [overlays, setOverlays]);
+  const handleOverlayTimes = useCallback((id: string, start: number, end: number) => {
+    handleUpdateOverlay(id, { start, end });
+  }, [handleUpdateOverlay]);
+  const handleDeleteOverlay = useCallback((id: string) => {
+    setOverlays(overlays.filter((o) => o.id !== id));
+    setSelectedOverlayId(null);
+  }, [overlays, setOverlays]);
+  // Selecting a clip hands the right panel back to clip properties.
+  useEffect(() => {
+    if (selectedClipIds.size > 0) setSelectedOverlayId(null);
+  }, [selectedClipIds]);
+  // Hold/resume playback for a form gate without toggling twice.
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
+  const optinPause = useCallback(() => { if (isPlayingRef.current) togglePlayPause(); }, [togglePlayPause]);
+  const optinPlay = useCallback(() => { if (!isPlayingRef.current) togglePlayPause(); }, [togglePlayPause]);
 
   // Trim preview
   const [trimPreview, setTrimPreview] = useState<{ clipId: string; sourceTime: number } | null>(null);
@@ -1007,6 +1052,16 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           onDropAssetId={handleSourceDropAssetId}
           inspectorVisible={layout.inspectorVisible}
           onToggleInspector={handleToggleInspector}
+          overlayLayer={(
+            <OptinViewerLayer
+              overlays={overlays}
+              currentTime={currentTime}
+              isPlaying={isPlaying}
+              selectedId={selectedOverlayId}
+              pause={optinPause}
+              play={optinPlay}
+            />
+          )}
         />
       </div>
 
@@ -1059,6 +1114,17 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
             onClipDoubleClick={handleClipDoubleClick}
             draggingAsset={draggingAsset}
             onZoomChange={setPxPerSecond}
+            overlayLane={(
+              <OverlayLane
+                overlays={overlays}
+                pxPerSecond={pxPerSecond}
+                scrollLeft={timelineView.scrollLeft}
+                selectedId={selectedOverlayId}
+                onSelect={handleSelectOverlay}
+                onAdd={handleAddOverlay}
+                onChangeTimes={handleOverlayTimes}
+              />
+            )}
           />
 
           <TimelineBottomBar
@@ -1081,7 +1147,16 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           className="edit-tab__right-resize"
         />
       )}
-      {layout.inspectorVisible && (
+      {layout.inspectorVisible && selectedOverlay && (
+        <OverlayPropertiesPanel
+          key={selectedOverlay.id}
+          overlay={selectedOverlay}
+          onUpdate={handleUpdateOverlay}
+          onDelete={handleDeleteOverlay}
+          onClose={() => setSelectedOverlayId(null)}
+        />
+      )}
+      {layout.inspectorVisible && !selectedOverlay && (
         <ClipPropertiesPanel
           clip={selectedClip}
           asset={selectedClipAsset}
