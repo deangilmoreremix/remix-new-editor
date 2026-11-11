@@ -564,11 +564,13 @@ export function ZackDStudio() {
     const pid = s.pid;
     const rev = slot === 'narration' ? (s.narrRev || 0) : undefined;
     const tracker = createPendingJobTracker('zackd', { slot, id, pid, rev }, { maxAttempts: 180, interval: 4000 });
+    let keep = false;
     try {
       const r = await runJob(body, { signal: abort.current.signal, onRequestId: tracker.onRequestId });
       applyResult({ slot, id, pid, rev }, r.url);
       return r;
-    } finally { tracker.finish(); }
+    } catch (e) { keep = e?.name === 'AbortError'; throw e; } // we stopped waiting (cancel or navigation); the paid job may still finish
+    finally { tracker.finish({ keep }); }
   }
   const genSheet = (sheet) => tracked('sheet', sheet.id, { kind: 'image', aspect: '16:9', prompt: characterSheetPrompt(sheet, { look: s.look, boost: s.consistencyBoost }) });
   const genKeyframe = (shot) => tracked('keyframe', shot.shot_id, { kind: 'image', aspect: '9:16', prompt: shotPrompt(shot) });
@@ -704,6 +706,7 @@ export function ZackDStudio() {
     const cut = final; // the cut this burn belongs to
     // recorded like the other paid jobs, so a reload while it runs can still recover the result (into the history)
     const tracker = createPendingJobTracker('zackd', { slot: 'captions', id: 'captions', pid: s.pid }, { maxAttempts: 300, interval: 4000 });
+    let keepJob = false;
     try {
       const { muapi } = await import('../../../lib/muapi.js');
       const file = new File([final.blob], 'zackd-cut.mp4', { type: 'video/mp4' });
@@ -712,8 +715,8 @@ export function ZackDStudio() {
       const r = await runJob({ kind: 'captions', videoUrl, language: s.captionLang, theme: s.captionTheme }, { signal: abort.current.signal, onRequestId: tracker.onRequestId });
       cut.captioned = { url: r.url, saved: false };
       showToast('Captions ready', 'success', 2500);
-    } catch (e) { fail(e); }
-    tracker.finish();
+    } catch (e) { fail(e); keepJob = e?.name === 'AbortError'; }
+    tracker.finish({ keep: keepJob });
     cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
     busy = false; progress = null; paint();
   }
