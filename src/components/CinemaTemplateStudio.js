@@ -454,7 +454,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     incomingStoryboard = null;
     storyboardProjectId = null;
     try {
-      const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+      const params = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
       const storyboardParam = params.get('storyboard');
       const cinemaTemplateParam = params.get('template');
       if (storyboardParam) {
