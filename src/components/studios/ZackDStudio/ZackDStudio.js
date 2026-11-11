@@ -90,6 +90,7 @@ export function ZackDStudio() {
   let outsideClick = null;
 
   const save = () => {
+    if (disposed) return; // this instance's copy is stale once the studio was left; late results go through applyResultToStored
     // `final` holds a Blob + object URL that die with the page; everything else survives a reload.
     try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch { /* quota or private mode: keep working in memory */ }
   };

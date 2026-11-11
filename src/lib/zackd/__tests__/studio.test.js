@@ -301,4 +301,19 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(ids).not.toContain('req_old');
     expect(ids).toContain('req_other'); // other slots are untouched
   });
+
+  it('a generation batch that settles after the studio was left does not overwrite the saved project with its stale copy', async () => {
+    let finishClip;
+    runJob.mockImplementationOnce((b, opts) => new Promise((resolve) => { opts.onRequestId('req_batch'); finishClip = () => resolve({ url: 'https://cdn.example.com/batch-late.mp4', model: 'm' }); }));
+    const root = mount();
+    await click(root, 'Use as template');
+    await click(root, 'Generate narration');                  // any tracked batch/job that will settle after cleanup
+    await tick(10);
+    root.cleanup();
+    const stored = JSON.parse(localStorage.getItem('zackd_project_v1'));
+    localStorage.setItem('zackd_project_v1', JSON.stringify({ ...stored, topic: 'Changed by the studio opened since' }));
+    finishClip();
+    await tick(40);
+    expect(JSON.parse(localStorage.getItem('zackd_project_v1')).topic).toBe('Changed by the studio opened since');
+  });
 });
