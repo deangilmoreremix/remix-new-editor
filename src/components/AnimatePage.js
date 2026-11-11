@@ -54,6 +54,20 @@ export function AnimatePage() {
     selectedMuapiModel: null,
   };
 
+  // Hand-off from Storyboard Studio: a frame image plus its motion prompt.
+  try {
+    const raw = sessionStorage.getItem('storyboard_animate_frame');
+    if (raw) {
+      sessionStorage.removeItem('storyboard_animate_frame');
+      const frame = JSON.parse(raw);
+      if (frame?.imageUrl) {
+        state.sourceImageUrl = frame.imageUrl;
+        if (frame.prompt) state.prompt = frame.prompt;
+        if (frame.duration) state.duration = Math.min(12, Math.max(3, Math.round(frame.duration)));
+      }
+    }
+  } catch { /* storage unavailable or bad payload */ }
+
   const root = document.createElement('div');
   root.className = 'w-full max-w-4xl mx-auto px-4 pb-8 animate-fade-in-up';
 
@@ -147,6 +161,13 @@ export function AnimatePage() {
       });
       uploadSection.appendChild(picker.trigger);
       uploadSection.appendChild(picker.panel);
+      if (state.sourceImageUrl) {
+        const preview = document.createElement('img');
+        preview.src = state.sourceImageUrl;
+        preview.alt = 'Source image';
+        preview.className = 'mt-2 h-24 rounded-lg border border-white/10 object-cover';
+        uploadSection.appendChild(preview);
+      }
     }
   }
 
