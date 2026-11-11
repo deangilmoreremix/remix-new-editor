@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { TEMPLATES, getTemplate, templateToProject } from '../templates.js';
 import { allShots, totalDuration } from '../../../../netlify/functions/_shared/zackdPrompts.js';

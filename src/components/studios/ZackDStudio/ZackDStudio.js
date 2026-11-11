@@ -78,10 +78,9 @@ export function ZackDStudio() {
   let narrStale = false; // narration was dropped by an edit; the panel repaints on blur
   let history = loadHistory();
   let final = null; // { objectUrl, blob, duration, captioned?: { url } }: in memory only (blob URLs die with the page)
-  let trends = SEED_TOPICS;
+  const trends = SEED_TOPICS;
   const pending = new Set(); // keys of assets whose job is running, e.g. 'kf:beat_1_a'
   let busy = false;
-  let step = '';
   let progress = null; // createProgressBar element while a batch runs
   const abort = { current: new AbortController() };
   let cancelCtl = null;

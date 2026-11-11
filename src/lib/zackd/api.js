@@ -1,4 +1,5 @@
 // Zack D studio: client for /api/zackd (BYOK: user's own MuAPI + OpenAI keys).
+/* global DOMException */
 import { apiKeyManager } from '../apiKeyManager.js';
 
 const POLL_MS = 4000;

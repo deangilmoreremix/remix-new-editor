@@ -1,3 +1,4 @@
+/* global AbortSignal */
 /**
  * Netlify function: zackd
  *

@@ -1,3 +1,4 @@
+/* global DOMException */
 // Zack D studio: final-cut assembly in the browser (ffmpeg.wasm).
 // Port of scripts/assemble.py from https://github.com/Anil-matcha/zack-d-films-ai-video-generator (MIT).
 // The plan/filter-graph/SRT builders are pure and unit-tested; runAssembly() needs a browser.
