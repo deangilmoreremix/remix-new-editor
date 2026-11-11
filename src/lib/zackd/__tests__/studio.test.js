@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { normalizeBeats } from '../../../../netlify/functions/_shared/zackdPrompts.js';
 
 const map = normalizeBeats({
@@ -14,149 +16,178 @@ const map = normalizeBeats({
 const calls = [];
 vi.mock('../api.js', async (orig) => ({
   ...(await orig()),
-  call: vi.fn(async (b) => { calls.push(b); if (b.action === 'script') return { ok: true, map }; return { ok: true, topics: [{ topic: 'T1', hook: 'H1', category: 'c' }] }; }),
-  runJob: vi.fn(async (b) => { calls.push(b); return { url: `https://cdn.example.com/${b.kind}-${calls.length}`, model: 'm' }; }),
+  call: vi.fn(async (b) => { calls.push(b); if (b.action === 'script') return { ok: true, map }; return { ok: true, topics: [] }; }),
+  runJob: vi.fn(async (b, opts) => { calls.push(b); opts?.onRequestId?.(`req_${calls.length}`); return { url: `https://cdn.example.com/${b.kind}-${calls.length}`, model: 'm' }; }),
+  pollJob: vi.fn(async () => ({ url: 'https://cdn.example.com/resumed' })),
 }));
-vi.mock('../assemble.js', async (orig) => ({ ...(await orig()), runAssembly: vi.fn(async () => ({ blob: new Blob(['x'], { type: 'video/mp4' }), duration: 9 })) }));
+vi.mock('../assemble.js', async (orig) => ({ ...(await orig()), runAssembly: vi.fn(async () => ({ blob: new Blob(['x'], { type: 'video/mp4' }), duration: 38.6 })) }));
 const uploadFile = vi.fn(async () => 'https://muapi.example.com/uploaded-cut.mp4');
 vi.mock('../../muapi.js', () => ({ muapi: { uploadFile: (...a) => uploadFile(...a) } }));
-vi.mock('../../studioChrome.js', () => ({ mountStudioChrome: () => ({ topbar: document.createElement('div') }) }));
+vi.mock('../../studioChrome.js', () => ({ mountStudioChrome: vi.fn(() => ({ topbar: null })) }));
+const createStudioHeader = vi.fn((id, title) => { const d = document.createElement('div'); d.dataset.studioHeader = id; d.textContent = title; return d; });
+vi.mock('../../thumbnails.js', () => ({ createStudioHeader: (...a) => createStudioHeader(...a) }));
+vi.mock('../../modelSelectorUI.js', () => ({ positionModelSelectorDropdown: vi.fn() }));
 vi.mock('../../generationHistory.js', () => ({ saveGeneration: vi.fn() }));
 vi.mock('../../uploadService.js', () => ({ uploadFileToSupabase: vi.fn(async () => ({ url: 'https://store.example.com/f.mp4' })) }));
-vi.mock('../../apiKeyManager.js', () => ({ apiKeyManager: { getMuapiKey: () => null, getOpenAIKey: () => null } }));
+vi.mock('../../../components/studio/generationNotifications.js', () => ({ notifyGeneration: vi.fn() }));
 
 const { ZackDStudio } = await import('../../../components/studios/ZackDStudio/ZackDStudio.js');
 const { runAssembly } = await import('../assemble.js');
+const { runJob } = await import('../api.js');
 const { saveGeneration } = await import('../../generationHistory.js');
+const { mountStudioChrome } = await import('../../studioChrome.js');
 
-const tick = () => new Promise((r) => setTimeout(r, 20));
-const btn = (root, text) => [...root.querySelectorAll('button')].find((b) => b.textContent.includes(text));
+const tick = (ms = 15) => new Promise((r) => setTimeout(r, ms));
+const btnText = (root, text) => [...root.querySelectorAll('button')].find((b) => b.textContent.includes(text));
+async function until(fn, label = 'condition') { for (let i = 0; i < 120; i += 1) { if (fn()) return; await tick(10); } throw new Error(`timed out waiting for ${label}`); }
+const generate = (root) => root.querySelector('button.btn-primary-modern');
 async function click(root, text) {
-  const b = btn(root, text);
+  const b = btnText(root, text);
   expect(b, `button "${text}"`).toBeTruthy();
   expect(b.disabled, `button "${text}" disabled`).toBe(false);
   b.click(); await tick(); await tick();
 }
+async function step(root, label) { await until(() => generate(root).textContent.includes(label) && !generate(root).disabled, `Generate button "${label}" (is "${generate(root).textContent}")`); }
 
-describe('ZackDStudio flow', () => {
-  beforeEach(() => { document.body.replaceChildren(); localStorage.clear(); calls.length = 0; vi.spyOn(window, 'confirm').mockReturnValue(true); URL.createObjectURL = vi.fn(() => 'blob:x'); URL.revokeObjectURL = vi.fn(); });
+function mount() { const root = ZackDStudio(); document.body.appendChild(root); return root; }
+function typeTopic(root, v) { const t = root.querySelector('#z-prompt-textarea'); t.value = v; t.dispatchEvent(new Event('input')); }
 
-  it('walks topic → script → visuals → clips → audio → final cut', async () => {
-    const root = ZackDStudio();
-    document.body.appendChild(root);
-    // topic
-    expect(btn(root, 'Write script').disabled).toBe(true);
-    btn(root, 'T1' ) || null;
-    root.querySelector('input').value = 'Gum'; root.querySelector('input').dispatchEvent(new Event('input'));
-    await click(root, 'Write script');
-    // script (Gate 1): edit narration persists
-    const ta = root.querySelector('textarea'); ta.value = 'Edited hook?'; ta.dispatchEvent(new Event('input'));
+describe('ZackDStudio (built like the other video studios)', () => {
+  beforeEach(() => {
+    document.body.replaceChildren(); localStorage.clear(); calls.length = 0; runAssembly.mockClear(); runJob.mockClear(); uploadFile.mockClear(); saveGeneration.mockClear();
+    vi.spyOn(window, 'confirm').mockReturnValue(true); URL.createObjectURL = vi.fn(() => 'blob:x'); URL.revokeObjectURL = vi.fn();
+  });
+
+  it('has the same shell as VideoStudio: root classes, hero header, prompt bar, control pills, Generate button', () => {
+    const src = readFileSync(resolve(process.cwd(), 'src/components/VideoStudio.js'), 'utf8');
+    const rootClass = src.match(/container\.className = '([^']+)'/)[1];
+    const barClass = src.match(/bar\.className = '([^']+)'/)[1];
+    const genClass = src.match(/generateBtn\.className = '(btn-primary-modern[^']*)'/)[1].split(' ')[0];
+    const root = mount();
+    expect(root.className).toBe(rootClass);
+    expect(mountStudioChrome).toHaveBeenCalledWith(root, { currentRoute: 'zackd' });
+    expect(createStudioHeader).toHaveBeenCalledWith('zackd', 'Zack D Studio', expect.any(String));
+    expect(root.querySelector('div.shadow-3xl').className).toBe(barClass);
+    expect(root.querySelector('textarea[data-studio-prompt]')).toBeTruthy();
+    for (const id of ['z-look-btn', 'z-voice-btn', 'z-ar-btn', 'z-templates-btn', 'z-advanced-btn']) expect(root.querySelector(`#${id}`), id).toBeTruthy();
+    expect(generate(root).className).toContain(genClass);
+    expect(root.querySelector('#zackd-history-sidebar').className).toContain('fixed right-0 top-0 h-full w-20 md:w-24');
+  });
+
+  it('runs topic -> script gate -> sheets -> keyframes -> clips -> final cut, one Generate button, with cost confirms', async () => {
+    const root = mount();
+    expect(generate(root).textContent).toContain('Write script');
+    expect(generate(root).disabled).toBe(true); // nothing typed yet
+    typeTopic(root, 'Why do ears pop?');
+    await step(root, 'Write script');
+    generate(root).click();
+    await step(root, 'Approve script');
+    // Gate 1: the beat cards are editable and the edit is what gets used
+    const nar = root.querySelector('textarea[aria-label="Narration, beat 1"]'); nar.value = 'Edited hook?'; nar.dispatchEvent(new Event('input'));
     expect(JSON.parse(localStorage.getItem('zackd_project_v1')).map.beats[0].narration).toBe('Edited hook?');
-    await click(root, 'Approve script');
-    // visuals: 2 sheets then 3 keyframes
-    await click(root, 'character sheet');
+    generate(root).click(); // approving starts the character sheets (after the cost confirm)
+    await step(root, 'Generate 3 keyframes');
     expect(calls.filter((c) => c.kind === 'image' && c.aspect === '16:9')).toHaveLength(2);
-    expect(btn(root, 'Approve keyframes').disabled).toBe(true);
-    await click(root, 'keyframe(s)');
+    generate(root).click();
+    await step(root, 'Animate 3 clips');
     const kf = calls.filter((c) => c.kind === 'image' && c.aspect === '9:16');
     expect(kf).toHaveLength(3);
     expect(kf[0].prompt).toContain('Anchored on character sheet refs: boy'); // upstream's anchor sentence
-    await click(root, 'Approve keyframes');
-    // clips use the keyframe URLs
-    await click(root, 'clip(s)');
+    generate(root).click();
+    await step(root, 'Render final cut');
     const clips = calls.filter((c) => c.kind === 'clip');
     expect(clips).toHaveLength(3);
-    expect(clips.every((c) => c.imageUrl.startsWith('https://cdn.example.com/image'))).toBe(true);
-    await click(root, 'Continue to audio');
-    // audio
-    await click(root, 'Generate narration');
-    expect(calls.find((c) => c.kind === 'tts').text).toBe('Edited hook? It passes in days.');
-    await click(root, 'Continue to final cut');
-    // final
-    await click(root, 'Assemble video');
+    expect(clips.every((c) => c.imageUrl.startsWith('https://cdn.example.com/image') && c.prompt.startsWith('Smooth 3D animation, camera movement '))).toBe(true);
+    expect(window.confirm).toHaveBeenCalledTimes(3); // sheets, keyframes, clips
+    generate(root).click();
+    await until(() => runAssembly.mock.calls.length === 1, 'assembly');
     const args = runAssembly.mock.calls[0][0];
     expect(args.clips).toHaveLength(3);
     expect(args.clips[0]).toMatchObject({ zoom: true, planned: 3 });
-    expect(args.narrationUrl).toMatch(/tts/);
-    expect(root.querySelector('video')).toBeTruthy();
-    await click(root, 'Save to library');
-    expect(btn(root, 'Saved to library').disabled).toBe(true);
-    // reload keeps the project but not the (dead) object URL
-    const again = ZackDStudio();
-    expect(again.querySelector('video')).toBeNull();
-    expect(JSON.parse(localStorage.getItem('zackd_project_v1')).final).toBeUndefined();
+    expect(args).toMatchObject({ keepClipAudio: true, mixVoice: false, trimToPlanned: false }); // upstream defaults
+    await until(() => btnText(root, 'Download MP4'), 'final cut result');
+    expect(root.querySelector('video[src="blob:x"]')).toBeTruthy();
   });
 
-  it('burns captions on demand: gated on narration, confirms cost, uploads the cut, then shows the result', async () => {
-    // Resume a finished project (as if reloaded) so the test starts at the final cut.
-    localStorage.setItem('zackd_project_v1', JSON.stringify({ stage: 'final', topic: 'Gum', map, look: 'plasticine', sheets: {}, shots: Object.fromEntries(map.beats.flatMap((b) => b.shots).map((s) => [s.shot_id, { keyframe: 'https://cdn.example.com/k.png', clip: `https://cdn.example.com/${s.shot_id}.mp4` }])), voice: 'Casual_Guy', narration: null, music: null }));
-    const root = ZackDStudio(); document.body.appendChild(root);
-    await click(root, 'Assemble video');
-    const burn = () => btn(root, 'Burn captions');
-    expect(burn().disabled).toBe(true); // no narration yet
-    expect(root.textContent).toMatch(/Generate narration first/);
-
-    localStorage.setItem('zackd_project_v1', JSON.stringify({ ...JSON.parse(localStorage.getItem('zackd_project_v1')), narration: 'https://cdn.example.com/n.mp3' }));
-    const root2 = ZackDStudio(); document.body.appendChild(root2);
-    await click(root2, 'Assemble video');
-    const sel = root2.querySelector('select[aria-label="Caption language"]'); sel.value = 'Spanish (Mexico)'; sel.dispatchEvent(new Event('change'));
-    const th = root2.querySelector('select[aria-label="Caption theme"]'); th.value = 'Beast'; th.dispatchEvent(new Event('change'));
-    window.confirm.mockReturnValueOnce(false);
-    await click(root2, 'Burn captions');
-    expect(uploadFile).not.toHaveBeenCalled(); // declined the cost prompt: nothing uploaded or charged
-    await click(root2, 'Burn captions');
-    expect(uploadFile).toHaveBeenCalledTimes(1);
-    const job = calls.find((c) => c.kind === 'captions');
-    expect(job).toMatchObject({ videoUrl: 'https://muapi.example.com/uploaded-cut.mp4', language: 'Spanish (Mexico)', theme: 'Beast' });
-    expect(root2.querySelectorAll('video')).toHaveLength(2); // plain cut + captioned result
-    await click(root2, 'Save captioned to library');
-    expect(saveGeneration).toHaveBeenCalledWith(expect.objectContaining({ studio: 'zackd', type: 'video', url: expect.stringContaining('captions') }));
+  it('uses the app\'s pending-job tracker for every media job', async () => {
+    const root = mount();
+    typeTopic(root, 'Gum'); await step(root, 'Write script'); generate(root).click();
+    await step(root, 'Approve script'); generate(root).click();
+    await step(root, 'Generate 3 keyframes');
+    const pendingBefore = JSON.parse(localStorage.getItem('muapi_pending_jobs') || '[]');
+    expect(pendingBefore).toHaveLength(0); // each job is removed once it finishes
+    expect(runJob.mock.calls.every(([, opts]) => typeof opts.onRequestId === 'function')).toBe(true);
   });
 
-  it('shows an error when a batch fails, without leaving the studio busy', async () => {
-    const { runJob } = await import('../api.js');
-    const root = ZackDStudio(); document.body.appendChild(root);
-    root.querySelector('input').value = 'Gum'; root.querySelector('input').dispatchEvent(new Event('input'));
-    await click(root, 'Write script'); await click(root, 'Approve script');
-    runJob.mockRejectedValueOnce(Object.assign(new Error('Your MuAPI key was rejected.'), { code: 'bad_key' }));
-    await click(root, 'character sheet');
-    expect(root.querySelector('[role=alert]').textContent).toContain('MuAPI key was rejected');
-    expect(btn(root, 'character sheet').disabled).toBe(false);
-  });
-
-  it('a finished template jumps straight to a final cut with no generation calls', async () => {
-    const root = ZackDStudio(); document.body.appendChild(root);
+  it('a finished template jumps to a final cut with no generation calls, upstream defaults on', async () => {
+    const root = mount();
     expect(root.textContent).toMatch(/Sample from the upstream open-source Zack D project/);
     await click(root, 'Use as template');
-    expect(root.querySelector('textarea').value).toMatch(/Swallow Gum/);
-    await click(root, 'Approve script');
-    await click(root, 'Approve keyframes'); // keyframes came with the template
-    await click(root, 'Continue to audio');
-    await click(root, 'Continue to final cut');
-    await click(root, 'Assemble video');
-    const args = runAssembly.mock.calls.at(-1)[0];
+    expect(root.querySelector('textarea[aria-label="Narration, beat 1"]').value).toMatch(/Swallow Gum/);
+    expect(root.querySelectorAll('video').length).toBeGreaterThan(5); // 5 shot clips + the template demo
+    await step(root, 'Render final cut');
+    generate(root).click();
+    await until(() => runAssembly.mock.calls.length === 1, 'assembly');
+    const args = runAssembly.mock.calls[0][0];
     expect(args.clips).toHaveLength(5);
     expect(args.clips.every((c) => /\/zackd\/templates\/swallow-gum\/clips\/beat_/.test(c.url))).toBe(true);
-    expect(args.keepClipAudio).toBe(true); // the Veo sound is kept by default
+    expect(args).toMatchObject({ keepClipAudio: true, mixVoice: false, trimToPlanned: false });
     expect(calls).toHaveLength(0); // no image/clip/tts/music job was submitted
-
-    // turning it off is respected on the next render
-    const box = root.querySelector('#zackd-keep-clip-audio'); expect(box.checked).toBe(true);
-    box.checked = false; box.dispatchEvent(new Event('change'));
-    await click(root, 'Re-assemble');
-    expect(runAssembly.mock.calls.at(-1)[0].keepClipAudio).toBe(false);
-    expect(root.textContent).toMatch(/clip sound is off|The cut will use/);
   });
 
-  it('a failed batch reads cleanly (no doubled period) and offers Regenerate', async () => {
-    const { runJob } = await import('../api.js');
-    const root = ZackDStudio(); document.body.appendChild(root);
-    root.querySelector('input').value = 'Gum'; root.querySelector('input').dispatchEvent(new Event('input'));
-    await click(root, 'Write script'); await click(root, 'Approve script');
+  it('extras are opt-in, off by default, and a generated voice switches mixing on', async () => {
+    const root = mount();
+    expect(root.querySelector('#zackd-keep-clip-audio').checked).toBe(true);
+    for (const id of ['zackd-mix-voice', 'zackd-trim-planned', 'zackd-boost']) expect(root.querySelector(`#${id}`).checked, id).toBe(false);
+    await click(root, 'Use as template');
+    await until(() => btnText(root, 'Generate narration'), 'audio section');
+    await click(root, 'Generate narration');
+    await until(() => root.querySelector('audio'), 'narration audio');
+    expect(root.querySelector('#zackd-mix-voice').checked).toBe(true);
+    const trim = root.querySelector('#zackd-trim-planned'); trim.checked = true; trim.dispatchEvent(new Event('change'));
+    await step(root, 'Render final cut'); generate(root).click();
+    await until(() => runAssembly.mock.calls.length === 1, 'assembly');
+    expect(runAssembly.mock.calls[0][0]).toMatchObject({ mixVoice: true, trimToPlanned: true, narrationUrl: expect.stringContaining('cdn.example.com/tts') });
+  });
+
+  it('burns captions on demand: gated on narration, confirms cost, uploads the cut, shows the result and a history entry', async () => {
+    const root = mount();
+    await click(root, 'Use as template');
+    await step(root, 'Render final cut'); generate(root).click();
+    await until(() => btnText(root, 'Burn captions'), 'captions panel');
+    expect(btnText(root, 'Burn captions').disabled).toBe(true); // no narration yet
+    await click(root, 'Generate narration');
+    await until(() => root.querySelector('audio'), 'narration');
+    await until(() => !btnText(root, 'Burn captions').disabled, 'burn enabled');
+    const lang = root.querySelector('select[aria-label="Caption language"]'); lang.value = 'Spanish (Mexico)'; lang.dispatchEvent(new Event('change'));
+    const th = root.querySelector('select[aria-label="Caption theme"]'); th.value = 'Beast'; th.dispatchEvent(new Event('change'));
+    window.confirm.mockReturnValueOnce(false);
+    btnText(root, 'Burn captions').click(); await tick();
+    expect(uploadFile).not.toHaveBeenCalled(); // declined: nothing uploaded or charged
+    btnText(root, 'Burn captions').click();
+    await until(() => btnText(root, 'Save captioned to library'), 'captioned result');
+    expect(uploadFile).toHaveBeenCalledTimes(1);
+    expect(calls.find((c) => c.kind === 'captions')).toMatchObject({ videoUrl: 'https://muapi.example.com/uploaded-cut.mp4', language: 'Spanish (Mexico)', theme: 'Beast' });
+    btnText(root, 'Save captioned to library').click(); await tick();
+    expect(saveGeneration).toHaveBeenCalledWith(expect.objectContaining({ studio: 'zackd', type: 'video', url: expect.stringContaining('captions') }));
+    expect(root.querySelectorAll('#zackd-history-sidebar video')).toHaveLength(1);
+    expect(root.querySelector('#zackd-history-sidebar').className).toContain('translate-x-0');
+  });
+
+  it('a failed batch shows one clean, visible error under the prompt bar and keeps Redo available', async () => {
+    const root = mount();
+    typeTopic(root, 'Gum'); await step(root, 'Write script'); generate(root).click();
+    await step(root, 'Approve script');
     runJob.mockRejectedValueOnce(new Error('The generation failed. Try again.'));
-    await click(root, 'character sheet');
-    const text = root.querySelector('[role=alert]').textContent;
-    expect(text).toBe('1 of 2 failed: The generation failed. Try again. Use Regenerate to retry them.');
-    expect(text).not.toMatch(/\.\./);
+    const scrollIntoView = vi.fn(); Element.prototype.scrollIntoView = scrollIntoView;
+    generate(root).click();
+    await until(() => root.querySelector('[role=alert]:not(.hidden)'), 'error');
+    const alert = root.querySelector('[role=alert]');
+    expect(alert.textContent).toBe('1 of 2 failed: The generation failed. Try again. Use Redo to retry them.');
+    expect(alert.textContent).not.toMatch(/\.\./);
+    expect(alert.previousElementSibling.querySelector('textarea[data-studio-prompt]')).toBeTruthy(); // directly under the bar
+    expect(scrollIntoView).toHaveBeenCalled();
+    expect(generate(root).textContent).toContain('Generate 1 character sheet'); // the failed sheet is retried from the same button
+    expect(root.querySelector('button[aria-label^="Generate character sheet"], button[aria-label^="Redo"], button[aria-label^="Generate"]')).toBeTruthy();
   });
 });

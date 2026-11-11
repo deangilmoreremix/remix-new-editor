@@ -49,12 +49,13 @@ const sleep = (ms, signal) => new Promise((resolve, reject) => {
  * model exists (image / clip), resubmit once on the fallback.
  * @returns {{ url: string, model: string }}
  */
-export async function runJob(submitBody, { signal, onStatus } = {}) {
+export async function runJob(submitBody, { signal, onStatus, onRequestId } = {}) {
   const timeout = JOB_TIMEOUT_MS[submitBody.kind] || 5 * 60_000;
   let attempt = submitBody.attempt || 0;
   for (;;) {
     const sub = await call({ action: 'submit', ...submitBody, attempt }, { signal });
     if (sub.status === 'done') return { url: sub.url, model: sub.model };
+    if (sub.requestId) onRequestId?.(sub.requestId); // lets the app's pending-job tracker resume this job after a reload
     const deadline = Date.now() + timeout;
     let failed = false;
     while (Date.now() < deadline) {
@@ -67,6 +68,17 @@ export async function runJob(submitBody, { signal, onStatus } = {}) {
     if (failed && sub.hasFallback && attempt === sub.attempt) { attempt = sub.attempt + 1; continue; }
     throw new ZackDError(failed ? 'The generation failed. Try again.' : 'The generation timed out. Try again.', failed ? 'failed' : 'timeout');
   }
+}
+
+/** Poll one job until it finishes (used to resume a job after a page reload). Resolves { url }. */
+export async function pollJob(requestId, attempts = 150, intervalMs = POLL_MS, { signal } = {}) {
+  for (let i = 0; i < attempts; i += 1) {
+    const st = await call({ action: 'status', requestId }, { signal });
+    if (st.status === 'done') return { url: st.url };
+    if (st.status === 'failed') throw new ZackDError(st.error || 'The generation failed.', 'failed');
+    await sleep(intervalMs, signal);
+  }
+  throw new ZackDError('The generation timed out.', 'timeout');
 }
 
 /** Run `fn(item, index)` over items with at most `limit` in flight; per-item errors are returned, not thrown. */
