@@ -113,6 +113,14 @@ export const LEAD_FORM = registerAddon({
       buttonBottomBorder: '#eb5054',
       captionAlignment: 'center',
       transition: 'none',
+      // Upstream popcorn.form.js manifest defaults: caption / body size in %, text colour, and the inner box.
+      captionFontSize: 76,
+      fontSize: 60,
+      fontColor: '#ffffff',
+      innerWidth: 90,
+      innerHeight: 90,
+      innerColor: '#ffffff',
+      innerOpacity: 0,
     },
   }),
 });

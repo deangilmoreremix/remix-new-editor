@@ -51,10 +51,18 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip } = {}) {
     style.buttonFontColor && `color:${esc(style.buttonFontColor)}`,
     style.buttonBorderRadius !== undefined && `border-radius:${Number(style.buttonBorderRadius) || 0}px`,
   ].filter(Boolean).join(';');
+  // Upstream popcorn.form.js sizing: caption and body text are a % of the base size (76 / 60), text colour, and an inner box
+  // (width / height %, colour at opacity %) behind the content.
+  const pct = (v, d) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : d);
+  const captionScale = pct(style.captionFontSize, 76) / 76;
+  const bodyScale = pct(style.fontSize, 60) / 60;
+  const hexToRgb = (hex) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '')); if (!m) return null; const n = parseInt(m[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const inner = hexToRgb(style.innerColor);
+  const innerBg = inner ? `rgba(${inner[0]},${inner[1]},${inner[2]},${Math.min(100, Math.max(0, Number(style.innerOpacity) || 0)) / 100})` : 'transparent';
   card.innerHTML = `
-    <form class="wf-form" novalidate>
+    <form class="wf-form" novalidate style="font-size:${(13 * bodyScale).toFixed(2)}px;width:${pct(style.innerWidth, 90)}%;min-height:${pct(style.innerHeight, 90) < 90 ? pct(style.innerHeight, 90) : 0}%;background:${innerBg};border-radius:10px;padding:6px 8px;box-sizing:border-box;margin:0 auto">
       ${isSafeLink(clip.brandLogoUrl) ? `<img class="wf-logo" src="${esc(clip.brandLogoUrl)}" alt=""/>` : ''}
-      ${clip.heading ? `<h2 class="wf-heading" style="text-align:${esc(style.captionAlignment || 'center')}">${esc(personalize(clip.heading, profile))}</h2>` : ''}
+      ${clip.heading ? `<h2 class="wf-heading" style="text-align:${esc(style.captionAlignment || 'center')};font-size:calc(clamp(16px, 2.4vw, 22px) * ${captionScale.toFixed(3)})">${esc(personalize(clip.heading, profile))}</h2>` : ''}
       <div class="wf-fields">
         ${fields.map((f, i) => {
           const name = esc(tokens[i]);
@@ -77,6 +85,7 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip } = {}) {
     </form>`;
   if (isSafeLink(style.backgroundImage)) card.style.backgroundImage = `url("${style.backgroundImage}")`;
   else if (style.backgroundColor) card.style.background = formBackground({ backgroundColor: style.backgroundColor });
+  if (style.fontColor) card.style.color = style.fontColor;
   if (style.fontFamily) {
     ensureFormFont(style.fontFamily);
     card.style.fontFamily = `"${style.fontFamily}", system-ui, sans-serif`;

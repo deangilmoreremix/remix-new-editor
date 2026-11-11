@@ -30,13 +30,17 @@ const num = (n, d = 0) => (Number.isFinite(Number(n)) ? Number(n) : d);
 export function normalizeCaption(c) {
   const startMs = Math.max(0, Math.round(num(c.startMs)));
   const endMs = Math.max(startMs + 1, Math.round(num(c.endMs, startMs + 500)));
-  return {
+  const out = {
     text: String(c.text ?? ''),
     startMs,
     endMs,
     timestampMs: c.timestampMs == null ? Math.round((startMs + endMs) / 2) : Math.round(num(c.timestampMs)),
     confidence: c.confidence == null ? null : num(c.confidence),
   };
+  // Optional local-AI metadata: speaker number (pyannote) and language (translation).
+  if (Number.isFinite(Number(c.speaker)) && c.speaker !== null && c.speaker !== '') out.speaker = Math.round(Number(c.speaker));
+  if (typeof c.lang === 'string' && /^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(c.lang)) out.lang = c.lang;
+  return out;
 }
 
 export const sortCaptions = (list) => (list || []).map(normalizeCaption).sort((a, b) => a.startMs - b.startMs);
