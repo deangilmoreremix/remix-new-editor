@@ -515,7 +515,7 @@ function createHistoryGrid(history, activeResultUrl, view, onSelect) {
 
 export function AudioStudio() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
+  container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto custom-scrollbar overflow-x-hidden p-6 md:p-10 relative';
   mountStudioChrome(container, { currentRoute: 'audio' });
 
   let selectedModel = audioModels[0];

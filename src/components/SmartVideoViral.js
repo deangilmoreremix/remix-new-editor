@@ -558,9 +558,12 @@ export function SmartVideoViral() {
     leftBtn.addEventListener('click', () => { rail.scrollBy({ left: -320, behavior: 'smooth' }); });
     rightBtn.addEventListener('click', () => { rail.scrollBy({ left: 320, behavior: 'smooth' }); });
     rail.addEventListener('wheel', (e) => {
-      if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
+      // Only translate vertical wheel into horizontal scroll when shift is held;
+      // otherwise let the page scroll normally (a plain vertical wheel over a
+      // rail used to be swallowed, which made the studio feel stuck).
+      if (e.shiftKey && Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
         e.preventDefault();
-        rail.scrollBy({ left: e.deltaY + e.deltaX, behavior: 'auto' });
+        rail.scrollBy({ left: e.deltaY, behavior: 'auto' });
       }
     }, { passive: false });
     container.appendChild(section);
@@ -1087,7 +1090,7 @@ export function SmartVideoViral() {
     const heroEl = document.getElementById('viral-hero');
     if (!heroEl) return;
     const onScroll = () => {
-      const y = window.scrollY || window.pageYOffset;
+      const y = container.scrollTop;
       if (y > HERO_COLLAPSE_OFFSET && !heroCollapsed) {
         heroCollapsed = true;
         heroEl.classList.add('collapsed');
@@ -1099,7 +1102,7 @@ export function SmartVideoViral() {
       else controlsBar.classList.remove('scrolled');
       updateScrollSpy();
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
+    container.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
   }
   setupScrollBehavior();
@@ -1110,7 +1113,7 @@ export function SmartVideoViral() {
   function updateScrollSpy() {
     if (!scrollSpyEl) return;
     const sections = ['viral-hero', 'viral-feed-section'];
-    const scrollY = window.scrollY || window.pageYOffset;
+    const scrollY = container.scrollTop;
     let current = sections[0];
     sections.forEach(id => {
       const el = document.getElementById(id);

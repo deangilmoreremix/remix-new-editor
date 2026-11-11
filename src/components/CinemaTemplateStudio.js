@@ -3028,7 +3028,8 @@ const firstChild = storyboardRoot.firstElementChild;
   // ================================
   function renderPreviewView() {
     const preview = document.createElement('div');
-    preview.className = 'flex-1 flex flex-col items-center justify-center p-8';
+    preview.className = 'flex-1 min-h-0 flex flex-col items-center p-8 overflow-y-auto custom-scrollbar';
+    preview.style.justifyContent = 'safe center';
 
     // The selected result's own type wins over the open template's.
     const shownEntry = currentResultEntry && currentResultEntry.url === generationResult ? currentResultEntry : null;

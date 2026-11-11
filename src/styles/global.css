@@ -23,6 +23,7 @@
 @layer base {
     body {
         @apply bg-app-bg text-white font-sans antialiased h-screen;
+        height: 100dvh;
     }
 
     /* Custom Scrollbar Refinement */

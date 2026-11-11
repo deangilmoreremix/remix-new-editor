@@ -70,7 +70,7 @@ const FILM_LOOKS = {
 
 export function CinemaStudio() {
     const container = document.createElement('div');
-    container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative overflow-hidden';
+    container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
   mountStudioChrome(container, { currentRoute: 'cinema' });
 
     // --- State ---
