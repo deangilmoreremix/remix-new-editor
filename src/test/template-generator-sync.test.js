@@ -109,7 +109,7 @@ describe('synced store (two devices, one account)', () => {
 });
 
 describe('migration', () => {
-  const sql = readFileSync(resolve(process.cwd(), 'supabase/migrations/20261112120000_create_template_generator_templates.sql'), 'utf8');
+  const sql = readFileSync(resolve(process.cwd(), 'supabase/migrations/20261112212041_create_template_generator_templates.sql'), 'utf8');
   it('is owner-only with RLS, no anon access and no TRUNCATE', () => {
     expect(sql).toMatch(/enable row level security/);
     expect(sql).toMatch(/revoke all on public\.template_generator_templates from anon/);

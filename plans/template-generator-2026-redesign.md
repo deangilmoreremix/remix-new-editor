@@ -43,7 +43,7 @@ The generator's purpose is to *make templates that are saved and reused*, so it 
 ## Cross-device sync (added)
 - **Table** `public.template_generator_templates` (`supabase/migrations/20261112120000_…`): PK `(clerk_user_id, id)`, `record jsonb`,
   `deleted_at` tombstone, `updated_at`. RLS: signed-in owners only (verified Clerk `sub`); `anon` has no access; no TRUNCATE.
-  The migration is **not applied automatically** — the project's database is shared, so run it deliberately (`supabase db push`).
+  **Applied** to the `VideoRemix Product` project on 2026-11-12 (recorded as version `20261112212041`; the repo file carries the same version). Verified: RLS on, four owner-only policies for `authenticated`, no `anon` grants, guard trigger present, no rows yet.
 - **Client** `template-generator/sync.js`: `planSync()` merges local + remote (newest edit wins, a delete wins an exact tie, tombstones stop
   deleted templates coming back); `createSyncedTemplateStore()` keeps the same API as the local store and reconciles in the background
   (on open, and ~1 s after any save/duplicate/delete).
