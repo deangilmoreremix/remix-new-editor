@@ -54,7 +54,7 @@ test.describe('Projects (signed in)', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => { try { sessionStorage.setItem('setup_popup_shown', '1'); } catch { /* ignore */ } });
-    await page.goto('/#/timeline', { waitUntil: 'domcontentloaded' });
+    await page.goto('/#/timeline-classic', { waitUntil: 'domcontentloaded' });
     await page.locator('.floating-rail').waitFor({ timeout: 30000 });
     await page.locator('.floating-rail').getByRole('button', { name: /Projects/ }).first().click();
     await expect(page.locator('#projectsPanel')).toBeVisible();

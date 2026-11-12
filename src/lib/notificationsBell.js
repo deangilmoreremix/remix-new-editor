@@ -39,8 +39,8 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   }
   btn.addEventListener('click', () => {
     try { sessionStorage.setItem(OPEN_FLAG, '1'); } catch { /* the event below still works on the editor page */ }
-    if (/^#\/timeline/.test(globalThis.location?.hash || '')) { try { sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } globalThis.dispatchEvent(new CustomEvent('remix:open-projects')); }
-    else navigate?.('timeline');
+    if (/^#\/timeline-classic/.test(globalThis.location?.hash || '')) { try { sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } globalThis.dispatchEvent(new CustomEvent('remix:open-projects')); }
+    else navigate?.('timeline-classic'); // the editor that hosts Projects (develop serves the new CineGen editor at #/timeline)
   });
   const onFocus = () => refresh();
   const onRead = () => refresh(true);

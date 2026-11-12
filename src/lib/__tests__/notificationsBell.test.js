@@ -39,15 +39,15 @@ describe('notifications bell', () => {
     expect(bell._count()).toBe(250);
     bell.destroy();
   });
-  it('on another page it navigates to the timeline and leaves a flag; on the timeline it opens Projects directly', async () => {
+  it('on another page it navigates to the classic timeline editor (hosts Projects) and leaves a flag; on the timeline it opens Projects directly', async () => {
     const navigate = vi.fn(); const opened = vi.fn();
     window.addEventListener('remix:open-projects', opened);
     const bell = createNotificationsBell({ getClient: async () => client(1), isSignedIn: () => true, navigate });
     await tick(); await tick();
     bell.element.click();
-    expect(navigate).toHaveBeenCalledWith('timeline');
+    expect(navigate).toHaveBeenCalledWith('timeline-classic');
     expect(sessionStorage.getItem(OPEN_FLAG)).toBe('1');
-    window.location.hash = '#/timeline';
+    window.location.hash = '#/timeline-classic';
     bell.element.click();
     expect(opened).toHaveBeenCalledTimes(1);
     expect(sessionStorage.getItem(OPEN_FLAG)).toBeNull();
