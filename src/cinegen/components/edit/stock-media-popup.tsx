@@ -35,7 +35,8 @@ type Search = (kind: StockKind, source: string, query: string) => Promise<Search
 
 const home = STOCK_HOME as Record<string, string>;
 const SOURCES: Array<[MediaSource, string]> = [['ai', 'AI'], ['pexels', 'Pexels'], ['pixabay', 'Pixabay']];
-const TABS: Array<[MediaSource, StockKind]> = SOURCES.flatMap(([id]) => [[id, 'videos'], [id, 'images']] as Array<[MediaSource, StockKind]>);
+// Header tabs: Pexels and Pixabay, each with a videos tab and an images tab. AI videos / AI images are pills inside the panel.
+const TABS: Array<[MediaSource, StockKind]> = SOURCES.filter(([id]) => id !== 'ai').flatMap(([id]) => [[id, 'videos'], [id, 'images']] as Array<[MediaSource, StockKind]>);
 // Assets that came from a generator (not from an upload or an attached reference).
 const NOT_AI = new Set(['studio-attachment', 'studio-frame']);
 export const isAiAsset = (a: Asset): boolean => {
@@ -175,8 +176,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
             <span key={`${id}-${k}`} style={{ display: 'contents' }}>
               {k === 'videos' && i > 0 && <span aria-hidden style={{ width: 1, height: 26, background: 'var(--border-medium)', margin: '0 4px' }} />}
               <Pill size="lg" on={source === id && kind === k} glyph={k === 'videos' ? '▶' : '▦'} text={`${sourceText[id]} ${k}`} testId={`tab-${id}-${k}`}
-                count={id === 'ai' ? aiAll.filter((a) => a.type === (k === 'videos' ? 'video' : 'image')).length : undefined}
-                title={id === 'ai' ? `AI ${k} in this project` : `${sourceText[id]} ${k}`} onClick={() => openTab(id, k)} />
+                title={`${sourceText[id]} ${k}`} onClick={() => openTab(id, k)} />
             </span>
           ))}
         </div>
@@ -190,6 +190,11 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
           <div style={{ fontSize: 12, opacity: 0.65, margin: '4px 0 12px' }}>{SOURCE_NOTE[source]}</div>
 
           <div role="tablist" aria-label="Groups" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+            {(['videos', 'images'] as StockKind[]).map((k) => (
+              <Pill key={`ai-${k}`} on={source === 'ai' && kind === k} glyph="✦" text={`AI ${k}`} testId={`pill-ai-${k}`} title={`Generate or reuse AI ${k}`}
+                count={aiAll.filter((a) => a.type === (k === 'videos' ? 'video' : 'image')).length} onClick={() => openTab('ai', k)} />
+            ))}
+            <span aria-hidden style={{ width: 1, alignSelf: 'stretch', background: 'var(--border-medium)', margin: '0 4px' }} />
             <Pill on={groupId === 'all'} glyph="▦" text="All" count={MEDIA_CATEGORIES.length} testId="group-all" onClick={() => pickGroup('all')} />
             {MEDIA_GROUPS.map((g) => <Pill key={g.id} on={groupId === g.id} glyph={g.glyph} text={g.label} count={g.categories.length} testId={`group-${g.id}`} onClick={() => pickGroup(g.id)} />)}
           </div>

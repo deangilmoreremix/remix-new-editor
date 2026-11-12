@@ -47,10 +47,10 @@ describe('categories', () => {
 });
 
 describe('AI first', () => {
-  it('opens on the AI tab, listed before the stock sources, without hitting any stock API', () => {
+  it('opens on AI videos (the first pill) without hitting any stock API', () => {
     setup();
-    const order = ['tab-ai-videos', 'tab-pexels-videos', 'tab-pixabay-videos'].map((id) => screen.getByTestId(id));
-    expect(order[0].compareDocumentPosition(order[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByTestId('pill-ai-videos').getAttribute('aria-selected')).toBe('true');
+    ['tab-pexels-videos', 'tab-pexels-images', 'tab-pixabay-videos', 'tab-pixabay-images'].forEach((id) => expect(screen.getByTestId(id).getAttribute('aria-selected')).toBe('false'));
     expect(screen.getByTestId('ai-prompt')).toBeTruthy();
     expect(px.searchPixabayVideos).not.toHaveBeenCalled();
     expect(px.searchPexelsVideos).not.toHaveBeenCalled();
@@ -62,7 +62,7 @@ describe('AI first', () => {
     fireEvent.click(screen.getByTestId(`cat-${cat.id}`));
     const prompt = (screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value;
     expect(prompt).toBe(aiPrompt(cat.topics[0], 'videos'));
-    fireEvent.click(screen.getByTestId('tab-ai-images'));
+    fireEvent.click(screen.getByTestId('pill-ai-images'));
     expect((screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value).toBe(aiPrompt(cat.topics[0], 'images')); // switching type rewrites the idea
     const imagePrompt = (screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value;
     fireEvent.change(screen.getByLabelText('Aspect ratio'), { target: { value: '9:16' } });
@@ -93,9 +93,15 @@ describe('AI first', () => {
 });
 
 describe('main tabs', () => {
-  it('has a videos tab and an images tab for AI, Pexels and Pixabay, and no separate Type dropdown', () => {
+  it('header tabs are Pexels and Pixabay videos/images; AI videos/images are pills in the panel', () => {
     setup();
-    for (const src of ['ai', 'pexels', 'pixabay']) for (const kind of ['videos', 'images']) expect(screen.getByTestId(`tab-${src}-${kind}`)).toBeTruthy();
+    const header = screen.getByRole('tablist', { name: 'Media' });
+    const ids = [...header.querySelectorAll('[data-testid]')].map((e) => e.getAttribute('data-testid'));
+    expect(ids).toEqual(['tab-pexels-videos', 'tab-pexels-images', 'tab-pixabay-videos', 'tab-pixabay-images']);
+    expect(header.textContent).not.toMatch(/AI/);
+    const groups = screen.getByRole('tablist', { name: 'Groups' });
+    const first = [...groups.querySelectorAll('[data-testid]')].map((e) => e.getAttribute('data-testid')).slice(0, 3);
+    expect(first).toEqual(['pill-ai-videos', 'pill-ai-images', 'group-all']);
     expect(screen.queryByLabelText('Type')).toBeNull();
   });
 
