@@ -131,3 +131,6 @@ create trigger business_assets_guard before update on public.business_assets
 drop trigger if exists asset_assignments_guard on public.asset_assignments;
 create trigger asset_assignments_guard before update on public.asset_assignments
   for each row execute function public.business_library_guard();
+
+-- Trigger function: nobody calls it directly (triggers do not need EXECUTE).
+revoke all on function public.business_library_guard() from public, anon, authenticated;

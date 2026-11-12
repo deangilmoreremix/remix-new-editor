@@ -167,3 +167,7 @@ end;
 $$;
 revoke all on function public.promote_video_draft(uuid) from public, anon;
 grant execute on function public.promote_video_draft(uuid) to authenticated;
+
+-- Trigger functions: nobody calls them directly (triggers do not need EXECUTE).
+revoke all on function public.video_recipients_guard() from public, anon, authenticated;
+revoke all on function public.published_video_drafts_prune() from public, anon, authenticated;
