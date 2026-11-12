@@ -102,4 +102,26 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
     await m2.addToTimeline();
     expect(templateStore.get(saved[0].id).uses).toBe(1);
   });
+
+  it('syncs on open: templates from another device show up in My templates, with a status badge', async () => {
+    let status = 'local'; let fn = null; let pulled = false;
+    const templateStore = {
+      ...createTemplateStore(memory()),
+      status: () => status,
+      lastError: () => null,
+      subscribe: (cb) => { fn = cb; return () => { fn = null; }; },
+      sync: async () => { status = 'syncing'; fn?.(status, {}); pulled = true; status = 'synced'; fn?.(status, { changed: true }); },
+    };
+    const m = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore });
+    m.open();
+    expect(pulled).toBe(true);
+    m.ui.view = 'library'; m.paint();
+    expect(document.querySelector('.tg-sync').textContent).toMatch(/Synced across your devices/);
+    // another device's template arrives while the library is open
+    templateStore.save({ name: 'From my phone', clips: [], clipCount: 0, duration: 0 });
+    fn('synced', { changed: true });
+    expect(document.querySelector('#tg-lib-grid').textContent).toContain('From my phone');
+    m.close();
+    await vi.waitFor(() => expect(fn).toBeNull());   // unsubscribed once the close animation finishes
+  });
 });

@@ -16,7 +16,8 @@ import {
 import {
   PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
 } from './template-generator/stock.js';
-import { snapshotTemplate, restoreTemplate, splitDurable, createTemplateStore } from './template-generator/templates.js';
+import { snapshotTemplate, restoreTemplate, splitDurable } from './template-generator/templates.js';
+import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
 import { createPreviewPlayer, renderPlayerHTML, playlistFromPreview, formatTime } from './template-generator/preview.js';
 import '../../styles/template-generator.css';
 
@@ -59,13 +60,14 @@ export class TemplateGeneratorModal extends BaseModal {
 
     this.timelineApi = options.timelineApi || null;
     this.s = createWizardState();
-    this.store = options.templateStore || createTemplateStore();
+    this.store = options.templateStore || createSyncedTemplateStore();
     this.stock = options.stockSearch || createStockClient({ pexels: pexelsApi, pixabay: pixabayApi });
 
     this.ui = {
       safariAccepted: false,
       view: 'start',          // 'start' | 'library'
       libQuery: '',
+      sync: SYNC_STATUS.LOCAL,
       confirmDeleteId: null,
       tplName: '',
       tplDesc: '',
@@ -118,12 +120,56 @@ export class TemplateGeneratorModal extends BaseModal {
   open() {
     super.open();
     this.overlay?.classList.add('tg-overlay');
+    this._startSync();
+  }
+
+  /** Pull this account's templates from other devices; repaint the library when something arrived. */
+  _startSync() {
+    if (!this.store.sync || this._unsub) return;
+    this.ui.sync = this.store.status?.() || SYNC_STATUS.LOCAL;
+    this._unsub = this.store.subscribe?.((status, info = {}) => {
+      this.ui.sync = status;
+      if (!this.overlay) return;
+      this._updateSyncBadge();
+      if (info.changed) this._refreshLibraryViews();
+    });
+    this.store.sync();
+  }
+
+  syncLabel() {
+    return {
+      [SYNC_STATUS.LOCAL]: 'This device only · sign in to sync',
+      [SYNC_STATUS.SYNCING]: 'Syncing…',
+      [SYNC_STATUS.SYNCED]: 'Synced across your devices',
+      [SYNC_STATUS.ERROR]: 'Sync paused · saved on this device',
+    }[this.ui.sync] || '';
+  }
+
+  renderSyncBadge() {
+    const err = this.ui.sync === SYNC_STATUS.ERROR ? this.store.lastError?.()?.message : '';
+    return `<span class="tg-pill tg-sync is-${this.ui.sync}" title="${esc(err || this.syncLabel())}"><i class="tg-sync__dot"></i>${esc(this.syncLabel())}</span>`;
+  }
+
+  _updateSyncBadge() {
+    this.overlay?.querySelectorAll('.tg-sync').forEach((el) => { el.outerHTML = this.renderSyncBadge(); });
+  }
+
+  /** New data arrived from another device: refresh whatever template list is on screen (without losing typing). */
+  _refreshLibraryViews() {
+    if (this.s.started) return;
+    if (this.ui.view === 'library') {
+      this._setHTML('#tg-lib-grid', this.renderLibraryCards());
+      const n = this.overlay?.querySelector('#tg-lib-count');
+      if (n) n.textContent = String(this.store.list().length);
+    } else this.paint();
   }
 
   destroy() {
     this._destroyPlayer();
     clearTimeout(this._searchTimer);
     clearTimeout(this._toastTimer);
+    this._unsub?.();
+    this._unsub = null;
     this._moreObserver?.disconnect?.();
     super.destroy();
   }
@@ -171,6 +217,7 @@ export class TemplateGeneratorModal extends BaseModal {
           <button type="button" class="generator-offer__btn generator-offer__yes" data-act="start">Create a template</button>
           <button type="button" class="generator-offer__btn generator-offer__no" data-act="open-library">My templates${count ? ` · ${count}` : ''}</button>
         </div>
+        ${this.renderSyncBadge()}
         <button type="button" class="tg-link" data-act="decline">Close</button>
       </div>`;
   }
@@ -230,7 +277,7 @@ export class TemplateGeneratorModal extends BaseModal {
         </div></div>
         <footer class="tg-foot">
           <button type="button" class="tg-btn tg-btn--ghost" data-act="library-back">← Back</button>
-          <div class="tg-summary"><span class="tg-pill is-on"><i>Saved</i>${this.store.list().length}</span></div>
+          <div class="tg-summary"><span class="tg-pill is-on"><i>Saved</i><b id="tg-lib-count">${this.store.list().length}</b></span>${this.renderSyncBadge()}</div>
           <button type="button" class="tg-btn tg-btn--primary" data-act="start">＋ New template</button>
         </footer>
         <div class="tg-toast" id="tg-toast" role="status" aria-live="polite" hidden></div>

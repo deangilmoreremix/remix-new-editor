@@ -390,3 +390,14 @@ h2.generator-offer__text { font-size: 30px; }
 .tg-save { width: min(520px, 100%); }
 .tg-save .tg-field { font-size: 10.5px; }
 .tg-save .tg-popup__actions { flex-wrap: wrap; }
+
+/* sync status */
+.tg-sync { gap: 8px; max-width: none; }
+.tg-sync__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tg-dim); flex: none; }
+.tg-sync.is-synced { color: var(--tg-strong); border-color: rgba(52, 211, 153, 0.35); background: rgba(52, 211, 153, 0.08); }
+.tg-sync.is-synced .tg-sync__dot { background: var(--tg-emerald); box-shadow: 0 0 10px var(--tg-emerald); }
+.tg-sync.is-syncing .tg-sync__dot { background: var(--tg-accent); animation: tg-pulse 0.9s ease-in-out infinite; }
+.tg-sync.is-error { color: #fcd34d; border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08); }
+.tg-sync.is-error .tg-sync__dot { background: #f59e0b; }
+@keyframes tg-pulse { 50% { opacity: 0.25; transform: scale(0.7); } }
+.tg-pill b { font-weight: 800; }

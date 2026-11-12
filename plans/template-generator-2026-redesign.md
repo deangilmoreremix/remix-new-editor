@@ -39,3 +39,15 @@ The generator's purpose is to *make templates that are saved and reused*, so it 
 - Storage: `localStorage` (`remix.templateGenerator.templates.v1`) behind `createTemplateStore()`; the record is plain JSON
   (`template-generator/templates.js`) so it can move to Supabase for cross-device sync without changing shape.
 - Local files / unfinished uploads (`blob:` links) can't survive a reload and are left out, with a warning.
+
+## Cross-device sync (added)
+- **Table** `public.template_generator_templates` (`supabase/migrations/20261112120000_…`): PK `(clerk_user_id, id)`, `record jsonb`,
+  `deleted_at` tombstone, `updated_at`. RLS: signed-in owners only (verified Clerk `sub`); `anon` has no access; no TRUNCATE.
+  The migration is **not applied automatically** — the project's database is shared, so run it deliberately (`supabase db push`).
+- **Client** `template-generator/sync.js`: `planSync()` merges local + remote (newest edit wins, a delete wins an exact tie, tombstones stop
+  deleted templates coming back); `createSyncedTemplateStore()` keeps the same API as the local store and reconciles in the background
+  (on open, and ~1 s after any save/duplicate/delete).
+- **Local-first**: everything works offline and signed out. Local copies are kept per signed-in user, so two accounts on one browser never
+  mix; templates made while signed out are adopted into the account on its first sync.
+- **Status badge**: This device only · Syncing… · Synced across your devices · Sync paused (saved on this device). A missing table or an
+  expired session shows a plain-language reason on hover; nothing is ever lost locally.

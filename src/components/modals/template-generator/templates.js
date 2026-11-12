@@ -102,6 +102,11 @@ export function createTemplateStore(storage = defaultStorage(), key = STORAGE_KE
     }
   };
   const put = (list, rec) => { write(list); return rec; };
+  const tombKey = `${key}.deleted`;
+  const readTombs = () => {
+    try { const v = JSON.parse(storage.getItem(tombKey) || '{}'); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; } catch { return {}; }
+  };
+  const writeTombs = (t) => { try { storage.setItem(tombKey, JSON.stringify(t)); } catch { /* best-effort */ } };
 
   return {
     list: () => read().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)),
@@ -134,8 +139,21 @@ export function createTemplateStore(storage = defaultStorage(), key = STORAGE_KE
       const next = list.filter((t) => t.id !== id);
       if (next.length === list.length) return false;
       write(next);
+      // Remember the delete so sync can tell other devices (otherwise they'd upload it again).
+      const t = readTombs(); t[id] = Date.now(); writeTombs(t);
       return true;
     },
+    // ---- used by sync: write / drop records exactly as given, without touching timestamps ----
+    put(record) {
+      const list = read();
+      const i = list.findIndex((t) => t.id === record.id);
+      if (i >= 0) list[i] = record; else list.push(record);
+      write(list);
+      return record;
+    },
+    forget(id) { write(read().filter((t) => t.id !== id)); },
+    tombstones: () => readTombs(),
+    clearTombstone(id) { const t = readTombs(); if (id in t) { delete t[id]; writeTombs(t); } },
     /** Count a use (keeps updatedAt so "recently edited" still means edited). */
     touch(id) {
       const list = read();
