@@ -200,7 +200,12 @@ export async function clearClerkSession({ reload = true } = {}) {
       'openai_key_hash',
       'videodb_key',
       'videodb_key_hash',
+      'pexels_key',
+      'pexels_key_hash',
+      'pixabay_key',
+      'pixabay_key_hash',
       'muapi_history',
+      'setup_popup_seen',
     ];
     const preservedSessionKeys = ['setup_popup_shown'];
     const preserved = {};

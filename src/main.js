@@ -300,15 +300,18 @@ try {
  * Skips the popup entirely if the user already has API keys stored.
  */
 function showSetupModalOnce() {
-  const SESSION_FLAG = 'setup_popup_shown';
+  // Persistent (localStorage) flag: the popup is a one-time welcome per
+  // browser, NOT per login/session. Users can reopen it from Settings anytime.
+  const SEEN_FLAG = 'setup_popup_seen';
   try {
     // If keys are already configured, never show the setup popup again.
     if (apiKeyManager.hasAnyKey()) {
       console.info('[App] API keys already configured — skipping setup popup.');
+      localStorage.setItem(SEEN_FLAG, '1');
       return;
     }
-    if (sessionStorage.getItem(SESSION_FLAG)) return;
-    sessionStorage.setItem(SESSION_FLAG, '1');
+    if (localStorage.getItem(SEEN_FLAG)) return;
+    localStorage.setItem(SEEN_FLAG, '1');
   } catch {
     // If storage is unavailable, fall back to showing it only once per load.
     if (window.__setupPopupShown) return;
