@@ -101,6 +101,10 @@ export function createAnalytics(o = {}) {
     timer = setTimer(() => { timer = null; flush(); }, ms);
   }
 
+  // Remove exactly the events that were sent (by identity): a newer event queued while an earlier fetch was still
+  // pending must survive, which slicing by the batch length would not guarantee after overlapping flushes.
+  const dropSent = (batch) => queue.filter((e) => !batch.includes(e));
+
   async function flush({ final = false } = {}) {
     if (sending && !final) return;
     if (!queue.length) return;
@@ -109,21 +113,21 @@ export function createAnalytics(o = {}) {
     if (final && beacon) {
       let ok = false;
       try { ok = beacon(ENDPOINT, new Blob([body], { type: 'application/json' })); } catch { ok = false; }
-      if (ok) { queue = queue.slice(batch.length); if (queue.length) flush({ final: true }); return; }
+      if (ok) { queue = dropSent(batch); if (queue.length) flush({ final: true }); return; }
     }
     sending = true;
     try {
       const res = await fetchImpl(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true });
       if (res.ok || (res.status >= 400 && res.status < 500 && res.status !== 429)) {
         // Delivered, or permanently rejected (e.g. unpublished): don't resend the same batch.
-        queue = queue.slice(batch.length);
+        queue = dropSent(batch);
         attempts = 0;
       } else {
         throw new Error(`HTTP ${res.status}`);
       }
     } catch {
       attempts += 1;
-      if (attempts >= MAX_ATTEMPTS) { queue = queue.slice(batch.length); attempts = 0; } // give up on this batch
+      if (attempts >= MAX_ATTEMPTS) { queue = dropSent(batch); attempts = 0; } // give up on this batch
       else schedule(2000 * 2 ** (attempts - 1)); // 2 s, 4 s: same seq numbers, so retries are idempotent
     } finally {
       sending = false;

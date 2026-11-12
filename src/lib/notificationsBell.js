@@ -48,5 +48,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   globalThis.addEventListener?.('remix:notifications-changed', onRead);
   timer = setInterval(() => { if (!doc.hidden) refresh(true); }, intervalMs);
   refresh(true);
+  // Clerk usually finishes loading after the header is created: re-check a few times so a signed-in owner sees the bell soon.
+  [1500, 4000, 9000].forEach((ms) => setTimeout(() => { if (alive && !isSignedIn()) return; refresh(true); }, ms));
   return { element: btn, refresh: () => refresh(true), destroy() { alive = false; clearInterval(timer); globalThis.removeEventListener?.('focus', onFocus); globalThis.removeEventListener?.('remix:notifications-changed', onRead); }, _count: () => count };
 }

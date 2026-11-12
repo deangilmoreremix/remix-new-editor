@@ -83,7 +83,7 @@ async function resolvesPublic(url: string): Promise<boolean> {
     const [a, aaaa] = await Promise.all([resolve(host, "A").catch(() => []), resolve(host, "AAAA").catch(() => [])]);
     const all = [...a, ...aaaa];
     return all.length > 0 && all.every((ip) => !isPrivateAddress(ip));
-  } catch { return true; }
+  } catch { return false; } // deny on resolver errors: only forward when every resolved address is public
 }
 
 async function forward(urls: string[], payload: unknown): Promise<{ forwarded: number; failed: number }> {

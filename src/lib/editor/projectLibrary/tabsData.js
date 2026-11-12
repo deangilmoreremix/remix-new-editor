@@ -92,7 +92,7 @@ export const NOTIFICATION_PAGE = 20;
 export async function listNotifications(client, projectId, { limit = NOTIFICATION_PAGE, offset = 0 } = {}) {
   const { data, error } = await client.from('owner_notifications')
     .select('id, video_id, project_id, type, title, summary, suggestion, interest, metrics, read_at, created_at')
-    .eq('project_id', projectId).order('created_at', { ascending: false }).range(offset, offset + limit);
+    .or(`project_id.eq.${projectId},project_id.is.null`).order('created_at', { ascending: false }).range(offset, offset + limit);
   if (error) throw new Error(error.message || 'Could not load notifications');
   const rows = data || [];
   return { rows: rows.slice(0, limit), hasMore: rows.length > limit };

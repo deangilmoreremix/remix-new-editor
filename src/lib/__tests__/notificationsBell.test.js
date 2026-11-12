@@ -55,3 +55,19 @@ describe('notifications bell', () => {
     bell.destroy();
   });
 });
+
+describe('notifications bell: Clerk loads after the header', () => {
+  it('shows the count shortly after sign-in without waiting for the 3-minute poll', async () => {
+    vi.useFakeTimers();
+    let signedIn = false;
+    const c = client(4);
+    const bell = createNotificationsBell({ getClient: async () => c, isSignedIn: () => signedIn });
+    await vi.advanceTimersByTimeAsync(10);
+    expect(bell.element.classList.contains('hidden')).toBe(true);
+    signedIn = true;
+    await vi.advanceTimersByTimeAsync(1600);
+    expect(bell.element.classList.contains('hidden')).toBe(false);
+    expect(bell.element.querySelector('[role=status]').textContent).toBe('4');
+    bell.destroy(); vi.useRealTimers();
+  });
+});

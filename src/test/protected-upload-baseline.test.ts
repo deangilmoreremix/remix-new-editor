@@ -656,7 +656,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '9be6ed33ba92d1c7cb2aed1a72f63b8475d3ea79ab80e594a74da1112db1d134'], // re-recorded after merging develop with the Projects / publishing work
+        ['src/components/TimelineEditorPage.jsx', 'b8bc40369d738dfbe8b075a08cd00476c813366dac71cbaf0bfeb3ed84949721'], // re-recorded after merging develop with the Projects / publishing work
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],

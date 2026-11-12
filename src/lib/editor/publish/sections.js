@@ -23,8 +23,9 @@ export function projectSections(project) {
   if (Array.isArray(project.interestMap) && project.interestMap.length) {
     return project.interestMap
       .map((s, i) => ({ id: clean(s.id, 80) || `m${i}`, title: clean(s.title) || `Section ${i + 1}`, start: Number(s.start), end: Number(s.end), interest: s.interest || null }))
-      .filter((s) => Number.isFinite(s.start) && Number.isFinite(s.end) && s.end > s.start)
-      .map((s) => ({ ...s, start: Math.max(0, s.start), end: Math.min(dur, s.end) }));
+      .filter((s) => Number.isFinite(s.start) && Number.isFinite(s.end))
+      .map((s) => ({ ...s, start: Math.max(0, s.start), end: Math.min(dur, s.end) }))
+      .filter((s) => s.end > s.start); // clamp first: a map made for a longer cut must not yield an inverted range
   }
   const tracks = Array.isArray(project.tracks) ? project.tracks : [];
   const video = tracks.find((t) => t?.type === 'video');

@@ -5,7 +5,7 @@ const B = '/tmp/claude-0/-home-user-remix-new-editor/c9a787cd-a72d-5d34-9fd2-edf
 const SHOTS = `${B}/shots`;
 fs.mkdirSync(SHOTS, { recursive: true });
 const tokens = JSON.parse(fs.readFileSync(`${B}/tokens.json`, 'utf8'));
-const BASE = 'http://127.0.0.1:3100/#/timeline';
+const BASE = 'http://127.0.0.1:3100/#/timeline-classic';
 
 const sql = (q) => execFileSync('psql', ['-h', '127.0.0.1', '-U', 'postgres', '-d', 'svbrowser', '-At', '-c', q], { env: { ...process.env, PGPASSWORD: 'browsertest' } }).toString().trim();
 const asOwner = (sub, q) => sql(`set role authenticated; select set_config('request.jwt.claims', '{"sub":"${sub}"}', false) >= '' as x; ${q}`).split('\n').filter((l) => l && l !== 'SET' && !/^t$|^f$/.test(l)).join('\n');

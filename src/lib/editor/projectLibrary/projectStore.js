@@ -104,9 +104,13 @@ export async function setProjectTags(client, id, tags) {
 export async function duplicateProject(client, id) {
   const src = await loadProject(client, id);
   if (!src) throw new Error('Project not found');
+  // The copy must not inherit the original's publications: publishing the copy would otherwise upsert (and take
+  // over) the original's published video.
+  const copyData = { ...(src.data || {}) };
+  delete copyData.publishedVideos;
   const { data, error } = await client.from(TABLE).insert({
     name: cleanName(`${src.name} (copy)`),
-    data: src.data,
+    data: copyData,
     tags: src.tags,
     thumbnail_url: src.thumbnail_url,
     duration_s: src.duration_s,

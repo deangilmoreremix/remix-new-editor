@@ -5939,6 +5939,12 @@ export function TimelineEditorPage() {
     async function openProjectRow(row) {
       if (!row) return;
       if (row.id === state.projectId) { showToast('This project is already open', 'info'); return; }
+      // Library rows are summaries without `data`; opening one without it would later cloud-save an empty timeline
+      // over the project's real source, so load the full project first.
+      if (!row.data) {
+        try { row = await (await projectStore()).loadProject(await publishOwnerClient(), row.id); } catch { row = null; }
+        if (!row?.data) { showToast('Could not load that project', 'error'); return; }
+      }
       if (!state.projectId && !window.confirm('Your current timeline is not saved as a project and will be replaced. Open the selected project anyway?')) return;
       // Flush the current project first so no edits are lost.
       if (state.projectId) {

@@ -116,7 +116,7 @@ async function routeFunctions(ctx, log) {
   await ctx2.addInitScript((s) => { sessionStorage.setItem('setup_popup_shown', '1'); window.Clerk = { loaded: true, user: { id: s }, session: { getToken: async () => 'x' }, addListener() { return () => {}; }, load: async () => {} }; }, 'userA');
   const ed = await ctx2.newPage();
   await ed.route('**/.netlify/functions/supabase-token', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: tokens.userA, expires_in: 3600 }) }));
-  await ed.goto('http://127.0.0.1:3100/#/timeline', { waitUntil: 'domcontentloaded' });
+  await ed.goto('http://127.0.0.1:3100/#/timeline-classic', { waitUntil: 'domcontentloaded' });
   await ed.locator('.floating-rail').waitFor({ timeout: 30000 });
   await ed.locator('.floating-rail').getByRole('button', { name: /Projects/ }).first().click(); await ed.addStyleTag({ content: '#floatingRail{display:none!important}' });
   await ed.locator('.prj-card').first().waitFor({ timeout: 20000 }); await ed.waitForTimeout(500);

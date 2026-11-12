@@ -196,3 +196,18 @@ describe('randomId', () => {
     expect(randomId(24)).toMatch(/^[A-Za-z0-9]{24}$/);
   });
 });
+
+describe('overlapping flushes', () => {
+  it('a final beacon does not drop an event queued while an earlier fetch is still pending', async () => {
+    let release;
+    const slow = vi.fn(() => new Promise((res) => { release = () => res({ ok: true, status: 200 }); }));
+    const beacon = vi.fn(() => true);
+    const { a } = make({ fetchImpl: slow, beacon });
+    a.track('page_open');
+    const pending = a.flush();                 // normal fetch in flight (sending = true)
+    await a.flush({ final: true });            // page hidden: beacon sends and acknowledges the same batch
+    a.track('cta_click', { clip: 'late' });    // the viewer returns and clicks while the fetch is still pending
+    release(); await pending;
+    expect(types(a)).toEqual(['cta_click']);   // the newer, unsent event survives
+  });
+});

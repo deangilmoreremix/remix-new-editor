@@ -262,7 +262,10 @@ export function renderProjectsPanel(host, deps) {
       else if (name === 'preview') deps.onPreview?.(row);
       else if (name === 'export') deps.onExport?.(row);
       else if (name === 'share') deps.onShare?.(row);
-      else if (name === 'copy') { await navigator.clipboard?.writeText(el.dataset.link); toast('Link copied', 'success'); }
+      else if (name === 'copy') {
+        if (!navigator.clipboard?.writeText) { toast('Copy is unavailable here — select the link and copy it', 'error'); return; }
+        await navigator.clipboard.writeText(el.dataset.link); toast('Link copied', 'success');
+      }
       else if (name === 'rename') {
         const next = globalThis.prompt('Rename project', row?.name || '');
         if (next && next.trim()) { await renameProject(await deps.getClient(), id, next); toast('Renamed', 'success'); await refresh(); drawDetail(); }
@@ -273,11 +276,19 @@ export function renderProjectsPanel(host, deps) {
         const note = card?.published ? ' Its published video will be unpublished, so the public link stops working.' : '';
         if (globalThis.confirm(`Delete "${row?.name}"?${note} You can ask support to restore it later; leads and notifications are kept.`)) {
           const client = await deps.getClient();
-          if (card?.published && card.publishedId) {
-            const { error } = await client.from('published_videos').update({ published: false }).eq('id', card.publishedId);
-            if (error) throw new Error(error.message || 'Could not unpublish the video');
+          // Delete first; only then take the public videos offline, so a failed delete never leaves a live project
+          // with a dead public link. Every video linked to the project is unpublished (one per published timeline).
+          await deleteProject(client, id);
+          let unpublishError = null;
+          if (card?.published) {
+            const { error } = await client.from('published_videos').update({ published: false }).eq('project_id', id);
+            let e2 = null;
+            if (card.publishedId) ({ error: e2 } = await client.from('published_videos').update({ published: false }).eq('id', card.publishedId));
+            unpublishError = error || e2;
           }
-          await deleteProject(client, id); toast(card?.published ? 'Project deleted and its video unpublished' : 'Project deleted', 'success'); ui.selected = null; await refresh(); drawDetail();
+          if (unpublishError) toast('Project deleted, but its public video could not be unpublished — unpublish it from the Share panel', 'error');
+          else toast(card?.published ? 'Project deleted and its video unpublished' : 'Project deleted', 'success');
+          ui.selected = null; await refresh(); drawDetail();
         }
       }
     } catch (e) { toast(e.message || 'Action failed', 'error'); }
@@ -315,7 +326,8 @@ export function renderProjectsPanel(host, deps) {
     openDetail,
     /** Header bell: jump to the Notifications tab of the project with the most unread alerts. */
     async openMostUnread() {
-      if (loading) await new Promise((r) => { const t = setInterval(() => { if (!loading) { clearInterval(t); r(); } }, 50); });
+      for (let i = 0; i < 100 && loading && alive; i += 1) await new Promise((r) => setTimeout(r, 50)); // bounded wait (5 s)
+      if (!alive) return null;
       const best = cards.filter((c) => c.unreadNotifications > 0).sort((a, b) => b.unreadNotifications - a.unreadNotifications)[0];
       if (best) openDetail(best.id, 'notifications');
       return best?.id || null;

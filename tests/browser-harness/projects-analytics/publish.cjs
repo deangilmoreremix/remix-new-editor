@@ -31,7 +31,7 @@ const ADAPTER = 'http://127.0.0.1:8890/';
   const page = await ctx.newPage();
   const errors = []; page.on('pageerror', (e) => { console.log('   FRAMES:', page.frames().map((f)=>f.url().slice(0,80)+'|'+f.name()).join(' ; ')); errors.push(String(e.message).slice(0, 160)); console.log('   PAGEERROR STACK:', String(e.stack).split('\n').slice(0, 5).map((l) => l.trim().replace(/http:\/\/127.0.0.1:3100/, '').slice(0, 130)).join(' | ')); });
   await page.route('**/.netlify/functions/supabase-token', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: tokens.userA, expires_in: 3600 }) }));
-  await page.goto('http://127.0.0.1:3100/#/timeline', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://127.0.0.1:3100/#/timeline-classic', { waitUntil: 'domcontentloaded' });
   await page.locator('.floating-rail').waitFor({ timeout: 30000 });
   await page.locator('.floating-rail').getByRole('button', { name: /Share/ }).first().evaluate((b) => b.click());
   await page.locator('#sharePanel').waitFor({ state: 'visible' });

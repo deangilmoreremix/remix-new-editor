@@ -68,7 +68,7 @@ export function retargetTab(deps) {
       const original = (await loadProject(client, ctx.project.id)) || ctx.project;
       const [aud, followups] = await Promise.all([loadAudience(client, video.id, '30d', deps.now?.()), listFollowups(client, original.id)]);
       if (!alive) return;
-      const map = seedInterestMap(original.data, video.project?.interestMap || original.settings?.interestMap);
+      const map = seedInterestMap(original.data, original.settings?.interestMap ?? video.project?.interestMap);
       const url = video.published ? canonicalUrl(video) : null;
       const recs = recommend({ interests: aud.interests, segments: aud.segments, project: { projectId: original.id, projectName: original.name, videoUrl: url } });
       const compare = await loadFollowupComparison(client, original, followups, deps.now?.());
@@ -142,10 +142,16 @@ export function notificationsTab(deps) {
             if (opts.focusId === n.id) { el.scrollIntoView?.({ block: 'center' }); if (!n.read_at) markRead(client, [n.id]).then(() => { n.read_at = new Date().toISOString(); deps.onUnreadChanged?.(); draw(); }).catch(() => {}); }
           });
           root.querySelector('[data-more]')?.addEventListener('click', async (e) => {
-            e.currentTarget.disabled = true;
-            try { const next = await listNotifications(client, ctx.project.id, { offset: notes.length }); notes = [...notes, ...next.rows]; hasMore = next.hasMore; draw(); } catch (err) { e.currentTarget.textContent = err.message; }
+            const btn = e.currentTarget; // currentTarget is null after an await
+            btn.disabled = true;
+            try { const next = await listNotifications(client, ctx.project.id, { offset: notes.length }); notes = [...notes, ...next.rows]; hasMore = next.hasMore; draw(); } catch (err) { btn.disabled = false; btn.textContent = err.message || 'Could not load more'; }
           });
-          root.querySelector('[data-read-all]')?.addEventListener('click', async () => { await markRead(client, notes.filter((n) => !n.read_at).map((n) => n.id)); notes.forEach((n) => { n.read_at = n.read_at || new Date().toISOString(); }); deps.onUnreadChanged?.(); draw(); });
+          root.querySelector('[data-read-all]')?.addEventListener('click', async () => {
+            try {
+              await markRead(client, notes.filter((n) => !n.read_at).map((n) => n.id));
+              notes.forEach((n) => { n.read_at = n.read_at || new Date().toISOString(); }); deps.onUnreadChanged?.(); draw();
+            } catch (err) { deps.onToast?.(err.message || 'Could not mark alerts as read', 'error'); }
+          });
           root.querySelector('[data-prefs]').addEventListener('submit', async (e) => {
             e.preventDefault();
             const f = e.currentTarget;

@@ -7,7 +7,7 @@ const results=[]; const check=(n,ok,d='')=>{results.push(ok); console.log(`${ok?
  await ctx.addInitScript((s)=>{sessionStorage.setItem('setup_popup_shown','1'); window.Clerk={loaded:true,user:{id:s},session:{getToken:async()=>'x'},addListener(){return()=>{}},load:async()=>{}};},'userA');
  const page=await ctx.newPage();
  await page.route('**/.netlify/functions/supabase-token',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({token:tokens.userA,expires_in:3600})}));
- await page.goto('http://127.0.0.1:3100/#/timeline',{waitUntil:'domcontentloaded'});
+ await page.goto('http://127.0.0.1:3100/#/timeline-classic',{waitUntil:'domcontentloaded'});
  await page.locator('.floating-rail').waitFor({timeout:30000});
  // reference colours from the EDITOR's own components (before opening Projects)
  const ref=await page.evaluate(()=>{ const cs=(sel,props)=>{const e=document.querySelector(sel); if(!e) return null; const c=getComputedStyle(e); return Object.fromEntries(props.map(p=>[p,c[p]]));};

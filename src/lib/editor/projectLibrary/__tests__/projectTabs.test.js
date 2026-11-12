@@ -47,7 +47,7 @@ function client(o = {}) {
   const from = (table) => {
     const q = { table, f: [] };
     const api = {
-      select: () => api, eq: (c, v) => { q.f.push([c, v]); return api; }, is: () => api, order: () => api, limit: () => api, range: (a, b) => { q.range = [a, b]; return api; },
+      select: () => api, eq: (c, v) => { q.f.push([c, v]); return api; }, is: () => api, or: () => api, order: () => api, limit: () => api, range: (a, b) => { q.range = [a, b]; return api; },
       upsert: async (row) => { calls.push(['upsert', table, row]); state.prefs = row; return { error: null }; },
       insert: (row) => { q.ins = row; return api; },
       single: async () => { const r = { id: 'new-proj', name: q.ins.name, ...q.ins }; state.inserted.push(r); return { data: r, error: null }; },

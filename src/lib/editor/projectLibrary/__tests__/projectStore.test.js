@@ -86,6 +86,13 @@ describe('projectStore', () => {
     expect(left.map((r) => r.id)).toEqual([copy.id]);
   });
 
+  it('a duplicate does not inherit publications (publishing the copy must not take over the original video)', async () => {
+    const c = fakeClient([{ id: 'p1', name: 'Promo', data: { tracks: [], publishedVideos: { main: 'vidORIGINAL' } }, tags: [], settings: {}, render: {} }]);
+    const copy = await duplicateProject(c, 'p1');
+    expect(copy.data.publishedVideos).toBeUndefined();
+    expect(c.rows.find((r) => r.id === 'p1').data.publishedVideos).toEqual({ main: 'vidORIGINAL' });
+  });
+
   it('search filters by name', async () => {
     const c = fakeClient();
     await createProject(c, { name: 'Roofing promo', state: state() });
