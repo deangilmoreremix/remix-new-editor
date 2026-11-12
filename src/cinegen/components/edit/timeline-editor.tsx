@@ -54,7 +54,8 @@ import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
 import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
 // Template videos library: ready-made AI video clips, added to the timeline as video clips at the playhead
-import { TemplateVideosModal, ratioNumber, type TemplateVideo } from './template-videos-modal';
+import { TemplateVideosModal, type TemplateVideo } from './template-videos-modal';
+import { templateVideoAsset, placeTemplateVideo } from './template-video-placement';
 import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
 
 const LABEL_WIDTH = 150;
@@ -919,22 +920,9 @@ export function TimelineEditor({
 
   // Template videos library: the chosen clip becomes an asset + a video clip (with its linked audio) at the playhead
   const handlePickTemplateVideo = useCallback((item: TemplateVideo) => {
-    const ratio = ratioNumber(item.aspectRatio);
-    const width = ratio >= 1 ? 1920 : Math.round(1920 * ratio);
-    const height = ratio >= 1 ? Math.round(1920 / ratio) : 1920;
-    const asset: Asset = {
-      id: generateId(), name: item.title, type: 'video', url: item.videoSrc, thumbnailUrl: item.posterSrc ?? undefined,
-      duration: item.duration && item.duration > 0 ? item.duration : 5, width, height, createdAt: new Date().toISOString(),
-      metadata: { source: 'template-videos', templateId: item.id },
-    };
+    const asset = templateVideoAsset(item);
     dispatch({ type: 'ADD_ASSET', asset });
-    let tl = timelineRef.current;
-    // a free video track at the playhead (never on top of existing footage); add one when none is free
-    const dur = asset.duration ?? 5;
-    const free = (t: { id: string; kind: string; locked?: boolean }) => t.kind === 'video' && !t.locked && !tl.clips.some((c) => c.trackId === t.id && c.startTime < currentTime + dur && clipEndTime(c) > currentTime);
-    let track = tl.tracks.find(free);
-    if (!track) { tl = addTrack(tl, 'video'); track = tl.tracks[tl.tracks.length - 1]; }
-    setTimeline(addClipToTrack(tl, track.id, asset, currentTime));
+    setTimeline(placeTemplateVideo(timelineRef.current, asset, currentTime));
     setTvOpen(false);
   }, [dispatch, setTimeline, currentTime]);
 
