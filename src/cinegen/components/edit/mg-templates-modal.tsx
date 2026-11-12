@@ -2,7 +2,7 @@
 // Cards show the template's own picture and play it live on hover (see preview-card.tsx), same as the Animations library.
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
-import { PreviewCard } from './preview-card';
+import { PreviewCard, CARD_CSS } from './preview-card';
 import { mgPreview } from './add-to-timeline-registry';
 
 const field: CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'var(--bg-input, transparent)', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 10, padding: '11px 12px', fontSize: 13 };
@@ -55,7 +55,7 @@ export function MgTemplatesPanel({ onPick, onClose }: { onPick: (t: MgTemplate) 
 export function MgTemplatesModal({ onClose, onPick }: { onClose: () => void; onPick: (t: MgTemplate) => void }) {
   return (
     <div role="dialog" aria-label="Motion graphics templates" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <style>{'.add-card:hover{border-color:var(--accent)!important}'}</style>
+      <style>{CARD_CSS}</style>
       <div style={{ width: 'min(1100px, 94vw)', height: 'min(800px, 90vh)', display: 'flex', flexDirection: 'column', background: '#0b1016', border: '1px solid rgba(255,255,255,.14)', borderRadius: 12, padding: 16 }} onClick={(e) => e.stopPropagation()}>
         <MgTemplatesPanel onPick={onPick} onClose={onClose} />
       </div>

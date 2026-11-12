@@ -15,12 +15,15 @@ interface Props {
   onOpenAdd: () => void;
   /** Smart Speech has its own modal (personalized speech), so it is not part of the Add modal */
   onOpenSpeech?: () => void;
+  /** Template Generator and Personalization also have their own modals */
+  onOpenGenerator?: () => void;
+  onOpenPersonalization?: () => void;
   onUpdate: (id: string, updates: Partial<OverlayClip>) => void;
 }
 
 const MIN = 0.5;
 
-export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onOpenAdd, onOpenSpeech, onUpdate }: Props) {
+export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onOpenAdd, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate }: Props) {
   const selected = useSelectedOverlay();
   const drag = useRef<{ id: string; mode: 'move' | 'start' | 'end'; x: number; start: number; end: number } | null>(null);
 
@@ -52,6 +55,8 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
           + Add to timeline…
         </button>
         {onOpenSpeech && <button type="button" aria-label="Smart Speech" title="Smart Speech: personalized speech" onClick={onOpenSpeech} style={{ flex: '0 0 auto', background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 12, padding: '2px 6px', cursor: 'pointer' }}>🎙</button>}
+        {onOpenGenerator && <button type="button" aria-label="Template Generator" title="Template Generator: generate a templated video from a prompt" onClick={onOpenGenerator} style={{ flex: '0 0 auto', background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 12, padding: '2px 6px', cursor: 'pointer' }}>✨</button>}
+        {onOpenPersonalization && <button type="button" aria-label="Personalization" title="Personalization: personalize the video for each contact" onClick={onOpenPersonalization} style={{ flex: '0 0 auto', background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 12, padding: '2px 6px', cursor: 'pointer' }}>👤</button>}
       </div>
       <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
         <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: Math.max(sequenceDuration, 1) * pxPerSecond, transform: `translateX(${-(scrollLeft)}px)` }}>

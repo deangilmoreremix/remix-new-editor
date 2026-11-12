@@ -3264,6 +3264,8 @@ export function TimelineEditor({
         sequenceDuration={sequenceDuration}
         onOpenAdd={() => setAddOpen(true)}
         onOpenSpeech={handleOpenSpeech}
+        onOpenGenerator={() => { void handleOpenGenerator(); }}
+        onOpenPersonalization={() => { void handleOpenPersonalization(); }}
         onUpdate={(id, updates) => dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates })}
       />
 
@@ -3286,8 +3288,6 @@ export function TimelineEditor({
               made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
               if (made[0]) selectOverlay(made[made.length - 1].id);
             },
-            onOpenGenerator: () => { setAddOpen(false); void handleOpenGenerator(); },
-            onOpenPersonalization: () => { setAddOpen(false); void handleOpenPersonalization(); },
           }}
         />
       )}

@@ -12,12 +12,11 @@ export interface AddToTimelineActions {
   onPickMotion: (t: MgTemplate) => void;
   onAddKind: (kind: OverlayKind) => void;
   onAddTemplate: (templateId: string, phone?: string) => void;
-  onOpenGenerator?: () => void;
-  onOpenPersonalization?: () => void;
 }
 
-export type CatalogTab = 'ai' | 'overlays' | 'endscreens';
-export interface CatalogEntry { id: string; tab: CatalogTab; label: string; blurb: string; badge: string; preview: CardPreview; run: () => void }
+export type CatalogTab = 'animations' | 'motion' | 'overlays' | 'endscreens';
+/** `keywords` is extra text the search matches (tags, category). */
+export interface CatalogEntry { id: string; tab: CatalogTab; label: string; blurb: string; badge: string; preview: CardPreview; run: () => void; keywords?: string; testId?: string }
 
 /** Overlay clips of a preview, moved so the first one starts at 0 (end-screen templates are anchored to the timeline end). */
 function fromZero(clips: OverlayClip[]): OverlayClip[] {
@@ -38,9 +37,6 @@ const templatePreview = (id: string): CardPreview => {
   return { kind: 'overlay', build: make, duration: d, still: Math.min(d * 0.6, 3) };
 };
 
-/** Looping demo clip for Personalization (a local file the demo library already ships). */
-const PERSONALIZE_DEMO: CardPreview = { kind: 'video', src: '/media/awesome-seedance/videos/adam.mp4', poster: '/media/awesome-seedance/previews/adam.webp' };
-
 const mgCache = new WeakMap<MgTemplate, CardPreview>();
 export function mgPreview(t: MgTemplate): CardPreview {
   const hit = mgCache.get(t); if (hit) return hit;
@@ -58,15 +54,24 @@ export function hfPreview(i: HfItem): CardPreview {
   return p;
 }
 
-/** AI & personalization, basic overlays, and End screen / Connect form templates. Animations and Motion graphics are catalogs of their own (mgPreview / hfPreview). */
-export function buildCatalog(a: AddToTimelineActions, ui: { close: () => void; askPhone: (templateId: string) => void }): CatalogEntry[] {
+const aspectOf = (w: number, h: number) => (Math.abs(w - h) < 8 ? '1:1' : w > h ? '16:9' : '9:16');
+
+/** Animations library (HyperFrames). `onPick` is called when a card is clicked. */
+export function hfEntries(items: HfItem[], onPick: (i: HfItem) => void): CatalogEntry[] {
+  return items.map((i) => ({ id: `hf:${i.id}`, tab: 'animations' as const, label: i.title, blurb: `${i.duration.toFixed(0)}s · ${aspectOf(i.dimensions.width, i.dimensions.height)}${i.slow ? ' · slower export' : ''}`, badge: 'Animation', preview: hfPreview(i), run: () => onPick(i), keywords: `${i.description} ${i.tags.join(' ')} ${i.id}`, testId: `animation-${i.id}` }));
+}
+/** Motion graphics templates. Only templates the code gate accepts are offered. */
+export function mgEntries(templates: MgTemplate[], onPick: (t: MgTemplate) => void): CatalogEntry[] {
+  return templates.filter((t) => t.usable).map((t) => ({ id: `mg:${t.id}`, tab: 'motion' as const, label: t.name, blurb: `${t.category} · ${t.width}×${t.height} · ${(t.durationInFrames / t.fps).toFixed(1)}s`, badge: 'Motion graphic', preview: mgPreview(t), run: () => onPick(t), keywords: `${t.description ?? ''} ${t.category}`, testId: `mg-${t.id}` }));
+}
+
+/** Basic overlays and End screen / Connect form templates (single-click items). Smart Speech, Template Generator and Personalization have their own modals and are not here. */
+export function buildCatalog(a: Pick<AddToTimelineActions, 'onAddKind' | 'onAddTemplate'>, ui: { close: () => void; askPhone: (templateId: string) => void }): CatalogEntry[] {
   const list: CatalogEntry[] = [];
-  if (a.onOpenGenerator) list.push({ id: 'generator', tab: 'ai', label: 'Template Generator', blurb: 'Generate a templated video or overlay from a prompt.', badge: 'AI', preview: { kind: 'art', art: 'generator' }, run: a.onOpenGenerator });
-  if (a.onOpenPersonalization) list.push({ id: 'personalize', tab: 'ai', label: 'Personalization', blurb: 'Personalize the video for each contact.', badge: 'Video', preview: PERSONALIZE_DEMO, run: a.onOpenPersonalization });
-  for (const k of OVERLAY_KINDS) list.push({ id: k.kind, tab: 'overlays', label: k.label, blurb: k.blurb, badge: 'Overlay', preview: kindPreview(k.kind), run: () => { a.onAddKind(k.kind); ui.close(); } });
+  for (const k of OVERLAY_KINDS) list.push({ id: k.kind, tab: 'overlays', label: k.label, blurb: k.blurb, badge: 'Overlay', preview: kindPreview(k.kind), run: () => { a.onAddKind(k.kind); ui.close(); }, testId: `add-${k.kind}` });
   for (const t of overlayTemplates()) {
     const connect = isConnectTemplate(t.id);
-    list.push({ id: `tpl:${t.id}`, tab: 'endscreens', label: t.name, blurb: t.description, badge: connect ? 'Connect form' : 'End screen', preview: templatePreview(t.id), run: () => { if (connect) ui.askPhone(t.id); else { a.onAddTemplate(t.id); ui.close(); } } });
+    list.push({ id: `tpl:${t.id}`, tab: 'endscreens', label: t.name, blurb: t.description, badge: connect ? 'Connect form' : 'End screen', preview: templatePreview(t.id), run: () => { if (connect) ui.askPhone(t.id); else { a.onAddTemplate(t.id); ui.close(); } }, testId: `add-tpl:${t.id}` });
   }
   return list;
 }

@@ -3,7 +3,7 @@
 // Previews run in the editor's sandboxed code-preview frame (never in this page).
 import { useMemo, useState, type CSSProperties } from 'react';
 import { hyperframesItems, searchHyperframes, type HfItem } from '@cinegen/lib/hyperframes/overlay';
-import { PreviewCard } from './preview-card';
+import { PreviewCard, CARD_CSS } from './preview-card';
 import { hfPreview } from './add-to-timeline-registry';
 
 /** The catalog has 24 raw categories; the library shows a handful of customer-friendly groups (display only, the catalog data is unchanged). */
@@ -39,7 +39,7 @@ export function HyperframesPanel({ onPick }: { onPick: (item: HfItem) => void })
   const list = searchHyperframes(all, q, 'all').filter((i) => (tag === 'all' || groupOf(i) === tag) && (type === 'all' || typeOf(i) === type) && (ratio === 'all' || aspectOf(i.dimensions.width, i.dimensions.height) === ratio));
   return (
  <>
-      <style>{'.add-card:hover{border-color:var(--accent)!important}'}</style>
+      <style>{CARD_CSS}</style>
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
             <strong style={{ fontSize: 13, letterSpacing: '.06em', textTransform: 'uppercase' }}>▣ Choose an animation</strong>
