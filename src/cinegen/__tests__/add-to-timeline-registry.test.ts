@@ -4,7 +4,7 @@ import { buildCatalog, mgPreview, hfPreview, hfEntries, mgEntries } from '../com
 import { previewResolves } from '../components/edit/preview-types';
 import { loadMgTemplates } from '../lib/occ/mg-templates';
 import { hyperframesItems } from '../lib/hyperframes/overlay';
-import { OVERLAY_KINDS, overlayTemplates, isConnectTemplate, createTemplateOverlays } from '../lib/overlays/overlays';
+import { OVERLAY_KINDS, overlayTemplates, isConnectTemplate, createTemplateOverlays, createOverlay } from '../lib/overlays/overlays';
 import fs from 'node:fs';
 
 const noop = () => undefined;
@@ -47,5 +47,29 @@ describe('add-to-timeline catalog', () => {
     const made = createTemplateOverlays(t!.id, 0, 10, { phone: '212 555 0147' });
     expect(made.length).toBeGreaterThan(0);
     expect(JSON.stringify(made)).toContain('+1 212 555 0147');
+  });
+
+  it('every card adds the right thing: all animations, motion graphics, overlays and templates', async () => {
+    const calls: string[] = [];
+    const rec = (tag: string) => (x: unknown) => { calls.push(`${tag}:${typeof x === 'string' ? x : (x as { id: string }).id}`); };
+    const ui = { close: () => { calls.push('close'); }, askPhone: (id: string) => { calls.push(`phone:${id}`); } };
+    const fixed = buildCatalog({ onAddKind: rec('kind'), onAddTemplate: (id: string) => calls.push(`tpl:${id}`) }, ui);
+    const tpls = (await loadMgTemplates()).filter((t) => t.usable);
+    const hf = hyperframesItems();
+    const all = [...hfEntries(hf, rec('hf')), ...mgEntries(tpls, rec('mg')), ...fixed];
+    expect(all.length).toBeGreaterThan(500);
+    for (const e of all) {
+      calls.length = 0;
+      e.run();
+      expect(calls.length, `${e.id} did nothing`).toBeGreaterThan(0);
+      if (e.tab === 'animations') expect(calls).toEqual([`hf:${e.id.slice(3)}`]);
+      else if (e.tab === 'motion') expect(calls).toEqual([`mg:${e.id.slice(3)}`]);
+      else if (e.tab === 'overlays') expect(calls).toEqual([`kind:${e.id}`, 'close']);
+      else if (isConnectTemplate(e.id.slice(4))) expect(calls).toEqual([`phone:${e.id.slice(4)}`]); // asks for the phone first, adds nothing yet
+      else expect(calls).toEqual([`tpl:${e.id.slice(4)}`, 'close']);
+    }
+    // the real creators produce valid clips for every overlay kind and every end-screen / connect template
+    for (const k of OVERLAY_KINDS) { const o = createOverlay(k.kind, 0, 10); expect(o.type, k.kind).toBe(k.kind); expect(o.end, k.kind).toBeGreaterThan(o.start); }
+    for (const t of overlayTemplates()) { const made = createTemplateOverlays(t.id, 0, 10); expect(made.length, t.id).toBeGreaterThan(0); for (const o of made) expect(o.end, t.id).toBeGreaterThan(o.start); }
   });
 });

@@ -50,9 +50,9 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   return (
     <div className="overlay-lane" style={{ display: 'flex', height: 30, borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,.08))', background: 'var(--bg-surface, #0b0e14)', flex: '0 0 auto' }}>
       <div title="Overlays: forms and buttons drawn over the video" style={{ width: labelWidth, flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 3, padding: '0 6px', fontSize: 11, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-        <button type="button" aria-label="Add to timeline" title="Add an animation, speech, overlay, form or end screen at the playhead" onClick={onOpenAdd}
-          style={{ flex: 1, minWidth: 0, background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 11, padding: '3px 4px', cursor: 'pointer', textAlign: 'left' }}>
-          + Add to timeline…
+        <button type="button" aria-label="Add to timeline" title="Add to timeline: animations, motion graphics, overlays, forms and end screens" onClick={onOpenAdd}
+          style={{ flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 11, padding: '3px 6px', cursor: 'pointer', textAlign: 'left' }}>
+          + Add
         </button>
         {onOpenSpeech && <button type="button" aria-label="Smart Speech" title="Smart Speech: personalized speech" onClick={onOpenSpeech} style={{ flex: '0 0 auto', background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 12, padding: '2px 6px', cursor: 'pointer' }}>🎙</button>}
         {onOpenGenerator && <button type="button" aria-label="Template Generator" title="Template Generator: generate a templated video from a prompt" onClick={onOpenGenerator} style={{ flex: '0 0 auto', background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 12, padding: '2px 6px', cursor: 'pointer' }}>✨</button>}
