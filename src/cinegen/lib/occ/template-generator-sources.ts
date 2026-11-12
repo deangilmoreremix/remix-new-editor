@@ -9,6 +9,8 @@ import { loadMgTemplates, createMgOverlay, mgOverlayLayer, type MgTemplate } fro
 import { overlayTemplates, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
 import { hfThumb, mgThumb, tplThumb } from '@cinegen/lib/occ/template-thumbs';
 import type { OverlayClip } from '@cinegen/types/workspace';
+// @ts-expect-error plain JSON written by scripts/generate-template-generator-thumbs.mjs
+import blocklistJson from '@cinegen/lib/occ/mg-render-blocklist.json';
 // @ts-expect-error plain JS flag module
 import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 
@@ -75,7 +77,9 @@ const mgCard = (t: MgTemplate): GeneratorCard => ({
 });
 
 export function motionGraphicsSource(): GeneratorSource {
-  const usable = () => loadMgTemplates().then((all) => all.filter((t) => t.usable));
+  // templates the code gate accepts but the sandboxed renderer draws as nothing are not offered (list kept by the thumbnail script)
+  const blocked = new Set(Object.keys((blocklistJson as { ids?: Record<string, string> }).ids ?? {}));
+  const usable = () => loadMgTemplates().then((all) => all.filter((t) => t.usable && !blocked.has(t.id)));
   return {
     id: 'motion', label: 'Motion graphics', group: 'Motion & templates',
     blurb: 'Ready-made motion-graphics templates: titles, counters, callouts and social shorts.',

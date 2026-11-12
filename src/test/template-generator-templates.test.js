@@ -83,3 +83,15 @@ describe('animations in templates', () => {
     expect(restoreTemplate(rec).selectedAnimations.map((a) => a.id)).toEqual(s.selectedAnimations.map((a) => a.id));
   });
 });
+
+describe('template thumbnails are real pictures', () => {
+  it('uses a poster or photo as the still, and keeps the first video for a first-frame preview otherwise', () => {
+    const s = wizard();
+    expect(snapshotTemplate(s).thumbnail).toBe('https://x/1.jpg');                // the clip's poster
+    expect(snapshotTemplate(s).thumbnailVideo).toBe('');
+    const bare = createWizardState(); toggleVideo(bare, vid(7, { poster: '', preview: 'https://x/7-sd.mp4' })); bare.script.text = 'Hi.';
+    const rec = snapshotTemplate(bare);
+    expect(rec.thumbnail).toBe('');                                               // never a video URL as an image
+    expect(rec.thumbnailVideo).toBe('https://x/7.mp4');
+  });
+});

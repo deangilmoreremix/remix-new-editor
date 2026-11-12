@@ -253,4 +253,78 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
       classic.destroy();
     });
   });
+
+  describe('real previews (no mock images or videos)', () => {
+    const openWith = (items, extra = {}) => {
+      const stockSearch = async () => ({ items, hasMore: false });
+      const m = new TemplateGeneratorModal({ stockSearch, templateStore: createTemplateStore(memory()), ...extra });
+      m.open(); m.s.started = true; m.paint();
+      return m;
+    };
+    const over = (el, type = 'mouseover', related = null) => el.dispatchEvent(new MouseEvent(type, { bubbles: true, relatedTarget: related }));
+
+    it('stock videos play their real preview clip on hover and stop when the pointer leaves', async () => {
+      const v = { ...item(1, 'video', 'pexels'), preview: 'https://videos.pexels.test/sd.mp4', poster: 'https://images.pexels.test/poster.jpg' };
+      const m = openWith([v]);
+      await m.runSearch(true);
+      const tile = document.querySelector('.video-tile[data-id]');
+      expect(tile.style.backgroundImage).toContain('images.pexels.test/poster.jpg');   // the provider's own poster
+      expect(tile.querySelector('video')).toBeNull();
+      over(tile);
+      const vid = tile.querySelector('video.tg-hovervid');
+      expect(vid.getAttribute('src')).toBe('https://videos.pexels.test/sd.mp4');
+      expect(vid.muted).toBe(true); expect(vid.loop).toBe(true);
+      over(tile, 'mouseout', document.body);
+      expect(tile.querySelector('video')).toBeNull();
+      m.destroy();
+    });
+
+    it('a video with no poster shows its own first frame; a photo shows itself (never a video URL as an image)', async () => {
+      const m = openWith([], { projectMedia: [
+        { id: 'v', type: 'video', name: 'Take 1', url: 'https://x.test/take1.mp4', duration: 5 },
+        { id: 'i', type: 'image', name: 'Logo', url: 'https://x.test/logo.png' },
+      ] });
+      m.setProvider('library');
+      const [vt, it2] = [...document.querySelectorAll('.video-tile[data-id]')];
+      expect(vt.querySelector('video.tg-poster').getAttribute('src')).toBe('https://x.test/take1.mp4#t=0.1');
+      expect(vt.style.backgroundImage).not.toContain('take1.mp4');   // never url(take1.mp4)
+      expect(it2.style.backgroundImage).toContain('logo.png');
+      expect(it2.querySelector('video')).toBeNull();
+      m.destroy();
+    });
+
+    it('animation tiles show the library\'s real still, and fall back to the glyph if it cannot load', async () => {
+      const card = { id: 'anim:1', kind: 'animation', source: 'animations', title: 'Bar Chart Race', badge: 'ANIMATION', category: 'Data & charts', duration: 12, glyph: '▤', poster: '/hyperframes/thumbs/bar-chart-race.jpg' };
+      const animations = { id: 'animations', label: 'Animations', filters: [['all', 'All']], search: async () => ({ items: [card], hasMore: false }), resolve: async () => ({}) };
+      const m = openWith([], { extraSources: [animations] });
+      m.setProvider('animations'); await vi.waitFor(() => expect(document.querySelector('.tg-anim')).toBeTruthy());
+      const img = document.querySelector('.tg-anim img.tg-thumb');
+      expect(img.getAttribute('src')).toBe('/hyperframes/thumbs/bar-chart-race.jpg');
+      expect(document.querySelector('.tg-anim .tg-anim__glyph')).toBeTruthy();   // underneath, as the fallback
+      img.dispatchEvent(new Event('error'));                                      // the file is missing → the image goes away
+      expect(document.querySelector('.tg-anim img.tg-thumb')).toBeNull();
+      expect(document.querySelector('.tg-anim .tg-anim__glyph')).toBeTruthy();
+      m.destroy();
+    });
+
+    it('an animation tile runs the library\'s live preview after a short hover and tears it down on leave', async () => {
+      let mounted = 0; let destroyed = 0;
+      const card = { id: 'anim:1', kind: 'animation', source: 'animations', title: 'Camcorder HUD', badge: 'ANIMATION', category: 'Backgrounds & effects', duration: 4, poster: '/hyperframes/thumbs/camcorder-hud.jpg' };
+      const animations = { id: 'animations', label: 'Animations', filters: [['all', 'All']], search: async () => ({ items: [card], hasMore: false }), resolve: async () => ({}),
+        mountPreview: (host, it) => { mounted += 1; host.dataset.live = it.id; return () => { destroyed += 1; }; } };
+      const m = openWith([], { extraSources: [animations] });
+      m.setProvider('animations'); await vi.waitFor(() => expect(document.querySelector('.tg-anim')).toBeTruthy());
+      const tile = document.querySelector('.tg-anim');
+      over(tile);
+      expect(mounted).toBe(0);                                                    // not on a fly-by
+      await vi.waitFor(() => expect(mounted).toBe(1));
+      expect(tile.querySelector('.tg-anim__live').dataset.live).toBe('anim:1');
+      over(tile, 'mouseout', document.body);
+      expect(destroyed).toBe(1); expect(tile.querySelector('.tg-anim__live')).toBeNull();
+      over(tile); over(tile, 'mouseout', document.body);                          // a quick fly-by never mounts anything
+      await new Promise((r) => setTimeout(r, 450));
+      expect(mounted).toBe(1);
+      m.destroy();
+    });
+  });
 });
