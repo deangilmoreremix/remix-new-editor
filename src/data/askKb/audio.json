@@ -1,0 +1,368 @@
+{
+  "id": "audio",
+  "name": "Audio Studio",
+  "route": "#/audio",
+  "description": "Audio Studio generates music, speech (text-to-speech) and sound effects from a text prompt, using a model you pick from a list. Results play on a waveform player with a Download Audio button.",
+  "shortDescription": "Generate music, speech and sound effects.",
+  "fullDescription": "Audio Studio is one form for several kinds of audio. You choose a model (for example Suno for songs, MiniMax, ElevenLabs, Gemini or Fish Audio for speech, Lyria or MiniMax Music for music, Suno Generate Sounds or MM Audio for sound effects), type a prompt, set the controls the model offers, and click 'Generate Audio'. The form changes with the model: music models show a Style list, speech models show a Voice list, and many newer models show their own controls (voice, lyrics, tempo, reference audio, and so on) built from the model's options. Generated tracks appear in a waveform player with play, mute, volume, a Download Audio button and an Audio Editor panel, and are kept in a history grid. You can also drag an audio file onto the page to use as a reference input for models that accept audio.",
+  "bestFor": "Creators who need background music, a voice-over, a song, or sound effects for videos, and beginners who want to try several audio models from one place.",
+  "whenToUse": [
+    "You need background music or a full song for a video.",
+    "You need a narration or voice-over from written text (text-to-speech).",
+    "You need sound effects or ambience.",
+    "You want to clone a voice, extend, remix or add vocals/instrumentals to an existing track using the Suno or MiniMax tools.",
+    "You need an audio file to feed into Lip Sync Studio or Avatar Studio."
+  ],
+  "whenToUseAnother": [
+    "Use Lip Sync Studio (#/lipsync) to make a portrait or video speak your audio.",
+    "Use Avatar Studio (#/avatar) to make a talking avatar video from your audio.",
+    "Use Video Studio (#/video) to generate video; some video models can create their own audio.",
+    "Use Timeline Studio (#/timeline) or Render Studio (#/render) to place your audio on a video timeline and export.",
+    "Use Video Agent (#/video-agent) when you want a whole video with narration made automatically."
+  ],
+  "keyFeatures": [
+    "Model picker with search and provider filter covering music, speech, voice cloning and sound-effect models.",
+    "Prompt box: 'Describe the music or speech you want to generate...'.",
+    "Style list for music models: Pop, Rock, Electronic, Classical, Jazz, Hip Hop, Ambient.",
+    "Duration buttons: 15s, 30s, 60s, 120s.",
+    "Voice list for MiniMax speech models: Female 1, Male Qingse.",
+    "Tone list: Neutral, Cheerful, Serious, Excited, Calm, Empathetic, Warm, Authoritative.",
+    "Emotion list: None, Happy, Sad, Angry, Surprised, Fearful, Disgusted, Neutral.",
+    "Advanced panel with Speed and Pitch sliders (0.5x to 2.0x) for speech models.",
+    "Model-specific controls built from each model's options: toggles, dropdowns, sliders, audio uploaders.",
+    "Reference attachments: upload an audio track (or drop an audio file on the page).",
+    "Waveform player with Play, Mute, Volume, time display and 'Download Audio'.",
+    "Audio Editor with Trim and End sliders, Fade In, Fade Out, Apply Edits and Reset.",
+    "History grid of your last 30 results and recovery of jobs still running after a page reload.",
+    "Thumbnail button (square cover art), more-tools menu (GTM Boost, Recipes, Monetize, Prompts) and Personalize."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Model selector",
+      "explanation": "Pick the audio model at the top of the page. The default is the first model in the list, Minimax Speech Turbo. Your last selected model and form values are remembered in this browser.",
+      "whyToUse": "Different models are built for songs, speech, sound effects or voice cloning.",
+      "inputRequired": "None.",
+      "restrictions": "Switching model clears model-specific options (they reset)."
+    },
+    {
+      "feature": "Prompt",
+      "explanation": "The text for the model: a description of the music, or the actual words to speak for speech models.",
+      "whyToUse": "It is the main instruction for generation.",
+      "inputRequired": "Required for models that use a prompt. If empty: 'Please enter a prompt for this model.'",
+      "restrictions": "Some models limit length: ElevenLabs v4 up to 2,000 characters, Lyria models up to 2,000 characters, Suno Generate Sounds up to 500 characters. The box is hidden for voice-clone models that take no prompt."
+    },
+    {
+      "feature": "Style (music)",
+      "explanation": "A dropdown with 'Select a style' plus Pop, Rock, Electronic, Classical, Jazz, Hip Hop, Ambient. Shown for music models and models flagged as supporting styles.",
+      "whyToUse": "Quickly steer the genre.",
+      "inputRequired": "Optional.",
+      "restrictions": "Only visible for music-type or style-supporting models."
+    },
+    {
+      "feature": "Duration",
+      "explanation": "Buttons 15s, 30s, 60s and 120s (30s is the default). The value is sent for music and other non-speech models.",
+      "whyToUse": "Choose how long the track should be.",
+      "inputRequired": "Optional.",
+      "restrictions": "Some models decide length themselves; for example Lyria 3 is described as producing clips up to 30 seconds. The button row is always visible but is not sent for MiniMax speech models."
+    },
+    {
+      "feature": "Voice, Speed and Pitch (speech)",
+      "explanation": "For MiniMax speech models (type speech) you get a Voice list (Female 1, Male Qingse). Under Advanced you get Speed and Pitch sliders from 0.5x to 2.0x.",
+      "whyToUse": "Adjust how a narrator sounds.",
+      "inputRequired": "Optional (defaults: Female 1, 1.0x).",
+      "restrictions": "Per the code, Speed and the selected Voice are sent to MiniMax speech models; Pitch, Tone and Emotion are stored as form values but are not included in the request, so they may not change the result."
+    },
+    {
+      "feature": "Model-specific controls",
+      "explanation": "Newer models show their own options right under the prompt, for example ElevenLabs 'Voice' (voice_daniel, voice_liam), Suno 'Loop', 'Sound Tempo' and 'Sound Key', Suno vocal gender and style weight, MiniMax Music lyrics and instrumental toggle, and Gemini TTS speakers/scene settings.",
+      "whyToUse": "Get the most out of that particular model.",
+      "inputRequired": "Depends on the model.",
+      "restrictions": "Options and limits come from each model; read the small help text under each control."
+    },
+    {
+      "feature": "Audio upload and drag and drop",
+      "explanation": "Models that need audio (for example Suno Add Vocals, Add Instrumental, Voice Cloning, Mashup) show an 'Upload audio track' area ('MP3, WAV, M4A up to 20MB'). Mashup shows up to 2 tracks. You can also use the attachment toolbar or drop an audio file anywhere on the page ('Drop audio to use as input').",
+      "whyToUse": "Remix, extend, clone or add vocals to existing audio.",
+      "inputRequired": "Only for models that need audio.",
+      "restrictions": "Own check: files over 20MB are rejected with 'Audio file exceeds 20MB limit.' The shared upload adapter may apply a stricter limit and show its own message. Dropping a non-audio file shows 'Drop an audio file (mp3, wav, m4a…)'."
+    },
+    {
+      "feature": "Waveform player and Audio Editor",
+      "explanation": "After generation you see a waveform with Play, Mute, Volume and 'Download Audio'. Below it the Audio Editor offers Trim and End sliders (percent), Fade In, Fade Out, Apply Edits and Reset.",
+      "whyToUse": "Preview and make quick edits.",
+      "inputRequired": "A finished track.",
+      "restrictions": "Applying edits shows the toast 'Audio edits applied (trim/fade simulation)', which indicates the editor is a simple preview-style tool; use Timeline Studio or Workbench for real editing."
+    },
+    {
+      "feature": "History and job recovery",
+      "explanation": "Results are added to a history grid (up to 30). If you reload while a job runs, the studio recovers it and shows 'Recovered a generation that finished while you were away'.",
+      "whyToUse": "Do not lose long jobs.",
+      "inputRequired": "None.",
+      "restrictions": "Stored locally in this browser."
+    }
+  ],
+  "howToUse": "1. Open Audio Studio from the side menu (#/audio). 2. Use the model picker at the top to choose a model: a music model for songs, a speech model for narration, or a sound-effects model for effects. 3. Type your text in the 'Prompt' box ('Describe the music or speech you want to generate...'). For speech, write the exact words to be spoken. 4. Set the controls that appear: Style (music), Duration (15s/30s/60s/120s), Voice (MiniMax speech), and any model-specific options. 5. For models that need audio, upload an 'Upload audio track' file or drop an audio file on the page. 6. Optionally open Advanced to change Speed and Pitch for speech. 7. Click 'Generate Audio'. The button shows 'Generating...' with a loading overlay. 8. When the toast 'Audio generated successfully!' appears, press Play on the waveform, then click 'Download Audio'. 9. Use the Audio Editor (Trim, End, Fade In, Fade Out) if you want, or pick an earlier result from the history grid.",
+  "howToSteps": [
+    "Pick an audio model.",
+    "Write a prompt (description for music or the words to speak for speech).",
+    "Set style, duration, voice or other options.",
+    "Upload reference audio if the model asks for it.",
+    "Click Generate Audio.",
+    "Play the result and click Download Audio."
+  ],
+  "gettingStarted": [
+    "For speech: keep Minimax Speech Turbo, type a sentence, choose a Voice and click Generate Audio.",
+    "For a song: choose Suno Create Music, describe the song, pick a Style and click Generate Audio.",
+    "For sound effects: choose Suno Generate Sounds and describe the sound, for example 'A car passing by'."
+  ],
+  "inputs": ["Model", "Prompt", "Style", "Duration", "Voice", "Tone", "Emotion", "Speed", "Pitch", "Reference audio", "Model-specific options", "Thumbnail"],
+  "requiredInputs": ["Model", "Prompt (for models that use one)", "Reference audio (only for models that need it)"],
+  "optionalInputs": ["Style", "Duration", "Voice", "Speed", "Pitch", "Tone", "Emotion", "Thumbnail", "Reference images/videos via attachments"],
+  "inputDetails": [
+    {
+      "name": "Prompt",
+      "description": "Music description or the text to be spoken.",
+      "required": true,
+      "whenToUse": "Almost always.",
+      "restrictions": "Model length limits apply (2,000 characters for ElevenLabs v4 and Lyria; 500 for Suno sounds)."
+    },
+    {
+      "name": "Style",
+      "description": "Genre choice for music models.",
+      "required": false,
+      "whenToUse": "When you want a clear genre.",
+      "restrictions": "Shown for music models only."
+    },
+    {
+      "name": "Duration",
+      "description": "15s, 30s, 60s or 120s.",
+      "required": false,
+      "whenToUse": "Music and sound effects.",
+      "restrictions": "Default 30s; not sent for MiniMax speech."
+    },
+    {
+      "name": "Voice",
+      "description": "Female 1 or Male Qingse for MiniMax speech models. Other speech models offer their own voice list in the model options.",
+      "required": false,
+      "whenToUse": "Speech.",
+      "restrictions": "Default Female 1."
+    },
+    {
+      "name": "Speed / Pitch",
+      "description": "Sliders 0.5x to 2.0x in 0.1 steps, default 1.0x, in Advanced.",
+      "required": false,
+      "whenToUse": "Speech.",
+      "restrictions": "Speed is sent to the speech model; Pitch is not sent according to the code."
+    },
+    {
+      "name": "Upload audio track",
+      "description": "An audio file for models that edit, clone or extend audio.",
+      "required": false,
+      "whenToUse": "Voice cloning, add vocals, add instrumental, mashup (up to 2 tracks).",
+      "restrictions": "MP3, WAV, M4A shown up to 20MB."
+    }
+  ],
+  "generationModes": ["Music (songs and instrumentals)", "Speech / text-to-speech", "Voice cloning", "Sound effects", "Audio editing with Suno tools (extend, remix, add vocals, add instrumental, mashup, convert to WAV)"],
+  "modeExplanations": [
+    {
+      "mode": "Music",
+      "description": "Generates songs or instrumentals from a description, with optional Style and Duration.",
+      "useCase": "Background music, jingles, songs."
+    },
+    {
+      "mode": "Speech",
+      "description": "Turns your text into spoken audio with a chosen voice.",
+      "useCase": "Voice-overs and narration."
+    },
+    {
+      "mode": "Voice cloning",
+      "description": "Models Minimax Voice Clone and Suno Voice Cloning create a voice from an audio sample.",
+      "useCase": "Reusing a consistent voice."
+    },
+    {
+      "mode": "Sound effects",
+      "description": "Suno Generate Sounds and MM Audio V2 create effects and ambience from a description.",
+      "useCase": "Foley, impacts, ambience."
+    }
+  ],
+  "modelCapabilities": "From the studio's model list (src/lib/models.js and the model catalog). Speech: Minimax Speech Turbo (default; comparison data scores it price 1, speed 2, quality 4) and Minimax Speech HD (high-definition, enhanced quality), ElevenLabs TTS Turbo 2.5 (voice stability, similarity and speed controls), Eleven v4 (ElevenLabs' latest expressive TTS, voices voice_daniel and voice_liam), ElevenLabs Text to Dialogue V3 (multilingual dialogue), Gemini 3.1 Flash TTS (expressive multi-speaker speech) and Gemini 2.5 Pro TTS (studio-quality), Fish Audio S2.1 Pro (high-fidelity long-form narration). Voice cloning: Minimax Voice Clone, Suno Voice Cloning. Music: Suno Create Music (full songs from a description; comparison data price 2, speed 3, quality 4), Suno Extend Music, Suno Remix Music, Suno Add Vocals, Suno Add Instrumental, Suno Geneate Mashup (1-5 tracks per catalog text; this studio's uploader shows up to 2), Suno Convert to WAV, MiniMax Music 3.0 (songs with vocals or instrumental, lyrics supported), FLUX 3 Audio (prompt, duration, style and reference audios; comparison price 2, speed 3, quality 4), Lyria 3 Pro (Google's flagship music model), Lyria 3 (short clips up to 30 seconds), Lyria 2 (instrumental). Sound effects: Suno Generate Sounds (loop, tempo, key) and MM Audio V2. In the comparison data, price is a relative unit, speed is estimated generation time and quality is 1-5; only Minimax Speech Turbo, FLUX 3 Audio, Suno Create Music and Suno Remix Music are scored there.",
+  "outputs": ["An audio file (shown in a waveform player)", "Downloadable file through 'Download Audio'", "A history entry in this browser (up to 30)", "Optional cover thumbnail (square) if you made one"],
+  "limitations": [
+    "Tone, Emotion and Pitch selections are saved in the form but, per the code, are not sent with the request.",
+    "Duration choices are fixed to 15, 30, 60 and 120 seconds; individual models may produce shorter or fixed-length results.",
+    "The Audio Editor is a basic preview tool; applying edits shows a 'simulation' toast.",
+    "Reference audio uploads are limited to 20MB by this studio and possibly less by the shared upload service.",
+    "History is stored in this browser only.",
+    "Generation requires sign-in and credits; otherwise you are asked to sign in."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Tone and Emotion may not change the result",
+      "impact": "Changing these lists may not affect the generated voice.",
+      "workaround": "Put the desired delivery in the prompt text, or choose a model with its own expressive controls (for example Eleven v4 or Gemini TTS)."
+    },
+    {
+      "limitation": "Fixed duration buttons",
+      "impact": "You cannot enter an exact length such as 45 seconds.",
+      "workaround": "Generate the nearest length and trim in the Audio Editor or Timeline Studio."
+    },
+    {
+      "limitation": "Basic editor",
+      "impact": "Trim and fade are simple.",
+      "workaround": "Download and edit in Timeline Studio (#/timeline) or Workbench (#/workbench)."
+    }
+  ],
+  "troubleshooting": [
+    "Toast 'Please enter a prompt for this model.': type something in the Prompt box before clicking Generate Audio.",
+    "Sign-in window appears on Generate: sign in (and add credits) and click Generate Audio again.",
+    "Toast 'Audio file exceeds 20MB limit.': use a smaller audio file or compress it.",
+    "Toast 'Drop an audio file (mp3, wav, m4a…)': you dropped a file that is not audio.",
+    "Upload shows an error toast: the upload service rejected the file; check type and size and retry.",
+    "Toast 'Failed to generate audio' or another error: try again, shorten the prompt, or choose another model.",
+    "Style list is missing: only music models show Style; pick a music model.",
+    "Voice list is missing: only MiniMax speech models show the Voice list; other speech models have their own voice option under the prompt.",
+    "Tone/Emotion seems to do nothing: these values are not sent with the request; describe the delivery in the prompt instead.",
+    "Page reloaded while generating: wait; the studio shows 'Recovered a generation that finished while you were away' when the job completes."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Generate Audio does nothing",
+      "steps": ["Check that the Prompt box is not empty.", "Check you are signed in.", "Click Generate Audio again."]
+    },
+    {
+      "issue": "Reference audio will not upload",
+      "steps": ["Check the file is MP3, WAV or M4A.", "Check it is under 20MB (and under 10MB if the shared uploader complains).", "Retry or use the attachment toolbar Audio button."]
+    },
+    {
+      "issue": "Speech sounds wrong",
+      "steps": ["Check the prompt contains exactly the text to be spoken.", "Try a different Voice.", "Change Speed under Advanced.", "Try another speech model such as Minimax Speech HD or Eleven v4."]
+    },
+    {
+      "issue": "Music does not match the genre",
+      "steps": ["Pick a Style.", "Add genre, mood, tempo and instruments to the prompt.", "Try Suno Create Music or MiniMax Music 3.0."]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "My model has different controls than another model",
+      "whyItHappens": "The form is built from each model's options.",
+      "howToFix": "Read the control labels and help text for your model."
+    },
+    {
+      "problem": "A model needs an audio upload but I only have text",
+      "whyItHappens": "Edit tools like Add Vocals, Add Instrumental, Voice Cloning and Mashup need an input track.",
+      "howToFix": "Generate a track first with Suno Create Music, download it, then upload it."
+    },
+    {
+      "problem": "My settings were remembered from last time",
+      "whyItHappens": "The studio saves your model, prompt and options in this browser.",
+      "howToFix": "Change them in the form or clear the prompt."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Voice-over for a video",
+      "steps": ["Choose Minimax Speech HD or Eleven v4.", "Paste your script in Prompt.", "Pick a Voice.", "Click Generate Audio.", "Download Audio and add it to a video in Timeline Studio."]
+    },
+    {
+      "title": "Background music",
+      "steps": ["Choose Suno Create Music.", "Write 'calm lo-fi beat with soft piano' as the prompt.", "Pick Style: Ambient or Electronic.", "Choose Duration 60s.", "Click Generate Audio and download."]
+    },
+    {
+      "title": "Sound effect",
+      "steps": ["Choose Suno Generate Sounds.", "Type 'A car passing by'.", "Toggle Loop if you need a loopable sound.", "Generate and download."]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Narration for a talking avatar",
+      "description": "Create speech, then animate a face to it.",
+      "steps": ["Generate speech in Audio Studio and download it.", "Open Lip Sync Studio (#/lipsync) or Avatar Studio (#/avatar).", "Upload the portrait and the audio file."],
+      "expectedOutput": "A talking-head video."
+    },
+    {
+      "title": "Short jingle",
+      "description": "A 15 to 30 second music clip for intros.",
+      "steps": ["Choose a music model.", "Describe mood and instruments.", "Pick Duration 15s or 30s.", "Generate."],
+      "expectedOutput": "A short music clip."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Can Audio Studio make songs with lyrics?",
+      "answer": "Yes, with models such as Suno Create Music and MiniMax Music 3.0 (which has a lyrics option). Describe the song or enter lyrics where the model provides a lyrics field."
+    },
+    {
+      "question": "Which model is the default?",
+      "answer": "The first in the list, Minimax Speech Turbo, unless the studio restored a previously used model."
+    },
+    {
+      "question": "How long can the audio be?",
+      "answer": "The Duration buttons offer 15s, 30s, 60s and 120s, but each model decides what it can really produce; for example Lyria 3 is described as clips up to 30 seconds."
+    },
+    {
+      "question": "Can I clone a voice?",
+      "answer": "Yes, with Minimax Voice Clone or Suno Voice Cloning by uploading an audio sample. Make sure you have permission to use the voice."
+    },
+    {
+      "question": "Does the Tone or Emotion list change the voice?",
+      "answer": "The code stores them but does not send them with the request, so do not rely on them. Describe the delivery in your prompt or use a model with expressive controls."
+    },
+    {
+      "question": "Where do I use the audio I make?",
+      "answer": "Download it, then upload it to Lip Sync Studio, Avatar Studio, Timeline Studio or Render Studio."
+    }
+  ],
+  "glossary": {
+    "TTS": "Text-to-speech: turning written text into spoken audio.",
+    "Voice cloning": "Making a synthetic voice that resembles a sample you provide.",
+    "Style": "A genre choice for music.",
+    "Duration": "How long the generated audio should be.",
+    "Waveform": "A picture of the sound over time shown in the player.",
+    "Trim / Fade": "Cutting the start or end of a track, or fading volume in or out."
+  },
+  "tips": [
+    "Be specific with music genres and moods.",
+    "Use SSML tags for advanced speech control (where the chosen speech model supports them).",
+    "Combine multiple sound effects for ambience.",
+    "Write numbers and acronyms the way you want them spoken.",
+    "Download your favorite results; history is only stored in this browser."
+  ],
+  "bestPractices": [
+    "Test with a short prompt and duration first.",
+    "Put genre, mood, tempo and instruments in the prompt for music.",
+    "Use separate generations for narration and music and mix them in a timeline.",
+    "Use a stricter, shorter script for clearer speech."
+  ],
+  "relatedStudios": ["lipsync", "avatar", "video", "timeline", "render", "video-agent"],
+  "relatedStudioGuidance": [
+    {"studio": "lipsync", "relationship": "Uses your audio to animate a face.", "whenToMove": "After you have a voice track.", "why": "Turns audio into a talking video."},
+    {"studio": "avatar", "relationship": "Uses your audio for talking avatars.", "whenToMove": "After you have a voice track.", "why": "Single-form avatar generation."},
+    {"studio": "timeline", "relationship": "Places audio on a timeline with video.", "whenToMove": "When you need to mix voice and music with footage.", "why": "Audio Studio editing is basic."},
+    {"studio": "video", "relationship": "Generates video, some models with audio.", "whenToMove": "When you want visuals as well as sound.", "why": "Audio Studio makes audio only."}
+  ],
+  "notConfirmed": [
+    "Credit cost and exact generation time per audio model (only four models have relative scores in the comparison data).",
+    "Supported SSML tags per model (the in-app tip mentions SSML but code does not show which models accept it).",
+    "Actual maximum length of audio each model can return.",
+    "The effective audio upload limit: this studio checks 20MB, the shared upload limits say 10MB for audio.",
+    "Whether Tone, Emotion and Pitch affect output in any model (they are not included in the request in this studio's code).",
+    "Which voices exist beyond those listed in the form and model options (Female 1, Male Qingse, voice_daniel, voice_liam).",
+    "Licensing and commercial-use terms of each model's output."
+  ],
+  "sourceFiles": [
+    "src/components/AudioStudio.js",
+    "src/lib/instructions.js",
+    "src/lib/models.js",
+    "public/api/model-catalog.json",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js",
+    "AUDIO_AVATAR_TRAINING_AUDIT.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read AudioStudio.js form, visibility rules and generate handler, audioModels in models.js, model catalog, comparison data and instructions.js.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

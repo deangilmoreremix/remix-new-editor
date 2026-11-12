@@ -1,0 +1,452 @@
+{
+  "id": "effects",
+  "name": "Effects Studio",
+  "route": "#/effects",
+  "description": "Effects Studio applies ready-made visual and motion effects to a photo or video. You pick an effect from a catalogue of about 200 presets in six tabs, upload your media, and press Generate. A second mode called Motion graphics (also known as Vibe Motion) creates animated graphics from a text description.",
+  "shortDescription": "Pick a preset effect, upload a photo or clip, and generate a styled image or an effect video.",
+  "fullDescription": "Effects Studio is a catalogue-driven studio. Instead of writing a long prompt, you choose a named effect (for example Angel Figurine, Dolly Zoom In, Cakeify or Kissing Pro), upload one image or video, optionally add a short prompt, and press Generate. The studio has six tabs: Image Effects, Nano Banana, Kontext Effects (these three output still images) and Video Effects, Motion Controls, Video FX v2 (these three output videos). Each tab shows its effect count and a thumbnail grid with a search box. After generating you can compare before and after, download, save to your library, insert into the timeline, add AI captions (videos only) or publish to social. A top toggle switches the page between Effects and Motion graphics, where you describe an animated graphic (kinetic text, charts, logo reveals) and can later remix a previous result. Generation runs through MuAPI and needs your MuAPI key plus an account with full access.",
+  "bestFor": "Beginners and social creators who want a one-click transformation (figurine looks, comic styles, decade looks, camera moves, kiss/hug style clips, melt/inflate style clips) without writing prompts, and anyone who wants to quickly try many looks on the same photo.",
+  "whenToUse": [
+    "You want a named, repeatable effect applied to a photo (for example 3D Figurine, Cyberpunk, Glass Ball, 1980s Decade).",
+    "You want to turn one photo into a short effect video (for example Cakeify, Melt It, Inflate It, Hulk Transformation).",
+    "You want a camera move on a still (for example Dolly In, Crash Zoom In, Arc Shot, FPV Drone Cam) from the Motion Controls tab.",
+    "You want to edit a photo with a short instruction such as 20 years older or Background Change using the Kontext Effects tab.",
+    "You want a quick animated motion graphic (title, chart, logo reveal) from text using the Motion graphics mode."
+  ],
+  "whenToUseAnother": [
+    "Use AI VFX Studio (#/ai-vfx) when you want a cleaner, single-purpose page with Aspect, Duration, Size and Quality controls for AI Effects, Motion Controls and explosion/VFX presets from one image.",
+    "Use Animate Studio (#/animate) when you want to animate an image freely with your own motion prompt and choose any image-to-video model.",
+    "Use Video Tools (#/videotools) when you want to upscale, translate, caption, clip, reframe or recast an existing video rather than apply a style effect.",
+    "Use Image Studio (#/image) when you want to create an image from a text prompt rather than apply a preset effect to your own photo.",
+    "Use Edit Studio (#/edit) when you need detailed prompt-based photo editing with many controls.",
+    "Use Upscale Studio (#/upscale) when the only goal is a sharper, higher-resolution image.",
+    "Use Timeline (#/timeline) when you want to arrange several generated clips into a finished video."
+  ],
+  "keyFeatures": [
+    "Six effect tabs: Image Effects (18), Nano Banana (17), Kontext Effects (13), Video Effects (64), Motion Controls (47), Video FX v2 (41). The counts are shown on each tab button and come from the model lists in the code.",
+    "Thumbnail grid of effect cards and a Search effects... box that filters by name.",
+    "Upload an image or a video, browse stock photos from Pexels, or attach extra reference files from the toolbar next to the prompt box.",
+    "Optional prompt box. For Kontext Effects, Video Effects and Motion Controls the studio fills in the effect name if you leave it empty.",
+    "Advanced panel with Guidance, Steps, Seed, Negative Prompt, Effect Strength and Denoise Strength, saved in your browser, with Reset to defaults.",
+    "Compare button for a side-by-side Input and Output view.",
+    "Result actions: Download, Add to Library, Insert into Timeline, Add AI Captions (video results only), Publish to Social.",
+    "Effect Layers with blend modes and opacity (experimental, see limitations).",
+    "Motion graphics (Vibe Motion) mode with Generate and Edit (Remix) and a saved gallery of your last 30 results in this browser.",
+    "Extras menu (three dots) with Recipes, Monetize and Prompts, plus Thumbnail and Personalize buttons."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Image Effects tab",
+      "explanation": "18 still-image presets such as Acrylic Ornaments, Advanced Photography, American Comic Style, Angel Figurine, Blurry Selfie, Cyberpunk, Exotic Charm, Felt 3D Polaroid, Felt Keychain, Furry Dream Doll, Futuristic American Comics, Glass Ball, In The Stadium, Lofi Pixel Character, Lying On Fluffy Belly, Landscape Mini World, My World, Plastic Bubble Figure. The default effect in the model definition is Angel Figurine.",
+      "whyToUse": "Fast stylised portraits, toy or figurine looks and comic looks from one photo.",
+      "inputRequired": "One image and one selected effect. Prompt is optional.",
+      "restrictions": "Output is an image. Image upload limit is 10 MB."
+    },
+    {
+      "feature": "Nano Banana tab",
+      "explanation": "17 presets from Google's Nano Banana family: 3D Figurine, 16bit Game Character, Action Figure, decade looks (1920s, 1950s, 1970s, 1980s Decade), art looks (American Gothic Art, Famous Art, Mona Lisa Art, Persistent Memory Art, Vincent Van Gogh Art) and landmark scenes (Egypts Landmark, Eiffel Tower Landmark, Great Wall of China Landmark, Statue of Liberty Landmark, Taj Mahal Landmark).",
+      "whyToUse": "Place yourself in a famous landmark or artwork, or restyle a photo as a decade look or a collectible figure.",
+      "inputRequired": "One image and one selected effect. Prompt is optional.",
+      "restrictions": "Output is an image. The studio does not show an aspect ratio control for this tab."
+    },
+    {
+      "feature": "Kontext Effects tab",
+      "explanation": "13 instruction-style edits powered by the Flux Kontext effects model: Age Progression, Background Change, Cartoonify, Color Correction, Expression Change, Face Enhancement, Hair Change, Object Removal, Professional Photo, Scene Composition, Style Transfer, Time of Day, Weather Effect.",
+      "whyToUse": "Targeted photo edits where you add a short instruction (the model's own example prompt is 20 years older).",
+      "inputRequired": "One image, one selected effect and ideally a prompt. The API requires a prompt for this tab, so if you leave the prompt empty the studio sends the effect name as the prompt.",
+      "restrictions": "Output is an image. Results depend on how clearly your prompt describes the change."
+    },
+    {
+      "feature": "Video Effects tab",
+      "explanation": "64 image-to-video effect presets that use the Wan AI effects endpoint. Examples: 360 Rotation, Abandoned Places, Angry, Animal Documentary, Assassin It, Baby It, Boxing, Bride It, Cakeify, Cartoon Jaw Drop, Cats, Crush It, Crying, Cyberpunk 2077, Deflate It, Disney Princess It, Dogs, Eye Close-Up, Fantasy Landscapes, Film Noir, Fire, Glamor, Goblin, Gun Reveal, Hulk Transformation, Inflate It, Jungle It, Jumpscare, Kamehameha, Kiss Cam, Kissing, Lego, Laughing, Little Planet, Live Wallpaper, Looping Pixel Art, Melt It, Mona Lisa It, Museum It, Muscle Show Off, Orc, Pixar, Pirate Captain, POV Driving, Samurai It, Sharingan Eyes, Skyrim Fus-Ro-Dah, Squish It, Steamboat Willie, Super Saiyan Transformation, Tsunami, Ultra Wide, VHS Footage, Wind Blast, Younger Self Selfie, Zen It, Zoom Call.",
+      "whyToUse": "Turn one photo into a short viral-style effect clip.",
+      "inputRequired": "One image (the studio sends your upload as the source image), one selected effect. Prompt is optional and is inserted into the effect's built-in prompt template (the model's example is a cute kitten).",
+      "restrictions": "The studio fixes the clip at 720p and 5 seconds. Allow up to about 3 minutes before the studio times out."
+    },
+    {
+      "feature": "Motion Controls tab",
+      "explanation": "47 camera-move presets using the same Wan AI effects endpoint: 360 Orbit, Arc Shot, Car Chase, Car Mount Cam, Crash Zoom In, Crash Zoom Out, Crane Down, Crane Overhead, Crane Up, Dirty Lens, Dolly In, Dolly Left, Dolly Out, Dolly Right, Dolly Zoom In, Dolly Zoom Out, Dutch Angle, Fisheye Lens, Focus Shift, FPV Drone Cam, Handheld Cam, Head Tracking, Hero Run, Human Timelapse, Landscape Timelapse, Lazy Susan, Lens Crack, Lens Flare, Matrix Shot, Motion Blur, Object POV, Overhead, Rap Video Cam, Robotic Cam, Snorricam, Tilt Down, Tilt Up, Whip Pan, Wiggle, Zoom In, Zoom In Through Object, Zoom Into Mouth, Zoom Out, Zoom Out Through Object and more.",
+      "whyToUse": "Give a still photo a cinematic camera move without describing it in words.",
+      "inputRequired": "One image and one selected camera move. Prompt is optional; if empty, the effect name is sent.",
+      "restrictions": "Output is a 720p, 5 second video. The prompt is inserted into the move's template, so describe the subject (for example a blueberry person) rather than the camera."
+    },
+    {
+      "feature": "Video FX v2 tab",
+      "explanation": "41 additional video presets, mostly people-focused transformations and moments: Balloon Flyaway, Blow Kiss, Body Shake, Break Glass, Carry Me, Cartoon Doll, Cheek Kiss, Child Memory, Couple Arrival, Fairy Me, Fashion Stride, Fisherman, Flower Receive, Flying, Gender Swap, Golden Epoch, Hair Swap, Hugging, Jiggle Up, Live Memory, Love Drop, Melt, Minecraft, Paperman, Pilot, Pinch, Pixel Me, Romantic Lift, Soul Depart, Squid Game, Toy Me, Walk Forward, Zoom In Fast, Zoom Out and more.",
+      "whyToUse": "Alternative video presets, especially for portraits and couples, that are not in the Video Effects tab.",
+      "inputRequired": "One image (a clear person photo works best for people effects) and one selected effect. No prompt is required.",
+      "restrictions": "Output is a 720p, 5 second video. Some effect names (for example Nap Me 360p) hint at lower resolution presets; the exact output size per effect is not documented in the code."
+    },
+    {
+      "feature": "Advanced panel",
+      "explanation": "Press Advanced to open Guidance (1 to 20, default 7.5), Steps (1 to 50, default 20), Seed (default -1 means random, with a dice button to randomise), Negative Prompt, Effect Strength (0 to 100 percent, default 100 percent) and Denoise Strength (0 to 1, default 0.70). The button changes to Less when open. Press Reset to defaults to restore everything.",
+      "whyToUse": "Reproduce a result with a fixed seed, steer away from unwanted looks, or soften an effect.",
+      "inputRequired": "None. Values are saved in this browser.",
+      "restrictions": "The studio sends these values to the API only when they differ from defaults. Whether each specific effect honours each control is not documented, so changes may have little or no visible effect on some presets."
+    },
+    {
+      "feature": "Compare",
+      "explanation": "The Compare button (labelled Compare with a double arrow; Toggle Compare on mobile) shows your input and the output side by side after a result exists.",
+      "whyToUse": "Judge how strongly the effect changed your photo.",
+      "inputRequired": "A finished result.",
+      "restrictions": "Only works for the most recent result."
+    },
+    {
+      "feature": "Result actions",
+      "explanation": "Download saves the file, Add to Library stores it in your media library, Insert into Timeline saves it and opens the Timeline with that asset, Add AI Captions appears only for video results, and Publish to Social opens the publishing dialog. Clicking the output preview opens a larger detail view.",
+      "whyToUse": "Move the result into the rest of your workflow.",
+      "inputRequired": "A finished result.",
+      "restrictions": "If there is no result yet you see toasts such as No result to download, No result to save or No result to insert."
+    },
+    {
+      "feature": "Motion graphics (Vibe Motion) mode",
+      "explanation": "Switch the top toggle from Effects to Motion graphics (URL parameter ?mode=motion opens it directly). Type a description such as Animated sales dashboard with glowing bar charts and rising numbers, choose an aspect ratio (16:9, 9:16 or 1:1) and a duration (5, 6, 8, 10, 12, 15, 20, 25 or 30 seconds; default 6s), then press Generate. Use the Generate / Edit toggle or Remix this generation on a result to change it, for example change background to dark navy, make bars gold, add particles.",
+      "whyToUse": "Animated titles, data charts, logo reveals and kinetic typography without a source photo.",
+      "inputRequired": "A text description. Edit mode also needs a source generation (Pick source).",
+      "restrictions": "You can only edit results whose animation code was saved by the service. Otherwise the studio shows: This generation can't be remixed - the animation code wasn't saved server-side. Generate a new motion graphic first, then remix that result. Your gallery keeps the last 30 results in this browser only."
+    }
+  ],
+  "howToUse": "1. Open Effects Studio from the side menu (#/effects). 2. Pick a tab: Image Effects, Nano Banana or Kontext Effects for still images, or Video Effects, Motion Controls or Video FX v2 for videos. 3. Use Search effects... to find a preset, then click its card; the name appears at the top right of the preview area instead of No effect selected. 4. Under Input, click the upload button (hint: Upload image or video) to add your photo, or use the compass button to browse Pexels stock photos. 5. Optional: type in the Optional prompt... box. For Kontext Effects describe the change you want. 6. Optional: press Advanced to set Guidance, Steps, Seed, Negative Prompt, Effect Strength or Denoise Strength. 7. Press Generate. The output panel shows Applying and the effect name. Images usually come back within about 90 seconds and videos within about 3 minutes before the studio gives up. 8. Review the Output. Press Compare to see before and after. 9. Use Download, Add to Library, Insert into Timeline, Add AI Captions (video only) or Publish to Social.",
+  "howToSteps": [
+    "Open Effects Studio (#/effects) and choose a tab.",
+    "Search and click an effect card so it is highlighted and named in the preview header.",
+    "Upload an image or video, or pick a Pexels stock photo.",
+    "Optionally write a prompt and open Advanced for fine controls.",
+    "Press Generate and wait for the Output panel to fill.",
+    "Compare, then download, save to library, insert into the timeline, caption or publish."
+  ],
+  "gettingStarted": [
+    "Start on the Image Effects tab with a clear, well-lit, face-forward photo and try Angel Figurine or Glass Ball.",
+    "Try the same photo on several effects and use Compare to see which you like.",
+    "Move to Video Effects or Motion Controls to get a 5 second clip from the same photo.",
+    "Make sure your MuAPI key is set in the settings window and your account has full access, otherwise Generate will ask you to upgrade or enter a key."
+  ],
+  "inputs": ["Effect (card selection)", "Input image or video", "Optional prompt", "Reference attachments", "Advanced settings", "Effect Layers", "Motion graphics description, aspect ratio and duration"],
+  "requiredInputs": ["Effect (card selection)", "Input image or video"],
+  "optionalInputs": ["Optional prompt", "Reference attachments", "Advanced settings", "Effect Layers", "Thumbnail", "Personalize tokens"],
+  "inputDetails": [
+    {
+      "name": "Effect (card selection)",
+      "description": "The preset you click in the grid. Generate refuses to start without one and shows the message Select an effect first.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "Changing tabs clears the selected effect, so pick again after switching tabs."
+    },
+    {
+      "name": "Input image or video",
+      "description": "The file the effect is applied to. The hint beside the upload button reads Upload image or video. Without it Generate shows Upload an image or video first.",
+      "required": true,
+      "whenToUse": "Always. Use the upload button, drag-and-drop in the picker, or the Pexels button for stock photos.",
+      "restrictions": "MuAPI upload limits are 10 MB for images and 50 MB for videos. The studio passes your upload as the source image for the effect; the code does not confirm that every effect accepts a video as the source."
+    },
+    {
+      "name": "Optional prompt",
+      "description": "Short text input (placeholder Optional prompt...). It is inserted into the effect template on the video tabs and acts as the instruction on Kontext Effects.",
+      "required": false,
+      "whenToUse": "Kontext Effects, and any video effect where you want to name the subject.",
+      "restrictions": "If left empty on Kontext Effects, Video Effects or Motion Controls the effect name is sent instead. You can use personalization tokens through the Personalize button."
+    },
+    {
+      "name": "Reference attachments",
+      "description": "Attachment toolbar next to the prompt for extra reference images or videos. Uploaded files show the toast Reference uploaded.",
+      "required": false,
+      "whenToUse": "When you want to send additional reference media along with the effect.",
+      "restrictions": "Whether each effect uses reference media is not documented, so it may be ignored."
+    },
+    {
+      "name": "Advanced settings",
+      "description": "Guidance, Steps, Seed, Negative Prompt, Effect Strength and Denoise Strength.",
+      "required": false,
+      "whenToUse": "To repeat a look with a fixed seed or to steer away from unwanted artefacts.",
+      "restrictions": "Defaults: Guidance 7.5, Steps 20, Seed -1, Effect Strength 100 percent, Denoise 0.70. Negative prompt is limited to 500 characters in the validator."
+    },
+    {
+      "name": "Motion graphics description",
+      "description": "Text prompt in Motion graphics mode plus Aspect ratio (16:9, 9:16, 1:1) and Duration pills.",
+      "required": true,
+      "whenToUse": "Only in Motion graphics mode.",
+      "restrictions": "Empty prompt shows: Describe the motion graphic you want first. In Edit mode an empty prompt shows: Describe the change you want to make., and no source shows: Pick the generation you want to edit."
+    }
+  ],
+  "generationModes": ["Image effect (still)", "Video effect (5 second clip)", "Camera move (Motion Controls)", "Motion graphics: Generate", "Motion graphics: Edit / Remix"],
+  "modeExplanations": [
+    {
+      "mode": "Image effect (still)",
+      "description": "Image Effects, Nano Banana and Kontext Effects tabs. One image in, one styled image out.",
+      "useCase": "Profile pictures, figurines, comic and decade looks, quick photo edits."
+    },
+    {
+      "mode": "Video effect (5 second clip)",
+      "description": "Video Effects and Video FX v2 tabs. One image in, one short effect video out at 720p and 5 seconds.",
+      "useCase": "Short-form social clips such as Cakeify, Melt It, Kissing, Hugging."
+    },
+    {
+      "mode": "Camera move (Motion Controls)",
+      "description": "Motion Controls tab. Applies a named camera move to your image.",
+      "useCase": "Dolly, crane, orbit and zoom moves for product shots and portraits."
+    },
+    {
+      "mode": "Motion graphics: Generate",
+      "description": "Creates a new animated graphic from text.",
+      "useCase": "Animated dashboards, titles, logo stingers."
+    },
+    {
+      "mode": "Motion graphics: Edit / Remix",
+      "description": "Changes a previous motion graphic result with a new instruction. Button reads Remix while in edit mode and a banner shows Editing and the prompt of the source.",
+      "useCase": "Iterating on colours, backgrounds or particles without starting over."
+    }
+  ],
+  "modelCapabilities": "Effects Studio does not have a general model picker. Each tab maps to one fixed model in the code: Image Effects (id image-effects, provider MuAPI, general image effects), Nano Banana Effects (id nano-banana-effects, provider Google, creative visual effects), Flux Kontext Effects (id flux-kontext-effects, provider Black Forest Labs, instruction-style edits and stylisation), AI Video Effects (id ai-video-effects, MuAPI Wan AI effects endpoint), Motion Controls (id motion-controls, same Wan AI effects endpoint, camera-move presets) and Video Effects v2 (id video-effects, MuAPI video-effects endpoint, filters and transitions style presets). The effect names are the enum values defined for each of those models and the studio only offers names the API accepts. Motion graphics mode uses MuAPI motion-graphics and motion-graphics-edit endpoints. The catalog files give only one-line descriptions for these models and no price, speed or quality figures, so none are stated here.",
+  "outputs": [
+    "A styled image (Image Effects, Nano Banana, Kontext Effects tabs).",
+    "A 5 second 720p video (Video Effects, Motion Controls; Video FX v2 as well in the studio defaults).",
+    "A motion graphics video in 16:9, 9:16 or 1:1 (Motion graphics mode).",
+    "The result is saved to your generation history automatically; Add to Library saves it as an asset."
+  ],
+  "limitations": [
+    "Only the preset effects listed in each tab are available; you cannot create your own effect.",
+    "Video tabs use a fixed 720p resolution and 5 second duration; there is no duration or resolution control in Effects Studio. Use AI VFX Studio for 10 second or 480p options.",
+    "One source file at a time.",
+    "Uploads are limited by MuAPI to 10 MB for images and 50 MB for videos.",
+    "Generation can time out: about 90 seconds for image tabs and about 180 seconds for video tabs.",
+    "Effect Layers and the per-slider animate toggles are experimental and do not behave like a layer or keyframe editor (see notConfirmed).",
+    "Motion graphics can only be remixed if the service saved the animation code."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Fixed clip length and size on video tabs",
+      "impact": "You always get a 5 second 720p clip.",
+      "workaround": "Use AI VFX Studio for 10 second clips, or extend and edit the clip in Video Tools or Timeline."
+    },
+    {
+      "limitation": "Generation timeout",
+      "impact": "If the effect takes longer than about 90 seconds (images) or 180 seconds (videos) the studio cancels and shows an error.",
+      "workaround": "Press Retry (the Generate button changes to a retry state after a failure), try a smaller or simpler photo, or try again later."
+    },
+    {
+      "limitation": "Upload size",
+      "impact": "Files over the MuAPI limit are rejected with: This file is too large for MuAPI (images 10 MB, videos 50 MB, other 10 MB).",
+      "workaround": "Compress or trim the file before uploading."
+    },
+    {
+      "limitation": "Effect count differs from the marketing text",
+      "impact": "The header and help text say 350+ effects, but the tabs add up to 200 presets (18 + 17 + 13 + 64 + 47 + 41).",
+      "workaround": "Trust the counts shown on the tab buttons."
+    }
+  ],
+  "troubleshooting": [
+    "Alert says Select an effect first: click an effect card in the grid. Selecting a different tab clears your choice, so pick the effect again.",
+    "Alert says Upload an image or video first: add a file with the upload button or Pexels before pressing Generate.",
+    "An upgrade prompt appears when you press Generate: your account needs full access. Upgrade or sign in with an account that has access.",
+    "A settings or key window opens when you press Generate: add your MuAPI API key, then press Generate again.",
+    "Error toast after a long wait: the request may have timed out (about 90 seconds for images, 180 seconds for videos). Press Retry, or try a smaller image.",
+    "Error mentioning Effect is not supported by the API: choose a preset from the grid; the Video Effects and Motion Controls tabs only accept the listed names.",
+    "File is too large: images must be 10 MB or less and videos 50 MB or less. Compress the file.",
+    "The result looks barely changed: try a clearer face-forward photo, raise Effect Strength to 100 percent, or pick a stronger preset.",
+    "Add AI Captions button is missing: it only appears after a video result. Image tabs never show it.",
+    "No effects match your search: clear the Search effects... box or check you are on the right tab; each tab has its own list.",
+    "Motion graphics Remix fails with This generation can't be remixed: generate a new motion graphic first, then remix that new result.",
+    "Thumbnail in a card is blank: card thumbnails fall back to an icon when an image file is missing. The effect still works."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Generate does nothing or asks me to upgrade",
+      "steps": ["Check that you are signed in with an account that has full access.", "If a settings window opens, enter your MuAPI key and save.", "Press Generate again."]
+    },
+    {
+      "issue": "Generation fails or times out",
+      "steps": ["Read the red error toast; it shows the message returned by the service.", "Press the Generate button again (it turns into a retry button after a failure).", "Use a smaller photo (under 10 MB) and a clear subject.", "On video tabs, wait up to 3 minutes; on image tabs up to 90 seconds."]
+    },
+    {
+      "issue": "I cannot find the effect I saw before",
+      "steps": ["Open the tab that holds it: image looks are in the first three tabs and video presets in the last three.", "Type part of the name in Search effects...", "Remember Video Effects (64), Video FX v2 (41) and Motion Controls (47) are separate lists."]
+    },
+    {
+      "issue": "Result is not saved in my library",
+      "steps": ["Press Add to Library under the Output.", "Look for the toast Added to media library.", "If you see Failed to add to library, press the button again."]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Face looks wrong or the effect is weak",
+      "whyItHappens": "Face effects work best with a clear, well-lit, front-facing photo. Small or occluded faces give poor results.",
+      "howToFix": "Use a higher resolution portrait with the face clearly visible, then retry."
+    },
+    {
+      "problem": "Video is only 5 seconds",
+      "whyItHappens": "The studio fixes video effects at 5 seconds and 720p.",
+      "howToFix": "Use AI VFX Studio for a 10 second option, or join clips in Timeline."
+    },
+    {
+      "problem": "Settings keep coming back after refresh",
+      "whyItHappens": "Advanced values are saved in your browser (key effects_studio_advanced_settings).",
+      "howToFix": "Open Advanced and press Reset to defaults."
+    },
+    {
+      "problem": "Kontext Effects gives an unexpected edit",
+      "whyItHappens": "With an empty prompt the studio uses only the effect name as the instruction.",
+      "howToFix": "Write a specific prompt, for example make the person look 20 years older."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Turn a portrait into a collectible figure",
+      "steps": [
+        "Open the Nano Banana tab.",
+        "Search for 3D Figurine or Action Figure and click the card.",
+        "Upload a clear portrait.",
+        "Press Generate, then Compare.",
+        "Press Add to Library or Download."
+      ]
+    },
+    {
+      "title": "Make a short viral effect clip",
+      "steps": [
+        "Open the Video Effects tab.",
+        "Pick an effect such as Cakeify or Melt It.",
+        "Upload a photo of an object or person.",
+        "Optionally type a subject in Optional prompt....",
+        "Press Generate and wait up to 3 minutes.",
+        "Press Add AI Captions if you want subtitles, then Publish to Social."
+      ]
+    },
+    {
+      "title": "Add a camera move to a product photo",
+      "steps": [
+        "Open the Motion Controls tab and click Dolly In or Arc Shot.",
+        "Upload the product photo.",
+        "Type the subject in the prompt, for example a ceramic coffee mug.",
+        "Press Generate and review the 5 second clip.",
+        "Use Insert into Timeline to continue editing."
+      ]
+    },
+    {
+      "title": "Create an animated chart intro",
+      "steps": [
+        "Switch the top toggle to Motion graphics.",
+        "Choose 16:9 and a duration such as 8s.",
+        "Type: Animated sales dashboard with glowing bar charts and rising numbers.",
+        "Press Generate.",
+        "Switch to Edit, choose the result as source and ask to make bars gold, then press Remix."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Social profile makeover",
+      "description": "Restyle a profile photo as a figurine, comic character or decade look.",
+      "steps": ["Open Image Effects or Nano Banana.", "Pick a look and upload a portrait.", "Generate and download."],
+      "expectedOutput": "A styled still image of the same person."
+    },
+    {
+      "title": "Short-form teaser clip",
+      "description": "Create an eye-catching 5 second effect from a product or portrait photo.",
+      "steps": ["Open Video Effects.", "Choose an effect and upload a photo.", "Generate and publish."],
+      "expectedOutput": "A 720p 5 second video ready for social."
+    },
+    {
+      "title": "Quick photo fix",
+      "description": "Change the background, time of day or weather with the Kontext Effects tab.",
+      "steps": ["Open Kontext Effects.", "Pick Background Change, Time of Day or Weather Effect.", "Describe the change in the prompt and generate."],
+      "expectedOutput": "An edited still image."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many effects does Effects Studio have?",
+      "answer": "The tabs in the code list 200 presets: Image Effects 18, Nano Banana 17, Kontext Effects 13, Video Effects 64, Motion Controls 47 and Video FX v2 41. Some on-screen text says 350+, but the counts on the tab buttons are the accurate numbers."
+    },
+    {
+      "question": "Do I need to write a prompt?",
+      "answer": "No. The prompt is optional. For Kontext Effects, Video Effects and Motion Controls the studio sends the effect name if you leave it empty. A short prompt usually gives better, more specific results."
+    },
+    {
+      "question": "Can I choose the video length or resolution?",
+      "answer": "Not in Effects Studio. Video tabs use 720p and 5 seconds. AI VFX Studio lets you pick 5s or 10s and 480p or 720p."
+    },
+    {
+      "question": "Can I upload a video?",
+      "answer": "The upload picker accepts videos (up to 50 MB), but the effect tabs are described as image-to-effect tools and the code sends your upload as the source image. Use a photo for reliable results."
+    },
+    {
+      "question": "Where do my results go?",
+      "answer": "Each finished result is saved to your generation history. Press Add to Library to keep it as an asset, Insert into Timeline to edit it, or Download to save a file."
+    },
+    {
+      "question": "What is Motion graphics mode?",
+      "answer": "It is a second mode on the same page (toggle at the top, or ?mode=motion in the URL) that generates animated graphics from a text description, with durations from 5 to 30 seconds and aspect ratios 16:9, 9:16 and 1:1. You can remix a previous result."
+    },
+    {
+      "question": "Why does Generate ask for a key or an upgrade?",
+      "answer": "Generation uses MuAPI, so you need a MuAPI key saved in settings, and your account must have full access."
+    }
+  ],
+  "glossary": {
+    "Effect": "A named preset (for example Cakeify or Dolly In) that tells the AI what transformation to apply.",
+    "Prompt": "Optional short text that adds detail to the effect.",
+    "Seed": "A number that makes a result repeatable. -1 means random.",
+    "Guidance": "How strictly the AI follows your prompt, from 1 (creative) to 20 (strict).",
+    "Steps": "How many refinement passes the AI makes. More steps can look better but are slower.",
+    "Denoise Strength": "How much the output may change from your source. 0 preserves, 1 fully regenerates.",
+    "Effect Strength": "How strongly the effect is applied, from 0 to 100 percent.",
+    "Negative Prompt": "Things you want the AI to avoid, such as blurry or watermark.",
+    "Kontext": "Flux Kontext, an instruction-following image editing model family from Black Forest Labs.",
+    "Nano Banana": "Google's image model family used for the Nano Banana tab.",
+    "Vibe Motion": "The name of the Motion graphics mode that generates animated graphics from text.",
+    "MuAPI": "The service that runs the generation. Your MuAPI key is needed."
+  },
+  "tips": [
+    "Use a high resolution, well lit, front-facing photo for face and portrait effects.",
+    "Try several effects on one photo and use Compare to choose.",
+    "For Kontext Effects, write a specific instruction instead of leaving the prompt blank.",
+    "Use a fixed Seed in Advanced when you want to repeat a look.",
+    "Use Search effects... with a single keyword such as kiss, zoom or dolly.",
+    "Use Add to Library early so you do not lose a result."
+  ],
+  "bestPractices": [
+    "Choose the tab by output type first: first three for images, last three for video.",
+    "Keep source files well under 10 MB for images and 50 MB for videos.",
+    "Describe the subject, not the camera, in the prompt on Motion Controls.",
+    "Generate one effect at a time; layers multiply the number of generations."
+  ],
+  "relatedStudios": ["ai-vfx", "animate", "videotools", "image", "edit", "upscale", "timeline", "cinema", "video"],
+  "relatedStudioGuidance": [
+    {"studio": "ai-vfx", "relationship": "Uses the same Video Effects and Motion Controls presets plus explosion style VFX presets, with duration, size and quality controls.", "whenToMove": "When you want a 10 second clip, 480p or 720p choice, or a cleaner single-purpose VFX page.", "why": "It exposes Aspect, Duration, Size and Quality selectors that Effects Studio fixes."},
+    {"studio": "animate", "relationship": "Free-form image-to-video with your own motion prompt.", "whenToMove": "When no preset fits and you want to describe the motion yourself.", "why": "You can pick from the full image-to-video model list."},
+    {"studio": "videotools", "relationship": "Processes existing videos (upscale, translate, captions, recast).", "whenToMove": "After you have a clip and want to improve or transform it.", "why": "Effects Studio only creates new effect clips from images."},
+    {"studio": "timeline", "relationship": "Editor where finished clips can be arranged.", "whenToMove": "After pressing Insert into Timeline or when you need several clips in one video.", "why": "Effects Studio produces single clips."},
+    {"studio": "image", "relationship": "Text-to-image and image generation.", "whenToMove": "When you want to create a new image rather than apply an effect.", "why": "It offers many image models and full prompt control."}
+  ],
+  "notConfirmed": [
+    "The exact credit or dollar cost per effect or per tab is not in the code or catalog files read, so no price is stated.",
+    "Typical generation time: the studio waits up to 90 seconds for images and 180 seconds for videos before cancelling; actual times per effect are not documented. The help text claim of under 30 seconds is unverified.",
+    "Whether a video (not an image) can be used as the source for each effect. The code sends the upload as image_url.",
+    "Whether every Advanced control (Guidance, Steps, Denoise, Effect Strength) actually changes the output for each effect; the code forwards them but backend support is not documented.",
+    "Effect Layers: the layer rows only have a name, blend mode and opacity (no per-layer effect or image chooser), so each layer simply repeats the same effect generation. The live canvas preview needs a layer image that the screen does not set. Treat layers as experimental.",
+    "The animate (film clapper) toggles beside each slider add a single keyframe at time 0 and no keyframe editor is visible, so real parameter animation is not confirmed.",
+    "Output resolution of Video FX v2 presets: the studio sends 720p and 5 seconds, but the endpoint's own limits are not documented.",
+    "The 350+ effects claim in on-screen help and the landing page; the code lists 200. Landing page revenue figures are marketing text and not part of the product behaviour.",
+    "Exact wording of the error shown when a key is missing: the studio opens the settings window for the MuAPI key rather than showing a message."
+  ],
+  "sourceFiles": [
+    "src/components/EffectsStudio.js",
+    "src/components/studios/MotionGraphicsPanel.js",
+    "src/lib/models.js (effect enums for image-effects, nano-banana-effects, flux-kontext-effects, ai-video-effects, motion-controls, video-effects)",
+    "src/lib/muapi.js (generateVideoEffect, generateI2I, runMotionGraphics)",
+    "src/lib/instructions.js",
+    "src/data/studioLandingPages.js",
+    "src/lib/modelDescriptions.js",
+    "public/api/model-catalog.json",
+    "src/lib/modelComparisonData.js",
+    "EFFECT_STUDIO_PRODUCTION_GUIDE.md",
+    "EFFECT_STUDIO_AUDIT.md",
+    "src/components/UploadPicker.js",
+    "src/lib/muapiUpload.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read EffectsStudio.js and MotionGraphicsPanel.js in full, evaluated the effect enums from src/lib/models.js, and cross-checked muapi.js generation methods, instructions.js, studio landing page, catalog and description files, and the effect studio guide and audit (code preferred where they differ).",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

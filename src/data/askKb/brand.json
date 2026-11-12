@@ -1,0 +1,469 @@
+{
+  "id": "brand",
+  "name": "Brand Studio",
+  "route": "#/brand",
+  "description": "Brand Studio turns a website URL into a saved Brand DNA (name, tagline, tone, colors, logo) and gives you linked tools to make on-brand campaigns, edit campaign assets, generate branded product photos and animate them.",
+  "shortDescription": "Paste any website URL - get your Brand DNA, on-brand campaigns, product photos and videos",
+  "fullDescription": "Brand Studio (#/brand, Image group of the side menu) is a home page for five connected brand tools. You paste your website address and click Analyze; the app reads the site and builds a Brand DNA record saved in your browser. From the Brand DNA editor (#/brand-dna) you can review and edit the identity, then open Campaigns (#/campaign) to generate concepts and platform-specific creatives, the Asset Editor (#/asset-edit) to compose a headline/body/CTA graphic, Photo Studio (#/photo-studio, also reachable as #/brand-photo-studio) to generate product photos across categories and styles, or Animate (#/animate) to bring branded assets to life. Only Brand Studio appears in the side menu; the sub-tools are reached from its Brand tools cards and from buttons on the Brand DNA page. Brand data is stored locally in your browser.",
+  "bestFor": "Marketers, founders, agencies and e-commerce sellers who want on-brand social, ad and product visuals generated from their own website without designing from scratch.",
+  "whenToUse": [
+    "You want the app to learn your brand from your website URL.",
+    "You want campaign concepts (4 ideas) and creatives sized for Instagram, LinkedIn, Facebook, X, web banners, email headers and YouTube thumbnails.",
+    "You want batches of product photos in several settings and styles from one product image.",
+    "You want to lay out a simple headline + body + call-to-action graphic on a colored or image background.",
+    "You want to keep your brand name, tone, colors and key messages in one place."
+  ],
+  "whenToUseAnother": [
+    "Use Product Shot Studio (#/commercial) for a quick single product image or a UGC-style ad video without brand analysis.",
+    "Use Image Studio (#/image) for free-form images from text.",
+    "Use Edit Studio (#/edit) to retouch or change an existing image.",
+    "Use Find My Brand (#/find-my-brand) if you are looking for brand discovery or naming help rather than analysing an existing site.",
+    "Use Website Builder (#/website-builder) to build a site rather than analyse one.",
+    "Use Animate Studio (#/animate) directly when you already have an image to animate.",
+    "Use Video Studio (#/video) or Cinema Studio (#/cinema) for full video production."
+  ],
+  "keyFeatures": [
+    "Analyze: paste a website URL, get Brand DNA (name, industry, tagline, value proposition, tone, personality, audience, key messages, colors, fonts, logo, screenshot, imagery and layout style).",
+    "Recent Brands list (up to 6 cards).",
+    "Brand DNA editor with editable fields, chip lists and color pickers, saved locally.",
+    "Campaign Studio: 6 goals, 4 AI concepts, 8 platforms, concurrent asset generation with per-platform status.",
+    "Asset Editor: simple canvas for headline, body, CTA, alignment, colors and a background image.",
+    "Photo Studio: 8 categories x 5 styles, multi-select, 1k/2k/4k, optional Direct MuAPI mode with advanced controls.",
+    "Animate shortcut for branded creative.",
+    "Personalize button on the Brand DNA page (when a screenshot exists) and on photo results."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Analyze (website to Brand DNA)",
+      "explanation": "A URL box (placeholder 'https://your-website.com') and an Analyze button (enabled once you type). While running the button reads 'Extracting...' and a loading overlay says 'Extracting brand DNA...'. On success the Brand DNA is saved and the Brand DNA page opens. The app asks a backend to read the page (title, text, colors, fonts, logo candidates, screenshot), then uses AI to describe the brand from the text and, if a screenshot exists, the visuals.",
+      "whyToUse": "Starts everything; the other tools use this record.",
+      "inputRequired": "A website URL starting with http:// or https://.",
+      "restrictions": "Invalid input shows 'Please enter a valid website URL (e.g. https://example.com)'. An API key/sign-in dialog appears if no key is connected. If the page cannot be read, the AI guesses from the domain name (see limitations)."
+    },
+    {
+      "feature": "Brand tools grid",
+      "explanation": "Five cards under 'Brand tools': Brand DNA ('Review and edit your brand identity'), Campaigns ('Create on-brand campaigns'), Asset Editor ('Edit campaign assets'), Photo Studio ('Create branded photos') and Animate ('Animate branded creative assets').",
+      "whyToUse": "Jump into any tool.",
+      "inputRequired": "None.",
+      "restrictions": "Brand DNA, Campaigns and Asset Editor need a selected brand; see troubleshooting for 'Brand not found'."
+    },
+    {
+      "feature": "Recent Brands",
+      "explanation": "Up to six cards titled 'Recent Brands' showing brand name (or 'Untitled Brand') and industry (or 'No industry'). Clicking one opens its Brand DNA page.",
+      "whyToUse": "Return to an analysed brand.",
+      "inputRequired": "At least one analysed brand.",
+      "restrictions": "Stored in your browser (up to 50 brands)."
+    },
+    {
+      "feature": "Brand DNA editor",
+      "explanation": "Shows brand name and industry, website screenshot and logo, then editable fields: Brand Name, Industry, Tagline, Value Proposition, Target Audience, Imagery Style, Layout Style; chip editors for Tone of Voice, Brand Personality and Key Messages (type then Add or press Enter; click x to remove); and Primary and Secondary color pickers. Buttons: Campaigns, Asset Editor, Photo Studio, Animate and Save (shows 'Saved!' for a moment).",
+      "whyToUse": "Correct anything the AI got wrong before generating assets.",
+      "inputRequired": "None.",
+      "restrictions": "Edits are not saved until you click Save. Only the first primary and first secondary color can be changed; fonts, logo and screenshot are shown/kept but not editable. A second 'Photo Studio' button opens the brand-photo-studio route (same page)."
+    },
+    {
+      "feature": "Campaign Studio",
+      "explanation": "Pick a Campaign Goal (Product Launch, Lead Generation, Brand Awareness, Engagement, Thought Leadership, Sales), optionally type 'Optional direction or theme...', then click Generate Concepts to get 4 on-brand concepts each with title, key message, CTA and Tone Notes. Click Select on one, choose platform chips (Instagram Feed, Instagram Story, LinkedIn, Facebook Ad, X / Twitter, Web Banner, Email Header, YouTube Thumbnail) and click Generate Assets. Up to three platforms run at once and each row shows running, done or error. Each asset card shows the image, platform, format, headline, body and CTA.",
+      "whyToUse": "Fast multi-platform campaign creatives with matching copy.",
+      "inputRequired": "A goal; a selected concept; at least one platform.",
+      "restrictions": "Copy is trimmed to per-platform word limits (for example Instagram Feed: headline 8, body 30, CTA 3 words). Images are 2k PNG and use your brand logo as a reference when available. 'Back to Brand' returns to the Brand DNA page."
+    },
+    {
+      "feature": "Asset Editor",
+      "explanation": "A left-hand 'Canvas Controls' panel with Headline (default 'Your Headline Here'), Body (default 'Your body copy goes here. Keep it short and impactful.'), CTA (default 'Shop Now'), Alignment (Left, Center, Right), Background Color (default #111111), Text Color, and Upload Background. A 16:9 live preview updates as you type. Save Asset stores it (toast 'Asset saved'); Upload Background shows 'Background image loaded'.",
+      "whyToUse": "Quick text-on-image graphics without a design tool.",
+      "inputRequired": "None; all fields have defaults.",
+      "restrictions": "There is no Download/export button, no font choice and no font-size control in the panel. The background image is shown at reduced opacity."
+    },
+    {
+      "feature": "Photo Studio",
+      "explanation": "Upload a product image (images only), optionally choose a brand from a dropdown (first option: No brand logo), type an optional Direction ('Describe the look, mood, or specific details...'), pick Resolution (1k, 2k default, 4k), then multi-select Category (Studio White, Marble Clean, Urban Street, Golden Hour, Restaurant Plated, Scandi Living, Dark Techy, Nature Organic) and Style (Clean, Dramatic, Flat Lay, Lifestyle, Macro). Generate Product Photos makes one image for every category-and-style pair (2 categories x 3 styles = 6 images), two at a time. Each result shows Download, Personalize and an 'Animate' link.",
+      "whyToUse": "Many product visuals from one photo.",
+      "inputRequired": "A product image plus at least one Category and one Style.",
+      "restrictions": "Output is 1:1 PNG. Toasts: 'Please upload a product image first', 'Please select at least one category and style', 'Generated N photos', 'N photo(s) failed'."
+    },
+    {
+      "feature": "Photo Studio: Generation Mode (Brand API / Direct MuAPI)",
+      "explanation": "A toggle button labelled Brand API (default) or Direct MuAPI. Brand API uses the brand photo recipe with the Nano Banana 2 edit model, your product image and your brand logo. Direct MuAPI shows 'MuAPI Model (I2I)' (a list of image-edit models) and advanced fields: Negative Prompt, Seed, Steps, Guidance Scale, Denoise Strength, CFG Scale, Style, Strength and Prompt Extend.",
+      "whyToUse": "Power users who want a specific model or tuning.",
+      "inputRequired": "Choose a model in Direct mode.",
+      "restrictions": "If Direct MuAPI is on but no model is selected the studio falls back to the Brand API route. In Direct mode the text sent is your Direction only; the Category/Style wording is not added."
+    }
+  ],
+  "howToUse": "1. Open Brand Studio from the side menu (#/brand). 2. Type your website address into the box (placeholder 'https://your-website.com') and click Analyze. 3. Wait for 'Extracting brand DNA...'; the Brand DNA page opens. 4. Review the fields, fix anything wrong, then click Save. 5. Click Campaigns, pick a Campaign Goal, optionally add a direction, click Generate Concepts, click Select on a concept, choose platform chips and click Generate Assets. 6. Click Asset Editor to write a headline/body/CTA and click Save Asset. 7. Click Photo Studio, upload a product image, pick Resolution, Category and Style, then click Generate Product Photos. 8. Use Download on results or Animate to bring them to life.",
+  "howToSteps": [
+    "Open #/brand and paste your website URL.",
+    "Click Analyze and wait for the Brand DNA page.",
+    "Edit fields and click Save.",
+    "Use Campaigns for concepts and platform assets.",
+    "Use Asset Editor for text-on-image graphics.",
+    "Use Photo Studio for product photos.",
+    "Use Animate for motion."
+  ],
+  "gettingStarted": [
+    "Use a public website address that starts with http:// or https://.",
+    "Sign in and connect your API key (a dialog appears otherwise).",
+    "Check the analysed Brand DNA and click Save before moving on."
+  ],
+  "inputs": [
+    "Website URL",
+    "Brand DNA fields",
+    "Campaign Goal",
+    "Direction or theme",
+    "Platforms",
+    "Headline/Body/CTA",
+    "Background image",
+    "Product image",
+    "Category",
+    "Style",
+    "Resolution",
+    "Direction (Photo Studio)"
+  ],
+  "requiredInputs": [
+    "Website URL (to create a brand)",
+    "Campaign Goal + selected concept + at least one platform (Campaigns)",
+    "Product image + one Category + one Style (Photo Studio)"
+  ],
+  "optionalInputs": [
+    "Direction or theme",
+    "Brand logo choice",
+    "Direction (Photo Studio)",
+    "Resolution",
+    "Direct MuAPI model and advanced fields",
+    "Asset Editor fields"
+  ],
+  "inputDetails": [
+    {
+      "name": "Website URL",
+      "description": "Address of the site to analyse.",
+      "required": true,
+      "whenToUse": "First step.",
+      "restrictions": "Must be http or https."
+    },
+    {
+      "name": "Campaign Goal",
+      "description": "One of six goals.",
+      "required": true,
+      "whenToUse": "Campaign Studio.",
+      "restrictions": "Choosing a goal card advances to the Concepts step."
+    },
+    {
+      "name": "Platforms",
+      "description": "Toggle chips for the 8 platforms.",
+      "required": true,
+      "whenToUse": "Before Generate Assets.",
+      "restrictions": "Selecting a different concept resets the platform choices."
+    },
+    {
+      "name": "Product image",
+      "description": "Photo of the product (images only).",
+      "required": true,
+      "whenToUse": "Photo Studio.",
+      "restrictions": "Image upload limit 10MB."
+    },
+    {
+      "name": "Background Upload",
+      "description": "A local image for the Asset Editor.",
+      "required": false,
+      "whenToUse": "To put text over a picture.",
+      "restrictions": "Kept in the browser as embedded image data, so very large files may fail to save."
+    }
+  ],
+  "generationModes": [
+    "Brand API (default, Photo Studio)",
+    "Direct MuAPI (Photo Studio)",
+    "Campaign concepts and assets",
+    "Canvas composition (no AI)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Brand API",
+      "description": "Photo Studio uses a preset brand-photo recipe on the Nano Banana 2 edit model with your product and logo.",
+      "useCase": "Fast on-brand product photos."
+    },
+    {
+      "mode": "Direct MuAPI",
+      "description": "You choose an image-edit model and tune its settings.",
+      "useCase": "Experimentation."
+    },
+    {
+      "mode": "Campaign generation",
+      "description": "AI writes 4 concepts, then per-platform copy and an image.",
+      "useCase": "Social/ad campaigns."
+    }
+  ],
+  "modelCapabilities": "Image generation in Photo Studio (Brand API mode) and Campaign Studio uses 'nano-banana-2-edit' (catalog description: 'Nano Banana 2 image editing and guided transformation.'), at 1k/2k/4k in Photo Studio and 2k in Campaigns, PNG output. Brand analysis and campaign/copy writing use the app's text and vision AI calls; the specific language model is not named in the code. Direct MuAPI mode lists any image-edit models in the app's image-to-image and video-to-video catalogs that accept multiple images and a prompt. No prices, speeds or quality rankings are given in the files read.",
+  "outputs": [
+    "Saved Brand DNA record",
+    "4 campaign concepts",
+    "Per-platform campaign assets (image + headline + body + CTA)",
+    "Canvas asset saved to your brand store",
+    "Product photos (1:1 PNG)",
+    "Entries in generation history"
+  ],
+  "limitations": [
+    "Brand data (brands, assets, photoshoots) lives in your browser's local storage; limits: 50 brands, 200 campaigns, 500 assets, 200 photoshoots, about 4MB total.",
+    "If the website cannot be read, the AI infers the brand from the domain name and may be wrong.",
+    "Asset Editor has no export/download.",
+    "Photo Studio output is square (1:1).",
+    "Campaign assets are generated one set per run; there is no editing of generated copy in place.",
+    "Only Brand Studio is in the side menu; other tools are reached from within it."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Browser-only storage",
+      "impact": "Clearing site data or switching browser/device loses your brands.",
+      "workaround": "Re-run Analyze on your site; keep a note of edits."
+    },
+    {
+      "limitation": "Analysis may be a guess when the site cannot be scraped",
+      "impact": "Colors, logo and text may be generic.",
+      "workaround": "Edit the Brand DNA fields and Save."
+    },
+    {
+      "limitation": "Asset Editor cannot export",
+      "impact": "You cannot download the graphic from this tool.",
+      "workaround": "Screenshot the preview, or use Campaign Studio's Generate Assets which saves images to history."
+    }
+  ],
+  "troubleshooting": [
+    "Analyze button is greyed out: type a URL first.",
+    "'Please enter a valid website URL (e.g. https://example.com)': include http:// or https://.",
+    "A sign-in/key dialog appears on Analyze: connect your API key and click Analyze again.",
+    "Error text in red under the form after Analyze: the site could not be analysed; try the home page URL or retry.",
+    "'Brand not found - The brand you are looking for does not exist.' on Brand DNA, Campaign or Asset Editor: the page did not receive a selected brand; click 'Back to Brand Studio', open the brand from Recent Brands or run Analyze again.",
+    "Photo Studio toast 'Please upload a product image first': upload an image (video is not accepted).",
+    "Toast 'Please select at least one category and style': choose at least one of each.",
+    "'N photo(s) failed' or 'N platform(s) failed': retry; failed items show an error card/row.",
+    "Asset Editor background does not stick after Save: the image may be too large for browser storage; use a smaller file."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Analysis returns generic or wrong brand info",
+      "steps": [
+        "Try the exact homepage URL.",
+        "Open the Brand DNA page and correct each field.",
+        "Click Save."
+      ]
+    },
+    {
+      "issue": "Brand not found on sub-tools",
+      "steps": [
+        "Click Back to Brand Studio.",
+        "Pick the brand under Recent Brands or run Analyze again.",
+        "Open the tool from the Brand DNA page buttons."
+      ]
+    },
+    {
+      "issue": "Campaign assets fail for some platforms",
+      "steps": [
+        "Look at the status rows (running/done/error).",
+        "Read the red error text.",
+        "Run Generate Assets again with only the failed platforms selected."
+      ]
+    },
+    {
+      "issue": "Photo Studio makes too many images",
+      "steps": [
+        "Remember each selected Category is combined with each selected Style.",
+        "Deselect extras before clicking Generate Product Photos."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Colors are wrong",
+      "whyItHappens": "Colors are extracted from the site and screenshot.",
+      "howToFix": "Change Primary/Secondary pickers on the Brand DNA page and Save."
+    },
+    {
+      "problem": "Logo missing in results",
+      "whyItHappens": "No logo was found on the site.",
+      "howToFix": "Photo Studio and Campaigns use the brand logo only when one was detected."
+    },
+    {
+      "problem": "Text Color seems unchanged in the Asset Editor",
+      "whyItHappens": "Headline and body in the preview use fixed light text styling.",
+      "howToFix": "Choose a darker Background Color or use a darker background image."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "From website to campaign",
+      "steps": [
+        "Analyze your URL.",
+        "Save the Brand DNA.",
+        "Campaigns > Product Launch > Generate Concepts.",
+        "Select a concept, choose Instagram Feed and LinkedIn.",
+        "Generate Assets."
+      ]
+    },
+    {
+      "title": "Product photo batch",
+      "steps": [
+        "Open Photo Studio.",
+        "Upload a product image.",
+        "Select Studio White and Golden Hour with Clean and Lifestyle (4 images).",
+        "Pick 2k and click Generate Product Photos.",
+        "Download the best, or click Animate."
+      ]
+    },
+    {
+      "title": "Quick promo graphic",
+      "steps": [
+        "Open Asset Editor.",
+        "Type headline, body and CTA.",
+        "Pick a background color or upload a background.",
+        "Click Save Asset."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Agency onboarding",
+      "description": "Capture a client's brand in minutes.",
+      "steps": [
+        "Analyze client URL.",
+        "Edit and Save.",
+        "Generate campaigns."
+      ],
+      "expectedOutput": "Saved brand and sample creatives."
+    },
+    {
+      "title": "Marketplace product visuals",
+      "description": "Many looks per product.",
+      "steps": [
+        "Photo Studio batches."
+      ],
+      "expectedOutput": "Multiple styled 1:1 photos."
+    },
+    {
+      "title": "Email and social header set",
+      "description": "Same concept across platforms.",
+      "steps": [
+        "Select Email Header, Web Banner, Instagram Story."
+      ],
+      "expectedOutput": "Matching creatives with copy."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Does Brand Studio need my website?",
+      "answer": "Yes, to create a Brand DNA you paste a website URL. Photo Studio can be used with only a product image."
+    },
+    {
+      "question": "Where is my brand saved?",
+      "answer": "In your browser's local storage on this device."
+    },
+    {
+      "question": "What goals can I choose for campaigns?",
+      "answer": "Product Launch, Lead Generation, Brand Awareness, Engagement, Thought Leadership, Sales."
+    },
+    {
+      "question": "Which platforms are supported?",
+      "answer": "Instagram Feed, Instagram Story, LinkedIn, Facebook Ad, X / Twitter, Web Banner, Email Header, YouTube Thumbnail."
+    },
+    {
+      "question": "What sizes are photos?",
+      "answer": "Photo Studio outputs 1:1 at 1k, 2k (default) or 4k."
+    },
+    {
+      "question": "What is the difference between Photo Studio and brand-photo-studio?",
+      "answer": "They open the same Photo Studio page."
+    },
+    {
+      "question": "Can I edit the AI-written brand info?",
+      "answer": "Yes, on the Brand DNA page, then click Save."
+    },
+    {
+      "question": "Why are there two Photo Studio buttons on Brand DNA?",
+      "answer": "Both lead to the same page (photo-studio and brand-photo-studio routes)."
+    }
+  ],
+  "glossary": {
+    "Brand DNA": "A saved profile of your brand: name, tone, colors, audience, messages and style.",
+    "Concept": "A campaign idea with a title, key message, call to action and tone notes.",
+    "CTA": "Call to action, such as 'Shop Now'.",
+    "Category (Photo Studio)": "The setting for the product photo, like Marble Clean.",
+    "Style (Photo Studio)": "The look of the shot, like Dramatic or Flat Lay.",
+    "Direct MuAPI": "Photo Studio mode where you pick the model yourself.",
+    "Asset": "A finished creative: image plus headline, body and CTA."
+  },
+  "tips": [
+    "Analyze your homepage URL.",
+    "Fix the Brand DNA before generating campaigns.",
+    "Start Photo Studio with one category and one style to save time.",
+    "Use 1k while testing, 4k for finals."
+  ],
+  "bestPractices": [
+    "Click Save after editing the Brand DNA.",
+    "Keep Key Messages short and specific.",
+    "Review every generated headline before publishing."
+  ],
+  "relatedStudios": [
+    "commercial",
+    "image",
+    "edit",
+    "animate",
+    "video",
+    "find-my-brand",
+    "website-builder",
+    "upscale"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "commercial",
+      "relationship": "Simpler product images and ads",
+      "whenToMove": "You just want one product shot or a UGC ad.",
+      "why": "Product Shot Studio is a focused form."
+    },
+    {
+      "studio": "animate",
+      "relationship": "Motion for brand assets",
+      "whenToMove": "You want to animate a photo or creative.",
+      "why": "Brand tools link to Animate."
+    },
+    {
+      "studio": "edit",
+      "relationship": "Retouching",
+      "whenToMove": "A generated photo needs fixes.",
+      "why": "Edit Studio has editing tools."
+    }
+  ],
+  "notConfirmed": [
+    "Which specific language and vision models do Brand analysis and campaign copy use; the code calls generic text and vision functions.",
+    "Whether the web-page scraping backend is available in every deployment; when it is not, the code falls back to inferring from the domain name.",
+    "Whether the router passes the selected brand to Brand DNA, Campaign and Asset Editor pages at runtime: the page loaders in router.js call these components without arguments while the pages read a brand id from their parameters, so the 'Brand not found' screen may appear; this was not tested live.",
+    "Whether the Photo Studio brand dropdown changes the logo used in Brand API mode: the dropdown updates a value, but the generation code reads the first saved brand's logo.",
+    "Whether the Animate link on photo results (a plain /animate address) works under hash routing.",
+    "Whether Text Color in the Asset Editor visibly changes the preview.",
+    "Whether brand data syncs to a cloud account; the store mentions it can be extended but only local storage was confirmed.",
+    "The header comment in Asset Editor mentions a 9-position grid and font controls; neither exists in the UI.",
+    "Photo Studio's code comment says 6 categories; the code defines 8.",
+    "Credits/prices/speed for any generation are not in the files read."
+  ],
+  "sourceFiles": [
+    "src/components/BrandStudio.js",
+    "src/components/BrandDnaEditor.js",
+    "src/components/CampaignWizard.js",
+    "src/components/AssetCanvasEditor.js",
+    "src/components/PhotoStudioPage.js",
+    "src/lib/brandAnalyzer.js",
+    "src/lib/brandStore.js",
+    "src/lib/brandNavigation.js",
+    "src/lib/campaignGenerator.js",
+    "src/lib/platforms.js",
+    "src/lib/photoStudio.js",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js",
+    "src/lib/muapi.js",
+    "public/api/model-catalog.json",
+    "src/lib/modelDescriptions.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read all five Brand components plus brandAnalyzer, brandStore, brandNavigation, campaignGenerator, platforms, photoStudio, router and muapi.imageEdit2. No brand entry in instructions.js or studioLandingPages.js.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

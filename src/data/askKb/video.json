@@ -1,0 +1,277 @@
+{
+  "id": "video",
+  "name": "Video Studio",
+  "route": "#/video",
+  "description": "Video Studio makes AI videos from a text prompt, from a still image you upload, or from a video you upload (edit, extend, motion transfer, watermark removal and similar tools). It is the one studio behind the #/video route and the aliases #/text-to-video, #/image-to-video, #/video-to-video and #/video-watermark.",
+  "shortDescription": "Create AI videos from text, images or existing videos with a large catalog of models.",
+  "fullDescription": "Video Studio is a prompt bar with a model picker. If you only type a prompt it runs a text-to-video model. If you attach a start-frame image it switches to an image-to-video model and animates your picture. If you attach a video it switches to a video-to-video tool (the default tool for an uploaded video is the AI Video Watermark Remover; you can pick others such as editing, extending, motion transfer, upscaling). Controls for aspect ratio, duration, resolution and quality appear and change depending on which model is selected, so not every control is available for every model. After a run you get a result screen with Regenerate, Download, Extend (when the model supports it), Open in Render, Publish to Social and Add AI Captions, and a History strip of your earlier results. The routes #/text-to-video, #/image-to-video, #/video-to-video and #/video-watermark are explanatory landing pages whose buttons send you into this same studio.",
+  "bestFor": "Beginners and creators who want to turn a prompt or a single picture into a short clip, try different video models side by side, extend a clip, or clean up an existing video (for example remove a watermark) without leaving one screen.",
+  "whenToUse": [
+    "You want a short AI video clip from a text description (text-to-video).",
+    "You have a photo, product shot, character or illustration and want it to move (image-to-video, 'Animate image').",
+    "You have a start image and an end image and want the AI to fill the motion between them ('Keyframes (start + end)').",
+    "You have an existing video and want to edit it, extend it, transfer motion onto a character image, remove a watermark, or run another video-to-video tool.",
+    "You want to compare several video model families (Seedance, Kling, Veo, Wan, Pixverse, Hunyuan, Runway, Sora, MiniMax Hailuo, Vidu, LTX and others) using the same prompt.",
+    "You want to extend a Seedance 2.0 result or upscale a result to 4K when the continuation model is available."
+  ],
+  "whenToUseAnother": [
+    "Use Cinema Studio (#/cinema) when you want camera body, lens, focal length, aperture, camera movement and film look controls built into the prompt.",
+    "Use Cinema Templates (#/cinema-template) when you want a ready-made cinematic template (trailer, brand film, ad film, and so on) that asks you simple questions and writes the prompt for you.",
+    "Use Storyboard Studio (#/storyboard) when you first want to plan a multi-shot story as still frames, then animate frames later.",
+    "Use Animate (#/animate) when your only goal is to animate a single image.",
+    "Use Video Tools (#/videotools) or Upscale (#/upscale) for dedicated clean-up or upscaling workflows.",
+    "Use Lipsync (#/lipsync) or Avatar (#/avatar) when you need a talking person or lip-synced speech."
+  ],
+  "keyFeatures": [
+    "Three automatic modes: text-to-video (prompt only), image-to-video (an image is attached) and video-to-video (a video is attached). The studio switches model lists for you when you attach or clear media.",
+    "A workflow menu with these exact options: 'Text to video', 'Animate image', 'Keyframes (start + end)', 'References', 'Edit video', 'Extend uploaded video', 'Motion transfer'.",
+    "A catalog model picker (button labelled with the current model name, tooltip 'Select AI video model') with a large list of text-to-video, image-to-video and video-to-video models.",
+    "Per-model controls: aspect ratio, duration (shown like '5s'), resolution (default label '720p' if the model gives none) and quality (default label 'basic'). Only the values the selected model supports are offered.",
+    "Attachment buttons for start frame, end frame, image, video; a button to browse stock photos for the reference image, one to browse stock videos for video-to-video, and a button that pulls the last frame out of a video file for image-to-video.",
+    "Advanced panel with 'Native Audio' and 'Character Lock' toggles plus extra model-specific controls such as negative prompt and seed when the model supports them.",
+    "Motion & Style panel with 'Camera Speed', 'Guidance Scale' and a Style Preset row (None, Cinematic, Anime, Realistic, Watercolor, Noir).",
+    "Prompt helpers in a three-dot menu: GTM Boost, Recipes, Monetize, Prompts. Also a Personalize button and a Thumbnail button.",
+    "Result screen: Regenerate, Download, Extend (or Upscale to 4K), Open in Render, + New, Publish to Social, Add AI Captions, a scrubber and a History strip.",
+    "Interrupted jobs are recovered: if a generation finished while you were away, a toast says 'Recovered a generation that finished while you were away'."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Text to video",
+      "explanation": "Type a description in the prompt box (placeholder 'Describe the video you want to create') and press Generate. The studio runs the selected text-to-video model.",
+      "whyToUse": "Fastest way to get a clip when you have no source picture.",
+      "inputRequired": "A prompt. Without one you see 'Please enter a prompt to generate a video.'",
+      "restrictions": "Available aspect ratios, durations and resolutions depend on the selected model."
+    },
+    {
+      "feature": "Animate image (image-to-video)",
+      "explanation": "Attach a start frame image. The studio switches to the first image-to-video model and the prompt box placeholder becomes 'Describe the motion or effect (optional)'.",
+      "whyToUse": "Gives more predictable results because the first frame is your own picture. The built-in help tips also suggest starting with image-to-video for more predictable results.",
+      "inputRequired": "An image. Without one you see 'Please upload a start frame image first.' The prompt is optional.",
+      "restrictions": "Shared upload limits in the app code are 10MB for images and 50MB for videos."
+    },
+    {
+      "feature": "Keyframes (start + end)",
+      "explanation": "Workflow option that selects the model 'seedance-2-first-last-frame' so the clip starts on your start frame and ends on your end frame. The end frame can be added with the end frame button (tooltip 'Upload end frame image for I2V'); click it again to clear the end frame.",
+      "whyToUse": "Use for transformations or controlled transitions between two pictures.",
+      "inputRequired": "A start frame and an end frame image.",
+      "restrictions": "Only models that have an end-frame input use the end frame."
+    },
+    {
+      "feature": "References",
+      "explanation": "Workflow option that selects the model 'seedance-2-omni-reference' so you can guide the result with reference media.",
+      "whyToUse": "Use when you want the output to follow the look of reference images.",
+      "inputRequired": "Reference media attached with the attachment buttons.",
+      "restrictions": "Exact reference counts and types are defined by the model and not confirmed here."
+    },
+    {
+      "feature": "Edit video / Extend uploaded video / Motion transfer",
+      "explanation": "Three video-to-video workflows. 'Edit video' selects wan2.2-edit-video and needs a prompt describing the change. 'Extend uploaded video' selects wan2.7-video-extend. 'Motion transfer' selects wan2.2-animate and needs both a source video and a character image.",
+      "whyToUse": "Change, lengthen or re-animate footage you already have.",
+      "inputRequired": "An uploaded video. Motion transfer also needs the character image ('Please add the character image to animate.'). Edit needs a prompt ('Please describe the change you want.').",
+      "restrictions": "When a video is attached the prompt can be disabled for tools that do not use text (for example watermark removal shows 'Video ready - click Generate to remove watermark')."
+    },
+    {
+      "feature": "Video watermark removal",
+      "explanation": "Attach a video with the video button (tooltip 'Upload video to remove watermark'). The studio switches to the video-to-video list whose first model is 'AI Video Watermark Remover' (id video-watermark-remover, described as removing watermarks, logos, captions and unwanted text). The prompt box is disabled and says 'Video ready - click Generate to remove watermark'.",
+      "whyToUse": "Clean a clip of overlays without writing a prompt.",
+      "inputRequired": "A video file.",
+      "restrictions": "Upload limit for video is 50MB in the shared limits."
+    },
+    {
+      "feature": "Extend / Upscale to 4K",
+      "explanation": "After a result appears, an Extend button shows when a compatible continuation model exists for the model you used. With one target it is labelled for that target (for example 'Upscale to 4K' or 'Extend (Seedance 2.0)'); with several it reads 'Extend / 4K' and opens a small menu. For Seedance 2.0 a banner reads 'Extending previous Seedance 2.0 generation - add an optional prompt to guide the continuation'.",
+      "whyToUse": "Make a clip longer or higher resolution without starting over.",
+      "inputRequired": "A finished generation from a supported model. Otherwise: 'No Seedance 2.0 generation found to extend. Generate a video first.'",
+      "restrictions": "Not every model has a continuation model. If the continuation model is missing from the catalog you get 'Extend model not found in catalog'."
+    },
+    {
+      "feature": "Advanced: Native Audio and Character Lock",
+      "explanation": "Open the Advanced button to reveal two toggles. Native Audio asks audio-capable models to produce sound. Character Lock reuses a stored character reference so the same character carries across clips.",
+      "whyToUse": "Keep a character consistent or ask for generated sound.",
+      "inputRequired": "None, just switch them on.",
+      "restrictions": "Only has an effect on models that support the matching input; which models do is not confirmed here."
+    },
+    {
+      "feature": "Motion & Style panel",
+      "explanation": "Opens with Camera Speed (1-10, default 5), Guidance Scale (1-20, step 0.5, default 7.5) and Style Preset buttons (None, Cinematic, Anime, Realistic, Watercolor, Noir). A chosen style adds text like 'cinematic style' to your prompt for text and image runs.",
+      "whyToUse": "Quick style nudge without rewriting the prompt.",
+      "inputRequired": "None.",
+      "restrictions": "The style is appended to the prompt text, so it is a suggestion to the model, not a guarantee."
+    },
+    {
+      "feature": "Result actions",
+      "explanation": "Regenerate re-runs, Download saves the file, Open in Render saves the video as an asset and opens Render, + New returns to the prompt bar, Publish to Social opens the social publish dialog, Add AI Captions adds captions and updates the preview ('Preview updated with captions').",
+      "whyToUse": "Finish, share or continue editing your clip.",
+      "inputRequired": "A completed result.",
+      "restrictions": "Open in Render can fail with 'Could not open in Render: ...' followed by the reason."
+    }
+  ],
+  "howToUse": "1. Open Video Studio from the side menu (#/video). 2. Type what you want in the prompt box ('Describe the video you want to create'), or attach a start-frame image, or attach a video. 3. Optionally open the workflow menu and pick 'Text to video', 'Animate image', 'Keyframes (start + end)', 'References', 'Edit video', 'Extend uploaded video' or 'Motion transfer'. 4. Click the model button (tooltip 'Select AI video model') and pick a model. 5. Set the aspect ratio, duration, resolution and quality buttons that the model offers. 6. Optionally open Advanced (Native Audio, Character Lock, extra controls) or Motion & Style (Camera Speed, Guidance Scale, Style Preset). 7. Click Generate. A progress overlay with a cancel option appears while the clip renders. 8. When the result appears use Regenerate, Download, Extend, Open in Render, Publish to Social or Add AI Captions, or click + New to start another.",
+  "howToSteps": [
+    "Open Video Studio (#/video) from the side menu.",
+    "Type your prompt in 'Describe the video you want to create', or attach media first.",
+    "Pick a workflow and model if you do not want the default.",
+    "Set aspect ratio, duration, resolution and quality for the chosen model.",
+    "Press Generate and wait for the progress overlay to finish.",
+    "Review the result, then download, extend, send to Render, caption or publish it."
+  ],
+  "gettingStarted": [
+    "Start with a simple, single-action prompt such as 'A slow dolly in on a steaming coffee cup on a wooden table, morning light'.",
+    "Leave the default model and the default aspect ratio on your first run to see how it behaves.",
+    "If you want predictable output, upload a clear start-frame image and add a short motion description.",
+    "You need to be signed in with credits: if no API key is available an AuthModal appears, and an error 'Please sign in and add api credits.' can be shown."
+  ],
+  "inputs": ["Prompt", "Start frame image", "End frame image", "Reference image", "Source video", "Model", "Aspect ratio", "Duration", "Resolution", "Quality", "Native Audio", "Character Lock", "Camera Speed", "Guidance Scale", "Style Preset", "Negative prompt and seed (model dependent)"],
+  "requiredInputs": ["Prompt (text-to-video and prompt-required edits)", "Start frame image (image-to-video)", "Source video (video-to-video modes)", "Character image (Motion transfer)"],
+  "optionalInputs": ["Prompt for image-to-video", "End frame image", "Native Audio", "Character Lock", "Style Preset", "Camera Speed", "Guidance Scale", "Negative prompt", "Seed"],
+  "inputDetails": [
+    {"name": "Prompt", "description": "Text description of the scene and motion. Placeholder changes by mode.", "required": true, "whenToUse": "Always for text-to-video; optional when you attach an image.", "restrictions": "Disabled when a tool that does not use text (like watermark removal) is active."},
+    {"name": "Start frame image", "description": "Image that becomes the first frame. Uploaded from your computer, from a URL or stock photo browser, or taken from the last frame of a video.", "required": false, "whenToUse": "To animate a picture.", "restrictions": "Shared upload limit 10MB for images."},
+    {"name": "End frame image", "description": "Optional last frame for models with an end-frame input.", "required": false, "whenToUse": "Keyframes (start + end).", "restrictions": "Click the button again to clear it."},
+    {"name": "Source video", "description": "A video you upload for video-to-video tools.", "required": false, "whenToUse": "Edit, extend, motion transfer, watermark removal, upscale and similar.", "restrictions": "Shared upload limit 50MB for videos."},
+    {"name": "Aspect ratio", "description": "Shape of the video (for example 16:9). Default comes from the model, otherwise 16:9.", "required": false, "whenToUse": "Match the destination platform.", "restrictions": "Only values supported by the selected model are listed."},
+    {"name": "Duration", "description": "Clip length in seconds, shown like 5s. Default comes from the model, otherwise 5.", "required": false, "whenToUse": "Longer clips for slow actions.", "restrictions": "Model dependent."},
+    {"name": "Resolution", "description": "Output resolution; button label falls back to 720p if the model lists none.", "required": false, "whenToUse": "Higher for final output.", "restrictions": "Model dependent; higher usually costs more and takes longer."},
+    {"name": "Quality", "description": "Quality tier where a model has one; label falls back to 'basic'.", "required": false, "whenToUse": "When the model offers quality levels.", "restrictions": "Model dependent."},
+    {"name": "Style Preset", "description": "None, Cinematic, Anime, Realistic, Watercolor or Noir. Adds a style phrase to the prompt.", "required": false, "whenToUse": "Quick look change.", "restrictions": "Not applied to Extend or video-to-video runs."}
+  ],
+  "generationModes": ["Text to video", "Animate image", "Keyframes (start + end)", "References", "Edit video", "Extend uploaded video", "Motion transfer", "Video-to-video tools (watermark removal, upscale, face swap, captions, and others from the catalog)"],
+  "modeExplanations": [
+    {"mode": "Text-to-video", "description": "Prompt only. Uses a text-to-video model. Default model is the first in the catalog list (Seedance Lite).", "useCase": "Concept clips, b-roll, ideas without source art."},
+    {"mode": "Image-to-video", "description": "A start-frame image is attached. Uses an image-to-video model; the studio picks the first one in the list until you choose another.", "useCase": "Animate product shots, portraits, illustrations."},
+    {"mode": "Video-to-video", "description": "A video is attached. The studio switches to the video-to-video list; the first entry is AI Video Watermark Remover.", "useCase": "Edit, extend, motion transfer, remove watermark, upscale."},
+    {"mode": "Extend", "description": "Continues a previous result using a continuation model (for Seedance 2.0 it uses the stored request id of your last generation).", "useCase": "Make a clip longer or upscale to 4K."}
+  ],
+  "modelCapabilities": "The catalog (public/api/model-catalog.json) lists 115 text-to-video, 188 image-to-video and 74 video-to-video entries. Main families by name: Seedance (ByteDance; Lite, Pro, Pro Fast, v1.5 Pro, v2.0, 2.5, plus Seedance 2.0 Extend and first/last-frame and reference variants), Kling (v2.1 Master, v2.5 Turbo Pro, v2.6 Pro, O1 Pro, v3.0 Pro and Standard, plus motion-control and edit tools), Google Veo (Veo 3, Veo 3 Fast, Veo 3.1, Veo 3.1 Fast, Veo 4), OpenAI Sora (Sora 2, Sora 2 Pro), Wan (2.1, 2.2, 2.5, 2.6 and Fast variants, Wan 2.2 Animate, Wan 2.2 Edit Video, Wan 2.7 Extend), Hunyuan, Runway (Gen-3, Aleph, Act Two), Pixverse (v4.5, v5, v5.5), MiniMax Hailuo, Vidu, LTX 2, OVI, Grok Imagine, Midjourney v7 image-to-video, and Flux 3 video models. Video-to-video entries include AI Video Watermark Remover, Video Background Remover, AI Video Upscaler / Topaz upscalers, AI Captions, AI Video Face Swap, Remix Video, MMAudio v2, Luma Flash Reframe and several Kling O1 / Happy Horse / Seedance 2.5 edit and extend tools. The in-app model descriptions are short one-liners, for example Seedance 2.0 is 'ByteDance Seedance 2.0 latest text-to-video generation', Kling V3.0 Pro is 'cinematic text-to-video generation', Kling O1 is 'high-resolution', Veo 3.1 is 'Google Veo 3.1 text-to-video generation', Wan 2.2 5B Fast is 'fast'. The comparison table in the app uses relative numbers (price, speed 1-6, quality 1-5 scale; not real currency) for a few video models, for example Wan 2.5 price 2 speed 3 quality 4, Seedance 2.0 price 3 speed 4 quality 5, Kling V3.0 Pro, Sora 2 and Veo 3 each price 5 speed 6 quality 5. These are relative guides, not exact prices or timings. Which models are active on your account is not confirmed.",
+  "outputs": ["A generated video clip shown on the result screen", "Downloadable video file", "History entry (kept in the History strip)", "Optional captioned preview", "Optional saved asset in Render"],
+  "limitations": [
+    "Controls depend on the selected model; not every model has quality, resolution, end frame, audio or seed options.",
+    "Shared upload limits in code: images 10MB, videos 50MB.",
+    "Extend only appears when a continuation model exists for the model you used.",
+    "Prompt-less tools (like watermark removal) disable the prompt box.",
+    "You need an API key / credits; otherwise sign-in is requested.",
+    "Generation time and cost vary by model."
+  ],
+  "limitationDetails": [
+    {"limitation": "Model-specific controls", "impact": "A button you expect (for example Quality) may show only one value or nothing useful.", "workaround": "Switch to a model that lists more options, or accept the default."},
+    {"limitation": "50MB video upload limit", "impact": "Large source videos may be rejected.", "workaround": "Trim or compress the clip before uploading."},
+    {"limitation": "Extend availability", "impact": "No Extend button on some results.", "workaround": "Use 'Extend uploaded video' in the workflow menu with the downloaded clip, or choose a model with a continuation model."},
+    {"limitation": "Credits required", "impact": "Generation will not start without an API key and credits.", "workaround": "Sign in and add credits when prompted."}
+  ],
+  "troubleshooting": [
+    "Nothing happens on Generate and a sign-in box appears: sign in and make sure you have API credits ('Please sign in and add api credits.').",
+    "'Please enter a prompt to generate a video.': type a prompt, or attach an image if you want image-to-video.",
+    "'Please upload a start frame image first.': you are in image mode (an image workflow is selected); attach a start frame or switch the workflow to 'Text to video'.",
+    "'Please upload a video first.': a video-to-video model is selected; upload a video with the video button, or switch back to a text or image workflow.",
+    "'Please add the character image to animate.': Motion transfer needs both a motion video and a character image.",
+    "'Please describe the change you want.': Edit video needs a prompt describing the edit.",
+    "'No Seedance 2.0 generation found to extend. Generate a video first.': generate a Seedance 2.0 clip in this session, then use Extend.",
+    "'Too many requests. Wait a moment and retry.': you hit a rate limit; wait and try again.",
+    "'Network error. Check your connection and retry.': check your internet connection and retry.",
+    "'Service temporarily unavailable. Try again shortly.': the model provider is busy or returned no video; try again or pick a different model.",
+    "The aspect ratio or duration you want is missing: the selected model does not support it; choose another model.",
+    "Frame extraction failed ('Failed to extract last frame: ...'): use a different video file or take a screenshot of the last frame and upload it as an image."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "Generate does nothing or asks me to sign in", "steps": ["Check that you are signed in.", "Confirm your account has credits.", "Click Generate again after the sign-in box closes."]},
+    {"issue": "I see 'Service temporarily unavailable. Try again shortly.'", "steps": ["Wait a minute.", "Click Generate again.", "If it repeats, choose a different model from the model picker."]},
+    {"issue": "My uploaded video or image will not attach", "steps": ["Check the file size (images up to 10MB, videos up to 50MB in the shared limits).", "Try a common format such as JPG, PNG, WebP or MP4.", "Read the toast: it begins with 'Attachment upload failed:' or 'Video upload failed:' and gives the reason."]},
+    {"issue": "Extend button missing", "steps": ["Make sure the result came from a model that has a continuation model.", "Try a Seedance 2.0 generation.", "Otherwise download the clip and use the 'Extend uploaded video' workflow."]},
+    {"issue": "The result is not what I described", "steps": ["Shorten the prompt to one subject and one action.", "Try image-to-video with a clear start image.", "Switch models and compare."]}
+  ],
+  "commonProblems": [
+    {"problem": "Prompt box is greyed out", "whyItHappens": "A video is attached and the selected tool does not use text (for example watermark removal).", "howToFix": "Clear the video (click the video button again) to type a prompt, or just click Generate to run the tool."},
+    {"problem": "Model changed by itself", "whyItHappens": "Attaching an image switches to the first image-to-video model, attaching a video switches to the first video-to-video model, and clearing media switches back to the first text-to-video model.", "howToFix": "Pick your model again after attaching or clearing media."},
+    {"problem": "Style looks different than expected", "whyItHappens": "The Style Preset adds a phrase to the prompt and the model may interpret it loosely.", "howToFix": "Set Style Preset to None and describe the style in your own words."},
+    {"problem": "Open in Render failed", "whyItHappens": "Saving the clip to the asset store failed.", "howToFix": "Use Download and import the file manually."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Animate a product photo", "steps": ["Open Video Studio.", "Attach your product photo as the start frame.", "Type 'Slow orbit around the product, soft studio light' (optional).", "Pick an image-to-video model and a 9:16 or 16:9 aspect ratio.", "Click Generate, then Download."]},
+    {"title": "Text-to-video concept clip", "steps": ["Leave the workflow on 'Text to video'.", "Type a one-action prompt.", "Choose a model and duration.", "Click Generate and review; use Regenerate for another take."]},
+    {"title": "Remove a watermark from a clip", "steps": ["Click the video button and choose your file.", "Check the model shows 'AI Video Watermark Remover'.", "Click Generate when the prompt box says 'Video ready - click Generate to remove watermark'.", "Download the cleaned video."]},
+    {"title": "Make a longer Seedance clip", "steps": ["Generate a clip with a Seedance 2.0 model.", "Click Extend / 4K (or Extend) on the result.", "Optionally type how the clip should continue ('Optional: describe how to continue the video...').", "Click Generate."]}
+  ],
+  "useCases": [
+    {"title": "Social media short", "description": "Create a vertical clip for a reel.", "steps": ["Choose 9:16.", "Write a short action prompt.", "Generate, then Add AI Captions, then Publish to Social."], "expectedOutput": "A captioned vertical video ready to post."},
+    {"title": "Bring artwork to life", "description": "Animate an illustration or a portrait.", "steps": ["Attach the artwork.", "Describe subtle motion.", "Generate."], "expectedOutput": "A short animated clip starting from your artwork."},
+    {"title": "Clean up footage", "description": "Remove logos or overlay text.", "steps": ["Upload the video.", "Run the watermark remover.", "Download."], "expectedOutput": "A cleaned copy of the video."}
+  ],
+  "faqs": [
+    {"question": "What is the difference between text-to-video and image-to-video?", "answer": "Text-to-video builds a clip from words only. Image-to-video starts from a picture you attach and animates it; the prompt then only describes the motion."},
+    {"question": "Where did Text to Video, Image to Video, Video to Video and Video Watermark go?", "answer": "#/text-to-video, #/image-to-video, #/video-to-video and #/video-watermark are landing pages that explain each mode. Their buttons (for example 'Start Creating Videos', 'Get Started Free') take you into Video Studio, where all of those modes live."},
+    {"question": "Which model should I pick?", "answer": "The studio does not rank models for you. The in-app descriptions call Kling V3.0 Pro cinematic, Kling O1 high-resolution and Wan 2.2 5B Fast fast. The comparison table gives relative scores only. Try the same prompt in two models and compare."},
+    {"question": "How long can my video be?", "answer": "Duration options come from the selected model (the button shows values like 5s). The default is the model's default or 5 seconds. The built-in help text mentions about 3 to 10 seconds, but the actual list depends on the model."},
+    {"question": "Can I add sound?", "answer": "Open Advanced and switch on Native Audio. It only has an effect on models that can produce audio. You can also use the Audio studio separately."},
+    {"question": "How do I keep the same character across videos?", "answer": "Switch on Character Lock under Advanced. It reuses a stored character reference."},
+    {"question": "How do I extend a video?", "answer": "On the result screen click Extend (or Extend / 4K). For your own file use the 'Extend uploaded video' workflow."},
+    {"question": "Can I send the video to editing?", "answer": "Yes. Click Open in Render on the result screen to save it as an asset and open Render. You can also Download it or add captions."},
+    {"question": "Does Video Studio keep my past videos?", "answer": "A History strip on the page lists your results; completed generations are also saved to your generation history. Jobs that finish while you are away are recovered when you come back."}
+  ],
+  "glossary": {
+    "Text-to-video": "An AI model that makes a video from a text description.",
+    "Image-to-video": "An AI model that animates a still picture you provide.",
+    "Video-to-video": "A tool or model that takes an existing video and edits, extends or transforms it.",
+    "Start frame / End frame": "The first and last pictures of a clip. Some models accept both.",
+    "Keyframes": "Fixed pictures at points in time that the AI fills in between.",
+    "Aspect ratio": "The shape of the video, like 16:9 wide or 9:16 tall.",
+    "Resolution": "How many pixels the video has, such as 720p.",
+    "Native Audio": "Sound the video model creates together with the picture.",
+    "Character Lock": "Reusing the same stored character look across generations.",
+    "Guidance Scale": "How strongly the model follows your prompt.",
+    "Seed": "A number that makes a result repeatable; -1 means random in the app's other studios.",
+    "Motion transfer": "Making a character image copy the movement from another video."
+  },
+  "tips": [
+    "Keep prompts to one subject and one action.",
+    "Name the camera move in words, for example 'slow dolly in' or 'static shot'.",
+    "Use image-to-video when you need the subject to look exactly like your picture.",
+    "Test a cheaper or faster model first, then switch to a higher-quality one for the final.",
+    "Match aspect ratio to where the video will be posted before you generate.",
+    "Use Regenerate to get a new take with the same settings."
+  ],
+  "bestPractices": [
+    "Change one setting at a time when comparing models.",
+    "Write what you want to see, not what you do not want, unless the model has a negative prompt field.",
+    "Download results you like; do not rely only on the History strip.",
+    "Use Add AI Captions before Publish to Social for silent autoplay feeds."
+  ],
+  "relatedStudios": ["cinema", "cinema-template", "storyboard", "animate", "videotools", "lipsync", "upscale", "render"],
+  "relatedStudioGuidance": [
+    {"studio": "cinema", "relationship": "Cinema Studio builds camera, lens and film-look into a video prompt.", "whenToMove": "When you want real cinematography controls.", "why": "It writes the camera language for you."},
+    {"studio": "cinema-template", "relationship": "Cinema Templates are guided, ready-made cinematic formats.", "whenToMove": "When you want a trailer, brand film or ad structure with simple form fields.", "why": "You answer a few questions instead of writing a long prompt."},
+    {"studio": "storyboard", "relationship": "Storyboard Studio plans still frames for a story.", "whenToMove": "Before generating video, to plan shots.", "why": "Frames can be animated afterwards."},
+    {"studio": "render", "relationship": "Render is where clips are assembled and exported.", "whenToMove": "After a clip is ready.", "why": "Use Open in Render to continue."}
+  ],
+  "notConfirmed": [
+    "Exact prices, credits per run and generation times for each model (the app's comparison numbers are relative only).",
+    "Which of the catalog's models are enabled on a given account or shown in the upstream model picker.",
+    "Whether every upload button enforces the shared 10MB image / 50MB video limits.",
+    "What Character Lock and Native Audio do on each individual model.",
+    "Whether the Camera Speed slider and Guidance Scale change the output: in the code the camera movement is fixed at Static (so no speed phrase is added) and the Motion & Style panel adds a style phrase and a fixed motion-intensity phrase to the prompt; whether Guidance Scale is sent to the model was not verified.",
+    "The landing-page text for #/video in studioLandingPages.js mentions avatars, neural TTS, lip-sync and bulk personalization, which does not match the studio's actual controls; it was not treated as fact.",
+    "The 'resolution 480p to 1080p, duration 3-10 seconds, 1-3 minutes' wording in the built-in help is generic and may not match every model.",
+    "Marketing text on the alias pages quotes '40+ AI models' and the hero says '15+ models'; the real catalog is larger."
+  ],
+  "sourceFiles": [
+    "src/components/VideoStudio.js",
+    "src/components/TextToVideoPage.js",
+    "src/components/VideoWatermarkPage.js",
+    "src/lib/router.js",
+    "src/lib/instructions.js",
+    "src/data/studioLandingPages.js",
+    "src/lib/studioHelpers.js",
+    "src/lib/editor/uploadLimits.js",
+    "src/components/UploadPicker.js",
+    "src/lib/models.js",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js",
+    "public/api/model-catalog.json",
+    "VIDEO_STUDIO_DEEP_AUDIT.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read VideoStudio.js (labels, toasts, workflow list, controls, handlers), alias page components, router, instructions, studioHelpers error mapping, upload limits, model catalog/description/comparison files. Audit doc was treated as outdated where it disagreed with code.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}
