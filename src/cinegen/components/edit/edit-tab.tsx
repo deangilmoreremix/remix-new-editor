@@ -12,6 +12,7 @@ import { ResizeHandle } from './resize-handle';
 import { activeGlTransition } from '@cinegen/lib/occ/transitions';
 import { useRecorder } from '../../../openchatcut/audio/recorder';
 import { SoundLibraryPopup } from './sound-library-popup';
+import { StockMediaPopup, type StockItem, type StockKind } from './stock-media-popup';
 import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
@@ -917,6 +918,35 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, currentTime)) });
   }, [dispatch, timeline, currentTime]);
 
+  // [remix] Pexels / Pixabay stock media: asset into the pool, clip on a video track at the playhead
+  const [stockMedia, setStockMedia] = useState(false);
+  const handleAddStock = useCallback(async (item: StockItem, kind: StockKind) => {
+    const isVideo = kind === 'videos';
+    const assetId = generateId();
+    let url = item.src;
+    if (!isVideo && item.mustCopy) {
+      // Pixabay doesn't allow permanent hotlinking: keep a copy in the user's storage (falls back to the CDN link).
+      try {
+        const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId, assetType: 'image', remoteUrl: item.src });
+        if (r && 'path' in r && r.path) url = r.path;
+      } catch { /* cross-origin / offline: use the CDN link */ }
+    }
+    const duration = isVideo ? Math.min(30, Math.max(1, item.duration || 5)) : 5;
+    const asset: Asset = {
+      id: assetId, name: item.name, type: isVideo ? 'video' : 'image', url, thumbnailUrl: item.thumbnail || undefined,
+      duration, width: item.width, height: item.height, createdAt: new Date().toISOString(), status: 'online', sourceUrl: item.src,
+      metadata: { source: `stock-${item.source}`, credit: { user: item.user, pageURL: item.pageURL } },
+    };
+    dispatch({ type: 'ADD_ASSET', asset });
+    let tl = timeline;
+    let track = tl.tracks.find((t) => t.kind === 'video' && !t.locked);
+    if (!track) {
+      track = { id: generateId(), name: `Video ${tl.tracks.filter((t) => t.kind === 'video').length + 1}`, kind: 'video', color: '#4a9fd6', muted: false, solo: false, locked: false, visible: true, volume: 1 };
+      tl = { ...tl, tracks: [...tl.tracks, track] };
+    }
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, currentTime)) });
+  }, [dispatch, timeline, currentTime, projectId]);
+
   const selectedClipAsset = useMemo(() => {
     if (!selectedClip) return null;
     return state.assets.find((a) => a.id === selectedClip.assetId) ?? null;
@@ -1020,6 +1050,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         onRemoveAssets={(assetIds) => dispatch({ type: 'REMOVE_ASSETS', assetIds })}
         projectId={projectId}
         onAddAsset={(asset) => dispatch({ type: 'ADD_ASSET', asset })}
+        onOpenStock={() => setStockMedia(true)}
         onAddTimeline={(timeline) => dispatch({ type: 'ADD_TIMELINE', timeline })}
       />
       <ResizeHandle
@@ -1091,10 +1122,11 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
 
       {/* Timeline area */}
       <div className="edit-tab__timeline-area">
-        <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} recording={recorder.recording} onToggleRecording={() => { if (!recorder.recording) recordStartRef.current = Math.max(0, currentTime); recorder.toggle(); }} />
+        <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} onOpenStock={() => setStockMedia(true)} recording={recorder.recording} onToggleRecording={() => { if (!recorder.recording) recordStartRef.current = Math.max(0, currentTime); recorder.toggle(); }} />
         {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
         {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
         {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}
+        {stockMedia && <StockMediaPopup onClose={() => setStockMedia(false)} onAdd={handleAddStock} />}
 
         <div className="edit-tab__timeline-content">
           <TimelineTabs

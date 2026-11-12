@@ -64,6 +64,8 @@ interface LeftPanelProps {
   projectId?: string;
   onAddAsset?: (asset: Asset) => void;
   onAddTimeline?: (timeline: Timeline) => void;
+  /** [remix] opens the Pexels / Pixabay stock media browser */
+  onOpenStock?: () => void;
 }
 
 /* ============================================
@@ -247,6 +249,7 @@ export function LeftPanel({
   projectId,
   onAddAsset,
   onAddTimeline,
+  onOpenStock,
 }: LeftPanelProps) {
   // --- State ---
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -1421,6 +1424,11 @@ export function LeftPanel({
           {projectId && onAddAsset && (
             <button className="mp__tool-btn" onClick={handleImport} title="Import media files">
               <ImportIcon />
+            </button>
+          )}
+          {onOpenStock && (
+            <button className="mp__tool-btn" onClick={onOpenStock} title="Stock media (Pexels & Pixabay)" aria-label="Stock media" data-testid="open-stock-media-panel">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.5" /><path d="m21 16-5-5-8 8" /></svg>
             </button>
           )}
           <button className="mp__tool-btn" onClick={handleCreateFolder} title="New folder">
