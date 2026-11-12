@@ -957,7 +957,9 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       if (r && 'path' in r && r.path && r.downloaded && /^https:\/\//i.test(r.path)) {
         const jobs = base.type === 'video' ? [...(base.thumbnailUrl ? [] : ['generate_thumbnail']), 'compute_waveform', 'generate_filmstrip'] : [];
         return {
-          ...base, url: r.path, fileRef: r.path, sourceUrl: remoteUrl, status: jobs.length ? 'processing' : 'online',
+          // Online right away (the provider gave us the duration): the derive jobs below are tracked through processingJobs and the
+          // missing artifacts, and nothing here runs the metadata job that would otherwise flip a 'processing' status back.
+          ...base, url: r.path, fileRef: r.path, sourceUrl: remoteUrl, status: 'online',
           metadata: { ...(base.metadata ?? {}), localPersistStatus: 'ready', localPersistDownloaded: true, ...(jobs.length ? { processingJobs: jobs } : {}) },
         };
       }
