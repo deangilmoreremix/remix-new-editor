@@ -138,6 +138,9 @@ const pageLoaders = {
 // Sub-paths like 'academy/track/<t>/lesson/<id>' are handled by the Academy page itself.
 export const academyKey = (page) => (typeof page === 'string' && page.startsWith('academy/') ? 'academy' : page);
 
+/** True when navigate(page) opens a real page rather than the placeholder. */
+export const isKnownPage = (page) => typeof page === 'string' && (page.startsWith('template/') || Boolean(pageLoaders[academyKey(RETIRED_ROUTES[page] || page)]));
+
 let currentPage = null;
 let currentPageEl = null;
 let contentArea = null;

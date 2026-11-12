@@ -142,17 +142,17 @@
     },
     {
       "feature": "Track 07: 07-ai-product-photography - AI Product Photography & E-commerce (4 lessons, 4 templates)",
-      "explanation": "Studio-quality product photos and catalog variations on demand, matching lighting, reflections, shadows and perspective. Its lessons' See tab shows \"Open AI Product Studio\".",
+      "explanation": "Studio-quality product photos and catalog variations on demand, matching lighting, reflections, shadows and perspective. On the lesson's See tab, three of its lessons show \"Open Product Shot Studio\" (Product Shot Studio) and the batch-workflows lesson shows \"Open Photo Studio\" (Photo Studio with its 30 product-photography presets).",
       "whyToUse": "Product images for stores.",
       "inputRequired": "None.",
-      "restrictions": "The \"Open AI Product Studio\" button navigates to a page id derived from /studios/product-photo-studio; whether that page exists in your build is not confirmed."
+      "restrictions": "The button only opens the studio; it does not carry the lesson's example into it."
     },
     {
       "feature": "Track 08: 08-ai-fashion-and-virtual-tryon - AI Fashion & Virtual Try-On (4 lessons, 4 templates)",
-      "explanation": "Virtual try-on and lifestyle lookbooks, wrapping flat garments onto models while keeping texture, folds and branding. Its lessons' See tab shows \"Open AI Fashion Studio\".",
+      "explanation": "Virtual try-on and lifestyle lookbooks, wrapping flat garments onto models while keeping texture, folds and branding. On the lesson's See tab, all four lessons show \"Open Edit Studio (Change Dress)\", which opens Edit Studio with the Change Dress tool already selected (you upload the person photo and an outfit image).",
       "whyToUse": "Fashion imagery.",
       "inputRequired": "None.",
-      "restrictions": "The \"Open AI Fashion Studio\" button navigates to a page id derived from /studios/fashion-studio; whether that page exists in your build is not confirmed."
+      "restrictions": "The button opens Edit Studio's Change Dress tool; there is no separate fashion studio, and it does not carry the lesson's example into it."
     },
     {
       "feature": "Track 09: 09-ai-real-estate-staging - AI Real Estate (Virtual Staging) (3 lessons, 3 templates)",
@@ -319,7 +319,7 @@
     "Full lesson shows \"Could not load content.\": the lesson text file could not be fetched; check your connection, reload and click \"Read full lesson\" again.",
     "Full lesson stays on \"Loading...\": wait a moment or reload the page.",
     "A lesson says \"App for this lesson is under development.\": that lesson's app is marked as needed in the data; use the studios directly instead.",
-    "\"Open AI Product Studio\" / \"Open AI Fashion Studio\" does not open the expected page: this button only exists on tracks 07 and 08; if it lands somewhere unexpected, open the studio from the side menu (Image Studio or Apps).",
+    "The studio button on a track 07 or 08 lesson does not show: it is on the lesson's See tab, not the Learn tab, and only tracks 07 (Product Shot Studio / Photo Studio) and 08 (Edit Studio, Change Dress) have it. If you want a different tool, open it from the side menu (Image, Edit, Product Shot or Brand).",
     "Template says \"No example media for this item.\": that item has no examples; use the Learn and Create tabs.",
     "A lesson or template editor opens blank: the item ID may be wrong; go back with \"Back to track\" or \"All tracks\".",
     "Copy buttons do nothing: the browser may block clipboard access; allow clipboard permission or select the text manually."
@@ -568,7 +568,7 @@
     }
   ],
   "notConfirmed": [
-    "Whether the lesson-level \"Open AI Product Studio\" and \"Open AI Fashion Studio\" buttons (tracks 07 and 08, path /studios/product-photo-studio and /studios/fashion-studio) open a working page in the current app; the code only calls navigate() with the path minus the leading slash.",
+    "Whether the studio buttons on track 07 and 08 lessons carry any lesson content into the studio; the code only navigates to the studio (and, for track 08, selects the Change Dress tool).",
     "Exact recipes behind \"Create With Smart Video\" for each template (recipe ids are in template-recipes, which was not read in detail), and which of the 77 templates have one beyond the three in track 01.",
     "Which lessons in tracks 02-15 have example media in the See tab (asset data in academyAssets.js was not read in full).",
     "Whether track READMEs under src/content/academy match the catalog summaries exactly; summaries here come from the catalog.",
