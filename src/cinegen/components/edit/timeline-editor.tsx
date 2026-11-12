@@ -933,10 +933,23 @@ export function TimelineEditor({
     modal.open();
   }, [dispatch, setTimeline, state.assets]);
 
-  // [remix] Personalization hub (contacts, tokens, per-contact generation) — the classic editor's own window
+  // [remix] Personalization: the same PersonalizationModal (Business Finder, Asset Finder, asset assignment)
+  // the classic editor opens, so both editors share one personalization workflow.
   const handleOpenPersonalization = useCallback(async () => {
-    const { VideoPersonalizationHub } = await import('../../../components/modals/VideoPersonalizationHub.jsx');
-    new VideoPersonalizationHub({ onComplete: () => {}, onError: (e: unknown) => console.warn('Personalization error', e) }).open();
+    try {
+      const m = await import('../../../features/personalization/mount.jsx');
+      m.openPersonalization({
+        studioId: 'timeline',
+        studioName: 'Timeline Studio',
+        appId: 'ai-video-agent',
+        onComplete: () => {
+          // Contacts/profiles may have changed; let token-aware UI re-read the contact store.
+          window.dispatchEvent(new CustomEvent('remix:contact-changed'));
+        },
+      });
+    } catch (e) {
+      console.warn('Personalization error', e);
+    }
   }, []);
 
   // Throttled trim
