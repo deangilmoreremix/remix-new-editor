@@ -32,6 +32,7 @@ export const STUDIO_INTENTS = {
   'find-my-brand': ['find my brand colours from my website', 'discover my brand style', 'check what my brand looks like without signing in', 'get a quick brand summary', 'see what colours and fonts my site uses', 'try the brand tool for free'],
   'website-builder': ['build a website by describing it', 'make a landing page', 'publish my site online', 'make a site for my business', 'make a one-page website', 'describe my business and get a site'],
   render: ['export my finished video', 'download my finished composition', 'render my project to a file', 'turn my project into an mp4', 'finish and save my video', 'get my project out as a video file'],
+  academy: ['learn how to use SmartVideo', 'find a course or lesson', 'follow a tutorial step by step', 'see all the Academy courses', 'pick up where I left off in a lesson', 'download a template or worksheet'],
   library: ['find the image I made earlier', 'where did my video go', 'download something I generated', 'see my history', 'reuse a past generation', 'see all my past creations'],
   'content-library': ['find my saved content', 'reuse my saved assets', 'keep my favourites in one place', 'browse the things I saved', 'find the media I stored', 'pick an asset I saved before'],
   apps: ['where do I start', 'see all the tools', 'what can this app do', 'find the right tool for my idea', 'show me every studio', 'browse by what I want to make'],

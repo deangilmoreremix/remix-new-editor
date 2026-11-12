@@ -21,6 +21,7 @@ describe('assistant Academy links resolve to real content', () => {
   ]);
   it('has Academy links to check', () => expect(urls.size).toBeGreaterThan(50));
   it.each([...urls])('%s', (u) => {
+    if (u === '#/academy') return; // the hub itself
     const lesson = u.match(LESSON_URL);
     const track = u.match(TRACK_URL);
     expect(lesson || track, `unrecognised academy url ${u}`).toBeTruthy();

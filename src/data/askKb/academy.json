@@ -1,0 +1,598 @@
+{
+  "id": "academy",
+  "name": "Academy",
+  "route": "#/academy",
+  "description": "Academy (page title \"AI Creator Academy\", breadcrumb \"Smart Video Academy\") is SmartVideo's learning area. It has 15 tracks, 66 lessons and 77 templates. Each lesson has Learn, See and Create tabs, and you can mark lessons complete, bookmark them and copy a share link.",
+  "shortDescription": "Learn AI creator skills in 15 tracks, 66 lessons and 77 templates, then jump into SmartVideo studios to make things.",
+  "fullDescription": "The Academy is a read-and-practice area, not a generator. The hub (#/academy) shows the heading \"AI Creator Academy\", a summary line (\"15 tracks, 66 lessons and 77 templates imported from the creator academy. Learn the concept, see the real examples, then create with SmartVideo's studios.\"), an overall Progress bar, a \"Reset progress\" button, a Bookmarks list (once you bookmark something) and a grid of Tracks. Click a track card to see its Lessons and Templates side by side. Click a lesson to open it with three tabs: Learn (the concept, plus a \"Read full lesson\" button), See (example media and, for some lessons, a link to an app or studio) and Create (linked templates). Click a template to open an editor with tabs Create, See and Learn. Your progress (in-progress and completed lessons) and bookmarks are saved only in your browser's local storage on that device. Lessons can be shared with the \"Copy link\" button, which copies a URL of the form #/academy/track/<trackSlug>/lesson/<lessonId>. Track 01 (AI Video Ads & UGC) has the richest lessons (The problem, The concept, Do it, Launch it (get paid), Exercises) and 7 interactive template editors; the other 14 tracks show lessons and templates as documents. The Academy itself never generates images, video or audio; it points you to the studios that do.",
+  "bestFor": "Beginners and creators who want a structured path (ads and UGC, filmmaking, faceless channels, avatars, audio, product photos, fashion, real estate, headshots, merch, stock, tool choice, freelancing, agents) and ready-to-fill templates before using a studio.",
+  "whenToUse": [
+    "You are new to AI video/image creation and want step-by-step lessons.",
+    "You want to learn how to turn a skill into a service or income (pricing, outreach, retainers, licensing).",
+    "You want a fill-in template (ad brief, UGC script, batch matrix, outreach message, retainer proposal).",
+    "You want to track which lessons you have finished and bookmark ones for later.",
+    "You want to share a specific lesson with someone using a link."
+  ],
+  "whenToUseAnother": [
+    "Use Apps (#/apps) when you want to browse and open SmartVideo's tools and studios rather than read lessons.",
+    "Use Templates (#/templates) when you want ready-made video/ad templates to generate from, not learning templates (checklists, scripts, worksheets).",
+    "Use Explore (#/explore) when you want to browse example outputs and styles for inspiration.",
+    "Use Video Studio (#/video) when you want to actually generate a video clip.",
+    "Use Cinema Studio (#/cinema) when you want to generate cinematic footage.",
+    "Use Image Studio (#/image) when you want to generate images.",
+    "Use Avatar Studio (#/avatar) when you want to create talking-avatar videos.",
+    "Use Audio Studio (#/audio) when you want to generate voice, music or sound."
+  ],
+  "keyFeatures": [
+    "15 tracks, 66 lessons and 77 templates (counts come from the catalog).",
+    "Overall Progress bar on the hub and a per-track \"completed/total\" counter.",
+    "\"Mark as completed\" / \"Mark as incomplete\" round check button on each lesson row and on the lesson page.",
+    "Bookmarks: \"Bookmark for later\" (star), \"Bookmarked\", \"Remove bookmark\"; bookmarked lessons are listed on the hub under \"Bookmarks (N)\".",
+    "\"Copy link\" button on a lesson page that copies a share URL (button text changes to \"Copied!\").",
+    "Lesson tabs: Learn, See, Create.",
+    "Template editor tabs: Create, See, Learn.",
+    "\"Create With Smart Video\" and \"Use Template\" buttons on templates; \"Try this in <Studio>\" on example media.",
+    "\"Reset progress\" button on the hub."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Hub (all tracks)",
+      "explanation": "Opening #/academy shows the \"AI Creator Academy\" header, the counts line, an overall Progress bar (shown as completed/total lessons, e.g. 3/66), your Bookmarks list (only if you have bookmarks) and the Tracks grid. Each track card shows \"Track N\", the title, a short summary and a progress bar with completed/total once the track has lessons. Click a card to open the track. A \"Smart Video Academy\" button in the top bar returns to the hub and \"Exit\" goes to the Apps page.",
+      "whyToUse": "Starting point to pick a track and see how far you have got.",
+      "inputRequired": "None.",
+      "restrictions": "Progress and bookmarks shown are only those stored in this browser."
+    },
+    {
+      "feature": "Track page",
+      "explanation": "Shows \"Track N\", the track title and summary, a progress bar with \"completed/total completed\", an \"All tracks\" button, a \"Lessons (N)\" column and a \"Templates (N)\" column. Clicking a lesson opens it and marks it as in-progress (unless already completed). Each lesson row has a round status button, its number, title, one-line summary, a star (bookmark) and an arrow. Template rows show a small \"SV\" badge if the template's button is \"Create With Smart Video\", otherwise \"Tpl\".",
+      "whyToUse": "See everything in one track and continue where you left off.",
+      "inputRequired": "Pick a track.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Lesson page: Learn tab",
+      "explanation": "For the five Track 01 lessons the Learn tab shows cards titled \"The problem\", \"The concept\", \"Do it\", \"Launch it (get paid)\" and \"Exercises\". For other lessons it shows the lesson summary. Every lesson has a \"Read full lesson\" button (toggles to \"Hide full lesson\") that loads the full Markdown text. The header shows \"Lesson N\" plus an estimated time (for example \"~45 minutes\") when the lesson has one.",
+      "whyToUse": "Read the concept and the steps before you create.",
+      "inputRequired": "None.",
+      "restrictions": "If the full lesson text cannot be loaded you see \"Could not load content.\"; while loading it shows \"Loading...\"."
+    },
+    {
+      "feature": "Lesson page: See tab",
+      "explanation": "Says \"Example media referenced in this lesson.\" and shows a gallery of example images/videos (shows \"No example media for this item.\" if none). Click one to open a larger view with a \"Try this in <Studio>\" button. Below the gallery, some lessons show \"Open <app name>\" (tracks 07 and 08 open an in-app studio page), \"View App Source\" (an external GitHub link for lessons marked existing) or the note \"App for this lesson is under development.\" (lessons marked needed).",
+      "whyToUse": "See real examples and jump to the right tool.",
+      "inputRequired": "None.",
+      "restrictions": "Not every lesson has media or an app link."
+    },
+    {
+      "feature": "Lesson page: Create tab",
+      "explanation": "Says \"Turn this lesson into a deliverable. Open a template to build it, or launch a linked SmartVideo recipe.\" Each linked template is listed with an \"Open template\" button, and some also have a \"Create With Smart Video\" button that launches a linked recipe. Shows \"No linked templates.\" if none.",
+      "whyToUse": "Turn a lesson into a real deliverable.",
+      "inputRequired": "None.",
+      "restrictions": "Only templates linked to that lesson appear."
+    },
+    {
+      "feature": "Progress tracking",
+      "explanation": "Each lesson is either not started, in-progress (blue dot) or completed (green check). Opening a lesson from a track or the hub marks it in-progress (unless already completed). Click the round button on a lesson row or lesson page to complete it; click a completed one again (tooltip \"Mark as incomplete\") to clear it. Stored in the browser's localStorage under the key academy_progress. \"Reset progress\" on the hub clears everything at once with no confirmation.",
+      "whyToUse": "Keep track of what you have finished.",
+      "inputRequired": "Click the round status button.",
+      "restrictions": "Saved per browser/device only, not synced to an account. Clearing site data, using private mode or switching browsers loses it."
+    },
+    {
+      "feature": "Bookmarks",
+      "explanation": "Click the star (tooltip \"Bookmark for later\") on a lesson row or the \"Bookmark\" button on a lesson page. Bookmarked lessons appear on the hub under \"Bookmarks (N)\" with a \"Remove\" button. Stored in localStorage under academy_bookmarks.",
+      "whyToUse": "Save lessons to come back to.",
+      "inputRequired": "Click the star.",
+      "restrictions": "Browser-local only; lessons only (not templates)."
+    },
+    {
+      "feature": "Copy link (share a lesson)",
+      "explanation": "On a lesson page, \"Copy link\" copies the current site address plus #/academy/track/<trackSlug>/lesson/<lessonId> to your clipboard and shows \"Copied!\" for about two seconds. Track 01 lesson IDs have no number prefix (e.g. how-ugc-works); tracks 02-15 use <trackSlug>::<NN-file-slug> (e.g. 02-ai-filmmaking::01-screenplay-and-story).",
+      "whyToUse": "Send someone directly to a lesson.",
+      "inputRequired": "None.",
+      "restrictions": "The link only opens the lesson if the lesson ID exists; otherwise the hub opens. The person opening it does not receive your progress or bookmarks."
+    },
+    {
+      "feature": "Template editor",
+      "explanation": "Opening a template shows its kind, title and description with tabs Create, See and Learn. Track 01 has seven interactive editors: UGC Script Template (ugc-script), Ad Brief Checklist (ad-brief), Batch Matrix Template (batch-matrix), Character Consistency Checklist, Outreach Template, Retainer Proposal Template and Ad Teardown Worksheet. Each has a \"Show example\" toggle (becomes \"Clear example\") that fills in a sample, and a button: \"Create With Smart Video\" (UGC script, ad brief, batch matrix) opens a brief dialog with \"Copy brief\" and \"Open in Studio\"; \"Use Template\" copies the filled text to your clipboard (button shows \"Copied!\"). Templates in tracks 02-15 are shown as a document with \"Use Template\" (copies the raw Markdown), \"Open linked lesson\" and, where a recipe exists, \"Create With Smart Video\". The Learn tab has an \"Open linked lesson\" button.",
+      "whyToUse": "Get a working checklist, script or proposal quickly.",
+      "inputRequired": "Fill the fields (track 01) or just read/copy (others).",
+      "restrictions": "What you type in template editors is not saved when you leave the page."
+    },
+    {
+      "feature": "Track 01: ai-video-ads-ugc - AI Video Ads & UGC (5 lessons, 7 templates)",
+      "explanation": "Turn AI-generated video into ads brands pay for. Lessons: How AI UGC Actually Works, Character & Face Consistency, Building a 10-Ad Batch, Pricing & Selling UGC Ads as a Service, Case Study Teardown.",
+      "whyToUse": "Best first track for ads and UGC.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 02: 02-ai-filmmaking - AI Filmmaking (5 lessons, 10 templates)",
+      "explanation": "Short films, music videos, trailers and documentaries without a crew: screenplay and story, storyboarding and shots, camera movement, assembling a short film, selling short films.",
+      "whyToUse": "Story-driven video.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 03: 03-faceless-ai-channels - Faceless AI Channels (5 lessons, 7 templates)",
+      "explanation": "YouTube/TikTok channel with no camera or voice recording run as a business system: niche and script, narration and pacing, RPM and earnings, scaling channels, monetization ladder. (The hub card shows this title as \"03 Faceless Ai Channels\".)",
+      "whyToUse": "Build a faceless channel.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 04: 04-ai-content-factories - AI Content Factories (6 lessons, 8 templates)",
+      "explanation": "Bulk content generation, scripting batches, automated pipelines and recurring social retainers: production pipeline, TikTok/Reels factory, YouTube Shorts factory, thumbnail design, batching and scheduling, selling content services. (Hub card title: \"04 Ai Content Factories\".)",
+      "whyToUse": "Produce content at volume.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 05: 05-ai-avatars-and-influencers - AI Avatars & Influencers (5 lessons, 5 templates)",
+      "explanation": "Build a consistent AI character, synthesize its voice, lip-sync its dialogue and manage virtual influencers for clients. (Hub card title: \"05 Ai Avatars And Influencers\".)",
+      "whyToUse": "Virtual influencer or character work.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 06: 06-ai-audio-and-music - AI Audio & Music (5 lessons, 5 templates)",
+      "explanation": "Voice cloning, translation, dubbing, podcast production and AI music: voice cloning/TTS, dubbing and translation, podcast production, music and SFX generation, singing/vocal synthesis. (Hub card title: \"06 Ai Audio And Music\".)",
+      "whyToUse": "Voice, music and sound.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 07: 07-ai-product-photography - AI Product Photography & E-commerce (4 lessons, 4 templates)",
+      "explanation": "Studio-quality product photos and catalog variations on demand, matching lighting, reflections, shadows and perspective. Its lessons' See tab shows \"Open AI Product Studio\".",
+      "whyToUse": "Product images for stores.",
+      "inputRequired": "None.",
+      "restrictions": "The \"Open AI Product Studio\" button navigates to a page id derived from /studios/product-photo-studio; whether that page exists in your build is not confirmed."
+    },
+    {
+      "feature": "Track 08: 08-ai-fashion-and-virtual-tryon - AI Fashion & Virtual Try-On (4 lessons, 4 templates)",
+      "explanation": "Virtual try-on and lifestyle lookbooks, wrapping flat garments onto models while keeping texture, folds and branding. Its lessons' See tab shows \"Open AI Fashion Studio\".",
+      "whyToUse": "Fashion imagery.",
+      "inputRequired": "None.",
+      "restrictions": "The \"Open AI Fashion Studio\" button navigates to a page id derived from /studios/fashion-studio; whether that page exists in your build is not confirmed."
+    },
+    {
+      "feature": "Track 09: 09-ai-real-estate-staging - AI Real Estate (Virtual Staging) (3 lessons, 3 templates)",
+      "explanation": "Stage a listing quickly: turn vacant properties into furnished homes with AI inpainting, perspective locking and realtor sales pipelines.",
+      "whyToUse": "Real-estate photos.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 10: 10-ai-headshots-and-portraits - AI Headshots & Portraits (4 lessons, 4 templates)",
+      "explanation": "Turn smartphone selfies into studio-grade corporate and creative portraits: identity locking, B2B team packages, bulk automation, editorial lighting.",
+      "whyToUse": "Portrait and headshot work.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 11: 11-ai-print-on-demand-and-merch - AI Print-on-Demand & Merch Design (4 lessons, 4 templates)",
+      "explanation": "Turn AI artwork into physical products: vector prompting, 300 DPI upscaling, automated store fulfillment, catalog expansion.",
+      "whyToUse": "Merch and POD.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 12: 12-ai-stock-content-and-licensing - AI Stock Content & Licensing (3 lessons, 4 templates)",
+      "explanation": "Generate once, license repeatedly: build a high-volume stock catalog for recurring royalties, with no client management.",
+      "whyToUse": "Passive stock income.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 13: 13-ai-tools-mastery - AI Tools Mastery (4 lessons, 4 templates)",
+      "explanation": "A buyer's guide rather than tool tutorials: which tool for which creative outcome across image, video, voice and hosting.",
+      "whyToUse": "Choosing the right model/tool.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 14: 14-ai-freelancing-and-agency-business - AI Freelancing & Agency Business (5 lessons, 4 templates)",
+      "explanation": "Value-based pricing, contracts, outbound client acquisition, agency delegation and ROI-driven portfolios.",
+      "whyToUse": "Turn skills into clients.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "Track 15: 15-ai-agents-and-vibe-coding - AI Agents & Vibe-Coding for Creators (4 lessons, 4 templates)",
+      "explanation": "Use coding agents (Claude Code, Cursor and similar) to build and sell your own micro-tools, not just AI media.",
+      "whyToUse": "Build your own tools without being a developer.",
+      "inputRequired": "None.",
+      "restrictions": "None known."
+    },
+    {
+      "feature": "\"Try this in <Studio>\" on example media",
+      "explanation": "In the See tab, open an example and click \"Try this in <Studio>\". It sends the example's title and description as a prompt to a studio chosen by the example's track: 01 Video Studio (with model MiniMax Hailuo 3 (H3) preselected), 02 Cinema Studio, 03 Video Studio, 04 Template Studio (templates), 05 Avatar Studio, 06 Audio Studio, 07-11 Image Studio, 12 Video Studio, 13 Video Studio, 14 Template Studio, 15 Video Studio. If an example has no mapping the button reads \"Try this in Studio\" and opens the image route.",
+      "whyToUse": "Recreate an example yourself.",
+      "inputRequired": "Open an example image/video.",
+      "restrictions": "Pre-fills the studio; you still generate there, and generation uses that studio's own rules and credits."
+    }
+  ],
+  "howToUse": "1. Open Academy from the side menu (#/academy). 2. Click a track card under \"Tracks\". 3. Click a lesson under \"Lessons (N)\" to open it (it is marked in-progress). 4. On the Learn tab read the content and click \"Read full lesson\" for the whole text. 5. Open the See tab for example media; click an example and \"Try this in <Studio>\" to open the matching studio. 6. Open the Create tab and click \"Open template\" for a linked template, then fill it in and click \"Use Template\" (copies it) or \"Create With Smart Video\". 7. Click the round check button (\"Mark as completed\") when done. 8. Click \"Bookmark for later\" (star) to save it and \"Copy link\" to share it. 9. Click \"Back to track\" or \"All tracks\" to continue.",
+  "howToSteps": [
+    "Open Academy from the side menu (#/academy).",
+    "Click a track card under \"Tracks\".",
+    "Click a lesson under \"Lessons (N)\".",
+    "On the Learn tab, read it and click \"Read full lesson\" for the full text.",
+    "Open the See tab for example media and app links.",
+    "Open the Create tab and click \"Open template\" on a linked template.",
+    "Fill the template and click \"Use Template\" or \"Create With Smart Video\".",
+    "Click the round check button to mark the lesson completed.",
+    "Use the star (\"Bookmark for later\") and \"Copy link\" as needed."
+  ],
+  "gettingStarted": [
+    "Open #/academy and pick Track 01 (AI Video Ads & UGC) if you are new; its lessons have the fullest content.",
+    "Open the first lesson and read The problem and The concept.",
+    "Try the Create tab and click \"Show example\" in a template to see a filled-in sample.",
+    "Mark lessons complete as you go so the Progress bar fills."
+  ],
+  "inputs": [
+    "Track choice",
+    "Lesson choice",
+    "Completed / in-progress status clicks",
+    "Bookmark clicks",
+    "Template field text (track 01 editors)"
+  ],
+  "requiredInputs": [],
+  "optionalInputs": [
+    "Track and lesson selection",
+    "Bookmarks",
+    "Template fields"
+  ],
+  "inputDetails": [
+    {
+      "name": "Lesson status button",
+      "description": "Round button on each lesson row/page: empty circle (not started), blue dot (in-progress), green check (completed).",
+      "required": false,
+      "whenToUse": "When you finish or want to unmark a lesson.",
+      "restrictions": "Saved in this browser only (localStorage key academy_progress)."
+    },
+    {
+      "name": "Bookmark star",
+      "description": "Star icon to save a lesson; shows as a filled star when bookmarked.",
+      "required": false,
+      "whenToUse": "To save a lesson for later.",
+      "restrictions": "Saved in this browser only (localStorage key academy_bookmarks)."
+    },
+    {
+      "name": "Template fields",
+      "description": "Text boxes in track 01 templates, for example Product / service, Target platform(s) / aspect ratio, Number of variants needed, Tone, Brand / legal constraints, Existing brand assets, Deadline / revision rounds (Ad Brief); Brand, Contact name, Product, Sample ad link, Turnaround (days), Your name (Outreach); Client, Scope, Price, Includes, Turnaround, Term, Why this works (Retainer).",
+      "required": false,
+      "whenToUse": "When building a brief, outreach message or proposal.",
+      "restrictions": "Not saved when you leave the page; copy it with \"Use Template\" first."
+    }
+  ],
+  "generationModes": [],
+  "modeExplanations": [
+    {
+      "mode": "Learn / See / Create tabs",
+      "description": "Not generation modes. Learn reads the lesson, See shows examples, Create links to templates. Template pages order the tabs Create, See, Learn.",
+      "useCase": "Move from reading to making."
+    }
+  ],
+  "modelCapabilities": "The Academy is a learning area and does not generate media. The only model reference in code is that examples from track 01 open Video Studio with MiniMax Hailuo 3 (H3) preselected when you click \"Try this in Studio\"; generation itself happens in the studio.",
+  "outputs": [
+    "Lessons and templates to read",
+    "Filled-in template text copied to your clipboard (\"Use Template\", \"Copy brief\")",
+    "A pre-filled studio (via \"Try this in <Studio>\" or \"Open in Studio\")",
+    "A share link (\"Copy link\")",
+    "Saved progress and bookmarks in your browser"
+  ],
+  "limitations": [
+    "Progress and bookmarks live only in your browser's local storage; the code shows no account sync.",
+    "Template editor text is not saved.",
+    "No search box, filters or certificates in the code.",
+    "The Academy does not generate media.",
+    "Only track 01 has the structured Learn cards and interactive template editors; the other tracks are document-style.",
+    "\"Reset progress\" clears all progress immediately, with no confirmation.",
+    "Some lessons say \"App for this lesson is under development.\""
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Progress is per browser",
+      "impact": "A different browser, device or a cleared cache shows no progress or bookmarks.",
+      "workaround": "Keep using the same browser profile; there is no export in the code."
+    },
+    {
+      "limitation": "Template inputs are not saved",
+      "impact": "Leaving the template page loses what you typed.",
+      "workaround": "Click \"Use Template\" to copy the text and paste it somewhere safe before leaving."
+    },
+    {
+      "limitation": "No confirmation on Reset progress",
+      "impact": "All completed/in-progress marks disappear at once.",
+      "workaround": "Only click it if you really want to start over; you can re-mark lessons manually."
+    },
+    {
+      "limitation": "Bookmarks apply to lessons only",
+      "impact": "Templates cannot be bookmarked.",
+      "workaround": "Bookmark the linked lesson."
+    }
+  ],
+  "troubleshooting": [
+    "A shared link opens the Academy hub instead of the lesson: the lesson or track ID in the link is wrong or no longer exists, or the link is missing the \"/track/<trackSlug>\" part. Copy the link again using \"Copy link\" on the lesson page, or open the track and click the lesson.",
+    "My progress is missing on another browser or device: progress and bookmarks are stored only in that browser. Re-mark lessons on the new browser.",
+    "My progress disappeared: you may have clicked \"Reset progress\", cleared site data, or are in a private window. Re-mark lessons manually.",
+    "Full lesson shows \"Could not load content.\": the lesson text file could not be fetched; check your connection, reload and click \"Read full lesson\" again.",
+    "Full lesson stays on \"Loading...\": wait a moment or reload the page.",
+    "A lesson says \"App for this lesson is under development.\": that lesson's app is marked as needed in the data; use the studios directly instead.",
+    "\"Open AI Product Studio\" / \"Open AI Fashion Studio\" does not open the expected page: this button only exists on tracks 07 and 08; if it lands somewhere unexpected, open the studio from the side menu (Image Studio or Apps).",
+    "Template says \"No example media for this item.\": that item has no examples; use the Learn and Create tabs.",
+    "A lesson or template editor opens blank: the item ID may be wrong; go back with \"Back to track\" or \"All tracks\".",
+    "Copy buttons do nothing: the browser may block clipboard access; allow clipboard permission or select the text manually."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Link opens the hub instead of a lesson",
+      "steps": [
+        "Open the Academy and click the track, then the lesson.",
+        "Click \"Copy link\" on the lesson page and use that link.",
+        "Check the link looks like #/academy/track/<trackSlug>/lesson/<lessonId>.",
+        "For tracks 02-15 the lessonId contains \"::\", for example 02-ai-filmmaking::01-screenplay-and-story; do not remove it."
+      ]
+    },
+    {
+      "issue": "Progress or bookmarks missing",
+      "steps": [
+        "Check you are on the same browser and profile where you made progress.",
+        "Check you are not in a private/incognito window and have not cleared site data.",
+        "If you clicked \"Reset progress\", the data cannot be restored; re-mark lessons."
+      ]
+    },
+    {
+      "issue": "Full lesson will not load",
+      "steps": [
+        "Reload the page.",
+        "Open the lesson again and click \"Read full lesson\".",
+        "Read the Learn cards or summary meanwhile."
+      ]
+    },
+    {
+      "issue": "Template text lost",
+      "steps": [
+        "Fields are not saved when you leave the page.",
+        "Click \"Use Template\" to copy before leaving and paste it elsewhere."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Shared lesson link goes to the hub",
+      "whyItHappens": "The page falls back to the hub when the track or lesson ID is not found.",
+      "howToFix": "Re-copy the link with \"Copy link\" from the lesson page."
+    },
+    {
+      "problem": "Progress not on my other device",
+      "whyItHappens": "Progress is saved in that browser's localStorage only.",
+      "howToFix": "Mark lessons again on the other device."
+    },
+    {
+      "problem": "Track titles look odd, for example \"03 Faceless Ai Channels\"",
+      "whyItHappens": "The catalog stores those titles in that form for tracks 03-08.",
+      "howToFix": "No fix needed; the track slug and summary identify the track."
+    },
+    {
+      "problem": "Reset progress wiped everything",
+      "whyItHappens": "The button has no confirmation.",
+      "howToFix": "Re-mark lessons manually."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Learn UGC ads then build a brief",
+      "steps": [
+        "Open #/academy and click \"AI Video Ads & UGC\".",
+        "Click lesson \"How AI UGC Actually Works\" and read The problem and The concept.",
+        "Open the Create tab and click \"Open template\" on \"Ad Brief Checklist\".",
+        "Click \"Show example\" to see a sample, then clear it and fill your own fields.",
+        "Click \"Create With Smart Video\", review the brief, then \"Copy brief\" or \"Open in Studio\".",
+        "Go back and click the round check button to mark the lesson completed."
+      ]
+    },
+    {
+      "title": "Save and share a lesson",
+      "steps": [
+        "Open a track and click a lesson.",
+        "Click \"Bookmark for later\".",
+        "Click \"Copy link\" (it shows \"Copied!\") and paste the link to a teammate.",
+        "Later, find the lesson under \"Bookmarks (N)\" on the hub."
+      ]
+    },
+    {
+      "title": "Try an example in a studio",
+      "steps": [
+        "Open a lesson and go to the See tab.",
+        "Click an example image or video to enlarge it.",
+        "Click \"Try this in <Studio>\".",
+        "Review the pre-filled prompt in the studio and generate there."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Start earning with UGC ads",
+      "description": "Follow track 01 from concept to pricing.",
+      "steps": [
+        "Open the AI Video Ads & UGC track.",
+        "Work through the five lessons in order.",
+        "Use the UGC Script Template and Batch Matrix Template.",
+        "Use the Outreach Template and Retainer Proposal Template to pitch clients."
+      ],
+      "expectedOutput": "Filled templates you copied out, and five lessons marked completed."
+    },
+    {
+      "title": "Pick the right AI tool",
+      "description": "Use the AI Tools Mastery track as a buyer's guide.",
+      "steps": [
+        "Open the track 13-ai-tools-mastery.",
+        "Read the first lesson on image models.",
+        "Open the related studio from the side menu."
+      ],
+      "expectedOutput": "A clear choice of tool for your goal."
+    },
+    {
+      "title": "Plan a short film",
+      "description": "Use the AI Filmmaking track for story and shots.",
+      "steps": [
+        "Open AI Filmmaking.",
+        "Read screenplay, storyboard and camera lessons.",
+        "Open the track's templates and click \"Use Template\"."
+      ],
+      "expectedOutput": "A copied template and a plan to take into Cinema Studio."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Does the Academy generate videos or images?",
+      "answer": "No. It is a learning area. Buttons such as \"Try this in <Studio>\" or \"Open in Studio\" take you to a studio where you generate."
+    },
+    {
+      "question": "Is my progress saved to my account?",
+      "answer": "The code saves progress (academy_progress) and bookmarks (academy_bookmarks) in your browser's localStorage only. Nothing in the code syncs them to an account or other devices."
+    },
+    {
+      "question": "How many tracks, lessons and templates are there?",
+      "answer": "15 tracks, 66 lessons and 77 templates, according to the catalog."
+    },
+    {
+      "question": "How do I mark a lesson complete?",
+      "answer": "Click the round check button next to the lesson title (on the lesson page or the track list). Click it again to mark it incomplete."
+    },
+    {
+      "question": "How do I share a lesson?",
+      "answer": "Open the lesson and click \"Copy link\". The link looks like #/academy/track/<trackSlug>/lesson/<lessonId> after your site address."
+    },
+    {
+      "question": "How do I reset everything?",
+      "answer": "On the hub, click \"Reset progress\". It clears all lesson progress immediately. It does not clear bookmarks."
+    },
+    {
+      "question": "What does \"Use Template\" do?",
+      "answer": "It copies the template text to your clipboard and briefly shows \"Copied!\"."
+    },
+    {
+      "question": "What does \"Create With Smart Video\" do?",
+      "answer": "On track 01 templates it opens a brief dialog with \"Copy brief\" and \"Open in Studio\". In the Create tab of a lesson it launches the linked SmartVideo recipe directly. It only appears on templates that have a recipe linked."
+    },
+    {
+      "question": "Which track should I start with?",
+      "answer": "Track 01, AI Video Ads & UGC, has the most structured lessons and interactive templates. Pick any track that matches your goal."
+    },
+    {
+      "question": "Can I bookmark templates?",
+      "answer": "No, only lessons have a bookmark star."
+    }
+  ],
+  "glossary": {
+    "Track": "A group of related lessons and templates, such as AI Filmmaking.",
+    "Lesson": "A reading page with Learn, See and Create tabs.",
+    "Template": "A fill-in or copyable document such as a brief, script, worksheet or proposal.",
+    "Learn / See / Create": "The three lesson tabs: read, see examples, make a deliverable.",
+    "In-progress": "A lesson you opened but have not marked completed.",
+    "Completed": "A lesson you marked with the green check.",
+    "Bookmark": "A star on a lesson to find it under Bookmarks on the hub.",
+    "Track slug": "The short folder-style track name in the URL, such as 02-ai-filmmaking.",
+    "Recipe": "A prepared SmartVideo setup that \"Create With Smart Video\" launches.",
+    "UGC": "User-generated-content style ads, the subject of track 01."
+  },
+  "tips": [
+    "Click \"Show example\" in track 01 templates first to see what a good answer looks like.",
+    "Use \"Use Template\" to copy your work before leaving a template page.",
+    "Bookmark lessons you want to revisit; they show on the hub.",
+    "The browser back button works between hub, track, lesson and template pages."
+  ],
+  "bestPractices": [
+    "Work through a track in lesson order.",
+    "Read the lesson, then use the Create tab to produce something.",
+    "Mark lessons complete only when you have finished the exercise.",
+    "Do not rely on progress being available on other devices."
+  ],
+  "relatedStudios": [
+    "apps",
+    "templates",
+    "explore",
+    "image",
+    "video",
+    "cinema",
+    "avatar",
+    "audio",
+    "commercial",
+    "storyboard",
+    "upscale"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "video",
+      "relationship": "Tracks 01, 03, 12, 13 and 15 map \"Try this in Studio\" to Video Studio.",
+      "whenToMove": "When you want to generate a clip from a lesson example.",
+      "why": "It generates the video you learned about."
+    },
+    {
+      "studio": "cinema",
+      "relationship": "Track 02 (AI Filmmaking) examples open Cinema Studio.",
+      "whenToMove": "When you are ready to make cinematic shots.",
+      "why": "Cinematic generation lives there."
+    },
+    {
+      "studio": "image",
+      "relationship": "Tracks 07-11 examples open Image Studio.",
+      "whenToMove": "When you want product, fashion, staging, portrait or merch images.",
+      "why": "It generates the images."
+    },
+    {
+      "studio": "avatar",
+      "relationship": "Track 05 examples open Avatar Studio.",
+      "whenToMove": "When you want to build a character or talking avatar.",
+      "why": "Avatar generation lives there."
+    },
+    {
+      "studio": "audio",
+      "relationship": "Track 06 examples open Audio Studio.",
+      "whenToMove": "When you want voice, music or sound.",
+      "why": "Audio generation lives there."
+    },
+    {
+      "studio": "templates",
+      "relationship": "Tracks 04 and 14 map to the Templates page for \"Try this in Studio\".",
+      "whenToMove": "When you want ready-made templates to generate from.",
+      "why": "Different from Academy templates, which are learning documents."
+    },
+    {
+      "studio": "apps",
+      "relationship": "The Academy \"Exit\" button goes to the Apps page.",
+      "whenToMove": "When you want to browse all tools.",
+      "why": "Central list of studios."
+    }
+  ],
+  "notConfirmed": [
+    "Whether the lesson-level \"Open AI Product Studio\" and \"Open AI Fashion Studio\" buttons (tracks 07 and 08, path /studios/product-photo-studio and /studios/fashion-studio) open a working page in the current app; the code only calls navigate() with the path minus the leading slash.",
+    "Exact recipes behind \"Create With Smart Video\" for each template (recipe ids are in template-recipes, which was not read in detail), and which of the 77 templates have one beyond the three in track 01.",
+    "Which lessons in tracks 02-15 have example media in the See tab (asset data in academyAssets.js was not read in full).",
+    "Whether track READMEs under src/content/academy match the catalog summaries exactly; summaries here come from the catalog.",
+    "Whether progress or bookmarks sync across devices through any account feature outside the Academy code (none found).",
+    "The exact side-menu position and whether the menu label is shown as \"Academy\" in every build.",
+    "How the \"Create With Smart Video\" recipe launch behaves (which studio opens and what is pre-filled) because it is handled by lib/recipes/executor.js, not read here.",
+    "Estimated lesson times for tracks other than 01 (only 01 lessons were checked; the time label appears only when a lesson has one)."
+  ],
+  "sourceFiles": [
+    "src/components/academy/AcademyPage.jsx",
+    "src/components/academy/InteractiveTemplates.jsx",
+    "src/components/academy/Markdown.jsx",
+    "src/data/academy/catalog.js",
+    "src/data/academy/studioRoutes.ts",
+    "src/data/academy/withStudioRoutes.js",
+    "src/data/academyApps.js",
+    "src/data/academyStudioAdapters.js",
+    "src/data/askAcademyMap.js",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read AcademyPage.jsx, InteractiveTemplates.jsx, Markdown.jsx (error strings), catalog.js (counts via node), studioRoutes.ts, withStudioRoutes.js, academyApps.js, askAcademyMap.js, router.js (academy route).",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

@@ -212,6 +212,7 @@ export const STUDIO_ACADEMY = {
   'find-my-brand': { tracks: [], lessons: [] },
   'website-builder': { tracks: [], lessons: [] },
   render: { tracks: [], lessons: [] },
+  academy: { tracks: [], lessons: [] },
   library: { tracks: [], lessons: [] },
   'content-library': { tracks: [], lessons: [] },
   apps: { tracks: [], lessons: [] },

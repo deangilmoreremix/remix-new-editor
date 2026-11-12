@@ -67,6 +67,7 @@ const GENERIC = ['What can I do in SmartVideo?', 'Where do I start as a beginner
 /** Three starter questions for the studio the user is in ("how do I X / what inputs / which lessons"). */
 export function starterPrompts(studioId) {
   if (!studioId || studioId === 'apps') return GENERIC;
+  if (studioId === 'academy') return ['How do the Academy tracks work?', 'Which Academy track should I start with?', 'How do I save my progress in a lesson?'];
   const label = getStudioLabel(studioId);
   if (label === studioId) return GENERIC;
   const out = [`How do I use ${label} step by step?`, `What inputs does ${label} need?`];

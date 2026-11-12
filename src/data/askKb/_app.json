@@ -1,351 +1,353 @@
 {
- "facts": [
-  {
-   "id": "api-keys-overview",
-   "title": "Which API keys the app uses (bring your own keys)",
-   "text": "SmartVideo works on your own provider keys (bring-your-own-key). In Settings the key forms are: \"Muapi API Key\" (described as \"Used for video generation and Muapi-powered effects.\"), \"OpenAI API Key\" (\"Used for image and text generation via OpenAI models.\"), \"VideoDB API Key\" (\"Used by the Timeline Editor, Video Agent, Render and Director for video indexing, search and retrieval via VideoDB.\"), and two optional stock-media keys, \"Pexels API Key (optional)\" and \"Pixabay API Key (optional)\". The server side states that there is no platform-key fallback: functions run on the keys your browser sends. In practice: the MuAPI key powers generation in the studios; the OpenAI key powers the AI features that call OpenAI, such as Ask SmartVideo, the Timeline AI tools, Director, Video Agent and Workbench. Without the right key those features ask you to add it.",
-   "route": "settings",
-   "intents": [
-    "what api keys do I need",
-    "which key do I need for generation",
-    "do I need an openai key",
-    "muapi key vs openai key",
-    "bring your own key",
-    "byok",
-    "why do I need my own api key",
-    "what is the videodb key for"
-   ],
-   "sources": [
-    "src/components/SettingsModal.js",
-    "src/lib/apiKeyManager.js",
-    "netlify/functions/_shared/byok.js",
-    "src/lib/openaiKeyHeader.js"
-   ]
-  },
-  {
-   "id": "api-keys-setup",
-   "title": "How to add or change your API keys",
-   "text": "The key form is a popup titled \"Welcome — set up your API keys\" with the text \"Add your provider API keys to create content. Each key is stored separately on this device. You can change these anytime from Settings.\" It opens by itself once per browser session when you land in the app with no keys saved. It also opens when you press Generate in a studio without a MuAPI key, and Ask SmartVideo shows an \"Open Settings → API keys\" button that opens it. Each provider has its own form: paste the key, press \"Save Muapi API Key\" or \"Save OpenAI API Key\" (the button reads \"Saved ✓\" when done), \"Clear\" to remove it, or \"Test\" to check it. Each form has a \"Grab API Key\" link that opens the provider page in a new tab (muapi.ai/access-keys for Muapi, platform.openai.com/login for OpenAI). \"Skip for now\" and \"Done\" close the popup. The header key icon (tooltip \"Update API Key\") clears your saved MuAPI key and reloads the page.",
-   "route": "settings",
-   "intents": [
-    "where do I enter my api key",
-    "how to add muapi key",
-    "how do I set up my openai key",
-    "change my api key",
-    "where is settings",
-    "api key popup",
-    "remove my api key",
-    "grab api key"
-   ],
-   "sources": [
-    "src/components/SettingsModal.js",
-    "src/main.js",
-    "src/components/Header.js",
-    "src/features/ask-smartvideo/AskSmartVideo.js",
-    "src/components/AuthModal.js"
-   ]
-  },
-  {
-   "id": "api-keys-format",
-   "title": "API key formats, checks and error messages",
-   "text": "Placeholders in the forms: \"sk-... (Muapi key)\", \"sk-... (OpenAI key)\", \"VideoDB access token\", \"Pexels API key\" and \"Pixabay API key\". Before saving, the form checks the format: no spaces (\"contains spaces — copy the key without any extra characters\"), not pasted twice (\"looks duplicated — it appears to be pasted twice. Paste it once.\"), and at least 10 characters (\"appears too short\"). Leaving the box empty and saving clears the key. The server accepts an OpenAI key that starts with \"sk-\" followed by at least 20 letters, digits, underscores or hyphens, and a MuAPI key of 16 to 200 letters, digits, dots, underscores or hyphens. Messages you may see: \"This uses your own MuAPI key. Add it in SmartVid → Settings → API keys (MuAPI API Key).\"; \"OpenAI rejected your API key. Check it in SmartVid → Settings → API keys.\"; \"Your OpenAI account is rate-limited or out of credit. Check your OpenAI billing, then try again.\"; \"MuAPI rejected your API key, or the account is out of credit. Check it in SmartVid → Settings → API keys.\" Never share your key in chat or screenshots.",
-   "route": "settings",
-   "intents": [
-    "api key too short",
-    "api key looks duplicated",
-    "my key is rejected",
-    "openai rejected your api key",
-    "muapi rejected key",
-    "out of credit error",
-    "key contains spaces",
-    "what does a muapi key look like"
-   ],
-   "sources": [
-    "src/components/SettingsModal.js",
-    "netlify/functions/_shared/byok.js"
-   ]
-  },
-  {
-   "id": "api-keys-storage",
-   "title": "Where your API keys are stored",
-   "text": "Keys you save are kept in your own browser on this device, per provider. When you press Save, the key is stored for the current tab session (session storage) and also persisted in the browser (local storage), lightly obfuscated rather than strongly encrypted, according to the code comments. Because they live in your browser, a key saved in one browser or device does not appear in another, and clearing site data removes it. The browser sends the key with each request that needs it (headers X-MuAPI-Key and X-OpenAI-Key) and the server code says keys are never logged or stored. Use the Clear button in Settings to remove a key. Use a key you can revoke at the provider if you ever suspect it leaked.",
-   "route": "settings",
-   "intents": [
-    "is my api key safe",
-    "where is my api key stored",
-    "does smartvideo store my key",
-    "how to delete my api key",
-    "key not saved on another device"
-   ],
-   "sources": [
-    "src/lib/apiKeyManager.js",
-    "netlify/functions/_shared/byok.js",
-    "src/lib/openaiKeyHeader.js"
-   ]
-  },
-  {
-   "id": "what-is-ask-smartvideo",
-   "title": "What Ask SmartVideo is and how to use it",
-   "text": "Ask SmartVideo is the floating help assistant, opened with the \"Ask SmartVideo\" launcher button. It answers questions about the studios and points you to the right one with source chips such as \"Open <studio>\". The header shows \"You're in <studio>\" when you are inside a studio, or \"Help for every studio\". It uses retrieved help content and your own OpenAI key: if none is saved it shows \"Ask SmartVideo uses your own OpenAI key.\" with an \"Open Settings → API keys\" button. You must be signed in (\"Sign in to use Ask SmartVideo.\"), and asking too fast gives \"You are asking too fast. Please wait a moment.\" Type in the box (\"Ask about any studio…\", up to 1500 characters), press Enter to send and Shift+Enter for a new line. Esc closes the panel and \"Clear\" erases the conversation. The conversation is kept for the browser tab only.",
-   "route": "apps",
-   "intents": [
-    "what is ask smartvideo",
-    "how do I use the help assistant",
-    "help chat",
-    "ask smartvideo not working",
-    "ask smartvideo needs api key",
-    "how to get help in the app",
-    "the assistant asks me to sign in"
-   ],
-   "sources": [
-    "src/features/ask-smartvideo/AskSmartVideo.js",
-    "netlify/functions/ask-smartvideo.mjs"
-   ]
-  },
-  {
-   "id": "sign-in-up",
-   "title": "Signing in, signing up and resetting your password",
-   "text": "Accounts are handled by Clerk. The pages are /signin, /signup, /forgot-password, /reset-password, /account and /profile. Sign in shows \"Welcome Back / Sign in to continue your creative journey\" with email, password, \"Remember me\", \"Forgot password?\" and a \"Sign In\" button. Sign up shows \"Start Your Journey / Create your account and start creating\" with full name, email and password, then \"Create Account\"; next you get \"Verify Your Email\" where you enter the 6-digit code emailed to you, then \"Verify Email\". Password reset works by an emailed code: open \"Forgot password?\", enter your email, then follow the code and new-password steps. Errors show messages such as \"Sign in failed. Please check your credentials.\" The header shows a \"Sign In\" link when you are signed out.",
-   "route": "signin",
-   "intents": [
-    "how do I sign up",
-    "how to create an account",
-    "sign in problem",
-    "forgot my password",
-    "reset password",
-    "verification code email",
-    "where do I log in",
-    "login"
-   ],
-   "sources": [
-    "src/components/auth/ClerkAuth.jsx",
-    "src/components/landing/SignInPage.jsx",
-    "src/components/landing/SignUpPage.jsx",
-    "src/components/landing/ForgotPasswordPage.jsx",
-    "src/components/auth/HeaderAuth.jsx"
-   ]
-  },
-  {
-   "id": "account-profile",
-   "title": "Your account and profile pages",
-   "text": "When signed in, the header shows your email address (on wide screens) and a user menu with \"Profile\", \"Account\" and \"Sign out\". The Account page (/account) shows your avatar, \"Profile Information\" (Full Name, Username, Member since), \"Email Addresses\" with a Verified or Unverified tag, \"Quick Links\" (Edit Profile and Change Password) and a \"Sign Out\" section. Change Password sends you to the forgot-password flow. The Profile page (/profile) says \"Manage your account details, security, and preferences.\" and embeds the account manager for editing details. If you open these pages while signed out you are shown the sign-in (or sign-up) page. Billing and subscription management screens are not described in the repository.",
-   "route": "account",
-   "intents": [
-    "where is my account",
-    "how do I change my password",
-    "edit my profile",
-    "how to sign out",
-    "where do I see my email",
-    "account page",
-    "logout"
-   ],
-   "sources": [
-    "src/components/auth/ClerkAuth.jsx",
-    "src/components/auth/HeaderAuth.jsx"
-   ]
-  },
-  {
-   "id": "plan-access-gating",
-   "title": "Which actions need a plan with full access",
-   "text": "The app checks for a feature named \"smartvideo_full_access\" through your account (a billing entitlement) or a legacy-access flag on the account. If you are signed out or lack it, certain actions stop with the toast \"Upgrade to access this feature\". In the code these checks run when you press Generate or similar actions in Upscale Suite, Effects Studio, Avatar Studio, Character Studio, Storyboard Studio (generating frames and exporting PDF), Render (actions) and Director (each command; its message says \"This feature requires an active subscription. Please check your plan in Settings.\"). Other studios such as Image Studio and Video Studio do not show this check in the code reviewed. Separately you still need your own MuAPI key for generation. Exact plan tiers and what each includes in the product are not documented beyond the offer text.",
-   "route": "apps",
-   "intents": [
-    "why does it say upgrade to access this feature",
-    "which features need a paid plan",
-    "what does my plan include",
-    "do I need to pay to use upscale",
-    "requires an active subscription",
-    "full access"
-   ],
-   "sources": [
-    "src/lib/clerkEntitlements.js",
-    "src/components/UpgradePrompt.js",
-    "src/components/UpscaleStudio.js",
-    "src/components/DirectorPage.js",
-    "src/components/RenderPage.js"
-   ]
-  },
-  {
-   "id": "pricing-offer",
-   "title": "The Lifetime and Whitelabel offers as shown on the landing page",
-   "text": "The landing page offer is \"Get Lifetime Access Today\" with the line \"Pay once, own forever. No subscriptions, no hidden fees.\" Two plans: \"Lifetime Access\" at $199, \"One-time payment • Forever yours\", which lists full access to all 34 AI Creative Apps, all 60+ AI Features & Capabilities, a 200+ AI Models Library, Commercial Usage Rights, Priority Support Access and Lifetime Updates, with a \"30-day money-back guarantee\". \"Whitelabel Pro\" at $997, \"One-time payment • Full ownership\", labelled \"Most Popular\" and \"Everything in Lifetime, plus\": Your Own Branding (remove all watermarks and use custom logos), Resell Rights, Whitelabel Domain, Priority GPU+ (10x faster rendering speeds), Unlimited Clients, API Access, Custom Workflows and Dedicated Support (24/7 priority assistance), with \"30-day money-back guarantee • Instant delivery\". Checkout buttons read \"Get Lifetime Access — $199\" and \"Get Whitelabel Pro — $997\". This is marketing copy from the page; it does not describe credits, usage limits or team seats.",
-   "route": "",
-   "intents": [
-    "how much does it cost",
-    "pricing",
-    "is there a subscription",
-    "lifetime deal",
-    "what is whitelabel",
-    "price of smartvideo",
-    "money back guarantee",
-    "$199",
-    "$997"
-   ],
-   "sources": [
-    "src/components/landing/sections/OfferSection.jsx"
-   ]
-  },
-  {
-   "id": "side-menu-navigation",
-   "title": "The side menu and how to navigate",
-   "text": "The left side menu is the main way to move around (on phones it opens with the menu button at the top left). It has five groups. Top, with no heading: Apps, Explore, Templates. Image: Image, Edit, Upscale, Character, Product Shot, Brand. Video: Video, Cinema, Cinema Templates, Storyboard, Effects, AI VFX, Animate, Lip Sync, Video Tools, Avatar, Audio. Agents: Video Agent, Director, Timeline, Workbench, Viral, Personalizer, Website. My Work: Library, Content. The current page is highlighted. The Apps page lists the same tools as cards with a search box, and clicking the logo at the top left of the header opens Apps. Pages use addresses like #/image. Some routes are part of a menu entry: for example Brand DNA, Campaign and Photo Studio belong to Brand, and text-to-image or image-to-image belong to Image.",
-   "route": "apps",
-   "intents": [
-    "how do I navigate",
-    "where is the menu",
-    "what tools exist",
-    "list of studios",
-    "where do I find upscale",
-    "side menu",
-    "how do I open video studio",
-    "what are the menu sections"
-   ],
-   "sources": [
-    "src/lib/studioRoutes.js",
-    "src/components/Sidebar.js",
-    "src/components/AppsHub.js",
-    "src/components/Header.js"
-   ]
-  },
-  {
-   "id": "retired-routes",
-   "title": "Chat, Assist, Training and Community pages were retired",
-   "text": "Several older pages no longer exist and old links redirect to the closest live page: Training, Chat and Assist open the Apps hub; Community opens Explore; and the old pexels-media page opens Library. If you were looking for a chat assistant, use Ask SmartVideo (the floating help button) for questions about the app, or the Video Agent and Director apps for AI-driven video work. Stock photos and videos from Pexels are now reached through \"Browse Stock Media\" on the Content page.",
-   "route": "apps",
-   "intents": [
-    "where did chat go",
-    "what happened to the assist page",
-    "training page missing",
-    "community page",
-    "ai assistant chat",
-    "pexels media page",
-    "page not found chat"
-   ],
-   "sources": [
-    "src/lib/router.js",
-    "src/components/ContentLibraryPage.js"
-   ]
-  },
-  {
-   "id": "where-files-go",
-   "title": "Where your generated files are saved",
-   "text": "Everything you create in any studio is saved automatically in Library (side menu, My Work group), which shows your images, videos and audio and a separate Uploads view of files you uploaded. History is merged from cloud storage and your browser, and when a MuAPI key is saved MuAPI's own history is added too. In Library you can Download, Copy prompt, Save (to Content) or Delete an item. Content is the shelf for items you chose to keep: saved generations, uploads, PDFs and Pexels stock media. Saved items in Content are stored in your browser. How long generated links stay valid and storage limits are not stated in the code.",
-   "route": "library",
-   "intents": [
-    "where do my generations go",
-    "where are my videos saved",
-    "how do I download my image",
-    "find my past generations",
-    "where is my history",
-    "library vs content",
-    "where are my uploads"
-   ],
-   "sources": [
-    "src/components/LibraryPage.js",
-    "src/components/ContentLibraryPage.js",
-    "src/lib/contentLibrary.js"
-   ]
-  },
-  {
-   "id": "credit-balance-chip",
-   "title": "The balance chip in the header",
-   "text": "In the top bar the app shows a small rounded chip with a dollar amount such as \"$12.34\". Its tooltip is \"MuAPI credit balance\". It reads the balance of your MuAPI account, so it needs a saved MuAPI key; until a balance has been read, or if it cannot be read, the chip stays hidden. It refreshes after each finished generation and when you return to the browser tab (at most once every 30 seconds). The code does not say how credits are priced per model, how to top up or how billing works; top-ups are handled with your MuAPI account, which is not documented in this app.",
-   "route": "apps",
-   "intents": [
-    "what is the number in the top bar",
-    "how much credit do I have",
-    "where do I see my balance",
-    "balance not showing",
-    "how to buy credits",
-    "muapi credit balance"
-   ],
-   "sources": [
-    "src/components/Header.js",
-    "src/lib/muapi.js"
-   ]
-  },
-  {
-   "id": "model-picker-basics",
-   "title": "Choosing a model in a studio",
-   "text": "Most generation studios have a model picker next to the prompt so you can choose which AI model makes the result. The list depends on the studio and the task: for example the Apps hub badges say Image Studio has 20+ models and Video Studio 15+ models. In Template Studio the picker shows \"Model · <route>\" (for example Image → Video) and only offers models that accept the media you attached; if the chosen model is not compatible it falls back to the first model for that route and says so. Some studios show an estimated cost line like \"≈ 5 USD\" beside Generate when the estimate is available; it is best-effort and simply hidden if unavailable. Model-by-model quality comparisons are not described in the app.",
-   "route": "image",
-   "intents": [
-    "how do I choose a model",
-    "which model is best",
-    "model picker",
-    "change the ai model",
-    "estimated cost next to generate",
-    "why is my model not available"
-   ],
-   "sources": [
-    "src/components/AppsHub.js",
-    "src/components/TemplateStudio.js",
-    "src/components/studio/costEstimate.js",
-    "src/components/ImageStudio.js"
-   ]
-  },
-  {
-   "id": "prompt-keyboard-tips",
-   "title": "Prompt and keyboard tips that exist in the app",
-   "text": "In studios that use the floating prompt composer (for example Video Studio, Cinema Studio, Effects Studio and Video Tools) the box says \"Describe what you want to create\" and pressing Ctrl+Enter (or Cmd+Enter on Mac) submits like the Generate button. Esc closes open pop-overs. Explore has a Prompt Library of 12 sample prompts with a \"Try this prompt\" button that opens Image Studio with the prompt filled in. Template Studio keeps an \"AI Enhancer\" switch ON by default, which expands short prompts, and shows the final text in the \"Enhanced Prompt\" tab. Ask SmartVideo uses Enter to send and Shift+Enter for a new line. The Timeline editor Settings has a Keyboard tab; its listed defaults include Space for Play/Pause, Home and End to jump, Ctrl+Z / Ctrl+Y undo and redo, S to split a clip and Ctrl+E to export.",
-   "route": "explore",
-   "intents": [
-    "keyboard shortcuts",
-    "how to write a good prompt",
-    "prompt tips",
-    "how do I submit with the keyboard",
-    "undo shortcut in timeline",
-    "split clip shortcut",
-    "example prompts"
-   ],
-   "sources": [
-    "src/components/studio/promptComposer.js",
-    "src/components/ExplorePage.js",
-    "src/components/TemplateStudio.js",
-    "src/components/modals/SettingsModal.jsx",
-    "src/features/ask-smartvideo/AskSmartVideo.js"
-   ]
-  },
-  {
-   "id": "mobile-browsers",
-   "title": "Using the app on phones and which browsers work",
-   "text": "On small screens the side menu is hidden and opens with a menu button fixed at the top left (\"Toggle navigation menu\"); tapping outside it closes it. Ask SmartVideo becomes a full-screen panel on phones. The app repository does not publish a user-facing list of supported browsers. An internal staging checklist lists Chrome, Firefox and Safari (latest two stable versions) as the test targets, and browser-side video processing needs MediaRecorder support, otherwise it reports \"MediaRecorder/captureStream unsupported in this browser\". For the most reliable experience use a current desktop version of Chrome, Firefox or Safari and keep browser storage enabled, since keys and some history are kept there.",
-   "route": "apps",
-   "intents": [
-    "does it work on mobile",
-    "supported browsers",
-    "which browser should I use",
-    "phone menu missing",
-    "works on safari",
-    "can I use it on my iphone"
-   ],
-   "sources": [
-    "src/components/Sidebar.js",
-    "src/features/ask-smartvideo/AskSmartVideo.js",
-    "docs/STAGING_VERIFICATION.md",
-    "src/lib/browserVideoProcessor.js"
-   ]
-  },
-  {
-   "id": "not-covered",
-   "title": "What the help content does not cover",
-   "text": "The documentation in this app does not describe: how credits are priced per generation or per model, how to buy or top up credits, refund or billing procedures beyond the \"30-day money-back guarantee\" line on the offer, team or multi-seat features (the Whitelabel offer mentions \"Unlimited Clients\" and \"Resell Rights\" only as marketing lines), usage limits per plan, or the data-retention period for generated files. If you ask about these, the honest answer is that it is not documented here and you should check your account or contact support through the channel you purchased from. Ask SmartVideo can only explain what is in the app and its help content.",
-   "route": "",
-   "intents": [
-    "how much does each generation cost",
-    "how do I buy more credits",
-    "team accounts",
-    "can I share my account",
-    "refund",
-    "usage limits",
-    "how long are files kept",
-    "contact support"
-   ],
-   "sources": [
-    "src/components/landing/sections/OfferSection.jsx",
-    "src/components/Header.js",
-    "src/lib/clerkEntitlements.js"
-   ]
-  }
- ]
+  "facts": [
+    {
+      "id": "api-keys-overview",
+      "title": "Which API keys the app uses (bring your own keys)",
+      "text": "SmartVideo works on your own provider keys (bring-your-own-key). In Settings the key forms are: \"Muapi API Key\" (described as \"Used for video generation and Muapi-powered effects.\"), \"OpenAI API Key\" (\"Used for image and text generation via OpenAI models.\"), \"VideoDB API Key\" (\"Used by the Timeline Editor, Video Agent, Render and Director for video indexing, search and retrieval via VideoDB.\"), and two optional stock-media keys, \"Pexels API Key (optional)\" and \"Pixabay API Key (optional)\". The server side states that there is no platform-key fallback: functions run on the keys your browser sends. In practice: the MuAPI key powers generation in the studios; the OpenAI key powers the AI features that call OpenAI, such as Ask SmartVideo, the Timeline AI tools, Director, Video Agent and Workbench. Without the right key those features ask you to add it.",
+      "route": "settings",
+      "intents": [
+        "what api keys do I need",
+        "which key do I need for generation",
+        "do I need an openai key",
+        "muapi key vs openai key",
+        "bring your own key",
+        "byok",
+        "why do I need my own api key",
+        "what is the videodb key for"
+      ],
+      "sources": [
+        "src/components/SettingsModal.js",
+        "src/lib/apiKeyManager.js",
+        "netlify/functions/_shared/byok.js",
+        "src/lib/openaiKeyHeader.js"
+      ]
+    },
+    {
+      "id": "api-keys-setup",
+      "title": "How to add or change your API keys",
+      "text": "The key form is a popup titled \"Welcome — set up your API keys\" with the text \"Add your provider API keys to create content. Each key is stored separately on this device. You can change these anytime from Settings.\" It opens by itself once per browser session when you land in the app with no keys saved. It also opens when you press Generate in a studio without a MuAPI key, and Ask SmartVideo shows an \"Open Settings → API keys\" button that opens it. Each provider has its own form: paste the key, press \"Save Muapi API Key\" or \"Save OpenAI API Key\" (the button reads \"Saved ✓\" when done), \"Clear\" to remove it, or \"Test\" to check it. Each form has a \"Grab API Key\" link that opens the provider page in a new tab (muapi.ai/access-keys for Muapi, platform.openai.com/login for OpenAI). \"Skip for now\" and \"Done\" close the popup. The header key icon (tooltip \"Update API Key\") clears your saved MuAPI key and reloads the page.",
+      "route": "settings",
+      "intents": [
+        "where do I enter my api key",
+        "how to add muapi key",
+        "how do I set up my openai key",
+        "change my api key",
+        "where is settings",
+        "api key popup",
+        "remove my api key",
+        "grab api key"
+      ],
+      "sources": [
+        "src/components/SettingsModal.js",
+        "src/main.js",
+        "src/components/Header.js",
+        "src/features/ask-smartvideo/AskSmartVideo.js",
+        "src/components/AuthModal.js"
+      ]
+    },
+    {
+      "id": "api-keys-format",
+      "title": "API key formats, checks and error messages",
+      "text": "Placeholders in the forms: \"sk-... (Muapi key)\", \"sk-... (OpenAI key)\", \"VideoDB access token\", \"Pexels API key\" and \"Pixabay API key\". Before saving, the form checks the format: no spaces (\"contains spaces — copy the key without any extra characters\"), not pasted twice (\"looks duplicated — it appears to be pasted twice. Paste it once.\"), and at least 10 characters (\"appears too short\"). Leaving the box empty and saving clears the key. The server accepts an OpenAI key that starts with \"sk-\" followed by at least 20 letters, digits, underscores or hyphens, and a MuAPI key of 16 to 200 letters, digits, dots, underscores or hyphens. Messages you may see: \"This uses your own MuAPI key. Add it in SmartVid → Settings → API keys (MuAPI API Key).\"; \"OpenAI rejected your API key. Check it in SmartVid → Settings → API keys.\"; \"Your OpenAI account is rate-limited or out of credit. Check your OpenAI billing, then try again.\"; \"MuAPI rejected your API key, or the account is out of credit. Check it in SmartVid → Settings → API keys.\" Never share your key in chat or screenshots.",
+      "route": "settings",
+      "intents": [
+        "api key too short",
+        "api key looks duplicated",
+        "my key is rejected",
+        "openai rejected your api key",
+        "muapi rejected key",
+        "out of credit error",
+        "key contains spaces",
+        "what does a muapi key look like"
+      ],
+      "sources": [
+        "src/components/SettingsModal.js",
+        "netlify/functions/_shared/byok.js"
+      ]
+    },
+    {
+      "id": "api-keys-storage",
+      "title": "Where your API keys are stored",
+      "text": "Keys you save are kept in your own browser on this device, per provider. When you press Save, the key is stored for the current tab session (session storage) and also persisted in the browser (local storage), lightly obfuscated rather than strongly encrypted, according to the code comments. Because they live in your browser, a key saved in one browser or device does not appear in another, and clearing site data removes it. The browser sends the key with each request that needs it (headers X-MuAPI-Key and X-OpenAI-Key) and the server code says keys are never logged or stored. Use the Clear button in Settings to remove a key. Use a key you can revoke at the provider if you ever suspect it leaked.",
+      "route": "settings",
+      "intents": [
+        "is my api key safe",
+        "where is my api key stored",
+        "does smartvideo store my key",
+        "how to delete my api key",
+        "key not saved on another device"
+      ],
+      "sources": [
+        "src/lib/apiKeyManager.js",
+        "netlify/functions/_shared/byok.js",
+        "src/lib/openaiKeyHeader.js"
+      ]
+    },
+    {
+      "id": "what-is-ask-smartvideo",
+      "title": "What Ask SmartVideo is and how to use it",
+      "text": "Ask SmartVideo is the floating help assistant, opened with the \"Ask SmartVideo\" launcher button. It answers questions about the studios and points you to the right one with source chips such as \"Open <studio>\". The header shows \"You're in <studio>\" when you are inside a studio, or \"Help for every studio\". It uses retrieved help content and your own OpenAI key: if none is saved it shows \"Ask SmartVideo uses your own OpenAI key.\" with an \"Open Settings → API keys\" button. You must be signed in (\"Sign in to use Ask SmartVideo.\"), and asking too fast gives \"You are asking too fast. Please wait a moment.\" Type in the box (\"Ask about any studio…\", up to 1500 characters), press Enter to send and Shift+Enter for a new line. Esc closes the panel and \"Clear\" erases the conversation. The conversation is kept for the browser tab only.",
+      "route": "apps",
+      "intents": [
+        "what is ask smartvideo",
+        "how do I use the help assistant",
+        "help chat",
+        "ask smartvideo not working",
+        "ask smartvideo needs api key",
+        "how to get help in the app",
+        "the assistant asks me to sign in"
+      ],
+      "sources": [
+        "src/features/ask-smartvideo/AskSmartVideo.js",
+        "netlify/functions/ask-smartvideo.mjs"
+      ]
+    },
+    {
+      "id": "sign-in-up",
+      "title": "Signing in, signing up and resetting your password",
+      "text": "Accounts are handled by Clerk. The pages are /signin, /signup, /forgot-password, /reset-password, /account and /profile. Sign in shows \"Welcome Back / Sign in to continue your creative journey\" with email, password, \"Remember me\", \"Forgot password?\" and a \"Sign In\" button. Sign up shows \"Start Your Journey / Create your account and start creating\" with full name, email and password, then \"Create Account\"; next you get \"Verify Your Email\" where you enter the 6-digit code emailed to you, then \"Verify Email\". Password reset works by an emailed code: open \"Forgot password?\", enter your email, then follow the code and new-password steps. Errors show messages such as \"Sign in failed. Please check your credentials.\" The header shows a \"Sign In\" link when you are signed out.",
+      "route": "signin",
+      "intents": [
+        "how do I sign up",
+        "how to create an account",
+        "sign in problem",
+        "forgot my password",
+        "reset password",
+        "verification code email",
+        "where do I log in",
+        "login"
+      ],
+      "sources": [
+        "src/components/auth/ClerkAuth.jsx",
+        "src/components/landing/SignInPage.jsx",
+        "src/components/landing/SignUpPage.jsx",
+        "src/components/landing/ForgotPasswordPage.jsx",
+        "src/components/auth/HeaderAuth.jsx"
+      ]
+    },
+    {
+      "id": "account-profile",
+      "title": "Your account and profile pages",
+      "text": "When signed in, the header shows your email address (on wide screens) and a user menu with \"Profile\", \"Account\" and \"Sign out\". The Account page (/account) shows your avatar, \"Profile Information\" (Full Name, Username, Member since), \"Email Addresses\" with a Verified or Unverified tag, \"Quick Links\" (Edit Profile and Change Password) and a \"Sign Out\" section. Change Password sends you to the forgot-password flow. The Profile page (/profile) says \"Manage your account details, security, and preferences.\" and embeds the account manager for editing details. If you open these pages while signed out you are shown the sign-in (or sign-up) page. Billing and subscription management screens are not described in the repository.",
+      "route": "account",
+      "intents": [
+        "where is my account",
+        "how do I change my password",
+        "edit my profile",
+        "how to sign out",
+        "where do I see my email",
+        "account page",
+        "logout"
+      ],
+      "sources": [
+        "src/components/auth/ClerkAuth.jsx",
+        "src/components/auth/HeaderAuth.jsx"
+      ]
+    },
+    {
+      "id": "plan-access-gating",
+      "title": "Which actions need a plan with full access",
+      "text": "The app checks for a feature named \"smartvideo_full_access\" through your account (a billing entitlement) or a legacy-access flag on the account. If you are signed out or lack it, certain actions stop with the toast \"Upgrade to access this feature\". In the code these checks run when you press Generate or similar actions in Upscale Suite, Effects Studio, Avatar Studio, Character Studio, Storyboard Studio (generating frames and exporting PDF), Render (actions) and Director (each command; its message says \"This feature requires an active subscription. Please check your plan in Settings.\"). Other studios such as Image Studio and Video Studio do not show this check in the code reviewed. Separately you still need your own MuAPI key for generation. Exact plan tiers and what each includes in the product are not documented beyond the offer text.",
+      "route": "apps",
+      "intents": [
+        "why does it say upgrade to access this feature",
+        "which features need a paid plan",
+        "what does my plan include",
+        "do I need to pay to use upscale",
+        "requires an active subscription",
+        "full access"
+      ],
+      "sources": [
+        "src/lib/clerkEntitlements.js",
+        "src/components/UpgradePrompt.js",
+        "src/components/UpscaleStudio.js",
+        "src/components/DirectorPage.js",
+        "src/components/RenderPage.js"
+      ]
+    },
+    {
+      "id": "pricing-offer",
+      "title": "The Lifetime and Whitelabel offers as shown on the landing page",
+      "text": "The landing page offer is \"Get Lifetime Access Today\" with the line \"Pay once, own forever. No subscriptions, no hidden fees.\" Two plans: \"Lifetime Access\" at $199, \"One-time payment • Forever yours\", which lists full access to all 34 AI Creative Apps, all 60+ AI Features & Capabilities, a 200+ AI Models Library, Commercial Usage Rights, Priority Support Access and Lifetime Updates, with a \"30-day money-back guarantee\". \"Whitelabel Pro\" at $997, \"One-time payment • Full ownership\", labelled \"Most Popular\" and \"Everything in Lifetime, plus\": Your Own Branding (remove all watermarks and use custom logos), Resell Rights, Whitelabel Domain, Priority GPU+ (10x faster rendering speeds), Unlimited Clients, API Access, Custom Workflows and Dedicated Support (24/7 priority assistance), with \"30-day money-back guarantee • Instant delivery\". Checkout buttons read \"Get Lifetime Access — $199\" and \"Get Whitelabel Pro — $997\". This is marketing copy from the page; it does not describe credits, usage limits or team seats.",
+      "route": "",
+      "intents": [
+        "how much does it cost",
+        "pricing",
+        "is there a subscription",
+        "lifetime deal",
+        "what is whitelabel",
+        "price of smartvideo",
+        "money back guarantee",
+        "$199",
+        "$997"
+      ],
+      "sources": [
+        "src/components/landing/sections/OfferSection.jsx"
+      ]
+    },
+    {
+      "id": "side-menu-navigation",
+      "title": "The side menu and how to navigate",
+      "text": "The left side menu is the main way to move around (on phones it opens with the menu button at the top left). It has five groups. Top, with no heading: Apps, Explore, Templates, Academy (courses and guides). Image: Image, Edit, Upscale, Character, Product Shot, Brand. Video: Video, Cinema, Cinema Templates, Storyboard, Effects, AI VFX, Animate, Lip Sync, Video Tools, Avatar, Audio. Agents: Video Agent, Director, Timeline, Workbench, Viral, Personalizer, Website. My Work: Library, Content. The current page is highlighted. The Apps page lists the same tools as cards with a search box, and clicking the logo at the top left of the header opens Apps. Pages use addresses like #/image. Some routes are part of a menu entry: for example Brand DNA, Campaign and Photo Studio belong to Brand, and text-to-image or image-to-image belong to Image.",
+      "route": "apps",
+      "intents": [
+        "how do I navigate",
+        "where is the menu",
+        "what tools exist",
+        "list of studios",
+        "where do I find upscale",
+        "side menu",
+        "how do I open video studio",
+        "what are the menu sections",
+        "where is the academy",
+        "how do I find the courses"
+      ],
+      "sources": [
+        "src/lib/studioRoutes.js",
+        "src/components/Sidebar.js",
+        "src/components/AppsHub.js",
+        "src/components/Header.js"
+      ]
+    },
+    {
+      "id": "retired-routes",
+      "title": "Chat, Assist, Training and Community pages were retired",
+      "text": "Several older pages no longer exist and old links redirect to the closest live page: Training, Chat and Assist open the Apps hub; Community opens Explore; and the old pexels-media page opens Library. If you were looking for a chat assistant, use Ask SmartVideo (the floating help button) for questions about the app, or the Video Agent and Director apps for AI-driven video work. Stock photos and videos from Pexels are now reached through \"Browse Stock Media\" on the Content page.",
+      "route": "apps",
+      "intents": [
+        "where did chat go",
+        "what happened to the assist page",
+        "training page missing",
+        "community page",
+        "ai assistant chat",
+        "pexels media page",
+        "page not found chat"
+      ],
+      "sources": [
+        "src/lib/router.js",
+        "src/components/ContentLibraryPage.js"
+      ]
+    },
+    {
+      "id": "where-files-go",
+      "title": "Where your generated files are saved",
+      "text": "Everything you create in any studio is saved automatically in Library (side menu, My Work group), which shows your images, videos and audio and a separate Uploads view of files you uploaded. History is merged from cloud storage and your browser, and when a MuAPI key is saved MuAPI's own history is added too. In Library you can Download, Copy prompt, Save (to Content) or Delete an item. Content is the shelf for items you chose to keep: saved generations, uploads, PDFs and Pexels stock media. Saved items in Content are stored in your browser. How long generated links stay valid and storage limits are not stated in the code.",
+      "route": "library",
+      "intents": [
+        "where do my generations go",
+        "where are my videos saved",
+        "how do I download my image",
+        "find my past generations",
+        "where is my history",
+        "library vs content",
+        "where are my uploads"
+      ],
+      "sources": [
+        "src/components/LibraryPage.js",
+        "src/components/ContentLibraryPage.js",
+        "src/lib/contentLibrary.js"
+      ]
+    },
+    {
+      "id": "credit-balance-chip",
+      "title": "The balance chip in the header",
+      "text": "In the top bar the app shows a small rounded chip with a dollar amount such as \"$12.34\". Its tooltip is \"MuAPI credit balance\". It reads the balance of your MuAPI account, so it needs a saved MuAPI key; until a balance has been read, or if it cannot be read, the chip stays hidden. It refreshes after each finished generation and when you return to the browser tab (at most once every 30 seconds). The code does not say how credits are priced per model, how to top up or how billing works; top-ups are handled with your MuAPI account, which is not documented in this app.",
+      "route": "apps",
+      "intents": [
+        "what is the number in the top bar",
+        "how much credit do I have",
+        "where do I see my balance",
+        "balance not showing",
+        "how to buy credits",
+        "muapi credit balance"
+      ],
+      "sources": [
+        "src/components/Header.js",
+        "src/lib/muapi.js"
+      ]
+    },
+    {
+      "id": "model-picker-basics",
+      "title": "Choosing a model in a studio",
+      "text": "Most generation studios have a model picker next to the prompt so you can choose which AI model makes the result. The list depends on the studio and the task: for example the Apps hub badges say Image Studio has 20+ models and Video Studio 15+ models. In Template Studio the picker shows \"Model · <route>\" (for example Image → Video) and only offers models that accept the media you attached; if the chosen model is not compatible it falls back to the first model for that route and says so. Some studios show an estimated cost line like \"≈ 5 USD\" beside Generate when the estimate is available; it is best-effort and simply hidden if unavailable. Model-by-model quality comparisons are not described in the app.",
+      "route": "image",
+      "intents": [
+        "how do I choose a model",
+        "which model is best",
+        "model picker",
+        "change the ai model",
+        "estimated cost next to generate",
+        "why is my model not available"
+      ],
+      "sources": [
+        "src/components/AppsHub.js",
+        "src/components/TemplateStudio.js",
+        "src/components/studio/costEstimate.js",
+        "src/components/ImageStudio.js"
+      ]
+    },
+    {
+      "id": "prompt-keyboard-tips",
+      "title": "Prompt and keyboard tips that exist in the app",
+      "text": "In studios that use the floating prompt composer (for example Video Studio, Cinema Studio, Effects Studio and Video Tools) the box says \"Describe what you want to create\" and pressing Ctrl+Enter (or Cmd+Enter on Mac) submits like the Generate button. Esc closes open pop-overs. Explore has a Prompt Library of 12 sample prompts with a \"Try this prompt\" button that opens Image Studio with the prompt filled in. Template Studio keeps an \"AI Enhancer\" switch ON by default, which expands short prompts, and shows the final text in the \"Enhanced Prompt\" tab. Ask SmartVideo uses Enter to send and Shift+Enter for a new line. The Timeline editor Settings has a Keyboard tab; its listed defaults include Space for Play/Pause, Home and End to jump, Ctrl+Z / Ctrl+Y undo and redo, S to split a clip and Ctrl+E to export.",
+      "route": "explore",
+      "intents": [
+        "keyboard shortcuts",
+        "how to write a good prompt",
+        "prompt tips",
+        "how do I submit with the keyboard",
+        "undo shortcut in timeline",
+        "split clip shortcut",
+        "example prompts"
+      ],
+      "sources": [
+        "src/components/studio/promptComposer.js",
+        "src/components/ExplorePage.js",
+        "src/components/TemplateStudio.js",
+        "src/components/modals/SettingsModal.jsx",
+        "src/features/ask-smartvideo/AskSmartVideo.js"
+      ]
+    },
+    {
+      "id": "mobile-browsers",
+      "title": "Using the app on phones and which browsers work",
+      "text": "On small screens the side menu is hidden and opens with a menu button fixed at the top left (\"Toggle navigation menu\"); tapping outside it closes it. Ask SmartVideo becomes a full-screen panel on phones. The app repository does not publish a user-facing list of supported browsers. An internal staging checklist lists Chrome, Firefox and Safari (latest two stable versions) as the test targets, and browser-side video processing needs MediaRecorder support, otherwise it reports \"MediaRecorder/captureStream unsupported in this browser\". For the most reliable experience use a current desktop version of Chrome, Firefox or Safari and keep browser storage enabled, since keys and some history are kept there.",
+      "route": "apps",
+      "intents": [
+        "does it work on mobile",
+        "supported browsers",
+        "which browser should I use",
+        "phone menu missing",
+        "works on safari",
+        "can I use it on my iphone"
+      ],
+      "sources": [
+        "src/components/Sidebar.js",
+        "src/features/ask-smartvideo/AskSmartVideo.js",
+        "docs/STAGING_VERIFICATION.md",
+        "src/lib/browserVideoProcessor.js"
+      ]
+    },
+    {
+      "id": "not-covered",
+      "title": "What the help content does not cover",
+      "text": "The documentation in this app does not describe: how credits are priced per generation or per model, how to buy or top up credits, refund or billing procedures beyond the \"30-day money-back guarantee\" line on the offer, team or multi-seat features (the Whitelabel offer mentions \"Unlimited Clients\" and \"Resell Rights\" only as marketing lines), usage limits per plan, or the data-retention period for generated files. If you ask about these, the honest answer is that it is not documented here and you should check your account or contact support through the channel you purchased from. Ask SmartVideo can only explain what is in the app and its help content.",
+      "route": "",
+      "intents": [
+        "how much does each generation cost",
+        "how do I buy more credits",
+        "team accounts",
+        "can I share my account",
+        "refund",
+        "usage limits",
+        "how long are files kept",
+        "contact support"
+      ],
+      "sources": [
+        "src/components/landing/sections/OfferSection.jsx",
+        "src/components/Header.js",
+        "src/lib/clerkEntitlements.js"
+      ]
+    }
+  ]
 }
