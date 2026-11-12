@@ -59,7 +59,7 @@ import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_
 const LABEL_WIDTH = 150;
 const FPS = 24; // assumed frame rate for snap-to-frame grid
 
-const DEFAULT_TRACK_HEIGHT = 80;
+const DEFAULT_TRACK_HEIGHT = 110; // [remix] was 80
 
 
 interface TimelineEditorProps {

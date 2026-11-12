@@ -86,7 +86,7 @@ function loadPersistedEditView(projectId: string): PersistedEditView {
       return {
         pxPerSecond: 50,
         snapEnabled: true,
-        trackHeight: 80,
+        trackHeight: 110, // [remix] CineGen screenshot rows (~110px); the clone ships 80
         timelineViews: {},
       };
     }
@@ -94,14 +94,14 @@ function loadPersistedEditView(projectId: string): PersistedEditView {
     return {
       pxPerSecond: Number.isFinite(parsed.pxPerSecond) ? Number(parsed.pxPerSecond) : 50,
       snapEnabled: typeof parsed.snapEnabled === 'boolean' ? parsed.snapEnabled : true,
-      trackHeight: Number.isFinite(parsed.trackHeight) ? Number(parsed.trackHeight) : 80,
+      trackHeight: Number.isFinite(parsed.trackHeight) ? Number(parsed.trackHeight) : 110,
       timelineViews: parsed.timelineViews ?? {},
     };
   } catch {
     return {
       pxPerSecond: 50,
       snapEnabled: true,
-      trackHeight: 80,
+      trackHeight: 110, // [remix] CineGen screenshot rows (~110px); the clone ships 80
       timelineViews: {},
     };
   }
