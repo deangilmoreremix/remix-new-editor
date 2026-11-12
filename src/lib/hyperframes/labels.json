@@ -1,0 +1,143 @@
+{
+ "_note": "Customer-facing labels and neutral starting text for items whose generated field names or demo text are poor. initial = what a newly added clip starts with (the master text stays the default).",
+ "items": {
+  "lt-accent-underline": {
+   "t1": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "t2": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lt-bold-block": {
+   "t1": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "t2": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lt-clean-bar": {
+   "t1": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "t2": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lt-color-block": {
+   "t1": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "t2": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lt-dark-card": {
+   "t1": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "t2": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lt-mask-reveal": {
+   "t1": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "t2": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lt-side-rule": {
+   "t1": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "t2": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lt-soft-pill": {
+   "t1": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "t2": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lt-stack-bars": {
+   "t1": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "t2": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lt-kicker-name": {
+   "t1": {
+    "label": "Small line above the name",
+    "initial": "Episode 1"
+   },
+   "t2": {
+    "label": "Name",
+    "initial": "Your name"
+   }
+  },
+  "lt-neon-border": {
+   "var_name": {
+    "label": "Name",
+    "initial": "Your name"
+   },
+   "var_role": {
+    "label": "Title / role",
+    "initial": "Your title"
+   }
+  },
+  "lower-third-bild": {
+   "var_TXT_MAIN_1_Line": {
+    "label": "Main line",
+    "initial": "BREAKING NEWS"
+   },
+   "var_TXT_SUB": {
+    "label": "Sub line",
+    "initial": "Special report"
+   }
+  },
+  "yt-lower-third": {
+   "t1": {
+    "label": "Channel name",
+    "initial": "Your channel"
+   },
+   "t2": {
+    "label": "Subscribers line",
+    "initial": "100K subscribers"
+   },
+   "t3": {
+    "label": "Button text",
+    "initial": "Subscribe"
+   },
+   "i1": {
+    "label": "Avatar image URL (optional)",
+    "initial": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAIAAABMXPacAAACC0lEQVR42u3cMU4EQRBDUbbEZUhJuH+IkMgQMTfhBCABPWM385yuhKb8y9WwdM3t5e3jjnIaFgAAAAEAAAEAAAEAAAEAAAEAAAEAAAEAAAEAAAEAAAEAAAEAAK3V/Y4P/fz6/tVHT48Pe9Vy2+hq4je+70tiDwA/sn4vDO0Afm39Lhjm37u/8OdcC8Ba12oZzBXcb2YwF3G/lsFcx/1OBnMp9wsZ+CoCgERj9oRAAgAItWRJCCQAAAAuOH96ppAEAAAAAQAAAQAAAQBARKlbCw23JSQAAACuOYVKbmtJAACJluy5rCgBAJzemFV3desScLQ7bTelG0fQcR4V3lMvPQOOcKpzS6D3EF7rV+2ORvVvQatca96QsSMGwDEYbElmSNgTpn90CANAAABAAABAAABAh2inN2b5KqLa8U15NAI4dHWrjUQRgJNX5kpIVAAIbivGMYQBlKyrBzHEABS+OymCIQCg+RV652MY7mef8LwE9FsficJwP/vMw/3skx87gva1/rRxNNzP1jLcz1Y03M/WNdzPVjfcz9boX5JhjfbPVjrcz9Y73M9W7QzY/wy4Zvuvqn24n3XACNp5BGn/v/sgAdsmQPsvcUMC9kyA9l/liQRsmADtv9AZCdj57wAKADB/1vojAUYQAOZPcApJgBEEAAEAgBM4dA5LgBEEAAEAAAEAAAXk3dFhfQJt4/g1gNYDaAAAAABJRU5ErkJggg=="
+   }
+  }
+ }
+}
