@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
 import { OVERLAY_KINDS, overlayTemplates, isGateOverlay } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
+import { decodeLibraryDrag, freeOverlayRow, hasLibraryDrag, LIBRARY_DND, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 
 interface Props {
   overlays: OverlayClip[];
@@ -23,13 +24,19 @@ interface Props {
   onUpdate: (id: string, updates: Partial<OverlayClip>) => void;
   /** Remove an overlay from the timeline (the × on its block, or Delete / Backspace while it is selected). */
   onRemove: (id: string) => void;
+  /** A Library card was dropped on this row area (time in seconds, row index). */
+  onLibraryDrop?: (drag: LibraryDrag, ctx: LibraryDropCtx) => void;
 }
 
 const MIN = 0.5;
 
-export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onAdd, onAddTemplate, onBrowseMotion, onBrowseHyperframes, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate, onRemove }: Props) {
+export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onAdd, onAddTemplate, onBrowseMotion, onBrowseHyperframes, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate, onRemove, onLibraryDrop }: Props) {
   const selected = useSelectedOverlay();
-  const drag = useRef<{ id: string; mode: 'move' | 'start' | 'end'; x: number; start: number; end: number } | null>(null);
+  const overlaysRef = useRef(overlays); overlaysRef.current = overlays;
+  const rowsRef = useRef<Map<string, number>>(new Map());
+  const countRef = useRef(1);
+  const rowHRef = useRef(46);
+  const drag = useRef<{ id: string; mode: 'move' | 'start' | 'end'; x: number; y: number; start: number; end: number; row: number } | null>(null);
 
   const begin = (e: React.PointerEvent, o: OverlayClip, mode: 'move' | 'start' | 'end') => {
     e.stopPropagation();
@@ -37,7 +44,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
     (e.currentTarget as HTMLElement).focus?.(); // so Delete / Backspace act on this block
     if (isGateOverlay(o)) return; // the List Builder is a gate locked at 0s
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    drag.current = { id: o.id, mode, x: e.clientX, start: o.start, end: o.end };
+    drag.current = { id: o.id, mode, x: e.clientX, y: e.clientY, start: o.start, end: o.end, row: rowsRef.current.get(o.id) ?? 0 };
   };
   const move = (e: React.PointerEvent) => {
     const d = drag.current;
@@ -46,7 +53,10 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
     if (d.mode === 'move') {
       const len = d.end - d.start;
       const start = Math.max(0, d.start + dt);
-      onUpdate(d.id, { start, end: start + len });
+      // Dragging up / down moves the block to another row (a free row; one new row below the last is allowed).
+      const wanted = Math.max(0, Math.min(rowsRef.current.size ? countRef.current : 0, d.row + Math.round((e.clientY - d.y) / rowHRef.current)));
+      const row = freeOverlayRow(overlaysRef.current, { id: d.id, start, end: start + len }, wanted, rowsRef.current);
+      onUpdate(d.id, { start, end: start + len, ...(row !== d.row || typeof overlaysRef.current.find((x) => x.id === d.id)?.row === 'number' ? { row } : {}) });
     } else if (d.mode === 'start') onUpdate(d.id, { start: Math.max(0, Math.min(d.start + dt, d.end - MIN)) });
     else onUpdate(d.id, { end: Math.max(d.start + MIN, d.end + dt) });
   };
@@ -55,18 +65,20 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   const [open, setOpen] = useState(true);
   // Overlays that overlap in time go on their own row (like stacked tracks), so every block stays readable.
   const { rows, count } = useMemo(() => {
-    const sorted = [...overlays].sort((a, b) => a.start - b.start);
-    const ends: number[] = [];
     const rowOf = new Map<string, number>();
-    for (const o of sorted) {
-      let r = ends.findIndex((e) => e <= o.start + 1e-6);
-      if (r < 0) { r = ends.length; ends.push(0); }
-      ends[r] = o.end; rowOf.set(o.id, r);
+    const placed: Array<{ start: number; end: number; row: number }> = [];
+    for (const o of overlays) if (typeof o.row === 'number') { rowOf.set(o.id, Math.max(0, Math.floor(o.row))); placed.push({ start: o.start, end: o.end, row: rowOf.get(o.id)! }); }
+    for (const o of [...overlays].filter((x) => typeof x.row !== 'number').sort((a, b) => a.start - b.start)) {
+      let r = 0;
+      while (placed.some((p) => p.row === r && p.start < o.end - 1e-6 && p.end > o.start + 1e-6)) r++;
+      rowOf.set(o.id, r); placed.push({ start: o.start, end: o.end, row: r });
     }
-    return { rows: rowOf, count: Math.max(1, ends.length) };
+    return { rows: rowOf, count: Math.max(1, ...[...rowOf.values()].map((r) => r + 1)) };
   }, [overlays]);
+  rowsRef.current = rows; countRef.current = count;
   const ROW = 46;
   const rowH = open ? ROW : 26;
+  rowHRef.current = rowH;
   const contentH = (open ? count : 1) * rowH + 8;
   const empty = overlays.length === 0;
   const height = empty ? 30 : Math.min(contentH, 3 * ROW + 8); // empty: one slim row (just the add menu); otherwise at most 3 rows tall, more scroll inside the track
@@ -90,7 +102,18 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
           {onAddTemplate && <optgroup label="End screens and connect forms">{overlayTemplates().map((t) => <option key={t.id} value={`tpl:${t.id}`} title={t.description}>{t.name}</option>)}</optgroup>}
         </select>
       </div>
-      <div className="overlay-track__clips" style={{ overflowX: 'hidden', overflowY: contentH > height ? 'auto' : 'hidden' }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
+      <div className="overlay-track__clips" style={{ overflowX: 'hidden', overflowY: contentH > height ? 'auto' : 'hidden' }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}
+        onDragOver={(e) => { if (hasLibraryDrag(e.dataTransfer.types)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }}
+        onDrop={(e) => {
+          const drag = decodeLibraryDrag(e.dataTransfer.getData(LIBRARY_DND));
+          if (!drag || !onLibraryDrop) return;
+          e.preventDefault(); e.stopPropagation();
+          const rect = e.currentTarget.getBoundingClientRect();
+          const time = Math.max(0, (e.clientX - rect.left + scrollLeft) / pxPerSecond);
+          const want = open ? Math.max(0, Math.min(count, Math.floor((e.clientY - rect.top + e.currentTarget.scrollTop) / rowH))) : 0;
+          const taken = overlays.some((o) => (rows.get(o.id) ?? 0) === want && o.start < time + 1 && o.end > time);
+          onLibraryDrop(drag, { time, ...(taken ? {} : { row: want }) });
+        }}>
         <div style={{ position: 'relative', height: contentH, width: Math.max(sequenceDuration, 1) * pxPerSecond, transform: `translateX(${-(scrollLeft)}px)` }}>
           {overlays.map((o) => {
             const on = selected === o.id;
@@ -101,7 +124,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
             const text = overlayText(o);
             return (
               <div key={o.id} role="button" tabIndex={0} data-testid={`overlay-card-${o.id}`}
-                className={`overlay-lane__item clip-card overlay-card${on ? ' overlay-lane__item--selected overlay-card--selected' : ''}${open ? '' : ' overlay-card--compact'}`}
+                className={`overlay-lane__item overlay-card${on ? ' overlay-lane__item--selected overlay-card--selected' : ''}${open ? '' : ' overlay-card--compact'}`}
                 title={gate ? `${o.name} · viewers fill this in before the video plays` : `${o.name} · ${o.start.toFixed(1)}s–${o.end.toFixed(1)}s`}
                 onPointerDown={(e) => begin(e, o, 'move')}
                 onKeyDown={(e) => { if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); onRemove(o.id); } }}

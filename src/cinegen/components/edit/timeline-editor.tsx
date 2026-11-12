@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } fr
 import { createPortal } from 'react-dom';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { OverlayLane } from './overlay-lane';
+import { decodeLibraryDrag, hasLibraryDrag, LIBRARY_DND, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { CaptionLane } from './caption-lane';
 import { createOverlay, createTemplateOverlays, isConnectTemplate, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, getSelectedOverlay } from '@cinegen/lib/overlays/selection';
@@ -62,6 +63,8 @@ const DEFAULT_TRACK_HEIGHT = 80;
 
 
 interface TimelineEditorProps {
+  /** [remix] A Library card was dropped on the timeline (overlay row, track, clip or cut). */
+  onLibraryDrop?: (drag: LibraryDrag, ctx: LibraryDropCtx) => void;
   currentTime: number;
   isPlaying: boolean;
   sequenceDuration: number;
@@ -86,6 +89,7 @@ interface TimelineEditorProps {
 }
 
 export function TimelineEditor({
+  onLibraryDrop,
   currentTime,
   isPlaying: _isPlaying,
   sequenceDuration,
@@ -3197,7 +3201,33 @@ export function TimelineEditor({
     : null;
 
   return (
-    <div className="timeline-editor" ref={editorRef}>
+    <div className="timeline-editor" ref={editorRef}
+      onDragOverCapture={(e) => {
+        if (!hasLibraryDrag(e.dataTransfer.types)) return;
+        if ((e.target as Element).closest?.('.overlay-track')) return; // the Overlays row handles its own drops
+        e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+        const el = (e.target as Element).closest?.('.clip-card, .track-row[data-track-id]') as HTMLElement | null;
+        editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => { if (n !== el) n.classList.remove('lib-drop-target'); });
+        el?.classList.add('lib-drop-target');
+      }}
+      onDragLeaveCapture={(e) => { if (!editorRef.current?.contains(e.relatedTarget as Node | null)) editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => n.classList.remove('lib-drop-target')); }}
+      onDropCapture={(e) => {
+        if (!hasLibraryDrag(e.dataTransfer.types)) return;
+        const target = e.target as Element;
+        editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => n.classList.remove('lib-drop-target'));
+        if (target.closest?.('.overlay-track')) return;
+        const drag = decodeLibraryDrag(e.dataTransfer.getData(LIBRARY_DND));
+        if (!drag || !onLibraryDrop) return;
+        e.preventDefault(); e.stopPropagation(); // not an asset / clip drop: keep CineGen's own drop handler out of it
+        const trackEl = target.closest('.track-row[data-track-id]') as HTMLElement | null;
+        const trackId = trackEl?.getAttribute('data-track-id') ?? undefined;
+        const clipEl = target.closest('.clip-card') as HTMLElement | null;
+        const clipId = clipEl?.getAttribute('data-clip-id') ?? undefined;
+        const clipsEl = trackEl?.querySelector('.track-row__clips') as HTMLElement | null;
+        const time = clipsEl ? Math.max(0, (e.clientX - clipsEl.getBoundingClientRect().left) / pxPerSecondRef.current) : currentTime;
+        const trackKind = trackId ? timelineRef.current.tracks.find((t) => t.id === trackId)?.kind : undefined;
+        onLibraryDrop(drag, { time, clipId, trackId, trackKind });
+      }}>
       {/* Ruler row — sticky, shared across both sections */}
       <div className="timeline-editor__ruler-wrapper">
         <div className="timeline-editor__scroll timeline-editor__scroll--ruler" ref={scrollRef} onScroll={handleRulerScroll}>
@@ -3263,6 +3293,7 @@ export function TimelineEditor({
 
       {/* [remix] Overlays lane: Lead Generator, List Builder, CTA drawn over the video */}
       <OverlayLane
+        onLibraryDrop={onLibraryDrop}
         overlays={state.overlays}
         pxPerSecond={pxPerSecond}
         scrollLeft={Math.max(0, rulerScrollLeft)}

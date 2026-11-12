@@ -23,6 +23,13 @@ import { PreviewCleanupContext } from '../../../openchatcut/library/ResourcePrev
 import { usePluginPacks, pluginResourceItems } from '../../../openchatcut/library/pluginResources';
 import { getCustomTransition } from '../../../openchatcut/gl/customTransitions';
 import '../../../openchatcut/library/library.css';
+import { LIBRARY_DND, encodeLibraryDrag, type LibraryKind, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
+
+/** Props that make a card draggable onto the timeline. */
+const dragProps = (kind: LibraryKind, id: string) => ({
+  draggable: true,
+  onDragStart: (e: React.DragEvent) => { e.dataTransfer.setData(LIBRARY_DND, encodeLibraryDrag({ kind, id })); e.dataTransfer.effectAllowed = 'copy'; },
+});
 
 export type LibraryCategory = 'animations' | 'effects' | 'transitions' | 'looks' | 'overlays' | 'sounds';
 
@@ -37,15 +44,18 @@ export const LIBRARY_CATEGORIES: Array<{ id: LibraryCategory; label: string; hin
 
 /** What happens when you click a card. A handler may return a short message to show (for example "Select a clip first"). */
 export interface LibraryActions {
-  onAddOverlay: (kind: OverlayKind) => string | void;
-  onAddTemplate: (templateId: string) => string | void;
-  onAddMg: (template: MgTemplate) => string | void;
-  onAddHf: (item: HfItem) => string | void;
-  onApplyFx: (id: string) => string | void | Promise<string | void>;
-  onApplyLut: (id: string) => string | void | Promise<string | void>;
-  onApplyTransition: (id: string) => string | void | Promise<string | void>;
-  onAddSound: (effect: SoundEffect) => string | void;
+  onAddOverlay: (kind: OverlayKind, ctx?: LibraryDropCtx) => string | void;
+  onAddTemplate: (templateId: string, ctx?: LibraryDropCtx) => string | void;
+  onAddMg: (template: MgTemplate, ctx?: LibraryDropCtx) => string | void;
+  onAddHf: (item: HfItem, ctx?: LibraryDropCtx) => string | void;
+  onApplyFx: (id: string, ctx?: LibraryDropCtx) => string | void | Promise<string | void>;
+  onApplyLut: (id: string, ctx?: LibraryDropCtx) => string | void | Promise<string | void>;
+  onApplyTransition: (id: string, ctx?: LibraryDropCtx) => string | void | Promise<string | void>;
+  onAddSound: (effect: SoundEffect, ctx?: LibraryDropCtx) => string | void;
 }
+
+/** Cards are div role=button (Chromium does not start a native drag from a <button>). */
+const keyActivate = (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } };
 
 const card: React.CSSProperties = { textAlign: 'left', padding: 8, borderRadius: 8, border: '1px solid rgba(255,255,255,.12)', background: 'rgba(255,255,255,.04)', color: 'inherit', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 3 };
 
@@ -90,17 +100,17 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     void a.play().catch(() => setPlaying(null));
   };
 
-  const thumbGrid = (ids: string[], kind: 'fx' | 'tr', pick: (id: string) => void) => (
+  const thumbGrid = (ids: string[], kind: 'fx' | 'tr', pick: (id: string) => void, dndKind: LibraryKind) => (
     <PreviewCleanupContext.Provider value={() => {}}>
       <div className="library-panel__grid">
         {ids.filter((id) => match(kind === 'tr' ? trName(id) : fxName(id))).map((id) => (
-          <button key={id} className={`cc-resource-card${hover === id ? ' hovered' : ''}`} data-testid={`library-card-${id}`}
+          <div role="button" tabIndex={0} onKeyDown={keyActivate} key={id} {...dragProps(dndKind, id)} className={`cc-resource-card${hover === id ? ' hovered' : ''}`} data-testid={`library-card-${id}`}
             onMouseEnter={() => setHover(id)} onMouseLeave={() => setHover(null)} onClick={() => void run(() => pick(id))}>
             <div className="cc-resource-thumb">
               {kind === 'tr' && !id.startsWith('plugin:') ? <TransitionThumb type={id as never} playing={hover === id} /> : kind === 'fx' ? <FxThumb assetId={id} playing={hover === id} /> : null}
             </div>
             <span className="cc-resource-name">{kind === 'tr' ? trName(id) : fxName(id)}</span>
-          </button>
+          </div>
         ))}
       </div>
     </PreviewCleanupContext.Provider>
@@ -122,19 +132,19 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
             {!mg && <span className="library-panel__empty">Loading…</span>}
             {mg && !list.length && <span className="library-panel__empty">No animations match.</span>}
             {list.map((x) => (
-              <button key={x.id} style={card} title={x.description} data-testid={`library-mg-${x.id}`} onClick={() => void run(() => (x.kind === 'hf' && x.hf ? actions.onAddHf(x.hf) : actions.onAddMg(x.mg!)))}>
+              <div role="button" tabIndex={0} onKeyDown={keyActivate} key={x.id} {...dragProps(x.kind === 'hf' ? 'hf' : 'mg', x.id)} style={card} title={x.description} data-testid={`library-mg-${x.id}`} onClick={() => void run(() => (x.kind === 'hf' && x.hf ? actions.onAddHf(x.hf) : actions.onAddMg(x.mg!)))}>
                 {x.kind === 'hf' && <img src={thumbOf(x.id)} alt="" loading="lazy" style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'contain', background: '#000', borderRadius: 6 }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
                 <strong style={{ fontSize: 12 }}>{x.name}</strong>
                 <span style={{ fontSize: 10, opacity: 0.65 }}>{x.group} · {x.seconds.toFixed(x.seconds < 10 ? 1 : 0)}s</span>
-              </button>
+              </div>
             ))}
           </div>
         </div>
       );
     }
-    if (cat === 'effects') return thumbGrid(fxIds, 'fx', actions.onApplyFx);
-    if (cat === 'looks') return thumbGrid(lutIds, 'fx', actions.onApplyLut);
-    if (cat === 'transitions') return thumbGrid(trIds, 'tr', actions.onApplyTransition);
+    if (cat === 'effects') return thumbGrid(fxIds, 'fx', actions.onApplyFx, 'fx');
+    if (cat === 'looks') return thumbGrid(lutIds, 'fx', actions.onApplyLut, 'lut');
+    if (cat === 'transitions') return thumbGrid(trIds, 'tr', actions.onApplyTransition, 'transition');
     if (cat === 'overlays') {
       const kinds = OVERLAY_KINDS.filter((k) => match(k.label, k.blurb));
       const tpls = overlayTemplates().filter((x) => match(x.name, x.description, x.library));
@@ -142,19 +152,19 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
         <div className="library-panel__stack">
           <div className="library-panel__grid library-panel__grid--wide">
             {kinds.map((k) => (
-              <button key={k.kind} style={card} title={k.blurb} data-testid={`library-overlay-${k.kind}`} onClick={() => void run(() => actions.onAddOverlay(k.kind))}>
+              <div role="button" tabIndex={0} onKeyDown={keyActivate} key={k.kind} {...dragProps('overlay', k.kind)} style={card} title={k.blurb} data-testid={`library-overlay-${k.kind}`} onClick={() => void run(() => actions.onAddOverlay(k.kind))}>
                 <strong style={{ fontSize: 12 }}>{k.label}</strong>
                 <span style={{ fontSize: 10, opacity: 0.65 }}>{k.blurb}</span>
-              </button>
+              </div>
             ))}
           </div>
           {tpls.length > 0 && <div className="library-panel__subhead">End screens and connect forms</div>}
           <div className="library-panel__grid library-panel__grid--wide">
             {tpls.map((x) => (
-              <button key={x.id} style={card} title={x.description} data-testid={`library-template-${x.id}`} onClick={() => void run(() => actions.onAddTemplate(x.id))}>
+              <div role="button" tabIndex={0} onKeyDown={keyActivate} key={x.id} {...dragProps('template', x.id)} style={card} title={x.description} data-testid={`library-template-${x.id}`} onClick={() => void run(() => actions.onAddTemplate(x.id))}>
                 <strong style={{ fontSize: 12 }}>{x.name}</strong>
                 <span style={{ fontSize: 10, opacity: 0.65 }}>{x.description}</span>
-              </button>
+              </div>
             ))}
           </div>
           {!kinds.length && !tpls.length && <span className="library-panel__empty">No overlays match.</span>}
@@ -165,7 +175,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     return (
       <div className="library-panel__stack">
         {list.map((s) => (
-          <div key={s.id} className="library-panel__sound" data-testid={`library-sound-${s.id}`}>
+          <div key={s.id} {...dragProps('sound', s.id)} className="library-panel__sound" data-testid={`library-sound-${s.id}`}>
             <span style={{ flex: 1, minWidth: 0 }}><strong style={{ fontSize: 12, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</strong><span style={{ fontSize: 10, opacity: 0.65 }}>{formatSoundDuration(s.seconds)}</span></span>
             <button className="clip-properties-panel__toggle-btn" aria-label={`${playing === s.id ? 'Stop' : 'Play'} ${s.name}`} data-help="preview sound" onClick={() => play(s)}>{playing === s.id ? '■' : '▶'}</button>
             <button className="clip-properties-panel__toggle-btn" aria-label={`Add ${s.name}`} data-help="add sound to timeline" onClick={() => void run(() => actions.onAddSound(s))}>Add</button>

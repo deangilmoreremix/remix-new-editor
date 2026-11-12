@@ -162,3 +162,10 @@
 .left-panel__switch-btn--on { background: transparent; border-bottom-color: #22d3ee; }
 .left-panel__switch-btn:hover { border-color: transparent; }
 .left-panel__switch-btn--on:hover { border-bottom-color: #22d3ee; }
+
+/* [remix] drop highlight while a Library card is dragged over a track or clip */
+.lib-drop-target { outline: 2px dashed var(--accent, #22d3ee) !important; outline-offset: -2px; background-image: linear-gradient(rgba(34,211,238,.10), rgba(34,211,238,.10)); }
+
+/* [remix] overlay blocks no longer borrow .clip-card (CineGen's timeline code queries that class for clips); same look */
+.overlay-card { position: absolute; border-radius: var(--radius-md); overflow: hidden; cursor: grab; touch-action: none; user-select: none; transition: border-color var(--transition-fast); }
+.overlay-card:active { cursor: grabbing; }
