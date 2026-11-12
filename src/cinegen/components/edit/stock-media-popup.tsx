@@ -168,7 +168,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const sourceText: Record<MediaSource, string> = { ai: 'AI', pexels: 'Pexels', pixabay: 'Pixabay' };
   // Layout follows the Add to timeline / Animations libraries: header, source tabs, rounded panel, group + category pills, labelled filters, cards.
   return (
-    <div role="dialog" aria-label="AI and stock media" data-testid="stock-media-popup" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
+    <div role="dialog" aria-modal="true" aria-label="AI and stock media" data-testid="stock-media-popup" onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Escape') onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
       <style>{'.media-card:hover{border-color:var(--accent)!important}.media-card:disabled{opacity:.55;cursor:progress}'}</style>
       <div style={{ width: 'min(1480px, 96vw)', height: 'min(900px, 94vh)', display: 'flex', flexDirection: 'column', background: 'var(--bg-raised)', border: '1px solid var(--border-medium)', borderRadius: 26, color: INK, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '22px 28px', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -223,7 +223,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
           <div style={{ display: 'grid', gridTemplateColumns: source === 'ai' ? '3fr 1fr' : '1fr', gap: 18, marginBottom: 10 }}>
             {source === 'ai' ? (
               <div><div style={label}>Describe it</div>
-                <textarea aria-label={`Describe the AI ${kind === 'videos' ? 'video' : 'image'}`} data-testid="ai-prompt" rows={2} placeholder={`Describe the ${kind === 'videos' ? 'video' : 'image'} you want, or pick a category for an idea…`} value={prompt} onChange={(e) => setPrompt(e.target.value)} style={{ ...field, resize: 'vertical', fontFamily: 'inherit' }} /></div>
+                <textarea aria-label={`Describe the AI ${kind === 'videos' ? 'video' : 'image'}`} data-testid="ai-prompt" rows={2} placeholder={`Describe the ${kind === 'videos' ? 'video' : 'image'} you want, or pick a category for an idea…`} value={prompt} onChange={(e) => { setPrompt(e.target.value); setTopic(null); }} style={{ ...field, resize: 'vertical', fontFamily: 'inherit' }} /></div>
             ) : (
               <form onSubmit={(e) => { e.preventDefault(); setCatId(null); setTopic(null); setQuery(draft.trim()); }}><div style={label}>Search</div>
                 <input type="text" placeholder={`⌕  Search ${sourceLabel} ${noun}…`} aria-label={`Search stock ${noun}`} value={draft} onChange={(e) => setDraft(e.target.value)} style={field} /></form>

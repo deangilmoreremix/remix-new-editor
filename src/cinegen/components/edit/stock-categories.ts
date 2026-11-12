@@ -162,3 +162,13 @@ export const topicLabel = (t: string): string => t.charAt(0).toUpperCase() + t.s
 /** An editable AI prompt for a topic. */
 export const aiPrompt = (topic: string, kind: 'videos' | 'images'): string =>
   `Cinematic ${topic}, ${kind === 'videos' ? 'smooth camera movement, ' : ''}natural lighting, rich detail, high quality`;
+
+/**
+ * flux-dev takes width/height (multiples of 64, 128-2048), not aspect_ratio; the server drops fields a model does not declare,
+ * so the chosen aspect ratio has to be sent as exact pixel sizes.
+ */
+export const FLUX_SIZE: Record<'16:9' | '9:16' | '1:1', { width: number; height: number }> = {
+  '16:9': { width: 1024, height: 576 },
+  '9:16': { width: 576, height: 1024 },
+  '1:1': { width: 1024, height: 1024 },
+};

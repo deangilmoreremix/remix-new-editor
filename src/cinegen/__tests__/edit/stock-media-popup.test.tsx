@@ -2,7 +2,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { StockMediaPopup, isAiAsset } from '@cinegen/components/edit/stock-media-popup';
-import { MEDIA_CATEGORIES, MEDIA_GROUPS, aiPrompt } from '@cinegen/components/edit/stock-categories';
+import { MEDIA_CATEGORIES, MEDIA_GROUPS, FLUX_SIZE, aiPrompt } from '@cinegen/components/edit/stock-categories';
 import type { Asset } from '@cinegen/types/project';
 
 const px = vi.hoisted(() => ({
@@ -117,6 +117,39 @@ describe('main tabs', () => {
     fireEvent.click(screen.getByTestId('stock-pexels-9'));
     await waitFor(() => expect(p.onAdd).toHaveBeenCalled());
     expect(p.onAdd.mock.calls[0][1]).toBe('videos');
+  });
+});
+
+describe('FLUX sizes', () => {
+  it('are valid flux-dev dimensions (multiples of 64, 128-2048) at the requested ratio', () => {
+    for (const [ratio, { width, height }] of Object.entries(FLUX_SIZE)) {
+      const [w, h] = ratio.split(':').map(Number);
+      expect(width % 64).toBe(0); expect(height % 64).toBe(0);
+      expect(Math.min(width, height)).toBeGreaterThanOrEqual(128); expect(Math.max(width, height)).toBeLessThanOrEqual(2048);
+      expect(width / height).toBeCloseTo(w / h, 2);
+    }
+  });
+});
+
+describe('modal behaviour', () => {
+  it('is a modal dialog, closes on Escape, and keeps key presses from reaching window shortcuts (e.g. Delete)', () => {
+    const p = setup();
+    expect(screen.getByRole('dialog').getAttribute('aria-modal')).toBe('true');
+    const seen = vi.fn();
+    window.addEventListener('keydown', seen);
+    fireEvent.keyDown(screen.getByTestId('pill-ai-images'), { key: 'Delete' });
+    expect(seen).not.toHaveBeenCalled();
+    window.removeEventListener('keydown', seen);
+    fireEvent.keyDown(screen.getByTestId('pill-ai-images'), { key: 'Escape' });
+    expect(p.onClose).toHaveBeenCalled();
+  });
+
+  it('keeps a prompt the user edited when switching between AI videos and images', () => {
+    setup();
+    fireEvent.click(screen.getByTestId(`cat-${MEDIA_CATEGORIES[0].id}`));
+    fireEvent.change(screen.getByTestId('ai-prompt'), { target: { value: 'my own idea' } });
+    fireEvent.click(screen.getByTestId('pill-ai-images'));
+    expect((screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value).toBe('my own idea');
   });
 });
 

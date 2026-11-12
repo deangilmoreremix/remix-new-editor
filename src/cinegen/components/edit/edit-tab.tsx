@@ -13,6 +13,7 @@ import { activeGlTransition } from '@cinegen/lib/occ/transitions';
 import { useRecorder } from '../../../openchatcut/audio/recorder';
 import { SoundLibraryPopup } from './sound-library-popup';
 import { StockMediaPopup, type StockItem, type StockKind, type AiAspect } from './stock-media-popup';
+import { FLUX_SIZE } from './stock-categories';
 import { runTimelineMuapi as runMuapi } from '../../../lib/editor/ai/timelineMuapi.js';
 
 // The JS helper's JSDoc only lists pollMs/timeoutMs; onProgress is supported at runtime.
@@ -948,15 +949,18 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
    * runs (thumbnail, waveform, filmstrip). Without this the workspace's generic remote-asset path marks the asset "processing"
    * but never starts those jobs in the web build, so it would stay "processing" forever. Falls back to the remote link.
    */
-  const ingestRemoteVideo = useCallback(async (base: Asset, remoteUrl: string): Promise<Asset> => {
+  const ingestRemoteVideo = useCallback(async (base: Asset, remoteUrl: string, opts: { required?: boolean } = {}): Promise<Asset> => {
     try {
       const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId: base.id, assetType: 'video', remoteUrl });
-      if (r && 'path' in r && r.path && r.downloaded) {
+      // Only a durable (https storage) copy counts: a session-only blob: URL would be dead after a reload.
+      if (r && 'path' in r && r.path && r.downloaded && /^https:\/\//i.test(r.path)) {
         const jobs = [...(base.thumbnailUrl ? [] : ['generate_thumbnail']), 'compute_waveform', 'generate_filmstrip'];
         return { ...base, url: r.path, fileRef: r.path, sourceUrl: remoteUrl, status: 'processing', metadata: { ...(base.metadata ?? {}), localPersistStatus: 'ready', localPersistDownloaded: true, processingJobs: jobs } };
       }
-    } catch { /* cross-origin / offline: play from the remote link */ }
-    return { ...base, url: remoteUrl };
+    } catch { /* cross-origin / offline / not signed in */ }
+    if (opts.required) throw new Error("This provider doesn't allow linking to its files, and a copy couldn't be saved to your storage. Sign in and try again.");
+    // Play from the remote link. Mark the copy as not possible so the workspace doesn't try again and leave the asset "processing".
+    return { ...base, url: remoteUrl, metadata: { ...(base.metadata ?? {}), localPersistStatus: 'failed' } };
   }, [projectId]);
   const startDeriveJobs = useCallback((asset: Asset) => {
     const jobs = ((asset.metadata as Record<string, unknown> | undefined)?.processingJobs as string[] | undefined) ?? [];
@@ -972,12 +976,15 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     const at = latestRef.current.currentTime; // where the playhead was when the user clicked
     const assetId = generateId();
     let url = item.src;
-    if (!isVideo && item.mustCopy) {
-      // Pixabay doesn't allow permanent hotlinking: keep a copy in the user's storage (falls back to the CDN link).
+    // Pixabay doesn't allow permanent hotlinking: its files must be copied to the user's storage, or not used at all.
+    const mustCopy = item.mustCopy || item.source === 'pixabay';
+    if (!isVideo && mustCopy) {
+      let copied = false;
       try {
         const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId, assetType: 'image', remoteUrl: item.src });
-        if (r && 'path' in r && r.path) url = r.path;
-      } catch { /* cross-origin / offline: use the CDN link */ }
+        if (r && 'path' in r && r.path && r.downloaded && /^https:\/\//i.test(r.path)) { url = r.path; copied = true; }
+      } catch { /* handled below */ }
+      if (!copied) throw new Error("Pixabay doesn't allow linking to its images, and a copy couldn't be saved to your storage. Sign in and try again.");
     }
     const duration = isVideo ? Math.min(30, Math.max(1, item.duration || 5)) : 5;
     let asset: Asset = {
@@ -985,7 +992,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       duration, width: item.width, height: item.height, createdAt: new Date().toISOString(), status: 'online', sourceUrl: item.src,
       metadata: { source: `stock-${item.source}`, credit: { user: item.user, pageURL: item.pageURL } },
     };
-    if (isVideo) asset = await ingestRemoteVideo(asset, item.src);
+    if (isVideo) asset = await ingestRemoteVideo(asset, item.src, { required: mustCopy });
     dispatch({ type: 'ADD_ASSET', asset });
     placeAtPlayhead(asset, at);
     startDeriveJobs(asset);
@@ -1003,7 +1010,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         'generate',
         isVideo
           ? { model: 'seedance-lite-t2v', inputs: { prompt, duration: 5, aspect_ratio: aspect, resolution: '720p' } }
-          : { model: 'flux-dev', inputs: { prompt, aspect_ratio: aspect } },
+          : { model: 'flux-dev', inputs: { prompt, ...FLUX_SIZE[aspect] } },
         { signal: AbortSignal.timeout(limitMs), timeoutMs: limitMs, onProgress: (p) => onProgress(p.stage === 'generating' ? `Generating… ${p.elapsedSec ?? 0}s` : 'Submitting…') },
       );
     } catch (err) {
@@ -1023,7 +1030,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     } else {
       try {
         const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId, assetType: 'image', remoteUrl: url });
-        if (r && 'path' in r && r.path) asset = { ...asset, url: r.path };
+        if (r && 'path' in r && r.path && r.downloaded && /^https:\/\//i.test(r.path)) asset = { ...asset, url: r.path };
       } catch { /* use the provider link */ }
       asset = { ...asset, thumbnailUrl: asset.url };
     }
