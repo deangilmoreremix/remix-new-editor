@@ -42,7 +42,7 @@
   transform: translateX(-50%);
   width: 640px;
   height: 380px;
-  background: radial-gradient(ellipse at center, rgba(217, 255, 0, 0.04), transparent 65%);
+  background: radial-gradient(ellipse at center, rgba(217, 255, 0, 0.09), rgba(217, 255, 0, 0.04) 45%, transparent 70%);
   pointer-events: none;
   z-index: -1;
 }
@@ -60,6 +60,7 @@
 
 .name {
   color: var(--color-accent);
+  font-style: italic;
 }
 
 /* Prompt */
@@ -76,38 +77,57 @@
   margin-bottom: var(--space-4xl);
 }
 
+/* Buttons copy the SmartVideo studios' button language (src/styles/gtm-prompt-modal.css
+   .btn-primary-modern = the Generate button; .btn-secondary-modern = outlined ghost):
+   transparent, thin light border, 2px lime edge on the left for primary actions. */
 .exampleChip {
-  padding: 8px 18px;
-  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 8px;
   font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.85);
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid var(--color-accent);
   cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  transition: all 200ms ease;
   white-space: nowrap;
   letter-spacing: 0;
 }
 
 .exampleChip:hover {
-  color: var(--color-text);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  background: transparent;
+  border-color: rgba(217, 255, 0, 0.5);
+  border-left-color: var(--color-accent);
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.exampleChip:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.exampleChip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px rgba(217, 255, 0, 0.4);
+}
+
+/* "More…" is a secondary action: the outlined ghost button, no lime edge */
 .moreChip {
-  color: var(--color-text-muted);
-  border-style: dashed;
-  font-weight: 400;
+  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .moreChip:hover {
-  color: var(--color-text-secondary);
-  border-style: solid;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.04);
 }
 
 /* Onboarding checklist */
@@ -956,19 +976,37 @@
 }
 .publishTextarea::placeholder { color: rgba(255, 255, 255, 0.3); }
 
+/* Primary action: the SmartVideo studios' Generate-button design (src/styles/gtm-prompt-modal.css
+   .btn-primary-modern): transparent, thin light border, 2px lime edge on the left. */
 .publishBtn {
-  background: #d9ff00;
-  color: var(--color-accent-contrast);
-  border: none;
-  border-radius: 10px;
   padding: 12px 20px;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
   align-self: flex-end;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid var(--color-accent);
+  border-radius: 8px;
+  box-shadow: none;
+  transition: all 200ms ease;
 }
-.publishBtn:hover:not(:disabled) { background: #6a5ae0; }
+.publishBtn:hover:not(:disabled)  {
+  color: #ffffff;
+  background: transparent;
+  border-color: rgba(217, 255, 0, 0.5);
+  border-left-color: var(--color-accent);
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
+  filter: none;
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.publishBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px rgba(217, 255, 0, 0.4);
+}
 .publishBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Success toast */

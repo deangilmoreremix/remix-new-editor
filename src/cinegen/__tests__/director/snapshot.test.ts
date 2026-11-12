@@ -9,7 +9,7 @@ import type { DirectorClip, DirectorScene } from '@cinegen/types/director';
 describe('director tab wiring', () => {
   it('places Director between Spaces and Edit', () => {
     expect(PROJECT_TABS.map((tab) => tab.id)).toEqual([
-      'elements', 'create', 'director', 'edit', 'llm', 'export',
+      'elements', 'create', 'director', 'edit', 'llm', 'export', 'leads',
     ]);
   });
 });

@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { apiUrl } from './api'
 
 export interface DeployResult {
   url: string
@@ -16,7 +17,7 @@ export async function deploySite(
     throw new Error('You must be signed in to publish a site.')
   }
 
-  const res = await fetch('/api/deploy', {
+  const res = await fetch(apiUrl('deploy'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -52,6 +52,20 @@ async function durableUrl(file: File): Promise<string> {
   return URL.createObjectURL(file);
 }
 
+/** Hosted URL when cloud storage is available, otherwise the file inlined as a data: URL (a blob: URL would not survive a reload). */
+async function persistentUrl(file: File): Promise<string> {
+  try {
+    const url = await uploadFileToStorage(file);
+    if (url) return url as string;
+  } catch { /* offline / not signed in */ }
+  return new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(r.error ?? new Error('Could not read the file'));
+    r.readAsDataURL(file);
+  });
+}
+
 function loadVideo(url: string): Promise<HTMLVideoElement> {
   return new Promise((resolve, reject) => {
     const v = document.createElement('video');
@@ -218,20 +232,24 @@ export const webMediaApi = {
     persistGeneratedAsset: async (p: unknown) => {
       const a = p as { assetId: string; assetType: string; remoteUrl?: string; localPathHint?: string };
       try {
-        if (a.remoteUrl && /^https?:/i.test(a.remoteUrl)) {
+        // [remix] http(s) and data: sources are copied to the user's storage; with no storage they stay inline (durable in the project).
+        if (a.remoteUrl && /^(https?|data):/i.test(a.remoteUrl)) {
           try {
             const res = await fetch(a.remoteUrl);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const blob = await res.blob();
             const ext = (blob.type.split('/')[1] || (a.assetType === 'image' ? 'png' : a.assetType === 'audio' ? 'mp3' : 'mp4')).replace(/\+.*/, '');
-            const url = await durableUrl(new File([blob], `${a.assetId}.${ext}`, { type: blob.type }));
+            const url = await persistentUrl(new File([blob], `${a.assetId}.${ext}`, { type: blob.type }));
             return { path: url, sourceUrl: a.remoteUrl, downloaded: true };
           } catch {
             return { path: a.remoteUrl, sourceUrl: a.remoteUrl, downloaded: false }; // cross-origin: the browser streams it
           }
         }
-        // [remix] data:/blob: sources (e.g. element reference uploads kept in the project) are already durable in-browser.
-        if (a.remoteUrl && /^(data|blob):/i.test(a.remoteUrl)) return { path: a.remoteUrl, downloaded: false };
+        if (a.remoteUrl && /^blob:/i.test(a.remoteUrl)) {
+          const blob = await (await fetch(a.remoteUrl)).blob();
+          const url = await persistentUrl(new File([blob], `${a.assetId}`, { type: blob.type }));
+          return { path: url, sourceUrl: a.remoteUrl, downloaded: true };
+        }
         if (a.localPathHint) return { path: a.localPathHint, downloaded: false };
         return { error: 'No source to persist.' };
       } catch (error) {

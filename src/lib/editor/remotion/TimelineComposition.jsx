@@ -33,6 +33,8 @@ import { stretchLowerThird } from '../addons/lowerThirds.js';
 import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './keyframes.js';
 import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
+// [hyperframes] additive layer kind; renders nothing unless a layer of kind 'hyperframes' exists in the model
+import { HyperframesLayer } from './hyperframes/HyperframesLayer.jsx';
 import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
 import { zoomAt } from '../../../openchatcut/editor/zoom';
 import { clipTransformCss, clipTransformClipPath } from '../../../cinegen/lib/occ/transform';
@@ -666,6 +668,13 @@ export function TimelineComposition({ model }) {
                 <KeyframeWrap layer={layer} seqFrom={layer.from}>
                   <CodeLayer layer={layer} />
                 </KeyframeWrap>
+              </Sequence>
+            );
+          }
+          if (layer.kind === 'hyperframes') {
+            return (
+              <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
+                <HyperframesLayer layer={layer} />
               </Sequence>
             );
           }

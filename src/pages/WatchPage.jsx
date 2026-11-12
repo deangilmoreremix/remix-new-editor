@@ -88,6 +88,7 @@ export async function mountWatchPage(container, id, deps = {}) {
     frame,
     createEngine,
     profile: viewerProfile,
+    rememberKey: video.id,
     fps: FPS,
     voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
     onLead: async ({ clipId, kind, data }) => {

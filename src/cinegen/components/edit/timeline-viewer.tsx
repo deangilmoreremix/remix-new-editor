@@ -39,6 +39,8 @@ interface TimelineViewerProps {
   /** [remix] Overlays drawn over the video (Lead Generator, List Builder, CTA). */
   overlays?: OverlayClip[];
   onOverlayGeometry?: (id: string, geometry: Record<string, number>) => void;
+  /** click-to-edit text on a form overlay */
+  onOverlayText?: (id: string, key: string, value: string) => void;
 }
 
 /* Reusable SVG transport icons */
@@ -58,7 +60,7 @@ const StepForwardIcon = () => <Ico><polyline points="9 6 15 12 9 18" /></Ico>;
 const FRAME_DURATION = 1 / 24;
 
 export function TimelineViewer({
-  timeline, assets = [], onOpenTimeline, overlays = [], onOverlayGeometry,
+  timeline, assets = [], onOpenTimeline, overlays = [], onOverlayGeometry, onOverlayText,
   videoContainerRef,
   nativeSurfaceRef,
   nativeVideoEnabled = false,
@@ -124,6 +126,8 @@ export function TimelineViewer({
   const scrubProgress = duration > 0 ? currentTime / duration : 0;
 
   const [glContainer, setGlContainer] = useState<HTMLElement | null>(null);
+  // [remix] One stable ref callback: an inline arrow would be re-invoked on every render (null, then the element), tearing the video pool down and rebuilding it each tick while playing.
+  const containerRefs = useCallback((el: HTMLDivElement | null) => { setGlContainer(el); videoContainerRef(el); }, [videoContainerRef]);
   const [dragOver, setDragOver] = useState(false);
   const dragCounter = useRef(0);
 
@@ -209,7 +213,7 @@ export function TimelineViewer({
         <div style={{ position: 'absolute', inset: 0, }} data-testid="clip-transform-wrap">
         <div style={{ position: 'absolute', inset: 0, ...zoomStyle }}>
         <div
-          ref={nativeVideoEnabled ? nativeSurfaceRef : (el) => { setGlContainer(el); videoContainerRef(el); }}
+          ref={nativeVideoEnabled ? nativeSurfaceRef : containerRefs}
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         />
         {!nativeVideoEnabled && activeAsset?.type === 'image' && (
@@ -225,7 +229,7 @@ export function TimelineViewer({
         </div>
         </div>
         <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />
-        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
+        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onResume={onPlayPause} onEditText={onOverlayText} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
         </div>
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}

@@ -8,7 +8,7 @@ import type { DirectorShow } from './director';
 import type { ProjectSet } from './sets';
 import type { ProjectProviderUsage } from '@cinegen/lib/providers/project-usage';
 
-export type ProjectTab = 'elements' | 'create' | 'director' | 'edit' | 'llm' | 'export' | 'settings';
+export type ProjectTab = 'elements' | 'create' | 'director' | 'edit' | 'llm' | 'export' | 'leads' | 'settings';
 
 export interface WorkflowSpace {
   id: string;
@@ -20,7 +20,7 @@ export interface WorkflowSpace {
 
 export type OverlayKind =
   | 'lead-form' | 'list-builder' | 'click-to-call'
-  | 'overlay-text' | 'overlay-text-mask' | 'overlay-image' | 'overlay-personalized-image' | 'overlay-sticker' | 'overlay-background' | 'overlay-lower-third' | 'mg-template';
+  | 'overlay-text' | 'overlay-text-mask' | 'overlay-image' | 'overlay-personalized-image' | 'overlay-sticker' | 'overlay-background' | 'overlay-lower-third' | 'mg-template' | 'hyperframes';
 /** [remix] One overlay on the video: timing in seconds plus the old add-on's own options (flat, as the old editor saved them). */
 export interface OverlayClip {
   id: string;

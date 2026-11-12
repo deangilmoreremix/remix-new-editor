@@ -4,9 +4,10 @@ import { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } fr
 import { createPortal } from 'react-dom';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { OverlayLane } from './overlay-lane';
+import { decodeLibraryDrag, hasLibraryDrag, LIBRARY_DND, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { CaptionLane } from './caption-lane';
-import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
-import { selectOverlay } from '@cinegen/lib/overlays/selection';
+import { createOverlay, createTemplateOverlays, isConnectTemplate, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
+import { selectOverlay, getSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
 import { MusicGenerationPopup } from './music-generation-popup';
@@ -47,16 +48,23 @@ import type { WorkflowNodeData } from '@cinegen/types/workflow';
 import { applyComposition, type Composition } from '@cinegen/lib/occ/template-composition';
 import { openSmartSpeech } from '@cinegen/lib/occ/smart-speech';
 import { MgTemplatesModal } from './mg-templates-modal';
+// [hyperframes] flag-gated library for verified HyperFrames animations
+import { HyperframesModal } from './hyperframes-modal';
+import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
+// @ts-expect-error plain JS flag from the main app's lib
+import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
 import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
 
 const LABEL_WIDTH = 150;
 const FPS = 24; // assumed frame rate for snap-to-frame grid
 
-const DEFAULT_TRACK_HEIGHT = 80;
+const DEFAULT_TRACK_HEIGHT = 110; // [remix] was 80
 
 
 interface TimelineEditorProps {
+  /** [remix] A Library card was dropped on the timeline (overlay row, track, clip or cut). */
+  onLibraryDrop?: (drag: LibraryDrag, ctx: LibraryDropCtx) => void;
   currentTime: number;
   isPlaying: boolean;
   sequenceDuration: number;
@@ -81,6 +89,7 @@ interface TimelineEditorProps {
 }
 
 export function TimelineEditor({
+  onLibraryDrop,
   currentTime,
   isPlaying: _isPlaying,
   sequenceDuration,
@@ -114,6 +123,7 @@ export function TimelineEditor({
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackHeight = trackHeightProp;
   const [mgOpen, setMgOpen] = useState(false);
+  const [hfOpen, setHfOpen] = useState(false);
   const [bladeX, setBladeX] = useState<number | null>(null);
   const [rulerScrollLeft, setRulerScrollLeft] = useState(0);
 
@@ -503,6 +513,12 @@ export function TimelineEditor({
         }
         probeAssetDuration(asset);
         return;
+      }
+
+      // [remix] A picture has no sound: dropped on an audio track it goes to the first free video track instead (mirrors the audio -> video redirect)
+      if (asset.type === 'image' && targetTrack && targetTrack.kind === 'audio') {
+        const videoTrack = tl.tracks.find((t) => t.kind === 'video' && !t.locked) ?? tl.tracks.find((t) => t.kind === 'video');
+        if (videoTrack) { setTimeline(addClipToTrack(tl, videoTrack.id, asset, snappedStart)); probeAssetDuration(asset); return; }
       }
 
       setTimeline(addClipToTrack(tl, trackId, asset, snappedStart));
@@ -3191,7 +3207,33 @@ export function TimelineEditor({
     : null;
 
   return (
-    <div className="timeline-editor" ref={editorRef}>
+    <div className="timeline-editor" ref={editorRef}
+      onDragOverCapture={(e) => {
+        if (!hasLibraryDrag(e.dataTransfer.types)) return;
+        if ((e.target as Element).closest?.('.overlay-track')) return; // the Overlays row handles its own drops
+        e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+        const el = (e.target as Element).closest?.('.clip-card, .track-row[data-track-id]') as HTMLElement | null;
+        editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => { if (n !== el) n.classList.remove('lib-drop-target'); });
+        el?.classList.add('lib-drop-target');
+      }}
+      onDragLeaveCapture={(e) => { if (!editorRef.current?.contains(e.relatedTarget as Node | null)) editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => n.classList.remove('lib-drop-target')); }}
+      onDropCapture={(e) => {
+        if (!hasLibraryDrag(e.dataTransfer.types)) return;
+        const target = e.target as Element;
+        editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => n.classList.remove('lib-drop-target'));
+        if (target.closest?.('.overlay-track')) return;
+        const drag = decodeLibraryDrag(e.dataTransfer.getData(LIBRARY_DND));
+        if (!drag || !onLibraryDrop) return;
+        e.preventDefault(); e.stopPropagation(); // not an asset / clip drop: keep CineGen's own drop handler out of it
+        const trackEl = target.closest('.track-row[data-track-id]') as HTMLElement | null;
+        const trackId = trackEl?.getAttribute('data-track-id') ?? undefined;
+        const clipEl = target.closest('.clip-card') as HTMLElement | null;
+        const clipId = clipEl?.getAttribute('data-clip-id') ?? undefined;
+        const clipsEl = trackEl?.querySelector('.track-row__clips') as HTMLElement | null;
+        const time = clipsEl ? Math.max(0, (e.clientX - clipsEl.getBoundingClientRect().left) / pxPerSecondRef.current) : currentTime;
+        const trackKind = trackId ? timelineRef.current.tracks.find((t) => t.id === trackId)?.kind : undefined;
+        onLibraryDrop(drag, { time, clipId, trackId, trackKind });
+      }}>
       {/* Ruler row — sticky, shared across both sections */}
       <div className="timeline-editor__ruler-wrapper">
         <div className="timeline-editor__scroll timeline-editor__scroll--ruler" ref={scrollRef} onScroll={handleRulerScroll}>
@@ -3227,6 +3269,10 @@ export function TimelineEditor({
                   <svg className="timeline-editor__marker-flag" width="10" height="14" viewBox="0 0 10 14">
                     <path d="M1 0v14M1 0h8l-2.5 4L9 8H1" fill="var(--marker-color)" stroke="var(--marker-color)" strokeWidth="0.5" />
                   </svg>
+                  {/* [remix] visible remove button (right-click -> Remove marker still works) */}
+                  <button type="button" className="timeline-editor__marker-remove" title="Remove marker" aria-label="Remove marker"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => { e.stopPropagation(); handleRemoveMarker(marker.id); }}>&times;</button>
                 </div>
               ))}
               <div className="timeline-editor__playhead-head" style={{ left: playheadLeft }} />
@@ -3253,17 +3299,23 @@ export function TimelineEditor({
 
       {/* [remix] Overlays lane: Lead Generator, List Builder, CTA drawn over the video */}
       <OverlayLane
+        onLibraryDrop={onLibraryDrop}
         overlays={state.overlays}
         pxPerSecond={pxPerSecond}
         scrollLeft={Math.max(0, rulerScrollLeft)}
         labelWidth={LABEL_WIDTH}
         sequenceDuration={sequenceDuration}
         onAdd={(kind) => {
-          const overlay = createOverlay(kind, currentTime, Math.max(sequenceDuration, 10));
+          // one List Builder per video: open the one that is there
+          const gate = kind === 'list-builder' ? findGate(state.overlays) : undefined;
+          if (gate) { selectOverlay(gate.id); return; }
+          const overlay = createOverlay(kind, kind === 'list-builder' ? currentTime : startAfterGate(state.overlays, currentTime), Math.max(sequenceDuration, 10));
           dispatch({ type: 'ADD_OVERLAY', overlay });
           selectOverlay(overlay.id);
         }}
+        onRemove={(id) => { dispatch({ type: 'REMOVE_OVERLAY', overlayId: id }); if (getSelectedOverlay() === id) selectOverlay(null); }}
         onBrowseMotion={() => setMgOpen(true)}
+        onBrowseHyperframes={isHyperframesEnabled() ? () => setHfOpen(true) : undefined}
         onOpenSpeech={handleOpenSpeech}
         onOpenGenerator={handleOpenGenerator}
         onOpenPersonalization={handleOpenPersonalization}
@@ -3277,6 +3329,7 @@ export function TimelineEditor({
         onUpdate={(id, updates) => dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates })}
       />
 
+      {hfOpen && isHyperframesEnabled() && <HyperframesModal onClose={() => setHfOpen(false)} onPick={(item) => { const overlay = createHyperframesOverlay(item, currentTime); dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); setHfOpen(false); }} />}
       {mgOpen && <MgTemplatesModal onClose={() => setMgOpen(false)} onPick={(t) => { const overlay = createMgOverlay(t, currentTime); dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); setMgOpen(false); }} />}
 
       {/* Global playhead — spans across all sections including divider */}
