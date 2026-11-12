@@ -49,7 +49,7 @@ describe('categories', () => {
 describe('AI first', () => {
   it('opens on the AI tab, listed before the stock sources, without hitting any stock API', () => {
     setup();
-    const order = ['source-ai', 'source-pixabay', 'source-pexels'].map((id) => screen.getByTestId(id));
+    const order = ['tab-ai-videos', 'tab-pexels-videos', 'tab-pixabay-videos'].map((id) => screen.getByTestId(id));
     expect(order[0].compareDocumentPosition(order[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByTestId('ai-prompt')).toBeTruthy();
     expect(px.searchPixabayVideos).not.toHaveBeenCalled();
@@ -62,7 +62,7 @@ describe('AI first', () => {
     fireEvent.click(screen.getByTestId(`cat-${cat.id}`));
     const prompt = (screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value;
     expect(prompt).toBe(aiPrompt(cat.topics[0], 'videos'));
-    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'images' } });
+    fireEvent.click(screen.getByTestId('tab-ai-images'));
     expect((screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value).toBe(aiPrompt(cat.topics[0], 'images')); // switching type rewrites the idea
     const imagePrompt = (screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value;
     fireEvent.change(screen.getByLabelText('Aspect ratio'), { target: { value: '9:16' } });
@@ -92,11 +92,33 @@ describe('AI first', () => {
   });
 });
 
+describe('main tabs', () => {
+  it('has a videos tab and an images tab for AI, Pexels and Pixabay, and no separate Type dropdown', () => {
+    setup();
+    for (const src of ['ai', 'pexels', 'pixabay']) for (const kind of ['videos', 'images']) expect(screen.getByTestId(`tab-${src}-${kind}`)).toBeTruthy();
+    expect(screen.queryByLabelText('Type')).toBeNull();
+  });
+
+  it('Pexels images tab searches photos and Pexels videos tab searches videos', async () => {
+    px.searchPexelsVideos.mockResolvedValue({ videos: [pexelsVideo] });
+    px.searchPexelsPhotos.mockResolvedValue({ photos: [] });
+    const p = setup();
+    fireEvent.click(screen.getByTestId('tab-pexels-images'));
+    await waitFor(() => expect(px.searchPexelsPhotos).toHaveBeenCalled());
+    expect(px.searchPexelsVideos).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId('tab-pexels-videos'));
+    expect(await screen.findByTestId('stock-pexels-9')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('stock-pexels-9'));
+    await waitFor(() => expect(p.onAdd).toHaveBeenCalled());
+    expect(p.onAdd.mock.calls[0][1]).toBe('videos');
+  });
+});
+
 describe('stock sources', () => {
   it('a category on Pixabay runs that category search and adds the picked item', async () => {
     px.searchPixabayVideos.mockResolvedValue({ hits: [pixabayVideo] });
     const p = setup();
-    fireEvent.click(screen.getByTestId('source-pixabay'));
+    fireEvent.click(screen.getByTestId('tab-pixabay-videos'));
     const cat = MEDIA_CATEGORIES.find((c) => c.id === 'city-skylines')!;
     fireEvent.click(screen.getByTestId(`cat-${cat.id}`));
     fireEvent.click(await screen.findByTestId('stock-pixabay-1'));
@@ -112,14 +134,14 @@ describe('stock sources', () => {
     px.searchPixabayVideos.mockResolvedValue({ hits: [] });
     px.searchPexelsVideos.mockResolvedValue({ videos: [pexelsVideo] });
     setup();
-    fireEvent.click(screen.getByTestId('source-pexels'));
+    fireEvent.click(screen.getByTestId('tab-pexels-videos'));
     expect(await screen.findByTestId('stock-pexels-9')).toBeTruthy();
   });
 
   it('shows a clear message when the server key is missing (503)', async () => {
     px.searchPixabayVideos.mockRejectedValue(Object.assign(new Error('No Pixabay API key available'), { status: 503 }));
     setup();
-    fireEvent.click(screen.getByTestId('source-pixabay'));
+    fireEvent.click(screen.getByTestId('tab-pixabay-videos'));
     expect((await screen.findByRole('alert')).textContent).toMatch(/Pixabay isn't connected on the server yet/);
   });
 });

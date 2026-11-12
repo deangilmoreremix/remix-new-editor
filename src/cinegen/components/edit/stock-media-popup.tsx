@@ -34,7 +34,8 @@ interface SearchResult { ok: boolean; items: StockItem[]; error?: string }
 type Search = (kind: StockKind, source: string, query: string) => Promise<SearchResult>;
 
 const home = STOCK_HOME as Record<string, string>;
-const SOURCES: Array<[MediaSource, string]> = [['ai', '✨ AI'], ['pixabay', 'Pixabay'], ['pexels', 'Pexels']];
+const SOURCES: Array<[MediaSource, string]> = [['ai', 'AI'], ['pexels', 'Pexels'], ['pixabay', 'Pixabay']];
+const TABS: Array<[MediaSource, StockKind]> = SOURCES.flatMap(([id]) => [[id, 'videos'], [id, 'images']] as Array<[MediaSource, StockKind]>);
 // Assets that came from a generator (not from an upload or an attached reference).
 const NOT_AI = new Set(['studio-attachment', 'studio-frame']);
 export const isAiAsset = (a: Asset): boolean => {
@@ -128,12 +129,13 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
     applyTopic(c.topics[0]);
   };
   const pickGroup = (id: string) => { setGroupId(id); if (cat && id !== 'all' && cat.group !== id) { setCatId(null); setTopic(null); } };
-  const switchSource = (s: MediaSource) => {
+  /** One main tab per source and media type, so it is always clear whether you are browsing videos or images. */
+  const openTab = (s: MediaSource, k: StockKind) => {
     setSource(s);
-    if (s === 'ai') return;
-    if (!query) { const c = cat ?? MEDIA_GROUPS[0].categories[0]; setCatId(c.id); applyTopic(topic ?? c.topics[0], s); }
+    setKind(k);
+    if (s === 'ai') { if (topic) setPrompt(aiPrompt(topic, k)); return; }
+    if (!query) { const c = cat ?? MEDIA_GROUPS[0].categories[0]; setCatId(c.id); applyTopic(topic ?? c.topics[0], s, k); }
   };
-  const switchKind = (k: StockKind) => { setKind(k); if (source === 'ai' && topic) setPrompt(aiPrompt(topic, k)); };
   const pick = async (item: StockItem) => {
     if (busyId) return;
     setBusyId(item.id);
@@ -153,8 +155,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const sourceLabel = SOURCES.find(([id]) => id === source)?.[1] ?? source;
   const noun = kind === 'videos' ? 'videos' : 'images';
   const shown = source === 'ai' ? aiAssets.length : state.items.length;
-  const sourceGlyph: Record<MediaSource, string> = { ai: '✦', pixabay: '▦', pexels: '▶' };
-  const sourceText: Record<MediaSource, string> = { ai: 'AI generated', pixabay: 'Pixabay', pexels: 'Pexels' };
+  const sourceText: Record<MediaSource, string> = { ai: 'AI', pexels: 'Pexels', pixabay: 'Pixabay' };
   // Layout follows the Add to timeline / Animations libraries: header, source tabs, rounded panel, group + category pills, labelled filters, cards.
   return (
     <div role="dialog" aria-label="AI and stock media" data-testid="stock-media-popup" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
@@ -169,16 +170,20 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
           <button aria-label="Close media browser" onClick={onClose} style={{ background: 'transparent', border: 0, color: 'inherit', fontSize: 22, cursor: 'pointer', padding: 6 }}>×</button>
         </div>
 
-        <div role="tablist" aria-label="Source" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, padding: '16px 20px 0' }}>
-          {SOURCES.map(([id]) => (
-            <Pill key={id} size="lg" on={source === id} glyph={sourceGlyph[id]} text={sourceText[id]} testId={`source-${id}`}
-              count={id === 'ai' ? aiAll.length : MEDIA_CATEGORIES.length} title={id === 'ai' ? 'AI media in this project' : 'Categories'} onClick={() => switchSource(id)} />
+        <div role="tablist" aria-label="Media" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, padding: '16px 20px 0' }}>
+          {TABS.map(([id, k], i) => (
+            <span key={`${id}-${k}`} style={{ display: 'contents' }}>
+              {k === 'videos' && i > 0 && <span aria-hidden style={{ width: 1, height: 26, background: 'var(--border-medium)', margin: '0 4px' }} />}
+              <Pill size="lg" on={source === id && kind === k} glyph={k === 'videos' ? '▶' : '▦'} text={`${sourceText[id]} ${k}`} testId={`tab-${id}-${k}`}
+                count={id === 'ai' ? aiAll.filter((a) => a.type === (k === 'videos' ? 'video' : 'image')).length : undefined}
+                title={id === 'ai' ? `AI ${k} in this project` : `${sourceText[id]} ${k}`} onClick={() => openTab(id, k)} />
+            </span>
           ))}
         </div>
 
         <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-            <strong style={{ fontSize: 13, letterSpacing: '.06em', textTransform: 'uppercase' }}>▣ Choose {source === 'ai' ? 'AI media' : 'stock media'}</strong>
+            <strong style={{ fontSize: 13, letterSpacing: '.06em', textTransform: 'uppercase' }}>▣ Choose {sourceText[source]} {kind}</strong>
             <span style={{ flex: 1 }} />
             <span style={{ fontSize: 12, opacity: 0.6 }}>{MEDIA_CATEGORIES.length} categories</span>
           </div>
@@ -201,7 +206,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: source === 'ai' ? '2fr 1fr 1fr' : '1.1fr 1fr', gap: 18, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: source === 'ai' ? '3fr 1fr' : '1fr', gap: 18, marginBottom: 10 }}>
             {source === 'ai' ? (
               <div><div style={label}>Describe it</div>
                 <textarea aria-label={`Describe the AI ${kind === 'videos' ? 'video' : 'image'}`} data-testid="ai-prompt" rows={2} placeholder={`Describe the ${kind === 'videos' ? 'video' : 'image'} you want, or pick a category for an idea…`} value={prompt} onChange={(e) => setPrompt(e.target.value)} style={{ ...field, resize: 'vertical', fontFamily: 'inherit' }} /></div>
@@ -209,8 +214,6 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
               <form onSubmit={(e) => { e.preventDefault(); setCatId(null); setTopic(null); setQuery(draft.trim()); }}><div style={label}>Search</div>
                 <input type="text" placeholder={`⌕  Search ${sourceLabel} ${noun}…`} aria-label={`Search stock ${noun}`} value={draft} onChange={(e) => setDraft(e.target.value)} style={field} /></form>
             )}
-            <div><div style={label}>Type</div>
-              <select aria-label="Type" value={kind} onChange={(e) => switchKind(e.target.value as StockKind)} style={field}><option value="videos">Videos</option><option value="images">Images</option></select></div>
             {source === 'ai' && (
               <div><div style={label}>Aspect ratio</div>
                 <select aria-label="Aspect ratio" value={aspect} onChange={(e) => setAspect(e.target.value as AiAspect)} style={field}><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
