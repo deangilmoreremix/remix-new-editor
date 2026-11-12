@@ -2,7 +2,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { StockMediaPopup, isAiAsset } from '@cinegen/components/edit/stock-media-popup';
-import { MEDIA_CATEGORIES } from '@cinegen/components/edit/stock-categories';
+import { MEDIA_CATEGORIES, MEDIA_GROUPS, aiPrompt } from '@cinegen/components/edit/stock-categories';
 import type { Asset } from '@cinegen/types/project';
 
 const px = vi.hoisted(() => ({
@@ -28,10 +28,21 @@ beforeEach(() => {
 });
 
 describe('categories', () => {
-  it('offers a broad set of categories', () => {
-    expect(MEDIA_CATEGORIES.length).toBeGreaterThanOrEqual(12);
+  it('has many categories in groups, each with topics', () => {
+    expect(MEDIA_GROUPS.length).toBeGreaterThanOrEqual(10);
+    expect(MEDIA_CATEGORIES.length).toBeGreaterThanOrEqual(90);
     expect(new Set(MEDIA_CATEGORIES.map((c) => c.id)).size).toBe(MEDIA_CATEGORIES.length);
-    MEDIA_CATEGORIES.forEach((c) => { expect(c.query).toBeTruthy(); expect(c.ai).toBeTruthy(); });
+    MEDIA_CATEGORIES.forEach((c) => { expect(c.topics.length).toBeGreaterThanOrEqual(3); expect(c.glyph).toBeTruthy(); });
+  });
+
+  it('shows every category under All and narrows to a group, with count badges', () => {
+    setup();
+    expect(screen.getAllByTestId(/^cat-/).length).toBe(MEDIA_CATEGORIES.length);
+    const g = MEDIA_GROUPS[1];
+    fireEvent.click(screen.getByTestId(`group-${g.id}`));
+    expect(screen.getAllByTestId(/^cat-/).length).toBe(g.categories.length);
+    expect(screen.getByTestId(`group-${g.id}`).textContent).toContain(String(g.categories.length));
+    expect(screen.getByTestId(`cat-${g.categories[0].id}`).textContent).toContain(String(g.categories[0].topics.length));
   });
 });
 
@@ -47,14 +58,17 @@ describe('AI first', () => {
 
   it('a category fills the prompt, and Generate sends it with the chosen kind and aspect', async () => {
     const p = setup();
-    fireEvent.click(screen.getByTestId('cat-nature'));
+    const cat = MEDIA_CATEGORIES[0];
+    fireEvent.click(screen.getByTestId(`cat-${cat.id}`));
     const prompt = (screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value;
-    expect(prompt).toBe(MEDIA_CATEGORIES.find((c) => c.id === 'nature')!.ai);
+    expect(prompt).toBe(aiPrompt(cat.topics[0], 'videos'));
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'images' } });
+    expect((screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value).toBe(aiPrompt(cat.topics[0], 'images')); // switching type rewrites the idea
+    const imagePrompt = (screen.getByTestId('ai-prompt') as HTMLTextAreaElement).value;
     fireEvent.change(screen.getByLabelText('Aspect ratio'), { target: { value: '9:16' } });
     fireEvent.click(screen.getByTestId('ai-generate'));
     await waitFor(() => expect(p.onGenerate).toHaveBeenCalledTimes(1));
-    expect(p.onGenerate.mock.calls[0].slice(0, 3)).toEqual([prompt, 'images', '9:16']);
+    expect(p.onGenerate.mock.calls[0].slice(0, 3)).toEqual([imagePrompt, 'images', '9:16']);
     expect(await screen.findByText(/Added to the timeline/)).toBeTruthy();
   });
 
@@ -83,10 +97,13 @@ describe('stock sources', () => {
     px.searchPixabayVideos.mockResolvedValue({ hits: [pixabayVideo] });
     const p = setup();
     fireEvent.click(screen.getByTestId('source-pixabay'));
-    fireEvent.click(screen.getByTestId('cat-city'));
+    const cat = MEDIA_CATEGORIES.find((c) => c.id === 'city-skylines')!;
+    fireEvent.click(screen.getByTestId(`cat-${cat.id}`));
     fireEvent.click(await screen.findByTestId('stock-pixabay-1'));
     await waitFor(() => expect(p.onAdd).toHaveBeenCalledTimes(1));
-    expect(px.searchPixabayVideos.mock.calls.at(-1)![0].query).toBe(MEDIA_CATEGORIES.find((c) => c.id === 'city')!.query);
+    expect(px.searchPixabayVideos.mock.calls.at(-1)![0].query).toBe(cat.topics[0]);
+    fireEvent.click(screen.getByTestId(`topic-${cat.topics[2].replace(/\s+/g, '-')}`));
+    await waitFor(() => expect(px.searchPixabayVideos.mock.calls.at(-1)![0].query).toBe(cat.topics[2])); // a topic refines the search
     expect(p.onAdd.mock.calls[0][0]).toMatchObject({ id: 'pixabay-1', src: 'https://cdn.pixabay.com/v.mp4', source: 'pixabay' });
     expect(p.onAdd.mock.calls[0][1]).toBe('videos');
   });
