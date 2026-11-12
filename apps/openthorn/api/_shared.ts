@@ -44,9 +44,37 @@ export async function verifyUser(authorization: string | undefined): Promise<Aut
     if (!res.ok) return null
     const data = (await res.json()) as { id?: string; email?: string }
     if (!data?.id) return null
+    // A builder suspension must stop sessions that already exist, not only new
+    // sign-ins (which website-builder-session refuses). Fails closed.
+    if (await isBuilderSuspended(data.id)) return null
     return { id: data.id, email: data.email }
   } catch {
     return null
+  }
+}
+
+/**
+ * True when the user's wb_profiles row is suspended. Needs the service role key
+ * (the profile's `suspended` flag is not readable by the user's own token for
+ * this purpose). Without a service role key (local dev) there is nothing to
+ * check against, so access is allowed; with one, a failed lookup counts as
+ * suspended so an outage can never lift a suspension.
+ */
+async function isBuilderSuspended(userId: string): Promise<boolean> {
+  const env = supabaseEnv()
+  const key = serviceRoleKey()
+  if (!env || !key) return false
+  if (!isValidUserId(userId)) return true
+  try {
+    const res = await fetch(
+      `${env.url}/rest/v1/${TBL.profiles}?id=eq.${userId}&select=suspended&limit=1`,
+      { headers: { ...serviceHeaders(key), Accept: 'application/json' } },
+    )
+    if (!res.ok) return true
+    const rows = (await res.json()) as Array<{ suspended?: boolean }>
+    return Boolean(rows?.[0]?.suspended)
+  } catch {
+    return true
   }
 }
 
@@ -504,8 +532,9 @@ export async function isAdminUser(userId: string): Promise<boolean> {
  *
  * The builder shares SmartVideo's Supabase project, so the auth account is the
  * person's SmartVideo login. It must never be banned from here; the flag lives on
- * wb_profiles, and the sign-in function (website-builder-session) refuses a
- * suspended profile.
+ * wb_profiles. The sign-in function (website-builder-session) refuses a
+ * suspended profile, verifyUser() rejects its existing sessions, and the
+ * wb_is_suspended() RLS policies block direct database access.
  */
 export async function adminSetUserSuspended(userId: string, suspended: boolean): Promise<void> {
   const env = supabaseEnv()
