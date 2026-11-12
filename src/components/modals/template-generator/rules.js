@@ -15,12 +15,15 @@
 export const STEPS = { VIDEO: 0, SCRIPT: 1, OVERLAY: 2, PREVIEW: 3 };
 export const STEP_LABELS = ['Video', 'Script', 'Overlay', 'Preview'];
 export const MAX_VIDEOS = 5;
+/** Animations / motion graphics / end screens are overlays on top of the footage: they have their own limit and do not use the clip slots. */
+export const MAX_ANIMATIONS = 6;
 
 export const MESSAGES = {
   needVideo: 'Please select at least one video',
   needTwoVideos: 'To use overlays, you need to select two or more videos',
   needScript: 'Please select a niche script',
   maxVideos: 'Select only 5 videos at a maximum. If you want to add more, you can do so later in the timeline.',
+  maxAnimations: 'Pick up to 6 animations. You can add more later from the timeline.',
 };
 
 /** True when the user has chosen or written a script (a niche script card or their own text). */
@@ -79,11 +82,30 @@ export function toggleVideo(s, item) {
   return { ok: true, selected: true };
 }
 
+/** The small, savable reference kept for a picked animation (the full overlay is resolved when it is added). */
+export const animationRef = (it) => ({
+  id: it.id, source: it.source, title: it.title, badge: it.badge || 'ANIMATION', category: it.category || '',
+  duration: Number(it.duration) > 0 ? Number(it.duration) : 4, placeAt: it.placeAt || 'spread', thumb: it.poster || it.thumb || '',
+});
+
+/**
+ * Toggle an animation / motion graphic / end screen in the overlay tray (max MAX_ANIMATIONS).
+ * @returns {{ok: boolean, selected: boolean, message?: string}}
+ */
+export function toggleAnimation(s, item) {
+  const i = s.selectedAnimations.findIndex((a) => a.id === item.id);
+  if (i >= 0) { s.selectedAnimations.splice(i, 1); return { ok: true, selected: false }; }
+  if (s.selectedAnimations.length >= MAX_ANIMATIONS) return { ok: false, selected: false, message: MESSAGES.maxAnimations };
+  s.selectedAnimations.push(animationRef(item));
+  return { ok: true, selected: true };
+}
+
 export function createWizardState() {
   return {
     started: false,
     step: STEPS.VIDEO,
     selectedVideos: [],          // up to MAX_VIDEOS stock/upload/remote/AI items
+    selectedAnimations: [],      // up to MAX_ANIMATIONS overlay refs: animations, motion graphics, end screens
     selectedScript: null,        // a niche script card (a niche template)
     script: { text: '', tone: 'conversational', audience: 'general', cta: '' },
     selectedTransition: null,    // { type, duration } from the editor's transitions library
@@ -143,7 +165,7 @@ export function scriptLines(text, sceneCount) {
  * videos become the per-scene media; the script becomes captions timed per scene;
  * the picked transition is applied between consecutive clips; elements/voice carry over.
  */
-export function toBuilderState(s) {
+export function toBuilderState(s, payloads = {}) {
   const names = sceneNames(s);
   const mediaByScene = names.map((sceneName, i) => {
     const item = s.selectedVideos[i];
@@ -184,6 +206,20 @@ export function toBuilderState(s) {
   ].filter(Boolean);
   const captionClips = s.elements.captions ? captions : [];
 
+  // Animations: each lasts its own length (capped to the video). End screens sit at the end; the rest are
+  // spread evenly from the start so they don't pile on top of each other.
+  const anims = s.selectedAnimations || [];
+  const spread = anims.filter((a) => a.placeAt !== 'end');
+  const animations = anims.map((a) => {
+    const duration = Math.min(Math.max(a.duration || 4, 1), total);
+    const k = spread.indexOf(a);
+    const start = a.placeAt === 'end' ? Math.max(total - duration, 0) : Math.min(Math.round(((k * total) / Math.max(spread.length, 1)) * 10) / 10, Math.max(total - duration, 0));
+    return {
+      kind: 'animation', type: 'animation', trackName: 'Animations', name: a.title, startTime: start, duration,
+      animation: payloads[a.id] || { ref: { id: a.id, source: a.source } },
+    };
+  });
+
   return {
     niche: s.selectedScript?.niche || null,
     script: { text: s.script.text, tone: s.script.tone, audience: s.script.audience, cta: s.script.cta },
@@ -191,7 +227,7 @@ export function toBuilderState(s) {
     media: [],
     mediaByScene,
     transitions,
-    overlays: [...captionClips, ...elements],
+    overlays: [...captionClips, ...elements, ...animations],
     voice: { ...s.voice, text: s.voice.text || s.script.text },
     personalization: s.personalization,
   };

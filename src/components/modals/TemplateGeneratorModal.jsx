@@ -11,7 +11,7 @@ import * as pixabayApi from '../../lib/pixabayApi.js';
 import { uploadFileToSupabase } from '../../lib/uploadService.js';
 import {
   STEPS, STEP_LABELS, MAX_VIDEOS, createWizardState, guardStep, nextStepIndex, nextDisabled, nextLabel, clipDuration,
-  toggleVideo, toBuilderState, hasScript, sceneNames,
+  toggleVideo, toggleAnimation, toBuilderState, hasScript, sceneNames, MAX_ANIMATIONS,
 } from './template-generator/rules.js';
 import {
   PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
@@ -51,7 +51,9 @@ const PROVIDER_BLURB = {
   upload: 'Use your own videos and images.',
   remote: 'Paste a link to a video or image.',
   ai: 'Generate an image with AI (uses your OpenAI key).',
+  library: 'Videos and images already in this project.',
 };
+const hueOf = (str) => { let h = 0; for (const ch of String(str)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
 const TRANSITION_CATEGORY_LABELS = { fade: 'Fade', wipe: 'Wipe', push: 'Push', zoom: 'Zoom', iris: 'Iris', shape: 'Shape' };
 
 export class TemplateGeneratorModal extends BaseModal {
@@ -61,6 +63,12 @@ export class TemplateGeneratorModal extends BaseModal {
     this.timelineApi = options.timelineApi || null;
     this.s = createWizardState();
     this.store = options.templateStore || createSyncedTemplateStore();
+    // Extra media libraries supplied by the host editor (animations, motion graphics, end screens …). Each:
+    //   { id, label, blurb, group?, filters: [[id, label]], search({ query, filter, page }) → { items, hasMore },
+    //     resolve(ref) → overlay payload for the timeline, mountPreview?(host, item) → destroy }
+    this.extra = new Map((options.extraSources || []).map((x) => [x.id, x]));
+    // The project's own videos / images ("My media"); an array, or a function returning one.
+    this.projectMedia = options.projectMedia || null;
     this.stock = options.stockSearch || createStockClient({ pexels: pexelsApi, pixabay: pixabayApi });
 
     this.ui = {
@@ -170,6 +178,7 @@ export class TemplateGeneratorModal extends BaseModal {
     clearTimeout(this._toastTimer);
     this._unsub?.();
     this._unsub = null;
+    this._destroyLive();
     this._moreObserver?.disconnect?.();
     super.destroy();
   }
@@ -333,6 +342,7 @@ export class TemplateGeneratorModal extends BaseModal {
       chip('Clips', `${n}/${MAX_VIDEOS}`, n > 0),
       chip('Length', formatTime(secs), n > 0),
       chip('Transition', tr ? tr.name : 'None', !!tr),
+      ...(s.selectedAnimations.length ? [chip('Motion', String(s.selectedAnimations.length), true)] : []),
       chip('Script', s.selectedScript?.name || (hasScript(s) ? 'Custom' : '—'), hasScript(s)),
     ].join('');
   }
@@ -353,22 +363,66 @@ export class TemplateGeneratorModal extends BaseModal {
     return `
       <div class="tg-video">
         <aside class="library__block template__block tg-providers">
-          <span>Find Free videos</span>
+          <span>Find media</span>
           <div class="library__block-sidebar"><div class="library__btn-container">
-            ${PROVIDERS.map(([id, name]) => `
-              <button type="button" class="library__btn-item${u.provider === id ? ' library__btn-active' : ''}" data-act="provider" data-id="${id}" title="${esc(PROVIDER_BLURB[id])}"><p>${name}</p></button>`).join('')}
+            ${this.renderRail()}
           </div></div>
         </aside>
         <section class="tg-video-main">
           <div class="search">
-            <h4 class="search-title">Choose your videos <span class="tg-count" id="tg-count">${this.s.selectedVideos.length}/${MAX_VIDEOS}</span></h4>
+            <h4 class="search-title">${esc(this.searchTitle())} <span class="tg-count" id="tg-count">${this.countText()}</span></h4>
             ${this.renderProviderControls()}
           </div>
           <div class="generator-list video-list"><div class="list-items" id="tg-list">${this.renderProviderList()}</div></div>
-          ${this.renderSelectedStrip()}
+          <div id="tg-tray">${this.renderSelectedStrip()}</div>
           ${STOCK_HOME[u.provider] ? `<p class="tg-attribution">Provided by <a href="${STOCK_HOME[u.provider]}" target="_blank" rel="noopener">${u.provider === 'pexels' ? 'Pexels' : 'Pixabay'}</a>. Credit is kept with each clip.</p>` : ''}
         </section>
       </div>`;
+  }
+
+  searchTitle() {
+    const x = this.extra.get(this.ui.provider);
+    return x ? `Choose ${x.label.toLowerCase()}` : 'Choose your videos';
+  }
+
+  countText() {
+    return this.extra.has(this.ui.provider) ? `${this.s.selectedAnimations.length}/${MAX_ANIMATIONS}` : `${this.s.selectedVideos.length}/${MAX_VIDEOS}`;
+  }
+
+  /** Source list: stock + own media first, then (when the host editor offers them) animations and templates. */
+  railProviders() {
+    const base = PROVIDERS.filter(([id]) => id !== 'ai' && id !== 'upload' && id !== 'remote');
+    const mine = this.projectMedia ? [['library', 'My media']] : [];
+    const own = PROVIDERS.filter(([id]) => id === 'upload' || id === 'remote' || id === 'ai');
+    const extras = [...this.extra.values()].map((x) => [x.id, x.label, x.group || 'Motion & templates', x.blurb]);
+    return { first: [...base, ...mine, ...own], extras };
+  }
+
+  renderRail() {
+    const u = this.ui;
+    const { first, extras } = this.railProviders();
+    const btn = (id, name, blurb) => `
+      <button type="button" class="library__btn-item${u.provider === id ? ' library__btn-active' : ''}" data-act="provider" data-id="${esc(id)}" title="${esc(blurb || PROVIDER_BLURB[id] || '')}"><p>${esc(name)}</p></button>`;
+    let html = first.map(([id, name]) => btn(id, name)).join('');
+    let group = null;
+    for (const [id, name, grp, blurb] of extras) {
+      if (grp !== group) { group = grp; html += `<span class="tg-rail-label">${esc(grp)}</span>`; }
+      html += btn(id, name, blurb);
+    }
+    return html;
+  }
+
+  /** Items of the "My media" source, filtered by the type chips and the search box. */
+  libraryItems() {
+    const raw = typeof this.projectMedia === 'function' ? this.projectMedia() : (this.projectMedia || []);
+    const q = this.ui.query.trim().toLowerCase();
+    return raw.filter((m) => m && m.url).map((m) => {
+      const kind = m.type === 'image' || m.kind === 'image' ? 'image' : 'video';
+      return {
+        id: `library-${m.id}`, kind, source: 'library', title: m.name || m.title || 'Media', url: m.url, preview: m.url,
+        poster: m.thumbnail || (kind === 'image' ? m.url : ''), duration: Number(m.duration) || 0, width: m.width, height: m.height, user: '', pageURL: '',
+      };
+    }).filter((it) => (this.ui.filter === 'all' || (this.ui.filter === 'videos' ? it.kind === 'video' : it.kind === 'image')) && (!q || it.title.toLowerCase().includes(q)));
   }
 
   renderProviderControls() {
@@ -384,6 +438,24 @@ export class TemplateGeneratorModal extends BaseModal {
             <span aria-hidden="true">🔍</span>
             <input type="search" id="tg-query" data-query="stock" placeholder="${u.filter === 'videos' ? 'Search free videos…' : u.filter === 'all' ? 'Search free videos and images…' : 'Search free images…'}" value="${esc(u.query)}" autocomplete="off" aria-label="Search">
           </div>`}`;
+    }
+    if (u.provider === 'library') {
+      return `
+        <div class="tg-chips" role="group" aria-label="Media type">
+          ${[['all', 'All'], ['videos', 'Videos'], ['photos', 'Photos']].map(([id, label]) => `<button type="button" class="tg-chip${u.filter === id ? ' is-active' : ''}" data-act="filter" data-id="${id}">${label}</button>`).join('')}
+        </div>
+        <div class="library__search-box search-box tg-searchbox"><span aria-hidden="true">🔍</span>
+          <input type="search" id="tg-query" data-query="stock" placeholder="Search your media…" value="${esc(u.query)}" autocomplete="off" aria-label="Search your media"></div>`;
+    }
+    const x = this.extra.get(u.provider);
+    if (x) {
+      return `
+        <p class="tg-hint">${esc(x.blurb || '')} They are added as overlays on top of your footage and don’t use the ${MAX_VIDEOS} clip slots (up to ${MAX_ANIMATIONS}).</p>
+        ${x.filters?.length ? `<div class="tg-chips" role="group" aria-label="Category">
+          ${x.filters.map(([id, label]) => `<button type="button" class="tg-chip${u.filter === id ? ' is-active' : ''}" data-act="filter" data-id="${esc(id)}">${esc(label)}</button>`).join('')}
+        </div>` : ''}
+        <div class="library__search-box search-box tg-searchbox"><span aria-hidden="true">🔍</span>
+          <input type="search" id="tg-query" data-query="stock" placeholder="Search ${esc(x.label.toLowerCase())}…" value="${esc(u.query)}" autocomplete="off" aria-label="Search ${esc(x.label)}"></div>`;
     }
     if (u.provider === 'upload') {
       return `
@@ -413,6 +485,7 @@ export class TemplateGeneratorModal extends BaseModal {
   /** Items shown for the active provider. */
   providerItems() {
     const u = this.ui;
+    if (u.provider === 'library') return this.libraryItems();
     if (u.provider === 'upload') return u.uploads;
     if (u.provider === 'remote') return u.remoteItems;
     if (u.provider === 'ai') return u.aiResults;
@@ -428,13 +501,14 @@ export class TemplateGeneratorModal extends BaseModal {
     if (u.loading) tail = '<div class="tg-loading" aria-busy="true">Loading…</div>';
     else if (u.error) tail = `<div class="tg-empty tg-empty--error">${esc(u.error)}</div>`;
     else if (!items.length) tail = `<div class="tg-empty">${this.emptyText()}</div>`;
-    else if (u.hasMore && (u.provider === 'pixabay' || u.provider === 'pexels')) tail = '<button type="button" class="tg-more" data-act="load-more">Load more</button>';
+    else if (u.hasMore && (u.provider === 'pixabay' || u.provider === 'pexels' || this.extra.has(u.provider))) tail = '<button type="button" class="tg-more" data-act="load-more">Load more</button>';
     const back = u.collectionId ? `<button type="button" class="tg-chip tg-back" data-act="collections-back">← ${esc(u.collectionTitle || 'Collections')}</button>` : '';
     return `${back}${cards}${tail}`;
   }
 
   emptyText() {
     const u = this.ui;
+    if (u.provider === 'library') return 'No videos or images in this project yet. Upload some, or pick from Pexels and Pixabay.';
     if (u.provider === 'upload') return 'No uploads yet. Add your own videos or images above.';
     if (u.provider === 'remote') return 'Paste a link above to add a video or image.';
     if (u.provider === 'ai') return 'Describe an image above and generate it.';
@@ -453,8 +527,24 @@ export class TemplateGeneratorModal extends BaseModal {
       </button>`).join('');
   }
 
+  /** Animation / motion graphic / end screen card: a coloured tile (or its thumbnail) with a glyph. */
+  renderAnimationCard(it) {
+    const on = this.s.selectedAnimations.some((a) => a.id === it.id);
+    const thumb = it.poster || it.thumb;
+    return `
+      <div class="video-tile tg-anim${on ? ' active' : ''}" role="button" tabindex="0" aria-pressed="${on}" data-act="pick-video" data-id="${esc(it.id)}"
+           style="--tg-hue:${hueOf(it.category || it.id)};${thumb ? `background-image:${cssUrl(thumb)}` : ''}" title="${esc(it.description || it.title)}">
+        ${on ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
+        <span class="tg-badge">${esc(it.badge || 'ANIMATION')}${it.duration ? ` · ${formatTime(it.duration)}` : ''}</span>
+        ${thumb ? '' : `<span class="tg-anim__glyph" aria-hidden="true">${esc(it.glyph || '✺')}</span>`}
+        <div class="tg-card-title">${esc(it.title)}</div>
+        <button type="button" class="video__item__button tg-card-preview" data-act="preview-video" data-id="${esc(it.id)}">Preview</button>
+      </div>`;
+  }
+
   renderVideoCard(it) {
     this.itemsById.set(it.id, it);
+    if (it.kind === 'animation') return this.renderAnimationCard(it);
     const selected = this.s.selectedVideos.some((v) => v.id === it.id);
     const badge = it.kind === 'video' ? `VIDEO${it.duration ? ` · ${formatTime(it.duration)}` : ''}` : 'PHOTO';
     return `
@@ -470,13 +560,20 @@ export class TemplateGeneratorModal extends BaseModal {
 
   renderSelectedStrip() {
     const sel = this.s.selectedVideos;
-    if (!sel.length) return '<p class="tg-hint">Pick up to 5 clips. Add more later in the timeline.</p>';
-    return `
+    const anim = this.s.selectedAnimations;
+    const clips = sel.length ? `
       <div class="tg-selected" aria-label="Selected clips">
         ${sel.map((it, i) => `
           <span class="tg-selected__item"><b>${i + 1}</b> ${esc(it.title)}
             <button type="button" aria-label="Remove ${esc(it.title)}" data-act="remove-video" data-id="${esc(it.id)}">✕</button></span>`).join('')}
-      </div>`;
+      </div>` : '<p class="tg-hint">Pick up to 5 clips. Add more later in the timeline.</p>';
+    const motion = anim.length ? `
+      <div class="tg-selected tg-selected--anim" aria-label="Selected animations">
+        ${anim.map((a) => `
+          <span class="tg-selected__item tg-selected__item--anim"><b>✺</b> ${esc(a.title)}
+            <button type="button" aria-label="Remove ${esc(a.title)}" data-act="remove-animation" data-id="${esc(a.id)}">✕</button></span>`).join('')}
+      </div>` : '';
+    return clips + motion;
   }
 
   // ------------------------------------------------------------ Script step
@@ -635,6 +732,12 @@ export class TemplateGeneratorModal extends BaseModal {
                     <button type="button" class="preview__delete" aria-label="Remove ${esc(it.title)}" data-act="remove-video" data-id="${esc(it.id)}">−</button>
                     <div class="tg-card-title">${esc(it.title)}</div>
                   </div>`).join('')}
+                ${s.selectedAnimations.map((a) => `
+                  <div class="video-tile video__item video-element tg-anim" style="--tg-hue:${hueOf(a.category || a.id)}" title="${esc(a.title)}">
+                    <button type="button" class="preview__delete" aria-label="Remove ${esc(a.title)}" data-act="remove-animation" data-id="${esc(a.id)}">−</button>
+                    <span class="tg-badge">${esc(a.badge || 'ANIMATION')}</span><span class="tg-anim__glyph" aria-hidden="true">✺</span>
+                    <div class="tg-card-title">${esc(a.title)}</div>
+                  </div>`).join('')}
                 <div class="overlays__item-container overlays__item select${hasOverlayTab ? '' : ' disabled'}" role="button" tabindex="0" data-act="tab" data-step="${STEPS.OVERLAY}">
                   <div class="select-overlay-container"><span>${tr ? `${esc(tr.icon || '')} ${esc(tr.name)} transition` : (hasOverlayTab ? 'Please select overlay' : 'Please select more than one video and Select overlay')}</span></div>
                 </div>
@@ -662,14 +765,29 @@ export class TemplateGeneratorModal extends BaseModal {
   /** Read-only track lanes, coloured like the timeline editor (video / text / fx). */
   renderLanes(preview) {
     const total = Math.max(preview.duration || 0, 1);
-    const kind = (t, c) => (/transition|overlay/i.test(t.name) ? 'fx' : (c.type === 'video' || c.type === 'image') ? 'video' : (c.type === 'audio' ? 'audio' : 'text'));
+    const kind = (t, c) => (c.type === 'animation' || /transition|overlay|animation/i.test(t.name) ? 'fx' : (c.type === 'video' || c.type === 'image') ? 'video' : (c.type === 'audio' ? 'audio' : 'text'));
     const lanes = { video: [], text: [], fx: [], audio: [] };
     for (const t of preview.tracks || []) for (const c of t.clips || []) lanes[kind(t, c)].push(c);
-    const label = { video: 'Video', text: 'Text', fx: 'FX', audio: 'Audio' };
-    const rows = Object.entries(lanes).filter(([, cl]) => cl.length).map(([k, cl]) => `
+    const label = { video: 'Video', text: 'Text', fx: 'Motion', audio: 'Audio' };
+    // Clips that overlap in time (animations over each other) go on their own row so none is hidden.
+    const stack = (cl) => {
+      const ends = []; const placed = [];
+      for (const c of [...cl].sort((x, y) => (x.startTime || 0) - (y.startTime || 0))) {
+        const start = c.startTime || 0;
+        let row = ends.findIndex((e) => e <= start + 0.001);
+        if (row < 0) { row = ends.length; ends.push(0); }
+        ends[row] = start + (c.duration || 1);
+        placed.push({ c, row });
+      }
+      return { placed, rows: Math.max(ends.length, 1) };
+    };
+    const rows = Object.entries(lanes).filter(([, cl]) => cl.length).map(([k, cl]) => {
+      const { placed, rows: n } = stack(cl);
+      return `
       <div class="tg-lane"><span class="tg-lane__name"><i class="tg-dot tg-dot--${k}"></i>${label[k]}</span>
-        <div class="tg-lane__track">${cl.map((c) => `<span class="tg-clip tg-clip--${k}" style="left:${((c.startTime || 0) / total) * 100}%;width:${Math.max(((c.duration || 1) / total) * 100, 2)}%" title="${esc(c.name)}">${esc(c.name)}</span>`).join('')}</div>
-      </div>`).join('');
+        <div class="tg-lane__track" style="height:${n * 28 - 2}px">${placed.map(({ c, row }) => `<span class="tg-clip tg-clip--${k}" style="left:${((c.startTime || 0) / total) * 100}%;width:${Math.max(((c.duration || 1) / total) * 100, 2)}%;top:${row * 28 + 2}px;height:22px" title="${esc(c.name)}">${esc(c.name)}</span>`).join('')}</div>
+      </div>`;
+    }).join('');
     const tr = (preview.transitions || []).length ? `<p class="tg-hint">${preview.transitions.length} transition${preview.transitions.length === 1 ? '' : 's'} between clips</p>` : '';
     return `<div class="tg-lanes" aria-label="Timeline preview"><div class="tg-lanes__head"><b>Timeline</b><span>${formatTime(total)}</span></div>${rows}${tr}</div>`;
   }
@@ -722,6 +840,25 @@ export class TemplateGeneratorModal extends BaseModal {
           </div>
         </div>`;
     }
+    if (p.kind === 'animation') {
+      const it = this.itemsById.get(p.id);
+      if (!it) return '';
+      const on = this.s.selectedAnimations.some((a) => a.id === it.id);
+      return `
+        <div class="tg-popup" role="dialog" aria-modal="true" aria-label="Preview ${esc(it.title)}" data-act="popup-backdrop">
+          <div class="tg-popup__card">
+            <button type="button" class="tg-popup__close" data-act="popup-close" aria-label="Close">✕</button>
+            <h4>${esc(it.title)}</h4>
+            <div class="tg-popup__live" id="tg-live" style="--tg-hue:${hueOf(it.category || it.id)}"><span class="tg-anim__glyph" aria-hidden="true">${esc(it.glyph || '✺')}</span></div>
+            ${it.description ? `<p class="tg-hint">${esc(it.description)}</p>` : ''}
+            <p class="tg-credit">${esc(it.badge || 'Animation')}${it.category ? ` · ${esc(it.category)}` : ''}${it.duration ? ` · ${formatTime(it.duration)}` : ''}. Added as an overlay you can edit on the timeline.</p>
+            <div class="tg-popup__actions">
+              <button type="button" class="tg-btn" data-act="popup-close">Close</button>
+              <button type="button" class="tg-btn tg-btn--primary" data-act="popup-use" data-id="${esc(it.id)}">${on ? 'Remove from selection' : 'Use this'}</button>
+            </div>
+          </div>
+        </div>`;
+    }
     if (p.kind === 'video') {
       const it = this.itemsById.get(p.id);
       if (!it) return '';
@@ -761,10 +898,23 @@ export class TemplateGeneratorModal extends BaseModal {
   }
 
   setPopup(popup) {
+    this._destroyLive();
     this.ui.popup = popup;
     const host = this.overlay?.querySelector('#tg-popup');
     if (host) host.innerHTML = this.renderPopup();
+    if (popup?.kind === 'animation') this._mountLive(popup.id);
   }
+
+  /** Live motion preview inside the popup, drawn by the host editor's own renderer (sandboxed there). */
+  _mountLive(id) {
+    const it = this.itemsById.get(id);
+    const src = it && this.extra.get(it.source);
+    const host = this.overlay?.querySelector('#tg-live');
+    if (!src?.mountPreview || !host) return;
+    try { this._liveDestroy = src.mountPreview(host, it); } catch { /* the glyph stays as the preview */ }
+  }
+
+  _destroyLive() { try { this._liveDestroy?.(); } catch { /* ignore */ } this._liveDestroy = null; }
 
   // ----------------------------------------------------------------- events
 
@@ -873,8 +1023,9 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'collection': this.ui.collectionId = id; this.ui.collectionTitle = el.dataset.title || ''; this.runSearch(true); break;
       case 'collections-back': this.ui.collectionId = null; this.runSearch(true); break;
       case 'pick-video': this.pickVideo(id); break;
-      case 'preview-video': this.setPopup({ kind: 'video', id }); break;
+      case 'preview-video': this.setPopup({ kind: this.itemsById.get(id)?.kind === 'animation' ? 'animation' : 'video', id }); break;
       case 'remove-video': this.removeVideo(id); break;
+      case 'remove-animation': this.removeAnimation(id); break;
       case 'popup-close': case 'popup-backdrop': this.setPopup(null); break;
       case 'popup-use': this.pickVideo(id); this.setPopup(null); break;
       case 'popup-use-script': this.pickScript(id); this.setPopup(null); break;
@@ -928,9 +1079,16 @@ export class TemplateGeneratorModal extends BaseModal {
     const it = this.itemsById.get(id);
     if (!it) return;
     if (it.status === 'uploading') { this.toast('That file is still uploading — one moment.'); return; }
-    const res = toggleVideo(this.s, it);
+    const res = it.kind === 'animation' ? toggleAnimation(this.s, it) : toggleVideo(this.s, it);
     if (!res.ok) { this.toast(res.message); return; }
     this._refreshSelection();
+  }
+
+  removeAnimation(id) {
+    const i = this.s.selectedAnimations.findIndex((a) => a.id === id);
+    if (i < 0) return;
+    this.s.selectedAnimations.splice(i, 1);
+    if (this.s.step === STEPS.VIDEO) this._refreshSelection(); else this.paint();
   }
 
   removeVideo(id) {
@@ -971,21 +1129,21 @@ export class TemplateGeneratorModal extends BaseModal {
 
   /** Selection changed on the Video step: update cards, counter, strip and Next without losing scroll/focus. */
   _refreshSelection() {
-    const sel = new Set(this.s.selectedVideos.map((v) => v.id));
+    const clips = this.s.selectedVideos.map((v) => v.id);
+    const sel = new Set([...clips, ...this.s.selectedAnimations.map((a) => a.id)]);
     this.overlay?.querySelectorAll('.video-tile[data-id]').forEach((card) => {
       const on = sel.has(card.dataset.id);
       card.classList.toggle('active', on);
       card.setAttribute('aria-pressed', String(on));
       const mark = card.querySelector('.preview__select');
-      const n = this.s.selectedVideos.findIndex((v) => v.id === card.dataset.id) + 1;
-      if (on && !mark) card.insertAdjacentHTML('afterbegin', `<span class="preview__select" aria-hidden="true">${n}</span>`);
-      else if (on && mark) mark.textContent = String(n);
+      const label = card.classList.contains('tg-anim') ? '✓' : String(clips.indexOf(card.dataset.id) + 1);
+      if (on && !mark) card.insertAdjacentHTML('afterbegin', `<span class="preview__select" aria-hidden="true">${label}</span>`);
+      else if (on && mark) mark.textContent = label;
       if (!on && mark) mark.remove();
     });
     const count = this.overlay?.querySelector('#tg-count');
-    if (count) count.textContent = `${this.s.selectedVideos.length}/${MAX_VIDEOS}`;
-    const strip = this.overlay?.querySelector('.tg-selected, .tg-hint');
-    if (strip) strip.outerHTML = this.renderSelectedStrip();
+    if (count) count.textContent = this.countText();
+    this._setHTML('#tg-tray', this.renderSelectedStrip());
     this._updateNext();
   }
 
@@ -1036,18 +1194,23 @@ export class TemplateGeneratorModal extends BaseModal {
     this.ui.collectionId = null;
     this.ui.error = null;
     this.paint();
-    if (id === 'pixabay' || id === 'pexels') this.runSearch(true);
+    if (id === 'pixabay' || id === 'pexels' || this.extra.has(id)) this.runSearch(true);
   }
 
   async runSearch(reset = true) {
     const u = this.ui;
-    if (u.provider !== 'pixabay' && u.provider !== 'pexels') return;
+    if (u.provider === 'library') { this.paintList(); return; }
+    const x = this.extra.get(u.provider);
+    if (u.provider !== 'pixabay' && u.provider !== 'pexels' && !x) return;
     if (reset) { u.page = 1; u.results = []; u.collections = null; }
     const token = ++this._searchToken;
     u.loading = true;
     u.error = null;
     this.paintList();
-    const res = await this.stock({ source: u.provider, filter: u.filter, query: u.query, page: u.page, collectionId: u.collectionId });
+    let res;
+    if (x) {
+      try { res = await x.search({ query: u.query.trim(), filter: u.filter, page: u.page }); } catch (err) { res = { items: [], hasMore: false, error: err?.message || `${x.label} could not be loaded` }; }
+    } else res = await this.stock({ source: u.provider, filter: u.filter, query: u.query, page: u.page, collectionId: u.collectionId });
     if (token !== this._searchToken) return; // a newer search replaced this one
     u.loading = false;
     if (res.error) u.error = res.error;
@@ -1208,6 +1371,17 @@ export class TemplateGeneratorModal extends BaseModal {
     }
   }
 
+  /** Ask each animation's source for the real overlay it adds to the timeline (done at add time, never stored). */
+  async _resolveAnimations() {
+    const payloads = {}; const failed = [];
+    for (const a of this.s.selectedAnimations) {
+      const src = this.extra.get(a.source);
+      try { if (!src?.resolve) throw new Error('unavailable'); payloads[a.id] = await src.resolve(a); } catch { failed.push(a.title); }
+    }
+    if (failed.length) this.toast(`${failed.length} animation${failed.length === 1 ? '' : 's'} couldn’t be added (${failed.slice(0, 2).join(', ')}${failed.length > 2 ? '…' : ''}).`);
+    return payloads;
+  }
+
   // ---------------------------------------------------- saved templates
 
   /** Open a saved template in the wizard (on the Video step, so footage can be swapped). */
@@ -1216,13 +1390,16 @@ export class TemplateGeneratorModal extends BaseModal {
     if (!rec) { this.toast('That template no longer exists.'); return; }
     this.s = restoreTemplate(rec, (sid) => ALL_NICHE_TEMPLATES.find((x) => x.id === sid) || null);
     for (const c of this.s.selectedVideos) this.itemsById.set(c.id, c);
+    // Animations come from the editor that opened the generator; ones this editor doesn't offer are set aside.
+    const unavailable = this.s.selectedAnimations.filter((a) => !this.extra.has(a.source));
+    this.s.selectedAnimations = this.s.selectedAnimations.filter((a) => this.extra.has(a.source));
     this.ui.tplDesc = rec.description || '';
     this.ui.tplName = rec.name;
     this.ui.view = 'start';
     this.ui.results = [];
     this.paint();
     this.runSearch(true);
-    this.toast(`Opened “${rec.name}”. Swap footage or edit anything, then add it to the timeline.`);
+    this.toast(unavailable.length ? `Opened “${rec.name}”. ${unavailable.length} animation${unavailable.length === 1 ? '' : 's'} from it need the Timeline Studio editor and were left out.` : `Opened “${rec.name}”. Swap footage or edit anything, then add it to the timeline.`);
   }
 
   _dupTemplate(id) {
@@ -1281,7 +1458,8 @@ export class TemplateGeneratorModal extends BaseModal {
     try {
       const durable = [];
       for (const it of this.s.selectedVideos) durable.push(await this._ensureDurable(it));
-      const state = toBuilderState({ ...this.s, selectedVideos: durable });
+      const payloads = await this._resolveAnimations();
+      const state = toBuilderState({ ...this.s, selectedVideos: durable }, payloads);
       const composition = buildCompositionFromState(state);
       composition.name = this.s.selectedScript?.name || composition.name;
 

@@ -46,6 +46,7 @@ export function snapshotTemplate(s, { name = '', description = '' } = {}) {
     elements: { ...s.elements },
     voice: { enabled: !!s.voice.enabled, provider: s.voice.provider, voice: s.voice.voice, instructions: s.voice.instructions },
     personalization: { enabled: !!s.personalization.enabled },
+    animations: (s.selectedAnimations || []).map((a) => ({ ...a })),
     clips: keep.map(clipRecord),
     clipCount: keep.length,
     duration: Math.round(keep.reduce((n, v) => n + clipDuration(v), 0) * 10) / 10,
@@ -70,6 +71,7 @@ export function restoreTemplate(rec, findScript = () => null) {
   s.voice = { ...s.voice, ...rec.voice };
   s.personalization = { ...s.personalization, enabled: !!rec.personalization?.enabled };
   s.selectedVideos = (rec.clips || []).map((c) => ({ ...c }));
+  s.selectedAnimations = (rec.animations || []).map((a) => ({ ...a }));
   s.templateId = rec.id || null;
   s.templateName = rec.name || '';
   return s;

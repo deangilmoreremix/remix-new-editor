@@ -65,3 +65,21 @@ describe('template store', () => {
     expect(() => createTemplateStore(full).save({ name: 'x' })).toThrow(/storage is full/);
   });
 });
+
+describe('animations in templates', () => {
+  it('are saved by reference and restored; toggling respects the overlay limit', async () => {
+    const { toggleAnimation, MAX_ANIMATIONS, MESSAGES } = await import('../components/modals/template-generator/rules.js');
+    const s = wizard();
+    const item = (n, extra = {}) => ({ id: `hf:${n}`, source: 'animations', title: `Anim ${n}`, badge: 'ANIMATION', duration: 5, ...extra });
+    expect(toggleAnimation(s, item(1)).ok).toBe(true);
+    expect(toggleAnimation(s, item(1)).selected).toBe(false);          // toggles off
+    for (let i = 0; i < MAX_ANIMATIONS; i += 1) toggleAnimation(s, item(i));
+    const r = toggleAnimation(s, item(99));
+    expect(r.ok).toBe(false); expect(r.message).toBe(MESSAGES.maxAnimations);
+    expect(s.selectedVideos.length).toBe(2);                           // the clip slots are untouched
+
+    const rec = snapshotTemplate(s, { name: 'With motion' });
+    expect(rec.animations).toHaveLength(MAX_ANIMATIONS);
+    expect(restoreTemplate(rec).selectedAnimations.map((a) => a.id)).toEqual(s.selectedAnimations.map((a) => a.id));
+  });
+});

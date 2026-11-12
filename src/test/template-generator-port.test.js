@@ -149,3 +149,21 @@ describe('upload + remote', () => {
     expect(r.item).toMatchObject({ kind: 'video', duration: 12 });
   });
 });
+
+describe('animations → composition overlays', () => {
+  it('become overlay clips on an Animations track, timed against the footage', () => {
+    const s = createWizardState();
+    toggleVideo(s, vid(1)); toggleVideo(s, vid(2));            // 6 s + 6 s of footage = 12 s
+    s.script.text = 'Hello.';
+    s.selectedAnimations = [
+      { id: 'a1', source: 'animations', title: 'Lower third', duration: 4, placeAt: 'spread' },
+      { id: 'a2', source: 'animations', title: 'Bar chart', duration: 4, placeAt: 'spread' },
+      { id: 'a3', source: 'endscreens', title: 'End screen', duration: 5, placeAt: 'end' },
+    ];
+    const c = buildCompositionFromState(toBuilderState(s, { a1: { overlay: { type: 'hyperframes', blockId: 'x' } } }));
+    const track = c.tracks.find((t) => t.name === 'Animations');
+    expect(track.clips.map((x) => [x.name, x.startTime, x.duration])).toEqual([['Lower third', 0, 4], ['Bar chart', 6, 4], ['End screen', 7, 5]]);
+    expect(track.clips[0]._overlayConfig.animation.overlay.blockId).toBe('x');          // resolved payload travels with the clip
+    expect(track.clips[1]._overlayConfig.animation.ref).toEqual({ id: 'a2', source: 'animations' }); // otherwise just the reference
+  });
+});

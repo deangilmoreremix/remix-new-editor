@@ -124,4 +124,133 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
     m.close();
     await vi.waitFor(() => expect(fn).toBeNull());   // unsubscribed once the close animation finishes
   });
+
+  describe('media sources: Pexels, Pixabay, My media, animations, motion graphics, end screens', () => {
+    const anim = (n, extra = {}) => ({ id: `anim:${n}`, kind: 'animation', source: 'animations', title: `Anim ${n}`, badge: 'ANIMATION', category: 'Lower thirds', duration: 5, glyph: '▭', ...extra });
+    const sources = () => {
+      const calls = []; let destroyed = 0;
+      const animations = {
+        id: 'animations', label: 'Animations', blurb: 'Animated titles.', filters: [['all', 'All'], ['Lower thirds', 'Lower thirds']],
+        search: async (q) => { calls.push(['animations', q]); const all = [anim(1), anim(2), anim(3, { category: 'Data & charts' })]; return { items: all.filter((i) => (q.filter === 'all' || i.category === q.filter) && (!q.query || i.title.toLowerCase().includes(q.query.toLowerCase()))), hasMore: false }; },
+        resolve: async (ref) => ({ overlay: { type: 'hyperframes', blockId: ref.id.replace('anim:', ''), name: ref.title } }),
+        mountPreview: (host, it) => { host.dataset.mounted = it.id; return () => { destroyed += 1; }; },
+      };
+      const endscreens = {
+        id: 'endscreens', label: 'End screens & forms', blurb: 'End screens.', filters: [['all', 'All']],
+        search: async () => ({ items: [{ id: 'tpl:end-1', kind: 'animation', source: 'endscreens', title: 'Subscribe', badge: 'END SCREEN', category: 'endScreens', duration: 6, placeAt: 'end' }], hasMore: false }),
+        resolve: async (ref) => ({ templateId: ref.id.replace('tpl:', '') }),
+      };
+      return { animations, endscreens, calls, destroyed: () => destroyed };
+    };
+    const open = (extra = {}) => {
+      const src = sources();
+      const stockSearch = async (q) => ({ items: [item(q.source === 'pixabay' ? 1 : 3, 'video', q.source)], hasMore: false });
+      const projectMedia = [{ id: 'p1', type: 'video', name: 'Intro take', url: 'https://x.test/intro.mp4', duration: 7, thumbnail: 'https://x.test/intro.jpg' }, { id: 'p2', type: 'image', name: 'Logo', url: 'https://x.test/logo.png' }];
+      const onConfirm = vi.fn();
+      const m = new TemplateGeneratorModal({ stockSearch, templateStore: createTemplateStore(memory()), projectMedia, extraSources: [src.animations, src.endscreens], onConfirm, ...extra });
+      m.open(); m.s.started = true; m.paint();
+      return { m, src, onConfirm };
+    };
+
+    it('lists every source in the rail, in groups', () => {
+      const { m } = open();
+      const labels = [...document.querySelectorAll('.library__btn-item')].map((b) => b.textContent.trim());
+      expect(labels).toEqual(['Pixabay', 'Pexels', 'My media', 'Upload', 'Remote URL', 'AI Generate', 'Animations', 'End screens & forms']);
+      expect(document.querySelector('.tg-rail-label').textContent).toBe('Motion & templates');
+      m.destroy();
+    });
+
+    it('Pexels and Pixabay each return videos and photos (the All / Videos / Photos views)', async () => {
+      const seen = []; const { m } = open({ stockSearch: async (q) => { seen.push([q.source, q.filter]); return { items: [], hasMore: false }; } });
+      await m.runSearch(true);                       // Pixabay, default "All"
+      m.setProvider('pexels'); await vi.waitFor(() => expect(seen.some(([s]) => s === 'pexels')).toBe(true));
+      m.ui.filter = 'photos'; await m.runSearch(true); m.ui.filter = 'videos'; await m.runSearch(true);
+      expect(seen).toEqual(expect.arrayContaining([['pixabay', 'all'], ['pexels', 'all'], ['pexels', 'photos'], ['pexels', 'videos']]));
+      const chips = (id) => { m.setProvider(id); return [...document.querySelectorAll('.tg-chips .tg-chip')].map((c) => c.textContent); };
+      expect(chips('pixabay')).toEqual(expect.arrayContaining(['All', 'Videos', 'Photos', 'Illustrations', 'Vectors']));
+      expect(chips('pexels')).toEqual(expect.arrayContaining(['All', 'Videos', 'Photos', 'Collections']));
+      m.destroy();
+    });
+
+    it('My media shows the project clips and images, filterable and searchable, and picks them as clips', () => {
+      const { m } = open();
+      m.setProvider('library');
+      expect(m.libraryItems().map((i) => i.title)).toEqual(['Intro take', 'Logo']);
+      m.ui.filter = 'photos'; expect(m.libraryItems().map((i) => i.title)).toEqual(['Logo']);
+      m.ui.filter = 'all'; m.ui.query = 'intro'; expect(m.libraryItems().map((i) => i.title)).toEqual(['Intro take']);
+      m.paintList();
+      m.pickVideo('library-p1'); expect(m.s.selectedVideos.map((v) => v.source)).toEqual(['library']);
+      m.destroy();
+    });
+
+    it('animations are overlays: own limit, own tray, no clip slots, searchable by category and text', async () => {
+      const { m, src } = open();
+      m.setProvider('animations');
+      await vi.waitFor(() => expect(m.ui.results.length).toBe(3));
+      expect(document.querySelectorAll('.tg-anim').length).toBe(3);
+      m.pickVideo('anim:1'); m.pickVideo('anim:2');
+      expect(m.s.selectedAnimations.map((a) => a.id)).toEqual(['anim:1', 'anim:2']);
+      expect(m.s.selectedVideos.length).toBe(0);
+      expect(document.querySelector('.tg-selected--anim').textContent).toContain('Anim 1');
+      expect(document.querySelector('#tg-count').textContent).toBe('2/6');   // on an animation source the counter shows the animation limit
+      m.ui.filter = 'Data & charts'; await m.runSearch(true);
+      expect(m.ui.results.map((r) => r.id)).toEqual(['anim:3']);
+      expect(src.calls.at(-1)[1]).toMatchObject({ filter: 'Data & charts', page: 1 });
+      m.ui.filter = 'all'; m.ui.query = 'anim 2'; await m.runSearch(true);
+      expect(m.ui.results.map((r) => r.id)).toEqual(['anim:2']);
+      m.removeAnimation('anim:1'); expect(m.s.selectedAnimations.length).toBe(1);
+      for (let i = 10; i < 20; i += 1) m.itemsById.set(`anim:${i}`, anim(i));
+      for (let i = 10; i < 20; i += 1) m.pickVideo(`anim:${i}`);
+      expect(m.s.selectedAnimations.length).toBe(6);   // MAX_ANIMATIONS
+      m.destroy();
+    });
+
+    it('previews an animation live in the popup and cleans the preview up', async () => {
+      const { m, src } = open();
+      m.setProvider('animations'); await vi.waitFor(() => expect(m.ui.results.length).toBe(3));
+      m.setPopup({ kind: 'animation', id: 'anim:1' });
+      expect(document.querySelector('#tg-live').dataset.mounted).toBe('anim:1');
+      m.setPopup(null);
+      expect(src.destroyed()).toBe(1);
+      m.destroy();
+    });
+
+    it('adds picked clips AND animations / end screens to the timeline composition', async () => {
+      const { m, onConfirm } = open();
+      m.setProvider('pexels'); await vi.waitFor(() => expect(m.ui.results.length).toBe(1));
+      m.pickVideo(m.ui.results[0].id);
+      m.setProvider('library'); m.pickVideo('library-p1');
+      m.setProvider('animations'); await vi.waitFor(() => expect(m.ui.results.length).toBe(3)); m.pickVideo('anim:1');
+      m.setProvider('endscreens'); await vi.waitFor(() => expect(m.ui.results.length).toBe(1)); m.pickVideo('tpl:end-1');
+      m.s.script.text = 'Welcome. Book today.';
+      await m.addToTimeline();
+      const { composition } = onConfirm.mock.calls[0][0];
+      const media = composition.tracks.flatMap((t) => t.clips).filter((c) => c.asset);
+      expect(media.map((c) => c.asset.source)).toEqual(['pexels', 'library']);
+      const motion = composition.tracks.find((t) => t.name === 'Animations').clips;
+      expect(motion.map((c) => [c.name, c._overlayConfig.animation])).toEqual([
+        ['Anim 1', { overlay: { type: 'hyperframes', blockId: '1', name: 'Anim 1' } }],
+        ['Subscribe', { templateId: 'end-1' }],
+      ]);
+      expect(motion[1].startTime).toBeGreaterThan(motion[0].startTime);   // the end screen sits at the end
+    });
+
+    it('a saved template remembers its animations; an editor without that library sets them aside', async () => {
+      const templateStore = createTemplateStore(memory());
+      const { m } = open({ templateStore });
+      m.setProvider('animations'); await vi.waitFor(() => expect(m.ui.results.length).toBe(3)); m.pickVideo('anim:2');
+      m.setProvider('library'); m.pickVideo('library-p1');
+      m.s.script.text = 'Hello.'; m.s.step = STEPS.PREVIEW; m.paint(); m.openSave(); m.ui.tplName = 'With motion';
+      await m.saveTemplate(false);
+      const rec = templateStore.list()[0];
+      expect(rec.animations.map((a) => a.id)).toEqual(['anim:2']);
+      m.destroy();
+
+      const classic = new TemplateGeneratorModal({ templateStore, stockSearch: async () => ({ items: [], hasMore: false }) });  // no extra sources
+      classic.open(); classic.useTemplate(rec.id);
+      expect(classic.s.selectedAnimations).toEqual([]);
+      expect(classic.ui.toast).toMatch(/1 animation.*Timeline Studio editor/);
+      classic.destroy();
+    });
+  });
 });

@@ -40,6 +40,19 @@ export const hyperframesItems = (): HfItem[] => [...(enabledJson as { items: HfI
 export const hyperframesItem = (id: string): HfItem | undefined => (id.startsWith('rui:') ? ruiAll.find((i) => i.id === id) : (enabledJson as { items: HfItem[] }).items.find((i) => i.id === id));
 export const isCatalogDisabled = (id: string): boolean => catalogDisabled.has(id);
 
+/** The catalog has 24 raw categories; libraries show a handful of customer-friendly groups (display only, the catalog data is unchanged). */
+export const HF_GROUPS: Array<[string, string[]]> = [
+  ['Lower thirds', ['lower-third', 'broadcast']],
+  ['Titles & text', ['handwritten', 'typography', 'annotation', 'branding', 'logo']],
+  ['Social & UI', ['social', 'showcase', 'video-primitive']],
+  ['Data & charts', ['data', 'data-viz', 'diagram', 'instrument']],
+  ['Code', ['code']],
+  ['Transitions', ['transition']],
+  ['Backgrounds & effects', ['background', 'snow', 'starfield', 'vfx', 'camcorder', 'motion-primitive', 'placeholder']],
+];
+/** Customer-facing group of an item. RemotionUI items already carry friendly categories and are shown as they are. */
+export const hfGroupOf = (i: HfItem): string => (i.type === 'remotionui' ? i.category : (HF_GROUPS.find(([, cats]) => cats.includes(i.category))?.[0] ?? 'More'));
+
 /** Search over title, description, tags and id; `tag` narrows to one category tag. */
 export function searchHyperframes(items: HfItem[], query: string, tag = 'all'): HfItem[] {
   const q = query.trim().toLowerCase();

@@ -2,23 +2,12 @@
 // search + category filter + cards; the chosen animation is added to the overlay lane at the playhead.
 // Previews run in the editor's sandboxed code-preview frame (never in this page).
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { hyperframesItems, searchHyperframes, hyperframesOverlayLayer, createHyperframesOverlay, type HfItem } from '@cinegen/lib/hyperframes/overlay';
+import { hyperframesItems, searchHyperframes, hyperframesOverlayLayer, createHyperframesOverlay, hfGroupOf, HF_GROUPS, type HfItem } from '@cinegen/lib/hyperframes/overlay';
 
 const FPS = 30;
 
-/** The catalog has 24 raw categories; the library shows a handful of customer-friendly groups (display only, the catalog data is unchanged). */
-const GROUPS: Array<[string, string[]]> = [
-  ['Lower thirds', ['lower-third', 'broadcast']],
-  ['Titles & text', ['handwritten', 'typography', 'annotation', 'branding', 'logo']],
-  ['Social & UI', ['social', 'showcase', 'video-primitive']],
-  ['Data & charts', ['data', 'data-viz', 'diagram', 'instrument']],
-  ['Code', ['code']],
-  ['Transitions', ['transition']],
-  ['Backgrounds & effects', ['background', 'snow', 'starfield', 'vfx', 'camcorder', 'motion-primitive', 'placeholder']],
-];
-// Items that come from the second vendored library already carry customer-friendly categories; they are shown as they are.
 const RUI_CATEGORIES = ['Scenes', 'Primitives', 'Compositions', 'Data & media', 'Paths & shapes', 'Motion graphics', 'Maps & device', '3D', 'Shaders'];
-const groupOf = (i: HfItem): string => (i.type === 'remotionui' ? i.category : (GROUPS.find(([, cats]) => cats.includes(i.category))?.[0] ?? 'More'));
+const groupOf = hfGroupOf;
 const typeOf = (i: HfItem): string => (i.type === 'remotionui' ? 'block' : (i.type ?? 'block'));
 const thumbOf = (id: string): string => `/hyperframes/thumbs/${id.replace(':', '-')}.jpg`;
 
@@ -58,7 +47,7 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
   const [live, setLive] = useState<string | null>(null); // the hovered card starts its live preview after a short pause
   useEffect(() => { setLive(null); if (!hover) return undefined; const t = window.setTimeout(() => setLive(hover), 350); return () => window.clearTimeout(t); }, [hover]);
   const counts = useMemo(() => { const m = new Map<string, number>(); for (const i of all) m.set(groupOf(i), (m.get(groupOf(i)) ?? 0) + 1); return m; }, [all]);
-  const tags = useMemo(() => ['All', ...[...GROUPS.map(([g]) => g), ...RUI_CATEGORIES.filter((g) => !GROUPS.some(([n]) => n === g)), 'More'].filter((g) => counts.has(g))], [counts]);
+  const tags = useMemo(() => ['All', ...[...HF_GROUPS.map(([g]) => g), ...RUI_CATEGORIES.filter((g) => !HF_GROUPS.some(([n]) => n === g)), 'More'].filter((g) => counts.has(g))], [counts]);
   const types = useMemo(() => [...new Set(all.map(typeOf))], [all]);
   const list = searchHyperframes(all, q, 'all').filter((i) => (tag === 'all' || groupOf(i) === tag) && (type === 'all' || typeOf(i) === type) && (ratio === 'all' || aspectOf(i.dimensions.width, i.dimensions.height) === ratio));
   // Layout follows the Personalize modal's demo picker: header, rounded panel, category pills with count badges, labelled filters, big cards.

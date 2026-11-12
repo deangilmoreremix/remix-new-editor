@@ -51,3 +51,17 @@ The generator's purpose is to *make templates that are saved and reused*, so it 
   mix; templates made while signed out are adopted into the account on its first sync.
 - **Status badge**: This device only · Syncing… · Synced across your devices · Sync paused (saved on this device). A missing table or an
   expired session shows a plain-language reason on hover; nothing is ever lost locally.
+
+## Media sources (added)
+The Video step now offers every library the editor has, in one place:
+- **Stock**: Pixabay and Pexels, each with videos *and* photos (Pixabay also illustrations and vectors; Pexels also collections).
+- **My media**: the project's own videos and images (`projectMedia` option), plus Upload, Remote URL and AI Generate.
+- **Motion & templates** (when opened inside the Timeline Studio Editor, via the `extraSources` option built by
+  `src/cinegen/lib/occ/template-generator-sources.ts`): **Animations** (HyperFrames + RemotionUI catalog, grouped like the Animations
+  modal, honouring its on/off switch), **Motion graphics** templates (code-gated like the Motion graphics modal) and **End screens & forms**
+  (Connect forms are left to the timeline's own menu because they need a phone number).
+- These are *overlays*: they have their own tray and limit (6), don't use the 5 clip slots, show live previews in a popup (the editor's
+  sandboxed renderer), appear on a **Motion** lane in Preview, and are added to the overlay lane when the cut is added.
+  End screens land at the end; the rest are spread along the cut.
+- Saved templates keep only a small reference (`animations[]`); the real overlay is resolved when added. An editor without that library
+  sets them aside with a notice.

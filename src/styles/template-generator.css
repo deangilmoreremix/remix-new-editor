@@ -321,8 +321,8 @@
 .tg-lane__name { flex: none; width: 70px; display: flex; align-items: center; gap: 7px; font-size: 10.5px; font-weight: 700; color: var(--tg-muted); }
 .tg-dot { width: 8px; height: 8px; border-radius: 50%; }
 .tg-dot--video { background: var(--tg-video); } .tg-dot--text { background: var(--tg-text-c); } .tg-dot--fx { background: var(--tg-fx); } .tg-dot--audio { background: var(--tg-audio); }
-.tg-lane__track { position: relative; flex: 1; height: 26px; border-radius: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--tg-line-soft); }
-.tg-clip { position: absolute; top: 2px; bottom: 2px; padding: 0 8px; display: flex; align-items: center; border-radius: 6px; font-size: 10.5px; font-weight: 700; color: rgba(0, 0, 0, 0.8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tg-lane__track { position: relative; flex: 1; min-height: 26px; border-radius: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--tg-line-soft); }
+.tg-clip { position: absolute; padding: 0 8px; display: flex; align-items: center; border-radius: 6px; font-size: 10.5px; font-weight: 700; color: rgba(0, 0, 0, 0.8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .tg-clip--video { background: var(--tg-video); } .tg-clip--text { background: var(--tg-text-c); } .tg-clip--fx { background: var(--tg-fx); } .tg-clip--audio { background: var(--tg-audio); }
 
 .tg-extras { display: flex; flex-direction: column; gap: 10px; padding-top: 16px; flex: none; }
@@ -401,3 +401,22 @@ h2.generator-offer__text { font-size: 30px; }
 .tg-sync.is-error .tg-sync__dot { background: #f59e0b; }
 @keyframes tg-pulse { 50% { opacity: 0.25; transform: scale(0.7); } }
 .tg-pill b { font-weight: 800; }
+
+/* ---------------------------------------- animations, motion graphics, end screens */
+.tg-rail-label { margin: 14px 6px 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tg-dim); }
+.tg-anim {
+  --tg-hue: 190;
+  background: radial-gradient(120% 90% at 20% 10%, hsl(var(--tg-hue) 85% 45% / 0.55), transparent 60%),
+              linear-gradient(135deg, hsl(var(--tg-hue) 60% 18%), hsl(calc(var(--tg-hue) + 50) 55% 10%));
+  background-size: cover; background-position: center;
+}
+.tg-anim__glyph { position: absolute; inset: 0; display: grid; place-items: center; font-size: 38px; color: rgba(255, 255, 255, 0.85); text-shadow: 0 0 28px hsl(var(--tg-hue) 90% 60%); pointer-events: none; }
+.tg-anim.active { border-color: var(--tg-accent); }
+.tg-selected--anim { margin-top: 8px; border-color: rgba(167, 139, 250, 0.3); background: rgba(167, 139, 250, 0.06); }
+.tg-selected__item--anim { background: rgba(167, 139, 250, 0.14); border-color: rgba(167, 139, 250, 0.45); }
+.tg-selected__item--anim b { background: var(--tg-fx); color: #0b0716; }
+.tg-popup__live { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; border: 1px solid var(--tg-line);
+  background: radial-gradient(120% 90% at 20% 10%, hsl(var(--tg-hue, 190) 85% 45% / 0.45), transparent 60%), #05070a; }
+.tg-popup__live .tg-anim__glyph { font-size: 64px; }
+.tg-popup__live iframe, .tg-popup__live > div { position: absolute; inset: 0; }
+#tg-tray { flex: none; }
