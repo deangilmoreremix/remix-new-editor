@@ -162,6 +162,7 @@ export function MinimaxWorkflowSection() {
       { route: 'cinema',                    label: 'F', title: 'Open in Cinema Studio',          params: { template: templateId } },
       { route: 'video',                     label: 'V', title: 'Open in Video Studio',           params: { template: templateId } },
       { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
+      { route: 'personalize', label: 'P', title: 'Personalize this demo — preview it with your own brand', loadPrompt: loadDemoPrompt },
     ];
     studioIcons.forEach((icon) => {
       studioIconsHost.appendChild(
@@ -170,6 +171,7 @@ export function MinimaxWorkflowSection() {
           params: icon.params || {},
           label: icon.label,
           title: icon.title,
+          loadPrompt: icon.loadPrompt,
         })
       );
     });
