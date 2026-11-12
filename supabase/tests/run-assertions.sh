@@ -10,7 +10,7 @@ psql -q -v ON_ERROR_STOP=1 -d "$DB" -f supabase/tests/00_shim_local_postgres.sql
 for m in 20260730_create_distributed_rate_limiter 20261105120000_create_published_videos \
          20261105160000_published_video_events 20261112000000_create_timeline_projects \
          20261112010000_publish_hardening_slugs 20261112020000_video_analytics \
-         20261112030000_retargeting_notifications; do
+         20261112030000_retargeting_notifications 20261112040000_label_smartvideo_timeline_objects 20261112050000_drop_public_published_videos_read; do
   PGOPTIONS="-c client_min_messages=warning" psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "supabase/migrations/$m.sql" >/dev/null
 done
 psql -q -v ON_ERROR_STOP=1 -d "$DB" -f supabase/tests/50_assertions.sql 2>&1 | sed -n 's/^psql:.*NOTICE:  //p;/ALL ASSERTIONS/p;/ERROR/p'

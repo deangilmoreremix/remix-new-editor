@@ -67,7 +67,6 @@ select t.sees_nothing('anon cannot read events','video_events');
 select t.sees_nothing('anon cannot read sessions','video_view_sessions');
 select t.sees_nothing('anon cannot read notifications','owner_notifications');
 select t.fails('anon cannot call ingest_video_events', $q$select ingest_video_events('vidA000001','sess-aaaaaaaaaaaaaaaa',null,null,null,null,'[]')$q$);
-select t.fails('anon cannot call rate_limit_check', $q$select rate_limit_check('x','y',1,60)$q$);
 select t.ok('public read returns the video', (get_published_video(null,'acme-roofing','spring-promo')->>'id') = 'vidA000001');
 select t.ok('public payload has no owner id', not (get_published_video('vidA000001') ? 'clerk_user_id'));
 select t.ok('public payload has no webhook / email secrets', get_published_video('vidA000001')::text !~* 'hook\.example|owner@x');
@@ -105,4 +104,7 @@ select t.ok('A analytics survive B''s delete attempt', (select count(*) from vid
 select delete_video_analytics('vidA000001');
 select t.ok('A events are gone after delete', (select count(*) from video_events) = 0);
 
+reset role;
+select t.ok('app tables are labelled for this application', (select count(*) from pg_class c where c.relnamespace='public'::regnamespace and c.relkind='r' and c.relname in ('timeline_projects','video_events','video_view_sessions','owner_notifications','published_videos') and obj_description(c.oid) like '[smartvideo-timeline-editor]%') = 5);
+select t.ok('app functions are labelled for this application', obj_description('public.get_published_video(text,text,text)'::regprocedure) like '[smartvideo-timeline-editor]%');
 \echo ALL ASSERTIONS PASSED

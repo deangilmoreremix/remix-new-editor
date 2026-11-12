@@ -350,8 +350,9 @@ $$;
 revoke all on function public.get_published_video(text, text, text) from public;
 grant execute on function public.get_published_video(text, text, text) to anon, authenticated;
 
--- Public listing/enumeration is gone; owners still read their own rows.
-drop policy if exists "Anyone reads published videos" on public.published_videos;
+-- NOTE: the old public read policy ("Anyone reads published videos") is removed by the LATER migration
+-- 20261112050000_drop_public_published_videos_read.sql, applied only after the new app version (which reads through
+-- get_published_video) is deployed, so the previous app version keeps working during rollout.
 
 -- ---------------------------------------------------------------- views
 -- One source of truth: a 'view' event bumps view_count (the player no longer
@@ -395,17 +396,8 @@ begin
   if to_regclass('public.published_video_events') is not null then
     execute 'revoke truncate, references, trigger on public.published_video_events from anon, authenticated';
   end if;
-  if to_regclass('public.rate_limits') is not null then
-    execute 'revoke all on public.rate_limits from anon, authenticated';
-  end if;
-  if to_regprocedure('public.rate_limit_check(text,text,integer,integer)') is not null then
-    execute 'alter function public.rate_limit_check(text,text,integer,integer) set search_path = ''''';
-    execute 'revoke all on function public.rate_limit_check(text,text,integer,integer) from public, anon, authenticated';
-    execute 'grant execute on function public.rate_limit_check(text,text,integer,integer) to service_role';
-  end if;
-  if to_regprocedure('public.rate_limit_cleanup(integer)') is not null then
-    execute 'alter function public.rate_limit_cleanup(integer) set search_path = ''''';
-    execute 'revoke all on function public.rate_limit_cleanup(integer) from public, anon, authenticated';
-    execute 'grant execute on function public.rate_limit_cleanup(integer) to service_role';
-  end if;
+  -- NOTE: public.rate_limits / rate_limit_check / rate_limit_cleanup are shared with other applications in this
+  -- database, so this migration deliberately does NOT change their grants or search_path. (They are currently
+  -- executable by anon/authenticated; tightening them is a separate, cross-application change.) This application only
+  -- calls rate_limit_check from its Netlify function with the service role, using scopes prefixed 'video-events'.
 end $$;
