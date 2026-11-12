@@ -909,7 +909,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     const asset: Asset = { id: imported.assetId, name, type: 'audio', url: imported.filePath, fileRef: imported.filePath, duration: seconds, createdAt: new Date().toISOString(), status: 'processing', metadata: { source: 'openchatcut-recorder', processingJobs: ['extract_metadata', 'compute_waveform'] } };
     dispatch({ type: 'ADD_ASSET', asset });
     let tl = timeline;
-    let track = (ctx?.trackId ? tl.tracks.find((t) => t.id === ctx.trackId && t.kind === 'audio' && !t.locked) : undefined) ?? tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
+    let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
     if (!track) {
       track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
       tl = { ...tl, tracks: [...tl.tracks, track] };
