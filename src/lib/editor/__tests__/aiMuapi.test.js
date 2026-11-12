@@ -1,116 +1,48 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AiMuAPI } from '../aiMuapi.js';
 
-// Mock supabase
-vi.mock('../../supabase.js', () => ({
-  supabase: {
-    functions: {
-      invoke: vi.fn(),
-    },
-  },
+// Segmentation now runs in the browser (SlimSAM + Florence-2) — no fal, no edge function.
+const canvas = { width: 4, height: 2 };
+vi.mock('../ml/frameGrab.js', () => ({ grabFrame: vi.fn(async () => canvas) }));
+vi.mock('../ml/localAI.js', () => ({
+  maskFromText: vi.fn(),
+  maskFromPrompt: vi.fn(),
+  alphaToMaskPng: vi.fn(async () => new Blob(['png'], { type: 'image/png' })),
 }));
 
-import { supabase } from '../../supabase.js';
+import { AiMuAPI } from '../aiMuapi.js';
+import * as ai from '../ml/localAI.js';
+import { grabFrame } from '../ml/frameGrab.js';
 
-describe('AiMuAPI.applySAM3Segmentation', () => {
+const hit = { alpha: new Uint8Array(8).fill(255), width: 4, height: 2, bbox: [0, 0, 3, 1], score: 0.9 };
+
+describe('AiMuAPI.applySAM3Segmentation (in-browser)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    globalThis.URL.createObjectURL = vi.fn(() => 'blob:mask');
   });
 
-  it('calls sam3-segment edge function with text prompt', async () => {
-    const mockMaskUrl = 'https://example.com/mask.png';
-    supabase.functions.invoke.mockResolvedValue({
-      data: { maskUrl: mockMaskUrl },
-      error: null,
-    });
-
-    const result = await AiMuAPI.applySAM3Segmentation('https://example.com/img.png', {
-      type: 'text',
-      prompt: 'a cat',
-    });
-
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('sam3-segment', {
-      body: {
-        imageUrl: 'https://example.com/img.png',
-        promptType: 'text',
-        prompt: 'a cat',
-      },
-    });
-    expect(result).toEqual({ mask: mockMaskUrl });
+  it('masks by text prompt with the local Florence-2 → SAM pipeline', async () => {
+    ai.maskFromText.mockResolvedValue(hit);
+    const result = await AiMuAPI.applySAM3Segmentation('https://example.com/img.png', { type: 'text', prompt: 'a cat' });
+    expect(grabFrame).toHaveBeenCalledWith('https://example.com/img.png', 0, expect.objectContaining({ image: true }));
+    expect(ai.maskFromText).toHaveBeenCalledWith(canvas, 'a cat');
+    expect(result).toEqual({ mask: 'blob:mask' });
   });
 
-  it('passes points for click prompt type', async () => {
-    supabase.functions.invoke.mockResolvedValue({
-      data: { maskUrl: 'https://example.com/mask.png' },
-      error: null,
-    });
-
-    await AiMuAPI.applySAM3Segmentation('https://example.com/img.png', {
-      type: 'click',
-      prompt: 'click',
-      points: [10, 20],
-    });
-
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('sam3-segment', {
-      body: {
-        imageUrl: 'https://example.com/img.png',
-        promptType: 'click',
-        prompt: 'click',
-        points: [10, 20],
-      },
-    });
+  it('passes points for click prompts', async () => {
+    ai.maskFromPrompt.mockResolvedValue(hit);
+    await AiMuAPI.applySAM3Segmentation('https://example.com/img.png', { type: 'click', points: [[10, 20]] });
+    expect(ai.maskFromPrompt).toHaveBeenCalledWith(canvas, { points: [[10, 20]], box: undefined });
   });
 
-  it('passes box for box prompt type', async () => {
-    supabase.functions.invoke.mockResolvedValue({
-      data: { maskUrl: 'https://example.com/mask.png' },
-      error: null,
-    });
-
-    await AiMuAPI.applySAM3Segmentation('https://example.com/img.png', {
-      type: 'box',
-      prompt: 'box',
-      box: [0, 0, 100, 100],
-    });
-
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('sam3-segment', {
-      body: {
-        imageUrl: 'https://example.com/img.png',
-        promptType: 'box',
-        prompt: 'box',
-        box: [0, 0, 100, 100],
-      },
-    });
+  it('passes a box for box prompts', async () => {
+    ai.maskFromPrompt.mockResolvedValue(hit);
+    await AiMuAPI.applySAM3Segmentation('https://example.com/img.png', { type: 'box', box: [0, 0, 100, 100] });
+    expect(ai.maskFromPrompt).toHaveBeenCalledWith(canvas, { points: undefined, box: [0, 0, 100, 100] });
   });
 
-  it('uses default values when prompts is empty', async () => {
-    supabase.functions.invoke.mockResolvedValue({
-      data: { maskUrl: 'https://example.com/mask.png' },
-      error: null,
-    });
-
-    await AiMuAPI.applySAM3Segmentation('https://example.com/img.png', {});
-
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('sam3-segment', {
-      body: {
-        imageUrl: 'https://example.com/img.png',
-        promptType: 'text',
-        prompt: '',
-      },
-    });
-  });
-
-  it('throws on supabase function error', async () => {
-    supabase.functions.invoke.mockResolvedValue({
-      data: null,
-      error: { message: 'Network error' },
-    });
-
-    await expect(
-      AiMuAPI.applySAM3Segmentation('https://example.com/img.png', {
-        type: 'text',
-        prompt: 'a cat',
-      })
-    ).rejects.toThrow('Network error');
+  it('throws when nothing matches', async () => {
+    ai.maskFromText.mockResolvedValue({ alpha: null, detections: [] });
+    await expect(AiMuAPI.applySAM3Segmentation('https://example.com/img.png', { type: 'text', prompt: 'a unicorn' })).rejects.toThrow('No object found');
   });
 });

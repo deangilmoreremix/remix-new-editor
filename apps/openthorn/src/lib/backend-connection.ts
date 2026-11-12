@@ -3,6 +3,7 @@
 // browser only ever sees public values (project list, anon key URL).
 
 import type { SchemaSpec } from '../../api/_schema'
+import { apiUrl } from './api'
 export type { SchemaSpec, TableSpec, ColumnSpec, AccessLevel, ColumnType } from '../../api/_schema'
 
 export interface RemoteProject {
@@ -14,7 +15,7 @@ export interface RemoteProject {
   status: string
 }
 
-async function post<T>(token: string, body: unknown, path = '/api/supabase-oauth'): Promise<T> {
+async function post<T>(token: string, body: unknown, path = apiUrl('supabase-oauth')): Promise<T> {
   const res = await fetch(path, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -30,7 +31,7 @@ async function post<T>(token: string, body: unknown, path = '/api/supabase-oauth
 /** URL the "Authorize Supabase" button navigates to (full-page redirect). */
 export function authorizeUrl(token: string, projectId: string): string {
   const q = new URLSearchParams({ action: 'start', token, projectId })
-  return `/api/supabase-oauth?${q.toString()}`
+  return `${apiUrl('supabase-oauth')}?${q.toString()}`
 }
 
 export function listProjects(token: string): Promise<{ projects: RemoteProject[] }> {
@@ -70,5 +71,5 @@ export interface ApplySchemaResult {
 
 /** Compile + apply a declarative schema to the project's connected Supabase DB. */
 export function applySchema(token: string, projectId: string, spec: SchemaSpec): Promise<ApplySchemaResult> {
-  return post(token, { projectId, spec }, '/api/migrate')
+  return post(token, { projectId, spec }, apiUrl('migrate'))
 }

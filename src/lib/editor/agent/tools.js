@@ -110,6 +110,22 @@ export function toolDefinitions() {
     { name: 'set_duration', description: 'Set the timeline length in seconds (5–600). Clips past the end are not removed.', parameters: { type: 'object', properties: { seconds: { type: 'number', minimum: 5, maximum: 600 } }, required: ['seconds'], additionalProperties: false } },
     { name: 'preview_frame', readOnly: true, description: 'Render one frame exactly as it will export and check animations for errors. The frame is shown to the user.', parameters: { type: 'object', properties: { time: { type: 'number', description: 'Seconds' } }, required: ['time'], additionalProperties: false } },
     { name: 'export_video', description: 'Export the video file. Only when the user asked; the user must confirm.', parameters: { type: 'object', properties: { format: { type: 'string', enum: ['mp4', 'webm', 'mov'] }, quality: { type: 'string', enum: ['720p', '1080p', '4k'] } }, additionalProperties: false } },
+    // Free AI that runs on the user's device (no API key, no cost).
+    { name: 'mask_object', description: 'Free, on-device: cut out an object named by text (e.g. "the dog") from a video/image clip. mode cutout replaces the clip media with the object only (whole clip for videos; slow on long clips); mask stores a mask image on the clip.', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, query: { type: 'string' }, mode: { type: 'string', enum: ['cutout', 'mask'] } }, required: ['clip_id', 'query'], additionalProperties: false } },
+    { name: 'search_footage', readOnly: true, description: 'Free, on-device: find moments in the project\'s video/image clips that match a description (e.g. "beach at sunset"). Returns clip ids and timeline times. The first call looks at each clip once (can take a minute).', parameters: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'], additionalProperties: false } },
+    { name: 'describe_frame', readOnly: true, description: 'Free, on-device: describe what a clip shows at the playhead (or its middle). Useful to write prompts.', parameters: { type: 'object', properties: { clip_id: { type: 'string' } }, required: ['clip_id'], additionalProperties: false } },
+    { name: 'tag_clip', description: 'Free, on-device: auto-tag a video/image clip (scene tags and detected objects).', parameters: { type: 'object', properties: { clip_id: { type: 'string' } }, required: ['clip_id'], additionalProperties: false } },
+    { name: 'blur_background', description: 'Free, on-device: blur the background behind the subject of a video/image clip using a depth map. focus 0.2–0.9 (higher keeps less in focus).', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, focus: { type: 'number', minimum: 0.2, maximum: 0.9 } }, required: ['clip_id'], additionalProperties: false } },
+    { name: 'remove_silences', description: 'Free, on-device: cut silent parts out of a video/audio clip and close the gaps (later clips on its track move left).', parameters: { type: 'object', properties: { clip_id: { type: 'string' } }, required: ['clip_id'], additionalProperties: false } },
+    { name: 'label_speakers', description: 'Free, on-device: label which speaker says each caption in a captions clip (made by add_captions with source_clip_id).', parameters: { type: 'object', properties: { clip_id: { type: 'string', description: 'The captions clip' } }, required: ['clip_id'], additionalProperties: false } },
+    { name: 'translate_captions', description: 'Free, on-device: add a translated copy of a captions clip. language is a code like es, fr, de, pt, ja, zh, ar, hi.', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, language: { type: 'string' }, from: { type: 'string', description: 'Source language code, default en' } }, required: ['clip_id', 'language'], additionalProperties: false } },
+    { name: 'add_free_voiceover', description: 'Free, on-device voiceover (Kokoro). Lower quality than add_voiceover but costs nothing and needs no key. Voices: af_heart, af_bella, af_nicole, am_michael, am_fenrir, bf_emma, bm_george, bm_fable.', parameters: { type: 'object', properties: { text: { type: 'string' }, voice: { type: 'string' }, speed: { type: 'number', minimum: 0.6, maximum: 1.6 }, start: { type: 'number' } }, required: ['text'], additionalProperties: false } },
+    // OpenAI on the user's own key (Images 2.6, Responses API). The user confirms each run.
+    { name: 'generate_image', description: 'Generate an image with OpenAI Images 2.6 (user\'s OpenAI key, user confirms) and place it as an image clip. Use @Name to include a saved Element (character/location/prop) — its reference images keep it consistent.', parameters: { type: 'object', properties: { prompt: { type: 'string' }, start: { type: 'number' }, duration: { type: 'number' }, aspect: { type: 'string', enum: ['16:9', '9:16', '1:1'] }, detail: { type: 'boolean', description: 'Use Images 2.6 Sunburst (more detail, slower)' } }, required: ['prompt'], additionalProperties: false } },
+    { name: 'storyboard', description: 'Plan a storyboard from an idea or script (OpenAI), make a frame per shot with Images 2.6 and place the shots on the timeline with dialogue captions. Uses the user\'s OpenAI key; the user confirms. @Name mentions use saved Elements.', parameters: { type: 'object', properties: { idea: { type: 'string' }, shots: { type: 'number', minimum: 3, maximum: 12 }, style: { type: 'string' }, aspect: { type: 'string', enum: ['16:9', '9:16', '1:1'] } }, required: ['idea'], additionalProperties: false } },
+    // Paid generation on MuAPI (user's own key). The user confirms each run.
+    { name: 'fill_gap', description: 'Paid (MuAPI, user confirms): generate a clip that bridges the gap after (or before) a clip on its track, from the real frames either side.', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, side: { type: 'string', enum: ['after', 'before'] }, prompt: { type: 'string' } }, required: ['clip_id'], additionalProperties: false } },
+    { name: 'extend_clip', description: 'Paid (MuAPI, user confirms): extend a video clip forward (continue the shot) or backward (lead-in). seconds 1–10.', parameters: { type: 'object', properties: { clip_id: { type: 'string' }, direction: { type: 'string', enum: ['after', 'before'] }, seconds: { type: 'number', minimum: 1, maximum: 10 }, prompt: { type: 'string' } }, required: ['clip_id'], additionalProperties: false } },
   ];
 }
 
@@ -117,6 +133,12 @@ export function toolDefinitions() {
 
 export function createAgentTools(editor) {
   const stock = new Map(); // stock id → { item, kind }
+
+  // The AI modules' editor contract (src/lib/editor/ml/aiActions.js).
+  const aiEditor = () => {
+    need(typeof editor.aiEditor === 'function', 'AI tools are not available in this editor');
+    return editor.aiEditor();
+  };
 
   const clipOrFail = (id) => {
     const clip = editor.getClip(String(id));
@@ -400,6 +422,125 @@ export function createAgentTools(editor) {
       const { blob, codeErrors } = await editor.renderStill(sec);
       const errs = Object.entries(codeErrors || {}).map(([id, message]) => ({ clip_id: id, message }));
       return { result: { time: round(sec), rendered: true, animationErrors: errs }, image: blob };
+    },
+
+    // ---------------------------------------------------------- free on-device AI
+    async mask_object({ clip_id, query, mode = 'cutout' }) {
+      const clip = clipOrFail(clip_id);
+      need(['video', 'image', 'overlay-image'].includes(clip.type), 'mask_object works on video/image clips');
+      const { maskObject } = await import('../ml/aiActions.js');
+      const out = await maskObject(aiEditor(), clip, { prompt: { query: String(query || '').slice(0, 80) }, mode });
+      return { clip: summarizeClip(clip, editor), ...out };
+    },
+
+    async search_footage({ query }) {
+      const ai = await import('../ml/aiActions.js');
+      await ai.indexAll(aiEditor());
+      const hits = await ai.searchTimelineMedia(aiEditor(), String(query || '').slice(0, 120));
+      return { results: hits.slice(0, 8).map((h) => ({ clip_id: h.clipId, name: external(h.name), media_time: round(h.t), timeline_time: h.timelineSec == null ? null : round(h.timelineSec), score: round(h.score) })) };
+    },
+
+    async describe_frame({ clip_id }) {
+      const clip = clipOrFail(clip_id);
+      const { describeClip } = await import('../ml/aiActions.js');
+      return { description: external(await describeClip(aiEditor(), clip, { detail: 'more' })).slice(0, 400) };
+    },
+
+    async tag_clip({ clip_id }) {
+      const clip = clipOrFail(clip_id);
+      const { tagClip } = await import('../ml/aiActions.js');
+      const { tags, objects } = await tagClip(aiEditor(), clip);
+      return { tags: tags.map((t) => t.label), objects: objects.map((o) => o.label) };
+    },
+
+    async blur_background({ clip_id, focus }) {
+      const clip = clipOrFail(clip_id);
+      need(['video', 'image', 'overlay-image'].includes(clip.type), 'blur_background works on video/image clips');
+      const { depthBlur } = await import('../ml/aiActions.js');
+      await depthBlur(aiEditor(), clip, { focus: Math.max(0.2, Math.min(0.9, num(focus, 0.55))) });
+      return { clip: summarizeClip(clip, editor) };
+    },
+
+    async remove_silences({ clip_id }) {
+      const clip = clipOrFail(clip_id);
+      const { removeSilences } = await import('../ml/aiActions.js');
+      const r = await removeSilences(aiEditor(), clip);
+      return { removed_seconds: round(r.removedSec), pieces: r.pieces };
+    },
+
+    async label_speakers({ clip_id }) {
+      const clip = clipOrFail(clip_id);
+      const { labelSpeakers } = await import('../ml/aiActions.js');
+      const speakers = await labelSpeakers(aiEditor(), clip);
+      return { speakers: speakers.map((x) => x.name) };
+    },
+
+    async translate_captions({ clip_id, language, from = 'en' }) {
+      const clip = clipOrFail(clip_id);
+      const lang = String(language || '').toLowerCase().slice(0, 5);
+      need(/^[a-z]{2,3}$/.test(lang), 'language must be a code like es, fr, de');
+      const { translateCaptionsClip } = await import('../ml/aiActions.js');
+      const copy = await translateCaptionsClip(aiEditor(), clip, lang, { src: String(from || 'en').toLowerCase().slice(0, 3) });
+      return { clip: summarizeClip(copy, editor) };
+    },
+
+    async add_free_voiceover({ text, voice, speed, start }) {
+      const { addFreeVoiceover } = await import('../ml/aiActions.js');
+      const clip = await addFreeVoiceover(aiEditor(), { text, voice, speed: num(speed, 1), start });
+      reduck();
+      editor.commit();
+      return { clip: summarizeClip(clip, editor), tip: 'Use add_captions with source_clip_id to caption this voiceover.' };
+    },
+
+    // ---------------------------------------------------------- OpenAI images / storyboard (user's key)
+    async generate_image({ prompt, start, duration = 4, aspect = '16:9', detail = false }) {
+      const ok = await editor.confirm('The AI agent wants to generate an image with OpenAI Images 2.6 (uses your OpenAI key). Continue?');
+      need(ok, 'The user declined the image generation');
+      const [{ makeImage, DEFAULT_IMAGE_MODEL, DETAIL_IMAGE_MODEL }, { listElements, resolveMentions }] = await Promise.all([import('../ai/openaiImages.js'), import('../ai/elementsStore.js')]);
+      const { text, refs } = resolveMentions(String(prompt || ''), await listElements());
+      need(text.trim(), 'prompt is required');
+      const { url, model } = await makeImage(aiEditor(), text, { model: detail ? DETAIL_IMAGE_MODEL : DEFAULT_IMAGE_MODEL, aspectRatio: aspect, refs });
+      const times = placeTimes(editor, start, duration, 4);
+      const clip = editor.insertClip({ id: `img-${Date.now().toString(36)}`, type: 'image', name: text.slice(0, 60), src: url, fit: 'cover', start: times.start, end: times.end }, 'video');
+      editor.commit();
+      return { clip: summarizeClip(clip, editor), model };
+    },
+
+    async storyboard({ idea, shots = 6, style = '', aspect = '16:9' }) {
+      const n = Math.max(3, Math.min(12, Math.round(num(shots, 6))));
+      const ok = await editor.confirm(`The AI agent wants to storyboard ${n} shots and make a frame for each with OpenAI Images 2.6 (uses your OpenAI key). Continue?`);
+      need(ok, 'The user declined the storyboard');
+      const [sbm, { listElements }, { defaultCaptionStyle: dcs }] = await Promise.all([import('../ai/storyboard.js'), import('../ai/elementsStore.js'), import('../remotion/captions.js')]);
+      const elements = await listElements();
+      const plan = await sbm.planShots(String(idea || ''), { shots: n, style, elements });
+      for (const shot of plan.shots) {
+        try { shot.frameUrl = (await sbm.frameForShot(aiEditor(), shot, { elements, style, aspect })).url; } catch { /* placed without a frame if it failed */ }
+      }
+      const placed = sbm.placeShots(aiEditor(), plan.shots, { captionStyle: dcs('classic') });
+      return { title: plan.title, shots: plan.shots.map((s) => ({ title: s.title, framed: !!s.frameUrl })), start: round(placed.start), end: round(placed.end) };
+    },
+
+    // ---------------------------------------------------------- paid MuAPI generation
+    async fill_gap({ clip_id, side = 'after', prompt }) {
+      const clip = clipOrFail(clip_id);
+      const mu = await import('../ai/timelineMuapi.js');
+      const gap = mu.gapNextTo(aiEditor(), clip, { side });
+      need(gap, `There is no gap ${side} that clip on its track`);
+      const ok = await editor.confirm(`The AI agent wants to fill a ${round(gap.end - gap.start)}s gap with MuAPI (paid, on your key). Continue?`);
+      need(ok, 'The user declined the paid generation');
+      const made = await mu.fillGap(aiEditor(), gap, { prompt });
+      return { clip: summarizeClip(made, editor) };
+    },
+
+    async extend_clip({ clip_id, direction = 'after', seconds = 5, prompt }) {
+      const clip = clipOrFail(clip_id);
+      need(clip.type === 'video', 'extend_clip works on video clips');
+      const secs = Math.max(1, Math.min(10, Math.round(num(seconds, 5))));
+      const ok = await editor.confirm(`The AI agent wants to extend a clip by ${secs}s with MuAPI (paid, on your key). Continue?`);
+      need(ok, 'The user declined the paid generation');
+      const mu = await import('../ai/timelineMuapi.js');
+      const made = await mu.extendClip(aiEditor(), clip, { direction, seconds: secs, prompt });
+      return { clip: summarizeClip(made, editor) };
     },
 
     async export_video({ format = 'mp4', quality = '1080p' } = {}) {

@@ -8,6 +8,7 @@
 // anon key + project URL are stored in client-readable columns.
 import { createHmac, timingSafeEqual, hkdfSync, randomBytes } from 'node:crypto'
 import { encryptForUser, decryptForUser } from './_shared.js'
+import { TBL } from './_tables.js'
 import { compileSchema, schemaToTypes, type SchemaSpec } from './_schema.js'
 
 const SB_API = 'https://api.supabase.com'
@@ -145,7 +146,7 @@ export async function storeConnection(userId: string, conn: StoredConnection): P
     scopes: conn.scopes ?? null,
     updated_at: new Date().toISOString(),
   }
-  const res = await fetch(`${url}/rest/v1/supabase_connections`, {
+  const res = await fetch(`${url}/rest/v1/${TBL.supabase_connections}`, {
     method: 'POST',
     headers: { ...svcHeaders(serviceKey), Prefer: 'resolution=merge-duplicates,return=minimal' },
     body: JSON.stringify(row),
@@ -157,7 +158,7 @@ export async function storeConnection(userId: string, conn: StoredConnection): P
 export async function getValidAccessToken(userId: string): Promise<string | null> {
   const { url, serviceKey } = ownEnv()
   const res = await fetch(
-    `${url}/rest/v1/supabase_connections?user_id=eq.${userId}&select=org_id,access_token_enc,refresh_token_enc,expires_at&limit=1`,
+    `${url}/rest/v1/${TBL.supabase_connections}?user_id=eq.${userId}&select=org_id,access_token_enc,refresh_token_enc,expires_at&limit=1`,
     { headers: { ...svcHeaders(serviceKey), Accept: 'application/json' } },
   )
   if (!res.ok) return null
@@ -180,7 +181,7 @@ export async function getValidAccessToken(userId: string): Promise<string | null
 
 export async function deleteConnection(userId: string): Promise<void> {
   const { url, serviceKey } = ownEnv()
-  await fetch(`${url}/rest/v1/supabase_connections?user_id=eq.${userId}`, {
+  await fetch(`${url}/rest/v1/${TBL.supabase_connections}?user_id=eq.${userId}`, {
     method: 'DELETE',
     headers: { ...svcHeaders(serviceKey), Prefer: 'return=minimal' },
   })
@@ -277,7 +278,7 @@ export async function createSupabaseProject(
 export async function deleteProjectBackend(userId: string, projectId: string): Promise<void> {
   const { url, serviceKey } = ownEnv()
   await fetch(
-    `${url}/rest/v1/project_backends?project_id=eq.${encodeURIComponent(projectId)}&user_id=eq.${encodeURIComponent(userId)}`,
+    `${url}/rest/v1/${TBL.project_backends}?project_id=eq.${encodeURIComponent(projectId)}&user_id=eq.${encodeURIComponent(userId)}`,
     { method: 'DELETE', headers: { ...svcHeaders(serviceKey), Prefer: 'return=minimal' } },
   )
 }
@@ -290,7 +291,7 @@ export async function deleteProjectBackend(userId: string, projectId: string): P
 async function projectRef(userId: string, projectId: string): Promise<string | null> {
   const { url, serviceKey } = ownEnv()
   const res = await fetch(
-    `${url}/rest/v1/project_backends?project_id=eq.${encodeURIComponent(projectId)}&user_id=eq.${encodeURIComponent(userId)}&select=project_ref&limit=1`,
+    `${url}/rest/v1/${TBL.project_backends}?project_id=eq.${encodeURIComponent(projectId)}&user_id=eq.${encodeURIComponent(userId)}&select=project_ref&limit=1`,
     { headers: { ...svcHeaders(serviceKey), Accept: 'application/json' } },
   )
   if (!res.ok) return null
@@ -358,7 +359,7 @@ export async function applySchema(userId: string, projectId: string, spec: Schem
   // Mirror into OpenThorn's own ledger (best-effort; never blocks the apply).
   try {
     const { url, serviceKey } = ownEnv()
-    await fetch(`${url}/rest/v1/project_migrations`, {
+    await fetch(`${url}/rest/v1/${TBL.project_migrations}`, {
       method: 'POST',
       headers: { ...svcHeaders(serviceKey), Prefer: 'return=minimal' },
       body: JSON.stringify({
@@ -403,7 +404,7 @@ export async function saveProjectBackend(
   info: { supabaseUrl: string; anonKey: string },
 ): Promise<void> {
   const { url, serviceKey } = ownEnv()
-  const res = await fetch(`${url}/rest/v1/project_backends`, {
+  const res = await fetch(`${url}/rest/v1/${TBL.project_backends}`, {
     method: 'POST',
     headers: { ...svcHeaders(serviceKey), Prefer: 'resolution=merge-duplicates,return=minimal' },
     body: JSON.stringify({

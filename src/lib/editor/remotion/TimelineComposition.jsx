@@ -33,6 +33,18 @@ import { stretchLowerThird } from '../addons/lowerThirds.js';
 import { transformStyleAt, effectOverridesAt, valueAt, hasKeyframes } from './keyframes.js';
 import { captionPages, pageAt } from './captions.js';
 import { CodeLayer } from './codeLayer.jsx';
+// [hyperframes] additive layer kind; renders nothing unless a layer of kind 'hyperframes' exists in the model
+import { HyperframesLayer } from './hyperframes/HyperframesLayer.jsx';
+import { ClipFx as OccClipFx } from '../../../openchatcut/gl/ClipFx';
+import { zoomAt } from '../../../openchatcut/editor/zoom';
+import { clipTransformCss, clipTransformClipPath } from '../../../cinegen/lib/occ/transform';
+import { backgroundFillAppearance, backgroundFillFilter } from '../../../openchatcut/editor/backgroundFill';
+import { sampleKeyframes as sampleFxKey } from '../../../openchatcut/editor/keyframes';
+import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
+import { CaptionsLayer as OccCaptionsLayer } from '../../../openchatcut/captions/CaptionsLayer';
+import { GlTransitionLayer } from '../../../openchatcut/gl/GlTransitionLayer';
+import { registerUserLut } from '../../../cinegen/lib/occ/user-luts';
+import { registerSnapshot } from '../../../cinegen/lib/occ/plugins';
 import { ctaBox, CTA_FPS } from '../addons/ctaLottie.js';
 
 // ------------------------------------------------------------------ fonts
@@ -56,7 +68,18 @@ export function registerGoogleFonts(families = []) {
   return Promise.all(families.map(registerGoogleFont));
 }
 
+/** [remix] user-imported fonts (TTF/OTF/WOFF2 chosen in the caption font control). Registered through the same Remotion loader; the export
+ *  carries the font bytes as a data URL because the sandboxed runner has no access to the editor's IndexedDB. */
+const userFontPromises = new Map();
+export function registerUserFont({ family, dataUrl }) {
+  if (!userFontPromises.has(family)) {
+    userFontPromises.set(family, loadFont({ family, url: dataUrl, weight: '100 900' }).catch(() => null).then(() => { registeredDone.add(family); }));
+  }
+  return userFontPromises.get(family);
+}
+
 export function registerGoogleFont(family) {
+  if (userFontPromises.has(family)) return userFontPromises.get(family);
   if (registered.has(family)) return registered.get(family);
   const p = fetch(googleFontHref(family))
     .then((r) => (r.ok ? r.text() : ''))
@@ -79,7 +102,8 @@ export function registerGoogleFont(family) {
 }
 
 /** Load the Google fonts the timeline uses before any text is measured or drawn. */
-function FontGate({ fonts, children }) {
+function FontGate({ fonts, userFonts, children }) {
+  (userFonts || []).forEach(registerUserFont);
   // The export runner registers fonts before rendering starts, so this is
   // normally ready immediately; the delayRender path covers the Player.
   const initiallyReady = !fonts?.length || fonts.every((f) => registeredDone.has(f));
@@ -430,16 +454,79 @@ function CameraBox({ box, children }) {
   );
 }
 
-function MediaLayer({ layer, seqFrom }) {
+/** [remix] OpenChatCut zoom / follow-subject reframe: scale about the focal point (their TimelineMediaLayer transform). */
+function OccZoom({ zoom, durationInFrames, children }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  // zoom frames are authored on a 30 fps basis (editor preview), so convert to this render's fps
+  const z = zoomAt(zoom, (frame * 30) / fps, Math.max(1, (durationInFrames * 30) / fps));
+  return <AbsoluteFill style={{ transform: `scale(${z.magnification})`, transformOrigin: `${z.focalX * 100}% ${z.focalY * 100}%` }}>{children}</AbsoluteFill>;
+}
+
+/** [remix] OpenChatCut clip fades: volume (number or per-frame function) with the fade-in/out multiplier applied. */
+function fadedVolume(layer, fps, base, kf) {
+  const fi = layer.fadeIn || 0; const fo = layer.fadeOut || 0;
+  if (!fi && !fo && !kf?.length) return base;
+  const dur = layer.durationInFrames / fps;
+  return (f) => Math.max(0, Math.min(1, base * (kf?.length ? valueAt(kf, f / fps, 1) : 1) * clipFadeFactor(f / fps, dur, fi, fo)));
+}
+
+/** [remix] fade-in/out of a visual clip = opacity multiplier over the whole layer. */
+/** [remix] clip position / scale / rotation (+ tracked path): same CSS as the editor viewer (cinegen/lib/occ/transform.ts). */
+/** [remix] OpenChatCut backgroundFill: blurred, darkened, over-scanned cover copy of the clip behind the contained picture. */
+function OccFill({ layer, trimBefore, seqFrom }) {
+  const { width: W, height: H } = useVideoConfig();
+  const a = backgroundFillAppearance(W, H, layer.clipTransform.fill);
+  return (
+    <AbsoluteFill style={{ filter: backgroundFillFilter(a), transform: `scale(${a.overscanScale})` }}>
+      <MediaLayer layer={{ ...layer, trimBefore, occFx: undefined, fit: 'cover', volume: 0, fadeIn: 0, fadeOut: 0 }} seqFrom={seqFrom} />
+    </AbsoluteFill>
+  );
+}
+
+function OccTransform({ transform, children }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const css = clipTransformCss(transform, frame / fps);
+  const clipPath = clipTransformClipPath(transform);
+  return css || clipPath ? <AbsoluteFill style={{ ...(css ? { transform: css } : {}), ...(clipPath ? { clipPath } : {}) }}>{children}</AbsoluteFill> : children;
+}
+
+function MediaLayer(props) {
+  const { layer, seqFrom } = props;
   const t = useLayerTime(layer, seqFrom);
+  const { fps } = useVideoConfig();
+  if (!layer.fadeIn && !layer.fadeOut) return <MediaLayerBody {...props} />;
+  const f = clipFadeFactor(t, layer.durationInFrames / fps, layer.fadeIn || 0, layer.fadeOut || 0);
+  return <AbsoluteFill style={{ opacity: f }}><MediaLayerBody {...props} /></AbsoluteFill>;
+}
+
+function MediaLayerBody({ layer, seqFrom }) {
+  const t = useLayerTime(layer, seqFrom);
+  const { width: W, height: H, fps } = useVideoConfig();
   const fit = layer.fit === 'contain' ? 'contain' : 'cover';
   const fx = useLayerEffects(layer, t);
-  if (layer.kind === 'video') {
-    const kfVolume = layer.keyframes?.volume?.length ? valueAt(layer.keyframes.volume, t, 1) : 1;
-    const volume = Math.max(0, Math.min(1, (layer.volume ?? 1) * kfVolume));
-    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%' }} />;
+  const mirror = layer.flip ? { transform: `scale(${layer.flip.h ? -1 : 1}, ${layer.flip.v ? -1 : 1})` } : {};
+  // [remix] OpenChatCut effects / LUT: render through the GL pipeline (also during export, so they are burned in).
+  if (layer.occFx?.length && (layer.kind === 'video' || layer.kind === 'image')) {
+    for (const e of layer.occFx) { if (e.cubeText) registerUserLut({ id: e.id, name: e.name || e.id, text: e.cubeText }); if (e.def) registerSnapshot(e.def); }
+    return (
+      <AbsoluteFill style={mirror}>
+        <OccClipFx
+          item={{ id: layer.id, kind: layer.kind, src: layer.src, trimBefore: layer.trimBefore || 0, playbackRate: layer.playbackRate || 1,
+            // [remix] animated effect properties: keyframed values (30 fps from the clip start) override the static sliders each frame
+            effects: layer.occFx.map((e) => (e.keys ? { ...e, overrides: { ...(e.overrides || {}), ...Object.fromEntries(Object.entries(e.keys).filter(([, l]) => l?.length).map(([k, l]) => [k, sampleFxKey(l, t * 30)])) } } : e)) }}
+          fit={fit} width={W} height={H}
+        />
+        {layer.kind === 'video' && <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={fadedVolume(layer, fps, Math.max(0, Math.min(1, layer.volume ?? 1)), layer.keyframes?.volume)} />}
+      </AbsoluteFill>
+    );
   }
-  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit }} />;
+  if (layer.kind === 'video') {
+    const volume = fadedVolume(layer, fps, Math.max(0, Math.min(1, layer.volume ?? 1)), layer.keyframes?.volume);
+    return <Video src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} objectFit={fit} effects={fx} style={{ width: '100%', height: '100%', ...mirror }} />;
+  }
+  return <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...mirror }} />;
 }
 
 function OverlayLayer({ layer, Comp }) {
@@ -459,8 +546,8 @@ export function AudioLayer({ layer }) {
   const { fps } = useVideoConfig();
   const kf = layer.keyframes?.volume;
   const base = Math.max(0, Math.min(1, layer.volume ?? 1));
-  const volume = kf?.length ? (f) => Math.max(0, Math.min(1, base * valueAt(kf, f / fps, 1))) : base;
-  return <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} volume={volume} />;
+  const volume = fadedVolume(layer, fps, base, kf);
+  return <Audio src={layer.src} trimBefore={layer.trimBefore || undefined} playbackRate={layer.playbackRate || undefined} volume={volume} />;
 }
 
 // ------------------------------------------------------------------ captions
@@ -517,7 +604,7 @@ export function TimelineComposition({ model }) {
 
   return (
     <AbsoluteFill style={{ backgroundColor: m.background || '#000' }}>
-      <FontGate fonts={m.fonts}>
+      <FontGate fonts={m.fonts} userFonts={m.userFonts}>
         {(m.layers || []).map((layer) => {
           if (layer.kind === 'video' || layer.kind === 'image') {
             const outTr = byOutgoing.get(layer.id);
@@ -534,7 +621,15 @@ export function TimelineComposition({ model }) {
             }
             const content = (
               <KeyframeWrap layer={layer} seqFrom={from}>
-                <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />
+                {/* [remix] clip blend mode (CSS mix-blend-mode, burned into export) */}
+                <AbsoluteFill style={layer.clipBlend ? { mixBlendMode: layer.clipBlend } : undefined}>
+                  {layer.clipTransform?.fill !== undefined && layer.kind !== 'audio' && <OccFill layer={layer} trimBefore={trimBefore} seqFrom={from} />}
+                  <OccTransform transform={layer.clipTransform}>
+                  {layer.clipZoom
+                    ? <OccZoom zoom={layer.clipZoom} durationInFrames={layer.durationInFrames}><MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} /></OccZoom>
+                    : <MediaLayer layer={{ ...layer, trimBefore }} seqFrom={from} />}
+                  </OccTransform>
+                </AbsoluteFill>
               </KeyframeWrap>
             );
             return (
@@ -576,6 +671,13 @@ export function TimelineComposition({ model }) {
               </Sequence>
             );
           }
+          if (layer.kind === 'hyperframes') {
+            return (
+              <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
+                <HyperframesLayer layer={layer} />
+              </Sequence>
+            );
+          }
           if (layer.kind === 'captions') {
             return (
               <Sequence key={layer.id} from={layer.from} durationInFrames={layer.durationInFrames} layout="absolute-fill">
@@ -587,6 +689,18 @@ export function TimelineComposition({ model }) {
           }
           return null;
         })}
+        {/* [remix] OpenChatCut captions, burned into the render */}
+        {(m.occCaptions || []).map((c, i) => (
+          <Sequence key={`occ-cap-${i}`} from={0} durationInFrames={m.durationInFrames} layout="absolute-fill">
+            <OccCaptionsLayer captions={c} items={[]} />
+          </Sequence>
+        ))}
+        {/* [remix] OpenChatCut GL transitions between CineGen clips */}
+        {(m.glTransitions || []).map((g) => (
+          <Sequence key={g.id} from={g.from} durationInFrames={g.durationInFrames} layout="absolute-fill">
+            <GlTransitionLayer out={g.out} inn={g.inn} glType={g.glType} durationInFrames={g.durationInFrames} customDef={g.customDef} />
+          </Sequence>
+        ))}
       </FontGate>
       {(m.audio || []).map((a) => (
         <Sequence key={a.id} from={a.from} durationInFrames={a.durationInFrames}>

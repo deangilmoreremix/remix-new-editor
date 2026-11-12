@@ -456,10 +456,7 @@ export class EndScreenModal extends BaseModal {
   }
 
   applyStyle() {
-    // addEndScreenToTimeline doesn't currently consume `style` (no project-level
-    // end-screen style storage exists yet) — included so the caller has it
-    // available once that lands, and buttons still ride along so any CTA
-    // edits made before switching to Style aren't lost either.
+    // addEndScreenToTimeline (lib/editor/addons/endScreenClips.js) applies the style (background, text colour, duration) to the clips.
     this.onConfirm({ action: 'styleUpdated', style: this.endScreenStyle, buttons: this.ctaButtons });
     this.close();
   }

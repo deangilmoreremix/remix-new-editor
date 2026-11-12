@@ -183,6 +183,23 @@ export const CONNECT_FORMS = [
     ],
   },
   {
+    id: 'cf-contact-card',
+    name: 'Contact card',
+    description: 'Phone (click-to-call), email and website on one card.',
+    duration: 8,
+    items: [
+      at(0, 8, wrapper('linear-gradient(160deg, rgba(7,9,13,.92) 0%, rgba(16,32,42,.92) 100%)', 'border: 2px solid #22d3ee; border-radius: 24px;')),
+      at(0.2, 7.8, text('Get in touch', { left: 20, top: 16, width: 60, height: 14 }, { in: 'fadeInDown', font: 'Anton', bold: false })),
+      at(0.5, 7.5, text('📞 (555) 010-0100', { left: 22, top: 40, width: 56, height: 9 }, { phone: PHONE, size: 5, bg: '#10202a' })),
+      at(0.7, 7.3, text('✉️ hello@example.com', { left: 22, top: 53, width: 56, height: 9 }, { link: 'mailto:hello@example.com', size: 5, bg: '#10202a' })),
+      at(0.9, 7.1, text('🌐 example.com', { left: 22, top: 66, width: 56, height: 9 }, { link: 'https://example.com', size: 5, bg: '#10202a' })),
+    ],
+  },
+];
+
+/** Lead-capture and link templates that used to sit in the Connect list: Connect Form is click-to-call only, these live under Lead Generator. */
+export const LEAD_FORMS = [
+  {
     id: 'cf-book-call',
     name: 'Book a call',
     description: 'Pauses for a lead form, then shows a call button.',
@@ -221,27 +238,50 @@ export const CONNECT_FORMS = [
       at(0.5, 6.5, cta('Visit Website', { link: 'https://example.com', animation: 'arrow', top: 62, width: 40 })),
     ],
   },
-  {
-    id: 'cf-contact-card',
-    name: 'Contact card',
-    description: 'Phone (click-to-call), email and website on one card.',
-    duration: 8,
-    items: [
-      at(0, 8, wrapper('linear-gradient(160deg, rgba(7,9,13,.92) 0%, rgba(16,32,42,.92) 100%)', 'border: 2px solid #22d3ee; border-radius: 24px;')),
-      at(0.2, 7.8, text('Get in touch', { left: 20, top: 16, width: 60, height: 14 }, { in: 'fadeInDown', font: 'Anton', bold: false })),
-      at(0.5, 7.5, text('📞 (555) 010-0100', { left: 22, top: 40, width: 56, height: 9 }, { phone: PHONE, size: 5, bg: '#10202a' })),
-      at(0.7, 7.3, text('✉️ hello@example.com', { left: 22, top: 53, width: 56, height: 9 }, { link: 'mailto:hello@example.com', size: 5, bg: '#10202a' })),
-      at(0.9, 7.1, text('🌐 example.com', { left: 22, top: 66, width: 56, height: 9 }, { link: 'https://example.com', size: 5, bg: '#10202a' })),
-    ],
-  },
 ];
+
+/** Extra click-to-call design: a call bar anchored low in the frame. */
+export const CALL_BAR = {
+  id: 'cf-call-bar',
+  name: 'Call bar',
+  description: 'A wide click-to-call button near the bottom of the frame.',
+  duration: 8,
+  items: [
+    at(0, 8, cta('Call us today', { phone: `+1 ${PHONE}`, animation: 'phone', color: '#22d3ee', top: 80, width: 56 })),
+  ],
+};
+
+CONNECT_FORMS.push(CALL_BAR);
+
+/** The phone number the starter designs carry; "Use template" swaps it for the user's own. */
+export const PLACEHOLDER_PHONE = PHONE;
+
+/**
+ * Apply the Connect Form setup (number, country code, button text) to a template: every click-to-call button and tel: text gets the
+ * user's number, and the placeholder number printed in text is replaced by it.
+ */
+export function applyCallSetup(tpl, { phone = '', country = '1', buttonText = '', notify = '' } = {}) {
+  const num = String(phone || '').trim();
+  if (!num) return tpl;
+  const shown = `+${country} ${num}`;
+  const items = tpl.items.map((item) => {
+    if (item.type === 'click-to-call') return { ...item, flat: { ...item.flat, phoneNumber: shown, linkUrl: '', callNotifyAddress: notify, ...(buttonText ? { buttonText } : {}) } };
+    if (item.type === 'overlay-text' && item.addon?.linkMode === 'phone') {
+      const a = item.addon;
+      return { ...item, addon: { ...a, phoneCountry: String(country), phoneNumber: num, callNotifyAddress: notify, text: String(a.text).replace(/\(?555\)?[\s.-]*010[\s.-]*0100/, num) } };
+    }
+    return item;
+  });
+  return { ...tpl, items };
+}
 
 export const TEMPLATE_LIBRARIES = {
   endScreens: { id: 'endScreens', title: 'End Screens', anchor: 'end', templates: END_SCREENS },
-  connect: { id: 'connect', title: 'Connect Form', anchor: 'playhead', templates: CONNECT_FORMS },
+  connect: { id: 'connect', title: 'Connect Form', anchor: 'playhead', templates: CONNECT_FORMS, callSetup: true },
+  leadForms: { id: 'leadForms', title: 'Lead forms', anchor: 'playhead', templates: LEAD_FORMS },
 };
 
-export const getTemplate = (id) => [...END_SCREENS, ...CONNECT_FORMS].find((t) => t.id === id) || null;
+export const getTemplate = (id) => [...END_SCREENS, ...CONNECT_FORMS, ...LEAD_FORMS].find((t) => t.id === id) || null;
 
 /** Template → preset shape presetToClips understands. */
 export const templateToPreset = (tpl) => ({ id: tpl.id, name: tpl.name, items: tpl.items });

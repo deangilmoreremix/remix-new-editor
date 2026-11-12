@@ -1,0 +1,48 @@
+[
+ {
+  "id": "sec-tamper",
+  "frames": [
+   1.5
+  ],
+  "logs": [
+   "[hyperframes] refused lt-clean-bar: source does not match the pinned sha256"
+  ],
+  "codeErrors": []
+ },
+ {
+  "id": "sec-xss-text",
+  "frames": [
+   1.5
+  ],
+  "logs": [
+   "[hyperframes] override-rejected lt-bold-block: hf-5.attr.src: image url: scheme not allowed: javascript; hf-1.style.background: style property not allow-listed; hf-2.attr.src: image url: host not allow-listed: evil.examp"
+  ],
+  "codeErrors": []
+ },
+ {
+  "id": "sec-badid",
+  "frames": [
+   1
+  ],
+  "logs": [],
+  "codeErrors": []
+ },
+ {
+  "id": "sec-unlisted",
+  "frames": [
+   1
+  ],
+  "logs": [],
+  "codeErrors": []
+ },
+ {
+  "id": "sec-cfg-inject",
+  "frames": [
+   3
+  ],
+  "logs": [
+   "[hyperframes] override-rejected hw-title: cfg.__proto__.x: forbidden key"
+  ],
+  "codeErrors": []
+ }
+]

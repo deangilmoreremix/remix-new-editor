@@ -137,4 +137,22 @@ describe('generateFrameImage', () => {
     await generateFrameImage('a street', '16:9', 'm', 'None', 'None', 'None', undefined, { seed: -1 });
     expect(muapi.generateImage.mock.calls[0][0].seed).toBeUndefined();
   });
+
+  it('sends only web URLs to MuAPI, but lets OpenAI use inline (previous-frame) images', async () => {
+    const refs = [{ url: 'https://ref/1.png' }, { url: 'data:image/png;base64,AAAA' }];
+    await generateFrameImage('a street', '16:9', 'm', 'None', 'None', 'None', undefined, { referenceImages: refs });
+    expect(muapi.generateImage.mock.calls[0][0].reference_images).toEqual(['https://ref/1.png']);
+
+    apiKeyManager.hasOpenAIKey.mockReturnValue(true);
+    openaiService.generateImageResponses.mockResolvedValue({ images: [{ url: 'https://out/x.png' }] });
+    await generateFrameImage('a street', '16:9', 'm', 'None', 'None', 'None', undefined, { referenceImages: refs });
+    const call = openaiService.generateImageResponses.mock.calls[0][0];
+    expect(call.imageInputs).toEqual([{ url: 'https://ref/1.png' }, { url: 'data:image/png;base64,AAAA' }]);
+  });
+
+  it('gives every image request a timeout signal', async () => {
+    await generateFrameImage('a street', '16:9', 'm', 'None', 'None', 'None', undefined, {});
+    const signal = muapi.generateImage.mock.calls[0][1];
+    expect(signal).toBeInstanceOf(AbortSignal);
+  });
 });

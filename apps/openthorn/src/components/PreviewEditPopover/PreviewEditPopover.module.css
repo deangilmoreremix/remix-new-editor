@@ -130,14 +130,32 @@
   padding: 0.4rem 0.9rem;
   border: none;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.82rem;
   cursor: pointer;
+  transition: all 200ms ease;
 }
 
+/* Primary action: the SmartVideo studios' Generate-button design (src/styles/gtm-prompt-modal.css
+   .btn-primary-modern): transparent, thin light border, 2px lime edge on the left. */
 .apply {
-  background: var(--color-accent);
-  color: var(--color-bg);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid var(--color-accent);
+}
+
+.apply:hover:not(:disabled) {
+  color: #ffffff;
+  border-color: rgba(217, 255, 0, 0.5);
+  border-left-color: var(--color-accent);
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.apply:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px rgba(217, 255, 0, 0.4);
 }
 
 .textBtn {

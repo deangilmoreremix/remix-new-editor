@@ -108,6 +108,25 @@ export async function fetchLeads(supabase, { projectId, clipId }) {
   }
 }
 
+/**
+ * Every stored lead for a published video as rows the Leads tab can list:
+ * { id, kind, clipId, createdAt, data }. [] when the backend is unavailable or the caller isn't signed in.
+ */
+export async function fetchLeadRows(supabase, { projectId, clipId } = {}) {
+  try {
+    const { data, error } = await supabase.functions.invoke('lead-capture', {
+      body: { action: 'list', projectId: projectId ? String(projectId) : null, clipId: clipId != null ? String(clipId) : null },
+    });
+    if (error || !data?.ok || !Array.isArray(data.leads)) return { ok: false, rows: [], error: error?.message || data?.error || 'Could not load leads' };
+    return {
+      ok: true,
+      rows: data.leads.map((l) => ({ id: l.id, kind: l.kind || 'lead-form', clipId: l.clip_id ?? null, createdAt: l.created_at, data: l.data && typeof l.data === 'object' ? l.data : {} })),
+    };
+  } catch (err) {
+    return { ok: false, rows: [], error: err?.message || 'Could not load leads' };
+  }
+}
+
 /** RFC 4180 CSV: every value quoted, quotes doubled, CRLF line endings. */
 export function leadsToCsv(leads) {
   if (!Array.isArray(leads) || !leads.length) return '';
