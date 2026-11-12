@@ -49,7 +49,8 @@ interface Props {
   /** Add a Pixabay / Pexels result to the timeline at the playhead. */
   onAdd: (item: StockItem, kind: StockKind) => Promise<void> | void;
   /** Generate AI media from a prompt and add it at the playhead. */
-  onGenerate: (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void) => Promise<void>;
+  /** Resolves with an optional warning to show instead of the plain success message (e.g. no durable copy could be saved). */
+  onGenerate: (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void) => Promise<void | string>;
   /** The project's media pool (AI-generated assets are listed first). */
   assets: Asset[];
   /** Put an existing pool asset on the timeline at the playhead. */
@@ -155,8 +156,8 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
     if (gen.busy || !prompt.trim()) return;
     setGen({ busy: true, msg: 'Submitting…', error: null });
     try {
-      await onGenerate(prompt.trim(), kind, aspect, (msg) => setGen((g) => ({ ...g, msg })));
-      setGen({ busy: false, msg: 'Added to the timeline and your media pool.', error: null });
+      const note = await onGenerate(prompt.trim(), kind, aspect, (msg) => setGen((g) => ({ ...g, msg })));
+      setGen({ busy: false, msg: note || 'Added to the timeline and your media pool.', error: null });
     } catch (e) {
       setGen({ busy: false, msg: '', error: e instanceof Error ? e.message : 'Generation failed' });
     }

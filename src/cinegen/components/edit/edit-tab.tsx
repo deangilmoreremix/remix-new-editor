@@ -1037,6 +1037,9 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     dispatch({ type: 'ADD_ASSET', asset });
     placeAtPlayhead(asset, at);
     startDeriveJobs(asset);
+    // Provider links expire: if no durable copy could be saved (e.g. not signed in), say so instead of reporting a clean success.
+    const durable = isVideo ? Boolean(asset.fileRef) : asset.url !== url; // images: the URL is only replaced when a durable copy was saved
+    return durable ? undefined : "Added to the timeline, but a copy couldn't be saved to your storage, so this link may expire. Sign in to keep AI media.";
   }, [dispatch, projectId, placeAtPlayhead, ingestRemoteVideo, startDeriveJobs]);
 
   const selectedClipAsset = useMemo(() => {

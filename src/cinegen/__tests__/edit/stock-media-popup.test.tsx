@@ -153,6 +153,16 @@ describe('modal behaviour', () => {
   });
 });
 
+describe('generation warning', () => {
+  it('shows the warning returned by onGenerate instead of the plain success message', async () => {
+    setup({ onGenerate: vi.fn().mockResolvedValue("Added, but a copy couldn't be saved") });
+    fireEvent.change(screen.getByTestId('ai-prompt'), { target: { value: 'a red fox' } });
+    fireEvent.click(screen.getByTestId('ai-generate'));
+    expect(await screen.findByText(/a copy couldn't be saved/)).toBeTruthy();
+    expect(screen.queryByText(/Added to the timeline and your media pool/)).toBeNull();
+  });
+});
+
 describe('adding fails', () => {
   it('shows an error instead of an unhandled rejection when onAdd rejects', async () => {
     px.searchPexelsVideos.mockResolvedValue({ videos: [pexelsVideo] });
