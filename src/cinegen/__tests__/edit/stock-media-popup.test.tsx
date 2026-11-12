@@ -144,6 +144,20 @@ describe('modal behaviour', () => {
     expect(p.onClose).toHaveBeenCalled();
   });
 
+  it('moves focus into the dialog on open, keeps Tab inside, and gives focus back on close', () => {
+    const opener = document.createElement('button'); document.body.appendChild(opener); opener.focus();
+    const { unmount } = render(<StockMediaPopup onClose={() => {}} onAdd={vi.fn()} onGenerate={vi.fn()} assets={[]} onAddAsset={vi.fn()} />);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.contains(document.activeElement)).toBe(true); // not left on the opener behind the modal
+    const buttons = [...dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input, select, textarea, a[href]')];
+    buttons[buttons.length - 1].focus();
+    fireEvent.keyDown(buttons[buttons.length - 1], { key: 'Tab' });
+    expect(dialog.contains(document.activeElement)).toBe(true); // wrapped inside, not out to the page
+    unmount();
+    expect(document.activeElement).toBe(opener);
+    opener.remove();
+  });
+
   it('keeps a prompt the user edited when switching between AI videos and images', () => {
     setup();
     fireEvent.click(screen.getByTestId(`cat-${MEDIA_CATEGORIES[0].id}`));

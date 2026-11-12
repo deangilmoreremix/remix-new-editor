@@ -945,21 +945,25 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [dispatch]);
 
   /**
-   * Remote videos (stock or AI): copy into the project's storage, mark them persisted and start the same derive jobs an import
-   * runs (thumbnail, waveform, filmstrip). Without this the workspace's generic remote-asset path marks the asset "processing"
-   * but never starts those jobs in the web build, so it would stay "processing" forever. Falls back to the remote link.
+   * Remote media (stock or AI, video or image): copy into the project's storage and mark it persisted. Videos also get the same derive
+   * jobs an import runs (thumbnail, waveform, filmstrip); without them the workspace's generic remote-asset path would mark the asset
+   * "processing" but never start those jobs in the web build, and would download the original a second time.
+   * `required` (an error message) makes a missing durable copy fatal (Pixabay forbids hotlinking); otherwise it falls back to the remote link.
    */
-  const ingestRemoteVideo = useCallback(async (base: Asset, remoteUrl: string, opts: { required?: boolean } = {}): Promise<Asset> => {
+  const ingestRemote = useCallback(async (base: Asset, remoteUrl: string, opts: { required?: string } = {}): Promise<Asset> => {
     try {
-      const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId: base.id, assetType: 'video', remoteUrl });
+      const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId: base.id, assetType: base.type, remoteUrl });
       // Only a durable (https storage) copy counts: a session-only blob: URL would be dead after a reload.
       if (r && 'path' in r && r.path && r.downloaded && /^https:\/\//i.test(r.path)) {
-        const jobs = [...(base.thumbnailUrl ? [] : ['generate_thumbnail']), 'compute_waveform', 'generate_filmstrip'];
-        return { ...base, url: r.path, fileRef: r.path, sourceUrl: remoteUrl, status: 'processing', metadata: { ...(base.metadata ?? {}), localPersistStatus: 'ready', localPersistDownloaded: true, processingJobs: jobs } };
+        const jobs = base.type === 'video' ? [...(base.thumbnailUrl ? [] : ['generate_thumbnail']), 'compute_waveform', 'generate_filmstrip'] : [];
+        return {
+          ...base, url: r.path, fileRef: r.path, sourceUrl: remoteUrl, status: jobs.length ? 'processing' : 'online',
+          metadata: { ...(base.metadata ?? {}), localPersistStatus: 'ready', localPersistDownloaded: true, ...(jobs.length ? { processingJobs: jobs } : {}) },
+        };
       }
     } catch { /* cross-origin / offline / not signed in */ }
-    if (opts.required) throw new Error("This provider doesn't allow linking to its files, and a copy couldn't be saved to your storage. Sign in and try again.");
-    // Play from the remote link. Mark the copy as not possible so the workspace doesn't try again and leave the asset "processing".
+    if (opts.required) throw new Error(opts.required);
+    // Use the remote link. Mark the copy as not possible so the workspace doesn't try again and leave the asset "processing".
     return { ...base, url: remoteUrl, metadata: { ...(base.metadata ?? {}), localPersistStatus: 'failed' } };
   }, [projectId]);
   const startDeriveJobs = useCallback((asset: Asset) => {
@@ -975,28 +979,20 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     const isVideo = kind === 'videos';
     const at = latestRef.current.currentTime; // where the playhead was when the user clicked
     const assetId = generateId();
-    let url = item.src;
     // Pixabay doesn't allow permanent hotlinking: its files must be copied to the user's storage, or not used at all.
     const mustCopy = item.mustCopy || item.source === 'pixabay';
-    if (!isVideo && mustCopy) {
-      let copied = false;
-      try {
-        const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId, assetType: 'image', remoteUrl: item.src });
-        if (r && 'path' in r && r.path && r.downloaded && /^https:\/\//i.test(r.path)) { url = r.path; copied = true; }
-      } catch { /* handled below */ }
-      if (!copied) throw new Error("Pixabay doesn't allow linking to its images, and a copy couldn't be saved to your storage. Sign in and try again.");
-    }
     const duration = isVideo ? Math.min(30, Math.max(1, item.duration || 5)) : 5;
     let asset: Asset = {
-      id: assetId, name: item.name, type: isVideo ? 'video' : 'image', url, thumbnailUrl: item.thumbnail || undefined,
+      id: assetId, name: item.name, type: isVideo ? 'video' : 'image', url: item.src, thumbnailUrl: item.thumbnail || undefined,
       duration, width: item.width, height: item.height, createdAt: new Date().toISOString(), status: 'online', sourceUrl: item.src,
       metadata: { source: `stock-${item.source}`, credit: { user: item.user, pageURL: item.pageURL } },
     };
-    if (isVideo) asset = await ingestRemoteVideo(asset, item.src, { required: mustCopy });
+    asset = await ingestRemote(asset, item.src, { required: mustCopy ? "Pixabay doesn't allow linking to its files, and a copy couldn't be saved to your storage. Sign in and try again." : undefined });
+    if (!isVideo && asset.fileRef) asset = { ...asset, thumbnailUrl: asset.url }; // don't keep hotlinking the provider's preview
     dispatch({ type: 'ADD_ASSET', asset });
     placeAtPlayhead(asset, at);
     startDeriveJobs(asset);
-  }, [dispatch, projectId, placeAtPlayhead, ingestRemoteVideo, startDeriveJobs]);
+  }, [dispatch, placeAtPlayhead, ingestRemote, startDeriveJobs]);
 
   // [remix] AI media from a prompt (MuAPI via /api/timeline-ai, the same path Fill Gap / the Director use): FLUX for images, Seedance for video.
   const handleGenerateAi = useCallback(async (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void) => {
@@ -1025,22 +1021,15 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       duration: 5, createdAt: new Date().toISOString(), status: 'online', sourceUrl: url,
       metadata: { generatedVia: 'stock-ai', prompt, model, aspect },
     };
-    if (isVideo) {
-      asset = await ingestRemoteVideo(asset, url); // provider links expire: keep a copy in the project
-    } else {
-      try {
-        const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId, assetType: 'image', remoteUrl: url });
-        if (r && 'path' in r && r.path && r.downloaded && /^https:\/\//i.test(r.path)) asset = { ...asset, url: r.path };
-      } catch { /* use the provider link */ }
-      asset = { ...asset, thumbnailUrl: asset.url };
-    }
+    asset = await ingestRemote(asset, url); // provider links expire: keep a copy in the project
+    if (!isVideo) asset = { ...asset, thumbnailUrl: asset.url };
     dispatch({ type: 'ADD_ASSET', asset });
     placeAtPlayhead(asset, at);
     startDeriveJobs(asset);
     // Provider links expire: if no durable copy could be saved (e.g. not signed in), say so instead of reporting a clean success.
-    const durable = isVideo ? Boolean(asset.fileRef) : asset.url !== url; // images: the URL is only replaced when a durable copy was saved
+    const durable = Boolean(asset.fileRef);
     return durable ? undefined : "Added to the timeline, but a copy couldn't be saved to your storage, so this link may expire. Sign in to keep AI media.";
-  }, [dispatch, projectId, placeAtPlayhead, ingestRemoteVideo, startDeriveJobs]);
+  }, [dispatch, placeAtPlayhead, ingestRemote, startDeriveJobs]);
 
   const selectedClipAsset = useMemo(() => {
     if (!selectedClip) return null;

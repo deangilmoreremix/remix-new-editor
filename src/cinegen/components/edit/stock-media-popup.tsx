@@ -1,7 +1,7 @@
 // [remix] Media browser for the Edit tab: AI-generated media first, then Pexels + Pixabay stock (videos and photos),
 // all organised by category. Stock search/normalising/caching is shared with the classic timeline editor
 // (lib/editor/addons/stockMedia.js); API keys stay on the server proxies (/api/pexels, /api/pixabay).
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { createStockSearch, STOCK_HOME } from '../../../lib/editor/addons/stockMedia.js';
 import { searchPixabayImages, searchPixabayVideos } from '../../../lib/pixabayApi.js';
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../../../lib/pexelsApi.js';
@@ -101,6 +101,24 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const [aspect, setAspect] = useState<AiAspect>('16:9');
   const [gen, setGen] = useState<{ busy: boolean; msg: string; error: string | null }>({ busy: false, msg: '', error: null });
   const seq = useRef(0);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Move focus into the dialog on open (so Escape / Delete are handled here, not by timeline shortcuts) and give it back on close.
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+    return () => { if (opener && typeof opener.focus === 'function') opener.focus(); };
+  }, []);
+  // Keep Tab inside the dialog.
+  const trapTab = (e: KeyboardEvent) => {
+    if (e.key !== 'Tab' || !panelRef.current) return;
+    const items = [...panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input, select, textarea, a[href]')].filter((el) => el.offsetParent !== null || el === document.activeElement);
+    if (!items.length) { e.preventDefault(); return; }
+    const first = items[0]; const last = items[items.length - 1];
+    const active = document.activeElement;
+    if (e.shiftKey && (active === first || active === panelRef.current)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+  };
 
   useEffect(() => {
     if (source === 'ai') return;
@@ -169,9 +187,9 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const sourceText: Record<MediaSource, string> = { ai: 'AI', pexels: 'Pexels', pixabay: 'Pixabay' };
   // Layout follows the Add to timeline / Animations libraries: header, source tabs, rounded panel, group + category pills, labelled filters, cards.
   return (
-    <div role="dialog" aria-modal="true" aria-label="AI and stock media" data-testid="stock-media-popup" onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Escape') onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
+    <div role="dialog" aria-modal="true" aria-label="AI and stock media" data-testid="stock-media-popup" onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Escape') onClose(); trapTab(e); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
       <style>{'.media-card:hover{border-color:var(--accent)!important}.media-card:disabled{opacity:.55;cursor:progress}'}</style>
-      <div style={{ width: 'min(1480px, 96vw)', height: 'min(900px, 94vh)', display: 'flex', flexDirection: 'column', background: 'var(--bg-raised)', border: '1px solid var(--border-medium)', borderRadius: 26, color: INK, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
+      <div ref={panelRef} tabIndex={-1} style={{ width: 'min(1480px, 96vw)', height: 'min(900px, 94vh)', display: 'flex', flexDirection: 'column', background: 'var(--bg-raised)', border: '1px solid var(--border-medium)', borderRadius: 26, color: INK, overflow: 'hidden', outline: 'none' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '22px 28px', borderBottom: '1px solid var(--border-subtle)' }}>
           <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--accent-dim)', color: 'var(--accent)', display: 'grid', placeItems: 'center', fontSize: 20 }}>＋</div>
           <div style={{ flex: 1 }}>
