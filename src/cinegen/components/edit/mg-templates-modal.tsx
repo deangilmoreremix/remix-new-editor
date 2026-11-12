@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
 
-export function MgTemplatesModal({ onClose, onPick }: { onClose: () => void; onPick: (t: MgTemplate) => void }) {
+export function MgTemplatesPanel({ onPick, onClose }: { onPick: (t: MgTemplate) => void; onClose?: () => void }) {
   const [all, setAll] = useState<MgTemplate[] | null>(null);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
@@ -12,11 +12,10 @@ export function MgTemplatesModal({ onClose, onPick }: { onClose: () => void; onP
   const list = (all ?? []).filter((t) => t.usable && (cat === 'all' || t.category === cat) && (!q || `${t.name} ${t.description ?? ''}`.toLowerCase().includes(q.toLowerCase())));
   const blocked = (all ?? []).filter((t) => !t.usable).length;
   return (
-    <div role="dialog" aria-label="Motion graphics templates" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
-      <div style={{ width: 'min(760px, 94vw)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: '#0b1016', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8, padding: 14 }} onClick={(e) => e.stopPropagation()}>
+    <>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
           <strong style={{ flex: 1 }}>Motion graphics templates</strong>
-          <button className="clip-properties-panel__toggle-btn" onClick={onClose}>Close</button>
+          {onClose && <button className="clip-properties-panel__toggle-btn" onClick={onClose}>Close</button>}
         </div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
           <input type="text" placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: 1, background: 'transparent', color: 'inherit', border: '1px solid rgba(255,255,255,.18)', borderRadius: 6, padding: '4px 8px' }} />
@@ -33,6 +32,15 @@ export function MgTemplatesModal({ onClose, onPick }: { onClose: () => void; onP
           ))}
         </div>
         {all && <div style={{ fontSize: 11, opacity: 0.65, marginTop: 8 }}>{all.length - blocked} templates available{blocked ? ` (${blocked} excluded: raw HTML injection is not allowed in the sandbox, or the repair could not be verified)` : ''}.</div>}
+    </>
+  );
+}
+
+export function MgTemplatesModal({ onClose, onPick }: { onClose: () => void; onPick: (t: MgTemplate) => void }) {
+  return (
+    <div role="dialog" aria-label="Motion graphics templates" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.6)', display: 'grid', placeItems: 'center' }} onClick={onClose}>
+      <div style={{ width: 'min(760px, 94vw)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: '#0b1016', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8, padding: 14 }} onClick={(e) => e.stopPropagation()}>
+        <MgTemplatesPanel onPick={onPick} onClose={onClose} />
       </div>
     </div>
   );
