@@ -108,7 +108,15 @@ async function runJob(assetId: string, url: string, jobType: string) {
     else if (jobType === 'generate_thumbnail') result = { outputPath: await frameDataUrl(url, 0.1, 480) };
     else if (jobType === 'compute_waveform') {
       // CineGen reads peaks from `peaksPath` (a JSON array URL). A data: URL keeps them durable across reloads.
-      const peaks = await extractWaveformPeaks(url, 1500);
+      let peaks: number[];
+      try {
+        peaks = await extractWaveformPeaks(url, 1500);
+      } catch (err) {
+        // A video without an audio track (common for stock footage) cannot be decoded as audio. Complete with a flat waveform;
+        // otherwise the job errors and the workspace re-queues it forever.
+        if (type !== 'video') throw err;
+        peaks = new Array(100).fill(0);
+      }
       result = { peaks, peaksPath: `data:application/json,${encodeURIComponent(JSON.stringify(peaks.map((p) => Math.round(p * 1000) / 1000)))}` };
     }
     else if (jobType === 'generate_filmstrip') result = { frames: await extractFilmstripFrames(url) };

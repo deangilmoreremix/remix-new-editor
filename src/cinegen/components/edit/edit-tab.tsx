@@ -12,7 +12,11 @@ import { ResizeHandle } from './resize-handle';
 import { activeGlTransition } from '@cinegen/lib/occ/transitions';
 import { useRecorder } from '../../../openchatcut/audio/recorder';
 import { SoundLibraryPopup } from './sound-library-popup';
-import { StockMediaPopup, type StockItem, type StockKind } from './stock-media-popup';
+import { StockMediaPopup, type StockItem, type StockKind, type AiAspect } from './stock-media-popup';
+import { runTimelineMuapi as runMuapi } from '../../../lib/editor/ai/timelineMuapi.js';
+
+// The JS helper's JSDoc only lists pollMs/timeoutMs; onProgress is supported at runtime.
+const runTimelineMuapi = runMuapi as (tool: string, params: Record<string, unknown>, opts?: { onProgress?: (p: { stage: string; elapsedSec?: number }) => void }) => Promise<{ url: string; model?: string }>;
 import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
@@ -920,6 +924,41 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
 
   // [remix] Pexels / Pixabay stock media: asset into the pool, clip on a video track at the playhead
   const [stockMedia, setStockMedia] = useState(false);
+  /** Put an asset (video or image) on the first unlocked video track at the playhead, creating the track if needed. */
+  const placeAtPlayhead = useCallback((asset: Asset) => {
+    let tl = timeline;
+    let track = tl.tracks.find((t) => t.kind === 'video' && !t.locked);
+    if (!track) {
+      track = { id: generateId(), name: `Video ${tl.tracks.filter((t) => t.kind === 'video').length + 1}`, kind: 'video', color: '#4a9fd6', muted: false, solo: false, locked: false, visible: true, volume: 1 };
+      tl = { ...tl, tracks: [...tl.tracks, track] };
+    }
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, currentTime)) });
+  }, [dispatch, timeline, currentTime]);
+
+  /**
+   * Remote videos (stock or AI): copy into the project's storage, mark them persisted and start the same derive jobs an import
+   * runs (thumbnail, waveform, filmstrip). Without this the workspace's generic remote-asset path marks the asset "processing"
+   * but never starts those jobs in the web build, so it would stay "processing" forever. Falls back to the remote link.
+   */
+  const ingestRemoteVideo = useCallback(async (base: Asset, remoteUrl: string): Promise<Asset> => {
+    try {
+      const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId: base.id, assetType: 'video', remoteUrl });
+      if (r && 'path' in r && r.path && r.downloaded) {
+        const jobs = [...(base.thumbnailUrl ? [] : ['generate_thumbnail']), 'compute_waveform', 'generate_filmstrip'];
+        return { ...base, url: r.path, fileRef: r.path, sourceUrl: remoteUrl, status: 'processing', metadata: { ...(base.metadata ?? {}), localPersistStatus: 'ready', localPersistDownloaded: true, processingJobs: jobs } };
+      }
+    } catch { /* cross-origin / offline: play from the remote link */ }
+    return { ...base, url: remoteUrl };
+  }, [projectId]);
+  const startDeriveJobs = useCallback((asset: Asset) => {
+    const jobs = ((asset.metadata as Record<string, unknown> | undefined)?.processingJobs as string[] | undefined) ?? [];
+    if (!asset.fileRef || !jobs.length) return;
+    void window.electronAPI.media.queueProcessing({
+      assetId: asset.id, projectId, inputPath: asset.fileRef, needsProxy: false,
+      includeThumbnail: jobs.includes('generate_thumbnail'), includeWaveform: jobs.includes('compute_waveform'), includeFilmstrip: jobs.includes('generate_filmstrip'),
+    }).catch(() => { /* the backfill retries stale jobs */ });
+  }, [projectId]);
+
   const handleAddStock = useCallback(async (item: StockItem, kind: StockKind) => {
     const isVideo = kind === 'videos';
     const assetId = generateId();
@@ -932,20 +971,46 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       } catch { /* cross-origin / offline: use the CDN link */ }
     }
     const duration = isVideo ? Math.min(30, Math.max(1, item.duration || 5)) : 5;
-    const asset: Asset = {
+    let asset: Asset = {
       id: assetId, name: item.name, type: isVideo ? 'video' : 'image', url, thumbnailUrl: item.thumbnail || undefined,
       duration, width: item.width, height: item.height, createdAt: new Date().toISOString(), status: 'online', sourceUrl: item.src,
       metadata: { source: `stock-${item.source}`, credit: { user: item.user, pageURL: item.pageURL } },
     };
+    if (isVideo) asset = await ingestRemoteVideo(asset, item.src);
     dispatch({ type: 'ADD_ASSET', asset });
-    let tl = timeline;
-    let track = tl.tracks.find((t) => t.kind === 'video' && !t.locked);
-    if (!track) {
-      track = { id: generateId(), name: `Video ${tl.tracks.filter((t) => t.kind === 'video').length + 1}`, kind: 'video', color: '#4a9fd6', muted: false, solo: false, locked: false, visible: true, volume: 1 };
-      tl = { ...tl, tracks: [...tl.tracks, track] };
+    placeAtPlayhead(asset);
+    startDeriveJobs(asset);
+  }, [dispatch, projectId, placeAtPlayhead, ingestRemoteVideo, startDeriveJobs]);
+
+  // [remix] AI media from a prompt (MuAPI via /api/timeline-ai, the same path Fill Gap / the Director use): FLUX for images, Seedance for video.
+  const handleGenerateAi = useCallback(async (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void) => {
+    const isVideo = kind === 'videos';
+    const { url, model } = await runTimelineMuapi(
+      'generate',
+      isVideo
+        ? { model: 'seedance-lite-t2v', inputs: { prompt, duration: 5, aspect_ratio: aspect, resolution: '720p' } }
+        : { model: 'flux-dev', inputs: { prompt, aspect_ratio: aspect } },
+      { onProgress: (p) => onProgress(p.stage === 'generating' ? `Generating… ${p.elapsedSec ?? 0}s` : 'Submitting…') },
+    );
+    const assetId = generateId();
+    let asset: Asset = {
+      id: assetId, name: prompt.length > 40 ? `${prompt.slice(0, 40)}…` : prompt, type: isVideo ? 'video' : 'image', url,
+      duration: 5, createdAt: new Date().toISOString(), status: 'online', sourceUrl: url,
+      metadata: { generatedVia: 'stock-ai', prompt, model, aspect },
+    };
+    if (isVideo) {
+      asset = await ingestRemoteVideo(asset, url); // provider links expire: keep a copy in the project
+    } else {
+      try {
+        const r = await window.electronAPI.media.persistGeneratedAsset({ projectId, assetId, assetType: 'image', remoteUrl: url });
+        if (r && 'path' in r && r.path) asset = { ...asset, url: r.path };
+      } catch { /* use the provider link */ }
+      asset = { ...asset, thumbnailUrl: asset.url };
     }
-    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, currentTime)) });
-  }, [dispatch, timeline, currentTime, projectId]);
+    dispatch({ type: 'ADD_ASSET', asset });
+    placeAtPlayhead(asset);
+    startDeriveJobs(asset);
+  }, [dispatch, projectId, placeAtPlayhead, ingestRemoteVideo, startDeriveJobs]);
 
   const selectedClipAsset = useMemo(() => {
     if (!selectedClip) return null;
@@ -1126,7 +1191,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
         {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
         {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}
-        {stockMedia && <StockMediaPopup onClose={() => setStockMedia(false)} onAdd={handleAddStock} />}
+        {stockMedia && <StockMediaPopup onClose={() => setStockMedia(false)} onAdd={handleAddStock} onGenerate={handleGenerateAi} assets={state.assets} onAddAsset={placeAtPlayhead} />}
 
         <div className="edit-tab__timeline-content">
           <TimelineTabs

@@ -104,7 +104,7 @@ export function ToolSidebar({ activeTool, onToolChange, onOpenSounds, onOpenStoc
         </button>
       )}
       {onOpenStock && (
-        <button className="tool-sidebar__btn" onClick={onOpenStock} title="Stock media (Pexels & Pixabay)" aria-label="Stock media" data-testid="open-stock-media">
+        <button className="tool-sidebar__btn" onClick={onOpenStock} title="AI & stock media (Pexels, Pixabay)" aria-label="AI and stock media" data-testid="open-stock-media">
           <Icon><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.5" /><path d="m21 16-5-5-8 8" /></Icon>
         </button>
       )}
