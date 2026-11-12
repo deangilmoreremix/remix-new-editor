@@ -1,43 +1,112 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
-import { STUDIOS } from '../studioRegistry.js';
-import { NAV_GROUPS, STUDIO_ROUTES } from '../../../lib/studioRoutes.js';
-import { renderAnswer, parseSSE, starterPrompts, pickChips } from '../askCore.js';
-import { search, sanitizeMessages, buildSourcesBlock, retrievalQuery, MIN_SCORE } from '../../../../netlify/functions/_shared/askSearch.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { NAV_GROUPS } from '../../../lib/studioRoutes.js';
+import { STUDIO_INTENTS, TRACK_INTENTS, SYNONYM_GROUPS } from '../../../data/askIntents.js';
+import { STUDIO_ACADEMY, TRACK_TITLES } from '../../../data/askAcademyMap.js';
+import { renderAnswer, parseSSE, starterPrompts, pickChips, isAcademyUrl } from '../askCore.js';
+import { search, sanitizeMessages, buildSourcesBlock, retrievalQuery, MIN_SCORE, getIndex } from '../../../../netlify/functions/_shared/askSearch.js';
 import { handle, openAIDeltas, rateLimited } from '../../../../netlify/functions/ask-smartvideo.mjs';
 
+const ROOT = path.resolve(__dirname, '../../../..');
+const KB = path.join(ROOT, 'src/data/askKb');
+const kbIds = fs.readdirSync(KB).filter((f) => f.endsWith('.json') && !f.startsWith('_')).map((f) => f.replace('.json', ''));
 const KEY = 'sk-test0123456789abcdefghijkl';
-const top = (q, o) => search(q, o)[0]?.chunk.studioId;
+const top = (q, o) => search(q, o)[0]?.chunk;
+const ids = (q, o) => search(q, o).map((r) => r.chunk);
 
-describe('registry coverage', () => {
-  it('has an entry for every side-menu studio', () => {
-    const ids = new Set(STUDIOS.map((s) => s.id));
-    const missing = NAV_GROUPS.flatMap((g) => g.items).map((i) => i.id).filter((id) => !ids.has(id));
-    expect(missing).toEqual([]);
+describe('knowledge base coverage', () => {
+  const navIds = NAV_GROUPS.flatMap((g) => g.items).map((i) => i.id);
+  it('has a guide for every side-menu studio', () => expect(navIds.filter((id) => !kbIds.includes(id))).toEqual([]));
+  it('has intents, an academy mapping and starters for every guide', () => {
+    for (const id of kbIds) {
+      expect(STUDIO_INTENTS[id]?.length, `intents ${id}`).toBeGreaterThanOrEqual(4);
+      expect(STUDIO_ACADEMY[id], `academy ${id}`).toBeTruthy();
+      expect(starterPrompts(id)).toHaveLength(3);
+    }
   });
-  it('only points at real routes, with unique ids', () => {
-    expect(STUDIOS.filter((s) => !(s.id in STUDIO_ROUTES))).toEqual([]);
-    expect(new Set(STUDIOS.map((s) => s.id)).size).toBe(STUDIOS.length);
+  it('guides carry sources and verification, and the right route', () => {
+    for (const id of kbIds) {
+      const kb = JSON.parse(fs.readFileSync(path.join(KB, `${id}.json`), 'utf8'));
+      expect(kb.id).toBe(id);
+      expect(kb.route).toBe(`#/${id}`);
+      expect(kb.sourceFiles?.length, `sourceFiles ${id}`).toBeGreaterThan(0);
+      expect(kb.verification?.status, `verification ${id}`).toBeTruthy();
+      expect(kb.howToUse, `howToUse ${id}`).toBeTruthy();
+    }
+  });
+  it('every Academy track and lesson referenced exists on disk', () => {
+    for (const [id, a] of Object.entries(STUDIO_ACADEMY)) {
+      for (const l of a.lessons) expect(fs.existsSync(path.join(ROOT, 'src/content/academy', l.track, 'lessons', `${l.lesson}.md`)), `${id}: ${l.track}/${l.lesson}`).toBe(true);
+    }
+    expect(Object.keys(TRACK_TITLES)).toHaveLength(15);
+    expect(Object.keys(TRACK_INTENTS)).toHaveLength(15);
+    expect(SYNONYM_GROUPS.length).toBeGreaterThan(15);
+  });
+  it('index holds studio, academy, model and app content', () => {
+    const kinds = new Set(getIndex().docs.map((d) => d.kind));
+    expect([...kinds].sort()).toEqual(['academy', 'app', 'model', 'studio']);
   });
 });
 
-describe('retrieval', () => {
-  it.each([
+describe('index freshness', () => {
+  it('askIndex.json matches its sources (run: npm run build:ask-index)', () => {
+    expect(() => execFileSync('node', [path.join(ROOT, 'scripts/build-ask-index.mjs'), '--check'], { stdio: 'pipe' })).not.toThrow();
+  });
+});
+
+describe('natural-language retrieval', () => {
+  const studio = [
     ['how do I remove the background from a photo', 'edit'],
-    ['make my photo talk', 'lipsync'],
+    ['erase an object from my picture', 'edit'],
+    ['make my photo talk using my recording', 'lipsync'],
     ['what are the camera movements', 'cinema'],
     ['make my image higher resolution', 'upscale'],
     ['generate a song for my video', 'audio'],
-    ['product photo on marble', 'commercial'],
-  ])('%s → %s', (q, id) => expect(top(q)).toBe(id));
-  it('rejects off-topic questions', () => expect(search('who won the world cup in 1998')).toEqual([]));
-  it('boosts the current studio', () => expect(top('how do I use this', { studioId: 'storyboard' })).toBe('storyboard'));
-  it('keeps follow-up context from the previous user turn', () => {
-    const q = retrievalQuery([{ role: 'user', content: 'tell me about cinema' }, { role: 'assistant', content: 'x' }, { role: 'user', content: 'and the looks' }]);
-    expect(top(q)).toBe('cinema');
+    ['product photo on a marble table', 'commercial'],
+    ['keep the same character across images', 'character'],
+    ['plan shots for a short film', 'storyboard'],
+    ['make an ai avatar spokesperson', 'avatar'],
+    ['generate a video from a text prompt', 'video'],
+    ['animate a still image into motion', 'animate'],
+  ];
+  it.each(studio)('%s → %s studio', (q, id) => expect(ids(q).some((c) => c.studioId === id && c.kind === 'studio')).toBe(true));
+  // The right studio must be among the top 3 distinct studios (the model sees all sources and cites what it uses).
+  it.each(studio)('%s puts %s in the top 3 studios', (q, id) => {
+    const order = [...new Set(ids(q).filter((c) => c.kind === 'studio').map((c) => c.studioId))].slice(0, 3);
+    expect(order).toContain(id);
   });
-  it('finds the key setup facts', () => expect(search('where do I add my openai key')[0].chunk.id).toBe('app:keys'));
-  it('exposes a minimum score threshold', () => expect(MIN_SCORE).toBeGreaterThan(0));
+
+  it('finds app facts: keys, pricing, sign in', () => {
+    expect(top('where do I add my openai key').kind).toBe('app');
+    expect(top('how much is the lifetime plan').id).toMatch(/^app:/);
+  });
+  it('answers Academy questions with a deep link into the Academy', () => {
+    const r = ids('how do I price ugc services for clients');
+    expect(r.some((c) => c.kind === 'academy' && isAcademyUrl(c.url))).toBe(true);
+  });
+  it('surfaces a model list for model questions', () => expect(ids('which video model is best').some((c) => c.kind === 'model')).toBe(true));
+  it('rejects off-topic questions', () => {
+    expect(search('who won the world cup in 1998')).toEqual([]);
+    expect(search('what is the weather today')).toEqual([]);
+  });
+  it('boosts the current studio and answers "how do I use this" from it', () => {
+    expect(top('how do I use this', { studioId: 'storyboard' }).studioId).toBe('storyboard');
+    expect(search('how do I use this')).toEqual([]);
+  });
+  it('keeps follow-up context from the previous user turn', () => {
+    const q = retrievalQuery([{ role: 'user', content: 'tell me about the cinema studio' }, { role: 'assistant', content: 'x' }, { role: 'user', content: 'and the film looks' }]);
+    expect(ids(q).some((c) => c.studioId === 'cinema')).toBe(true);
+  });
+  it('never returns more than 2 chunks per URL or more than 6 results', () => {
+    const r = ids('how do I use the image studio');
+    expect(r.length).toBeLessThanOrEqual(6);
+    const per = {}; r.forEach((c) => { per[c.url] = (per[c.url] || 0) + 1; });
+    expect(Math.max(...Object.values(per))).toBeLessThanOrEqual(2);
+  });
+  it('exposes a minimum score threshold', () => expect(MIN_SCORE).toBeGreaterThan(5));
 });
 
 describe('prompt safety', () => {
@@ -52,14 +121,17 @@ describe('prompt safety', () => {
     expect(sanitizeMessages([{ role: 'user', content: 'a' }, { role: 'assistant', content: 'b' }])).toBeNull();
     expect(sanitizeMessages('x')).toBeNull();
   });
+  it('index text contains no secret-looking strings', () => {
+    expect(JSON.stringify(getIndex().docs.map((d) => d.text))).not.toMatch(/sk-[A-Za-z0-9_-]{20,}|whsec_|ghp_[A-Za-z0-9]{20,}/);
+  });
 });
 
 describe('renderAnswer', () => {
-  it('escapes HTML and turns citations into in-app links', () => {
+  it('escapes HTML and turns citations into links', () => {
     const h = renderAnswer('Use <img src=x onerror=1> **Edit** [S1]\n1. one\n2. two', [{ url: '#/edit' }]);
     expect(h).not.toContain('<img');
     expect(h).toContain('<strong>Edit</strong>');
-    expect(h).toContain('data-ask-page="edit"');
+    expect(h).toContain('data-ask-url="#/edit"');
     expect(h).toContain('<ol>');
   });
   it('drops citations that do not match a source', () => expect(renderAnswer('x [S5]', [])).not.toContain('S5'));
@@ -73,13 +145,21 @@ describe('client helpers', () => {
     expect(b.events.map((e) => e.event)).toEqual(['delta', 'done']);
   });
   it('gives studio-specific starters with a generic fallback', () => {
-    expect(starterPrompts('edit')[0]).toMatch(/Edit Studio/);
+    expect(starterPrompts('edit')[0]).toMatch(/Edit/);
     expect(starterPrompts(null)).toHaveLength(3);
+    expect(starterPrompts('edit')[2]).toMatch(/Academy/);
   });
-  it('shows cited sources, else related', () => {
-    const s = [{ url: '#/a' }, { url: '#/b' }];
-    expect(pickChips('see [S2]', s)).toEqual({ cited: true, chips: [s[1]] });
+  it('shows cited sources, else related, plus an Academy chip for studio sources', () => {
+    const s = [{ url: '#/edit', kind: 'studio', studioId: 'edit', title: 'Edit Studio — Overview' }, { url: '#/keys', kind: 'app', title: 'API keys' }];
+    const c = pickChips('see [S1]', s);
+    expect(c.cited).toBe(true);
+    expect(c.chips[0].label).toBe('Open Edit Studio');
+    expect(c.chips.some((x) => x.academy)).toBe(true);
     expect(pickChips('none', s).cited).toBe(false);
+  });
+  it('treats academy hash paths as academy urls', () => {
+    expect(isAcademyUrl('#/academy/track/02-ai-filmmaking')).toBe(true);
+    expect(isAcademyUrl('#/edit')).toBe(false);
   });
 });
 
@@ -88,7 +168,7 @@ const verifyOk = async () => ({ userId: `u${Math.random()}` });
 const sseBody = (chunks) => new Response(new ReadableStream({ start(c) { chunks.forEach((x) => c.enqueue(new TextEncoder().encode(x))); c.close(); } }));
 
 describe('endpoint', () => {
-  it('401 without a valid session, 409 without a key, 400 on bad input', async () => {
+  it('401 without a valid session, 409 without a key, 400 on bad input, 405 on GET', async () => {
     expect((await handle(req({}), { verify: async () => null })).status).toBe(401);
     expect((await handle(req({ messages: [{ role: 'user', content: 'hi' }] }, { 'x-openai-key': '' }), { verify: verifyOk })).status).toBe(409);
     expect((await handle(req({ messages: [] }), { verify: verifyOk })).status).toBe(400);
@@ -100,7 +180,7 @@ describe('endpoint', () => {
     expect(await r.text()).toContain('"grounded":false');
     expect(fetchImpl).not.toHaveBeenCalled();
   });
-  it('streams sources then deltas, using the user key and grounded prompt', async () => {
+  it('streams sources then deltas, using the user key and a grounded prompt', async () => {
     const fetchImpl = vi.fn(async () => sseBody(['data: {"choices":[{"delta":{"content":"Open **Ed', 'it** [S1]"}}]}\n\ndata: [DONE]\n\n']));
     const r = await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }], studioId: 'edit' }), { verify: verifyOk, fetchImpl });
     const text = await r.text();

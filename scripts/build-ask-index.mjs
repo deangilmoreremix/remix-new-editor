@@ -156,7 +156,8 @@ for (const [type, [label, studio, where]] of Object.entries(MODEL_TYPES)) {
     return `- ${m.name} (${m.provider_name || m.provider})${m.description ? `: ${m.description}` : ''}${meta}`;
   });
   add({
-    id: `models:${type}`, kind: 'model', studioId: studio, title: `Models — ${label}`, url: `#/${studio}`,
+    id: `models:${type}`, kind: 'model', studioId: studio, title: `Models — ${label} (${where})`, url: `#/${studio}`,
+    phrases: ['which model should I use', 'best model', 'cheapest model', 'fastest model', 'compare models', 'model prices and quality', `which ${label.toLowerCase()} are available`],
     text: `${label} available in ${where} (${list.length} models). Price is a relative unit, speed is estimated generation time, quality is 1-5 where shown.\n${lines.join('\n')}`,
   });
 }

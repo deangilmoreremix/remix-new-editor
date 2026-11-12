@@ -1,6 +1,6 @@
 // Ask SmartVideo: plain-language phrasing beginners use, for matching questions to studios and
 // Academy tracks. Plain data, no imports. Each phrase maps to a capability listed in
-// src/features/ask-smartvideo/studioRegistry.js.
+// the studio guides in src/data/askKb (v1 registry removed).
 
 export const STUDIO_INTENTS = {
   image: ['make a picture from a text description', 'turn my photo into a different art style', 'create several versions of an image at once', 'which image model should I use', 'make my picture a different shape like square or vertical', 'stop the AI adding things I do not want in the picture', 'copy the look of a reference image'],
@@ -59,6 +59,7 @@ export const TRACK_INTENTS = {
 
 // Words people use interchangeably. Lowercase; multi-word entries are phrases.
 export const SYNONYM_GROUPS = [
+  ['prompt', 'description', 'text', 'describe'],
   ['picture', 'photo', 'image', 'pic', 'photograph', 'img'],
   ['video', 'clip', 'footage', 'movie', 'film', 'reel'],
   ['remove', 'erase', 'delete', 'take out', 'get rid of', 'cut out'],

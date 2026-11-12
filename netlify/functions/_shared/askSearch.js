@@ -6,13 +6,13 @@
 // boosts, and a mixing pass so studio, Academy, model and app content all get a
 // chance. Weak matches are rejected (MIN_SCORE) so the model is never asked to
 // answer from irrelevant text.
-import indexJson from '../../../src/data/askIndex.json';
+import indexJson from '../../../src/data/askIndex.json' with { type: 'json' };
 import { SYNONYM_GROUPS } from '../../../src/data/askIntents.js';
 
-const STOP = new Set('a an the and or of to in on for with is are be do does how i my me you your it this that can what where when which from at by as if so but not use using want need make get'.split(' '));
+const STOP = new Set('a an the and or of to in on for with is are be do does how i my me you your it this that can what where when which from at by as if so but not use using want need make get create generate build produce please help'.split(' '));
 const K1 = 1.4;
 const B = 0.75;
-export const MIN_SCORE = 2.5;
+export const MIN_SCORE = 10; // legit questions score 17+; unrelated text tops out around 6
 
 export function stem(w) {
   return w.replace(/(ing|ed|es|s)$/, (m, _s, off) => (off >= 3 ? '' : m));
