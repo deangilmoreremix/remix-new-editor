@@ -12,6 +12,18 @@ import { ResizeHandle } from './resize-handle';
 import { activeGlTransition } from '@cinegen/lib/occ/transitions';
 import { useRecorder } from '../../../openchatcut/audio/recorder';
 import { SoundLibraryPopup } from './sound-library-popup';
+import { LibraryPanel, type LibraryActions } from './library-panel'; // [remix] one Library for animations, effects, transitions, looks, overlays & forms, sounds
+import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
+import { createHyperframesOverlay, hyperframesItem } from '@cinegen/lib/hyperframes/overlay';
+import { decodeLibraryDrag, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
+import { loadMgTemplates } from '@cinegen/lib/occ/mg-templates';
+import { availableSounds } from '@cinegen/lib/occ/sound-library';
+import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
+import { nextClipOnTrack, transitionBetween, transitionHandle, addGlTransition, setGlType, transitionSnapshotFor } from '@cinegen/lib/occ/transitions';
+import { snapshotFor } from '@cinegen/lib/occ/plugins';
+import { primeClipLuts } from '@cinegen/lib/occ/clip-fx';
+import { ALL_FX } from '../../../openchatcut/gl/fx/effects';
+import { t as occT } from '../../../openchatcut/i18n/t';
 import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
@@ -74,7 +86,7 @@ function loadPersistedEditView(projectId: string): PersistedEditView {
       return {
         pxPerSecond: 50,
         snapEnabled: true,
-        trackHeight: 80,
+        trackHeight: 110, // [remix] CineGen screenshot rows (~110px); the clone ships 80
         timelineViews: {},
       };
     }
@@ -82,14 +94,14 @@ function loadPersistedEditView(projectId: string): PersistedEditView {
     return {
       pxPerSecond: Number.isFinite(parsed.pxPerSecond) ? Number(parsed.pxPerSecond) : 50,
       snapEnabled: typeof parsed.snapEnabled === 'boolean' ? parsed.snapEnabled : true,
-      trackHeight: Number.isFinite(parsed.trackHeight) ? Number(parsed.trackHeight) : 80,
+      trackHeight: Number.isFinite(parsed.trackHeight) ? Number(parsed.trackHeight) : 110,
       timelineViews: parsed.timelineViews ?? {},
     };
   } catch {
     return {
       pxPerSecond: 50,
       snapEnabled: true,
-      trackHeight: 80,
+      trackHeight: 110, // [remix] CineGen screenshot rows (~110px); the clone ships 80
       timelineViews: {},
     };
   }
@@ -897,7 +909,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     const asset: Asset = { id: imported.assetId, name, type: 'audio', url: imported.filePath, fileRef: imported.filePath, duration: seconds, createdAt: new Date().toISOString(), status: 'processing', metadata: { source: 'openchatcut-recorder', processingJobs: ['extract_metadata', 'compute_waveform'] } };
     dispatch({ type: 'ADD_ASSET', asset });
     let tl = timeline;
-    let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
+    let track = (ctx?.trackId ? tl.tracks.find((t) => t.id === ctx.trackId && t.kind === 'audio' && !t.locked) : undefined) ?? tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
     if (!track) {
       track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
       tl = { ...tl, tracks: [...tl.tracks, track] };
@@ -905,8 +917,8 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, recordStartRef.current) });
   }, [dispatch, timeline]);
   const recorder = useRecorder((blob) => { void handleRecorded(blob); });
-  const handleAddSound = useCallback((effect: { id: string; name: string; seconds: number }) => {
-    const asset: Asset = { id: generateId(), name: effect.name, type: 'audio', url: soundEffectSrc(effect.id), duration: effect.seconds, createdAt: new Date().toISOString(), status: 'online', metadata: { source: 'openchatcut-sound-library', soundId: effect.id } };
+  const handleAddSound = useCallback((effect: { id: string; name: string; seconds: number }, ctx?: LibraryDropCtx) => {
+    const asset: Asset = { id: generateId(), name: effect.name, type: 'audio', url: soundEffectSrc(effect.id), fileRef: soundEffectSrc(effect.id), duration: effect.seconds, createdAt: new Date().toISOString(), status: 'online', metadata: { source: 'openchatcut-sound-library', soundId: effect.id } };
     dispatch({ type: 'ADD_ASSET', asset });
     let tl = timeline;
     let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
@@ -914,7 +926,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       track = { id: generateId(), name: `Audio ${tl.tracks.filter((t) => t.kind === 'audio').length + 1}`, kind: 'audio', color: '#34d399', muted: false, solo: false, locked: false, visible: true, volume: 1 };
       tl = { ...tl, tracks: [...tl.tracks, track] };
     }
-    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, currentTime)) });
+    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, ctx?.time ?? currentTime)) });
   }, [dispatch, timeline, currentTime]);
 
   const selectedClipAsset = useMemo(() => {
@@ -929,6 +941,94 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     },
     [dispatch, timeline],
   );
+
+  // [remix] Library: what clicking a card does. Every action returns a short message that the panel shows ("Select a clip first").
+  const libraryActions = useMemo<LibraryActions>(() => {
+    // A drop names its own clip / row; a click uses the selected clip and the playhead.
+    const pickClip = (ctx?: LibraryDropCtx) => (ctx?.clipId ? timeline.clips.find((c) => c.id === ctx.clipId) : undefined) ?? selectedClip;
+    const withRow = <T extends { [k: string]: unknown }>(o: T, ctx?: LibraryDropCtx): T => (typeof ctx?.row === 'number' ? { ...o, row: ctx.row } : o);
+    const needClip = (what: string) => `Select a clip on the timeline first, then click ${what}.`;
+    return {
+      onAddOverlay: (kind, ctx) => {
+        const overlay = withRow(createOverlay(kind, ctx?.time ?? currentTime, Math.max(sequenceDuration, 10)), ctx);
+        dispatch({ type: 'ADD_OVERLAY', overlay });
+        selectOverlay(overlay.id);
+        return `Added ${overlay.name} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}. Remove it with the × on the Overlays lane.`;
+      },
+      onAddTemplate: (templateId, ctx) => {
+        const phone = isConnectTemplate(templateId) ? (window.prompt('Phone number to call (with area code, e.g. 212 555 0147)', '') ?? '').trim() : '';
+        const made = createTemplateOverlays(templateId, ctx?.time ?? currentTime, Math.max(sequenceDuration, 10), phone ? { phone } : undefined);
+        made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+        if (made.length) selectOverlay(made[made.length - 1].id);
+        return made.length ? `Added ${made.length} overlay${made.length > 1 ? 's' : ''} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}.` : 'That template has nothing to add.';
+      },
+      onAddMg: (tpl, ctx) => {
+        const overlay = withRow(createMgOverlay(tpl, ctx?.time ?? currentTime), ctx);
+        dispatch({ type: 'ADD_OVERLAY', overlay });
+        selectOverlay(overlay.id);
+        return `Added “${tpl.name}” ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}. Edit its text in the panel on the right.`;
+      },
+      onAddHf: (item, ctx) => {
+        const overlay = withRow(createHyperframesOverlay(item, ctx?.time ?? currentTime), ctx);
+        dispatch({ type: 'ADD_OVERLAY', overlay });
+        selectOverlay(overlay.id);
+        return `Added “${item.title}” ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}. Edit its fields in the panel on the right.`;
+      },
+      onApplyFx: async (id, ctx) => {
+        const selectedClip = pickClip(ctx);
+        if (!selectedClip) return needClip('an effect');
+        const def = await snapshotFor(id);
+        handleUpdateClipProps(selectedClip.id, { fx: [...(selectedClip.fx ?? []), { id, props: {}, ...(def ? { def } : {}) }] });
+        return `Added ${occT(ALL_FX[id]?.name ?? id)} to “${selectedClip.name}”.`;
+      },
+      onApplyLut: async (id, ctx) => {
+        const selectedClip = pickClip(ctx);
+        if (!selectedClip) return needClip('a look');
+        const def = await snapshotFor(id);
+        const next = { id, intensity: selectedClip.lut?.intensity ?? 1, ...(def ? { def } : {}) };
+        void primeClipLuts({ lut: next });
+        handleUpdateClipProps(selectedClip.id, { lut: next });
+        return `Applied the look to “${selectedClip.name}”.`;
+      },
+      onApplyTransition: async (id, ctx) => {
+        const selectedClip = pickClip(ctx);
+        if (!selectedClip) return needClip('a transition');
+        const next = nextClipOnTrack(timeline, selectedClip);
+        if (!next) return 'This clip has no clip after it on its track, so there is no cut to put a transition on.';
+        const snap = id.startsWith('plugin:') ? await transitionSnapshotFor(id) : undefined;
+        const existing = transitionBetween(timeline, selectedClip, next);
+        if (existing) {
+          dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: setGlType(timeline, existing.id, id, snap) });
+          return 'Changed the transition on this cut.';
+        }
+        const handle = transitionHandle(selectedClip, next);
+        if (handle <= 0.05) return 'A transition needs spare footage at the cut: trim the end of this clip and the start of the next one first.';
+        dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addGlTransition(timeline, selectedClip, next, id, Math.min(0.5, handle), snap) });
+        return 'Added the transition to the cut after this clip.';
+      },
+      onAddSound: (effect, ctx) => { handleAddSound(effect, ctx); return `Added ${effect.name} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}.`; },
+    };
+  }, [currentTime, sequenceDuration, dispatch, selectedClip, timeline, handleUpdateClipProps, handleAddSound]);
+
+  // [remix] A Library card dropped on the timeline: what it does depends on where it lands (overlay row, track, clip, or cut).
+  const [dropNote, setDropNote] = useState('');
+  const dropNoteTimer = useRef<number | undefined>(undefined);
+  const handleLibraryDrop = useCallback(async (drag: LibraryDrag, ctx: LibraryDropCtx) => {
+    const a = libraryActions;
+    let msg: string | void;
+    try {
+      if (drag.kind === 'overlay') msg = a.onAddOverlay(drag.id as never, ctx);
+      else if (drag.kind === 'template') msg = a.onAddTemplate(drag.id, ctx);
+      else if (drag.kind === 'hf') { const item = hyperframesItem(drag.id); msg = item ? a.onAddHf(item, ctx) : 'That animation is not available.'; }
+      else if (drag.kind === 'mg') { const t = (await loadMgTemplates()).find((x) => x.id === drag.id); msg = t ? a.onAddMg(t, ctx) : 'That animation is not available.'; }
+      else if (drag.kind === 'sound') { const s = availableSounds().find((x) => x.id === drag.id); msg = s ? a.onAddSound(s, ctx) : 'That sound is not available.'; }
+      else if (!ctx.clipId) msg = 'Drop it on a clip' + (drag.kind === 'transition' ? ' (it goes on the cut after that clip).' : '.');
+      else if (drag.kind === 'fx') msg = await a.onApplyFx(drag.id, ctx);
+      else if (drag.kind === 'lut') msg = await a.onApplyLut(drag.id, ctx);
+      else msg = await a.onApplyTransition(drag.id, ctx);
+    } catch (e) { msg = e instanceof Error ? e.message : 'That did not work.'; }
+    if (msg) { setDropNote(msg); window.clearTimeout(dropNoteTimer.current); dropNoteTimer.current = window.setTimeout(() => setDropNote(''), 4000); }
+  }, [libraryActions]);
 
   const handleAddKeyframe = useCallback(
     (clipId: string, property: 'opacity' | 'volume', time: number, value: number) => {
@@ -1021,6 +1121,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         projectId={projectId}
         onAddAsset={(asset) => dispatch({ type: 'ADD_ASSET', asset })}
         onAddTimeline={(timeline) => dispatch({ type: 'ADD_TIMELINE', timeline })}
+        libraryNode={<LibraryPanel {...libraryActions} />}
       />
       <ResizeHandle
         direction="horizontal"
@@ -1093,6 +1194,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       {/* Timeline area */}
       <div className="edit-tab__timeline-area">
         <ToolSidebar activeTool={activeTool} onToolChange={setActiveTool} onOpenSounds={() => setSoundLibrary(true)} recording={recorder.recording} onToggleRecording={() => { if (!recorder.recording) recordStartRef.current = Math.max(0, currentTime); recorder.toggle(); }} />
+        {dropNote && <div role="status" data-testid="library-drop-note" style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: 'rgba(8,12,18,.92)', border: '1px solid var(--accent, #22d3ee)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 12 }}>{dropNote}</div>}
         {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
         {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
         {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}
@@ -1114,6 +1216,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
 
           {/* Timeline editor -- scrollable track area with integrated ruler */}
           <TimelineEditor
+            onLibraryDrop={handleLibraryDrop}
             currentTime={currentTime}
             isPlaying={isPlaying}
             sequenceDuration={sequenceDuration}
