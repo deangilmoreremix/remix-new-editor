@@ -91,7 +91,8 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const [topic, setTopic] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState('');
-  const [state, setState] = useState<{ loading: boolean; items: StockItem[]; error: string | null }>({ loading: false, items: [], error: null });
+  // `for` records which tab (source:kind) the items were fetched for, so results never show or import under a different media type.
+  const [fetched, setFetched] = useState<{ loading: boolean; items: StockItem[]; error: string | null; for: string }>({ loading: false, items: [], error: null, for: '' });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
@@ -102,12 +103,15 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   useEffect(() => {
     if (source === 'ai') return;
     const mine = ++seq.current;
-    if (!query.trim()) { setState({ loading: false, items: [], error: null }); return; }
-    setState((s) => ({ ...s, loading: true, error: null }));
+    const tag = `${source}:${kind}`;
+    if (!query.trim()) { setFetched({ loading: false, items: [], error: null, for: tag }); return; }
+    setFetched({ loading: true, items: [], error: null, for: tag });
     search(kind, source, query)
-      .then((r) => { if (mine === seq.current) setState({ loading: false, items: r.items ?? [], error: r.ok ? null : (r.error || 'Search failed') }); })
-      .catch((e: unknown) => { if (mine === seq.current) setState({ loading: false, items: [], error: e instanceof Error ? e.message : 'Search failed' }); });
+      .then((r) => { if (mine === seq.current) setFetched({ loading: false, items: r.items ?? [], error: r.ok ? null : (r.error || 'Search failed'), for: tag }); })
+      .catch((e: unknown) => { if (mine === seq.current) setFetched({ loading: false, items: [], error: e instanceof Error ? e.message : 'Search failed', for: tag }); });
   }, [search, kind, source, query]);
+  // Until the new tab's request starts (first render after a switch) show nothing rather than the previous tab's items.
+  const state = fetched.for === `${source}:${kind}` ? fetched : { loading: true, items: [] as StockItem[], error: null as string | null, for: '' };
 
   const aiAll = useMemo(() => assets.filter(isAiAsset), [assets]);
   const aiAssets = useMemo(

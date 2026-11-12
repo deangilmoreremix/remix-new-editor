@@ -120,6 +120,20 @@ describe('main tabs', () => {
   });
 });
 
+describe('switching media type', () => {
+  it('never shows (or imports) the previous tab\'s results under the new media type', async () => {
+    px.searchPexelsVideos.mockResolvedValue({ videos: [pexelsVideo] });
+    px.searchPexelsPhotos.mockReturnValue(new Promise(() => {})); // the photo request stays pending
+    const p = setup();
+    fireEvent.click(screen.getByTestId('tab-pexels-videos'));
+    expect(await screen.findByTestId('stock-pexels-9')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('tab-pexels-images'));
+    await waitFor(() => expect(px.searchPexelsPhotos).toHaveBeenCalled());
+    expect(screen.queryByTestId('stock-pexels-9')).toBeNull(); // the old video card is gone while photos load
+    expect(p.onAdd).not.toHaveBeenCalled();
+  });
+});
+
 describe('stock sources', () => {
   it('a category on Pixabay runs that category search and adds the picked item', async () => {
     px.searchPixabayVideos.mockResolvedValue({ hits: [pixabayVideo] });

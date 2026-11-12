@@ -924,16 +924,24 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
 
   // [remix] Pexels / Pixabay stock media: asset into the pool, clip on a video track at the playhead
   const [stockMedia, setStockMedia] = useState(false);
-  /** Put an asset (video or image) on the first unlocked video track at the playhead, creating the track if needed. */
-  const placeAtPlayhead = useCallback((asset: Asset) => {
-    let tl = timeline;
+  // AI generation and downloads finish long after the click. They must place the clip on the timeline as it is NOW, not as it was
+  // when the request started (SET_TIMELINE replaces the whole timeline, so a stale snapshot would erase edits made in between).
+  const latestRef = useRef({ timeline, currentTime });
+  latestRef.current = { timeline, currentTime };
+
+  /** Put an asset (video or image) on the first unlocked video track at `at` (default: the playhead now), creating the track if needed. */
+  const placeAtPlayhead = useCallback((asset: Asset, at?: number) => {
+    const { timeline: latest, currentTime: now } = latestRef.current;
+    let tl = latest;
     let track = tl.tracks.find((t) => t.kind === 'video' && !t.locked);
     if (!track) {
       track = { id: generateId(), name: `Video ${tl.tracks.filter((t) => t.kind === 'video').length + 1}`, kind: 'video', color: '#4a9fd6', muted: false, solo: false, locked: false, visible: true, volume: 1 };
       tl = { ...tl, tracks: [...tl.tracks, track] };
     }
-    dispatch({ type: 'SET_TIMELINE', timelineId: timeline.id, timeline: addClipToTrack(tl, track.id, asset, Math.max(0, currentTime)) });
-  }, [dispatch, timeline, currentTime]);
+    const next = addClipToTrack(tl, track.id, asset, Math.max(0, at ?? now));
+    latestRef.current = { timeline: next, currentTime: now }; // a second add before the next render builds on this one
+    dispatch({ type: 'SET_TIMELINE', timelineId: latest.id, timeline: next });
+  }, [dispatch]);
 
   /**
    * Remote videos (stock or AI): copy into the project's storage, mark them persisted and start the same derive jobs an import
@@ -961,6 +969,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
 
   const handleAddStock = useCallback(async (item: StockItem, kind: StockKind) => {
     const isVideo = kind === 'videos';
+    const at = latestRef.current.currentTime; // where the playhead was when the user clicked
     const assetId = generateId();
     let url = item.src;
     if (!isVideo && item.mustCopy) {
@@ -978,13 +987,14 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     };
     if (isVideo) asset = await ingestRemoteVideo(asset, item.src);
     dispatch({ type: 'ADD_ASSET', asset });
-    placeAtPlayhead(asset);
+    placeAtPlayhead(asset, at);
     startDeriveJobs(asset);
   }, [dispatch, projectId, placeAtPlayhead, ingestRemoteVideo, startDeriveJobs]);
 
   // [remix] AI media from a prompt (MuAPI via /api/timeline-ai, the same path Fill Gap / the Director use): FLUX for images, Seedance for video.
   const handleGenerateAi = useCallback(async (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void) => {
     const isVideo = kind === 'videos';
+    const at = latestRef.current.currentTime;
     const { url, model } = await runTimelineMuapi(
       'generate',
       isVideo
@@ -1008,7 +1018,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
       asset = { ...asset, thumbnailUrl: asset.url };
     }
     dispatch({ type: 'ADD_ASSET', asset });
-    placeAtPlayhead(asset);
+    placeAtPlayhead(asset, at);
     startDeriveJobs(asset);
   }, [dispatch, projectId, placeAtPlayhead, ingestRemoteVideo, startDeriveJobs]);
 
@@ -1191,7 +1201,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
         {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
         {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}
-        {stockMedia && <StockMediaPopup onClose={() => setStockMedia(false)} onAdd={handleAddStock} onGenerate={handleGenerateAi} assets={state.assets} onAddAsset={placeAtPlayhead} />}
+        {stockMedia && <StockMediaPopup onClose={() => setStockMedia(false)} onAdd={handleAddStock} onGenerate={handleGenerateAi} assets={state.assets} onAddAsset={(a) => placeAtPlayhead(a)} />}
 
         <div className="edit-tab__timeline-content">
           <TimelineTabs
