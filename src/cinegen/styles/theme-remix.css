@@ -177,3 +177,21 @@
 .timeline-bottom-bar__add-menu button { text-align: left; background: transparent; border: 0; color: var(--text-primary, #e8edf3); font-size: 12px; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
 .timeline-bottom-bar__add-menu button:hover { background: rgba(34,211,238,.12); }
 .timeline-bottom-bar__add-caret { width: 28px; min-width: 0; flex: 0 0 auto; padding: 0; justify-content: center; }
+
+/* [remix] Clips show only their content: the picture / frames at full strength, no tint, no coloured border or bar.
+   CineGen dims frames (opacity .4 to .75), separates them with 8px black bars, adds a film-hole strip, colours the border per track and
+   lays a track-coloured bar over the bottom. Track colour is still shown on the track label. */
+.clip-card { background: #000; }
+.clip-card:not(.clip-card--selected) { border-color: rgba(255, 255, 255, 0.16) !important; }
+.clip-card--video::before { display: none !important; }
+.clip-card__thumb, .clip-card__filmstrip, .filmstrip-bg { opacity: 1 !important; filter: none !important; }
+.clip-card__thumb--placeholder, .clip-card__filmstrip--placeholder { filter: none !important; }
+.clip-card__filmstrip { --filmstrip-gap: 0px; }
+.clip-card__filmstrip-frame:not(:last-child) { border-right: 0 !important; }
+.clip-card--selected { border-color: #22d3ee !important; box-shadow: 0 0 0 1px #22d3ee !important; }
+/* audio: neutral background, neutral waveform (the canvas is recoloured with a filter) */
+.clip-card--audio { background: #101216 !important; }
+.clip-card--audio .clip-card__waveform, .clip-card--audio canvas { filter: grayscale(1) brightness(1.5); opacity: 0.85; }
+/* label: no bar over the picture, just text with a soft shadow */
+.clip-card__overlay { background: linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)) !important; padding: 10px 8px 3px; }
+.clip-card__name, .clip-card__duration { color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.9); }
