@@ -83,6 +83,12 @@ describe('AI first', () => {
     const ai = asset({ id: 'v1', type: 'video', metadata: { generatedVia: 'studio-generation' } });
     const assets = [ai, asset({ id: 'up', type: 'video' }), asset({ id: 'att', type: 'video', metadata: { generatedVia: 'studio-attachment' } }), asset({ id: 'img', type: 'image', metadata: { generatedVia: 'director' } })];
     expect(assets.filter(isAiAsset).map((a) => a.id)).toEqual(['v1', 'img']);
+    // unfinished or failed generations are never offered (empty url, generating, error placeholders)
+    const pending = asset({ id: 'p', url: '', metadata: { generatedVia: 'director', generating: true } });
+    const failed = asset({ id: 'f', url: '', metadata: { generatedVia: 'director', error: true } });
+    const emptyUrl = asset({ id: 'e', url: '', metadata: { generatedVia: 'studio-generation' } });
+    const pendingExtend = asset({ id: 'x', metadata: { generatedVia: 'extend', pendingExtend: true } });
+    expect([pending, failed, emptyUrl, pendingExtend].filter(isAiAsset)).toEqual([]);
     const p = setup({ assets });
     expect(screen.queryByTestId('ai-up')).toBeNull();
     expect(screen.queryByTestId('ai-att')).toBeNull();

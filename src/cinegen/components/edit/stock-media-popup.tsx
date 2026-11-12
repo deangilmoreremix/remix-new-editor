@@ -40,8 +40,12 @@ const TABS: Array<[MediaSource, StockKind]> = SOURCES.filter(([id]) => id !== 'a
 // Assets that came from a generator (not from an upload or an attached reference).
 const NOT_AI = new Set(['studio-attachment', 'studio-frame']);
 export const isAiAsset = (a: Asset): boolean => {
-  const via = (a.metadata as Record<string, unknown> | undefined)?.generatedVia;
-  return typeof via === 'string' && !NOT_AI.has(via) && (a.type === 'image' || a.type === 'video');
+  const m = (a.metadata ?? {}) as Record<string, unknown>;
+  const via = m.generatedVia;
+  if (typeof via !== 'string' || NOT_AI.has(via) || (a.type !== 'image' && a.type !== 'video')) return false;
+  // Same exclusions as the media pool, plus failed generations: only finished media with a usable source can be placed.
+  if (m.generating || m.error || m.pendingMusic || m.pendingFillGap || m.pendingExtend) return false;
+  return Boolean(a.url?.trim() || a.fileRef?.trim());
 };
 
 interface Props {
