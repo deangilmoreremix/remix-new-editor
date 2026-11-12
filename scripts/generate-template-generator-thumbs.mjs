@@ -10,6 +10,9 @@
  *
  *   node scripts/generate-template-generator-thumbs.mjs [--force] [--blank] [--only=hf|mg|tpl] [--limit=N] [--workers=4]
  *
+ * Motion-graphics templates the sandbox renders as nothing (its code gate is stricter than the static check) are listed in
+ * src/cinegen/lib/occ/mg-render-blocklist.json and the Template Generator does not offer them.
+ *
  * A render that comes out (almost) one flat colour — an animation that hasn't started drawing at the sampled moment — is
  * retried at other moments with a longer settle time, and the most detailed result is kept. --blank redoes only the existing
  * thumbnails that are still blank.
@@ -19,7 +22,7 @@
  */
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
-import { mkdir, access, writeFile } from 'node:fs/promises';
+import { mkdir, access, writeFile, readFile, unlink } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
 const sharp = createRequire(import.meta.url)('sharp');
@@ -29,6 +32,8 @@ const root = process.cwd();
 const PORT = 5198;
 const exists = (p) => access(p).then(() => true, () => false);
 const detail = async (input) => { const st = await sharp(input).stats(); return st.channels.slice(0, 3).reduce((a, c) => a + c.stdev, 0) / 3; };
+const BLOCKLIST = 'src/cinegen/lib/occ/mg-render-blocklist.json';
+const EMPTY = 1;                                  // below this nothing was drawn at all
 const FLAT = 6;                                   // below this the picture is effectively empty
 const TRIES = [{}, { frac: 0.8, wait: 2200 }, { frac: 0.3, wait: 2200 }, { frac: 0.95, wait: 2600 }, { frac: 0.15, wait: 2600 }];
 
@@ -55,6 +60,8 @@ try {
   const limited = args.limit ? todo.slice(0, Number(args.limit)) : todo;
   console.log(`${entries.length} items, ${limited.length} to render`);
 
+  const blocked = new Map();
+  try { for (const [id, why] of Object.entries(JSON.parse(await readFile(join(root, BLOCKLIST), 'utf8')).ids || {})) blocked.set(id, why); } catch { /* none yet */ }
   const queue = [...limited]; let done = 0; const failed = []; const flat = [];
   // Vite re-optimises dependencies it meets for the first time and reloads the page; wait for it to settle and retry.
   const ready = async (page) => {
@@ -75,6 +82,12 @@ try {
             if (d > bestDetail) { best = shot; bestDetail = d; }
             if (d >= FLAT) break;
           }
+          if (e.kind === 'mg' && bestDetail < EMPTY) {            // draws nothing in the sandbox: don't keep a blank picture, don't offer it
+            const why = (await page.evaluate(() => window.__thumbs.errors()))[0] || 'renders as an empty frame';
+            blocked.set(e.id, why); await unlink(e.file).catch(() => {});
+            lastErr = null; break;
+          }
+          if (e.kind === 'mg') blocked.delete(e.id);
           await mkdir(dirname(e.file), { recursive: true });
           await writeFile(e.file, best);
           if (bestDetail < FLAT) flat.push(`${e.kind}:${e.id}${(await page.evaluate(() => window.__thumbs.errors())).length ? ` — ${(await page.evaluate(() => window.__thumbs.errors()))[0]}` : ''}`);
@@ -92,6 +105,11 @@ try {
   const n = Math.max(1, Number(args.workers) || 4);
   const pages = [first, ...(await Promise.all(Array.from({ length: n - 1 }, open)))];
   await Promise.all(pages.map(worker));
+  if (args.only === 'mg' || !args.only) {
+    const ids = Object.fromEntries([...blocked.entries()].sort(([a], [b]) => a.localeCompare(b)));
+    await writeFile(join(root, BLOCKLIST), `${JSON.stringify({ note: 'Motion-graphics templates the sandboxed renderer draws as nothing. Written by scripts/generate-template-generator-thumbs.mjs.', ids }, null, 2)}\n`);
+    console.log(`\n${blocked.size} motion-graphics templates are blocked (not offered): ${BLOCKLIST}`);
+  }
   if (flat.length) { console.log(`\n${flat.length} still look empty after retries (they may really be empty at every sampled moment):`); flat.slice(0, 60).forEach((f) => console.log(' -', f)); }
   if (failed.length) { console.log(`\n${failed.length} failed:`); failed.slice(0, 20).forEach((f) => console.log(' -', f)); process.exitCode = 1; }
 } finally {
