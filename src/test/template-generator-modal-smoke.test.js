@@ -1,17 +1,22 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { TemplateGeneratorModal } from '../components/modals/TemplateGeneratorModal.jsx';
-import { STEPS } from '../components/modals/template-generator/rules.js';
+import { STEPS, STEP_LABELS } from '../components/modals/template-generator/rules.js';
 
 const item = (n, kind = 'video', source = 'pexels') => ({
   id: `${source}-${n}`, kind, source, title: `T${n}`, url: `https://x.test/${n}.${kind === 'video' ? 'mp4' : 'jpg'}`,
   preview: `https://x.test/${n}.jpg`, poster: `https://x.test/${n}.jpg`, duration: kind === 'video' ? 6 : 0, user: 'Ann', pageURL: 'https://p.test',
 });
 
-describe('TemplateGeneratorModal (wired to the ported wizard + Pexels/Pixabay)', () => {
+describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, Overlay, Preview)', () => {
   afterEach(() => { document.body.innerHTML = ''; });
 
-  it('walks Niche → … → Add to Timeline with stock results from both providers', async () => {
+  it('has exactly four steps', () => {
+    expect(STEP_LABELS).toEqual(['Video', 'Script', 'Overlay', 'Preview']);
+    expect(Object.keys(STEPS)).toHaveLength(4);
+  });
+
+  it('walks Video → Script → Overlay → Preview → Add to Timeline with Pexels + Pixabay stock', async () => {
     const calls = [];
     const stockSearch = vi.fn(async (q) => {
       calls.push(q);
@@ -22,21 +27,21 @@ describe('TemplateGeneratorModal (wired to the ported wizard + Pexels/Pixabay)',
     m.open();
     m.s.started = true;
     m.paint();
-    expect(document.querySelector('#tg-next')).toBeTruthy();
-
-    m.pickNiche(m.niches[0]);
-    await m.goNext();                       // → Script
-    expect(m.s.step).toBe(STEPS.SCRIPT);
-    m.s.script.text = 'Welcome. Book today.';
-    m.s.step = STEPS.VIDEO;                 // jump to Media
     await m.runSearch(true);
     expect(calls.at(-1).source).toBe('pixabay');
     m.setProvider('pexels');
-    await vi.waitFor(() => expect(calls.some((c) => c.source === 'pexels')).toBe(true));
     await vi.waitFor(() => expect(m.ui.results.length).toBe(2));
 
+    await m.goNext();
+    expect(m.s.step).toBe(STEPS.VIDEO);     // blocked: nothing selected yet
     for (const it of m.ui.results) m.pickVideo(it.id);
     expect(m.s.selectedVideos.length).toBe(2);
+
+    await m.goNext(); expect(m.s.step).toBe(STEPS.SCRIPT);
+    m.s.script.text = 'Welcome. Book today.';
+    await m.goNext(); expect(m.s.step).toBe(STEPS.OVERLAY);
+    await m.goNext(); expect(m.s.step).toBe(STEPS.PREVIEW);
+    expect(document.querySelector('#tg-next').textContent).toBe('Add to Timeline');
 
     await m.addToTimeline();
     expect(onConfirm).toHaveBeenCalledTimes(1);

@@ -20,43 +20,31 @@ describe('wizard rules (ported from the original ModalContent)', () => {
     expect(r.message).toBe(MESSAGES.maxVideos);
     expect(toggleVideo(s, vid(0)).selected).toBe(false);
   });
-  it('guards the 9 steps', () => {
+  it('guards steps like the original', () => {
     const s = createWizardState();
-    expect(guardStep(s, STEPS.SCRIPT)).toBe(MESSAGES.needNiche);
-    s.niche = 'Real Estate';
-    expect(guardStep(s, STEPS.SCRIPT)).toBeNull();
-    expect(guardStep(s, STEPS.VIDEO)).toBeNull();
-    expect(guardStep(s, STEPS.VOICE)).toBe(MESSAGES.needVideo);
+    expect(guardStep(s, STEPS.SCRIPT)).toBe(MESSAGES.needVideo);
     toggleVideo(s, vid(1));
-    expect(guardStep(s, STEPS.VOICE)).toBeNull();
+    expect(guardStep(s, STEPS.SCRIPT)).toBeNull();
     expect(guardStep(s, STEPS.OVERLAY)).toBe(MESSAGES.needTwoVideos);
     toggleVideo(s, vid(2));
-    expect(guardStep(s, STEPS.OVERLAY)).toBeNull();
-    expect(guardStep(s, STEPS.PREVIEW)).toBe(MESSAGES.needScript);
+    expect(guardStep(s, STEPS.OVERLAY)).toBe(MESSAGES.needScript);
     s.script.text = 'Hello there.';
+    expect(guardStep(s, STEPS.OVERLAY)).toBeNull();
     expect(guardStep(s, STEPS.PREVIEW)).toBeNull();
-    expect(guardStep(s, STEPS.ADD)).toBeNull();
   });
-  it('skips Overlays with one clip, disables Next until each step is ready', () => {
+  it('skips Overlay with one video, disables Next until ready', () => {
     const s = createWizardState();
-    expect(nextDisabled(s, STEPS.NICHE)).toBe(true);
-    s.niche = 'Real Estate';
-    expect(nextDisabled(s, STEPS.NICHE)).toBe(false);
-    expect(nextDisabled(s, STEPS.SCRIPT)).toBe(false);
-    expect(nextDisabled(s, STEPS.TEMPLATE)).toBe(true);
-    s.selectedScript = { id: 'a' };
-    expect(nextDisabled(s, STEPS.TEMPLATE)).toBe(false);
     expect(nextDisabled(s, STEPS.VIDEO)).toBe(true);
     toggleVideo(s, vid(1));
     expect(nextDisabled(s, STEPS.VIDEO)).toBe(false);
-    expect(nextStepIndex(s, STEPS.VIDEO)).toBe(STEPS.VOICE);
+    expect(nextDisabled(s, STEPS.SCRIPT)).toBe(true);
+    s.selectedScript = { id: 'a' };
+    expect(nextDisabled(s, STEPS.SCRIPT)).toBe(false);
+    expect(nextStepIndex(s, STEPS.SCRIPT)).toBe(STEPS.PREVIEW);
     toggleVideo(s, vid(2));
-    expect(nextStepIndex(s, STEPS.VIDEO)).toBe(STEPS.OVERLAY);
-    expect(nextDisabled(s, STEPS.VOICE)).toBe(false);
-    expect(nextDisabled(s, STEPS.PERSONALIZE)).toBe(false);
-    expect(nextLabel(STEPS.ADD)).toBe('Add to Timeline');
-    expect(nextLabel(STEPS.PREVIEW)).toBe('Next');
-    expect(nextDisabled(s, STEPS.ADD, true)).toBe(true);
+    expect(nextStepIndex(s, STEPS.SCRIPT)).toBe(STEPS.OVERLAY);
+    expect(nextLabel(STEPS.PREVIEW)).toBe('Add to Timeline');
+    expect(nextDisabled(s, STEPS.PREVIEW, true)).toBe(true);
   });
   it('splits a script into per-scene lines', () => {
     expect(scriptLines('One. Two. Three. Four.', 2)).toEqual(['One. Two.', 'Three. Four.']);
