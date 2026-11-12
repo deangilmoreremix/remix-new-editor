@@ -33,39 +33,39 @@ async function list() {
   return out;
 }
 
-async function renderLayer(layer, w, h, frame) {
+async function renderLayer(layer, w, h, frame, wait = 1400) {
   mount(w, h);
   const handle = createCodePreview(host);
   current = handle;
   await handle.update({ version: 1, fps: FPS, width: w, height: h, durationInFrames: layer.durationInFrames, background: 'transparent', layers: [layer], audio: [], transitions: [], fonts: [] });
   handle.frame(frame);
-  await sleep(1400);
+  await sleep(wait);
   handle.frame(frame);
   await sleep(300);
 }
 
-async function render({ kind, id }) {
+async function render({ kind, id, frac, wait }) {
   if (kind === 'hf') {
     const item = hyperframesItems().find((i) => i.id === id);
     const layer = hyperframesOverlayLayer(createHyperframesOverlay(item, 0), FPS);
-    return renderLayer(layer, item.dimensions.width, item.dimensions.height, Math.round(layer.durationInFrames * 0.5));
+    return renderLayer(layer, item.dimensions.width, item.dimensions.height, Math.round(layer.durationInFrames * (frac ?? 0.5)), wait);
   }
   if (kind === 'mg') {
     const t = (await loadMgTemplates()).find((x) => x.id === id);
     const layer = mgOverlayLayer(createMgOverlay(t, 0), FPS);
-    return renderLayer(layer, t.width, t.height, Math.round(layer.durationInFrames * 0.55));
+    return renderLayer(layer, t.width, t.height, Math.round(layer.durationInFrames * (frac ?? 0.55)), wait);
   }
   const tpl = [...END_SCREENS, ...LEAD_FORMS].find((x) => x.id === id);
   const model = timelineToComposition(templatePreviewProject(tpl, presetToClips), { quality: '720p' });
   mount(model.width || 1280, model.height || 720);
-  const frame = Math.round((model.durationInFrames || 90) * 0.6);
+  const frame = Math.round((model.durationInFrames || 90) * (frac ?? 0.6));
   let ready;
   const readyP = new Promise((r) => { ready = r; });
   const engine = createPreviewEngine(host, { model, onReady: () => ready(), onError: () => ready() });
   current = { destroy: () => { try { engine.destroy?.(); } catch { /* ignore */ } } };
   await Promise.race([readyP, sleep(6000)]);
   engine.seekToFrame?.(frame);
-  await sleep(1200);
+  await sleep(wait ?? 1200);
 }
 
 window.__thumbs = { list, render };
