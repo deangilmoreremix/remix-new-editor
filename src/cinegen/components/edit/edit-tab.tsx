@@ -1077,7 +1077,8 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
           }}
           onOverlayGeometry={(id, geometry) => {
             const o = state.overlays.find((x) => x.id === id);
-            if (o) dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates: { addon: { ...((o.addon as Record<string, unknown>) ?? {}), geometry } } });
+            if (o?.type === 'hyperframes') dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates: { geom: { ...((o.geom as Record<string, unknown>) ?? {}), ...geometry } } }); // animations: x / y / scale / fit (see lib/hyperframes/placement.js)
+            else if (o) dispatch({ type: 'UPDATE_OVERLAY', overlayId: id, updates: { addon: { ...((o.addon as Record<string, unknown>) ?? {}), geometry } } });
           }}
         />
       </div>
