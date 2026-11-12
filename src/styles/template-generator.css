@@ -433,3 +433,9 @@ h2.generator-offer__text { font-size: 30px; }
 .tg-tpl__thumb .tg-poster { z-index: 0; }
 .tg-tpl__thumb::after { z-index: 1; }
 .tg-tpl__count, .tg-tpl__thumb .tg-badge { z-index: 2; }
+
+/* the still's blurred twin fills the tile behind it, so portrait pictures don't float in a landscape card */
+.tg-anim::before { content: ''; position: absolute; inset: -14px; z-index: 0; background: var(--tg-still, none) center / cover no-repeat; filter: blur(16px) brightness(0.55) saturate(1.2); pointer-events: none; }
+.tg-anim--portrait .tg-anim__img { object-fit: cover; object-position: center 46%; }
+.tg-anim--portrait::before { display: none; }
+.tg-popup__live.is-live .tg-anim__glyph { display: none; }

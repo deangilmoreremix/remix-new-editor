@@ -540,8 +540,8 @@ export class TemplateGeneratorModal extends BaseModal {
     const on = this.s.selectedAnimations.some((a) => a.id === it.id);
     const thumb = it.poster || it.thumb;
     return `
-      <div class="video-tile tg-anim${on ? ' active' : ''}" role="button" tabindex="0" aria-pressed="${on}" data-act="pick-video" data-id="${esc(it.id)}"
-           style="--tg-hue:${hueOf(it.category || it.id)}" title="${esc(it.description || it.title)}">
+      <div class="video-tile tg-anim${on ? ' active' : ''}${it.ratio && it.ratio < 0.9 ? ' tg-anim--portrait' : ''}" role="button" tabindex="0" aria-pressed="${on}" data-act="pick-video" data-id="${esc(it.id)}"
+           style="--tg-hue:${hueOf(it.category || it.id)};--tg-still:${thumb ? cssUrl(thumb) : 'none'}" title="${esc(it.description || it.title)}">
         <span class="tg-anim__glyph" aria-hidden="true">${esc(it.glyph || '✺')}</span>
         ${thumb ? `<img class="tg-thumb tg-anim__img" src="${esc(thumb)}" alt="" loading="lazy" decoding="async">` : ''}
         ${on ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
@@ -744,7 +744,7 @@ export class TemplateGeneratorModal extends BaseModal {
                     <div class="tg-card-title">${esc(it.title)}</div>
                   </div>`).join('')}
                 ${s.selectedAnimations.map((a) => `
-                  <div class="video-tile video__item video-element tg-anim" style="--tg-hue:${hueOf(a.category || a.id)}" title="${esc(a.title)}">
+                  <div class="video-tile video__item video-element tg-anim" style="--tg-hue:${hueOf(a.category || a.id)};--tg-still:${a.thumb ? cssUrl(a.thumb) : 'none'}" title="${esc(a.title)}">
                     <button type="button" class="preview__delete" aria-label="Remove ${esc(a.title)}" data-act="remove-animation" data-id="${esc(a.id)}">−</button>
                     <span class="tg-anim__glyph" aria-hidden="true">✺</span>${a.thumb ? `<img class="tg-thumb tg-anim__img" src="${esc(a.thumb)}" alt="" loading="lazy">` : ''}
                     <span class="tg-badge">${esc(a.badge || 'ANIMATION')}</span>
@@ -923,7 +923,7 @@ export class TemplateGeneratorModal extends BaseModal {
     const src = it && this.extra.get(it.source);
     const host = this.overlay?.querySelector('#tg-live');
     if (!src?.mountPreview || !host) return;
-    try { this._liveDestroy = src.mountPreview(host, it); } catch { /* the glyph stays as the preview */ }
+    try { this._liveDestroy = src.mountPreview(host, it); host.classList.add('is-live'); } catch { /* the glyph stays as the preview */ }
   }
 
   _destroyLive() { try { this._liveDestroy?.(); } catch { /* ignore */ } this._liveDestroy = null; }
