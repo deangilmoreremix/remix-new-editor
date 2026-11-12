@@ -938,6 +938,7 @@ export function TimelineEditor({
   const handleOpenPersonalization = useCallback(async () => {
     try {
       const m = await import('../../../features/personalization/mount.jsx');
+      const since = Date.now();
       m.openPersonalization({
         studioId: 'timeline',
         studioName: 'Timeline Studio',
@@ -945,6 +946,8 @@ export function TimelineEditor({
         onComplete: () => {
           // Contacts/profiles may have changed; let token-aware UI re-read the contact store.
           window.dispatchEvent(new CustomEvent('remix:contact-changed'));
+          // lets the Leads tab save what this session found into the business asset library
+          window.dispatchEvent(new CustomEvent('remix:personalization-complete', { detail: { since } }));
         },
       });
     } catch (e) {
