@@ -27,25 +27,30 @@ export function embedCode(id, origin) {
 }
 
 // ------------------------------------------------------------ slugs + links
+// The live project uses a business namespace: /v/<business>/<slug>. Both parts follow the database's slug_is_valid().
 
-export const SLUG_RE = /^[a-z0-9][a-z0-9-]{2,62}$/;
-export const RESERVED_SLUGS = Object.freeze(['watch', 'v', 'api', 'admin', 'embed', 'login', 'signup', 'app', 'static', 'assets', 'www', 'null', 'undefined']);
+export const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,46}[a-z0-9]$/;
+export const RESERVED_SLUGS = Object.freeze([
+  'admin', 'api', 'app', 'assets', 'auth', 'billing', 'account', 'profile', 'dashboard', 'embed', 'help', 'login', 'logout', 'new', 'null', 'undefined',
+  'settings', 'signin', 'signup', 'static', 'support', 'v', 'watch', 'www', 'openthorn', 'netlify', 'supabase', 'smartvideo', 'smartvid', 'official',
+  'root', 'system', 'video', 'videos', 'edit', 'preview', 'public', 'private',
+]);
 
 /** "Smith Roofing & Sons!" -> "smith-roofing-sons" ('' when nothing usable is left). */
 export function slugify(text) {
   return String(text || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 63).replace(/-+$/g, '');
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48).replace(/-+$/g, '');
 }
 
-export const isValidSlug = (slug) => SLUG_RE.test(String(slug || '')) && !RESERVED_SLUGS.includes(String(slug));
+export const isValidSlug = (slug) => SLUG_RE.test(String(slug || '')) && !String(slug).includes('--') && !RESERVED_SLUGS.includes(String(slug));
 
 /**
- * Public link for a published video. A readable slug gives /v/<slug>, otherwise the
- * permanent /watch/<id>. `recipient` is an opaque token (never a name or email).
+ * Public link for a published video: /v/<business>/<slug> when both exist, otherwise the permanent /watch/<id>.
+ * `recipient` is an opaque token (never a name or email).
  */
-export function publicUrl({ id, slug = null, campaign = null, recipient = null }, origin = globalThis.location?.origin || '') {
-  const base = slug && isValidSlug(slug)
-    ? `${origin}/v/${encodeURIComponent(slug)}${campaign && SLUG_RE.test(campaign) ? `/${encodeURIComponent(campaign)}` : ''}`
+export function publicUrl({ id, business = null, slug = null, recipient = null }, origin = globalThis.location?.origin || '') {
+  const base = business && slug && isValidSlug(business) && isValidSlug(slug)
+    ? `${origin}/v/${encodeURIComponent(business)}/${encodeURIComponent(slug)}`
     : watchUrl(id, origin);
   return recipient && /^[A-Za-z0-9_-]{16,128}$/.test(recipient) ? `${base}?recipient=${recipient}` : base;
 }
@@ -160,13 +165,20 @@ export async function setPublished(client, id, published) {
 }
 
 export async function getMyVideo(client, id) {
-  // slug / live_revision exist only after 20261112130000_publish_links.sql; fall back so the Publish card keeps working without it.
-  let res = await client.from('published_videos').select('id, title, published, view_count, updated_at, slug, live_revision').eq('id', id).maybeSingle();
-  if (res.error && /column|slug|live_revision/i.test(res.error.message || '')) {
+  // slug / revision / privacy exist on projects with the publishing-hardening migration; fall back so the Publish card works without it.
+  let res = await client.from('published_videos').select('id, title, published, view_count, updated_at, slug, revision, privacy').eq('id', id).maybeSingle();
+  if (res.error && /column|slug|revision|privacy/i.test(res.error.message || '')) {
     res = await client.from('published_videos').select('id, title, published, view_count, updated_at').eq('id', id).maybeSingle();
   }
   fail(res.error, 'Could not load the video');
   return res.data;
+}
+
+/** Owner: the claimed business link name ({ business_slug, display_name }) or null. Missing table = null. */
+export async function getMyBusiness(client) {
+  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name').maybeSingle();
+  if (error) return null;
+  return data || null;
 }
 
 // ------------------------------------------------------------------ owner: slugs, drafts, recipients
@@ -191,43 +203,72 @@ export function sanitizeRecipientVariables(vars = {}) {
   return out;
 }
 
+const slugError = (error, fallback) => {
+  const m = `${error?.code || ''} ${error?.message || ''}`;
+  if (/business_required/.test(m)) return 'Choose your business link name first.';
+  if (/slug_taken|23505|duplicate/i.test(m)) return 'That link name is already taken.';
+  if (/invalid_slug|22023/.test(m)) return 'Use 3-48 lowercase letters, numbers or single hyphens (not a reserved word).';
+  if (/not_authenticated|not_found|42501|JWT/i.test(m)) return 'Sign in as the owner of this video to change its link.';
+  return error?.message || fallback;
+};
+
+/** Claim (or change) your business link name: the first part of /v/<business>/<slug>. Old links keep redirecting. */
+export async function claimBusinessSlug(client, slug, displayName = null) {
+  const clean = String(slug || '').trim().toLowerCase();
+  if (!isValidSlug(clean)) throw new Error(slugError({ message: 'invalid_slug' }));
+  const { data, error } = await client.rpc('claim_business_slug', { p_slug: clean, p_display: displayName });
+  if (error) throw new Error(slugError(error, 'Could not save the business link name'));
+  return data || clean;
+}
+
+/** Set this video's link name (second part of /v/<business>/<slug>). The previous one keeps redirecting. */
 export async function setSlug(client, id, slug) {
   const clean = String(slug || '').trim().toLowerCase();
-  if (!isValidSlug(clean)) throw new Error('Use 3-63 lowercase letters, numbers or hyphens (not a reserved word).');
-  const { error } = await client.from('published_videos').update({ slug: clean }).eq('id', id);
-  if (error) throw new Error(error.code === '23505' || /slug_taken|duplicate/i.test(error.message || '') ? 'That link name is already taken.' : (error.message || 'Could not change the link name'));
-  return clean;
+  if (!isValidSlug(clean)) throw new Error(slugError({ message: 'invalid_slug' }));
+  const { data, error } = await client.rpc('set_video_slug', { p_video_id: id, p_slug: clean });
+  if (error) throw new Error(slugError(error, 'Could not change the link name'));
+  return data || clean;
 }
 
-/** Save the project as a DRAFT revision; the live link is not touched until promoteRevision. */
-export async function publishDraft(client, { id, project }) {
-  const { data: last, error: e1 } = await client.from('published_video_revisions').select('revision').eq('video_id', id).order('revision', { ascending: false }).limit(1);
-  fail(e1, 'Could not save the draft');
-  const revision = ((last && last[0] && last[0].revision) || 0) + 1;
-  const { error } = await client.from('published_video_revisions').insert({ video_id: id, revision, kind: 'draft', project });
+// Drafts: owner-only copies of the project. The live link keeps serving the published version until a draft is promoted;
+// promoting updates the SAME video (same id, slug and recipient tokens) and the database records the new revision.
+
+/** Save the project as a draft. Returns the draft id. */
+export async function publishDraft(client, { id, project, title = null }) {
+  const { data, error } = await client.from('published_video_drafts').insert({ video_id: id, title: String(title || project?.title || 'Untitled video').slice(0, 200), project }).select('id').single();
   fail(error, 'Could not save the draft');
-  return revision;
+  return data.id;
 }
 
-/** Make a draft the live version of the SAME url. Recipient tokens keep working. */
-export async function promoteRevision(client, id, revision) {
-  const { error } = await client.rpc('promote_video_revision', { p_video_id: id, p_revision: revision });
-  fail(error, 'Could not publish the draft');
-  return revision;
-}
-
-/** Owner: revision history of one video (newest first), without the project bodies. */
-export async function listRevisions(client, videoId) {
-  const { data, error } = await client.from('published_video_revisions').select('revision, kind, created_at').eq('video_id', videoId).order('revision', { ascending: false });
+export async function listDrafts(client, videoId) {
+  const { data, error } = await client.from('published_video_drafts').select('id, title, created_at').eq('video_id', videoId).order('created_at', { ascending: false });
   fail(error, 'Could not load the drafts');
   return data || [];
 }
 
-/** Owner: the snapshot of one revision (for the draft preview). */
-export async function getRevisionProject(client, videoId, revision) {
-  const { data, error } = await client.from('published_video_revisions').select('project').eq('video_id', videoId).eq('revision', revision).maybeSingle();
+export async function getDraftProject(client, draftId) {
+  const { data, error } = await client.from('published_video_drafts').select('project').eq('id', draftId).maybeSingle();
   fail(error, 'Could not load the draft');
   return data?.project || null;
+}
+
+/** Make a draft the live version of the same URL. Returns the new live revision number. */
+export async function promoteDraft(client, draftId) {
+  const { data, error } = await client.rpc('promote_video_draft', { p_draft_id: draftId });
+  fail(error, 'Could not publish the draft');
+  return data;
+}
+
+export async function deleteDraft(client, draftId) {
+  const { error } = await client.from('published_video_drafts').delete().eq('id', draftId);
+  fail(error, 'Could not delete the draft');
+}
+
+/** Owner: revision history of one video (newest first), written by the database on every change. */
+export async function listRevisions(client, videoId) {
+  const { data, error } = await client.from('published_video_revisions').select('revision, title, created_at').eq('video_id', videoId).order('revision', { ascending: false });
+  fail(error, 'Could not load the history');
+  return data || [];
 }
 
 /**
@@ -272,9 +313,9 @@ export async function updateRecipientVariables(client, recipientId, variables) {
 }
 
 /** Owner export: label,url,status (the label is owner-facing only and never part of the URL). */
-export function recipientsCsv(recipients = [], { id, slug = null, origin } = {}) {
+export function recipientsCsv(recipients = [], { id, business = null, slug = null, origin } = {}) {
   const q = (v) => `"${String(v ?? '').replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"`;
-  const rows = recipients.map((r) => [r.label || '', publicUrl({ id, slug, recipient: r.token }, origin), r.status].map(q).join(','));
+  const rows = recipients.map((r) => [r.label || '', publicUrl({ id, business, slug, recipient: r.token }, origin), r.status].map(q).join(','));
   return ['"name","url","status"', ...rows].join('\n');
 }
 
@@ -286,32 +327,36 @@ function env() {
 }
 
 /**
- * Load a published video for the viewer by permanent id or readable slug
- * (including a slug it used to have). Returns null when missing/unpublished.
- * Legacy ids keep the original REST read first, so existing /watch/<id> links are
- * untouched; anything else goes through the single-row `get_published_video` RPC.
+ * Load a published video for the viewer. `ref` is a permanent id (legacy /watch/<id>) or { business, slug } (/v/<business>/<slug>).
+ * Uses the database's get_published_video(), which strips private keys (webhooks, notify emails) from the project. Returns:
+ *   null                         missing / unpublished
+ *   { redirect: { id, business, slug } }   the slug was renamed: the caller should go to the new link
+ *   { id, title, project, slug, business, revision, ... }
+ * Projects without that function (older deployments) fall back to the original table read, by id only.
  */
-export async function fetchPublishedVideo(id, { url, key, fetchImpl = fetch } = env()) {
-  const k = String(id || '');
-  const legacy = /^[A-Za-z0-9_-]{8,32}$/.test(k);
-  const bySlug = SLUG_RE.test(k.toLowerCase());
-  if (!legacy && !bySlug) return null;
+export async function fetchPublishedVideo(ref, { url, key, fetchImpl = fetch } = env()) {
+  const byId = typeof ref === 'string';
+  const id = byId ? ref : null;
+  const business = byId ? null : String(ref?.business || '').toLowerCase();
+  const slug = byId ? null : String(ref?.slug || '').toLowerCase();
+  if (byId ? !/^[A-Za-z0-9_-]{8,32}$/.test(id) : !(SLUG_RE.test(business) && SLUG_RE.test(slug))) return null;
   if (!url || !key) throw new Error('Video service is not configured');
   const headers = { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' };
-  if (legacy) {
-    const res = await fetchImpl(`${url}/rest/v1/published_videos?id=eq.${encodeURIComponent(k)}&published=eq.true&select=id,title,project,updated_at`, { headers });
-    if (!res.ok) throw new Error(`Could not load the video (HTTP ${res.status})`);
-    const rows = await res.json();
-    if (Array.isArray(rows) && rows[0]) return rows[0];
-  }
-  // Not a (readable) id: resolve as a slug or an old slug. This RPC also answers ids, so it keeps
-  // working if the public table read is later restricted.
   const res = await fetchImpl(`${url}/rest/v1/rpc/get_published_video`, {
-    method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_key: k }),
+    method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify(byId ? { p_id: id } : { p_business: business, p_slug: slug }),
   });
-  if (!res.ok) throw new Error(`Could not load the video (HTTP ${res.status})`);
-  const v = await res.json();
-  return v && v.project ? { id: v.id, title: v.title, project: v.project, slug: v.slug || null, revision: v.revision || 1, canonical: v.canonical || v.id } : null;
+  if (res.ok) {
+    const v = await res.json();
+    if (!v) return null;
+    if (v.redirect) return { redirect: v.redirect };
+    return v.project ? v : null;
+  }
+  if (!byId) throw new Error(`Could not load the video (HTTP ${res.status})`);
+  const legacy = await fetchImpl(`${url}/rest/v1/published_videos?id=eq.${encodeURIComponent(id)}&published=eq.true&select=id,title,project,updated_at`, { headers });
+  if (!legacy.ok) throw new Error(`Could not load the video (HTTP ${legacy.status})`);
+  const rows = await legacy.json();
+  return Array.isArray(rows) && rows[0] ? rows[0] : null;
 }
 
 /**

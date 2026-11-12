@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { publishIncludes } from '@cinegen/lib/leads/leads';
 // @ts-expect-error plain JS
-import { watchUrl, embedCode } from '../../../lib/editor/publish/publishClient.js';
+import { publicUrl, embedCode } from '../../../lib/editor/publish/publishClient.js';
 import type { usePublished } from './use-publish';
 
 export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePublished>; leadCount: number }) {
@@ -32,17 +32,17 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
       {!pub.signedIn && <p className="leads-note">Sign in to publish videos.</p>}
       {pub.info && pub.id && (
         <div className="leads-links">
-          <div className="leads-copy"><span className="leads-label">Link</span><input readOnly value={watchUrl(pub.id)} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('link', watchUrl(pub.id!))}>{copied === 'link' ? 'Copied' : 'Copy'}</button></div>
+          <div className="leads-copy"><span className="leads-label">Link</span><input readOnly value={publicUrl({ id: pub.id, business: pub.business, slug: pub.info.slug })} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('link', publicUrl({ id: pub.id!, business: pub.business, slug: pub.info!.slug }))}>{copied === 'link' ? 'Copied' : 'Copy'}</button></div>
           <div className="leads-copy"><span className="leads-label">Embed</span><input readOnly value={embedCode(pub.id)} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('embed', embedCode(pub.id!))}>{copied === 'embed' ? 'Copied' : 'Copy'}</button></div>
           <div className="leads-row">
             <button type="button" className="leads-btn" data-testid="preview-btn" disabled={!live} onClick={() => { setPreview(true); setNonce((n) => n + 1); }}>Preview as viewer</button>
-            <a className="leads-btn" data-testid="view-link" href={watchUrl(pub.id)} target="_blank" rel="noreferrer">View published page ↗</a>
+            <a className="leads-btn" data-testid="view-link" href={publicUrl({ id: pub.id, business: pub.business, slug: pub.info.slug })} target="_blank" rel="noreferrer">View published page ↗</a>
           </div>
           {preview && live && (
             <div className="leads-modal" role="dialog" aria-label="Viewer preview" onClick={() => setPreview(false)}>
               <div className="leads-modal__box" onClick={(e) => e.stopPropagation()}>
                 <div className="leads-modal__bar"><span>Viewer preview — what people see at your link</span><button type="button" className="leads-btn" onClick={() => setPreview(false)}>Close</button></div>
-                <iframe key={nonce} className="leads-preview" data-testid="preview-frame" title="Published video preview" src={watchUrl(pub.id)} allow="autoplay; fullscreen" />
+                <iframe key={nonce} className="leads-preview" data-testid="preview-frame" title="Published video preview" src={publicUrl({ id: pub.id, business: pub.business, slug: pub.info.slug })} allow="autoplay; fullscreen" />
               </div>
             </div>
           )}

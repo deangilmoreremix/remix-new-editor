@@ -25,7 +25,7 @@ function message(container, title, text) {
 
 /**
  * @param {HTMLElement} container
- * @param {string} id
+ * @param {string|{business:string,slug:string}} id  permanent id (/watch/<id>) or the readable link (/v/<business>/<slug>)
  * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, countView }
  */
 export async function mountWatchPage(container, id, deps = {}) {
@@ -40,7 +40,14 @@ export async function mountWatchPage(container, id, deps = {}) {
 
   let video;
   try {
-    video = await (deps.fetchVideo || fetchPublishedVideo)(id);
+    const load = deps.fetchVideo || fetchPublishedVideo;
+    video = await load(id);
+    // A renamed link answers with where it lives now: move there (same video, same ?recipient=) and load it by id.
+    if (video?.redirect) {
+      const r = video.redirect;
+      try { globalThis.history?.replaceState(null, '', `${r.business && r.slug ? `/v/${r.business}/${r.slug}` : `/watch/${r.id}`}${globalThis.location?.search || ''}`); } catch { /* read-only history */ }
+      video = await load(r.id);
+    }
   } catch (err) {
     message(container, 'Video unavailable', err?.message || 'Please try again later.');
     return null;

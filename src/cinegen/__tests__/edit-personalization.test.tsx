@@ -19,9 +19,11 @@ function fakeEngine() { const e: any = { model: null }; const create = (_h: any,
 
 function setup(over: any = {}) {
   const pub: any = {
-    id: 'vidAAAA1111', title: 'Spring', busy: false, info: { id: 'vidAAAA1111', title: 'Spring', published: true, view_count: 0, live_revision: 1 },
-    revisions: [{ revision: 2, kind: 'draft', created_at: '2026-11-12T10:00:00Z' }, { revision: 1, kind: 'live', created_at: '2026-11-10T10:00:00Z' }],
-    draftsUnavailable: false, saveDraft: vi.fn(async () => 3), promote: vi.fn(async () => {}), draftProject: vi.fn(async (rev: number) => draftProject(rev === 2 ? 'Hello {{FIRSTNAME}} at {{COMPANY}} - NEW OFFER' : 'old')), ...over.pub,
+    id: 'vidAAAA1111', title: 'Spring', busy: false, business: 'smith-roofing', info: { id: 'vidAAAA1111', title: 'Spring', published: true, view_count: 0, revision: 2, slug: 'spring-offer' },
+    drafts: [{ id: 'dr1', title: 'Spring v3', created_at: '2026-11-12T10:00:00Z' }],
+    history: [{ revision: 2, title: 'Spring', created_at: '2026-11-12T09:00:00Z' }, { revision: 1, title: 'Spring', created_at: '2026-11-10T10:00:00Z' }],
+    draftsUnavailable: false, saveDraft: vi.fn(async () => 'dr2'), promote: vi.fn(async () => 3), discardDraft: vi.fn(async () => {}),
+    draftProject: vi.fn(async () => draftProject('Hello {{FIRSTNAME}} at {{COMPANY}} - NEW OFFER')), ...over.pub,
   };
   const rec: any = { rows, summary: { ...summarize(rows), linked: 2, stale: 0 }, ...over.rec };
   const lib: any = { business: { id: 'bs', name: 'Smith Roofing' }, profile: { id: 'a' }, findMore: vi.fn(async () => {}) };
@@ -44,31 +46,38 @@ describe('EditPersonalizationCard', () => {
     fireEvent.click(screen.getByTestId('draft-save'));
     await waitFor(() => expect(pub.saveDraft).toHaveBeenCalledWith('Spring'));
     expect(pub.promote).not.toHaveBeenCalled();
-    await waitFor(() => expect(screen.getByTestId('edit-notice').textContent).toMatch(/draft 3.*live link is unchanged/i));
+    await waitFor(() => expect(screen.getByTestId('edit-notice').textContent).toMatch(/draft saved.*live link is unchanged/i));
   });
 
-  it('lists live and draft versions; only drafts can be previewed or published', () => {
+  it('lists drafts (previewable, publishable) separately from the live history', () => {
     const { ui } = setup(); render(ui);
-    expect(screen.getByTestId('rev-1').getAttribute('data-kind')).toBe('live');
-    expect(screen.queryByTestId('rev-preview-1')).toBeNull();
-    expect(screen.getByTestId('rev-preview-2')).toBeTruthy();
+    expect(screen.getByTestId('draft-dr1')).toBeTruthy();
+    expect(screen.getByTestId('draft-preview-dr1')).toBeTruthy();
+    expect(screen.getByTestId('rev-2').getAttribute('data-kind')).toBe('live');
+    expect(screen.getByTestId('rev-1').getAttribute('data-kind')).toBe('earlier');
+    expect(screen.queryByTestId('draft-preview-2')).toBeNull();        // history entries are not drafts
   });
 
-  it('publishing a draft needs a second confirmation, then promotes that revision', async () => {
+  it('publishing a draft needs a second confirmation, then promotes exactly that draft', async () => {
     const { ui, pub } = setup(); render(ui);
-    fireEvent.click(screen.getByTestId('rev-publish-2'));
+    fireEvent.click(screen.getByTestId('draft-publish-dr1'));
     expect(pub.promote).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByTestId('rev-publish-yes-2'));
-    await waitFor(() => expect(pub.promote).toHaveBeenCalledWith(2));
-    await waitFor(() => expect(screen.getByTestId('edit-notice').textContent).toMatch(/same link.*keep working/i));
+    fireEvent.click(screen.getByTestId('draft-publish-yes-dr1'));
+    await waitFor(() => expect(pub.promote).toHaveBeenCalledWith('dr1'));
+    await waitFor(() => expect(screen.getByTestId('edit-notice').textContent).toMatch(/version 3.*same link.*keep working/i));
+  });
+
+  it('discards a draft', () => {
+    const { ui, pub } = setup(); render(ui);
+    fireEvent.click(screen.getByTestId('draft-discard-dr1'));
+    expect(pub.discardDraft).toHaveBeenCalledWith('dr1');
   });
 
   it('previews the draft as Business A and Business B without leaking between them and without side effects', async () => {
-    const { ui, pub, f } = setup(); const recordEvent = vi.fn(); const countView = vi.fn();
-    const withSpies = (<EditPersonalizationCard pub={pub} rec={{ rows, summary: { ...summarize(rows), linked: 0, stale: 0 } } as any} lib={{ business: { id: 'bs', name: 'S' }, profile: { id: 'a' }, findMore: vi.fn() } as any} playerDeps={{ createEngine: f.create, recordEvent, countView }} />);
-    void ui; render(withSpies);
-    await act(async () => { fireEvent.click(screen.getByTestId('rev-preview-2')); });
-    await waitFor(() => expect(pub.draftProject).toHaveBeenCalledWith(2));
+    const { pub, f } = setup(); const recordEvent = vi.fn(); const countView = vi.fn();
+    render(<EditPersonalizationCard pub={pub} rec={{ rows, summary: { ...summarize(rows), linked: 0, stale: 0 } } as any} lib={{ business: { id: 'bs', name: 'S' }, profile: { id: 'a' }, findMore: vi.fn() } as any} playerDeps={{ createEngine: f.create, recordEvent, countView }} />);
+    await act(async () => { fireEvent.click(screen.getByTestId('draft-preview-dr1')); });
+    await waitFor(() => expect(pub.draftProject).toHaveBeenCalledWith('dr1'));
     await waitFor(() => expect(JSON.stringify(f.e.model)).toContain('NEW OFFER'));
     const as = screen.getByTestId('draft-as');
     await act(async () => { fireEvent.change(as, { target: { value: 'a' } }); });
@@ -77,10 +86,8 @@ describe('EditPersonalizationCard', () => {
     await act(async () => { fireEvent.change(as, { target: { value: 'b' } }); });
     await waitFor(() => expect(JSON.stringify(f.e.model)).toContain('Hello Bob at Wilson Plumbing'));
     expect(JSON.stringify(f.e.model)).not.toContain('Smith');
-    // generic viewer: no raw tokens
     await act(async () => { fireEvent.change(as, { target: { value: '' } }); });
     await waitFor(() => expect(JSON.stringify(f.e.model)).not.toContain('{{'));
-    // owner preview never counts views or records events, and leaves the host page alone
     expect(countView).not.toHaveBeenCalled();
     expect(document.documentElement.classList.contains('watch-root')).toBe(false);
     expect(document.title).toBe('Studio');
@@ -89,7 +96,7 @@ describe('EditPersonalizationCard', () => {
   it('shows an error if the draft cannot be loaded', async () => {
     const { pub, rec, lib } = setup({ pub: { draftProject: vi.fn(async () => null) } });
     render(<EditPersonalizationCard pub={pub} rec={rec} lib={lib} />);
-    await act(async () => { fireEvent.click(screen.getByTestId('rev-preview-2')); });
+    await act(async () => { fireEvent.click(screen.getByTestId('draft-preview-dr1')); });
     await waitFor(() => expect(screen.getByTestId('draft-error')).toBeTruthy());
   });
 

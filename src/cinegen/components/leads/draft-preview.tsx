@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { mountWatchPage } from '../../../pages/WatchPage.jsx';
 import type { BulkRow } from '@cinegen/lib/leads/bulk-rows';
 
-export function DraftPreview({ videoId, revision, load, rows, onClose, playerDeps = {} }: { playerDeps?: Record<string, unknown>; videoId: string; revision: number; load: () => Promise<unknown>; rows: BulkRow[]; onClose: () => void }) {
+export function DraftPreview({ videoId, draftId, label, load, rows, onClose, playerDeps = {} }: { playerDeps?: Record<string, unknown>; videoId: string; draftId: string; label: string; load: () => Promise<unknown>; rows: BulkRow[]; onClose: () => void }) {
   const box = useRef<HTMLDivElement>(null);
   const [as, setAs] = useState('');           // contactId, '' = generic viewer
   const [err, setErr] = useState('');
@@ -22,17 +22,17 @@ export function DraftPreview({ videoId, revision, load, rows, onClose, playerDep
     let player: { destroy?: () => void } | null = null; let dead = false;
     void mountWatchPage(box.current, `draft-${videoId}`, {
       isolated: true, viewerProfile, ...playerDeps,
-      fetchVideo: async () => ({ id: `draft-${videoId}-${revision}`, title: `Draft ${revision}`, project }),
+      fetchVideo: async () => ({ id: `draft-${videoId}-${draftId}`, title: label, project }),
       countView: () => {}, recordEvent: () => {}, onLead: async () => ({ stored: false, error: null }), voiceFor: async () => null,
     }).then((p: typeof player) => { if (dead) p?.destroy?.(); else player = p; });
     return () => { dead = true; player?.destroy?.(); };
-  }, [project, as, rows, videoId, revision, playerDeps]);
+  }, [project, as, rows, videoId, draftId, label, playerDeps]);
 
   return (
     <div className="leads-modal" role="dialog" aria-label="Draft preview" data-testid="draft-preview" onClick={onClose}>
       <div className="leads-modal__box" onClick={(e) => e.stopPropagation()}>
         <div className="leads-modal__bar">
-          <span>Draft {revision} preview — not live. Nothing here is recorded.</span>
+          <span>Draft “{label}” preview — not live. Nothing here is recorded.</span>
           <label className="leads-row" style={{ gap: 6 }}>View as
             <select className="leads-input" value={as} onChange={(e) => setAs(e.target.value)} data-testid="draft-as" style={{ width: 'auto' }}>
               <option value="">Generic viewer</option>

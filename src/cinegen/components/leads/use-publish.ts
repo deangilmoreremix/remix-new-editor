@@ -11,8 +11,10 @@ const KEY = 'remix.cinegen.published.v1';
 const readIds = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
 const signedIn = () => !!(window as unknown as { Clerk?: { user?: unknown } }).Clerk?.user;
 
-export interface Revision { revision: number; kind: 'draft' | 'live' | 'superseded'; created_at: string }
-export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string; slug?: string | null; live_revision?: number }
+/** A saved draft (not live) and one entry of the live video's history (every change is recorded by the database). */
+export interface Draft { id: string; title: string; created_at: string }
+export interface HistoryEntry { revision: number; title: string; created_at: string }
+export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string; slug?: string | null; revision?: number; privacy?: string }
 
 export async function getClient() {
   if (!signedIn()) throw new Error('Sign in to publish videos');
@@ -57,22 +59,35 @@ export function usePublished() {
     localStorage.setItem(KEY, JSON.stringify({ ...readIds(), [key]: vid }));
     setInfo({ ...row, published: true });
   });
-  // Drafts: the live link keeps serving the current version until a draft is promoted.
-  const [revisions, setRevisions] = useState<Revision[]>([]);
+  // The owner's business link name (first part of /v/<business>/<slug>), if claimed.
+  const [business, setBusiness] = useState<string | null>(null);
+  const loadBusiness = useCallback(async () => {
+    if (!signedIn()) { setBusiness(null); return; }
+    try { setBusiness((await pub.getMyBusiness(await getClient()))?.business_slug ?? null); } catch { setBusiness(null); }
+  }, []);
+  useEffect(() => { void loadBusiness(); }, [loadBusiness]);
+
+  // Drafts: the live link keeps serving the published version until a draft is promoted.
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [draftsUnavailable, setDraftsUnavailable] = useState(false);
-  const loadRevisions = useCallback(async () => {
-    if (!id || !signedIn()) { setRevisions([]); return; }
-    try { setRevisions(await pub.listRevisions(await getClient(), id)); setDraftsUnavailable(false); }
-    catch (e) { if (/relation .* does not exist|schema cache|could not find the table|42P01/i.test((e as Error).message)) setDraftsUnavailable(true); }
+  const loadDrafts = useCallback(async () => {
+    if (!id || !signedIn()) { setDrafts([]); setHistory([]); return; }
+    try {
+      const c = await getClient();
+      setHistory(await pub.listRevisions(c, id).catch(() => []));
+      setDrafts(await pub.listDrafts(c, id)); setDraftsUnavailable(false);
+    } catch (e) { if (/relation .* does not exist|schema cache|could not find the table|42P01/i.test((e as Error).message)) setDraftsUnavailable(true); }
   }, [id]);
-  useEffect(() => { void loadRevisions(); }, [loadRevisions, info?.updated_at]);
+  useEffect(() => { void loadDrafts(); }, [loadDrafts, info?.updated_at]);
   const saveDraft = (title: string) => run(async () => {
-    const rev = await pub.publishDraft(await getClient(), { id, project: await snapshot(title) });
-    await loadRevisions();
-    return rev;
+    const draftId = await pub.publishDraft(await getClient(), { id, project: await snapshot(title), title });
+    await loadDrafts();
+    return draftId as string;
   });
-  const promote = (revision: number) => run(async () => { await pub.promoteRevision(await getClient(), id, revision); await reload(); await loadRevisions(); });
-  const draftProject = async (revision: number) => pub.getRevisionProject(await getClient(), id, revision);
+  const promote = (draftId: string) => run(async () => { const rev = await pub.promoteDraft(await getClient(), draftId); await reload(); await loadDrafts(); return rev as number; });
+  const discardDraft = (draftId: string) => run(async () => { await pub.deleteDraft(await getClient(), draftId); await loadDrafts(); });
+  const draftProject = async (draftId: string) => pub.getDraftProject(await getClient(), draftId);
   const setLive = (on: boolean) => run(async () => { await pub.setPublished(await getClient(), id, on); setInfo((i) => (i ? { ...i, published: on } : i)); });
-  return { id, info, busy, error, loaded, publish, setLive, reload, revisions, draftsUnavailable, saveDraft, promote, draftProject, loadRevisions, title: tl?.name || 'Untitled video', signedIn: signedIn() };
+  return { id, info, busy, error, loaded, publish, setLive, reload, business, drafts, history, draftsUnavailable, saveDraft, promote, discardDraft, draftProject, loadDrafts, loadBusiness, title: tl?.name || 'Untitled video', signedIn: signedIn() };
 }

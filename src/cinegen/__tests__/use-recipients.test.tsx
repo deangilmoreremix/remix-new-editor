@@ -33,7 +33,7 @@ import { useRecipients } from '../components/leads/use-recipients';
 import * as contacts from '../../lib/contactStore.js';
 
 const lib: any = { slots: [{ slot: 'logoUrl', label: 'logo', hasFallback: false, clipCount: 1 }], assets: [], assignments: [], findMore: vi.fn(async () => {}) };
-const pub: any = { id: 'vidAAAA1111', info: { id: 'vidAAAA1111', title: 'Spring', published: true, view_count: 0, slug: 'spring' }, title: 'Spring', signedIn: true, reload: reloadPub };
+const pub: any = { id: 'vidAAAA1111', business: 'smith-roofing', info: { id: 'vidAAAA1111', title: 'Spring', published: true, view_count: 0, slug: 'spring' }, title: 'Spring', signedIn: true, reload: reloadPub, loadBusiness: vi.fn(async () => {}) };
 
 beforeEach(() => {
   localStorage.clear(); Object.keys(T).forEach((k) => { T[k] = []; }); n = 0;
@@ -60,7 +60,7 @@ describe('useRecipients (20 contacts, one video)', () => {
     await waitFor(() => expect(result.current.summary.linked).toBe(19));
     const csv = result.current.csv();
     expect(csv.split('\n')).toHaveLength(20);                                // header + 19
-    expect(csv).toContain('/v/spring?recipient=');
+    expect(csv).toContain('/v/smith-roofing/spring?recipient=');
     expect(csv).not.toMatch(/@|biz\d+\.com/);                                // no PII in the exported URLs
   });
 

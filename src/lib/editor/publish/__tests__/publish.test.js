@@ -85,10 +85,10 @@ describe('publish client', () => {
     expect(client.from).toHaveBeenCalledWith('published_videos');
     expect(upsert.mock.calls[0][0]).toMatchObject({ id: 'abcdefgh12', title: 'T', published: true });
 
-    const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => [{ id: 'abcdefgh12', project: { tracks: [] } }] }));
+    const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => ({ id: 'abcdefgh12', project: { tracks: [] } }) }));
     const v = await fetchPublishedVideo('abcdefgh12', { url: 'https://sb', key: 'anon', fetchImpl });
     expect(v.id).toBe('abcdefgh12');
-    expect(fetchImpl.mock.calls[0][0]).toBe('https://sb/rest/v1/published_videos?id=eq.abcdefgh12&published=eq.true&select=id,title,project,updated_at');
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://sb/rest/v1/rpc/get_published_video'); // the database strips private keys; legacy table read is only a fallback
     expect(await fetchPublishedVideo('../etc', { url: 'https://sb', key: 'k', fetchImpl })).toBeNull();
 
     const post = vi.fn(async () => ({ ok: true, json: async () => ({ ok: true, stored: true }) }));

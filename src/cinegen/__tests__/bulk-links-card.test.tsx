@@ -9,12 +9,12 @@ const assets = businesses.map((b, i) => ({ id: `l${i}`, business_id: b.id, categ
 const assignments = businesses.filter((_, i) => i !== 3).map((b, i0) => { const i = Number(b.id.slice(1)); return { business_id: b.id, slot: 'logoUrl', asset_id: `l${i}`, manual: true }; });
 const tok = (c: string) => c.repeat(64).slice(0, 64);
 
-function setup(over: { recipients?: Recipient[]; published?: boolean; slug?: string | null; unavailable?: boolean } = {}) {
+function setup(over: { recipients?: Recipient[]; published?: boolean; slug?: string | null; business?: string | null; unavailable?: boolean } = {}) {
   const recipients = over.recipients ?? [];
   const rows = buildBulkRows({ contacts, businesses, assets, assignments, recipients, requiredSlots: ['logoUrl'] });
   const rec: any = {
-    rows, summary: summarize(rows), slug: over.slug ?? null, videoId: 'vidAAAA1111', busy: false, error: '', notice: '', unavailable: !!over.unavailable, usedUrls: new Set(),
-    urlOf: (r: Recipient) => `https://smartvid.app/v/${over.slug ?? 'x'}?recipient=${r.token}`,
+    rows, summary: summarize(rows), slug: over.slug ?? null, business: over.business === undefined ? 'smith-roofing' : over.business, claimBusiness: vi.fn(async () => {}), videoId: 'vidAAAA1111', busy: false, error: '', notice: '', unavailable: !!over.unavailable, usedUrls: new Set(),
+    urlOf: (r: Recipient) => `https://smartvid.app/v/smith-roofing/${over.slug ?? 'x'}?recipient=${r.token}`,
     create: vi.fn(async () => {}), revoke: vi.fn(async () => {}), refresh: vi.fn(async () => {}), saveSlug: vi.fn(async () => {}), importCsv: vi.fn(async () => {}), findAssets: vi.fn(async () => {}), csv: vi.fn(() => 'name,url'), reload: vi.fn(), requiredSlots: ['logoUrl'],
   };
   const pub: any = { id: 'vidAAAA1111', info: { id: 'vidAAAA1111', title: 'Spring Offer', published: over.published ?? true, view_count: 0 }, title: 'Spring Offer' };
@@ -54,7 +54,7 @@ describe('BulkLinksCard', () => {
     const r: Recipient = { id: 'r0', token: tok('a'), contact_ref: 'c0', status: 'active', created_at: '2026-11-12T10:00:00Z', variables: { logoUrl: 'https://cdn.test/logo0.png' } };
     const { ui } = setup({ recipients: [r], slug: 'spring-offer' }); render(ui);
     const url = (screen.getByLabelText('Link for Person 0') as HTMLInputElement).value;
-    expect(url).toBe(`https://smartvid.app/v/spring-offer?recipient=${tok('a')}`);
+    expect(url).toBe(`https://smartvid.app/v/smith-roofing/spring-offer?recipient=${tok('a')}`);
     expect(url).not.toMatch(/Person|Biz|biz0/);
     expect(screen.getByTestId('lstatus-c0').textContent).toBe('active');
     expect(screen.getByTestId('lstatus-c1').textContent).toBe('—');
@@ -94,6 +94,17 @@ describe('BulkLinksCard', () => {
     fireEvent.change(input, { target: { value: 'smith-roofing' } }); expect(save.disabled).toBe(false);
     fireEvent.click(save); expect(rec.saveSlug).toHaveBeenCalledWith('smith-roofing');
     fireEvent.click(screen.getByTestId('slug-suggest')); expect((input as HTMLInputElement).value).toBe('spring-offer');
+  });
+
+  it('asks for the business link name first; the video link name stays locked until it is claimed', () => {
+    const { ui, rec } = setup({ business: null }); render(ui);
+    expect((screen.getByTestId('slug-input') as HTMLInputElement).disabled).toBe(true);
+    const save = screen.getByTestId('business-save') as HTMLButtonElement;
+    expect(save.disabled).toBe(true);
+    fireEvent.change(screen.getByTestId('business-input'), { target: { value: 'api' } }); expect(save.disabled).toBe(true);   // reserved
+    fireEvent.change(screen.getByTestId('business-input'), { target: { value: 'smith-roofing' } }); expect(save.disabled).toBe(false);
+    fireEvent.click(save);
+    expect(rec.claimBusiness).toHaveBeenCalledWith('smith-roofing');
   });
 
   it('refresh and export are enabled only when they apply; export gives the CSV for the selection', () => {

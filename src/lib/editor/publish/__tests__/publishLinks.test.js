@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   slugify, isValidSlug, publicUrl, fetchPublishedVideo, resolveRecipient, sanitizeRecipientVariables,
-  setSlug, createRecipients, recipientsCsv, publishDraft, promoteRevision, updateRecipientVariables, getMyVideo, listRevisions, getRevisionProject,
+  setSlug, claimBusinessSlug, createRecipients, recipientsCsv, publishDraft, promoteDraft, listDrafts, getDraftProject, deleteDraft,
+  updateRecipientVariables, getMyVideo, getMyBusiness, listRevisions,
 } from '../publishClient.js';
 import { mountWatchPage } from '../../../../pages/WatchPage.jsx';
 
@@ -29,50 +30,68 @@ const mount = async (recipientQuery, deps) => {
   return JSON.stringify(e.model);
 };
 
-describe('slugs and public URLs', () => {
-  it('slugifies business names and rejects reserved/invalid slugs', () => {
+describe('slugs and public URLs (live rules: /v/<business>/<slug>)', () => {
+  it('slugifies names and validates like the database (3-48 chars, no "--", reserved words)', () => {
     expect(slugify('Smith Roofing & Sons!')).toBe('smith-roofing-sons');
     expect(slugify('  Café Ñandú ')).toBe('cafe-nandu');
     expect(slugify('!!!')).toBe('');
+    expect(slugify('a'.repeat(80)).length).toBeLessThanOrEqual(48);
     expect(isValidSlug('smith-roofing')).toBe(true);
-    expect(['watch', 'ab', 'Has Space', '-bad', 'api'].some(isValidSlug)).toBe(false);
+    expect(['watch', 'ab', 'Has Space', '-bad', 'bad-', 'a--b', 'api', 'smartvideo', 'v'].some(isValidSlug)).toBe(false);
   });
 
-  it('builds /v/<slug>, campaign and recipient URLs; falls back to /watch/<id>', () => {
-    const o = 'https://smartvid.app';
-    const tok = 'a'.repeat(64);
+  it('builds /v/<business>/<slug> and recipient URLs; falls back to /watch/<id>', () => {
+    const o = 'https://smartvid.app'; const tok = 'a'.repeat(64);
     expect(publicUrl({ id: 'abcdefgh12' }, o)).toBe(`${o}/watch/abcdefgh12`);
-    expect(publicUrl({ id: 'abcdefgh12', slug: 'smith-roofing' }, o)).toBe(`${o}/v/smith-roofing`);
-    expect(publicUrl({ id: 'x', slug: 'smith-roofing', campaign: 'special-offer' }, o)).toBe(`${o}/v/smith-roofing/special-offer`);
-    expect(publicUrl({ id: 'abcdefgh12', slug: 'smith-roofing', recipient: tok }, o)).toBe(`${o}/v/smith-roofing?recipient=${tok}`);
-    expect(publicUrl({ id: 'abcdefgh12', recipient: 'short' }, o)).toBe(`${o}/watch/abcdefgh12`); // malformed token never goes in a URL
+    expect(publicUrl({ id: 'abcdefgh12', business: 'smith-roofing' }, o)).toBe(`${o}/watch/abcdefgh12`);   // need both parts
+    expect(publicUrl({ id: 'x', business: 'smith-roofing', slug: 'spring-offer' }, o)).toBe(`${o}/v/smith-roofing/spring-offer`);
+    expect(publicUrl({ id: 'x', business: 'smith-roofing', slug: 'spring-offer', recipient: tok }, o)).toBe(`${o}/v/smith-roofing/spring-offer?recipient=${tok}`);
+    expect(publicUrl({ id: 'abcdefgh12', recipient: 'short' }, o)).toBe(`${o}/watch/abcdefgh12`);          // malformed token never goes in a URL
+    expect(publicUrl({ id: 'abcdefgh12', business: 'watch', slug: 'spring-offer' }, o)).toBe(`${o}/watch/abcdefgh12`); // reserved
   });
 });
 
-describe('public reads', () => {
+describe('public reads (live get_published_video)', () => {
   const cfg = (fetchImpl) => ({ url: 'https://sb', key: 'anon', fetchImpl });
-  it('loads by slug through the single-row RPC, not the table', async () => {
-    const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => ({ id: 'vidAAAA1111', slug: 'smith-roofing', title: 'T', project: { tracks: [] }, revision: 2, canonical: 'smith-roofing' }) }));
-    const v = await fetchPublishedVideo('smith-roofing', cfg(fetchImpl));
+  const rpc = (value, ok = true) => vi.fn(async () => ({ ok, status: ok ? 200 : 404, json: async () => value }));
+  it('loads by business + slug through the RPC with the right parameters', async () => {
+    const f = rpc({ id: 'vidAAAA1111', slug: 'spring-offer', business: 'smith-roofing', title: 'T', project: { tracks: [] }, revision: 2 });
+    const v = await fetchPublishedVideo({ business: 'Smith-Roofing', slug: 'Spring-Offer' }, cfg(f));
     expect(v).toMatchObject({ id: 'vidAAAA1111', revision: 2 });
-    expect(fetchImpl.mock.calls.map((c) => c[0])).toContain('https://sb/rest/v1/rpc/get_published_video');
+    expect(f.mock.calls[0][0]).toBe('https://sb/rest/v1/rpc/get_published_video');
+    expect(JSON.parse(f.mock.calls[0][1].body)).toEqual({ p_business: 'smith-roofing', p_slug: 'spring-offer' });
   });
-  it('returns null for a missing slug and rejects malformed keys without a request', async () => {
-    const miss = vi.fn(async () => ({ ok: true, json: async () => null }));
-    expect(await fetchPublishedVideo('no-such-slug', cfg(miss))).toBeNull();
+  it('loads a legacy id through the same RPC (private keys stripped by the database)', async () => {
+    const f = rpc({ id: 'abcdefgh12', title: 'T', project: { tracks: [] } });
+    expect((await fetchPublishedVideo('abcdefgh12', cfg(f))).id).toBe('abcdefgh12');
+    expect(JSON.parse(f.mock.calls[0][1].body)).toEqual({ p_id: 'abcdefgh12' });
+  });
+  it('passes a rename redirect through so the page can move to the new address', async () => {
+    const f = rpc({ redirect: { id: 'vidAAAA1111', business: 'smith-roofing', slug: 'new-name' } });
+    expect(await fetchPublishedVideo({ business: 'smith-roofing', slug: 'old-name' }, cfg(f))).toEqual({ redirect: { id: 'vidAAAA1111', business: 'smith-roofing', slug: 'new-name' } });
+  });
+  it('returns null for missing/unpublished, rejects malformed refs without any request', async () => {
+    expect(await fetchPublishedVideo({ business: 'a-b', slug: 'no-such' }, cfg(rpc(null)))).toBeNull();
     const never = vi.fn();
-    expect(await fetchPublishedVideo('../etc/passwd', cfg(never))).toBeNull();
+    for (const bad of ['../etc/passwd', 'short', { business: 'x', slug: 'y' }, { business: 'ok-name', slug: "a'; drop" }, null]) expect(await fetchPublishedVideo(bad, cfg(never))).toBeNull();
     expect(never).not.toHaveBeenCalled();
+  });
+  it('falls back to the table read by id when the RPC does not exist (older deployments), but not for slugs', async () => {
+    const calls = [];
+    const f = vi.fn(async (u) => { calls.push(u); return u.includes('/rpc/') ? { ok: false, status: 404, json: async () => ({}) } : { ok: true, json: async () => [{ id: 'abcdefgh12', project: { tracks: [] } }] }; });
+    expect((await fetchPublishedVideo('abcdefgh12', cfg(f))).id).toBe('abcdefgh12');
+    expect(calls[1]).toContain('/rest/v1/published_videos?id=eq.abcdefgh12&published=eq.true');
+    await expect(fetchPublishedVideo({ business: 'smith-roofing', slug: 'spring-offer' }, cfg(f))).rejects.toThrow(/HTTP 404/);
   });
   it('resolves a recipient token, and gives null for bad/revoked tokens', async () => {
     const ok = vi.fn(async () => ({ ok: true, json: async () => ({ FIRSTNAME: 'John', logoUrl: 'https://cdn.test/a.png', evil: { x: 1 } }) }));
-    const vars = await resolveRecipient('smith-roofing', 'a'.repeat(64), cfg(ok));
+    const vars = await resolveRecipient('vidAAAA1111', 'a'.repeat(64), cfg(ok));
     expect(vars).toEqual({ FIRSTNAME: 'John', logoUrl: 'https://cdn.test/a.png' });
-    expect(JSON.parse(ok.mock.calls[0][1].body)).toEqual({ p_video_id: 'smith-roofing', p_token: 'a'.repeat(64) });
+    expect(JSON.parse(ok.mock.calls[0][1].body)).toEqual({ p_video_id: 'vidAAAA1111', p_token: 'a'.repeat(64) });
     const none = vi.fn(async () => ({ ok: true, json: async () => null }));
-    expect(await resolveRecipient('smith-roofing', 'b'.repeat(64), cfg(none))).toBeNull();
+    expect(await resolveRecipient('vidAAAA1111', 'b'.repeat(64), cfg(none))).toBeNull();
     const never = vi.fn();
-    expect(await resolveRecipient('smith-roofing', "x' or 1=1 --", cfg(never))).toBeNull();
+    expect(await resolveRecipient('vidAAAA1111', "x' or 1=1 --", cfg(never))).toBeNull();
     expect(never).not.toHaveBeenCalled();
   });
 });
@@ -85,11 +104,26 @@ describe('recipient variables', () => {
 });
 
 describe('owner operations', () => {
-  it('setSlug validates locally and maps uniqueness errors', async () => {
-    const eq = vi.fn(async () => ({ error: { code: '23505', message: 'duplicate key' } }));
-    const client = { from: () => ({ update: () => ({ eq }) }) };
-    await expect(setSlug(client, 'id', 'watch')).rejects.toThrow(/reserved|3-63/);
-    await expect(setSlug(client, 'id', 'smith-roofing')).rejects.toThrow(/already taken/);
+  it('setSlug / claimBusinessSlug call the live RPCs, validate locally and map their errors', async () => {
+    const mk = (error) => ({ rpc: vi.fn(async () => ({ data: error ? null : 'spring-offer', error })) });
+    const ok = mk(null);
+    expect(await setSlug(ok, 'vid', ' Spring-Offer ')).toBe('spring-offer');
+    expect(ok.rpc).toHaveBeenCalledWith('set_video_slug', { p_video_id: 'vid', p_slug: 'spring-offer' });
+    await expect(setSlug(ok, 'vid', 'watch')).rejects.toThrow(/3-48/);
+    await expect(setSlug(mk({ message: 'business_required' }), 'vid', 'spring-offer')).rejects.toThrow(/business link name first/);
+    await expect(setSlug(mk({ code: '23505', message: 'slug_taken' }), 'vid', 'spring-offer')).rejects.toThrow(/already taken/);
+    await expect(setSlug(mk({ code: '42501', message: 'not_found' }), 'vid', 'spring-offer')).rejects.toThrow(/owner/);
+    const biz = mk(null);
+    await claimBusinessSlug(biz, 'Smith-Roofing', 'Smith Roofing');
+    expect(biz.rpc).toHaveBeenCalledWith('claim_business_slug', { p_slug: 'smith-roofing', p_display: 'Smith Roofing' });
+    await expect(claimBusinessSlug(mk({ message: 'slug_taken', code: '23505' }), 'smith-roofing')).rejects.toThrow(/already taken/);
+    await expect(claimBusinessSlug(biz, 'a--b')).rejects.toThrow(/3-48/);
+  });
+  it('reads the claimed business name, tolerating a project without the table', async () => {
+    const good = { from: () => ({ select: () => ({ maybeSingle: async () => ({ data: { business_slug: 'smith-roofing' }, error: null }) }) }) };
+    expect((await getMyBusiness(good)).business_slug).toBe('smith-roofing');
+    const missing = { from: () => ({ select: () => ({ maybeSingle: async () => ({ data: null, error: { message: 'relation does not exist' } }) }) }) };
+    expect(await getMyBusiness(missing)).toBeNull();
   });
   it('createRecipients sends sanitized rows and never a token (server generates it)', async () => {
     const select = vi.fn(async () => ({ data: [{ id: '1', token: 't'.repeat(64), label: 'Smith' }], error: null }));
@@ -116,41 +150,64 @@ describe('owner operations', () => {
     expect(update).toHaveBeenCalledWith({ variables: { brandImageUrl: 'https://cdn/b.png', FIRSTNAME: 'Ann' } });
     expect(eq).toHaveBeenCalledWith('id', 'r1');
   });
-  it('getMyVideo falls back when the slug column is not installed', async () => {
+  it('getMyVideo falls back when the slug/revision columns are not installed', async () => {
     let n = 0;
     const client = { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => (++n === 1 ? { data: null, error: { message: 'column published_videos.slug does not exist' } } : { data: { id: 'v' }, error: null }) }) }) }) };
     expect(await getMyVideo(client, 'v')).toEqual({ id: 'v' });
     expect(n).toBe(2);
   });
-  it('lists revisions without their bodies and loads one draft project', async () => {
-    const order = vi.fn(async () => ({ data: [{ revision: 2, kind: 'draft', created_at: 'x' }], error: null }));
+  it('saves, lists, loads, promotes and discards drafts (the live link is only touched by promote)', async () => {
+    const insert = vi.fn(() => ({ select: () => ({ single: async () => ({ data: { id: 'd1' }, error: null }) }) }));
+    const order = vi.fn(async () => ({ data: [{ id: 'd1', title: 'T', created_at: 'x' }], error: null }));
+    const maybeSingle = vi.fn(async () => ({ data: { project: { tracks: [] } }, error: null }));
+    const del = vi.fn(async () => ({ error: null }));
+    const client = {
+      from: (t) => { expect(t).toBe('published_video_drafts'); return { insert, select: (cols) => ({ eq: (k) => (k === 'video_id' ? { order } : { maybeSingle }) }), delete: () => ({ eq: del }) }; },
+      rpc: vi.fn(async () => ({ data: 7, error: null })),
+    };
+    expect(await publishDraft(client, { id: 'vid', project: { title: 'P', tracks: [] }, title: 'Spring v2' })).toBe('d1');
+    expect(insert.mock.calls[0][0]).toMatchObject({ video_id: 'vid', title: 'Spring v2' });
+    expect(await listDrafts(client, 'vid')).toHaveLength(1);
+    expect(await getDraftProject(client, 'd1')).toEqual({ tracks: [] });
+    expect(await promoteDraft(client, 'd1')).toBe(7);
+    expect(client.rpc).toHaveBeenCalledWith('promote_video_draft', { p_draft_id: 'd1' });
+    await deleteDraft(client, 'd1');
+    expect(del).toHaveBeenCalledWith('id', 'd1');
+  });
+  it('maps a failed promote to a sign-in message and lists the history without bodies', async () => {
+    await expect(promoteDraft({ rpc: async () => ({ data: null, error: { message: 'JWT expired' } }) }, 'd1')).rejects.toThrow(/Sign in/);
+    const order = vi.fn(async () => ({ data: [{ revision: 2, title: 'T', created_at: 'x' }], error: null }));
     const sel = vi.fn(() => ({ eq: () => ({ order }) }));
     expect(await listRevisions({ from: () => ({ select: sel }) }, 'vid')).toHaveLength(1);
     expect(sel.mock.calls[0][0]).not.toMatch(/project/);
-    const maybeSingle = vi.fn(async () => ({ data: { project: { tracks: [] } }, error: null }));
-    const c = { from: () => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle }) }) }) }) };
-    expect(await getRevisionProject(c, 'vid', 2)).toEqual({ tracks: [] });
-  });
-  it('publishDraft numbers revisions and promote calls the RPC', async () => {
-    const insert = vi.fn(async () => ({ error: null }));
-    const client = {
-      from: (t) => (t === 'published_video_revisions' ? {
-        select: () => ({ eq: () => ({ order: () => ({ limit: async () => ({ data: [{ revision: 4 }], error: null }) }) }) }), insert,
-      } : {}),
-      rpc: vi.fn(async () => ({ error: null })),
-    };
-    expect(await publishDraft(client, { id: 'vid', project: {} })).toBe(5);
-    expect(insert.mock.calls[0][0]).toMatchObject({ video_id: 'vid', revision: 5, kind: 'draft' });
-    await promoteRevision(client, 'vid', 5);
-    expect(client.rpc).toHaveBeenCalledWith('promote_video_revision', { p_video_id: 'vid', p_revision: 5 });
   });
   it('exports a CSV with URLs, no PII in the URL, and spreadsheet-formula protection', () => {
-    const csv = recipientsCsv([{ label: '=HYPERLINK("x")', token: 'a'.repeat(64), status: 'active' }, { label: 'Wilson, Inc', token: 'b'.repeat(64), status: 'revoked' }], { id: 'vid', slug: 'smith-roofing', origin: 'https://smartvid.app' });
+    const csv = recipientsCsv([{ label: '=HYPERLINK("x")', token: 'a'.repeat(64), status: 'active' }, { label: 'Wilson, Inc', token: 'b'.repeat(64), status: 'revoked' }], { id: 'vid', business: 'smith-roofing', slug: 'spring-offer', origin: 'https://smartvid.app' });
     const lines = csv.split('\n');
     expect(lines[0]).toBe('"name","url","status"');
     expect(lines[1]).toContain(`"'=HYPERLINK(""x"")"`);
-    expect(lines[2]).toContain('"Wilson, Inc","https://smartvid.app/v/smith-roofing?recipient=' + 'b'.repeat(64));
+    expect(lines[2]).toContain('"Wilson, Inc","https://smartvid.app/v/smith-roofing/spring-offer?recipient=' + 'b'.repeat(64));
     expect(lines[1]).not.toContain('Wilson');
+  });
+});
+
+describe('renamed links', () => {
+  it('moves to the new address and loads the video by id, keeping ?recipient=', async () => {
+    window.history.replaceState({}, '', `/v/smith-roofing/old-name?recipient=${'a'.repeat(64)}`);
+    const box = document.createElement('div'); document.body.appendChild(box);
+    const { create } = fakeEngine();
+    const calls = [];
+    const fetchVideo = vi.fn(async (ref) => { calls.push(ref); return typeof ref === 'string' ? { id: 'vidAAAA1111', title: 'Demo', project: project() } : { redirect: { id: 'vidAAAA1111', business: 'smith-roofing', slug: 'new-name' } }; });
+    await mountWatchPage(box, { business: 'smith-roofing', slug: 'old-name' }, { fetchVideo, createEngine: create, countView: vi.fn(), recordEvent: vi.fn(), onLead: vi.fn(), resolveRecipient: async () => ({ FIRSTNAME: 'John' }) });
+    expect(calls).toEqual([{ business: 'smith-roofing', slug: 'old-name' }, 'vidAAAA1111']);
+    expect(window.location.pathname).toBe('/v/smith-roofing/new-name');
+    expect(window.location.search).toBe(`?recipient=${'a'.repeat(64)}`);
+    expect(box.querySelector('h1').textContent).toBe('Demo');
+  });
+  it('shows "not found" for an unknown link', async () => {
+    const box = document.createElement('div');
+    expect(await mountWatchPage(box, { business: 'x-y', slug: 'nope' }, { fetchVideo: async () => null })).toBeNull();
+    expect(box.textContent).toContain('Video not found');
   });
 });
 

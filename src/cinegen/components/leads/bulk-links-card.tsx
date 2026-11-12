@@ -10,6 +10,7 @@ const STATUS_LABEL: Record<string, string> = { ready: 'Ready', 'missing-assets':
 export function BulkLinksCard({ pub, rec }: { pub: ReturnType<typeof usePublished>; rec: ReturnType<typeof useRecipients> }) {
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [slugDraft, setSlugDraft] = useState('');
+  const [bizDraft, setBizDraft] = useState('');
   const [revoking, setRevoking] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [copied, setCopied] = useState('');
@@ -33,14 +34,22 @@ export function BulkLinksCard({ pub, rec }: { pub: ReturnType<typeof usePublishe
       <h3 className="leads-card__title">Personalized links <span className="leads-pill" data-testid="bulk-summary">{s.linked} live · {s.ready} ready · {s.missing} need assets{s.revoked ? ` · ${s.revoked} revoked` : ''}</span></h3>
       {!live && <p className="leads-note">This video is unpublished: links will not play until you republish.</p>}
 
+      {!rec.business && (
+        <div className="leads-row" data-testid="business-row">
+          <label className="leads-label" style={{ flex: 1 }}>Your business link name (first part of every link)
+            <input className="leads-input" placeholder={slugify(pub.title) || 'smith-roofing'} value={bizDraft} onChange={(e) => setBizDraft(e.target.value.toLowerCase())} data-testid="business-input" aria-invalid={!!bizDraft && !isValidSlug(bizDraft)} />
+          </label>
+          <button type="button" className="leads-btn leads-btn--primary" disabled={rec.busy || !isValidSlug(bizDraft)} onClick={() => void rec.claimBusiness(bizDraft)} data-testid="business-save">Claim</button>
+        </div>
+      )}
       <div className="leads-row" data-testid="slug-row">
-        <label className="leads-label" style={{ flex: 1 }}>Link name
-          <input className="leads-input" placeholder={suggestion || 'smith-roofing'} value={slugDraft} onChange={(e) => setSlugDraft(e.target.value.toLowerCase())} data-testid="slug-input" aria-invalid={!!slugDraft && !slugOk} />
+        <label className="leads-label" style={{ flex: 1 }}>Video link name{rec.business ? ` (smartvid.app/v/${rec.business}/…)` : ''}
+          <input className="leads-input" placeholder={suggestion || 'spring-offer'} value={slugDraft} onChange={(e) => setSlugDraft(e.target.value.toLowerCase())} data-testid="slug-input" aria-invalid={!!slugDraft && !slugOk} disabled={!rec.business} />
         </label>
-        <button type="button" className="leads-btn" disabled={rec.busy || !slugOk} onClick={() => void rec.saveSlug(slugDraft)} data-testid="slug-save">Save</button>
-        {suggestion && isValidSlug(suggestion) && suggestion !== slugDraft && <button type="button" className="leads-chip" onClick={() => setSlugDraft(suggestion)} data-testid="slug-suggest">Use “{suggestion}”</button>}
+        <button type="button" className="leads-btn" disabled={rec.busy || !slugOk || !rec.business} onClick={() => void rec.saveSlug(slugDraft)} data-testid="slug-save">Save</button>
+        {suggestion && isValidSlug(suggestion) && suggestion !== slugDraft && rec.business && <button type="button" className="leads-chip" onClick={() => setSlugDraft(suggestion)} data-testid="slug-suggest">Use “{suggestion}”</button>}
       </div>
-      <p className="leads-note">{rec.slug ? <>Links look like <code>/v/{rec.slug}?recipient=…</code>. Renaming keeps old links working.</> : <>No link name yet: links use <code>/watch/{rec.videoId}</code>.</>}</p>
+      <p className="leads-note">{rec.business && rec.slug ? <>Links look like <code>/v/{rec.business}/{rec.slug}?recipient=…</code>. Renaming keeps old links working.</> : <>Until you set both names, links use <code>/watch/{rec.videoId}</code>.</>}</p>
 
       <div className="leads-row">
         <button type="button" className="leads-btn" onClick={() => void rec.importCsv()} data-testid="bulk-import">Import contacts (CSV)</button>

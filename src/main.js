@@ -150,10 +150,11 @@ try {
   }
 
   // Public interactive video player (/watch/<id>): no app shell, no sign-in.
-  // Readable personalized link (/v/<slug>[/<campaign>]): same player, resolved by slug (old slugs redirect via aliases).
+  // Readable link /v/<business>/<slug> (a renamed link redirects to its current address); same player as /watch/<id>.
   if (initialPage.startsWith('v/')) {
+    const [business = '', slug = ''] = initialPage.slice(2).split(/[?#]/)[0].split('/').map((p) => { try { return decodeURIComponent(p); } catch { return ''; } });
     const { mountWatchPage } = await import('./pages/WatchPage.jsx');
-    await mountWatchPage(app, decodeURIComponent(initialPage.slice(2).split(/[/?#]/)[0]));
+    await mountWatchPage(app, { business, slug });
     return;
   }
 

@@ -61,7 +61,8 @@ export function useRecipients(pub: ReturnType<typeof usePublished>, lib: Busines
   // image URLs carried by ACTIVE published links: the only assets that count as "used in a video"
   const usedUrls = useMemo(() => new Set(recipients.filter((r) => r.status === 'active').flatMap((r) => Object.values(r.variables ?? {})).filter((v) => /^https?:\/\//i.test(String(v)))), [recipients]);
   const slug = pub.info?.slug ?? null;
-  const urlOf = useCallback((r: Recipient) => pubClient.publicUrl({ id: videoId, slug, recipient: r.token }), [videoId, slug]);
+  const business = pub.business ?? null;
+  const urlOf = useCallback((r: Recipient) => pubClient.publicUrl({ id: videoId, business, slug, recipient: r.token }), [videoId, business, slug]);
 
   const create = (contactIds: string[], { allowMissing = false } = {}) => guard(async () => {
     const chosen = new Set(contactIds);
@@ -85,7 +86,8 @@ export function useRecipients(pub: ReturnType<typeof usePublished>, lib: Busines
     await reload();
   });
 
-  const saveSlug = (value: string) => guard(async () => { const s = await pubClient.setSlug(await getClient(), videoId, value); setNotice(`Link name saved: /v/${s}. The old link keeps working.`); await pub.reload(); });
+  const saveSlug = (value: string) => guard(async () => { const c = await getClient(); const sl = await pubClient.setSlug(c, videoId, value); setNotice(`Link name saved: /v/${business}/${sl}. The old link keeps working.`); await pub.reload(); });
+  const claimBusiness = (value: string, display?: string) => guard(async () => { const b = await pubClient.claimBusinessSlug(await getClient(), value, display ?? null); setNotice(`Business link name saved: ${b}. Links from your old name keep redirecting.`); await pub.loadBusiness(); });
 
   const importCsv = async () => {
     const { ContactImporterModal } = await import('../../../components/modals/ContactImporterModal.jsx');
@@ -104,8 +106,8 @@ export function useRecipients(pub: ReturnType<typeof usePublished>, lib: Busines
   const findAssets = async (contactId: string) => { contactStore.selectContact(contactId); window.dispatchEvent(new CustomEvent('remix:contact-changed')); await lib.findMore(); };
   const csv = (contactIds?: string[]) => {
     const list = rows.filter((r) => r.recipient && r.linkStatus === 'active' && (!contactIds || contactIds.includes(r.contactId))).map((r) => ({ ...r.recipient!, label: r.name }));
-    return pubClient.recipientsCsv(list, { id: videoId, slug });
+    return pubClient.recipientsCsv(list, { id: videoId, business, slug });
   };
 
-  return { rows, summary, usedUrls, slug, videoId, busy, error, notice, unavailable, urlOf, create, revoke, refresh, saveSlug, importCsv, findAssets, csv, reload, requiredSlots };
+  return { rows, summary, usedUrls, slug, business, claimBusiness, videoId, busy, error, notice, unavailable, urlOf, create, revoke, refresh, saveSlug, importCsv, findAssets, csv, reload, requiredSlots };
 }
