@@ -4,7 +4,7 @@ import { buildCatalog, mgPreview, hfPreview, hfEntries, mgEntries } from '../com
 import { previewResolves } from '../components/edit/preview-types';
 import { loadMgTemplates } from '../lib/occ/mg-templates';
 import { hyperframesItems } from '../lib/hyperframes/overlay';
-import { OVERLAY_KINDS } from '../lib/overlays/overlays';
+import { OVERLAY_KINDS, overlayTemplates, isConnectTemplate, createTemplateOverlays } from '../lib/overlays/overlays';
 import fs from 'node:fs';
 
 const noop = () => undefined;
@@ -39,5 +39,13 @@ describe('add-to-timeline catalog', () => {
   it('keeps preview identity stable so live renders do not restart', async () => {
     const [t] = (await loadMgTemplates()).filter((x) => x.usable);
     expect(mgPreview(t)).toBe(mgPreview(t));
+  });
+
+  it('a Connect Form template carries the phone number the modal asked for', () => {
+    const t = overlayTemplates().find((x) => isConnectTemplate(x.id));
+    expect(t).toBeTruthy();
+    const made = createTemplateOverlays(t!.id, 0, 10, { phone: '212 555 0147' });
+    expect(made.length).toBeGreaterThan(0);
+    expect(JSON.stringify(made)).toContain('+1 212 555 0147');
   });
 });

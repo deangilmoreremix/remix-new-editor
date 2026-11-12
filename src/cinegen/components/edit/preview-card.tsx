@@ -5,7 +5,6 @@
 // An optional `image` (pre-made thumbnail) is shown while idle; if it is missing or fails to load, the live render takes over, so
 // a card is never black. Live renders only mount while the card is on screen, show a paused representative frame, and play on hover.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { OverlayClip } from '@cinegen/types/workspace';
 import { OverlayLayer } from './overlay-layer';
 import type { CardPreview } from './preview-types';
 
@@ -88,7 +87,7 @@ export function PreviewCard({ preview, title, sub, badge, onClick, testId, ariaL
 
   return (
     <button ref={ref} type="button" className="add-card" onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)} aria-label={ariaLabel ?? title} data-testid={testId}
-      style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer', display: 'block', width: '100%', boxSizing: 'border-box', height: '100%', contentVisibility: 'auto', containIntrinsicSize: 'auto 260px' }}>
+      style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', width: '100%', boxSizing: 'border-box', height: '100%', contentVisibility: 'auto', containIntrinsicSize: 'auto 260px' }}>
       <div data-live={slot ? 'true' : 'false'} style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: STAGE_BG }}>
         {image && imgOk && <img src={image} alt="" loading="lazy" onError={() => setImgOk(false)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />}
         {wantLive && slot && <LiveStage preview={preview} playing={playing} />}

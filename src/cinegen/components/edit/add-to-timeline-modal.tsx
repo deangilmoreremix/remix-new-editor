@@ -36,6 +36,12 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   // previews keep their identity (a rebuilt preview would restart every live render).
   const latest = useRef({ actions, onClose });
   latest.current = { actions, onClose };
+  // Esc closes from any tab (a key handler on the dialog only fires when something inside it has focus)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') latest.current.onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const done = () => latest.current.onClose();
   const fixed = useMemo(() => buildCatalog(
     { onAddKind: (k) => latest.current.actions.onAddKind(k), onAddTemplate: (id, p) => latest.current.actions.onAddTemplate(id, p) },
@@ -62,8 +68,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const renderCard = (e: CatalogEntry) => <PreviewCard key={e.id} preview={e.preview} title={e.label} sub={e.blurb} badge={e.badge} onClick={e.run} testId={e.testId} />;
 
   return (
-    <div role="dialog" aria-label="Add to timeline" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}
-      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}>
+    <div role="dialog" aria-label="Add to timeline" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
       <style>{CARD_CSS}</style>
       <div style={{ width: 'min(1480px, 96vw)', height: 'min(900px, 92vh)', display: 'flex', flexDirection: 'column', background: 'var(--bg-raised)', border: '1px solid var(--border-medium)', borderRadius: 26, color: INK, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '24px 28px', borderBottom: '1px solid var(--border-subtle)' }}>
