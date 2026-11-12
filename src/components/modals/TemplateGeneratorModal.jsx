@@ -10,7 +10,7 @@ import * as pexelsApi from '../../lib/pexelsApi.js';
 import * as pixabayApi from '../../lib/pixabayApi.js';
 import { uploadFileToSupabase } from '../../lib/uploadService.js';
 import {
-  STEPS, STEP_LABELS, MAX_VIDEOS, createWizardState, guardStep, nextStepIndex, nextDisabled, nextLabel,
+  STEPS, STEP_LABELS, MAX_VIDEOS, createWizardState, guardStep, nextStepIndex, nextDisabled, nextLabel, clipDuration,
   toggleVideo, toBuilderState, hasScript, sceneNames,
 } from './template-generator/rules.js';
 import {
@@ -168,23 +168,50 @@ export class TemplateGeneratorModal extends BaseModal {
   renderWizard() {
     const { step } = this.s;
     const disabled = nextDisabled(this.s, step, this.ui.busy);
+    const last = step === STEPS.PREVIEW;
     return `
       <div class="template-generator-modal content tg-wizard">
-        <div class="template-generator-header" role="tablist" aria-label="Template steps">
-          ${STEP_LABELS.map((label, i) => `
-            <button type="button" role="tab" aria-selected="${i === step}" class="header-tabs__item${i === step ? ' header-tabs__item--active' : ''}" data-act="tab" data-step="${i}">
-              <img src="${ICON(STEP_ICONS[i])}" alt="" width="19" height="19"><span>${label}</span>
-            </button>`).join('')}
-        </div>
-        <div class="generator-body">
-          <div class="extra-container">
-            <button type="button" class="btn-add next-button${disabled ? ' disabled' : ''}" id="tg-next" data-act="next" ${disabled ? 'disabled' : ''}>${this.ui.busy ? 'Adding…' : nextLabel(step)}</button>
+        <header class="tg-head">
+          <span class="tg-badge-icon" aria-hidden="true">✦</span>
+          <div class="tg-head__text">
+            <h2 class="tg-head__title">Template Generator</h2>
+            <p class="tg-head__sub">Pick footage, shape a script and drop a finished, editable cut onto your timeline.</p>
           </div>
+          <button type="button" class="tg-iconbtn" data-act="close" aria-label="Close">✕</button>
+        </header>
+        <nav class="template-generator-header tg-rail" role="tablist" aria-label="Template steps">
+          ${STEP_LABELS.map((label, i) => `
+            <button type="button" role="tab" aria-selected="${i === step}" class="header-tabs__item tg-rail__step${i === step ? ' header-tabs__item--active is-active' : ''}${i < step ? ' is-done' : ''}" data-act="tab" data-step="${i}">
+              <span class="tg-rail__node">${i < step ? '✓' : i + 1}</span><span class="tg-rail__label">${label}</span>
+            </button>`).join('')}
+        </nav>
+        <div class="generator-body">
           <div class="tg-step" id="tg-step">${this.renderStep()}</div>
         </div>
+        <footer class="tg-foot">
+          <button type="button" class="tg-btn tg-btn--ghost" data-act="back" ${step === STEPS.VIDEO ? 'disabled' : ''}>← Back</button>
+          <div class="tg-summary" id="tg-summary">${this.renderSummary()}</div>
+          <span class="tg-stepcount" id="tg-stepcount">Step ${step + 1} of ${STEP_LABELS.length}</span>
+          <button type="button" class="btn-add next-button tg-btn tg-btn--primary${disabled ? ' disabled' : ''}" id="tg-next" data-act="next" ${disabled ? 'disabled' : ''}>${this.ui.busy ? 'Adding…' : nextLabel(step)}${last ? '' : ' →'}</button>
+        </footer>
         <div class="tg-toast" id="tg-toast" role="status" aria-live="polite" hidden></div>
         <div class="tg-popup-host" id="tg-popup">${this.renderPopup()}</div>
       </div>`;
+  }
+
+  /** Footer chips: clips, running time, transition, script. */
+  renderSummary() {
+    const s = this.s;
+    const n = s.selectedVideos.length;
+    const secs = s.selectedVideos.reduce((t, v) => t + clipDuration(v), 0);
+    const tr = this.transitions.find((t) => t.id === s.selectedTransition?.type);
+    const chip = (k, v, on) => `<span class="tg-pill${on ? ' is-on' : ''}"><i>${k}</i>${esc(v)}</span>`;
+    return [
+      chip('Clips', `${n}/${MAX_VIDEOS}`, n > 0),
+      chip('Length', formatTime(secs), n > 0),
+      chip('Transition', tr ? tr.name : 'None', !!tr),
+      chip('Script', s.selectedScript?.name || (hasScript(s) ? 'Custom' : '—'), hasScript(s)),
+    ].join('');
   }
 
   renderStep() {
@@ -310,7 +337,7 @@ export class TemplateGeneratorModal extends BaseModal {
     return `
       <div class="video-tile video__item video-element${selected ? ' active' : ''}" role="button" tabindex="0" aria-pressed="${selected}"
            data-act="pick-video" data-id="${esc(it.id)}" style="background-image:${cssUrl(it.poster || it.preview)}" title="${esc(it.title)}">
-        ${selected ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
+        ${selected ? `<span class="preview__select" aria-hidden="true">${this.s.selectedVideos.findIndex((v) => v.id === it.id) + 1}</span>` : ''}
         <span class="tg-badge">${esc(badge)}</span>
         ${it.status === 'uploading' ? '<span class="tg-uploading">Uploading…</span>' : ''}
         <div class="tg-card-title">${esc(it.title)}</div>
@@ -499,6 +526,7 @@ export class TemplateGeneratorModal extends BaseModal {
           </div>
           <div class="preview-tab__content-watch">
             ${error ? `<div class="tg-player tg-player--empty">${esc(error)}</div>` : renderPlayerHTML(playlist)}
+            ${preview ? this.renderLanes(preview) : ''}
           </div>
         </div>
         <div class="tg-extras">
@@ -506,6 +534,21 @@ export class TemplateGeneratorModal extends BaseModal {
           ${this.renderPanel('personalization', '👤 Personalization (optional)', persOpen, this.renderPersonalizationFields())}
         </div>
       </div>`;
+  }
+
+  /** Read-only track lanes, coloured like the timeline editor (video / text / fx). */
+  renderLanes(preview) {
+    const total = Math.max(preview.duration || 0, 1);
+    const kind = (t, c) => (/transition|overlay/i.test(t.name) ? 'fx' : (c.type === 'video' || c.type === 'image') ? 'video' : (c.type === 'audio' ? 'audio' : 'text'));
+    const lanes = { video: [], text: [], fx: [], audio: [] };
+    for (const t of preview.tracks || []) for (const c of t.clips || []) lanes[kind(t, c)].push(c);
+    const label = { video: 'Video', text: 'Text', fx: 'FX', audio: 'Audio' };
+    const rows = Object.entries(lanes).filter(([, cl]) => cl.length).map(([k, cl]) => `
+      <div class="tg-lane"><span class="tg-lane__name"><i class="tg-dot tg-dot--${k}"></i>${label[k]}</span>
+        <div class="tg-lane__track">${cl.map((c) => `<span class="tg-clip tg-clip--${k}" style="left:${((c.startTime || 0) / total) * 100}%;width:${Math.max(((c.duration || 1) / total) * 100, 2)}%" title="${esc(c.name)}">${esc(c.name)}</span>`).join('')}</div>
+      </div>`).join('');
+    const tr = (preview.transitions || []).length ? `<p class="tg-hint">${preview.transitions.length} transition${preview.transitions.length === 1 ? '' : 's'} between clips</p>` : '';
+    return `<div class="tg-lanes" aria-label="Timeline preview"><div class="tg-lanes__head"><b>Timeline</b><span>${formatTime(total)}</span></div>${rows}${tr}</div>`;
   }
 
   renderPanel(id, title, open, inner) {
@@ -664,6 +707,8 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'decline': this.onCancel(); this.close(); break;
       case 'safari-accept': this.ui.safariAccepted = true; this.paint(); break;
       case 'tab': this.goTo(Number(el.dataset.step)); break;
+      case 'back': this.goBack(); break;
+      case 'close': this.onCancel?.(); this.close(); break;
       case 'next': this.goNext(); break;
       case 'provider': this.setProvider(id); break;
       case 'filter': this.ui.filter = id; this.ui.collectionId = null; this.runSearch(true); this._refreshControls(); break;
@@ -702,6 +747,13 @@ export class TemplateGeneratorModal extends BaseModal {
     this.s.step = target;
     this.paint();
     if (target === STEPS.VIDEO && !this.ui.results.length && !this.ui.loading) this.runSearch(true);
+  }
+
+  goBack() {
+    const { step } = this.s;
+    if (step <= STEPS.VIDEO) return;
+    // Mirror Next: Overlay is skipped when there are fewer than 2 clips.
+    this.goTo(step === STEPS.PREVIEW && this.s.selectedVideos.length < 2 ? STEPS.SCRIPT : step - 1);
   }
 
   async goNext() {
@@ -768,7 +820,9 @@ export class TemplateGeneratorModal extends BaseModal {
       card.classList.toggle('active', on);
       card.setAttribute('aria-pressed', String(on));
       const mark = card.querySelector('.preview__select');
-      if (on && !mark) card.insertAdjacentHTML('afterbegin', '<span class="preview__select" aria-hidden="true">✓</span>');
+      const n = this.s.selectedVideos.findIndex((v) => v.id === card.dataset.id) + 1;
+      if (on && !mark) card.insertAdjacentHTML('afterbegin', `<span class="preview__select" aria-hidden="true">${n}</span>`);
+      else if (on && mark) mark.textContent = String(n);
       if (!on && mark) mark.remove();
     });
     const count = this.overlay?.querySelector('#tg-count');
@@ -795,7 +849,9 @@ export class TemplateGeneratorModal extends BaseModal {
     const disabled = nextDisabled(this.s, this.s.step, this.ui.busy);
     btn.disabled = disabled;
     btn.classList.toggle('disabled', disabled);
-    btn.textContent = this.ui.busy ? 'Adding…' : nextLabel(this.s.step);
+    btn.textContent = this.ui.busy ? 'Adding…' : `${nextLabel(this.s.step)}${this.s.step === STEPS.PREVIEW ? '' : ' →'}`;
+    const sum = this.overlay?.querySelector('#tg-summary');
+    if (sum) sum.innerHTML = this.renderSummary();
   }
 
   toast(message) {
