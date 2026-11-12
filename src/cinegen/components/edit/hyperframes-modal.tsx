@@ -7,7 +7,7 @@ import { hyperframesItems, searchHyperframes, hyperframesOverlayLayer, createHyp
 const FPS = 30;
 
 /** The catalog has 24 raw categories; the library shows a handful of customer-friendly groups (display only, the catalog data is unchanged). */
-const GROUPS: Array<[string, string[]]> = [
+export const GROUPS: Array<[string, string[]]> = [
   ['Lower thirds', ['lower-third', 'broadcast']],
   ['Titles & text', ['handwritten', 'typography', 'annotation', 'branding', 'logo']],
   ['Social & UI', ['social', 'showcase', 'video-primitive']],
@@ -17,10 +17,10 @@ const GROUPS: Array<[string, string[]]> = [
   ['Backgrounds & effects', ['background', 'snow', 'starfield', 'vfx', 'camcorder', 'motion-primitive', 'placeholder']],
 ];
 // Items that come from the second vendored library already carry customer-friendly categories; they are shown as they are.
-const RUI_CATEGORIES = ['Scenes', 'Primitives', 'Compositions', 'Data & media', 'Paths & shapes', 'Motion graphics', 'Maps & device', '3D', 'Shaders'];
-const groupOf = (i: HfItem): string => (i.type === 'remotionui' ? i.category : (GROUPS.find(([, cats]) => cats.includes(i.category))?.[0] ?? 'More'));
+export const RUI_CATEGORIES = ['Scenes', 'Primitives', 'Compositions', 'Data & media', 'Paths & shapes', 'Motion graphics', 'Maps & device', '3D', 'Shaders'];
+export const groupOf = (i: HfItem): string => (i.type === 'remotionui' ? i.category : (GROUPS.find(([, cats]) => cats.includes(i.category))?.[0] ?? 'More'));
 const typeOf = (i: HfItem): string => (i.type === 'remotionui' ? 'block' : (i.type ?? 'block'));
-const thumbOf = (id: string): string => `/hyperframes/thumbs/${id.replace(':', '-')}.jpg`;
+export const thumbOf = (id: string): string => `/hyperframes/thumbs/${id.replace(/:/g, '-')}.jpg`;
 
 function Preview({ item }: { item: HfItem }) {
   const host = useRef<HTMLDivElement>(null);

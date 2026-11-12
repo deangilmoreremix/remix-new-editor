@@ -53,6 +53,8 @@ interface LeftPanelProps {
   onDragAsset: (asset: Asset) => void;
   panelMode: 'full' | 'compact';
   onToggleMode: () => void;
+  /** [remix] the Library browser (animations, effects, transitions, looks, overlays & forms, sounds), shown by the Media | Library switch */
+  libraryNode?: React.ReactNode;
   onDeleteTimeline?: (id: string) => void;
   onAssetDoubleClick?: (asset: Asset) => void;
   onAddFolder: (folder: MediaFolder) => void;
@@ -250,8 +252,10 @@ export function LeftPanel({
   onAddAsset,
   onAddTimeline,
   onOpenStock,
+  libraryNode,
 }: LeftPanelProps) {
   // --- State ---
+  const [leftView, setLeftView] = useState<'media' | 'library'>('media'); // [remix]
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [thumbScale, setThumbScale] = useState(100 / 70);
   const [sortBy, setSortBy] = useState<SortBy>('date');
@@ -1295,8 +1299,23 @@ export function LeftPanel({
     );
   };
 
+  if (leftView === 'library' && libraryNode) {
+    return (
+      <div className="left-panel left-panel--library">
+      <div className="left-panel__switch" role="tablist" aria-label="Left panel">
+        <button type="button" role="tab" aria-selected={leftView === 'media'} className={`left-panel__switch-btn${leftView === 'media' ? ' left-panel__switch-btn--on' : ''}`} title="Media" onClick={() => setLeftView('media')}>Media</button>
+        <button type="button" role="tab" aria-selected={leftView === 'library'} className={`left-panel__switch-btn${leftView === 'library' ? ' left-panel__switch-btn--on' : ''}`} title="Library" data-testid="open-library" onClick={() => setLeftView('library')}>Library</button>
+      </div>
+        {libraryNode}
+      </div>
+    );
+  }
   return (
     <div className="left-panel">
+      <div className="left-panel__switch" role="tablist" aria-label="Left panel">
+        <button type="button" role="tab" aria-selected={leftView === 'media'} className={`left-panel__switch-btn${leftView === 'media' ? ' left-panel__switch-btn--on' : ''}`} title="Media" onClick={() => setLeftView('media')}>Media</button>
+        <button type="button" role="tab" aria-selected={leftView === 'library'} className={`left-panel__switch-btn${leftView === 'library' ? ' left-panel__switch-btn--on' : ''}`} title="Library" data-testid="open-library" onClick={() => setLeftView('library')}>Library</button>
+      </div>
       {/* Header / breadcrumb */}
       <div className="mp__header">
         {currentFolderId && (
