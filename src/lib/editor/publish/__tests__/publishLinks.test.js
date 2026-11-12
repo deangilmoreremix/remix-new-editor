@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   slugify, isValidSlug, publicUrl, fetchPublishedVideo, resolveRecipient, sanitizeRecipientVariables,
-  setSlug, createRecipients, recipientsCsv, publishDraft, promoteRevision, updateRecipientVariables, getMyVideo,
+  setSlug, createRecipients, recipientsCsv, publishDraft, promoteRevision, updateRecipientVariables, getMyVideo, listRevisions, getRevisionProject,
 } from '../publishClient.js';
 import { mountWatchPage } from '../../../../pages/WatchPage.jsx';
 
@@ -121,6 +121,15 @@ describe('owner operations', () => {
     const client = { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => (++n === 1 ? { data: null, error: { message: 'column published_videos.slug does not exist' } } : { data: { id: 'v' }, error: null }) }) }) }) };
     expect(await getMyVideo(client, 'v')).toEqual({ id: 'v' });
     expect(n).toBe(2);
+  });
+  it('lists revisions without their bodies and loads one draft project', async () => {
+    const order = vi.fn(async () => ({ data: [{ revision: 2, kind: 'draft', created_at: 'x' }], error: null }));
+    const sel = vi.fn(() => ({ eq: () => ({ order }) }));
+    expect(await listRevisions({ from: () => ({ select: sel }) }, 'vid')).toHaveLength(1);
+    expect(sel.mock.calls[0][0]).not.toMatch(/project/);
+    const maybeSingle = vi.fn(async () => ({ data: { project: { tracks: [] } }, error: null }));
+    const c = { from: () => ({ select: () => ({ eq: () => ({ eq: () => ({ maybeSingle }) }) }) }) };
+    expect(await getRevisionProject(c, 'vid', 2)).toEqual({ tracks: [] });
   });
   it('publishDraft numbers revisions and promote calls the RPC', async () => {
     const insert = vi.fn(async () => ({ error: null }));

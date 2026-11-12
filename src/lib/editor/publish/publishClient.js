@@ -216,6 +216,20 @@ export async function promoteRevision(client, id, revision) {
   return revision;
 }
 
+/** Owner: revision history of one video (newest first), without the project bodies. */
+export async function listRevisions(client, videoId) {
+  const { data, error } = await client.from('published_video_revisions').select('revision, kind, created_at').eq('video_id', videoId).order('revision', { ascending: false });
+  fail(error, 'Could not load the drafts');
+  return data || [];
+}
+
+/** Owner: the snapshot of one revision (for the draft preview). */
+export async function getRevisionProject(client, videoId, revision) {
+  const { data, error } = await client.from('published_video_revisions').select('project').eq('video_id', videoId).eq('revision', revision).maybeSingle();
+  fail(error, 'Could not load the draft');
+  return data?.project || null;
+}
+
 /**
  * rows: [{ label, businessId?, contactRef?, variables, expiresAt? }] -> [{ id, token, label, contact_ref }].
  * Tokens are server-generated. Large batches are inserted in chunks; one video can hold only one ACTIVE link per contactRef.

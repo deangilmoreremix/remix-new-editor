@@ -7,6 +7,7 @@ import { PublishCard } from './publish-card';
 import { LeadsCard } from './leads-card';
 import { AssetPicker } from './asset-picker';
 import { BulkLinksCard } from './bulk-links-card';
+import { EditPersonalizationCard } from './edit-personalization-card';
 import { useRecipients } from './use-recipients';
 import '../../styles/leads.css';
 
@@ -20,6 +21,7 @@ export function LeadsTab() {
       <div className="leads-tab__grid">
         <div className="leads-col">
           <PublishCard pub={pub} leadCount={data.rows.length} />
+          <EditPersonalizationCard pub={pub} rec={rec} lib={lib} />
           <AssetPicker lib={lib} usedUrls={rec.usedUrls} />
           <BulkLinksCard pub={pub} rec={rec} />
         </div>

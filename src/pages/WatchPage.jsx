@@ -31,8 +31,11 @@ function message(container, title, text) {
 export async function mountWatchPage(container, id, deps = {}) {
   const params = new URLSearchParams(globalThis.location?.search || '');
   const embed = params.get('embed') === '1';
-  document.documentElement.classList.add('watch-root');
-  if (embed) document.documentElement.classList.add('watch-embed');
+  // `isolated` (owner draft preview inside the editor) must not restyle the host page or retitle it.
+  if (!deps.isolated) {
+    document.documentElement.classList.add('watch-root');
+    if (embed) document.documentElement.classList.add('watch-embed');
+  }
   container.innerHTML = '<main class="watch"><div class="watch-msg" role="status"><div class="watch-spinner" aria-hidden="true"></div><p>Loading video…</p></div></main>';
 
   let video;
@@ -47,7 +50,7 @@ export async function mountWatchPage(container, id, deps = {}) {
     return null;
   }
   const title = video.title || video.project.title || 'Video';
-  document.title = title;
+  if (!deps.isolated) document.title = title;
 
   container.innerHTML = `
     <main class="watch">
@@ -84,7 +87,9 @@ export async function mountWatchPage(container, id, deps = {}) {
   // The legacy ?c=&firstname= form still works for links made before recipient tokens existed.
   const recipientToken = params.get('recipient');
   let viewerProfile;
-  if (recipientToken) {
+  if (deps.viewerProfile !== undefined) {
+    viewerProfile = deps.viewerProfile; // owner draft preview: "as this business"
+  } else if (recipientToken) {
     const vars = await (deps.resolveRecipient || resolveRecipient)(video.id, recipientToken);
     viewerProfile = vars ? { id: recipientToken, variables: vars } : null;
   } else {

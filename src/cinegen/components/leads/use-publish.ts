@@ -11,6 +11,7 @@ const KEY = 'remix.cinegen.published.v1';
 const readIds = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
 const signedIn = () => !!(window as unknown as { Clerk?: { user?: unknown } }).Clerk?.user;
 
+export interface Revision { revision: number; kind: 'draft' | 'live' | 'superseded'; created_at: string }
 export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string; slug?: string | null; live_revision?: number }
 
 export async function getClient() {
@@ -40,18 +41,38 @@ export function usePublished() {
   }, [key]);
   useEffect(() => { setLoaded(false); void reload(); }, [reload]);
 
-  const run = async (fn: () => Promise<void>) => { setBusy(true); setError(''); try { await fn(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } };
-  const publish = (title: string) => run(async () => {
-    const c = await getClient();
+  const run = async <T,>(fn: () => Promise<T>): Promise<T | undefined> => { setBusy(true); setError(''); try { return await fn(); } catch (e) { setError((e as Error).message); return undefined; } finally { setBusy(false); } };
+  /** The snapshot that gets published or saved as a draft: same build, same media upload, same cleaning. */
+  const snapshot = async (title: string) => {
     const { tl: t, state: s } = latest.current;
     const built = buildPublishState(t, s.assets, s.overlays ?? [], title);
     await pub.uploadLocalMedia(built, { getBlob: () => null, upload: uploadFileToStorage });
-    const project = pub.preparePublishProject(built, { title });
+    return pub.preparePublishProject(built, { title });
+  };
+  const publish = (title: string) => run(async () => {
+    const c = await getClient();
+    const project = await snapshot(title);
     const vid = readIds()[key] || pub.makeSlug();
     const row = await pub.publishVideo(c, { id: vid, project });
     localStorage.setItem(KEY, JSON.stringify({ ...readIds(), [key]: vid }));
     setInfo({ ...row, published: true });
   });
+  // Drafts: the live link keeps serving the current version until a draft is promoted.
+  const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [draftsUnavailable, setDraftsUnavailable] = useState(false);
+  const loadRevisions = useCallback(async () => {
+    if (!id || !signedIn()) { setRevisions([]); return; }
+    try { setRevisions(await pub.listRevisions(await getClient(), id)); setDraftsUnavailable(false); }
+    catch (e) { if (/relation .* does not exist|schema cache|could not find the table|42P01/i.test((e as Error).message)) setDraftsUnavailable(true); }
+  }, [id]);
+  useEffect(() => { void loadRevisions(); }, [loadRevisions, info?.updated_at]);
+  const saveDraft = (title: string) => run(async () => {
+    const rev = await pub.publishDraft(await getClient(), { id, project: await snapshot(title) });
+    await loadRevisions();
+    return rev;
+  });
+  const promote = (revision: number) => run(async () => { await pub.promoteRevision(await getClient(), id, revision); await reload(); await loadRevisions(); });
+  const draftProject = async (revision: number) => pub.getRevisionProject(await getClient(), id, revision);
   const setLive = (on: boolean) => run(async () => { await pub.setPublished(await getClient(), id, on); setInfo((i) => (i ? { ...i, published: on } : i)); });
-  return { id, info, busy, error, loaded, publish, setLive, reload, title: tl?.name || 'Untitled video', signedIn: signedIn() };
+  return { id, info, busy, error, loaded, publish, setLive, reload, revisions, draftsUnavailable, saveDraft, promote, draftProject, loadRevisions, title: tl?.name || 'Untitled video', signedIn: signedIn() };
 }
