@@ -1,0 +1,229 @@
+{
+ "id": "apps",
+ "name": "Apps",
+ "route": "#/apps",
+ "description": "The Apps hub is the home screen of the app: a searchable grid of every creative tool, grouped as Image apps, Video apps, Agents apps and My Work.",
+ "shortDescription": "Searchable grid of all 26 tools. Pick one to open it.",
+ "fullDescription": "Apps (route #/apps) is a hub page titled \"Every creative tool, one place\" with the line \"Studios, effects, editors and AI apps. Pick one and start creating.\" and a badge reading \"Explore apps\". It shows three step cards: \"1 Choose an app\" (Image, video, cinema, audio and more, each studio is tuned for one job), \"2 Create\" (Describe what you want, pick a model and press Generate) and \"3 Keep it\" (Results land in your Library, ready to edit, render or publish). Below that is a \"Search apps...\" box and the app cards. The cards are built from the side menu itself, so the hub and the left menu list the same tools. There are 26 cards in four sections. Clicking the logo at the top left of the header also goes to the Apps hub (its label is \"All apps\"). The retired Chat, Assist and Training pages now redirect here.",
+ "bestFor": "Finding out what tools exist, jumping to the right studio when you are not sure where to start, and getting back to a tool you used recently.",
+ "whenToUse": [
+  "You are new and want to see every tool in one place.",
+  "You know what you want to make (an image, a video, a voiceover) but not which studio does it.",
+  "You want to reopen a tool you used recently (the Recently Used row).",
+  "The side menu feels long and you want to search by name or description."
+ ],
+ "whenToUseAnother": [
+  "If you want ready-made starting points with your own photo or video, use Templates (#/templates).",
+  "If you want inspiration and sample prompts, use Explore (#/explore).",
+  "If you want your finished files, use Library (#/library) or Content (#/content-library)."
+ ],
+ "keyFeatures": [
+  "Search apps box (placeholder \"Search apps...\") that filters cards by name and description and hides empty sections.",
+  "Four sections: Image apps, Video apps, Agents apps, My Work, each with a count.",
+  "Each card shows a thumbnail, icon, name, one-line description and a small badge.",
+  "Recently Used row of up to 8 chips (shown only after you have opened a tool from this page).",
+  "Same tool list as the left side menu (the hub is generated from it).",
+  "No results message: No apps match \"your search\"."
+ ],
+ "featureExplanations": [
+  {
+   "feature": "Search apps",
+   "explanation": "Type in the \"Search apps...\" box. Cards are matched on their name plus description text. Sections with no matching card disappear and the number beside each section title updates.",
+   "whyToUse": "Fastest way to find a tool such as \"upscale\" or \"lip\".",
+   "inputRequired": "Any text",
+   "restrictions": "Matches only card name and description, not model names or badges."
+  },
+  {
+   "feature": "Recently Used",
+   "explanation": "When you open an app by clicking its card on this page, its name is remembered in this browser and shown as a chip at the top next time (most recent first, up to 8 shown, 12 remembered).",
+   "whyToUse": "One click back to the tools you use most.",
+   "inputRequired": "None",
+   "restrictions": "Stored in your browser only; clearing site data empties it. Only tools opened from the hub cards are recorded."
+  },
+  {
+   "feature": "Section groups",
+   "explanation": "Image apps, Video apps, Agents apps and My Work match the group headings in the left side menu.",
+   "whyToUse": "Tells you whether a tool is for pictures, moving video, AI-agent workflows or your saved files.",
+   "inputRequired": "None",
+   "restrictions": "The first side-menu group (Apps, Explore, Templates) is navigation, not an app, so it has no cards here."
+  }
+ ],
+ "howToUse": "1. Open Apps from the first item in the left side menu (or click the logo at the top left). 2. Optionally type in \"Search apps...\" to narrow the list. 3. Click a card (or focus it and press Enter or Space) to open that app. 4. Use the left side menu or the logo to come back.",
+ "howToSteps": [
+  "Open Apps from the left side menu or click the logo at the top left.",
+  "Scan the four sections or type in \"Search apps...\".",
+  "Click the card for the tool you want.",
+  "To return, click the logo again or use the side menu."
+ ],
+ "gettingStarted": [
+  "New to the app: start with Image Studio (describe a picture, press Generate) or Templates if you want a guided start.",
+  "Add your MuAPI key first so generation works (see the API keys help topic)."
+ ],
+ "inputs": [
+  "Search text (optional)"
+ ],
+ "requiredInputs": [],
+ "optionalInputs": [
+  "Search text"
+ ],
+ "inputDetails": [
+  {
+   "name": "Search apps...",
+   "description": "Text box above the cards.",
+   "required": false,
+   "whenToUse": "When you know part of a tool name or what it does.",
+   "restrictions": "Case-insensitive text match on name and description."
+  }
+ ],
+ "generationModes": [],
+ "modeExplanations": [],
+ "modelCapabilities": "",
+ "outputs": [
+  "Navigation only: the Apps hub does not generate anything itself."
+ ],
+ "limitations": [
+  "The hub does not generate content; it only opens other tools.",
+  "Recently Used is per browser."
+ ],
+ "limitationDetails": [
+  {
+   "limitation": "Recently Used only updates from hub cards",
+   "impact": "Tools you open from the side menu do not appear in the row.",
+   "workaround": "Open them from the Apps hub once."
+  }
+ ],
+ "troubleshooting": [
+  "A tool you expect is missing: use the left side menu; the hub shows the same list, so if it is missing in both it is not available.",
+  "Search shows nothing: clear the search box; the message \"No apps match\" means no card name or description contains your text.",
+  "Cannot find Chat, Assist or Training: those pages were retired and open the Apps hub instead."
+ ],
+ "troubleshootingSteps": [
+  {
+   "issue": "I typed in search and everything disappeared",
+   "steps": [
+    "Check the spelling.",
+    "Delete the text to show all 26 cards again.",
+    "Try a shorter word such as \"video\"."
+   ]
+  }
+ ],
+ "commonProblems": [
+  {
+   "problem": "Old Chat/Assist/Training link lands on Apps",
+   "whyItHappens": "Those studios were retired; old links redirect to the Apps hub.",
+   "howToFix": "Pick the tool you need from the cards instead."
+  }
+ ],
+ "exampleWorkflows": [
+  {
+   "title": "Find a tool by search",
+   "steps": [
+    "Open Apps.",
+    "Type \"upscale\" in Search apps...",
+    "Click Upscale Suite."
+   ]
+  },
+  {
+   "title": "Pick a starting tool for a short video",
+   "steps": [
+    "Open Apps.",
+    "Look under Video apps.",
+    "Choose Video Studio for text/image to video, or Cinema Studio for camera-controlled shots."
+   ]
+  }
+ ],
+ "useCases": [
+  {
+   "title": "Discover what the app can do",
+   "description": "Browse all 26 tools and their one-line descriptions.",
+   "steps": [
+    "Open Apps.",
+    "Read each section.",
+    "Click anything that looks useful."
+   ],
+   "expectedOutput": "You land in the chosen studio."
+  }
+ ],
+ "faqs": [
+  {
+   "question": "What tools exist in this app?",
+   "answer": "The Apps hub lists 26 tools. Image Studio (#/image): Generate images with 20+ AI models. Group: Image apps; badge \"20+ models\". Edit Studio (#/edit): Remove objects, backgrounds, reframe. Group: Image apps; badge \"9 tools\". Upscale Suite (#/upscale): AI upscale and enhance images. Group: Image apps; badge \"3 methods\". Character Studio (#/character): Consistent character generation. Group: Image apps; badge \"Face ID\". Product Shot Studio (#/commercial): Studio-quality product photos from one image. Group: Image apps; badge \"Product\" (side-menu label: Product Shot). Brand Studio (#/brand): Brand-consistent content generation. Group: Image apps; badge \"Brand\". Video Studio (#/video): Create AI videos from text and images. Group: Video apps; badge \"15+ models\". Cinema Studio (#/cinema): Cinematic shots with camera controls. Group: Video apps; badge \"6 cameras\". Cinema Templates (#/cinema-template): Ready-made cinematic templates: add your media and generate. Group: Video apps; badge \"Templates\". Storyboard Studio (#/storyboard): Multi-frame generation for sequences. Group: Video apps; badge \"Frames\". Effects Studio (#/effects): Apply 350+ motion and visual effects. Group: Video apps; badge \"350+ effects\". AI VFX Studio (#/ai-vfx): Camera moves, VFX and AI effects from one image. Group: Video apps; badge \"VFX\". Animate Studio (#/animate): Animate images and create motion graphics. Group: Video apps; badge \"Motion\". Lip Sync Studio (#/lipsync): Animate portraits or sync lips to audio with AI. Group: Video apps; badge \"Lip Sync\". Video Tools (#/videotools): Upscale, edit, translate, and enhance videos. Group: Video apps; badge \"Video Tools\". Avatar Studio (#/avatar): AI avatars and lip sync video generation. Group: Video apps; badge \"AI Avatars\". Audio Studio (#/audio): Generate music, speech, and sound effects. Group: Video apps; badge \"AI Audio\". Video Agent (#/video-agent): AI-powered video production assistant. Group: Agents apps; badge \"Agent\". Director (#/director): AI editor that cuts and directs your footage. Group: Agents apps; badge \"AI Editor\". Timeline Editor (#/timeline): Multi-track timeline for editing and rendering. Group: Agents apps; badge \"Editor\" (side-menu label: Timeline). Workbench (#/workbench): Node-based workspace to chain generations together. Group: Agents apps; badge \"Workflow\". Smart Video Viral (#/viral): AI-powered viral video generation. Group: Agents apps; badge \"Viral\" (side-menu label: Viral). Personalizer (#/personalizer): Personalize templates and assets with your data. Group: Agents apps; badge \"Personalize\". Website Builder (#/website-builder): Generate and publish a site from a prompt. Group: Agents apps; badge \"Websites\" (side-menu label: Website). Library (#/library): Everything you have generated, in one place. Group: My Work; badge \"My work\". Content (#/content-library): Browse and reuse your saved content. Group: My Work; badge \"My work\"."
+  },
+  {
+   "question": "How many apps are there?",
+   "answer": "26 cards: Image apps 6, Video apps 11, Agents apps 7, My Work 2. Apps, Explore and Templates are navigation pages in the side menu, not cards."
+  },
+  {
+   "question": "What is the difference between Apps, Explore and Templates?",
+   "answer": "Apps lists every tool. Explore shows trending templates, a prompt library and category cards for inspiration. Templates is a browsable library of ready-made templates where you add your media and press Generate."
+  },
+  {
+   "question": "Where did Chat, Assist and Training go?",
+   "answer": "They were retired. Opening those links takes you to the Apps hub. Community opens Explore instead."
+  },
+  {
+   "question": "Why do side-menu names differ from card names?",
+   "answer": "The side menu uses short labels (Product Shot, Timeline, Viral, Website, Content); the hub cards use longer names (Product Shot Studio, Timeline Editor, Smart Video Viral, Website Builder)."
+  }
+ ],
+ "glossary": {
+  "Studio": "A tool page focused on one job, such as Image Studio.",
+  "Agent": "An AI-driven tool that plans or performs several steps for you, such as Video Agent or Director.",
+  "Recently Used": "Chips of tools you opened from the hub."
+ },
+ "tips": [
+  "Use the search box instead of scrolling.",
+  "Check the card badges for quick hints, e.g. \"350+ effects\" on Effects Studio.",
+  "Cards work with the keyboard: Tab to a card and press Enter."
+ ],
+ "bestPractices": [
+  "Start from the output you want (image, video, audio) and pick that section.",
+  "Open Library after generating to find your results."
+ ],
+ "relatedStudios": [
+  "explore",
+  "templates",
+  "image",
+  "video",
+  "cinema",
+  "library",
+  "content-library",
+  "video-agent"
+ ],
+ "relatedStudioGuidance": [
+  {
+   "studio": "explore",
+   "relationship": "Inspiration page",
+   "whenToMove": "You want sample prompts or trending templates.",
+   "why": "Explore has a prompt library with Try this prompt buttons."
+  },
+  {
+   "studio": "templates",
+   "relationship": "Ready-made starts",
+   "whenToMove": "You would rather fill in a template than write prompts.",
+   "why": "Templates are pre-configured for a model and a look."
+  },
+  {
+   "studio": "library",
+   "relationship": "Where results land",
+   "whenToMove": "You finished generating.",
+   "why": "Everything you create is saved to Library."
+  }
+ ],
+ "notConfirmed": [
+  "The Apps hub does not state how much each tool costs; pricing and credits per tool are not shown on the cards.",
+  "The marketing offer mentions \"34 AI Creative Apps\" while the hub shows 26 cards; the difference is not explained in the code."
+ ],
+ "sourceFiles": [
+  "src/components/AppsHub.js",
+  "src/lib/studioRoutes.js",
+  "src/lib/router.js",
+  "src/components/Header.js"
+ ],
+ "verification": {
+  "status": "code-review",
+  "evidence": "Read: src/components/AppsHub.js, src/lib/studioRoutes.js, src/lib/router.js, src/components/Header.js",
+  "verifiedAt": "2026-11-12",
+  "verifiedBy": "Code review (LLM-assisted)"
+ }
+}

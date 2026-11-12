@@ -97,8 +97,9 @@ for (const f of kbFiles) {
 }
 
 const { STUDIO_INTENTS = {}, TRACK_INTENTS = {} } = fs.existsSync(path.join(ROOT, 'src/data/askIntents.js')) ? await imp('src/data/askIntents.js') : {};
-const { STUDIO_ACADEMY = {}, TRACK_TITLES = {}, academyUrl = (t, l) => `#/academy?track=${t}${l ? `&lesson=${l}` : ''}` } = fs.existsSync(path.join(ROOT, 'src/data/askAcademyMap.js')) ? await imp('src/data/askAcademyMap.js') : {};
-const guideUrl = (id) => `#/academy?studio=${id}`;
+const { STUDIO_ACADEMY = {}, TRACK_TITLES = {}, academyTrackUrl, academyLessonUrl } = await imp('src/data/askAcademyMap.js');
+// Verified Academy hash form: #/academy/track/<track>[/lesson/<id>] (see AcademyPage.jsx parseAcademyHash).
+const academyUrl = (track, lesson) => (lesson ? academyLessonUrl(track, lesson) : academyTrackUrl(track));
 
 for (const kb of studios) {
   const url = kb.route || `#/${kb.id}`;

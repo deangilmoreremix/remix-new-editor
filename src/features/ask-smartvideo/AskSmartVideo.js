@@ -7,7 +7,7 @@
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 import { getStudioLabel, getNavItemForRoute } from '../../lib/studioRoutes.js';
-import { ENDPOINT, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf } from './askCore.js';
+import { ENDPOINT, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl } from './askCore.js';
 
 const STORE = 'askSmartVideo:v1';
 const MAX_LEN = 1500;
@@ -56,13 +56,14 @@ export function mountAskSmartVideo({ navigate, getPage }) {
       </header>
       <div data-ask="log" class="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar" aria-live="polite"></div>
       <div data-ask="keycard" hidden class="mx-4 mb-2 rounded-xl border border-primary/30 bg-primary/10 p-3 text-xs text-white">
-        Ask SmartVideo uses your own OpenAI key. <button type="button" data-ask="settings" class="underline text-primary">Open Settings → API keys</button>
+        <strong>Add your OpenAI key to get an answer.</strong> Ask SmartVideo uses your own OpenAI key. <button type="button" data-ask="settings" class="underline text-primary">Open API keys</button>
       </div>
       <form data-ask="form" class="flex items-end gap-2 border-t border-white/10 p-3">
         <textarea data-ask="input" rows="1" maxlength="${MAX_LEN}" placeholder="Ask about any studio…" aria-label="Your question"
           class="flex-1 resize-none rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/60 max-h-28"></textarea>
         <button type="submit" data-ask="send" class="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-black disabled:opacity-50">Send</button>
       </form>
+      <p class="px-3 pb-3 -mt-1 text-[10px] leading-snug text-muted">Uses your own OpenAI key — usage is billed to your OpenAI account. AI answers can be wrong; check the linked page. Never paste API keys here.</p>
     </section>`;
   document.body.appendChild(root);
 
@@ -70,6 +71,7 @@ export function mountAskSmartVideo({ navigate, getPage }) {
   const panel = $('panel'); const log = $('log'); const input = $('input'); const sendBtn = $('send'); const keycard = $('keycard');
 
   const studioId = () => getNavItemForRoute(getPage()) || null;
+  const ctx = () => (studioId() ? `Help for ${getStudioLabel(studioId())} and the whole app` : 'Help for every studio, the Academy and more');
   const bubble = (role, html) => {
     const d = document.createElement('div');
     d.className = role === 'user' ? 'ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary/90 text-black px-3 py-2 text-sm whitespace-pre-wrap' : 'ask-body max-w-[95%] rounded-2xl rounded-bl-sm bg-white/5 text-white px-3 py-2 text-sm';
@@ -83,23 +85,25 @@ export function mountAskSmartVideo({ navigate, getPage }) {
     if (!chips.length) return null;
     const wrap = document.createElement('div');
     wrap.className = 'flex flex-wrap items-center gap-1.5 pt-1';
-    const lab = document.createElement('span'); lab.className = 'text-[11px] text-muted'; lab.textContent = cited ? 'Sources' : 'Related'; wrap.appendChild(lab);
-    chips.forEach((s) => {
+    const lab = document.createElement('span'); lab.className = 'text-[11px] text-muted'; lab.textContent = cited ? 'Sources' : 'Related pages'; wrap.appendChild(lab);
+    chips.forEach((c) => {
       const b = document.createElement('button');
-      b.type = 'button'; b.dataset.askPage = pageOf(s.url);
-      b.className = 'rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white hover:border-primary/50';
-      b.textContent = s.studioId ? `Open ${s.label}` : s.label;
+      b.type = 'button'; b.dataset.askUrl = c.url;
+      b.className = c.academy || isAcademyUrl(c.url)
+        ? 'rounded-full border border-purple-400/40 bg-purple-500/10 px-2.5 py-1 text-xs text-purple-200 hover:border-purple-300'
+        : 'rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white hover:border-primary/50';
+      b.textContent = c.label;
       wrap.appendChild(b);
     });
     return wrap;
   };
 
   function renderAll() {
-    $('context').textContent = studioId() ? `You're in ${getStudioLabel(studioId())}` : 'Help for every studio';
+    $('context').textContent = ctx();
     keycard.hidden = apiKeyManager.hasOpenAIKey();
     log.innerHTML = '';
     if (!messages.length) {
-      const intro = bubble('assistant', renderAnswer('Hi! I can explain any SmartVideo studio and point you to the right one. Try:'));
+      const intro = bubble('assistant', renderAnswer('Ask how to do anything in SmartVideo. Answers come from our studio guides and Academy courses, and link to the page they came from.'));
       const w = document.createElement('div'); w.className = 'flex flex-col gap-1.5 pt-1';
       starterPrompts(studioId()).forEach((q) => {
         const b = document.createElement('button'); b.type = 'button'; b.dataset.askStarter = q; b.textContent = q;
@@ -169,21 +173,22 @@ export function mountAskSmartVideo({ navigate, getPage }) {
     $('launcher').setAttribute('aria-expanded', String(open));
     if (open) { renderAll(); input.focus(); }
   };
-  const go = (page) => {
-    if (page === 'settings') window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'settings' } }));
-    else navigate(page);
+  const go = (url) => {
+    if (isAcademyUrl(url)) window.location.hash = url; // the Academy page parses its own hash path
+    else if (pageOf(url) === 'settings') window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'settings' } }));
+    else navigate(pageOf(url));
     if (window.matchMedia('(max-width: 639px)').matches) setOpen(false);
   };
 
   root.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-ask-page],[data-ask-starter],[data-ask]');
+    const t = e.target.closest('[data-ask-url],[data-ask-starter],[data-ask]');
     if (!t) return;
-    if (t.dataset.askPage) { e.preventDefault(); return go(t.dataset.askPage); }
+    if (t.dataset.askUrl) { e.preventDefault(); return go(t.dataset.askUrl); }
     if (t.dataset.askStarter) return ask(t.dataset.askStarter);
     const k = t.dataset.ask;
     if (k === 'launcher') setOpen(panel.hidden);
     else if (k === 'close') setOpen(false);
-    else if (k === 'settings') go('settings');
+    else if (k === 'settings') go('#/settings');
     else if (k === 'clear') { abort?.abort(); messages = []; save([]); renderAll(); }
   });
   $('form').addEventListener('submit', (e) => { e.preventDefault(); const v = input.value; input.value = ''; input.style.height = ''; ask(v); });
@@ -191,5 +196,5 @@ export function mountAskSmartVideo({ navigate, getPage }) {
   input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 112)}px`; });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) setOpen(false); });
   // Keep "You're in <studio>" and the starters current as the user moves around.
-  window.addEventListener('hashchange', () => { if (!panel.hidden && !busy && !messages.length) renderAll(); else if (!panel.hidden) $('context').textContent = studioId() ? `You're in ${getStudioLabel(studioId())}` : 'Help for every studio'; });
+  window.addEventListener('hashchange', () => { if (!panel.hidden && !busy && !messages.length) renderAll(); else if (!panel.hidden) $('context').textContent = ctx(); });
 }

@@ -1,0 +1,377 @@
+{
+  "id": "timeline",
+  "name": "Timeline Editor",
+  "route": "#/timeline",
+  "description": "A multi-track video editor in your browser with a project manager, media pool, source and timeline viewers, trim tools, AI generation tools (Fill Gap, Extend, Music, Mask) and an Export tab. The header shows the product name TIMELINE STUDIO EDITOR.",
+  "shortDescription": "Multi-track timeline for editing and rendering your videos, with built-in AI tools.",
+  "fullDescription": "Timeline Editor (#/timeline) is the full non-linear editor. It opens on a Project Manager where you create or open a project, then shows a workspace with the top tabs Elements, Spaces, Director, Edit, LLM, Export and Leads. The Edit tab is the editor itself: a media pool, a source viewer and timeline viewer, a tool sidebar (Selection, Blade, Ripple Trim, Roll Trim, Slip, Slide, Music, Fill Gap, Extend, Mask), multiple tracks with mute, solo and lock, clip properties (transform, effects, transitions, zoom, captions), keyframes, markers, snapping and multiple timeline tabs. The Export tab renders the timeline to MP4 at Draft 720p, Standard 1080p or High Quality 4K, at 24, 30 or 60 fps, and can also export an FCPXML file for Final Cut Pro, Premiere and DaVinci Resolve. A classic, older version of the editor is still reachable at #/timeline-classic and has its own AI Assistant chat with Ask, Search, Cut and Timeline modes.",
+  "bestFor": "Creators and marketers who want to assemble clips, music, voice-over and AI-generated footage on a real multi-track timeline, trim precisely, and export a finished MP4 without leaving the browser.",
+  "whenToUse": [
+    "You have several clips, images, music or voice-over and want to arrange them on tracks in order.",
+    "You need precise trimming (ripple, roll, slip, slide) or want to split a clip at the playhead with the Blade tool.",
+    "You want to bridge a gap between two clips with AI footage (Fill Gap) or lengthen a clip (Extend).",
+    "You want AI-made background music that fits your video (Music Tool).",
+    "You want to mask or isolate an object in a clip (Mask Tool).",
+    "You want to finish with a rendered MP4 at 720p, 1080p or 4K, or hand the edit to Final Cut Pro, Premiere or DaVinci Resolve as FCPXML."
+  ],
+  "whenToUseAnother": [
+    "Use Video Render (#/render) when you already have a finished generated video and only want to re-export it, make a trailer cut, social resize or shorts, without building a timeline.",
+    "Use Video Tools (#/videotools) for quick one-off video operations rather than a full edit.",
+    "Use Director (#/director) or Video (#/video) when you want to generate the clips first from prompts, then bring them here to edit.",
+    "Use Personalizer (#/personalizer) when you want to build a personalized page or asset set for each contact rather than edit a video.",
+    "Use Audio (#/audio) to create voice-overs or music as separate files before importing them."
+  ],
+  "keyFeatures": [
+    "Project Manager home screen with New project and Project name... field",
+    "Top tabs: Elements, Spaces, Director, Edit, LLM, Export, Leads (plus Settings)",
+    "Multi-track timeline with Add Track, track Mute / Solo / Lock buttons",
+    "Tool sidebar: Selection (V), Blade (B), Ripple Trim (R), Roll Trim (N), Slip (Y), Slide (U), Music, Fill Gap, Extend (E), Mask (X)",
+    "Source viewer and Timeline viewer with playback and frame stepping",
+    "Snap toggle (S) and Add Marker (M) in the timeline tab bar",
+    "Multiple timeline tabs inside one project (New Timeline, Close timeline)",
+    "Fill Gap and Extend AI generation modals",
+    "Music generation popup and a sound effects library",
+    "Voice-over recording at the playhead",
+    "Audio sync and batch sync, plus a proxy toggle for smoother playback on big projects",
+    "Link / unlink audio from video (Ctrl or Cmd + L)",
+    "Frame Chat on the clip under the playhead (Ctrl or Cmd + Shift + Space)",
+    "Undo and redo (Ctrl or Cmd + Z, add Shift to redo)",
+    "Export tab with preset, frame rate, aspect ratio, fit, bitrate, master quality and optional post-export check",
+    "FCPXML export for Final Cut Pro, Premiere and DaVinci Resolve",
+    "Leads tab to publish an interactive version and collect leads"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Project Manager",
+      "explanation": "When you open #/timeline you land on a Project Manager titled TIMELINE STUDIO EDITOR. You create a project with the New project button, type a name in the Project name... box, and open it. The open project is remembered in the page address (a project parameter), and a Back to Projects button in the top bar returns you to the list.",
+      "whyToUse": "Keeps each edit separate so you can come back to it later.",
+      "inputRequired": "A project name.",
+      "restrictions": "Projects from the earlier build are imported once automatically. The List view, Export and Import buttons at the bottom of the Project Manager are disabled in the code."
+    },
+    {
+      "feature": "Edit tab - media pool and viewers",
+      "explanation": "The Edit tab has a collapsible media pool on the left for your imported or generated media, a source viewer for scrubbing a single clip, and a timeline viewer that plays the whole edit. You drag media from the pool onto tracks.",
+      "whyToUse": "This is where you actually build the cut.",
+      "inputRequired": "Imported or generated media (video, image, audio).",
+      "restrictions": "Preview quality depends on your computer; use the proxy toggle (tooltips: Using proxy files for playback / Using original files for playback) if playback stutters."
+    },
+    {
+      "feature": "Tool sidebar and shortcuts",
+      "explanation": "The sidebar offers Selection Tool (V), Blade Tool (B), Ripple Trim (R), Roll Trim (N), Slip (Y), Slide (U), Music Tool (M label), Fill Gap Tool, Extend Tool (E) and Mask Tool (X). The A key switches to a track-forward selection tool. Hovering a tool shows its name and shortcut as a tooltip.",
+      "whyToUse": "Different tools make different edits fast: Blade cuts, Ripple closes gaps while trimming, Roll moves the cut point between two clips, Slip changes which part of a clip shows without moving it, Slide moves a clip between its neighbours.",
+      "inputRequired": "A clip on the timeline.",
+      "restrictions": "Shortcuts do not fire while you are typing in a text box, number field or dropdown. In the code, the M label on the Music Tool is shown but the keyboard handler for M is used for Add Marker; click the Music Tool icon to be sure. Fill Gap has no shortcut label in the sidebar, although the G key selects it."
+    },
+    {
+      "feature": "Tracks",
+      "explanation": "Each track row has a header with Lock/Unlock, Mute/Unmute and Solo/Unsolo buttons and a name you can rename. Add Track at the bottom bar adds a track; buttons Fit tracks to view and Fit timeline to view adjust zoom. The video and audio areas can be resized, and double-clicking the divider resets the split to half and half.",
+      "whyToUse": "Layer b-roll over main footage, keep music and voice on separate audio tracks, and lock tracks you do not want to disturb.",
+      "inputRequired": "None.",
+      "restrictions": "There is also a Delete empty tracks action in the editor code; exact menu wording is not confirmed."
+    },
+    {
+      "feature": "Clip right-click menu and linking audio",
+      "explanation": "Right-clicking a clip shows a menu with cut, copy and paste (shown as X, C, V shortcuts), link or unlink audio (Ctrl or Cmd + L), a Delete action (Backspace), and Send Frame to Spaces. You can also select several clips with Shift or Cmd/Ctrl click.",
+      "whyToUse": "Quick editing without hunting through panels; linking audio keeps a video clip and its sound moving together.",
+      "inputRequired": "One or more selected clips.",
+      "restrictions": "Ctrl or Cmd + L only works when the selection can be linked or unlinked."
+    },
+    {
+      "feature": "Clip properties panel",
+      "explanation": "Selecting a clip opens a properties panel with sections for transform (position, scale and similar sliders), layout, effects, transitions, zoom, captions, multicam, analyze and fade In / Out. Opacity and volume can be keyframed on a keyframe track per clip.",
+      "whyToUse": "Fine control over how each clip looks and sounds.",
+      "inputRequired": "A selected clip.",
+      "restrictions": "Which sections appear depends on the clip type (video, image, audio, captions)."
+    },
+    {
+      "feature": "Snap and Markers",
+      "explanation": "The bar above the tracks has a Snap button (tooltip Snap ON or Snap OFF with shortcut S) and a Marker button (Add Marker, shortcut M). Snap pulls clips to neighbouring edges and the playhead.",
+      "whyToUse": "Keeps clips aligned with no accidental gaps; markers flag beats or notes.",
+      "inputRequired": "None.",
+      "restrictions": "None confirmed."
+    },
+    {
+      "feature": "Multiple timelines",
+      "explanation": "Timeline tabs above the tracks let you keep several edits of one project. Click the plus button (New Timeline) to add one (named Timeline 2, Timeline 3, and so on), rename by editing the tab name, and close with the Close timeline button.",
+      "whyToUse": "Try alternative cuts, a short version and a long version, without duplicating the project.",
+      "inputRequired": "None.",
+      "restrictions": "Each tab is its own timeline; export always renders the active timeline."
+    },
+    {
+      "feature": "Fill Gap",
+      "explanation": "Fill Gap asks AI to generate footage that bridges a gap between two clips, using the surrounding frames for context. You type a prompt describing what should happen in the gap and generate. Ctrl or Cmd + Enter submits, Escape closes.",
+      "whyToUse": "Smooth a jump cut or cover a missing moment without re-shooting.",
+      "inputRequired": "A gap between two clips and a prompt.",
+      "restrictions": "If the prompt is empty you see 'Enter a prompt describing what should happen in this gap'. The README says it uses Kling 3.0; a provider key may be needed in Settings."
+    },
+    {
+      "feature": "Extend",
+      "explanation": "Extend lengthens a clip before or after using an AI video model, taking a reference frame from the source clip. You describe what the extension should show.",
+      "whyToUse": "Make a shot a little longer to cover narration or a transition.",
+      "inputRequired": "A clip and a prompt.",
+      "restrictions": "Empty prompt gives 'Enter a prompt describing what the extension should show'. If no frame can be read you see 'Could not extract reference frame from source clip. Try scrubbing the clip first.' The README says it supports 9 video models."
+    },
+    {
+      "feature": "Music Tool and sound effects",
+      "explanation": "The Music Tool opens a music generation popup with genre, mood, style and tempo presets and an instrumental option (per the project README). The sidebar also has a Sound effects library button and a voice-over recorder button (Record voice-over / Stop recording) that records at the playhead.",
+      "whyToUse": "Add a soundtrack, effects or narration without leaving the editor.",
+      "inputRequired": "Optional: a prompt or preset choices.",
+      "restrictions": "Microphone permission is needed for voice-over. AI music needs a configured provider."
+    },
+    {
+      "feature": "Mask Tool",
+      "explanation": "The Mask Tool (X) opens the source viewer mask tool, which can segment an object with text, click or box prompts and preview as red overlay, white-on-black or cutout (per the README).",
+      "whyToUse": "Isolate a subject for effects or replacement.",
+      "inputRequired": "A clip and a prompt, click or box.",
+      "restrictions": "Needs an AI segmentation provider; availability is not confirmed from the page code."
+    },
+    {
+      "feature": "Frame Chat",
+      "explanation": "Pressing Ctrl or Cmd + Shift + Space opens Frame Chat on the video or image clip under the playhead. If nothing editable is under the playhead it falls back to chat-only. A separate shortcut on the same keys is also registered by the workspace for Voice Director.",
+      "whyToUse": "Ask questions about, or edit, a single frame.",
+      "inputRequired": "A playhead over a video or image clip (optional).",
+      "restrictions": "Two handlers listen to the same key combination in the code; which one you see first is not confirmed."
+    },
+    {
+      "feature": "Export tab",
+      "explanation": "Export (subtitle: Render your timeline as an MP4 video) has: Preset (Draft 720p, Standard 1080p, High Quality 4K), Frame Rate (24, 30 or 60 fps, default 30), Aspect ratio, a Contain (whole picture) or Cover (fill frame) fit, Video bitrate (Auto, Compact (smaller file), Recommended, High (larger file), Custom...), a Master quality (higher default bitrate) checkbox, and a checkbox to check the finished export (duration, size, black / frozen frames, silence, peak level). Click Render to start. Progress is checked every 2 seconds.",
+      "whyToUse": "Produces the final deliverable.",
+      "inputRequired": "At least one clip on the timeline.",
+      "restrictions": "Render is disabled with the tooltip 'Add clips to the timeline first' and the hint 'Add clips to the timeline in the Edit tab before exporting.' when the timeline is empty. Default preset is Standard and default frame rate 30."
+    },
+    {
+      "feature": "Export FCPXML",
+      "explanation": "The Export FCPXML button downloads the active timeline as an .fcpxml file for Final Cut Pro, Premiere and DaVinci Resolve.",
+      "whyToUse": "Finish the edit in a desktop editor.",
+      "inputRequired": "A timeline with clips.",
+      "restrictions": "The page says: Relink the media after import."
+    },
+    {
+      "feature": "Leads tab",
+      "explanation": "The Leads tab (Publish & collect leads) lets you publish an interactive version of the video with forms and buttons and collect leads from it. The Export tab links to it.",
+      "whyToUse": "Turn a video into a lead capture page.",
+      "inputRequired": "A finished timeline.",
+      "restrictions": "Detailed Leads steps were not reviewed in depth."
+    },
+    {
+      "feature": "Classic editor AI Assistant chat",
+      "explanation": "The classic editor at #/timeline-classic has an AI Assistant panel with four modes: Ask (questions about the project), Search (find quotes and moments; answers include clickable timestamp buttons that move the playhead), Cut (rough cut or selects shown as a table with an Apply as new timeline tab button) and Timeline (pacing and edit suggestions, each with a Do it with AI Agent button). You can @mention a clip, use skill chips (Shot List, Rough Cut, Remove Dead Space, Selects & Highlights, B-Roll Planner, Prompt Writer, Editorial Brief, Delivery Prep), press Enter to send and Shift+Enter for a new line. A token counter is shown.",
+      "whyToUse": "Get editing ideas and rough cuts from the footage's own transcript and tags.",
+      "inputRequired": "A message; an OpenAI key.",
+      "restrictions": "Uses your own OpenAI key. Without it you see: 'This uses your own OpenAI key. Add it in Settings -> API keys (OpenAI API Key).' If you are signed out you may see 'Sign in to use the AI assistant.'"
+    }
+  ],
+  "howToUse": "1. Open Timeline Editor from the side menu or go to #/timeline. 2. In the Project Manager, click New project, type a name in the Project name... box and open it. 3. Open the Edit tab. 4. Import or generate media into the media pool and drag clips onto tracks in the timeline. 5. Press Space to play and pause; use Left and Right arrows to step one frame. 6. Pick a tool from the sidebar (for example Blade Tool, B) to split clips, or use trim tools to adjust them. 7. Click a clip to change its properties, or right-click it for the clip menu. 8. Optionally use Fill Gap, Extend, Music Tool or Mask Tool for AI help. 9. Open the Export tab, choose a Preset, Frame Rate and Aspect ratio. 10. Click Render and wait for the progress to finish, then download the MP4. 11. Optionally click Export FCPXML to continue in another editor.",
+  "howToSteps": [
+    "Open #/timeline and create a project with New project.",
+    "Switch to the Edit tab.",
+    "Add media to the media pool and drag it to tracks.",
+    "Trim and split clips using the sidebar tools or shortcuts.",
+    "Add music, effects, transitions or AI-generated fills where needed.",
+    "Open Export, choose Preset, Frame Rate and Aspect ratio, then click Render."
+  ],
+  "gettingStarted": [
+    "Create a project from the Project Manager, then go to the Edit tab.",
+    "Learn three shortcuts first: Space (play/pause), B (Blade) and V (Selection).",
+    "Add a couple of clips, split one with the Blade, and press Render on the Export tab to see the whole path once.",
+    "If you want the AI chat, add your OpenAI key in Settings first."
+  ],
+  "inputs": ["Video clips", "Images", "Audio (music, voice-over, sound effects)", "AI prompts (Fill Gap, Extend, Music)", "Project name", "Export settings"],
+  "requiredInputs": ["Project name", "At least one clip on the timeline to export"],
+  "optionalInputs": ["AI prompts", "Music presets", "Voice-over recording", "Markers", "OpenAI key for chat assistant", "Provider keys for AI generation"],
+  "inputDetails": [
+    {
+      "name": "Project name",
+      "description": "Name typed into the Project name... box when creating a project.",
+      "required": true,
+      "whenToUse": "Once at the start of each project.",
+      "restrictions": "None stated in the code."
+    },
+    {
+      "name": "Media (video, image, audio)",
+      "description": "Files or generated assets placed in the media pool and dragged onto tracks.",
+      "required": true,
+      "whenToUse": "Whenever you build a cut.",
+      "restrictions": "Supported file types are not listed in the reviewed files."
+    },
+    {
+      "name": "Fill Gap / Extend prompt",
+      "description": "A text description of what the generated footage should show.",
+      "required": false,
+      "whenToUse": "When using the AI generation tools.",
+      "restrictions": "Cannot be empty when you generate."
+    },
+    {
+      "name": "Export Preset",
+      "description": "Draft (720p), Standard (1080p) or High Quality (4K).",
+      "required": false,
+      "whenToUse": "Every export.",
+      "restrictions": "Default is Standard."
+    },
+    {
+      "name": "Frame Rate",
+      "description": "24 fps, 30 fps or 60 fps.",
+      "required": false,
+      "whenToUse": "Every export.",
+      "restrictions": "Default is 30 fps."
+    },
+    {
+      "name": "Aspect ratio and fit",
+      "description": "The frame shape of the project, with Contain (whole picture) or Cover (fill frame). The README lists 16:9, 4:3, 21:9, 1:1 and 9:16.",
+      "required": false,
+      "whenToUse": "When making vertical or square videos.",
+      "restrictions": "Exact list shown in the dropdown comes from the code's aspect list; the output size is displayed next to it."
+    },
+    {
+      "name": "Video bitrate",
+      "description": "Auto, Compact (smaller file), Recommended, High (larger file) or Custom... with a number box in Mbps.",
+      "required": false,
+      "whenToUse": "To trade file size for quality.",
+      "restrictions": "Custom has a minimum and maximum enforced by the number box."
+    }
+  ],
+  "generationModes": ["Fill Gap", "Extend", "Music Tool", "Mask Tool"],
+  "modeExplanations": [
+    {"mode": "Selection Tool (V)", "description": "Select, move and arrange clips.", "useCase": "Everyday arranging."},
+    {"mode": "Blade Tool (B)", "description": "Cut a clip at the cursor.", "useCase": "Remove a mistake or split a long shot."},
+    {"mode": "Ripple Trim (R)", "description": "Trim a clip edge and shift later clips to close the gap.", "useCase": "Shorten a clip without leaving a hole."},
+    {"mode": "Roll Trim (N)", "description": "Move the cut point between two neighbouring clips.", "useCase": "Adjust where one shot hands over to the next without changing total length."},
+    {"mode": "Slip (Y)", "description": "Change which part of a clip is shown without moving the clip.", "useCase": "Find a better moment inside the same slot."},
+    {"mode": "Slide (U)", "description": "Move a clip while its neighbours adjust.", "useCase": "Reorder timing between two clips."},
+    {"mode": "Fill Gap", "description": "AI creates footage to bridge a gap.", "useCase": "Hide a jump or missing moment."},
+    {"mode": "Extend (E)", "description": "AI adds footage before or after a clip.", "useCase": "Make a shot longer."},
+    {"mode": "Mask (X)", "description": "Segment an object with prompts.", "useCase": "Isolate a subject."},
+    {"mode": "Classic chat: Ask / Search / Cut / Timeline", "description": "Four modes of the AI Assistant in #/timeline-classic.", "useCase": "Q and A, finding moments, rough cuts, pacing advice."}
+  ],
+  "modelCapabilities": "From the README (not verified at runtime): Fill Gap uses Kling 3.0; Extend supports 9 video models; the Spaces tab lists 50+ image, video and audio models. The classic AI chat runs on the OpenAI Responses API through /api/timeline-llm with your own OpenAI key and strict JSON output; the default model name is set on the server and can be overridden by environment variables. Speed adjustment is listed as 0.1x to 2x in the README.",
+  "outputs": ["MP4 video", "FCPXML file", "Frame images saved from clips (via Spaces)", "AI-generated clips, music and masks inside the project"],
+  "limitations": [
+    "Export requires at least one clip on the timeline.",
+    "AI tools need configured provider keys or accounts.",
+    "The classic AI chat needs your own OpenAI key.",
+    "FCPXML export requires relinking media in the other editor.",
+    "Keyboard shortcuts are ignored while typing in input boxes."
+  ],
+  "limitationDetails": [
+    {"limitation": "Empty timeline cannot be rendered", "impact": "The Render button is disabled.", "workaround": "Add at least one clip in the Edit tab first."},
+    {"limitation": "AI chat needs an OpenAI key", "impact": "Chat returns an error asking for the key.", "workaround": "Add the OpenAI API Key in Settings -> API keys."},
+    {"limitation": "Heavy projects may play back slowly", "impact": "Stuttering preview.", "workaround": "Turn on the proxy toggle for playback."},
+    {"limitation": "FCPXML does not carry media", "impact": "Media appears offline in the other editor.", "workaround": "Relink the media after import."}
+  ],
+  "troubleshooting": [
+    "Render button is greyed out: add clips to the timeline in the Edit tab first.",
+    "Fill Gap says to enter a prompt: type a description of what should happen in the gap, then generate.",
+    "Extend says it could not extract a reference frame: scrub the source clip first, then try again.",
+    "AI chat says it uses your own OpenAI key: add the OpenAI API Key in Settings -> API keys.",
+    "AI chat says Sign in to use the AI assistant: sign in to your account and try again.",
+    "A keyboard shortcut does nothing: click on an empty part of the page, because shortcuts are ignored while a text box or dropdown has focus.",
+    "Playback stutters: switch on the proxy toggle so the editor plays lightweight copies.",
+    "Exported file looks cropped or has bars: change the Contain / Cover fit and the Aspect ratio before rendering."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "Cannot start an export", "steps": ["Go to the Edit tab and confirm there is at least one clip on a track.", "Return to Export and click Render.", "If it still fails, check the progress card for an error message."]},
+    {"issue": "AI generation (Fill Gap, Extend, Music) fails", "steps": ["Open Settings and check that the provider or account used by the tool is connected.", "Make sure the prompt is not empty.", "Try again; if a clip frame could not be read, scrub the clip first."]},
+    {"issue": "AI chat in the classic editor does not answer", "steps": ["Open Settings -> API keys and add the OpenAI API Key.", "Sign in if asked.", "Try a shorter question; very large projects are truncated to fit."]}
+  ],
+  "commonProblems": [
+    {"problem": "Shortcut M does not select the Music Tool", "whyItHappens": "M is used for Add Marker in the timeline.", "howToFix": "Click the Music Tool in the sidebar."},
+    {"problem": "Render finished but I cannot find the file", "whyItHappens": "The finished job appears in the Export tab progress area.", "howToFix": "Open the Export tab and use the download link on the latest job."},
+    {"problem": "Cmd or Ctrl + L does nothing", "whyItHappens": "No linkable or unlinkable audio is selected.", "howToFix": "Select a video clip and its audio together, or right-click for the menu."},
+    {"problem": "Edit disappeared after leaving the page", "whyItHappens": "You may be in a different project or timeline tab.", "howToFix": "Go back via Back to Projects, reopen the project, and check the timeline tabs."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Quick social cut", "steps": ["Create a project and open the Edit tab.", "Drop two or three clips on a video track.", "Press B and click to cut off unwanted parts, then delete them.", "Add a music track from the Music Tool.", "In Export, set Aspect ratio to 9:16, Preset to Standard, Frame Rate to 30.", "Click Render and download the MP4."]},
+    {"title": "Bridge a jump cut with AI", "steps": ["Place two clips with a small gap between them.", "Choose the Fill Gap Tool.", "Describe what should happen in the gap and generate.", "Play through the join and keep or undo with Ctrl or Cmd + Z."]},
+    {"title": "Hand off to a desktop editor", "steps": ["Finish the rough cut in the Edit tab.", "Open Export and click Export FCPXML.", "Import the file into Final Cut Pro, Premiere or DaVinci Resolve.", "Relink the media files."]},
+    {"title": "Rough cut with the classic AI chat", "steps": ["Open #/timeline-classic with a transcribed project.", "Switch the chat to Cut mode.", "Ask for a 30 second highlight cut.", "Click Apply as new timeline tab and review the result."]}
+  ],
+  "useCases": [
+    {"title": "Promo video assembly", "description": "Combine product footage, voice-over and music.", "steps": ["Import footage.", "Arrange on tracks.", "Record voice-over at the playhead.", "Export 1080p."], "expectedOutput": "A finished MP4."},
+    {"title": "Alternative versions", "description": "Make a short and long cut in one project.", "steps": ["Build the long cut.", "Click New Timeline.", "Copy clips into it and trim.", "Export each timeline separately."], "expectedOutput": "Two MP4 files."}
+  ],
+  "faqs": [
+    {"question": "What quality can I export?", "answer": "Draft is 720p, Standard is 1080p and High Quality is 4K, at 24, 30 or 60 frames per second. The defaults are Standard and 30 fps."},
+    {"question": "What format does it export?", "answer": "The Export tab renders an MP4 video. You can also export an FCPXML file."},
+    {"question": "What are the keyboard shortcuts?", "answer": "Space plays or pauses, Left and Right arrows step one frame, V Selection, A track-forward select, B Blade, R Ripple Trim, N Roll Trim, Y Slip, U Slide, G Fill Gap, E Extend, X Mask, S Snap, M Add Marker, Delete or Backspace removes selected clips, Ctrl or Cmd + Z undo, add Shift for redo, Ctrl or Cmd + L link or unlink audio."},
+    {"question": "Do I need my own key for the AI chat?", "answer": "Yes. The AI Assistant in the classic editor uses your own OpenAI key, added in Settings -> API keys as OpenAI API Key."},
+    {"question": "Where is the older editor?", "answer": "At #/timeline-classic. It has the AI Assistant chat with Ask, Search, Cut and Timeline modes, Insert and Overwrite modes and a Snap button."},
+    {"question": "Can I undo?", "answer": "Yes, press Ctrl or Cmd + Z. Add Shift to redo."},
+    {"question": "Can I work on several edits in one project?", "answer": "Yes, use the plus button (New Timeline) in the timeline tab bar."}
+  ],
+  "glossary": {
+    "Timeline": "The strip where clips are arranged in time, left to right.",
+    "Track": "A horizontal lane that holds clips; there are video and audio tracks.",
+    "Clip": "A piece of media placed on a track.",
+    "Playhead": "The marker showing the current moment in the edit.",
+    "Blade": "A tool that cuts a clip in two.",
+    "Ripple": "A trim that also shifts later clips to close or open gaps.",
+    "Roll": "A trim that moves the cut between two neighbouring clips.",
+    "Slip": "Changes which part of a clip is visible without moving it.",
+    "Slide": "Moves a clip between its neighbours.",
+    "Proxy": "A light copy of media used for smoother playback.",
+    "FCPXML": "An exchange file that other editors can open.",
+    "Keyframe": "A saved value at a point in time, used to animate opacity or volume.",
+    "Bitrate": "How much data per second the video uses; higher is bigger and sharper."
+  },
+  "tips": [
+    "Turn Snap on to avoid tiny accidental gaps.",
+    "Use markers to note beats or places to fix.",
+    "Use Draft preset for test exports and High Quality only for the final.",
+    "Rename timeline tabs so you remember which cut is which.",
+    "Use the proxy toggle on large projects."
+  ],
+  "bestPractices": [
+    "Lock tracks you are finished with.",
+    "Keep music, voice and effects on separate audio tracks.",
+    "Check the aspect ratio and fit before exporting vertical or square videos.",
+    "Enable the post-export check to catch black frames or silence."
+  ],
+  "relatedStudios": ["render", "video", "videotools", "director", "audio", "workbench", "personalizer", "library"],
+  "relatedStudioGuidance": [
+    {"studio": "render", "relationship": "Finishing and re-export of existing videos", "whenToMove": "You have one finished video and only need a trailer cut, social resize or format variants.", "why": "Render does not need a timeline."},
+    {"studio": "video", "relationship": "Source of clips", "whenToMove": "You need new clips generated from prompts.", "why": "Generate there, then edit here."},
+    {"studio": "audio", "relationship": "Source of voice and music", "whenToMove": "You want a standalone voice-over or track.", "why": "Create it, then import."},
+    {"studio": "library", "relationship": "Where your assets live", "whenToMove": "You want to find saved videos to edit.", "why": "Library lists your generated media."}
+  ],
+  "notConfirmed": [
+    "Exact supported import file types and size limits.",
+    "Whether the Music Tool is reachable by keyboard (M is bound to Add Marker in the code).",
+    "Which AI provider each Fill Gap, Extend, Music and Mask call uses in this deployment, and any credit costs.",
+    "Exact wording of every clip right-click menu item.",
+    "The exact list of aspect ratios in the Export dropdown.",
+    "How the Leads tab publishes and what it costs.",
+    "Whether the classic AI chat is also reachable inside the new editor's LLM tab; the LLM tab uses one cloud model on your OpenAI key but its modes were not fully reviewed.",
+    "Where exactly the finished MP4 is stored and how long a download link stays valid."
+  ],
+  "sourceFiles": [
+    "src/cinegen/mount.tsx",
+    "src/cinegen/WebApp.tsx",
+    "src/cinegen/components/workspace/top-tabs.tsx",
+    "src/cinegen/components/home/home-view.tsx",
+    "src/cinegen/components/export/export-tab.tsx",
+    "src/cinegen/components/export/export-settings.tsx",
+    "src/cinegen/components/edit/edit-tab.tsx",
+    "src/cinegen/components/edit/tool-sidebar.tsx",
+    "src/cinegen/components/edit/timeline-tabs.tsx",
+    "src/cinegen/components/edit/timeline-bottom-bar.tsx",
+    "src/cinegen/components/edit/track-header.tsx",
+    "src/cinegen/components/edit/fill-gap-modal.tsx",
+    "src/cinegen/components/edit/extend-modal.tsx",
+    "src/cinegen/components/edit/timeline-editor.tsx",
+    "src/cinegen/components/workspace/workspace-shell.tsx",
+    "src/components/timeline/AIChatPanel.js",
+    "src/components/TimelineEditorPage.jsx",
+    "src/lib/editor/ai/timelineLlm.js",
+    "netlify/functions/timeline-llm.js",
+    "docs/TIMELINE_STUDIO_PRODUCTION_AUDIT.md",
+    "apps/cinegen/README.md",
+    "src/components/AppsHub.js",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the component, export, edit and chat source files listed in sourceFiles; compared with README and audit doc, trusting code over docs.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

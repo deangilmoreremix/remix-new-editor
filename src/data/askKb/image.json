@@ -1,0 +1,480 @@
+{
+  "id": "image",
+  "name": "Image Studio",
+  "route": "#/image",
+  "description": "Image Studio is where you create AI images from a text description, or transform photos you upload. One prompt bar handles both text-to-image and image-to-image, with a model picker, aspect ratio, resolution and advanced options.",
+  "shortDescription": "Generate images from text or reference photos with 80+ AI models.",
+  "fullDescription": "Image Studio is a single prompt bar with a model button, an aspect-ratio button, an optional resolution (quality) button and a Generate button. With no reference image it works as text-to-image: you type a description and the chosen model draws it. When you add a reference image (upload, stock photo, sketch or an attachment) the studio switches into image-to-image mode and lists the editing models instead, so you can restyle, edit or combine photos. The model list is large: the code bundles 84 text-to-image models and 92 image-to-image models from makers such as Google (Nano Banana), Black Forest Labs (Flux), ByteDance (Seedream), OpenAI (GPT Image), Midjourney, Ideogram, Alibaba (Qwen, Wan), Hunyuan, Kling, Leonardo, Grok and more. Results appear on a canvas with Regenerate, Download, New and Publish to Social buttons, and every result is added to a History strip on the right side. The studio header reads 'Generate images with 20+ AI models', which is older marketing text; the real list is much longer.",
+  "bestFor": "Beginners and creators who want a fast way to make social posts, product visuals, concept art, thumbnails or illustrations from a sentence, and anyone who wants to try many different image models in one place.",
+  "whenToUse": [
+    "You want a brand-new image from a written description (text-to-image).",
+    "You want to restyle, transform or combine photos you already have using a prompt (image-to-image).",
+    "You want to compare how different AI models draw the same prompt.",
+    "You want a quick sketch-to-image: draw a rough reference with the Draw button and let a model follow it.",
+    "You want an image to use later as a start frame in Video Studio."
+  ],
+  "whenToUseAnother": [
+    "Use Edit Studio (#/edit) when you need a focused photo tool such as Remove Object, Remove Background, Extend Image, Reframe, Change Dress, Face Swap or Add Watermark rather than a free-form prompt.",
+    "Use Upscale Suite (#/upscale) when the picture is already good and you only need more resolution and sharpness.",
+    "Use Video Studio (#/video) when you want the image to move as a video clip.",
+    "Use Character Studio (#/character) when you need the same character to stay consistent across many images.",
+    "Use Commercial Studio (#/commercial) when you want ad-style product and commercial content.",
+    "Use Brand Studio (#/brand) when you need images that follow a saved brand identity."
+  ],
+  "keyFeatures": [
+    "One prompt bar for text-to-image and image-to-image (the studio switches mode when you add a reference image).",
+    "Model button with a searchable, provider-grouped picker; the studio remembers your last text-to-image model and aspect ratio between visits.",
+    "Aspect Ratio button with the ratios each model supports (for the default Nano Banana model: 1:1, 3:4, 4:3, 9:16, 16:9, 3:2, 2:3, 5:4, 4:5, 21:9).",
+    "Resolution (quality) button that appears only for models that have resolution or quality options (for example 1k/2k/4k, low/medium/high, or basic/high).",
+    "Advanced panel with a Style Preset list (None, Photorealistic, Anime, Cinematic, Oil Painting, Watercolor, Digital Art, Concept Art, Cyberpunk), Batch Count 1-4, Reference Strength 0-100 (image-to-image only) and model-specific controls.",
+    "Tools panel with Quick Starters and a Prompt Enhancer (enhancement tags, Copy, Use in Generator).",
+    "Reference images: upload, paste, browse Pexels stock photos, attach via the attachment toolbar, or sketch with the Draw button.",
+    "Multi-image image-to-image for models that accept several reference images.",
+    "Special model extras: an Effect menu for models that take a named effect, and a 'Swap face image' slot for face-swap models.",
+    "Prompt helpers: Prompts (prompt gallery), Recipes, GTM Boost, Monetize and Personalize ({{token}} replacement from a selected contact).",
+    "Thumbnail button to generate a custom thumbnail for the studio.",
+    "Result canvas with Regenerate, Download, New and Publish to Social, plus a History strip with per-image download and delete.",
+    "Pending-job recovery: if you reload while an image is generating, a finished result is recovered with the message 'Recovered a generation that finished while you were away'.",
+    "An examples gallery below the prompt bar, with a 'Show all ... image prompts' button."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Text-to-image",
+      "explanation": "Type what you want in the prompt box and click Generate. The default model is Nano Banana (or the last text-to-image model you used).",
+      "whyToUse": "Fastest way to create something from nothing.",
+      "inputRequired": "A prompt. Without one you see 'Please enter a prompt to generate an image.'",
+      "restrictions": "Each model has its own aspect ratios, resolutions and extra options. Your plan and API key must be active."
+    },
+    {
+      "feature": "Image-to-image (reference images)",
+      "explanation": "Add a reference image with the picker button at the left of the prompt bar, the Pexels button, the attachment toolbar or the Draw button. The studio switches to image-to-image mode, the placeholder changes to 'Describe how to transform this image (optional)', and the model list switches to image-to-image models.",
+      "whyToUse": "Restyle a photo, change a scene, apply an effect, combine several photos, or follow a sketch.",
+      "inputRequired": "At least one reference image. The prompt is optional in this mode. Without an image you see 'Please upload a reference image first.'",
+      "restrictions": "Images up to 10MB each (the shared upload limit). The number of images depends on the model; the picker shows 'Add up to N images' when a model takes several. Right after you add an image the studio picks the first image-to-image model in its list, which is AI Image Upscaler, so open the model button and choose the editing model you actually want."
+    },
+    {
+      "feature": "Model picker",
+      "explanation": "The model button (shows the current model name and provider logo) opens a split-pane picker with a provider sidebar, search and category tabs. Choosing a model resets the aspect ratio to that model's first option and shows or hides the Resolution button and advanced controls to match.",
+      "whyToUse": "Different models are better at different things: speed, photorealism, text inside images, anime, editing accuracy.",
+      "inputRequired": "None.",
+      "restrictions": "If you pick from the All tab while a reference image is loaded, the studio keeps image-to-image mode when that model family has an image-to-image variant."
+    },
+    {
+      "feature": "Aspect Ratio and Resolution",
+      "explanation": "The Aspect Ratio button lists the ratios the current model supports. The Resolution button (labelled with a value such as 1k, 2k, 4k, low, medium, high, basic or high) only appears for models that expose a resolution or quality field.",
+      "whyToUse": "Match the picture to where it will be used (9:16 for stories, 16:9 for banners, 1:1 for posts) and trade quality for speed.",
+      "inputRequired": "None.",
+      "restrictions": "Available values differ by model. For example GPT Image 1.5 offers 1:1, 2:3, 3:2 and quality low/medium/high; Nano Banana Pro offers resolution 1k/2k/4k."
+    },
+    {
+      "feature": "Advanced panel",
+      "explanation": "Click Advanced (the label changes to Less) to open a panel built from the selected model's own inputs plus Style Preset, Batch Count and, in image-to-image mode, Reference Strength. Depending on the model it can also include controls such as negative prompt, seed, steps, guidance scale, width and height, or LoRA fields.",
+      "whyToUse": "Fine control, repeatable results (seed), or excluding unwanted elements.",
+      "inputRequired": "None; everything is optional.",
+      "restrictions": "Only the controls the selected model supports are shown. Style Preset is sent as a style field if the model has one, otherwise it is appended to your prompt as ', <style> style'. Batch Count only applies when set above 1."
+    },
+    {
+      "feature": "Tools panel (Quick Starters and Prompt Enhancer)",
+      "explanation": "The Tools button opens Quick Tools. Quick Starters are one-click prompt starters. The Prompt Enhancer lets you type a base prompt under 'Enter base prompt...', click Enhancement Tags to add them, then Copy or 'Use in Generator'.",
+      "whyToUse": "Helps beginners write richer prompts.",
+      "inputRequired": "None.",
+      "restrictions": "Opening Tools also opens the Advanced panel."
+    },
+    {
+      "feature": "Draw (sketch a reference)",
+      "explanation": "The Draw button opens a sketch pad ('Sketch a reference for the model to follow'). When you finish you can add the sketch as a reference ('Sketch added as reference') or send it to Video Studio as a start frame.",
+      "whyToUse": "Control composition by drawing rough shapes.",
+      "inputRequired": "A drawing (optionally on top of the first reference image).",
+      "restrictions": "If the upload fails you see 'Sketch upload failed: ...'."
+    },
+    {
+      "feature": "Effect menu and Swap face image",
+      "explanation": "Some models take a named effect preset; for those an Effect button appears and lists the options. Face-swap models (for example AI Image Face Swap) show a 'Swap face image' slot where you upload the face to put into your reference photo.",
+      "whyToUse": "One-click looks and face replacement.",
+      "inputRequired": "For face swap: both the reference image and the swap face image. Otherwise: 'Please upload a swap face image first.'",
+      "restrictions": "These controls are hidden for models that do not support them."
+    },
+    {
+      "feature": "Result canvas, History and Publish",
+      "explanation": "After generation the image fills the canvas. Regenerate runs the same settings again, Download saves the file, + New clears the prompt and returns to text-to-image with the first model, and Publish to Social opens the social publishing dialog. The History strip on the right keeps thumbnails you can click to restore, download or delete.",
+      "whyToUse": "Iterate quickly and share.",
+      "inputRequired": "A finished generation.",
+      "restrictions": "History is kept in your browser; it is also saved so the Library (#/library) can show it."
+    }
+  ],
+  "howToUse": "1. Open Image Studio from the side menu (Image). 2. Click the model button (it shows 'Nano Banana' by default) and choose a model, or keep the default. 3. Type your idea in the prompt box that says 'Describe the image you want to create'. 4. Optional: click the Aspect Ratio button to choose a shape, and the Resolution button if it appears. 5. Optional: click Advanced for Style Preset, Batch Count and model-specific options, or Tools for Quick Starters and the Prompt Enhancer. 6. Optional: add a reference image with the picker button at the left of the prompt bar (the box then says 'Describe how to transform this image (optional)') and pick an image-to-image model. 7. Click Generate. 8. When the picture appears, click Download to save it, Regenerate to try again, + New to start over, or Publish to Social to share it.",
+  "howToSteps": [
+    "Open Image Studio (#/image).",
+    "Pick a model with the model button.",
+    "Write a prompt (or add a reference image for image-to-image).",
+    "Choose Aspect Ratio and, if shown, Resolution.",
+    "Open Advanced for extra options if you want them.",
+    "Click Generate and wait for the canvas to show your image.",
+    "Download, Regenerate, start a + New image, or Publish to Social."
+  ],
+  "gettingStarted": [
+    "Leave the model on the default and type a simple, specific sentence such as 'a red fox in a snowy forest, soft morning light'.",
+    "Click Generate. Use Regenerate to see another take.",
+    "Open Tools and try a Quick Starter or the Prompt Enhancer if you are unsure what to write.",
+    "Once you like the result, change the Aspect Ratio to match where you will post it and generate again."
+  ],
+  "inputs": ["Prompt", "Model", "Aspect Ratio", "Resolution / quality", "Reference image(s)", "Swap face image", "Effect", "Style Preset", "Batch Count", "Reference Strength", "Advanced model options", "Sketch (Draw)"],
+  "requiredInputs": ["Prompt (text-to-image mode)", "At least one reference image (image-to-image mode)", "Swap face image (only for face-swap models)"],
+  "optionalInputs": ["Prompt (in image-to-image mode)", "Aspect Ratio", "Resolution / quality", "Style Preset", "Batch Count", "Reference Strength", "Negative prompt and other model-specific advanced options", "Effect", "Custom thumbnail"],
+  "inputDetails": [
+    {
+      "name": "Prompt",
+      "description": "Plain-language description of the image. Placeholder: 'Describe the image you want to create'. In image-to-image mode: 'Describe how to transform this image (optional)'. With several reference images: 'N images selected - describe the transformation (optional)'.",
+      "required": true,
+      "whenToUse": "Always in text-to-image; optional in image-to-image.",
+      "restrictions": "{{token}} placeholders inserted with Personalize are replaced with the selected contact's details at generation time. No character limit is stated in the code."
+    },
+    {
+      "name": "Model",
+      "description": "The AI model that draws the image. Default is the first text-to-image model, Nano Banana, unless you used another one last time.",
+      "required": true,
+      "whenToUse": "Change it when you need a different look, more speed, better text rendering or an editing model.",
+      "restrictions": "Text-to-image and image-to-image use different model lists."
+    },
+    {
+      "name": "Aspect Ratio",
+      "description": "Shape of the output, such as 1:1, 16:9 or 9:16.",
+      "required": false,
+      "whenToUse": "Before generating, to fit the destination.",
+      "restrictions": "Only the ratios the current model supports are listed; changing model resets it to that model's first ratio."
+    },
+    {
+      "name": "Resolution / quality",
+      "description": "Appears as a button next to Aspect Ratio for models with a resolution or quality field.",
+      "required": false,
+      "whenToUse": "Use higher values for final output, lower for drafts.",
+      "restrictions": "Hidden when the model has no such option."
+    },
+    {
+      "name": "Reference image(s)",
+      "description": "Photos that the model should transform or follow. Added through the picker (upload, history, paste, URL), the Pexels stock browser, the attachment toolbar or the Draw sketch pad.",
+      "required": false,
+      "whenToUse": "For image-to-image.",
+      "restrictions": "Images up to 10MB. JPG, PNG, WebP, GIF, SVG, AVIF, HEIC and BMP are accepted by the picker. Number of images depends on the model. Video and audio attachments are not accepted in this studio's attachment toolbar."
+    },
+    {
+      "name": "Swap face image",
+      "description": "The face photo to put into the reference image, shown only for face-swap models.",
+      "required": true,
+      "whenToUse": "Only with models such as AI Image Face Swap.",
+      "restrictions": "Upload failures show 'Upload failed: ...'."
+    },
+    {
+      "name": "Style Preset",
+      "description": "None, Photorealistic, Anime, Cinematic, Oil Painting, Watercolor, Digital Art, Concept Art or Cyberpunk, found in the Advanced panel.",
+      "required": false,
+      "whenToUse": "Quick way to steer the look.",
+      "restrictions": "For models without a style field it simply adds the style words to your prompt."
+    },
+    {
+      "name": "Batch Count",
+      "description": "Number from 1 to 4 in the Advanced panel (text-to-image mode only).",
+      "required": false,
+      "whenToUse": "When you want more than one result per run.",
+      "restrictions": "The studio displays the single URL returned by the API; how extra images are delivered is not confirmed in code."
+    },
+    {
+      "name": "Reference Strength",
+      "description": "Slider 0-100 in steps of 5, default 50, shown only in image-to-image mode.",
+      "required": false,
+      "whenToUse": "Higher keeps closer to the reference; lower gives the model more freedom (typical meaning).",
+      "restrictions": "It is only sent when it differs from 50, and only some models may use it."
+    }
+  ],
+  "generationModes": ["Text-to-image", "Image-to-image (single reference)", "Image-to-image (multiple references)", "Sketch-to-image (via Draw)"],
+  "modeExplanations": [
+    {
+      "mode": "Text-to-image",
+      "description": "Default mode with no reference image. Uses the text-to-image model list.",
+      "useCase": "Create from scratch: posters, concept art, product mockups, thumbnails."
+    },
+    {
+      "mode": "Image-to-image",
+      "description": "Starts automatically when you add a reference image. Uses the image-to-image model list (editors, restylers, effects, tools such as background remover or face swap).",
+      "useCase": "Restyle a photo, change the setting, apply an effect or keep a subject while changing the scene. Removing the reference image (clear it in the picker) returns you to text-to-image with the first model."
+    },
+    {
+      "mode": "Sketch-to-image",
+      "description": "Use Draw to make a rough sketch; it is added as a reference image.",
+      "useCase": "Control layout and composition by drawing."
+    }
+  ],
+  "modelCapabilities": "The studio bundles 84 text-to-image models and 92 image-to-image models (src/lib/models.js; the public catalog lists the same families). Text-to-image families include: Google (Nano Banana, Nano Banana Pro, Nano Banana 2, 2.1 and Lite, Imagen 4, Imagen 4 Fast, Imagen 4 Ultra), Black Forest Labs (Flux Dev, Flux Schnell, Flux Kontext Pro/Max/Dev, Flux 2 Dev/Flex/Pro, Flux 2 Klein 4B/9B and Turbo, Flux Krea Dev, Flux Pulid, Flux Redux), ByteDance (Seedream v3, v4, v4.5, 5.0, 5.0 Pro and Flash), OpenAI (GPT-4o text-to-image, GPT Image 1.5), Midjourney (v7, v8, Niji), Ideogram (v3, v4), Alibaba (Qwen Image, Qwen Image 2.0 and Pro, Qwen 3, Wan 2.1 / 2.5 / 2.6 / 2.7), Tencent Hunyuan Image 2.1 and 3.0, Kling O1 and O3 Image, Leonardo (Phoenix 1.0, Lucid Origin), Reve, Grok Imagine, Vidu Q2, HiDream I1, SDXL, Krea 2 Turbo, Meta Muse Image, and MuAPI models such as AI Anime Generator, Chroma Image, Perfect Pony XL, Neta Lumina and Z Image. Several have LoRA variants. Image-to-image families include editors (Flux Kontext, Flux 2 edit, Nano Banana edit, Seedream edit, GPT-4o/GPT Image edit, Qwen Image Edit, Wan image edit, Kling edit, Grok, Reve, Midjourney v7 image-to-image and reference models) and specialist tools (AI Image Upscaler, AI Image Face Swap, AI Dress Change, AI Background Remover, AI Product Shot, AI Product Photography, AI Skin Enhancer, AI Color Photo, AI Ghibli Style, AI Image Extension, AI Object Eraser, Image Effects, Ideogram Character, Topaz and SeedVR2 upscale, Add Image Watermark). Short catalog descriptions: Nano Banana is 'fast and playful'; Flux Dev is 'high-quality with full parameter control'; Flux Schnell is 'ultra-fast ... for rapid prototyping'; Flux 2 Pro is 'professional-grade ... for production use'; Midjourney v7 is 'stylised'; Ideogram v3 has 'render speed and style controls'; Google Imagen 4 is 'high-fidelity'; Hunyuan Image 2.1 is 'cinematic-quality'; Seedream 5.0 is 'high-fidelity'; SDXL gives 'full width and height control'; Flux Pulid is 'identity-preserving from a reference face'; AI Anime Generator is 'specialised anime and illustration'. The file src/lib/modelComparisonData.js has rough relative figures (price and speed are relative units, quality is 1-5) for a few text-to-image models: Nano Banana price 1, speed 3, quality 4; Flux Schnell 2, 2, 4; Flux Dev 3, 4, 5; SDXL 1, 3, 3; Seedream 5.0 4, 5, 5; Midjourney V7 5, 6, 5; Google Imagen 4 4, 5, 5; Ideogram V3 3, 4, 5. These are relative estimates, not real prices or seconds. No real credit costs are stated in the studio code.",
+  "outputs": [
+    "A generated image shown on the result canvas",
+    "Download of the image file (named like muapi-<id>.jpg)",
+    "Entries in the History strip and in the Library",
+    "Optional Publish to Social hand-off"
+  ],
+  "limitations": [
+    "A valid sign-in/plan (entitlement) and an API key are required before generating.",
+    "Uploaded reference images are limited to 10MB each.",
+    "The model list is long and every model has different ratios, resolutions and options, so some controls appear or disappear when you change model.",
+    "Adding a reference image first selects AI Image Upscaler, which is not an editing model; you must choose another image-to-image model yourself.",
+    "The studio shows one result at a time on the canvas.",
+    "No built-in Variations, Upscale, Edit or Favorite buttons on the result canvas; use Upscale Suite and Edit Studio for those.",
+    "Generation can take a while; the Generate button shows 'Generating...' and a progress overlay appears."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Reference image too large",
+      "impact": "The upload is refused or fails.",
+      "workaround": "Resize or compress the image to under 10MB and upload again."
+    },
+    {
+      "limitation": "Default model after adding a reference image is AI Image Upscaler",
+      "impact": "If you click Generate without changing the model, you get an upscale instead of the transformation you described.",
+      "workaround": "Open the model button right after adding the image and pick an image-to-image model such as an editor or restyler."
+    },
+    {
+      "limitation": "Model-specific options",
+      "impact": "A setting you used with one model (for example Resolution) is not available on another.",
+      "workaround": "Check the Advanced panel and the Resolution button after every model change."
+    },
+    {
+      "limitation": "Result actions are minimal",
+      "impact": "You cannot upscale or inpaint directly from the canvas.",
+      "workaround": "Download the image and use Upscale Suite (#/upscale) or Edit Studio (#/edit); you can also use the Library (#/library) 'use in studio' flow."
+    }
+  ],
+  "troubleshooting": [
+    "Message 'Please enter a prompt to generate an image.': you are in text-to-image mode with an empty prompt. Type a description and click Generate again.",
+    "Message 'Please upload a reference image first.': you are in image-to-image mode with no image. Add a reference image, or clear the picker to go back to text-to-image.",
+    "Message 'Please upload a swap face image first.': a face-swap model is selected. Upload the face in the 'Swap face image' slot or pick a different model.",
+    "The Generate button briefly shows 'Error: ...' and returns to 'Generate': the request failed; the first 40 characters of the error are shown. Try again, or switch model or reduce options.",
+    "An upgrade or plan prompt appears when you click Generate: your account does not have full access yet. Upgrade or sign in, then try again.",
+    "A sign-in / API key dialog opens when you click Generate: no API key is stored. Complete the dialog; Generate then runs automatically.",
+    "I added a photo and the result is just a bigger photo: the studio auto-selected AI Image Upscaler. Open the model button and choose an editing or restyling model.",
+    "The Resolution button is missing: the selected model has no resolution or quality option. Choose a model that has one (for example Nano Banana Pro or Seedream 5.0).",
+    "I reloaded the page while it was generating: when the job finishes you should see 'Recovered a generation that finished while you were away' and the image appears in History.",
+    "'Attachment upload failed: ...' or 'Sketch upload failed: ...' toasts: the file did not upload. Check the file size (10MB max) and your connection and try again.",
+    "The result looks different from my style choice: Style Preset is added to the prompt for models without a style field, so its effect is subtle. Put the style directly in your prompt."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Generate does nothing or shows an upgrade prompt",
+      "steps": [
+        "Make sure you are signed in.",
+        "If an upgrade prompt appears, your account does not have full access; follow the prompt.",
+        "Click Generate again after finishing any sign-in or API key dialog."
+      ]
+    },
+    {
+      "issue": "Image-to-image gives an unexpected result",
+      "steps": [
+        "Look at the model button: if it says AI Image Upscaler, change it.",
+        "Pick an editing or restyling model from the image-to-image list.",
+        "Write what to change in the prompt and lower or raise Reference Strength in Advanced.",
+        "Click Regenerate."
+      ]
+    },
+    {
+      "issue": "Image looks wrong shape or too small",
+      "steps": [
+        "Click the Aspect Ratio button and pick the ratio you need.",
+        "If the Resolution button is shown, choose a higher value.",
+        "Generate again, then use Upscale Suite if you need more pixels."
+      ]
+    },
+    {
+      "issue": "Generation takes very long or fails",
+      "steps": [
+        "Wait for the 'Generating...' state to finish; a progress overlay is shown.",
+        "If you see 'Error: ...', try a faster model such as Flux Schnell or Nano Banana.",
+        "Simplify the prompt and lower Batch Count to 1."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The image does not match the prompt",
+      "whyItHappens": "The prompt is vague or the chosen model interprets it differently.",
+      "howToFix": "Add subject, setting, lighting, style and camera angle; try another model; use Quick Starters or the Prompt Enhancer."
+    },
+    {
+      "problem": "Model button shows a different model than I picked earlier",
+      "whyItHappens": "Adding a reference image switches to the first image-to-image model, and clearing it switches back to the first text-to-image model (Nano Banana).",
+      "howToFix": "Re-select your model after adding or clearing a reference image."
+    },
+    {
+      "problem": "Text inside the image is garbled",
+      "whyItHappens": "Not every model renders text well.",
+      "howToFix": "Try models described as strong with text such as Ideogram or GPT Image models, and keep the text short and in quotes."
+    },
+    {
+      "problem": "Cannot find the Resolution option",
+      "whyItHappens": "Only some models have it.",
+      "howToFix": "Switch to a model with 1k/2k/4k or quality levels."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Make a social post image from text",
+      "steps": [
+        "Open #/image and keep the default model.",
+        "Type: 'flat-lay of a coffee cup and notebook on a wooden desk, soft window light, minimal'.",
+        "Click the Aspect Ratio button and choose 4:5 (or 1:1).",
+        "Click Generate.",
+        "If you like it, click Download; otherwise click Regenerate.",
+        "Optionally click Publish to Social."
+      ]
+    },
+    {
+      "title": "Restyle your own photo",
+      "steps": [
+        "Click the picker button at the left of the prompt bar and upload a photo (10MB max).",
+        "Open the model button and choose an editing or restyling model instead of AI Image Upscaler.",
+        "Type 'turn this into a watercolor painting, soft pastel colors'.",
+        "Open Advanced and adjust Reference Strength if needed.",
+        "Click Generate, then Download."
+      ]
+    },
+    {
+      "title": "Sketch to finished image",
+      "steps": [
+        "Click Draw and sketch the layout (for example a horizon, a tree and a house).",
+        "Finish the sketch so it is added as a reference ('Sketch added as reference').",
+        "Pick an image-to-image model, describe the scene in the prompt, and click Generate."
+      ]
+    },
+    {
+      "title": "Build an image prompt with the Prompt Enhancer",
+      "steps": [
+        "Click Tools.",
+        "In 'Enter base prompt...' type a basic idea.",
+        "Click a few Enhancement Tags.",
+        "Click 'Use in Generator', then Generate."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Marketing and social visuals",
+      "description": "Create eye-catching posts, banners and story images from a sentence.",
+      "steps": ["Write the prompt", "Choose the ratio for the platform", "Generate", "Download or Publish to Social"],
+      "expectedOutput": "A ready-to-post image in your chosen shape."
+    },
+    {
+      "title": "Concept art and illustration",
+      "description": "Explore characters, scenes and moods quickly across different models.",
+      "steps": ["Pick an art-focused model", "Set Style Preset in Advanced", "Generate several times with Regenerate"],
+      "expectedOutput": "A set of concept images in History to compare."
+    },
+    {
+      "title": "Photo transformation",
+      "description": "Change the style or setting of an existing photo.",
+      "steps": ["Upload the photo", "Choose an image-to-image model", "Describe the change", "Generate"],
+      "expectedOutput": "A transformed version of your photo."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Which model should I start with?",
+      "answer": "Start with the default, Nano Banana, which the catalog describes as fast and playful. For production-style quality try models like Flux 2 Pro, Seedream 5.0 or Google Imagen 4; for very quick drafts try Flux Schnell."
+    },
+    {
+      "question": "How do I turn a photo into something else?",
+      "answer": "Add it with the picker button, then choose an image-to-image model from the model button and describe the change in the prompt. Remember the studio first selects AI Image Upscaler, so change it."
+    },
+    {
+      "question": "Does Image Studio remember my settings?",
+      "answer": "It remembers your last text-to-image model and aspect ratio in your browser. Reference images and prompts are not remembered; + New clears them."
+    },
+    {
+      "question": "Where are my images saved?",
+      "answer": "Each result is added to the History strip on the right and saved for the Library. Use Download to save a file to your device."
+    },
+    {
+      "question": "What file size can I upload as a reference?",
+      "answer": "Up to 10MB per image."
+    },
+    {
+      "question": "Can I use several reference images?",
+      "answer": "Yes, with models that accept more than one. The picker then says 'Add up to N images', and the prompt placeholder shows how many are selected."
+    },
+    {
+      "question": "Do I have to type a prompt in image-to-image mode?",
+      "answer": "No, it is optional there, but a short instruction usually gives better control. In text-to-image mode a prompt is required."
+    },
+    {
+      "question": "What are the Text to Image and Image to Image pages?",
+      "answer": "#/text-to-image and #/image-to-image are information pages that list example models and prompts. Their buttons ('Start Creating Free', 'Get Started Free', 'Try this') send you to Image Studio and can pre-fill a prompt. They do not pre-select a model."
+    },
+    {
+      "question": "How do I make my image bigger or sharper?",
+      "answer": "Use Upscale Suite (#/upscale), or Edit Studio's Upscale tool (#/edit)."
+    }
+  ],
+  "glossary": {
+    "Prompt": "The text you write to tell the AI what to draw.",
+    "Text-to-image": "Making an image from words only.",
+    "Image-to-image": "Making a new image from a reference image, usually with a prompt.",
+    "Aspect ratio": "The width-to-height shape of the picture, such as 16:9.",
+    "Resolution": "How many pixels the image has; some models offer 1k, 2k or 4k.",
+    "Negative prompt": "Words describing what you do not want in the image (available on models that support it).",
+    "Seed": "A number that makes a result repeatable on models that support it.",
+    "Reference Strength": "How closely image-to-image output follows your reference.",
+    "LoRA": "A small add-on that gives a model a particular style or subject (offered by some models).",
+    "History": "The thumbnail strip of your past results in this studio."
+  },
+  "tips": [
+    "Be specific: subject, setting, lighting, style, camera angle.",
+    "Pick the aspect ratio before you generate; it is part of the request.",
+    "Change one thing at a time (model, prompt, ratio) when comparing results.",
+    "Use Regenerate for another variation with the same settings.",
+    "Use Quick Starters and the Prompt Enhancer if you get stuck.",
+    "For editing photos, also try Edit Studio's focused tools."
+  ],
+  "bestPractices": [
+    "Draft with a fast model, then switch to a higher-quality model for the final image.",
+    "Keep reference images under 10MB and clearly lit.",
+    "Re-check the model button after adding or clearing a reference image.",
+    "Download results you want to keep; History lives in your browser."
+  ],
+  "relatedStudios": ["edit", "upscale", "video", "character", "commercial", "brand", "library", "explore", "templates"],
+  "relatedStudioGuidance": [
+    { "studio": "edit", "relationship": "Focused photo-editing tools", "whenToMove": "When you want Remove Object, Remove Background, Extend Image, Reframe, Face Swap, Change Dress or similar.", "why": "Each tool has the right inputs (mask painting, second image) built in." },
+    { "studio": "upscale", "relationship": "Increase resolution", "whenToMove": "When the image content is right but it needs more pixels.", "why": "It runs dedicated upscaling models." },
+    { "studio": "video", "relationship": "Animate the image", "whenToMove": "When you want motion. The Draw button can send a sketch to Video Studio as a start frame.", "why": "Video Studio turns images and prompts into clips." },
+    { "studio": "character", "relationship": "Consistent characters", "whenToMove": "When you need the same person across many images.", "why": "Character Studio is built for that." },
+    { "studio": "library", "relationship": "Saved results", "whenToMove": "When you want to find past generations.", "why": "Generations are saved there." }
+  ],
+  "notConfirmed": [
+    "Real credit or money cost per image: no prices are stated in the studio code; only relative numbers exist for some models.",
+    "How Batch Count above 1 returns multiple images (the canvas shows a single URL).",
+    "The exact list of Advanced controls for each of the 170+ models; they are generated from each model's own input schema.",
+    "Which plans have full access (the code only checks whether the account has full access).",
+    "Whether Reference Strength is honoured by every image-to-image model.",
+    "Maximum prompt length.",
+    "Typical generation time per model.",
+    "The header text says 20+ models and the landing page says 200+; the code actually bundles 84 text-to-image and 92 image-to-image models."
+  ],
+  "sourceFiles": [
+    "src/components/ImageStudio.js",
+    "src/components/TextToImagePage.js",
+    "src/components/ImageToImagePage.js",
+    "src/components/UploadPicker.js",
+    "src/lib/studioControls.js",
+    "src/lib/models.js",
+    "src/lib/instructions.js",
+    "src/data/studioLandingPages.js",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js",
+    "src/lib/editor/uploadLimits.js",
+    "public/api/model-catalog.json",
+    "IMAGE_STUDIO_DEEP_AUDIT.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read ImageStudio.js, TextToImagePage.js, ImageToImagePage.js, UploadPicker.js, uploadLimits.js, models.js (via module load), instructions.js, studioLandingPages.js, model-catalog.json, modelDescriptions.js, modelComparisonData.js and the Image Studio audit. Code trusted over the audit, which describes an older state.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}
