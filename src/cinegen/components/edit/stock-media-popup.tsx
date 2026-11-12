@@ -95,6 +95,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const [fetched, setFetched] = useState<{ loading: boolean; items: StockItem[]; error: string | null; for: string }>({ loading: false, items: [], error: null, for: '' });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
+  const [addError, setAddError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
   const [aspect, setAspect] = useState<AiAspect>('16:9');
   const [gen, setGen] = useState<{ busy: boolean; msg: string; error: string | null }>({ busy: false, msg: '', error: null });
@@ -136,6 +137,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const pickGroup = (id: string) => { setGroupId(id); if (cat && id !== 'all' && cat.group !== id) { setCatId(null); setTopic(null); } };
   /** One main tab per source and media type, so it is always clear whether you are browsing videos or images. */
   const openTab = (s: MediaSource, k: StockKind) => {
+    setAddError(null);
     setSource(s);
     setKind(k);
     if (s === 'ai') { if (topic) setPrompt(aiPrompt(topic, k)); return; }
@@ -144,7 +146,10 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const pick = async (item: StockItem) => {
     if (busyId) return;
     setBusyId(item.id);
-    try { await onAdd(item, kind); setAdded(item.id); } finally { setBusyId(null); }
+    setAddError(null);
+    try { await onAdd(item, state.for.endsWith(':images') ? 'images' : 'videos'); setAdded(item.id); }
+    catch (e) { setAddError(e instanceof Error ? e.message : 'Could not add this to the timeline.'); }
+    finally { setBusyId(null); }
   };
   const generate = async () => {
     if (gen.busy || !prompt.trim()) return;
@@ -237,6 +242,7 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
               {gen.error && <span role="alert" style={{ fontSize: 12, color: '#f87171' }}>{gen.error}</span>}
             </div>
           )}
+          {addError && <div role="alert" data-testid="add-error" style={{ fontSize: 12, color: '#f87171', margin: '4px 0' }}>{addError}</div>}
           <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>
             {source === 'ai' ? `Your AI ${noun} in this project: ${shown}` : state.loading ? 'Loading…' : state.error ? '' : `Showing ${shown} ${noun} from ${sourceLabel}`}
           </div>

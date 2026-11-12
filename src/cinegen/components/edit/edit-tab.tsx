@@ -16,7 +16,7 @@ import { StockMediaPopup, type StockItem, type StockKind, type AiAspect } from '
 import { runTimelineMuapi as runMuapi } from '../../../lib/editor/ai/timelineMuapi.js';
 
 // The JS helper's JSDoc only lists pollMs/timeoutMs; onProgress is supported at runtime.
-const runTimelineMuapi = runMuapi as (tool: string, params: Record<string, unknown>, opts?: { onProgress?: (p: { stage: string; elapsedSec?: number }) => void }) => Promise<{ url: string; model?: string }>;
+const runTimelineMuapi = runMuapi as (tool: string, params: Record<string, unknown>, opts?: { signal?: AbortSignal; timeoutMs?: number; onProgress?: (p: { stage: string; elapsedSec?: number }) => void }) => Promise<{ url: string; model?: string }>;
 import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
@@ -964,7 +964,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     void window.electronAPI.media.queueProcessing({
       assetId: asset.id, projectId, inputPath: asset.fileRef, needsProxy: false,
       includeThumbnail: jobs.includes('generate_thumbnail'), includeWaveform: jobs.includes('compute_waveform'), includeFilmstrip: jobs.includes('generate_filmstrip'),
-    }).catch(() => { /* the backfill retries stale jobs */ });
+    }).catch((err: unknown) => { console.warn('[stock] could not queue media processing for', asset.id, err); }); // job failures themselves are reported by the workspace's media-job error handler
   }, [projectId]);
 
   const handleAddStock = useCallback(async (item: StockItem, kind: StockKind) => {
@@ -995,13 +995,23 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   const handleGenerateAi = useCallback(async (prompt: string, kind: StockKind, aspect: AiAspect, onProgress: (msg: string) => void) => {
     const isVideo = kind === 'videos';
     const at = latestRef.current.currentTime;
-    const { url, model } = await runTimelineMuapi(
-      'generate',
-      isVideo
-        ? { model: 'seedance-lite-t2v', inputs: { prompt, duration: 5, aspect_ratio: aspect, resolution: '720p' } }
-        : { model: 'flux-dev', inputs: { prompt, aspect_ratio: aspect } },
-      { onProgress: (p) => onProgress(p.stage === 'generating' ? `Generating… ${p.elapsedSec ?? 0}s` : 'Submitting…') },
-    );
+    // Abort a request that hangs (the helper's own limit only covers polling); images are fast, videos can take a few minutes.
+    const limitMs = isVideo ? 8 * 60_000 : 3 * 60_000;
+    let result: { url: string; model?: string };
+    try {
+      result = await runTimelineMuapi(
+        'generate',
+        isVideo
+          ? { model: 'seedance-lite-t2v', inputs: { prompt, duration: 5, aspect_ratio: aspect, resolution: '720p' } }
+          : { model: 'flux-dev', inputs: { prompt, aspect_ratio: aspect } },
+        { signal: AbortSignal.timeout(limitMs), timeoutMs: limitMs, onProgress: (p) => onProgress(p.stage === 'generating' ? `Generating… ${p.elapsedSec ?? 0}s` : 'Submitting…') },
+      );
+    } catch (err) {
+      const name = (err as { name?: string } | null)?.name;
+      if (name === 'TimeoutError' || name === 'AbortError') throw new Error(`The ${isVideo ? 'video' : 'image'} took too long to generate. Please try again.`, { cause: err });
+      throw err;
+    }
+    const { url, model } = result;
     const assetId = generateId();
     let asset: Asset = {
       id: assetId, name: prompt.length > 40 ? `${prompt.slice(0, 40)}…` : prompt, type: isVideo ? 'video' : 'image', url,

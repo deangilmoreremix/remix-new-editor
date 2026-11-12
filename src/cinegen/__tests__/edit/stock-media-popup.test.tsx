@@ -120,6 +120,19 @@ describe('main tabs', () => {
   });
 });
 
+describe('adding fails', () => {
+  it('shows an error instead of an unhandled rejection when onAdd rejects', async () => {
+    px.searchPexelsVideos.mockResolvedValue({ videos: [pexelsVideo] });
+    const p = setup({ onAdd: vi.fn().mockRejectedValue(new Error('Could not save this clip')) });
+    fireEvent.click(screen.getByTestId('tab-pexels-videos'));
+    fireEvent.click(await screen.findByTestId('stock-pexels-9'));
+    expect((await screen.findByTestId('add-error')).textContent).toMatch(/Could not save this clip/);
+    expect(p.onAdd).toHaveBeenCalledTimes(1);
+    // and the card is usable again
+    expect((screen.getByTestId('stock-pexels-9') as HTMLButtonElement).disabled).toBe(false);
+  });
+});
+
 describe('switching media type', () => {
   it('never shows (or imports) the previous tab\'s results under the new media type', async () => {
     px.searchPexelsVideos.mockResolvedValue({ videos: [pexelsVideo] });

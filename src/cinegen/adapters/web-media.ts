@@ -115,6 +115,7 @@ async function runJob(assetId: string, url: string, jobType: string) {
         // A video without an audio track (common for stock footage) cannot be decoded as audio. Complete with a flat waveform;
         // otherwise the job errors and the workspace re-queues it forever.
         if (type !== 'video') throw err;
+        console.warn('[web-media] no decodable audio in this video; using a flat waveform:', err instanceof Error ? err.message : err);
         peaks = new Array(100).fill(0);
       }
       result = { peaks, peaksPath: `data:application/json,${encodeURIComponent(JSON.stringify(peaks.map((p) => Math.round(p * 1000) / 1000)))}` };
