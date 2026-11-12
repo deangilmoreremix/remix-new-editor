@@ -77,7 +77,7 @@ try {
           }
           await mkdir(dirname(e.file), { recursive: true });
           await writeFile(e.file, best);
-          if (bestDetail < FLAT) flat.push(`${e.kind}:${e.id}`);
+          if (bestDetail < FLAT) flat.push(`${e.kind}:${e.id}${(await page.evaluate(() => window.__thumbs.errors())).length ? ` — ${(await page.evaluate(() => window.__thumbs.errors()))[0]}` : ''}`);
           lastErr = null; break;
         } catch (err) {
           lastErr = err;
@@ -92,7 +92,7 @@ try {
   const n = Math.max(1, Number(args.workers) || 4);
   const pages = [first, ...(await Promise.all(Array.from({ length: n - 1 }, open)))];
   await Promise.all(pages.map(worker));
-  if (flat.length) { console.log(`\n${flat.length} still look empty after retries (they may really be empty at every sampled moment):`); flat.slice(0, 30).forEach((f) => console.log(' -', f)); }
+  if (flat.length) { console.log(`\n${flat.length} still look empty after retries (they may really be empty at every sampled moment):`); flat.slice(0, 60).forEach((f) => console.log(' -', f)); }
   if (failed.length) { console.log(`\n${failed.length} failed:`); failed.slice(0, 20).forEach((f) => console.log(' -', f)); process.exitCode = 1; }
 } finally {
   await browser.close();

@@ -17,6 +17,7 @@ const host = document.getElementById('host');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const fit = (w, h) => { const k = Math.min(BOX[0] / w, BOX[1] / h); return [Math.round(w * k), Math.round(h * k)]; };
 let current = null;
+const errors = [];
 
 function mount(w, h) {
   current?.destroy?.();
@@ -35,7 +36,7 @@ async function list() {
 
 async function renderLayer(layer, w, h, frame, wait = 1400) {
   mount(w, h);
-  const handle = createCodePreview(host);
+  const handle = createCodePreview(host, { onError: (_layer, message) => errors.push(String(message).slice(0, 200)) });
   current = handle;
   await handle.update({ version: 1, fps: FPS, width: w, height: h, durationInFrames: layer.durationInFrames, background: 'transparent', layers: [layer], audio: [], transitions: [], fonts: [] });
   handle.frame(frame);
@@ -45,6 +46,7 @@ async function renderLayer(layer, w, h, frame, wait = 1400) {
 }
 
 async function render({ kind, id, frac, wait }) {
+  errors.length = 0;
   if (kind === 'hf') {
     const item = hyperframesItems().find((i) => i.id === id);
     const layer = hyperframesOverlayLayer(createHyperframesOverlay(item, 0), FPS);
@@ -68,5 +70,5 @@ async function render({ kind, id, frac, wait }) {
   await sleep(wait ?? 1200);
 }
 
-window.__thumbs = { list, render };
+window.__thumbs = { list, render, errors: () => [...errors] };
 window.__ready = true;
