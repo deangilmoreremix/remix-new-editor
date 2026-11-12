@@ -22,7 +22,7 @@
 // using the same key shape as the rest of the personalizer code. The
 // functions below are intentionally tiny so they can be inlined without
 // pulling in src/lib/contactStore.js.
-import { resolveToken, extractTokens, TOKEN_PATTERN } from './tokenSchema.js';
+import { resolveToken, resolveTokenText, extractTokens } from './tokenSchema.js';
 
 const CONTACTS_KEY = 'remix_contacts';
 const PROFILES_KEY = 'remix_contact_profiles';
@@ -99,10 +99,8 @@ export function insertTokenAtCursor(ta, token) {
  */
 export function replaceTokensInPrompt(prompt, profile) {
   if (!prompt || !profile) return prompt;
-  return String(prompt).replace(TOKEN_PATTERN, (match, rawName) => {
-    const value = resolveToken(profile, rawName.trim());
-    return value === null ? match : value;
-  });
+  // Shared resolver: same `{{up X}}` / `{{d X "fallback"}}` syntax as overlay text.
+  return resolveTokenText(prompt, profile);
 }
 
 /**

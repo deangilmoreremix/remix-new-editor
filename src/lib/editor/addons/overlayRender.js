@@ -13,7 +13,7 @@
  * page's compositor can diff them and other overlays (pause prompt, List
  * Builder) are never cleared by mistake.
  */
-import { resolveToken, TOKEN_PATTERN } from '../../../components/personalize/tokenSchema.js';
+import { resolveTokenText } from '../../../components/personalize/tokenSchema.js';
 import { personalizedImageLook } from '../../personalization/imageStyle.js';
 import { getAddon, addonOptions } from './registry.js';
 import { ensureFormFont } from './addonOverlay.js';
@@ -36,23 +36,8 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
  *   {{d firstname "Friend"}} value, or the quoted fallback
  * Unresolved plain tokens are left as written so the editor shows them.
  */
-export function resolveOverlayText(text, profile) {
-  if (text == null) return '';
-  return String(text).replace(TOKEN_PATTERN, (match, raw) => {
-    const body = raw.trim();
-    const fallbackMatch = body.match(/^(?:d|default)\s+(\S+)\s+(["'])(.*)\2$/);
-    if (fallbackMatch) {
-      const value = profile ? resolveToken(profile, fallbackMatch[1]) : null;
-      return value ?? fallbackMatch[3];
-    }
-    const upMatch = body.match(/^(?:up|uppercase)\s+(\S+)$/);
-    if (upMatch) {
-      const value = profile ? resolveToken(profile, upMatch[1]) : null;
-      return value === null ? match : value.toUpperCase();
-    }
-    const value = profile ? resolveToken(profile, body) : null;
-    return value === null ? match : value;
-  });
+export function resolveOverlayText(text, profile, options) {
+  return resolveTokenText(text, profile, options);
 }
 
 /** http(s) and tel: only (upstream's "URL (Call-to-action)" accepted both). */

@@ -284,6 +284,44 @@ export function buildVariables(profile, seed = {}) {
 export const TOKEN_PATTERN = /\{\{\s*([^{}]+?)\s*\}\}/g;
 
 /**
+ * Resolve ONE token body (the text between the braces) with the upstream
+ * Popcorn syntax:
+ *   firstname            value
+ *   up firstname         upper-cased value
+ *   d firstname "Friend" value, or the quoted fallback
+ * Returns null when nothing resolves (callers decide: keep the raw token for
+ * editors, or strip it for viewers).
+ */
+export function resolveTokenBody(profile, rawBody) {
+  const body = String(rawBody || '').trim();
+  const fallbackMatch = body.match(/^(?:d|default)\s+(\S+)\s+(["'])(.*)\2$/);
+  if (fallbackMatch) {
+    const value = profile ? resolveToken(profile, fallbackMatch[1]) : null;
+    return value ?? fallbackMatch[3];
+  }
+  const upMatch = body.match(/^(?:up|uppercase)\s+(\S+)$/);
+  if (upMatch) {
+    const value = profile ? resolveToken(profile, upMatch[1]) : null;
+    return value === null ? null : value.toUpperCase();
+  }
+  return profile ? resolveToken(profile, body) : null;
+}
+
+/**
+ * Replace every token in `text`. By default unresolved tokens are kept as
+ * written (editor/preview). With `{ strip: true }` they are removed, so a
+ * viewer never sees raw `{{...}}` syntax and never another contact's value.
+ */
+export function resolveTokenText(text, profile, { strip = false } = {}) {
+  if (text == null) return '';
+  return String(text).replace(TOKEN_PATTERN, (match, raw) => {
+    const value = resolveTokenBody(profile, raw);
+    if (value !== null && value !== undefined) return value;
+    return strip ? '' : match;
+  });
+}
+
+/**
  * Extract the distinct token names present in a prompt, in order.
  * @returns {string[]}
  */

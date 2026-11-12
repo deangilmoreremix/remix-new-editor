@@ -9,6 +9,15 @@ import { cinegenFcpxml } from '@cinegen/lib/occ/fcpxml';
 import type { ExportPreset, ExportJob } from '@cinegen/types/export';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 
+async function activePersonalizationProfile(): Promise<Record<string, unknown> | null> {
+  try {
+    const { getActiveProfile } = await import('../../../lib/contactStore.js');
+    return (getActiveProfile() as Record<string, unknown> | null) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
   const pollRef = useRef<NodeJS.Timeout | null>(null);
@@ -56,6 +65,8 @@ export function ExportTab() {
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect,
+        // [remix] the contact selected in the Personalization workflow personalizes this MP4 (null = generic export)
+        profile: await activePersonalizationProfile(),
         // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
         // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only
         overlays: (state.overlays ?? []).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
