@@ -106,14 +106,16 @@ export async function runWorkflow(params: WorkflowRunParams, _options: WorkflowR
   if (outputType === 'image') {
     const prompt = String(inputs.prompt ?? '');
     const refs = [...asArray(inputs.image_urls), ...asArray(inputs.image_url), ...asArray(inputs.reference_image_urls)]
-      .filter((u) => /^https:\/\//i.test(u));
+      .filter((u) => /^(https:\/\/|data:image\/|blob:)/i.test(u)); // [remix] hosted, or inline (panel results / local uploads)
     const { assets } = await generateImages(prompt, {
       model: refs.length ? DETAIL_IMAGE_MODEL : DEFAULT_IMAGE_MODEL,
       aspectRatio: (['16:9', '9:16', '1:1'].includes(String(inputs.aspect_ratio)) ? String(inputs.aspect_ratio) : '16:9') as string,
       refs,
     });
     if (!assets.length) throw new Error('OpenAI returned no image');
-    return { data: { images: [{ url: assets[0].url }], url: assets[0].url } };
+    // Both shapes: Elements reads `data.*`, the Spaces / Studio model nodes read `url` / `images.0.url` at the top level.
+    const first = assets[0].url;
+    return { data: { images: [{ url: first }], url: first }, images: [{ url: first }], image: { url: first }, url: first };
   }
 
   // Video / audio -> MuAPI through /api/timeline-ai (user's own MuAPI key; no fal).
