@@ -633,6 +633,6 @@ grant execute on function public.owner_portfolio_summary(date, date) to anon, au
 do $$
 begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
-    perform cron.schedule('prune-video-analytics', '17 3 * * *', 'select public.prune_video_analytics(90)');
+    perform cron.schedule('smartvideo-prune-video-analytics', '17 3 * * *', 'select public.prune_video_analytics(90)');
   end if;
 end $$;
