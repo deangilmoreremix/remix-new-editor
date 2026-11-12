@@ -182,8 +182,10 @@ for (const track of fs.existsSync(acRoot) ? fs.readdirSync(acRoot).sort() : []) 
       const h1 = (raw.match(/^#\s+(.+)$/m) || [, base])[1].trim();
       const sections = raw.split(/^##\s+/m);
       const intro = cleanMd(sections.shift().replace(/^#\s+.+$/m, ''));
-      const url = kind === 'lessons' ? academyUrl(track, base) : academyUrl(track);
-      const label = kind === 'lessons' ? 'Academy lesson' : 'Academy template';
+      // lessons/README.md is the track overview, not a catalog lesson: link to the track page.
+      const isOverview = kind === 'lessons' && base === 'README';
+      const url = kind === 'lessons' && !isOverview ? academyUrl(track, base) : academyUrl(track);
+      const label = isOverview ? 'Academy course overview' : kind === 'lessons' ? 'Academy lesson' : 'Academy template';
       if (intro) add({ id: `academy:${track}:${kind}:${base}:0`, kind: 'academy', title: h1, url, text: `${label}: ${h1} (${trackTitle}).\n${intro}` });
       sections.forEach((sec, si) => {
         const [head, ...rest] = sec.split('\n');
