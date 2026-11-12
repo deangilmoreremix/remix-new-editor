@@ -13,6 +13,7 @@ import { useVideoConfig, useDelayRender } from 'remotion';
 import enabled from '../../../hyperframes/catalog.enabled.json';
 import { reportCodeError } from '../codeLayer.jsx';
 import { componentHostHtml, routeVarsToInstance } from './host.js';
+import { hfPlacement, defaultFitFor } from '../../../hyperframes/placement.js';
 
 const byId = new Map(enabled.items.map((i) => [i.id, i]));
 export const isEnabledBlock = (id) => byId.has(id);
@@ -27,9 +28,16 @@ export function HyperframesLayer({ layer }) {
   // RemotionUI items share this layer kind (blockId "rui:<name>") so the lane, persistence, toasts, kill switch and export gating are the same
   if (String(layer.blockId || '').startsWith('rui:')) {
     if (layer.runtimeDisabled) { reportCodeError(layer.id, `${HF_ERROR}"${layer.title || layer.blockId}" was not rendered: Animations are temporarily switched off. Your project data is unchanged.`); return null; }
-    return <React.Suspense fallback={null}><RuiClip layer={layer} /></React.Suspense>;
+    return <RuiPlaced layer={layer} />;
   }
   return <HyperframesBlockLayer layer={layer} />;
+}
+
+/** A RemotionUI clip fills the frame; the user's offset / scale move and resize it as a whole. */
+function RuiPlaced({ layer }) {
+  const { width, height } = useVideoConfig();
+  const p = hfPlacement(width, height, width, height, layer.geom, 'contain');
+  return <div style={{ position: 'absolute', left: p.left, top: p.top, width, height, transform: `scale(${p.k})`, transformOrigin: 'top left' }}><React.Suspense fallback={null}><RuiClip layer={layer} /></React.Suspense></div>;
 }
 
 function HyperframesBlockLayer({ layer }) {
@@ -60,7 +68,7 @@ function HyperframesBlockLayer({ layer }) {
   }, [mod, layer.id, layer.blockId, layer.runtimeDisabled]); // eslint-disable-line react-hooks/exhaustive-deps
   if (layer.runtimeDisabled || !mod || !item) return null; // unknown or non-enabled blocks render nothing; the editor shows their status instead
   const bw = item.dimensions?.width || layer.blockWidth || 1920, bh = item.dimensions?.height || layer.blockHeight || 1080;
-  const k = Math.min(width / bw, height / bh);
+  const place = hfPlacement(width, height, bw, bh, layer.geom, defaultFitFor(item)); // x/y/scale/fit from the overlay; lower thirds default to 'width-bottom'
   const BlockClip = mod.BlockClip;
   // components are mounted through a generated host; starter projects through their own pinned index.html
   const isHost = item.project?.host === true;
@@ -68,7 +76,7 @@ function HyperframesBlockLayer({ layer }) {
   // a component shown through its own demo composition mounts the component as a nested instance: its variables are addressed by that instance
   const overrides = isHost ? routeVarsToInstance(layer.overrides) : (item.project?.instance ? routeVarsToInstance(layer.overrides, item.project.instance) : layer.overrides);
   return (
-    <div style={{ position: 'absolute', left: (width - bw * k) / 2, top: (height - bh * k) / 2, width: bw, height: bh, transform: `scale(${k})`, transformOrigin: 'top left' }}>
+    <div style={{ position: 'absolute', left: place.left, top: place.top, width: bw, height: bh, transform: `scale(${place.k})`, transformOrigin: 'top left' }}>
       <BlockClip name={item.id} width={bw} height={bh} overrides={overrides} expectedSha256={item.sourceSha256} project={project} />
     </div>
   );

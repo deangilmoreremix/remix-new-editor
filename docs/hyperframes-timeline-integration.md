@@ -145,3 +145,11 @@ The 14 `caption-*` demos and `halftone-dissolve` declare no (effective) variable
 ### Update: inline variable declarations, nicer library cards (118 HyperFrames + 149 RemotionUI = 267)
 Compositions that mount their component inline (component demos) declare the variables on the inner element; `BlockClip` now resolves customer `var.*` overrides against that element when the root declares none (this made 29 of 38 fields of 11 re-tested components visibly effective).
 Eight components that looked like a tiny element in a corner when shown alone (`avatar-group-hover`, `menu-morph`, `matrix-decode`, `per-word-crossfade`, `perspective-marquee`, `tabs-slide-indicator`, `top-down-letters`, `input-feedback`) now use their own demo scene; `badge-pop` was added. Hover previews of all 266 then-current cards were checked in the real library modal.
+
+
+## Update: placement of animations (lower thirds fix)
+Every animation (HyperFrames and RemotionUI) can now be placed in the frame: **Fit** (inside the frame / fill the frame / match width and sit at the bottom), **Left/right** and **Up/down** offsets (% of the frame), **Size** (%), plus a "Move" handle and a corner resize square on the video, "Reset position" and "Extend to end of video" in the settings panel.
+The overlay stores `geom: { x, y, scale, fit }` (optional; overlays saved earlier render as before). One function, `src/lib/hyperframes/placement.js`, is used by the preview, the handles and the export, so what you see is what is exported.
+Lower thirds and tickers default to `width-bottom`: they stay on the bottom edge in 16:9, 9:16 and 1:1, and are enlarged up to 2.2x in narrower frames so they are not tiny on a phone-shaped video (verified by a real 1080x1920 MP4 export, default and moved/resized).
+Lower thirds also got customer-facing field names and neutral starting text ("Your name", "Your title", a neutral avatar) from `src/lib/hyperframes/labels.json` (the master text stays the default; a new clip starts with the neutral text), and 640x360 thumbnails rendered over a video-like backdrop.
+Note: `lower-third-bild` is enabled (the earlier note that it was removed is out of date).

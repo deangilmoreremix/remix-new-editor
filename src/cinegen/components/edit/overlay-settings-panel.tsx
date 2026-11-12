@@ -1,6 +1,6 @@
 // [remix] Inspector for the selected overlay. The fields are drawn by the old editor's settings renderer (`renderAddonEditor`),
 // so Lead Generator / List Builder / CTA have the same Basic / Style / Fields / Integrations tabs as before.
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS settings renderer from the main app
 import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
@@ -10,6 +10,9 @@ import type { MgPropField } from '@cinegen/lib/occ/mg-templates';
 import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
 import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+import { hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
+// @ts-expect-error plain JS placement helpers
+import { HF_FITS, HF_FIT_LABELS, normalizeGeom } from '../../../lib/hyperframes/placement.js';
 
 /** [remix] Props of an OpenChatCut motion-graphics template, drawn from the template's own propSchema. */
 function MgPropsEditor({ overlay, onUpdate }: { overlay: OverlayClip; onUpdate: (u: Partial<OverlayClip>) => void }) {
@@ -27,6 +30,37 @@ function MgPropsEditor({ overlay, onUpdate }: { overlay: OverlayClip; onUpdate: 
         if (f.type === 'select') return <label key={f.key} className="addon-field">{label}<select value={String(v ?? '')} onChange={(e) => set(f.key, e.target.value)}>{(f.options ?? []).map((o) => { const val = typeof o === 'string' ? o : o.value; return <option key={val} value={val}>{typeof o === 'string' ? o : o.label ?? o.value}</option>; })}</select></label>;
         return <label key={f.key} className="addon-field">{label}<input type="text" value={String(v ?? '')} onChange={(e) => set(f.key, e.target.value)} /></label>;
       })}
+    </div>
+  );
+}
+
+/** Placement of an animation in the frame: fit, offset, size. The same values are set by dragging on the video. */
+function HfPlacementControls({ overlay, duration, onUpdate }: { overlay: OverlayClip; duration: number; onUpdate: (u: Partial<OverlayClip>) => void }) {
+  const item = hyperframesItem(String(overlay.blockId ?? ''));
+  const isRui = String(overlay.blockId ?? '').startsWith('rui:');
+  const fitDefault = item && !isRui ? defaultFit(item) : 'contain';
+  const g = normalizeGeom(overlay.geom, fitDefault) as { x: number; y: number; scale: number; fit: string };
+  const set = (patch: Record<string, unknown>) => onUpdate({ geom: { ...((overlay.geom as Record<string, unknown>) ?? {}), fit: g.fit, ...patch } });
+  const num = (v: string, d: number) => (Number.isFinite(Number(v)) && v.trim() !== '' ? Number(v) : d);
+  const btn: CSSProperties = { fontSize: 11, padding: '5px 9px', borderRadius: 6, border: '1px solid var(--border-medium)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' };
+  return (
+    <div data-testid="hf-placement" style={{ padding: '0 12px 8px' }}>
+      <div style={{ fontSize: 11, opacity: 0.7, margin: '4px 0 6px', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 600 }}>Placement</div>
+      {!isRui && (
+        <label className="addon-field"><span>Fit</span>
+          <select aria-label="Fit" value={g.fit} onChange={(e) => set({ fit: e.target.value })}>{(HF_FITS as string[]).map((f) => <option key={f} value={f}>{(HF_FIT_LABELS as Record<string, string>)[f]}</option>)}</select>
+        </label>
+      )}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <label className="addon-field" style={{ flex: 1 }}><span>Left / right (%)</span><input aria-label="Left / right" type="number" step={1} value={Number(g.x.toFixed(1))} onChange={(e) => set({ x: num(e.target.value, g.x) })} /></label>
+        <label className="addon-field" style={{ flex: 1 }}><span>Up / down (%)</span><input aria-label="Up / down" type="number" step={1} value={Number(g.y.toFixed(1))} onChange={(e) => set({ y: num(e.target.value, g.y) })} /></label>
+        <label className="addon-field" style={{ flex: 1 }}><span>Size (%)</span><input aria-label="Size" type="number" min={10} max={400} step={5} value={Math.round(g.scale * 100)} onChange={(e) => set({ scale: Math.min(4, Math.max(0.1, num(e.target.value, 100) / 100)) })} /></label>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+        <button type="button" style={btn} onClick={() => onUpdate({ geom: { fit: fitDefault } })}>Reset position</button>
+        <button type="button" style={btn} disabled={duration <= overlay.start + 0.5} onClick={() => onUpdate({ end: Math.max(overlay.start + 0.5, duration) })}>Extend to end of video</button>
+      </div>
+      <div style={{ fontSize: 11, opacity: 0.6, marginTop: 6 }}>Tip: select it, then drag the "Move" handle on the video, or the corner square to resize.</div>
     </div>
   );
 }
@@ -127,6 +161,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         </label>
       </div>
       )}
+      {overlay.type === 'hyperframes' && <HfPlacementControls overlay={overlay} duration={duration} onUpdate={onUpdate} />}
       {overlay.type === 'mg-template' || overlay.type === 'hyperframes' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
     </aside>
   );
