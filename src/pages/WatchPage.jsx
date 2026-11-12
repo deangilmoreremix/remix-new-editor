@@ -8,7 +8,7 @@
  */
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
-import { fetchPublishedVideo, countView, submitViewerLead, profileFromQuery, recordVideoEvent } from '../lib/editor/publish/publishClient.js';
+import { fetchPublishedVideo, countView, submitViewerLead, profileFromQuery, recordVideoEvent, resolveRecipient } from '../lib/editor/publish/publishClient.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 
@@ -78,7 +78,18 @@ export async function mountWatchPage(container, id, deps = {}) {
   let codePreview = null;
   let scrubbing = false;
   // Per-contact analytics (personal links carry ?c=<contactId>).
-  const viewerProfile = profileFromQuery();
+  // ?recipient=<opaque token> is resolved server-side to that recipient's variables (text + image URLs).
+  // When present it is the ONLY source of personalization: query-string values are ignored so a link
+  // can't be edited to show someone else's details. A dead/revoked token gives the generic video.
+  // The legacy ?c=&firstname= form still works for links made before recipient tokens existed.
+  const recipientToken = params.get('recipient');
+  let viewerProfile;
+  if (recipientToken) {
+    const vars = await (deps.resolveRecipient || resolveRecipient)(video.id, recipientToken);
+    viewerProfile = vars ? { id: recipientToken, variables: vars } : null;
+  } else {
+    viewerProfile = profileFromQuery();
+  }
   const track = (kind, clipId = null) => (deps.recordEvent || recordVideoEvent)(video.id, { kind, contactId: viewerProfile?.id || null, clipId });
   let playedOnce = false;
   let completedOnce = false;

@@ -15,4 +15,4 @@ export default async (request, context) => {
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 };
 
-export const config = { path: '/watch/*' };
+export const config = { path: ['/watch/*', '/v/*'] };
