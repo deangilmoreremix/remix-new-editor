@@ -1,10 +1,10 @@
 // [hyperframes] Library for verified HyperFrames animations (flag-gated, additive). Same pattern as mg-templates-modal.tsx:
 // search + category filter + cards; the chosen animation is added to the overlay lane at the playhead.
 // Previews run in the editor's sandboxed code-preview frame (never in this page).
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { hyperframesItems, searchHyperframes, hyperframesOverlayLayer, createHyperframesOverlay, type HfItem } from '@cinegen/lib/hyperframes/overlay';
-
-const FPS = 30;
+import { useMemo, useState, type CSSProperties } from 'react';
+import { hyperframesItems, searchHyperframes, type HfItem } from '@cinegen/lib/hyperframes/overlay';
+import { PreviewCard } from './preview-card';
+import { hfPreview } from './add-to-timeline-registry';
 
 /** The catalog has 24 raw categories; the library shows a handful of customer-friendly groups (display only, the catalog data is unchanged). */
 const GROUPS: Array<[string, string[]]> = [
@@ -20,27 +20,6 @@ const GROUPS: Array<[string, string[]]> = [
 const RUI_CATEGORIES = ['Scenes', 'Primitives', 'Compositions', 'Data & media', 'Paths & shapes', 'Motion graphics', 'Maps & device', '3D', 'Shaders'];
 const groupOf = (i: HfItem): string => (i.type === 'remotionui' ? i.category : (GROUPS.find(([, cats]) => cats.includes(i.category))?.[0] ?? 'More'));
 const typeOf = (i: HfItem): string => (i.type === 'remotionui' ? 'block' : (i.type ?? 'block'));
-const thumbOf = (id: string): string => `/hyperframes/thumbs/${id.replace(':', '-')}.jpg`;
-
-function Preview({ item }: { item: HfItem }) {
-  const host = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = host.current; if (!el) return;
-    let live = true; let timer = 0; let handle: { update: (m: unknown) => Promise<void>; frame: (f: number) => void; destroy: () => void } | null = null;
-    void import('../../../lib/editor/remotion/codePreviewClient.js').then(async ({ createCodePreview }: { createCodePreview: (h: HTMLElement) => NonNullable<typeof handle> }) => {
-      if (!live) return;
-      handle = createCodePreview(el);
-      const overlay = createHyperframesOverlay(item, 0);
-      const layer = hyperframesOverlayLayer(overlay, FPS);
-      await handle.update({ version: 1, fps: FPS, width: item.dimensions.width, height: item.dimensions.height, durationInFrames: layer.durationInFrames, background: 'transparent', layers: [layer], audio: [], transitions: [], fonts: [] });
-      let f = 0; timer = window.setInterval(() => { f = (f + 1) % layer.durationInFrames; handle?.frame(f); }, 1000 / FPS);
-    });
-    return () => { live = false; window.clearInterval(timer); handle?.destroy(); };
-  }, [item.id]);
-  const ratio = item.dimensions.width / item.dimensions.height;
-  return <div ref={host} aria-label={`Preview of ${item.title}`} style={{ position: 'relative', width: '100%', aspectRatio: String(ratio), maxHeight: '100%', margin: '0 auto', height: '100%', overflow: 'hidden' }} />;
-}
-
 const GLYPH: Record<string, string> = { All: '▦', 'Lower thirds': '▭', 'Titles & text': 'T', 'Social & UI': '◎', 'Data & charts': '▤', Code: '</>', Transitions: '⇄', 'Backgrounds & effects': '▨', Scenes: '▣', Primitives: '◇', Compositions: '▶', 'Data & media': '♪', 'Paths & shapes': '✎', 'Motion graphics': '✺', 'Maps & device': '⌖', '3D': '◈', Shaders: '◐', More: '…' };
 const TYPE_LABEL: Record<string, string> = { block: 'Animation', component: 'Component', example: 'Scene template', remotionui: 'Animation' };
 const aspectOf = (w: number, h: number) => (Math.abs(w - h) < 8 ? '1:1' : w > h ? '16:9' : '9:16');
@@ -54,17 +33,14 @@ export function HyperframesPanel({ onPick }: { onPick: (item: HfItem) => void })
   const [tag, setTag] = useState('all');
   const [type, setType] = useState('all');
   const [ratio, setRatio] = useState('all');
-  const [hover, setHover] = useState<string | null>(null);
-  const [live, setLive] = useState<string | null>(null); // the hovered card starts its live preview after a short pause
-  useEffect(() => { setLive(null); if (!hover) return undefined; const t = window.setTimeout(() => setLive(hover), 350); return () => window.clearTimeout(t); }, [hover]);
   const counts = useMemo(() => { const m = new Map<string, number>(); for (const i of all) m.set(groupOf(i), (m.get(groupOf(i)) ?? 0) + 1); return m; }, [all]);
   const tags = useMemo(() => ['All', ...[...GROUPS.map(([g]) => g), ...RUI_CATEGORIES.filter((g) => !GROUPS.some(([n]) => n === g)), 'More'].filter((g) => counts.has(g))], [counts]);
   const types = useMemo(() => [...new Set(all.map(typeOf))], [all]);
   const list = searchHyperframes(all, q, 'all').filter((i) => (tag === 'all' || groupOf(i) === tag) && (type === 'all' || typeOf(i) === type) && (ratio === 'all' || aspectOf(i.dimensions.width, i.dimensions.height) === ratio));
   return (
  <>
-      <style>{'.hf-card2:hover{border-color:var(--accent)!important}'}</style>
-        <div style={{ margin: '18px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
+      <style>{'.add-card:hover{border-color:var(--accent)!important}'}</style>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
             <strong style={{ fontSize: 13, letterSpacing: '.06em', textTransform: 'uppercase' }}>▣ Choose an animation</strong>
             <span style={{ flex: 1 }} />
@@ -91,16 +67,7 @@ export function HyperframesPanel({ onPick }: { onPick: (item: HfItem) => void })
           <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>Showing {list.length} of {all.length} animations</div>
           <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
             {list.map((i) => (
-              <button key={i.id} className="hf-card2" onMouseEnter={() => setHover(i.id)} onMouseLeave={() => setHover(null)} onClick={() => onPick(i)} aria-label={i.title} data-testid={`animation-${i.id}`}
-                style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' }}>
-                <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
-                  <img src={thumbOf(i.id)} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
-                  {live === i.id && <div style={{ position: 'absolute', inset: 0, background: '#000' }}><Preview item={i} /></div>}
-                  <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{TYPE_LABEL[typeOf(i)]}</span>
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10 }}>{i.title}</div>
-                <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{i.duration.toFixed(0)}s · {aspectOf(i.dimensions.width, i.dimensions.height)}{i.slow ? ' · slower export' : ''}</div>
-              </button>
+              <PreviewCard key={i.id} preview={hfPreview(i)} title={i.title} badge={TYPE_LABEL[typeOf(i)]} sub={`${i.duration.toFixed(0)}s · ${aspectOf(i.dimensions.width, i.dimensions.height)}${i.slow ? ' · slower export' : ''}`} onClick={() => onPick(i)} testId={`animation-${i.id}`} />
             ))}
             {!list.length && <span style={{ fontSize: 13, opacity: 0.7 }}>No animations match your search.</span>}
           </div>
@@ -121,7 +88,9 @@ export function HyperframesModal({ onClose, onPick }: { onClose: () => void; onP
           </div>
           <button aria-label="Close library" onClick={onClose} style={{ background: 'transparent', border: 0, color: 'inherit', fontSize: 22, cursor: 'pointer', padding: 6 }}>×</button>
         </div>
-        <HyperframesPanel onPick={onPick} />
+        <div style={{ margin: '18px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
+          <HyperframesPanel onPick={onPick} />
+        </div>
       </div>
     </div>
   );

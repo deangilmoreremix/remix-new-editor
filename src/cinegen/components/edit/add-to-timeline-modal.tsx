@@ -1,30 +1,18 @@
 // [remix] One place to add anything to the timeline (replaces the "+ Add overlay…" dropdown): Animations, Motion graphics,
 // Smart Speech, Template Generator, Personalization, the basic overlays and the End screen / Connect form templates.
-// Each entry only routes to the handlers the timeline editor already had; the modal itself holds no timeline logic.
-import { useMemo, useState, type CSSProperties } from 'react';
-import type { OverlayKind } from '@cinegen/types/workspace';
-import type { HfItem } from '@cinegen/lib/hyperframes/overlay';
-import type { MgTemplate } from '@cinegen/lib/occ/mg-templates';
-import { OVERLAY_KINDS, overlayTemplates, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
+// The cards come from add-to-timeline-registry.ts (every entry carries its own preview) and are drawn by preview-card.tsx.
+import { useMemo, useRef, useState, type CSSProperties } from 'react';
 import { HyperframesPanel } from './hyperframes-modal';
 import { MgTemplatesPanel } from './mg-templates-modal';
+import { PreviewCard } from './preview-card';
+import { buildCatalog, type AddToTimelineActions, type CatalogEntry } from './add-to-timeline-registry';
 
-export interface AddToTimelineActions {
-  onPickAnimation?: (item: HfItem) => void; // omitted when the HyperFrames flag is off
-  onPickMotion: (t: MgTemplate) => void;
-  onAddKind: (kind: OverlayKind) => void;
-  onAddTemplate: (templateId: string, phone?: string) => void;
-  onOpenSpeech?: () => void;
-  onOpenGenerator?: () => void;
-  onOpenPersonalization?: () => void;
-}
+export type { AddToTimelineActions } from './add-to-timeline-registry';
 
-type Tab = 'all' | 'animations' | 'motion' | 'speech' | 'overlays' | 'endscreens';
-interface Entry { id: string; tab: Exclude<Tab, 'all' | 'animations' | 'motion'>; label: string; blurb: string; glyph: string; run: () => void }
+type Tab = 'all' | 'animations' | 'motion' | CatalogEntry['tab'];
 
 const INK = 'rgba(229,237,245,.9)';
 const field: CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', color: 'inherit', border: '1px solid var(--border-medium)', borderRadius: 10, padding: '11px 12px', fontSize: 13 };
-const KIND_GLYPH: Record<string, string> = { 'lead-form': '✉', 'list-builder': '☰', 'click-to-call': '☎', 'overlay-text': 'T', 'overlay-text-mask': 'Ⓣ', 'overlay-image': '▣', 'overlay-personalized-image': '◉', 'overlay-sticker': '★', 'overlay-background': '▨', 'overlay-lower-third': '▭' };
 
 export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; actions: AddToTimelineActions }) {
   const [tab, setTab] = useState<Tab>(actions.onPickAnimation ? 'animations' : 'motion');
@@ -33,25 +21,26 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const [phone, setPhone] = useState('');
   const a = actions;
 
-  // Everything that is a single click lives in one list, so adding a feature later is one more entry here.
-  const entries = useMemo<Entry[]>(() => {
-    const list: Entry[] = [];
-    if (a.onOpenSpeech) list.push({ id: 'speech', tab: 'speech', label: 'Smart Speech', blurb: 'Turn text into a voiceover and place it on an audio track at the playhead.', glyph: '🎙', run: a.onOpenSpeech });
-    if (a.onOpenGenerator) list.push({ id: 'generator', tab: 'speech', label: 'Template Generator', blurb: 'Generate a templated video or overlay from a prompt.', glyph: '✦', run: a.onOpenGenerator });
-    if (a.onOpenPersonalization) list.push({ id: 'personalize', tab: 'speech', label: 'Personalization', blurb: 'Personalize the video for each contact.', glyph: '◉', run: a.onOpenPersonalization });
-    for (const k of OVERLAY_KINDS) list.push({ id: k.kind, tab: 'overlays', label: k.label, blurb: k.blurb, glyph: KIND_GLYPH[k.kind] ?? '•', run: () => { a.onAddKind(k.kind); onClose(); } });
-    for (const t of overlayTemplates()) {
-      const isConnect = isConnectTemplate(t.id);
-      list.push({ id: `tpl:${t.id}`, tab: 'endscreens', label: t.name, blurb: t.description, glyph: isConnect ? '☎' : '▶', run: () => { if (isConnect) { setConnect(t.id); setPhone(''); } else { a.onAddTemplate(t.id); onClose(); } } });
-    }
-    return list;
-  }, [a, onClose]);
+  // Everything that is a single click lives in one catalog, so adding a feature later is one more entry there.
+  // The parent passes fresh closures on every render; the catalog is built once and calls the latest ones through a ref, so card
+  // previews keep their identity (a rebuilt preview would restart every live render).
+  const latest = useRef({ a, onClose });
+  latest.current = { a, onClose };
+  const [hasGen, hasPers] = [!!a.onOpenGenerator, !!a.onOpenPersonalization];
+  const entries = useMemo(() => {
+    const L = () => latest.current.a;
+    const proxy: AddToTimelineActions = {
+      onPickMotion: (t) => L().onPickMotion(t), onAddKind: (k) => L().onAddKind(k), onAddTemplate: (id, p) => L().onAddTemplate(id, p),
+      onOpenGenerator: hasGen ? () => L().onOpenGenerator?.() : undefined, onOpenPersonalization: hasPers ? () => L().onOpenPersonalization?.() : undefined,
+    };
+    return buildCatalog(proxy, { close: () => latest.current.onClose(), askPhone: (id) => { setConnect(id); setPhone(''); } });
+  }, [hasGen, hasPers]);
 
   const TABS: Array<{ id: Tab; label: string; glyph: string; count?: number; hidden?: boolean }> = [
     { id: 'all', label: 'All', glyph: '▦' },
     { id: 'animations', label: 'Animations', glyph: '✦', hidden: !a.onPickAnimation },
     { id: 'motion', label: 'Motion graphics', glyph: '✺' },
-    { id: 'speech', label: 'Speech & AI', glyph: '🎙', count: entries.filter((e) => e.tab === 'speech').length },
+    { id: 'ai', label: 'AI & personalization', glyph: '✦', count: entries.filter((e) => e.tab === 'ai').length },
     { id: 'overlays', label: 'Overlays & forms', glyph: '▭', count: entries.filter((e) => e.tab === 'overlays').length },
     { id: 'endscreens', label: 'End screens & connect forms', glyph: '▶', count: entries.filter((e) => e.tab === 'endscreens').length },
   ];
@@ -70,7 +59,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
           <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--accent-dim)', color: 'var(--accent)', display: 'grid', placeItems: 'center', fontSize: 20 }}>＋</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 20, fontWeight: 700 }}>Add to timeline</div>
-            <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4, maxWidth: 720 }}>Animations, motion graphics, speech, overlays, forms and end screens. Click one to place it at the playhead, then edit it in the panel.</div>
+            <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4, maxWidth: 720 }}>Animations, motion graphics, overlays, forms and end screens. Hover a card to preview it, click to place it at the playhead, then edit it in the panel.</div>
           </div>
           <button aria-label="Close" onClick={onClose} style={{ background: 'transparent', border: 0, color: 'inherit', fontSize: 22, cursor: 'pointer', padding: 6 }}>×</button>
         </div>
@@ -87,15 +76,15 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
           })}
         </div>
         {isPanel ? (
-          // These two keep their own search, category and filter controls
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'auto' }}>
+          // These two are big catalogs with their own search, categories and filters
+          <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
             {tab === 'animations' && a.onPickAnimation && <HyperframesPanel onPick={(i) => { a.onPickAnimation?.(i); onClose(); }} />}
-            {tab === 'motion' && <div style={{ margin: '14px 20px 20px', display: 'flex', flexDirection: 'column', minHeight: 0 }}><MgTemplatesPanel onPick={(t) => { a.onPickMotion(t); onClose(); }} /></div>}
+            {tab === 'motion' && <MgTemplatesPanel onPick={(t) => { a.onPickMotion(t); onClose(); }} />}
           </div>
         ) : (
           <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
-            <input type="text" autoFocus placeholder="⌕  Search overlays, forms, end screens, speech…" aria-label="Search" value={q} onChange={(e) => setQ(e.target.value)} style={{ ...field, marginBottom: 12 }} />
-            {tab === 'all' && !needle && <div style={{ fontSize: 12, opacity: 0.65, marginBottom: 10 }}>Animations and Motion graphics have their own tabs with previews.</div>}
+            <input type="text" autoFocus placeholder="⌕  Search overlays, forms, end screens…" aria-label="Search" value={q} onChange={(e) => setQ(e.target.value)} style={{ ...field, marginBottom: 12 }} />
+            {tab === 'all' && !needle && <div style={{ fontSize: 12, opacity: 0.65, marginBottom: 10 }}>Animations and Motion graphics have their own tabs with search and filters.</div>}
             {pending && (
               <form onSubmit={(e) => { e.preventDefault(); a.onAddTemplate(pending.id.slice(4), phone.trim() || undefined); onClose(); }}
                 style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12, padding: 12, border: '1px solid var(--accent)', borderRadius: 12, background: 'var(--accent-dim)' }}>
@@ -107,14 +96,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
             )}
             <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0 }}>
               {shown.map((e) => (
-                <button key={e.id} className="add-card" onClick={e.run} data-testid={`add-${e.id}`}
-                  style={{ textAlign: 'left', padding: 14, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer', display: 'flex', gap: 12 }}>
-                  <span style={{ flex: '0 0 auto', width: 38, height: 38, borderRadius: 10, display: 'grid', placeItems: 'center', background: 'var(--accent-dim)', color: 'var(--accent)', fontSize: 17 }}>{e.glyph}</span>
-                  <span style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 14, fontWeight: 700 }}>{e.label}</span>
-                    <span style={{ display: 'block', fontSize: 12, opacity: 0.65, marginTop: 3 }}>{e.blurb}</span>
-                  </span>
-                </button>
+                <PreviewCard key={e.id} preview={e.preview} title={e.label} sub={e.blurb} badge={e.badge} onClick={e.run} testId={`add-${e.id}`} />
               ))}
               {!shown.length && <span style={{ fontSize: 13, opacity: 0.7 }}>Nothing matches your search.</span>}
             </div>
