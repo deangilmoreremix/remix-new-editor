@@ -149,3 +149,16 @@
 .overlay-card--compact { padding-top: 0; padding-bottom: 0; }
 .overlay-card__handle { position: absolute; top: 0; bottom: 0; width: 6px; cursor: ew-resize; z-index: 1; }
 .overlay-card__handle--start { left: 0; } .overlay-card__handle--end { right: 0; }
+
+/* [remix] Overlays row uses its own class names (CineGen's timeline code queries .track-row / .track-row__clips for geometry), same look. */
+.overlay-track { display: flex; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+.overlay-track__label { width: 150px; flex-shrink: 0; padding: 3px 8px; display: flex; flex-direction: column; justify-content: center; gap: 2px; font-size: 12px; color: var(--text-secondary); background: var(--bg-raised); border-right: 1px solid var(--border-subtle); position: sticky; left: 0; z-index: 12; overflow: hidden; box-sizing: border-box; }
+.overlay-track__label-top { display: flex; align-items: center; gap: 4px; overflow: hidden; }
+.overlay-track__label-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.overlay-track__clips { flex: 1; position: relative; }
+/* Media | Library switch: slim underline tabs instead of a bar of buttons */
+.left-panel__switch { padding: 4px 10px 0; gap: 14px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.left-panel__switch-btn { flex: 0 0 auto; padding: 3px 0 5px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; font-size: 11px; }
+.left-panel__switch-btn--on { background: transparent; border-bottom-color: #22d3ee; }
+.left-panel__switch-btn:hover { border-color: transparent; }
+.left-panel__switch-btn--on:hover { border-bottom-color: #22d3ee; }

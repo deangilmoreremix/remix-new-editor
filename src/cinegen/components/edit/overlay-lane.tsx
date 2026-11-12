@@ -68,15 +68,16 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   const ROW = 46;
   const rowH = open ? ROW : 26;
   const contentH = (open ? count : 1) * rowH + 8;
-  const height = Math.min(contentH, 3 * ROW + 8); // at most 3 rows tall; more rows scroll inside the track
+  const empty = overlays.length === 0;
+  const height = empty ? 30 : Math.min(contentH, 3 * ROW + 8); // empty: one slim row (just the add menu); otherwise at most 3 rows tall, more scroll inside the track
 
   return (
-    <div className="track-row overlay-track" data-testid="overlay-lane" style={{ height, background: 'var(--bg-surface, #0b0e14)' }}>
-      <div className="track-row__label" title="Overlays: forms and buttons drawn over the video" style={{ width: labelWidth }}>
-        <div className="track-row__label-top">
+    <div className="overlay-track" data-testid="overlay-lane" style={{ height, background: 'var(--bg-surface, #0b0e14)' }}>
+      <div className="overlay-track__label" title="Overlays: forms and buttons drawn over the video" style={{ width: labelWidth }}>
+        {!empty && <div className="overlay-track__label-top">
           <button type="button" className="overlay-lane__toggle" aria-expanded={open} aria-label={open ? 'Collapse overlays' : 'Expand overlays'} title={open ? 'Collapse overlays' : 'Expand overlays'} onClick={() => setOpen((v) => !v)}>{open ? '▾' : '▸'}</button>
-          <span className="track-row__label-text">Overlays{overlays.length ? ` · ${overlays.length}` : ''}</span>
-        </div>
+          <span className="overlay-track__label-text">Overlays{overlays.length ? ` · ${overlays.length}` : ''}</span>
+        </div>}
         <select aria-label="Add overlay" title="Add an overlay at the playhead" value="" onChange={(e) => { if (!e.target.value) return; if (e.target.value === 'mg:') onBrowseMotion?.(); else if (e.target.value === 'hf:') onBrowseHyperframes?.(); else if (e.target.value === 'speech:') onOpenSpeech?.(); else if (e.target.value === 'generator:') onOpenGenerator?.(); else if (e.target.value === 'personalize:') onOpenPersonalization?.(); else if (e.target.value.startsWith('tpl:')) onAddTemplate?.(e.target.value.slice(4)); else onAdd(e.target.value as OverlayKind); }}
           className="overlay-lane__add">
           <option value="">+ Add overlay…</option>
@@ -89,7 +90,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
           {onAddTemplate && <optgroup label="End screens and connect forms">{overlayTemplates().map((t) => <option key={t.id} value={`tpl:${t.id}`} title={t.description}>{t.name}</option>)}</optgroup>}
         </select>
       </div>
-      <div className="track-row__clips" style={{ overflowX: 'hidden', overflowY: contentH > height ? 'auto' : 'hidden' }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
+      <div className="overlay-track__clips" style={{ overflowX: 'hidden', overflowY: contentH > height ? 'auto' : 'hidden' }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
         <div style={{ position: 'relative', height: contentH, width: Math.max(sequenceDuration, 1) * pxPerSecond, transform: `translateX(${-(scrollLeft)}px)` }}>
           {overlays.map((o) => {
             const on = selected === o.id;
