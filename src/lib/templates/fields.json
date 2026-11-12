@@ -1,0 +1,555 @@
+{
+ "tpl:free:brush-stroke-reveal": [
+  "title",
+  "description",
+  "strokes"
+ ],
+ "tpl:free:logo-blur-reveal": [
+  "logoText",
+  "revealDuration",
+  "logoColor"
+ ],
+ "tpl:free:logo-bounce-drop": [
+  "logoText",
+  "svgPath"
+ ],
+ "tpl:free:logo-mask-wipe": [
+  "backgroundColor",
+  "accentColor",
+  "textColor",
+  "monogram"
+ ],
+ "tpl:free:logo-split-reveal": [
+  "logoText",
+  "revealDuration",
+  "logoColor"
+ ],
+ "tpl:free:logo-stroke-draw": [
+  "backgroundColor",
+  "accentColor",
+  "textColor",
+  "monogram"
+ ],
+ "tpl:free:neon-sign": [
+  "backgroundColor",
+  "neonColor"
+ ],
+ "tpl:free:shatter-reveal": [
+  "title",
+  "subtitle",
+  "pieces",
+  "spread"
+ ],
+ "tpl:free:bounce-in-headline": [
+  "headline",
+  "background",
+  "color"
+ ],
+ "tpl:free:chapter-title": [
+  "chapterLabel",
+  "title",
+  "subtitle",
+  "background"
+ ],
+ "tpl:free:four-tone-mono-titler": [
+  "title",
+  "subtitle",
+  "titleCell",
+  "subtitleCell"
+ ],
+ "tpl:free:glitch-text": [
+  "text",
+  "glitchColor",
+  "intensity",
+  "backgroundColor"
+ ],
+ "tpl:free:gradient-text-sweep": [
+  "backgroundColor",
+  "accentColor",
+  "textColor",
+  "headline"
+ ],
+ "tpl:free:kinetic-word-stack": [
+  "backgroundColor",
+  "accentColor",
+  "textColor"
+ ],
+ "tpl:free:pixel-typewriter-quote": [
+  "quote",
+  "attribution",
+  "backgroundColor",
+  "inkColor"
+ ],
+ "tpl:free:scramble-text": [
+  "text",
+  "label",
+  "background",
+  "textColor"
+ ],
+ "tpl:free:text-mask-reveal": [
+  "backgroundColor",
+  "accentColor",
+  "textColor"
+ ],
+ "tpl:free:typewriter": [
+  "backgroundColor",
+  "machineColor",
+  "machineDarkColor"
+ ],
+ "tpl:free:wave-text": [
+  "text",
+  "subText",
+  "background",
+  "textColor"
+ ],
+ "tpl:free:camera-shake": [
+  "title",
+  "subtitle",
+  "background",
+  "textColor"
+ ],
+ "tpl:free:card-flip-transition": [
+  "colorAfter",
+  "labelAfter"
+ ],
+ "tpl:free:transition-circle-wipe": [
+  "backgroundColor",
+  "accentColor",
+  "textColor"
+ ],
+ "tpl:free:ink-spread-transition": [
+  "colorBefore",
+  "colorAfter",
+  "labelAfter"
+ ],
+ "tpl:free:flip-page-transition": [
+  "colorBefore",
+  "colorAfter",
+  "labelBefore",
+  "labelAfter"
+ ],
+ "tpl:free:pixel-mosaic-transition": [
+  "screenBColor"
+ ],
+ "tpl:free:slide-wipe": [
+  "colorBefore",
+  "colorAfter",
+  "labelAfter"
+ ],
+ "tpl:free:whip-pan": [
+  "panLeft",
+  "maxBlur"
+ ],
+ "tpl:free:bar-chart-anim": [
+  "title",
+  "subtitle",
+  "background",
+  "titleColor"
+ ],
+ "tpl:free:line-chart-anim": [
+  "title",
+  "subtitle",
+  "background",
+  "titleColor"
+ ],
+ "tpl:free:pourover-drip-fill-gauge": [
+  "toneBg",
+  "toneDark",
+  "toneMid",
+  "toneLight"
+ ],
+ "tpl:free:kpi-counter": [
+  "backgroundColor",
+  "cardColor",
+  "textColor",
+  "subtextColor"
+ ],
+ "tpl:free:pixel-candlestick-ohlc": [
+  "backgroundColor",
+  "gridColor",
+  "bullColor",
+  "bearColor"
+ ],
+ "tpl:free:racing-chart": [
+  "frames",
+  "title",
+  "background",
+  "titleColor"
+ ],
+ "tpl:free:community-chat": [
+  "workspaceName",
+  "channelName"
+ ],
+ "tpl:free:end-card": [
+  "title",
+  "subtitle",
+  "ctaText",
+  "background"
+ ],
+ "tpl:free:eye-reveal": [
+  "backgroundColor",
+  "scleraColor",
+  "irisColor",
+  "pupilColor"
+ ],
+ "tpl:free:lower-third-glass-card": [
+  "backgroundColor",
+  "accentColor",
+  "textColor",
+  "nameText"
+ ],
+ "tpl:free:character-jumping": [
+  "backgroundColor",
+  "characterColor"
+ ],
+ "tpl:free:social-reel": [
+  "brandName",
+  "handle"
+ ],
+ "tpl:free:split-screen": [
+  "direction",
+  "dividerColor",
+  "dividerWidth"
+ ],
+ "tpl:free:thinking-bubble": [
+  "backgroundColor",
+  "characterColor",
+  "bubbleColor",
+  "bubbleBorder"
+ ],
+ "tpl:free:wave-hello": [
+  "backgroundColor",
+  "skinColor",
+  "bodyColor",
+  "accentColor"
+ ],
+ "tpl:free:bokeh-circles": [
+  "baseColor",
+  "count",
+  "label",
+  "labelColor"
+ ],
+ "tpl:free:fireworks-burst": [
+  "backgroundColor",
+  "sparkColor",
+  "textColor"
+ ],
+ "tpl:free:loop-grid-wave": [
+  "backgroundColor",
+  "dotColor",
+  "accentColor",
+  "amplitude"
+ ],
+ "tpl:free:parallax-pan": [
+  "title",
+  "subtitle",
+  "skyTop",
+  "skyBottom"
+ ],
+ "tpl:free:pencil-draw": [
+  "backgroundColor",
+  "pencilColor",
+  "lineColor",
+  "eraserColor"
+ ],
+ "tpl:free:pixel-waterfall-cycle": [
+  "backgroundColor",
+  "accentColor",
+  "cliffColor",
+  "cycleSpeed"
+ ],
+ "tpl:free:particle-snow": [
+  "backgroundColor",
+  "snowColor",
+  "accentColor",
+  "flakeCount"
+ ],
+ "tpl:free:starfield": [
+  "count",
+  "starColor",
+  "baseColor",
+  "warpSpeed"
+ ],
+ "tpl:video:LogoIntro": [
+  "backgroundColor"
+ ],
+ "tpl:video:LowerThirds": [
+  "name",
+  "role"
+ ],
+ "tpl:video:KineticText": [
+  "backgroundColor",
+  "textColor",
+  "emphasisColor"
+ ],
+ "tpl:video:BarChartRace": [],
+ "tpl:video:LineChartDraw": [],
+ "tpl:video:CaptionedShort": [
+  "title",
+  "accentColor",
+  "backgroundColor",
+  "mode"
+ ],
+ "tpl:video:PromoTemplate": [
+  "productName",
+  "cta"
+ ],
+ "tpl:rve:animated-list": [],
+ "tpl:rve:animated-text": [
+  "t1"
+ ],
+ "tpl:rve:area-chart": [
+  "t1"
+ ],
+ "tpl:rve:blinds-transition": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:bokeh-circles": [],
+ "tpl:rve:bounce-text": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:bubble-pop-text": [
+  "t1"
+ ],
+ "tpl:rve:camera-shake": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:card-flip": [
+  "t1"
+ ],
+ "tpl:rve:chapter-title": [
+  "t1",
+  "t2",
+  "t3"
+ ],
+ "tpl:rve:chart-animation": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:cinematic-title-intro": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:circular-progress": [],
+ "tpl:rve:clock-wipe": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:comparison-chart": [
+  "t1",
+  "t2",
+  "t3"
+ ],
+ "tpl:rve:countdown-intro": [
+  "t1"
+ ],
+ "tpl:rve:countdown-timer": [
+  "t4"
+ ],
+ "tpl:rve:credits-roll": [],
+ "tpl:rve:cross-dissolve": [
+  "t3",
+  "t4"
+ ],
+ "tpl:rve:donut-chart": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:end-card": [
+  "t1",
+  "t2",
+  "t3"
+ ],
+ "tpl:rve:fade-through-black": [
+  "t3",
+  "t4"
+ ],
+ "tpl:rve:film-burn": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:floating-bubble-text": [
+  "t1"
+ ],
+ "tpl:rve:gallery-grid": [],
+ "tpl:rve:geometric-patterns": [],
+ "tpl:rve:glitch-text": [
+  "t1",
+  "t2",
+  "t3"
+ ],
+ "tpl:rve:gradient-shift": [],
+ "tpl:rve:grid-pulse": [],
+ "tpl:rve:image-carousel": [],
+ "tpl:rve:image-comparison-slider": [
+  "t2"
+ ],
+ "tpl:rve:image-zoom-reveal": [
+  "t1"
+ ],
+ "tpl:rve:iris-transition": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:ken-burns": [],
+ "tpl:rve:letterbox-reveal": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:line-chart": [
+  "t1"
+ ],
+ "tpl:rve:liquid-wave": [],
+ "tpl:rve:logo-blur-reveal": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:logo-bounce-drop": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:logo-fade-reveal": [
+  "t1",
+  "t2",
+  "t3"
+ ],
+ "tpl:rve:logo-glitch-reveal": [
+  "t4"
+ ],
+ "tpl:rve:logo-scale-rotate": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:logo-spin-reveal": [
+  "t1",
+  "t2",
+  "t3"
+ ],
+ "tpl:rve:logo-split-reveal": [
+  "t1",
+  "t2",
+  "t3"
+ ],
+ "tpl:rve:logo-stroke-draw": [
+  "t1"
+ ],
+ "tpl:rve:logo-typewriter": [
+  "t1"
+ ],
+ "tpl:rve:lower-third": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:masonry-gallery": [],
+ "tpl:rve:matrix-rain": [],
+ "tpl:rve:morph-transition": [
+  "t3",
+  "t4"
+ ],
+ "tpl:rve:noise-grain": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:notification-pop": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:parallax-pan": [],
+ "tpl:rve:particle-explosion": [],
+ "tpl:rve:photo-stack": [],
+ "tpl:rve:picture-in-picture": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:pie-chart": [
+  "t1"
+ ],
+ "tpl:rve:pixel-transition": [],
+ "tpl:rve:polaroid-frame": [
+  "t1"
+ ],
+ "tpl:rve:popping-text": [
+  "t1"
+ ],
+ "tpl:rve:progress-bars": [
+  "t1"
+ ],
+ "tpl:rve:progress-steps": [
+  "t1",
+  "t2",
+  "t3",
+  "t4"
+ ],
+ "tpl:rve:pulsing-text": [
+  "t1"
+ ],
+ "tpl:rve:push-transition": [
+  "t3",
+  "t4"
+ ],
+ "tpl:rve:quote-card": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:rotating-carousel": [
+  "t1"
+ ],
+ "tpl:rve:slide-text": [
+  "t1"
+ ],
+ "tpl:rve:slide-wipe": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:sound-wave": [],
+ "tpl:rve:split-screen": [
+  "t1",
+  "t2",
+  "t3",
+  "t4"
+ ],
+ "tpl:rve:spotlight-reveal": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:starfield": [],
+ "tpl:rve:stat-counter": [
+  "t1",
+  "t2",
+  "t3"
+ ],
+ "tpl:rve:subscribe-reminder": [
+  "t1",
+  "t2",
+  "t3",
+  "t4"
+ ],
+ "tpl:rve:text-highlight": [
+  "t1",
+  "t2",
+  "t3",
+  "t4"
+ ],
+ "tpl:rve:title-split": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:typewriter-subtitle": [
+  "t1"
+ ],
+ "tpl:rve:vignette-pulse": [
+  "t1",
+  "t2"
+ ],
+ "tpl:rve:whip-pan": [
+  "t3",
+  "t4"
+ ],
+ "tpl:rve:zoom-pulse": [],
+ "tpl:rve:zoom-through": [
+  "t2"
+ ]
+}

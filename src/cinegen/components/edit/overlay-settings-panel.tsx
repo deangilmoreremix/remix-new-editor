@@ -12,7 +12,7 @@ import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
 import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 import { hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers
-import { HF_FITS, HF_FIT_LABELS, normalizeGeom } from '../../../lib/hyperframes/placement.js';
+import { HF_FITS, HF_FIT_LABELS, normalizeGeom, isReactItem } from '../../../lib/hyperframes/placement.js';
 
 /** [remix] Props of an OpenChatCut motion-graphics template, drawn from the template's own propSchema. */
 function MgPropsEditor({ overlay, onUpdate }: { overlay: OverlayClip; onUpdate: (u: Partial<OverlayClip>) => void }) {
@@ -37,7 +37,7 @@ function MgPropsEditor({ overlay, onUpdate }: { overlay: OverlayClip; onUpdate: 
 /** Placement of an animation in the frame: fit, offset, size. The same values are set by dragging on the video. */
 function HfPlacementControls({ overlay, duration, onUpdate }: { overlay: OverlayClip; duration: number; onUpdate: (u: Partial<OverlayClip>) => void }) {
   const item = hyperframesItem(String(overlay.blockId ?? ''));
-  const isRui = String(overlay.blockId ?? '').startsWith('rui:');
+  const isRui = isReactItem(String(overlay.blockId ?? ''));
   const fitDefault = item && !isRui ? defaultFit(item) : 'contain';
   const g = normalizeGeom(overlay.geom, fitDefault) as { x: number; y: number; scale: number; fit: string };
   const set = (patch: Record<string, unknown>) => onUpdate({ geom: { ...((overlay.geom as Record<string, unknown>) ?? {}), fit: g.fit, ...patch } });
