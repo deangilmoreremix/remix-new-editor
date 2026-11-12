@@ -1,14 +1,17 @@
 # Local SQL behavior tests (no Supabase project needed)
 
-Runs the real migrations on a scratch Postgres with a minimal Supabase shim
-(`anon` / `authenticated` roles, `auth.jwt()` reading `request.jwt.claims`).
+`live_replica.sql` rebuilds the publishing tables/functions the LIVE project already has (read from the database),
+`supabase_shim.sql` provides the `anon` / `authenticated` roles and `auth.jwt()`. The new migrations are applied on
+top and `recipients_drafts_library.test.sql` checks isolation, revocation, drafts and promotion.
 
 ```bash
-initdb -D /tmp/pgtest -A trust && pg_ctl -D /tmp/pgtest -o '-p 54329 -k /tmp' -w start   # as a non-root user
-psql -h /tmp -p 54329 -U postgres -f supabase/tests/supabase_shim.sql
-for f in 20261105120000_create_published_videos 20261112120000_business_asset_library 20261112130000_publish_links 20261112140000_recipient_contact_ref; do
+# as a non-root user:
+initdb -D /tmp/pgtest -A trust && pg_ctl -D /tmp/pgtest -o '-p 54329 -k /tmp' -w start
+psql -h /tmp -p 54329 -U postgres -v ON_ERROR_STOP=1 -f supabase/tests/supabase_shim.sql
+psql -h /tmp -p 54329 -U postgres -v ON_ERROR_STOP=1 -f supabase/tests/live_replica.sql
+for f in 20261112120000_business_asset_library 20261112150000_recipients_and_drafts; do
   psql -h /tmp -p 54329 -U postgres -v ON_ERROR_STOP=1 -f supabase/migrations/$f.sql; done
-psql -h /tmp -p 54329 -U postgres -f supabase/tests/publish_links_and_library.test.sql   # prints ALL SQL SECURITY CHECKS PASSED
+psql -h /tmp -p 54329 -U postgres -f supabase/tests/recipients_drafts_library.test.sql   # prints ALL LIVE-SCHEMA CHECKS PASSED
 ```
 
-These prove the SQL logic only. They do not replace testing against a live Supabase project with Clerk third-party auth.
+These prove the SQL logic against a replica of the live schema; they do not replace the post-apply checks on the real project.
