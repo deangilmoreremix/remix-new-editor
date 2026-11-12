@@ -918,7 +918,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [dispatch, timeline]);
   const recorder = useRecorder((blob) => { void handleRecorded(blob); });
   const handleAddSound = useCallback((effect: { id: string; name: string; seconds: number }, ctx?: LibraryDropCtx) => {
-    const asset: Asset = { id: generateId(), name: effect.name, type: 'audio', url: soundEffectSrc(effect.id), duration: effect.seconds, createdAt: new Date().toISOString(), status: 'online', metadata: { source: 'openchatcut-sound-library', soundId: effect.id } };
+    const asset: Asset = { id: generateId(), name: effect.name, type: 'audio', url: soundEffectSrc(effect.id), fileRef: soundEffectSrc(effect.id), duration: effect.seconds, createdAt: new Date().toISOString(), status: 'online', metadata: { source: 'openchatcut-sound-library', soundId: effect.id } };
     dispatch({ type: 'ADD_ASSET', asset });
     let tl = timeline;
     let track = tl.tracks.find((t) => t.kind === 'audio' && !t.locked);
