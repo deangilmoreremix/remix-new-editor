@@ -53,6 +53,8 @@ import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS flag from the main app's lib
 import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 import { createMgOverlay } from '@cinegen/lib/occ/mg-templates';
+// Template videos library: ready-made AI video clips, added to the timeline as video clips at the playhead
+import { TemplateVideosModal, ratioNumber, type TemplateVideo } from './template-videos-modal';
 import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
 
 const LABEL_WIDTH = 150;
@@ -120,6 +122,7 @@ export function TimelineEditor({
   const trackHeight = trackHeightProp;
   const [mgOpen, setMgOpen] = useState(false);
   const [hfOpen, setHfOpen] = useState(false);
+  const [tvOpen, setTvOpen] = useState(false);
   const [bladeX, setBladeX] = useState<number | null>(null);
   const [rulerScrollLeft, setRulerScrollLeft] = useState(0);
 
@@ -912,6 +915,27 @@ export function TimelineEditor({
         setTimeline({ ...next, clips: next.clips.map((c) => (c === added ? { ...c, tts } : c)) });
       },
     });
+  }, [dispatch, setTimeline, currentTime]);
+
+  // Template videos library: the chosen clip becomes an asset + a video clip (with its linked audio) at the playhead
+  const handlePickTemplateVideo = useCallback((item: TemplateVideo) => {
+    const ratio = ratioNumber(item.aspectRatio);
+    const width = ratio >= 1 ? 1920 : Math.round(1920 * ratio);
+    const height = ratio >= 1 ? Math.round(1920 / ratio) : 1920;
+    const asset: Asset = {
+      id: generateId(), name: item.title, type: 'video', url: item.videoSrc, thumbnailUrl: item.posterSrc ?? undefined,
+      duration: item.duration && item.duration > 0 ? item.duration : 5, width, height, createdAt: new Date().toISOString(),
+      metadata: { source: 'template-videos', templateId: item.id },
+    };
+    dispatch({ type: 'ADD_ASSET', asset });
+    let tl = timelineRef.current;
+    // a free video track at the playhead (never on top of existing footage); add one when none is free
+    const dur = asset.duration ?? 5;
+    const free = (t: { id: string; kind: string; locked?: boolean }) => t.kind === 'video' && !t.locked && !tl.clips.some((c) => c.trackId === t.id && c.startTime < currentTime + dur && clipEndTime(c) > currentTime);
+    let track = tl.tracks.find(free);
+    if (!track) { tl = addTrack(tl, 'video'); track = tl.tracks[tl.tracks.length - 1]; }
+    setTimeline(addClipToTrack(tl, track.id, asset, currentTime));
+    setTvOpen(false);
   }, [dispatch, setTimeline, currentTime]);
 
   // [remix] Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
@@ -3274,6 +3298,7 @@ export function TimelineEditor({
         }}
         onBrowseMotion={() => setMgOpen(true)}
         onBrowseHyperframes={isHyperframesEnabled() ? () => setHfOpen(true) : undefined}
+        onBrowseTemplateVideos={() => setTvOpen(true)}
         onOpenSpeech={handleOpenSpeech}
         onOpenGenerator={handleOpenGenerator}
         onOpenPersonalization={handleOpenPersonalization}
@@ -3288,6 +3313,7 @@ export function TimelineEditor({
       />
 
       {hfOpen && isHyperframesEnabled() && <HyperframesModal onClose={() => setHfOpen(false)} onPick={(item) => { const overlay = createHyperframesOverlay(item, currentTime); dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); setHfOpen(false); }} />}
+      {tvOpen && <TemplateVideosModal onClose={() => setTvOpen(false)} onPick={handlePickTemplateVideo} />}
       {mgOpen && <MgTemplatesModal onClose={() => setMgOpen(false)} onPick={(t) => { const overlay = createMgOverlay(t, currentTime); dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); setMgOpen(false); }} />}
 
       {/* Global playhead — spans across all sections including divider */}

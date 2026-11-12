@@ -91,6 +91,20 @@
   status = 200
   force = true
 
+# Template videos library (editor "Template videos" modal): the clips live on media.beatapi.io, which sends no CORS
+# headers, while the editor loads media with crossOrigin="anonymous" (waveforms, thumbnails, export). Serving them
+# same-origin through this rewrite keeps those reads working. Range requests pass through for seeking.
+[[redirects]]
+  from = "/cdn/beatapi/*"
+  to = "https://media.beatapi.io/:splat"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/cdn/beatapi/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 # Template Generator AI (script writing + image generation). These /api paths had no
 # rewrite, so production served index.html (404) and the AI buttons failed.
 [[redirects]]

@@ -17,6 +17,8 @@ interface Props {
   onBrowseMotion?: () => void;
   /** [hyperframes] only passed when the HyperFrames feature flag is on */
   onBrowseHyperframes?: () => void;
+  /** Template videos library: ready-made AI video clips added to the timeline as video clips */
+  onBrowseTemplateVideos?: () => void;
   onOpenSpeech?: () => void;
   onOpenGenerator?: () => void;
   onOpenPersonalization?: () => void;
@@ -25,7 +27,7 @@ interface Props {
 
 const MIN = 0.5;
 
-export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onAdd, onAddTemplate, onBrowseMotion, onBrowseHyperframes, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate }: Props) {
+export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onAdd, onAddTemplate, onBrowseMotion, onBrowseHyperframes, onBrowseTemplateVideos, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate }: Props) {
   const selected = useSelectedOverlay();
   const drag = useRef<{ id: string; mode: 'move' | 'start' | 'end'; x: number; start: number; end: number } | null>(null);
 
@@ -52,11 +54,12 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   return (
     <div className="overlay-lane" style={{ display: 'flex', height: 30, borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,.08))', background: 'var(--bg-surface, #0b0e14)', flex: '0 0 auto' }}>
       <div title="Overlays: forms and buttons drawn over the video" style={{ width: labelWidth, flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 3, padding: '0 6px', fontSize: 11, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-        <select aria-label="Add overlay" title="Add an overlay at the playhead" value="" onChange={(e) => { if (!e.target.value) return; if (e.target.value === 'mg:') onBrowseMotion?.(); else if (e.target.value === 'hf:') onBrowseHyperframes?.(); else if (e.target.value === 'speech:') onOpenSpeech?.(); else if (e.target.value === 'generator:') onOpenGenerator?.(); else if (e.target.value === 'personalize:') onOpenPersonalization?.(); else if (e.target.value.startsWith('tpl:')) onAddTemplate?.(e.target.value.slice(4)); else onAdd(e.target.value as OverlayKind); }}
+        <select aria-label="Add overlay" title="Add an overlay at the playhead" value="" onChange={(e) => { if (!e.target.value) return; if (e.target.value === 'mg:') onBrowseMotion?.(); else if (e.target.value === 'hf:') onBrowseHyperframes?.(); else if (e.target.value === 'tv:') onBrowseTemplateVideos?.(); else if (e.target.value === 'speech:') onOpenSpeech?.(); else if (e.target.value === 'generator:') onOpenGenerator?.(); else if (e.target.value === 'personalize:') onOpenPersonalization?.(); else if (e.target.value.startsWith('tpl:')) onAddTemplate?.(e.target.value.slice(4)); else onAdd(e.target.value as OverlayKind); }}
           style={{ flex: 1, minWidth: 0, background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 11, padding: '3px 4px', cursor: 'pointer' }}>
           <option value="">+ Add overlay…</option>
           {onBrowseMotion && <option value="mg:">Motion graphics…</option>}
           {onBrowseHyperframes && <option value="hf:">Animations…</option>}
+          {onBrowseTemplateVideos && <option value="tv:">Template videos…</option>}
           {onOpenSpeech && <option value="speech:">Smart Speech…</option>}
           {onOpenGenerator && <option value="generator:">Template Generator…</option>}
           {onOpenPersonalization && <option value="personalize:">Personalization…</option>}

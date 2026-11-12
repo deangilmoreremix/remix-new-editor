@@ -1305,6 +1305,13 @@ export default defineConfig({
             ignored: ['**/.playwright-mcp/**', '**/.kilo/**'],
         },
         proxy: {
+            // Template videos library: same-origin stand-in for media.beatapi.io (no CORS headers there), mirrors the
+            // /cdn/beatapi/* rewrite in netlify.toml. Vite's proxy forwards Range requests, so seeking works.
+            '/cdn/beatapi': {
+                target: 'https://media.beatapi.io',
+                changeOrigin: true,
+                rewrite: (p) => p.replace(/^\/cdn\/beatapi/, ''),
+            },
             '/ai-vfx': {
                 target: 'http://localhost:3000',
                 changeOrigin: true,
