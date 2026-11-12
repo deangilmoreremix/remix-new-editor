@@ -337,10 +337,9 @@ revoke all on function public._video_daily_bump(text, date, text, numeric) from 
 revoke all on function public.ingest_video_events(text, text, text, text, text, text, jsonb) from public, anon, authenticated;
 grant execute on function public.ingest_video_events(text, text, text, text, text, text, jsonb) to service_role;
 
--- The old unauthenticated writers are replaced by the validated, rate-limited
--- server path above.
-revoke execute on function public.record_video_event(text, text, text, text) from anon, authenticated;
-revoke execute on function public.increment_video_view(text) from anon, authenticated;
+-- NOTE: the old unauthenticated writers (record_video_event / increment_video_view) are revoked by the LATER
+-- migration 20261112050000, after the new app version (which uses the validated, rate-limited server path above)
+-- is deployed, so the previous app version keeps counting views during rollout.
 
 -- ---------------------------------------------------------------- owner reads
 -- All SECURITY INVOKER: row-level security limits every query to the caller's
