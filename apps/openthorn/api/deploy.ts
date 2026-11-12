@@ -1,4 +1,7 @@
-import { verifyUser, rateLimit, runCloudflareDeploy, getProjectForDeploy, persistProjectSiteId } from './_shared.js'
+import {
+  verifyUser, rateLimit, runCloudflareDeploy, getProjectForDeploy, persistProjectSiteId,
+  getCloudflareCredentials, hasEncryptionSecret, hasServiceRoleKey,
+} from './_shared.js'
 
 interface VercelReq {
   method?: string
@@ -55,8 +58,21 @@ export default async function handler(req: VercelReq, res: VercelRes): Promise<v
     return
   }
 
+  if (!hasEncryptionSecret() || !hasServiceRoleKey()) {
+    res.status(503).json({ error: 'cloudflare_not_configured', message: "Publishing isn't set up on this site yet." })
+    return
+  }
+
   try {
-    const result = await runCloudflareDeploy({ projectId, html, existingSiteId: access.siteId, title: access.title })
+    const creds = await getCloudflareCredentials(user.id)
+    if (!creds) {
+      res.status(409).json({
+        error: 'cloudflare_not_connected',
+        message: 'Connect your Cloudflare account in Settings → Hosting to publish.',
+      })
+      return
+    }
+    const result = await runCloudflareDeploy({ projectId, html, existingSiteId: access.siteId, title: access.title }, creds)
     if (result.siteId !== access.siteId) {
       await persistProjectSiteId(authorization, projectId, result.siteId)
     }

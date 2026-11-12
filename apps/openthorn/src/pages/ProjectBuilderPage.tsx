@@ -8,7 +8,7 @@ import JSZip from 'jszip'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { describeAgentError, getErrorMessage, isAbortError, logError, type AgentErrorInfo } from '../lib/errors'
-import { deploySite } from '../lib/deploy'
+import { deploySite, CloudflareNotConnectedError } from '../lib/deploy'
 import { ConnectBackend } from '../components/ConnectBackend/ConnectBackend'
 import { buildPreview, escapeHtml } from '../lib/preview-bundle'
 import { capturePreviewThumbnail } from '../lib/preview-screenshot'
@@ -418,6 +418,7 @@ export default function ProjectBuilderPage() {
   const [deployState, setDeployState] = useState<'idle' | 'deploying' | 'deployed' | 'error'>('idle')
   const [deployUrl, setDeployUrl] = useState('')
   const [deployError, setDeployError] = useState('')
+  const [deployNeedsCloudflare, setDeployNeedsCloudflare] = useState(false)
   const [deployModalOpen, setDeployModalOpen] = useState(false)
   const [publishModalOpen, setPublishModalOpen] = useState(false)
   const [publishDescription, setPublishDescription] = useState('')
@@ -1075,6 +1076,7 @@ export default function ProjectBuilderPage() {
   const handleDeploy = useCallback(async () => {
     setDeployState('deploying')
     setDeployError('')
+    setDeployNeedsCloudflare(false)
     setDeployModalOpen(true)
 
     try {
@@ -1107,6 +1109,7 @@ export default function ProjectBuilderPage() {
       }
       setDeployState('deployed')
     } catch (err) {
+      setDeployNeedsCloudflare(err instanceof CloudflareNotConnectedError)
       setDeployError(err instanceof Error ? err.message : 'Deploy failed')
       setDeployState('error')
     }
@@ -2182,9 +2185,15 @@ export default function ProjectBuilderPage() {
               {deployState === 'error' && (
                 <div className={styles.deployStatus}>
                   <p className={styles.deployError}>{deployError}</p>
-                  <button className={styles.deployBtn} type="button" onClick={handleDeploy}>
-                    Retry
-                  </button>
+                  {deployNeedsCloudflare ? (
+                    <button className={styles.deployBtn} type="button" onClick={() => navigate('/settings?tab=hosting')}>
+                      Connect Cloudflare to publish
+                    </button>
+                  ) : (
+                    <button className={styles.deployBtn} type="button" onClick={handleDeploy}>
+                      Retry
+                    </button>
+                  )}
                 </div>
               )}
             </div>

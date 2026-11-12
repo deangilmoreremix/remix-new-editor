@@ -6,7 +6,7 @@
  * /openthorn/api/<name> by translating the web Request into the small req/res
  * surface they use (method, headers, body, url; status/json/text/setHeader/end).
  *
- *   /openthorn/api/deploy | provider-keys | admin | migrate | supabase-oauth
+ *   /openthorn/api/deploy | provider-keys | admin | migrate | supabase-oauth | cloudflare
  */
 import type { Config } from '@netlify/functions'
 import deploy from '../../apps/openthorn/api/deploy'
@@ -14,6 +14,7 @@ import providerKeys from '../../apps/openthorn/api/provider-keys'
 import admin from '../../apps/openthorn/api/admin'
 import migrate from '../../apps/openthorn/api/migrate'
 import supabaseOauth from '../../apps/openthorn/api/supabase-oauth'
+import cloudflare from '../../apps/openthorn/api/cloudflare'
 
 const BASE_PATH = '/openthorn'
 
@@ -39,6 +40,7 @@ export const ROUTES: Record<string, Handler> = {
   admin: admin as Handler,
   migrate: migrate as Handler,
   'supabase-oauth': supabaseOauth as Handler,
+  cloudflare: cloudflare as Handler,
 }
 
 function json(status: number, body: unknown): Response {
