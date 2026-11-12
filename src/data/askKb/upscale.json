@@ -1,0 +1,348 @@
+{
+  "id": "upscale",
+  "name": "Upscale Suite",
+  "route": "#/upscale",
+  "description": "Upscale Suite makes a low-resolution or soft image larger and sharper with AI. You upload an image, pick one of three upscale methods, click Upscale Image and download the bigger result.",
+  "shortDescription": "Enlarge and sharpen images with AI (AI Upscaler, Topaz, Seed Upscale).",
+  "fullDescription": "Upscale Suite is a small, single-purpose studio. At the top you choose a method with a button that defaults to 'AI Upscaler'; the method list has three entries: AI Upscaler (general-purpose, with a 2x or 4x scale factor), Topaz Upscale (premium Topaz-quality enhancement) and Seed Upscale (SeedVR2 high-fidelity upscaling). You upload an image (or pick a Pexels stock photo), click 'Upscale Image', and the enlarged image appears below with a Download link and a Publish to Social button. The header reads 'Upscale and enhance images up to 4x with AI'. The studio upscales still images; the three methods are image-upscale models.",
+  "bestFor": "Anyone with a good picture that is too small, blurry or low resolution for print, a website banner or a presentation: old photos, AI images generated at a small size, screenshots, product photos.",
+  "whenToUse": [
+    "A picture is too small or pixelated for where you want to use it.",
+    "You generated an image in Image Studio at a low resolution and want a bigger version.",
+    "You want a quick, one-click enlargement without writing a prompt.",
+    "You want to try a premium method (Topaz Upscale) or a high-fidelity method (Seed Upscale) on the same image."
+  ],
+  "whenToUseAnother": [
+    "Use Edit Studio (#/edit) when you want to change the content of a photo (remove objects or background, effects, face swap). Its Upscale tool also lists the same three upscalers with each model's own settings.",
+    "Use Image Studio (#/image) when you want to generate or restyle an image rather than just enlarge it.",
+    "Use Video Studio (#/video), Video Tools (#/videotools) or AI VFX (#/ai-vfx) when your media is a video clip.",
+    "Use Library (#/library) to find an earlier generation you want to upscale."
+  ],
+  "keyFeatures": [
+    "Three upscale methods in a provider-style picker: AI Upscaler (MuAPI), Topaz Upscale (Topaz) and Seed Upscale (ByteDance).",
+    "Scale Factor choice of 2x or 4x for AI Upscaler (default 2x), found in the Advanced panel.",
+    "Upload an image with the picker button, or browse stock photos with the Pexels button.",
+    "'Upscale Image' button that shows 'Upscaling...' while it works.",
+    "Result card with the enlarged image, a Download link and a Publish to Social button.",
+    "Thumbnail button to generate a custom studio thumbnail.",
+    "Tools menu (three dots) with Recipes, Monetize and Prompts.",
+    "Every upscale is added to your generation history so you can find it in the Library."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Method picker",
+      "explanation": "The button at the top shows the current method (default 'AI Upscaler') with a provider logo. Click it to open a list with AI Upscaler ('General-purpose AI upscaling with 2x/4x factor'), Topaz Upscale ('Premium Topaz-quality enhancement') and Seed Upscale ('SeedVR2 high-fidelity upscaling').",
+      "whyToUse": "Different methods give different looks; try more than one on important images.",
+      "inputRequired": "None.",
+      "restrictions": "Choosing a method resets the scale factor: AI Upscaler goes back to 2x; Topaz and Seed Upscale have no factor button."
+    },
+    {
+      "feature": "Scale Factor",
+      "explanation": "Click the Advanced button (it changes to Less) to open the panel. For AI Upscaler it shows a 'Scale Factor' label with 2x and 4x buttons.",
+      "whyToUse": "2x doubles width and height; 4x makes the image four times wider and taller.",
+      "inputRequired": "None (default 2x).",
+      "restrictions": "Only AI Upscaler shows a factor here. For Topaz Upscale and Seed Upscale the studio sends no factor, so the model's own default is used. If you need to choose a Topaz factor (1, 2, 4 or 8) or a Seed resolution (2k, 4k or 8k), use the Upscale tool in Edit Studio."
+    },
+    {
+      "feature": "Upload and Pexels",
+      "explanation": "The round picker button at the left of the form opens the upload panel (upload a file, choose from your upload history, paste, or use a URL). The compass-style button titled 'Browse stock photos from Pexels' lets you pick a free stock photo. The hint text next to them says 'Upload image or video to upscale'.",
+      "whyToUse": "Get your source image in.",
+      "inputRequired": "One image.",
+      "restrictions": "Images up to 10MB (picker limit). The picker also lists video and document types, but the three methods are image upscalers, so use images. Pexels images show an attribution chip."
+    },
+    {
+      "feature": "Upscale Image",
+      "explanation": "Starts the job. The button becomes 'Upscaling...' and returns to 'Upscale Image' when done. The finished image appears in a result card.",
+      "whyToUse": "Run the upscale.",
+      "inputRequired": "An uploaded image; a signed-in account with access; an API key.",
+      "restrictions": "If no image is loaded you get an alert: 'Upload an image or video first'. Errors appear as an alert 'Error: <message>'."
+    },
+    {
+      "feature": "Result card: Download and Publish to Social",
+      "explanation": "Download saves the enlarged image. Publish to Social opens the social publishing dialog with the image.",
+      "whyToUse": "Save or share the result.",
+      "inputRequired": "A finished upscale.",
+      "restrictions": "Only the latest result is shown on the page."
+    },
+    {
+      "feature": "Thumbnail, Tools menu and attachments",
+      "explanation": "Thumbnail opens a generator for a custom studio thumbnail. The three-dots menu has Recipes, Monetize and Prompts. An attachment toolbar in the form lets you add reference images or videos.",
+      "whyToUse": "Optional extras shared with other studios.",
+      "inputRequired": "None.",
+      "restrictions": "These do not change how the upscale looks in a way confirmed by the code; reference files are passed along with the request but the effect on an upscaler is not confirmed."
+    }
+  ],
+  "howToUse": "1. Open Upscale Suite from the side menu (Upscale). 2. Click the method button at the top (it shows 'AI Upscaler') and choose AI Upscaler, Topaz Upscale or Seed Upscale. 3. Click the upload button at the left of the form and add your image (or click the Pexels button to choose a stock photo). 4. If you chose AI Upscaler, click Advanced and pick 2x or 4x under Scale Factor. 5. Click 'Upscale Image'. 6. Wait while the button says 'Upscaling...'. 7. When the result card appears, click Download to save the larger image, or Publish to Social to share it.",
+  "howToSteps": [
+    "Choose a method with the method button.",
+    "Upload the image (or pick one from Pexels).",
+    "For AI Upscaler, open Advanced and choose 2x or 4x.",
+    "Click Upscale Image.",
+    "Download or Publish to Social from the result card."
+  ],
+  "gettingStarted": [
+    "Keep AI Upscaler and 2x for your first try; it is the default.",
+    "Compare the result by opening the original and the download side by side.",
+    "If you want a different look, run the same image with Topaz Upscale or Seed Upscale."
+  ],
+  "inputs": ["Method", "Image to upscale", "Scale Factor (AI Upscaler only)", "Optional attachments (reference images/videos)", "Custom thumbnail"],
+  "requiredInputs": ["Image to upscale"],
+  "optionalInputs": ["Method (a default is selected)", "Scale Factor (default 2x)", "Reference attachments", "Custom thumbnail"],
+  "inputDetails": [
+    {
+      "name": "Image to upscale",
+      "description": "The picture you want enlarged. Add it with the picker button or the Pexels button.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "Up to 10MB per image in the picker. Use a clean, well-exposed original; AI upscaling cannot invent perfect detail from a very tiny or heavily compressed image."
+    },
+    {
+      "name": "Method",
+      "description": "AI Upscaler, Topaz Upscale or Seed Upscale.",
+      "required": true,
+      "whenToUse": "Pick by look and fidelity; all three are image upscalers.",
+      "restrictions": "Default is AI Upscaler."
+    },
+    {
+      "name": "Scale Factor",
+      "description": "2x or 4x, shown as buttons in the Advanced panel.",
+      "required": false,
+      "whenToUse": "Use 2x for most images; 4x for very small ones.",
+      "restrictions": "Shown only for AI Upscaler. The other two methods show no factor."
+    },
+    {
+      "name": "Attachments",
+      "description": "Optional reference images or videos added through the attachment toolbar.",
+      "required": false,
+      "whenToUse": "Normally not needed for upscaling.",
+      "restrictions": "Start frame, end frame and audio attachments are turned off in this studio."
+    }
+  ],
+  "generationModes": ["Image upscale (AI Upscaler, 2x or 4x)", "Image upscale (Topaz Upscale)", "Image upscale (Seed Upscale / SeedVR2)"],
+  "modeExplanations": [
+    {
+      "mode": "AI Upscaler",
+      "description": "General-purpose AI upscaling with a 2x or 4x factor. Catalog description: 'AI-powered image upscaling and resolution enhancement.'",
+      "useCase": "Everyday enlargement; the default."
+    },
+    {
+      "mode": "Topaz Upscale",
+      "description": "Premium Topaz-quality enhancement. Catalog description: 'Topaz Labs AI image upscaling and detail enhancement.' In Edit Studio the same model offers factors 1, 2, 4 and 8 (default 2).",
+      "useCase": "When you want pro-grade detail recovery."
+    },
+    {
+      "mode": "Seed Upscale",
+      "description": "SeedVR2 high-fidelity upscaling. Catalog description: 'ByteDance SeedVR2 AI image upscaling and restoration.' In Edit Studio the same model offers resolution 2k, 4k or 8k (default 4k).",
+      "useCase": "Restoring and enlarging images to a target resolution."
+    }
+  ],
+  "modelCapabilities": "Upscale Suite offers exactly three methods, each tied to one model id: AI Upscaler = ai-image-upscaler (MuAPI; 'general-purpose AI upscaling with 2x/4x factor'), Topaz Upscale = topaz-image-upscale (Topaz; 'premium Topaz-quality enhancement'), Seed Upscale = seedvr2-image-upscale (ByteDance SeedVR2; 'high-fidelity upscaling'). The public model catalog also lists other upscalers (Topaz Upscale Image Creative, Generative and Precision) but they are not offered in this studio. Edit Studio's note for the same models: AI Image Upscaler is a 'quick, clean upscale, good everyday default'; Topaz Image Upscale is 'pro-grade enlargement (choose 2x, 4x or 8x) that recovers fine detail'; Seedvr2 Image Upscale 'upscales to a resolution you choose, up to 4K' (the model schema lists 2k, 4k and 8k). No price, speed or quality scores for these three models are stated in the code or in the model comparison data, so none are given here.",
+  "outputs": [
+    "An upscaled image shown in a result card",
+    "A Download link for the image",
+    "A history entry (type upscale) available in the Library"
+  ],
+  "limitations": [
+    "Image upscaling only; there is no video upscaling method in this studio even though the upload hint mentions video.",
+    "The scale factor choice (2x/4x) exists only for AI Upscaler in this studio.",
+    "No before/after comparison slider on this page.",
+    "No batch upscaling; one image at a time.",
+    "No denoise, face-enhancement or color-correction options.",
+    "Only the latest result is displayed; earlier ones are in the Library.",
+    "You need an account with access and an API key; image uploads are limited to 10MB."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "No video upscale",
+      "impact": "Uploading a video will not give you an upscaled video.",
+      "workaround": "Use Video Tools (#/videotools) or another video studio for video."
+    },
+    {
+      "limitation": "No factor control for Topaz and Seed Upscale here",
+      "impact": "You cannot choose 4x or 8k on this page for those two methods.",
+      "workaround": "Open Edit Studio (#/edit), choose the Upscale tool, pick the model and use its own setting (Topaz factor or SeedVR2 resolution)."
+    },
+    {
+      "limitation": "No comparison view",
+      "impact": "You judge the result by eye.",
+      "workaround": "Edit Studio's Upscale tool has a Before / After slider."
+    }
+  ],
+  "troubleshooting": [
+    "Alert 'Upload an image or video first': you clicked Upscale Image with nothing loaded. Upload an image and try again.",
+    "Alert 'Error: ...': the upscale failed. Read the message, try again, or switch to another method.",
+    "An upgrade prompt appears when you click Upscale Image: your account does not have full access. Upgrade or sign in, then try again.",
+    "A sign-in / API key dialog opens: complete it; the upscale restarts automatically afterwards.",
+    "I cannot find a 4x option: it only exists for AI Upscaler, inside the Advanced panel (click Advanced).",
+    "The Advanced panel is empty or says 'No advanced options for this model.': Topaz Upscale and Seed Upscale have no factor control on this page.",
+    "'Reference uploaded' toast appeared but nothing changed: attachments are optional extras and do not change the main result in a way the code confirms.",
+    "My uploaded file will not load: images must be 10MB or smaller. Compress or resize and retry.",
+    "The result still looks soft: the source may be too low quality. Try Topaz Upscale or Seed Upscale, or start from a better original."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Upscale Image button seems stuck",
+      "steps": [
+        "Wait for the label 'Upscaling...' to finish; large images take longer.",
+        "If an alert 'Error: ...' appears, close it and click Upscale Image again.",
+        "Try a different method or a smaller source image."
+      ]
+    },
+    {
+      "issue": "Need a larger output than 2x",
+      "steps": [
+        "With AI Upscaler selected, click Advanced and choose 4x.",
+        "Or upscale the result again (download it, upload it and run another 2x).",
+        "Or use Edit Studio's Upscale tool with Topaz (up to 8x) or Seedvr2 (up to 8k)."
+      ]
+    },
+    {
+      "issue": "Nothing happens when I click Upscale Image",
+      "steps": [
+        "Check an image has been loaded through the picker or the Pexels button.",
+        "Look for an upgrade or sign-in dialog and finish it.",
+        "Click Upscale Image again."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Result looks over-sharpened or plastic",
+      "whyItHappens": "AI upscalers add detail that was not in the original.",
+      "howToFix": "Try another method (Seed Upscale for restoration, Topaz for detail) or use 2x instead of 4x."
+    },
+    {
+      "problem": "Factor buttons missing",
+      "whyItHappens": "Only AI Upscaler has them, and they sit in Advanced.",
+      "howToFix": "Choose AI Upscaler and click Advanced."
+    },
+    {
+      "problem": "Cannot upload a big file",
+      "whyItHappens": "Image uploads are capped at 10MB.",
+      "howToFix": "Reduce the file size first."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Enlarge an AI-generated image for print",
+      "steps": [
+        "Generate and download an image in Image Studio.",
+        "Open Upscale Suite and upload it.",
+        "Keep AI Upscaler, open Advanced, choose 4x.",
+        "Click Upscale Image and then Download."
+      ]
+    },
+    {
+      "title": "Compare three methods on an old photo",
+      "steps": [
+        "Upload the photo and run AI Upscaler at 2x; download.",
+        "Click the method button, choose Topaz Upscale, click Upscale Image; download.",
+        "Choose Seed Upscale and repeat.",
+        "Open the three downloads side by side and keep the best."
+      ]
+    },
+    {
+      "title": "Clean up then enlarge",
+      "steps": [
+        "In Edit Studio use Remove Object or Enhance Skin and download the result.",
+        "Upload it in Upscale Suite and run an upscale.",
+        "Publish to Social or download."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Prepare images for print or large displays",
+      "description": "Increase pixel size of web images.",
+      "steps": ["Upload", "Choose AI Upscaler and 4x", "Upscale Image", "Download"],
+      "expectedOutput": "A larger, sharper image."
+    },
+    {
+      "title": "Restore old or low-quality photos",
+      "description": "Try Seed Upscale for restoration-style enlargement.",
+      "steps": ["Upload scan", "Choose Seed Upscale", "Upscale Image"],
+      "expectedOutput": "An enlarged, cleaner version."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How much bigger will my image be?",
+      "answer": "With AI Upscaler you choose 2x or 4x (default 2x). For Topaz Upscale and Seed Upscale this page does not let you choose; use Edit Studio's Upscale tool for Topaz factors 1/2/4/8 or SeedVR2 resolutions 2k/4k/8k."
+    },
+    {
+      "question": "Can I upscale a video here?",
+      "answer": "No. The three methods are image upscalers. The upload hint mentions video, but use Video Tools or a video studio for clips."
+    },
+    {
+      "question": "Which method is best?",
+      "answer": "The code does not rank them. AI Upscaler is the quick everyday default, Topaz Upscale is described as premium, and Seed Upscale as high-fidelity. Try them on your own image."
+    },
+    {
+      "question": "Where do my upscaled images go?",
+      "answer": "The latest one is shown on the page with a Download link, and every upscale is registered in your generation history (Library)."
+    },
+    {
+      "question": "Is there a prompt box?",
+      "answer": "No. Upscaling needs only the image and, for AI Upscaler, a factor."
+    },
+    {
+      "question": "How big can the source file be?",
+      "answer": "Up to 10MB for an image."
+    },
+    {
+      "question": "Does it change what is in my picture?",
+      "answer": "It aims to keep the content and add resolution, but AI upscalers can add or alter fine detail. Check the result before using it."
+    }
+  ],
+  "glossary": {
+    "Upscale": "Making an image larger (more pixels) while trying to keep it sharp.",
+    "2x / 4x": "Doubling or quadrupling the width and height.",
+    "Topaz": "A company known for photo enhancement; its model is one of the three methods.",
+    "SeedVR2": "ByteDance's upscaling and restoration model, offered as Seed Upscale.",
+    "Resolution": "The number of pixels in an image."
+  },
+  "tips": [
+    "Start from the best original you have.",
+    "Try 2x before 4x; bigger is not always cleaner.",
+    "Run the same image through two methods and compare.",
+    "Upscale as the last step, after editing and generating."
+  ],
+  "bestPractices": [
+    "Keep a copy of the original.",
+    "Download the upscaled result right away; only the latest one is shown on the page.",
+    "Use Edit Studio's Upscale tool when you need Topaz 4x/8x or SeedVR2 resolution control or a Before/After slider."
+  ],
+  "relatedStudios": ["image", "edit", "video", "videotools", "library"],
+  "relatedStudioGuidance": [
+    { "studio": "edit", "relationship": "Photo editing, also has an Upscale tool", "whenToMove": "When you need per-model upscale settings, a Before/After slider, or want to clean the photo first.", "why": "Edit Studio shows each upscaler's own settings." },
+    { "studio": "image", "relationship": "Where images are made", "whenToMove": "When you want a new image instead of a larger copy.", "why": "Image Studio generates and restyles." },
+    { "studio": "videotools", "relationship": "Video utilities", "whenToMove": "When your media is a video.", "why": "Upscale Suite handles images only." }
+  ],
+  "notConfirmed": [
+    "Exact output pixel size for each method and factor.",
+    "Maximum input resolution accepted by each method.",
+    "Whether the AI Upscaler actually receives and honours the 2x/4x factor (the studio sends it; the model schema in the app lists no inputs for it).",
+    "What factor or resolution Topaz Upscale and Seed Upscale use by default when this page sends none (Edit Studio's schema shows Topaz default 2 and SeedVR2 default 4k).",
+    "Price/credits, speed and quality ranking of the three methods.",
+    "Whether uploading a video does anything useful; the in-app help text mentions video and creative or face-enhancement upscale options that are not present in the code.",
+    "What effect, if any, the optional attachment toolbar files have on an upscale."
+  ],
+  "sourceFiles": [
+    "src/components/UpscaleStudio.js",
+    "src/components/studio/actionRow.js",
+    "src/components/UploadPicker.js",
+    "src/lib/editor/uploadLimits.js",
+    "src/components/edit/editModels.js",
+    "src/lib/instructions.js",
+    "src/lib/modelDescriptions.js",
+    "src/lib/modelComparisonData.js",
+    "public/api/model-catalog.json",
+    "UPSCALE_CHARACTER_COMMERCIAL_AUDIT.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read UpscaleStudio.js in full, actionRow.js (Advanced pill), UploadPicker limits, editModels.js notes and model schemas, instructions.js, model descriptions and the combined audit. Code trusted over the audit and the in-app instructions text (which mention creative upscale and face enhancement that do not exist in code).",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

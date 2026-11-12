@@ -67,7 +67,7 @@
     },
     {
       "feature": "Voice, Speed and Pitch (speech)",
-      "explanation": "For MiniMax speech models (type speech) you get a Voice list (Female 1, Male Qingse). Under Advanced you get Speed and Pitch sliders from 0.5x to 2.0x.",
+      "explanation": "For MiniMax speech models (type tts) you get a Voice list (Female 1, Male Qingse). Under Advanced you get Speed and Pitch sliders from 0.5x to 2.0x.",
       "whyToUse": "Adjust how a narrator sounds.",
       "inputRequired": "Optional (defaults: Female 1, 1.0x).",
       "restrictions": "Per the code, Speed and the selected Voice are sent to MiniMax speech models; Pitch, Tone and Emotion are stored as form values but are not included in the request, so they may not change the result."

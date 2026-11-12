@@ -1,0 +1,400 @@
+{
+  "id": "director",
+  "name": "Director",
+  "route": "#/director",
+  "description": "Director is a chat-and-agents workspace where you load a video and ask AI agents to summarize it, find highlights, add subtitles, dub it, cut shorts, fix color and more. It has 48 agents backed by VideoDB, OpenAI and FFmpeg.",
+  "shortDescription": "AI agentic editor with 48 agents that analyse and edit an existing video through chat.",
+  "fullDescription": "Director (also labelled DIRECTOR - AI Agentic Editor - REASONING ENGINE on the page) works on a video you already have. You open it with a video loaded (normally by going to Director from the Render studio), then either click one of the 48 agent cards, click a Quick Action, or type a command such as 'Summarize this video'. Director matches your words to an agent, shows processing steps and a progress bar, and returns a result (a summary, highlights, scenes, subtitles, a dubbed or processed video, a timeline and so on) in the RESULT panel. Most agents run as jobs on the backend using VideoDB and OpenAI keys; a few (B-roll, shorts, color correction, upscaling, stabilization, speed, reverse) use FFmpeg-based actions. You need your own VideoDB and OpenAI keys saved in Settings, and an active plan.",
+  "bestFor": "People who already have a video and want AI help understanding, cutting, captioning, translating or enhancing it, rather than generating new footage from scratch.",
+  "whenToUse": [
+    "You want a summary, scene list or highlights of an existing video.",
+    "You want subtitles or an SRT file for a video.",
+    "You want to dub or translate a video into another language.",
+    "You want short vertical clips for TikTok, Reels or Shorts cut from a longer video.",
+    "You want to find moments by what is said (keyword search) or what is seen (visual search).",
+    "You want quick fixes: color correction, stabilization, speed change, reverse or upscale.",
+    "You want a voiceover, a meme, a trailer narration or other creative remix built on your video."
+  ],
+  "whenToUseAnother": [
+    "Use Video (#/video) when you want to generate brand-new AI video from text or an image.",
+    "Use Timeline (#/timeline) when you want manual multi-track editing and export.",
+    "Use Workbench (#/workbench) when you want to arrange generated clips, images and audio with motion cards.",
+    "Use Video Agent (#/video-agent) when you want coded motion graphics from a prompt.",
+    "Use Videotools (#/videotools) when you want a single quick tool such as a one-off edit on a clip.",
+    "Use Lipsync (#/lipsync) or Avatar (#/avatar) when you need a talking presenter or lip-synced speech.",
+    "Use Render (#/render) to prepare and export a finished video; Director's back arrow returns you there."
+  ],
+  "keyFeatures": [
+    "48 AI agents in ten categories: Analysis, Search, Extract, Translate, Accessibility, Enhance, Audio, Edit, Create and Social.",
+    "AI CHAT with a command box: type a request and Director picks the matching agent by keywords.",
+    "AI AGENTS panel with a category filter (All Categories plus each category).",
+    "QUICK ACTIONS: Summarize, Extract Highlights, Detect Scenes, Add Subtitles, Dub Video, Add B-Roll, Browse B-Roll from Pexels, Voiceover, Create Shorts, Color Correction, Stabilize.",
+    "Live PROCESSING panel with step names and a Progress percentage bar, plus a Cancel button.",
+    "ACTIVE AGENTS list and RECENT ACTIONS history in the left panel.",
+    "RESULT panel that shows summaries, counts, playable video or audio, and a Download link.",
+    "Inline mini-forms for agents that need extra input (for example voice text, two video URLs or a collection id).",
+    "Chat history is remembered in your browser; Clear Chat resets it.",
+    "Automatic retry for network errors, 429 and 5xx responses (up to 3 attempts)."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Command box (AI CHAT)",
+      "explanation": "Type a request in the box with placeholder 'Type your command (e.g., 'Summarize this video')' and click Send or press Enter. Director looks for keywords in your sentence (for example summarize, subtitle, dub, highlight, scene, shorts, color, stabilize, speed, reverse, thumbnail, trailer, meme, slack) and runs the first matching agent.",
+      "whyToUse": "The quickest way to run an agent in plain language.",
+      "inputRequired": "A sentence containing a keyword for the agent you want.",
+      "restrictions": "If no agent matches, Director replies 'I couldn't match that to a specific agent. Try one of these or use a keyword:' and shows suggestion chips. Only one job runs at a time."
+    },
+    {
+      "feature": "AI AGENTS panel",
+      "explanation": "A grid of 48 agent cards. Clicking a card runs that agent using its description as the command. The drop-down 'All Categories' filters the grid by category.",
+      "whyToUse": "Browse what is possible and run an agent without typing.",
+      "inputRequired": "A loaded video.",
+      "restrictions": "Without a video, clicking a card says 'Please open Director with a video URL (from the Render studio) before running <agent>.' and a 'No video loaded' notice appears."
+    },
+    {
+      "feature": "QUICK ACTIONS",
+      "explanation": "Ready-made buttons that send a command for you: Summarize ('summarize this video'), Extract Highlights, Detect Scenes, Add Subtitles, Dub Video (sends 'dub to Spanish'), Add B-Roll, Voiceover, Create Shorts (TikTok/Reels/Shorts), Color Correction, Stabilize.",
+      "whyToUse": "One-click common jobs.",
+      "inputRequired": "A loaded video.",
+      "restrictions": "Dub Video defaults to Spanish; type your own command (for example 'dub to French') to choose another language."
+    },
+    {
+      "feature": "Browse B-Roll from Pexels",
+      "explanation": "Opens a Pexels stock-footage browser titled 'Browse B-Roll'. Selecting a clip adds it as B-roll and shows the photographer attribution chip.",
+      "whyToUse": "Find free stock footage to overlay.",
+      "inputRequired": "None.",
+      "restrictions": "Attribution to the Pexels photographer is shown with the selection."
+    },
+    {
+      "feature": "Processing panel and Cancel",
+      "explanation": "While a job runs, the PROCESSING panel shows the agent name, step lines (for example 'Analyzing video content...', 'Generating summary...') and a Progress percentage. A Cancel button appears in the header.",
+      "whyToUse": "See what is happening and stop a job you no longer want.",
+      "inputRequired": "None.",
+      "restrictions": "Cancel stops waiting for the job and shows 'Job cancelled'. Jobs time out after 10 minutes: 'Job timed out after 10 minutes'."
+    },
+    {
+      "feature": "Extra-input forms",
+      "explanation": "Some agents ask for more information in a small form in the chat with Run and Cancel buttons. Voice Cloning asks for 'Text to synthesize'. Gen AI Audio Overlays and AI Voiceovers ask for 'Audio description / script'. Comparison Agent asks for 'Video A URL' and 'Video B URL'. Content Compiler, Compilation Builder and Montage Builder ask for 'VideoDB Collection ID' (default 'default').",
+      "whyToUse": "Provides the data those agents cannot get from the loaded video.",
+      "inputRequired": "The fields shown.",
+      "restrictions": "Empty required fields show 'Please provide a value for \"<field>\".' Press Enter to run or Escape to cancel."
+    },
+    {
+      "feature": "RESULT panel",
+      "explanation": "Shows what the agent produced: summary text, counts such as scenes, highlights, matches or shorts, SRT size, a playable video or audio player, and a Download link.",
+      "whyToUse": "Read or download the output.",
+      "inputRequired": "None.",
+      "restrictions": "Which fields appear depends on the agent; before any run it says 'Run an agent to see results here.'"
+    },
+    {
+      "feature": "Clear Chat and Back",
+      "explanation": "Clear Chat wipes the saved conversation and restores the greeting. The back arrow in the header returns to the Render studio with your video.",
+      "whyToUse": "Start fresh, or go back to finishing your video.",
+      "inputRequired": "None.",
+      "restrictions": "Chat history is stored in this browser only."
+    }
+  ],
+  "howToUse": "1. Open Director with a video loaded: from the Render studio click through to Director so your video appears in the player (Director reads the video address from the page link). 2. Check Settings: add your VideoDB key and your OpenAI key. 3. Pick what to do: click an agent card in AI AGENTS, click a button under QUICK ACTIONS, or type a command in the box that says 'Type your command (e.g., 'Summarize this video')' and click Send. 4. If a small form appears (for example Text to synthesize or Video A URL), fill it in and click Run. 5. Watch the PROCESSING panel and the Progress bar; click Cancel to stop. 6. Read the result in the chat and in the RESULT panel; use the Download link or the video player. 7. Run more agents or click Clear Chat to start over. 8. Click the back arrow to return to Render.",
+  "howToSteps": [
+    "Open Director from the Render studio so a video is loaded.",
+    "Save your VideoDB and OpenAI keys in Settings.",
+    "Click an agent card, a Quick Action, or type a command and click Send.",
+    "Fill in any extra-input form and click Run.",
+    "Follow progress in the PROCESSING panel; Cancel if needed.",
+    "Review the result in RESULT, download it if offered.",
+    "Use the back arrow to return to Render."
+  ],
+  "gettingStarted": [
+    "Start with Summarize or Detect Scenes to see how Director responds.",
+    "Make sure a video is showing in the player before running agents.",
+    "Keep your VideoDB and OpenAI keys in Settings; most agents need them.",
+    "Use the category filter to narrow the 48 agents."
+  ],
+  "inputs": ["Loaded video", "Command text", "Agent card or Quick Action", "Extra fields (Text to synthesize, Audio description / script, Video A URL, Video B URL, VideoDB Collection ID)", "VideoDB key", "OpenAI key"],
+  "requiredInputs": ["Loaded video", "VideoDB key", "OpenAI key", "Active plan"],
+  "optionalInputs": ["Command text", "Extra fields", "MuAPI key for some actions"],
+  "inputDetails": [
+    {
+      "name": "Loaded video",
+      "description": "The video Director works on. It is taken from the page link (videoUrl and videoId), which the Render studio provides.",
+      "required": true,
+      "whenToUse": "Before clicking agent cards.",
+      "restrictions": "With no video the player shows 'No video loaded - Open Director from the Render studio to load a video'."
+    },
+    {
+      "name": "VideoDB key",
+      "description": "Your VideoDB API key used by the VideoDB-backed agents.",
+      "required": true,
+      "whenToUse": "Save once in Settings.",
+      "restrictions": "Missing key messages include 'VideoDB API key not configured. Add your VideoDB key in Settings.' or 'Missing API key. Add your VideoDB + OpenAI keys in Settings to use <agent>.'"
+    },
+    {
+      "name": "OpenAI key",
+      "description": "Your OpenAI key used by the AI agents.",
+      "required": true,
+      "whenToUse": "Save once in Settings.",
+      "restrictions": "Same missing-key message as above."
+    },
+    {
+      "name": "Command text",
+      "description": "A sentence describing the task.",
+      "required": false,
+      "whenToUse": "When you prefer typing over clicking.",
+      "restrictions": "Must contain a recognised keyword to match an agent."
+    },
+    {
+      "name": "Extra fields",
+      "description": "Per-agent extra inputs shown in a form.",
+      "required": false,
+      "whenToUse": "Voice Cloning, Gen AI Audio Overlays, AI Voiceovers, Comparison Agent, Content Compiler, Compilation Builder, Montage Builder.",
+      "restrictions": "Required fields cannot be empty."
+    }
+  ],
+  "generationModes": ["Backend job agents (VideoDB + OpenAI)", "FFmpeg actions", "VideoDB timeline compile"],
+  "modeExplanations": [
+    {
+      "mode": "Backend job agents (VideoDB + OpenAI)",
+      "description": "The request is submitted as a job and polled every 1.5 seconds until it completes, fails or is cancelled (10 minute limit). Used by summaries, highlights, scene detection, subtitles, dubbing, search, text-to-movie, storyboarding, memes, trailers, voiceover and cloning, ad films, lyric video, profanity remover, sales assistant, comparison, Slack, intro/outro, brand elements, dynamic ads and more.",
+      "useCase": "Analysis and creative AI tasks."
+    },
+    {
+      "mode": "FFmpeg actions",
+      "description": "Returns results directly without job polling. Used by B-Roll Adder, Social Media Clip (create shorts), Color Correction, Video Enhancer (upscale), Video Stabilize, Speed Control and Reverse Video.",
+      "useCase": "Fast technical fixes."
+    },
+    {
+      "mode": "VideoDB timeline compile",
+      "description": "Content Compiler, Compilation Builder and Montage Builder search your VideoDB collection semantically for your prompt and compile the matches into a timeline.",
+      "useCase": "Building a compilation from many stored videos. If nothing matches you get 'No matching moments found in the collection.'"
+    }
+  ],
+  "modelCapabilities": "Director does not use a single selectable model. Its agents call a backend that combines VideoDB (video indexing, scene and visual search, subtitles, dubbing, timeline compile) with OpenAI (reasoning, scripting, summaries) and FFmpeg for technical edits; the Voice Cloning and some audio agents may also use a MuAPI key if present. The specific model names behind each agent are chosen on the backend and could not be confirmed from the front-end code. Speed Control uses the number in your command as the speed factor and defaults to 1.5 if none is given.",
+  "outputs": [
+    "Text results in chat (summaries, counts, transcripts)",
+    "Subtitles (SRT)",
+    "Processed or dubbed video, shorts, color-corrected or stabilized video",
+    "Audio such as voiceovers or overlays",
+    "A compiled timeline from a VideoDB collection",
+    "Playable media and a Download link in the RESULT panel"
+  ],
+  "limitations": [
+    "Needs a video loaded from the Render studio; Director has no upload box of its own.",
+    "Needs your own VideoDB and OpenAI keys and an active plan.",
+    "Only one agent job runs at a time.",
+    "Jobs stop waiting after 10 minutes.",
+    "Agent choice from typed text is keyword-based, so unusual wording may not match.",
+    "Chat history is saved only in this browser.",
+    "Does not generate new video footage from a text prompt in the way the video studios do (Text to Movie and similar agents build on VideoDB assets and scripts)."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "No video loaded",
+      "impact": "Agent cards will not run and show 'No video loaded'.",
+      "workaround": "Go to the Render studio, load a video, then open Director from there."
+    },
+    {
+      "limitation": "Keyword matching",
+      "impact": "A sentence without a recognised keyword gets 'I couldn't match that to a specific agent'.",
+      "workaround": "Click an agent card or use words like summarize, subtitle, dub, highlight, shorts, color or stabilize."
+    },
+    {
+      "limitation": "Plan required",
+      "impact": "Without an active plan you see 'This feature requires an active subscription. Please check your plan in Settings.'",
+      "workaround": "Check or upgrade your plan."
+    }
+  ],
+  "troubleshooting": [
+    "'No video loaded' or 'Please open Director with a video URL...': go back to the Render studio and open Director from there with your video.",
+    "'Missing API key. Add your VideoDB + OpenAI keys in Settings...': open Settings and save both keys, then run again.",
+    "'This feature requires an active subscription...': check your plan under Settings.",
+    "'I couldn't match that to a specific agent': click one of the suggestion chips or an agent card instead.",
+    "'<Agent> failed: ...': read the message, check your keys and connection, and retry; the app already retries network, 429 and 5xx errors up to 3 times.",
+    "'Job timed out after 10 minutes': the video may be too long; try a shorter video or another agent.",
+    "'Video Agent job submission failed' or 'Poll failed': the backend may be unreachable; wait and retry.",
+    "Buttons are greyed out: a job is still running; wait or click Cancel."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Agents will not run",
+      "steps": [
+        "Check the player: if it says 'No video loaded', return to Render and reopen Director with a video.",
+        "Open Settings and confirm your VideoDB key and OpenAI key are saved.",
+        "Confirm your plan is active.",
+        "Click the agent card again."
+      ]
+    },
+    {
+      "issue": "A job seems stuck",
+      "steps": [
+        "Watch the Progress bar in the PROCESSING panel.",
+        "Click Cancel to stop waiting.",
+        "Retry with a shorter video or a smaller task."
+      ]
+    },
+    {
+      "issue": "Compilation agents find nothing",
+      "steps": [
+        "Make sure the VideoDB Collection ID is correct (default is 'default').",
+        "Describe the moments you want in clearer words.",
+        "Check that the collection has indexed videos in VideoDB."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Dub Video always dubs to Spanish",
+      "whyItHappens": "The Quick Action sends the fixed command 'dub to Spanish'.",
+      "howToFix": "Type your own command such as 'dub to French' in the command box."
+    },
+    {
+      "problem": "Speed Control used 1.5x",
+      "whyItHappens": "Speed is read from your command text and defaults to 1.5 when no number is found.",
+      "howToFix": "Include the number, for example 'speed 2'."
+    },
+    {
+      "problem": "Old chat reappears",
+      "whyItHappens": "Chat history is saved in your browser.",
+      "howToFix": "Click Clear Chat."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Summarize and caption a video",
+      "steps": [
+        "From the Render studio open Director with your video.",
+        "Click the Summarize Quick Action and read the summary in RESULT.",
+        "Click Add Subtitles and wait for the SRT result.",
+        "Click the back arrow to return to Render."
+      ]
+    },
+    {
+      "title": "Turn a long video into shorts",
+      "steps": [
+        "Open Director with the video loaded.",
+        "Click Create Shorts.",
+        "Check the result count in RESULT and play or download the clips."
+      ]
+    },
+    {
+      "title": "Dub into another language",
+      "steps": [
+        "Type 'dub to French' in the command box and click Send.",
+        "Follow the PROCESSING steps (extract audio, transcribe, translate, synthesize, mix).",
+        "Play or download the dubbed video."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Social clips from a webinar",
+      "description": "Find the best moments and make vertical clips.",
+      "steps": [
+        "Run Extract Highlights.",
+        "Run Create Shorts.",
+        "Download the clips."
+      ],
+      "expectedOutput": "Short clips ready to post."
+    },
+    {
+      "title": "Accessibility captions",
+      "description": "Add subtitles for viewers who watch without sound.",
+      "steps": [
+        "Click Add Subtitles.",
+        "Wait for the SRT to be generated.",
+        "Download the result."
+      ],
+      "expectedOutput": "Subtitles (SRT) for your video."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many agents does Director have?",
+      "answer": "48, shown in the AI AGENTS panel and in the header line 'AI Agentic Editor - 48 Agents'."
+    },
+    {
+      "question": "Do I need API keys?",
+      "answer": "Yes. Most agents need your VideoDB key and your OpenAI key saved in Settings."
+    },
+    {
+      "question": "Can I upload a video inside Director?",
+      "answer": "No upload control was found. Director reads the video from the page link, normally set when you open it from the Render studio."
+    },
+    {
+      "question": "Where is my chat saved?",
+      "answer": "In your browser's local storage on this device. Clear Chat removes it."
+    },
+    {
+      "question": "Can I cancel a running agent?",
+      "answer": "Yes, click Cancel in the header while a job runs."
+    },
+    {
+      "question": "Can Director add stock footage?",
+      "answer": "Yes. Use Add B-Roll, or Browse B-Roll from Pexels to pick a clip yourself; Pexels attribution is shown."
+    }
+  ],
+  "glossary": {
+    "Agent": "A specialised AI helper that does one video task, such as subtitles or highlights.",
+    "VideoDB": "A video-as-data service Director uses to index, search and process videos.",
+    "Collection": "A group of videos stored in your VideoDB account.",
+    "B-roll": "Extra cutaway footage laid over the main video.",
+    "SRT": "A common subtitle file format.",
+    "Job": "A background task that Director starts and checks on until it finishes."
+  },
+  "tips": [
+    "Use the category drop-down to find agents quickly.",
+    "Include a number in speed commands.",
+    "Name the language in dubbing commands.",
+    "Run Detect Scenes or Summarize first to understand a long video."
+  ],
+  "bestPractices": [
+    "Start from the Render studio so your video is loaded.",
+    "Keep keys current in Settings.",
+    "Run one agent at a time and review the RESULT before the next.",
+    "Use shorter videos for faster jobs."
+  ],
+  "relatedStudios": ["render", "timeline", "videotools", "video-agent", "workbench", "lipsync", "avatar", "library"],
+  "relatedStudioGuidance": [
+    {
+      "studio": "render",
+      "relationship": "Render is where Director's video comes from and where the back arrow returns.",
+      "whenToMove": "When you are ready to export a finished video.",
+      "why": "Render handles final output."
+    },
+    {
+      "studio": "timeline",
+      "relationship": "Timeline is a manual multi-track editor.",
+      "whenToMove": "When you want precise manual edits after AI processing.",
+      "why": "Director's agents give results, not a full editing surface."
+    },
+    {
+      "studio": "videotools",
+      "relationship": "Single-purpose tools for a clip.",
+      "whenToMove": "When you want one specific tool without chat.",
+      "why": "Less setup than agents."
+    }
+  ],
+  "notConfirmed": [
+    "Exact credit costs or plan name required: the code calls an entitlement check for each run but the plan details were not verified.",
+    "Which specific AI model each agent uses on the backend.",
+    "Whether typed commands run when no video is loaded: only the agent-card buttons show a 'No video loaded' block in the code reviewed.",
+    "How the full path from Render to Director passes the video (only the page-link parameters videoUrl and videoId and the back navigation were confirmed).",
+    "Whether the external Director Python backend (VideoDB Director framework) is deployed in production; backend/services/directorProxy.js forwards to a local service on port 8000, but the page itself calls /videoagent/process, /api/agents/agent/:action and /api/videodb/proxy.",
+    "The accuracy of each agent's results, supported video lengths and file sizes.",
+    "The legacy header comment says 45 agents; the page and banner count 48 and that is what is described here.",
+    "Which agents need the optional MuAPI key."
+  ],
+  "sourceFiles": [
+    "src/components/DirectorPage.js",
+    "apps/director/README.md",
+    "backend/services/directorProxy.js",
+    "src/components/RenderPage.js",
+    "src/features/ask-smartvideo/studioRegistry.js",
+    "src/components/AppsHub.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the Director page component (agent list, command matching, input forms, job polling, labels and messages), the Director proxy service and the upstream Director README.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}
