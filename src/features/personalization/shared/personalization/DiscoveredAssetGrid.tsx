@@ -4,16 +4,34 @@
  * The discovered-asset review grid, shared by Advanced Editing and the guided
  * (Simple mode) "Find your business" step, so both show every asset with the
  * same controls: select, remove / restore, change category, Edit with AI,
- * revert an edit, and drag into a client-asset section.
+ * revert an edit, drag into a client-asset section, and (when `cutout` is
+ * passed) on-device background removal with a before/after viewer.
  */
 
 import { useEffect, useState, type DragEvent } from 'react'
-import { X } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 import type { AssignedSection, DiscoveredAsset, DiscoveredAssetCategory } from './types'
 import { isImageEditSupported } from './image-editor/imageEditSupport'
 import { C } from './guided/tokens'
+import { BeforeAfterSlider, CHECKERBOARD } from './BeforeAfterSlider'
+import type { AutoCutoutControls } from './backgroundRemoval/useAutoCutout'
 
 const EDIT_WITH_AI = 'Edit with AI'
+const REMOVE_BG = 'Remove BG'
+
+/** What a tile / the viewer shows: the cutout by default, the original on request. */
+export function discoveredAssetDisplayUrl(a: DiscoveredAsset): string {
+  return a.showOriginal ? a.originalPreviewUrl || a.previewUrl : a.editedDataUrl || a.previewUrl
+}
+
+/** True once BG0 produced a transparent cutout for this asset. */
+export function hasBgCutout(a: DiscoveredAsset): boolean {
+  return Boolean(a.editedDataUrl) && a.editMetadata?.engine === 'bg0' && Boolean(a.hasTransparency)
+}
+
+function showsTransparency(a: DiscoveredAsset): boolean {
+  return Boolean(a.hasTransparency) && !a.showOriginal
+}
 
 export const DISCOVERED_ASSET_CATEGORIES: readonly DiscoveredAssetCategory[] = [
   'person',
@@ -40,6 +58,7 @@ export function DiscoveredAssetThumb({
   onEdit,
   onRevert,
   onRemoveFromSection,
+  cutout,
   draggable = false,
   onDragStart,
   onDragEnd,
@@ -52,6 +71,8 @@ export function DiscoveredAssetThumb({
   onEdit?: () => void
   onRevert?: () => void
   onRemoveFromSection?: () => void
+  /** On-device background removal; omitted where it is not offered. */
+  cutout?: AutoCutoutControls
   draggable?: boolean
   onDragStart?: (e: DragEvent) => void
   onDragEnd?: (e: DragEvent) => void
@@ -59,6 +80,9 @@ export function DiscoveredAssetThumb({
   onOpen?: () => void
 }) {
   const canEdit = Boolean(onEdit) && isImageEditSupported(asset)
+  const bg = asset.bgRemoval
+  const bgBusy = bg?.status === 'running' || bg?.status === 'queued'
+  const cutDone = hasBgCutout(asset)
   const handleOpen = () => {
     if (onOpen) onOpen()
     else onToggle()
@@ -83,16 +107,81 @@ export function DiscoveredAssetThumb({
       className="relative w-[82px] min-h-[86px] rounded-[9px] border overflow-hidden"
       style={{
         borderColor: asset.selected ? C.cyanBorder : asset.rejected ? 'rgba(239,68,68,.4)' : C.border,
-        background: asset.rejected ? 'rgba(239,68,68,.08)' : 'linear-gradient(145deg, #3f3f46, #141414)',
+        background: asset.rejected ? 'rgba(239,68,68,.08)' : showsTransparency(asset) ? CHECKERBOARD : 'linear-gradient(145deg, #3f3f46, #141414)',
         opacity: asset.rejected ? 0.5 : 1,
         cursor: draggable ? 'grab' : 'pointer',
       }}
     >
-      {(asset.editedDataUrl || asset.previewUrl) ? (
+      {discoveredAssetDisplayUrl(asset) ? (
         // The image itself is not draggable: dragging it would start a native
         // image drag instead of the card's asset drag.
-        <img src={asset.editedDataUrl || asset.previewUrl} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" />
+        <img
+          src={discoveredAssetDisplayUrl(asset)}
+          alt=""
+          draggable={false}
+          className={`absolute inset-0 w-full h-full ${showsTransparency(asset) ? 'object-contain' : 'object-cover'}`}
+        />
       ) : null}
+      {bgBusy && (
+        <div
+          className="pointer-events-none absolute inset-0 z-[15] flex flex-col items-center justify-center gap-1"
+          style={{ background: 'rgba(0,0,0,.5)', color: '#fff', fontSize: 8, fontWeight: 800, textTransform: 'uppercase' }}
+          role="status"
+          aria-label={bg?.status === 'running' ? 'Removing background' : 'Waiting to remove background'}
+        >
+          {bg?.status === 'running' ? (
+            <>
+              <Loader2 size={14} className="animate-spin" />
+              <span>{bg.progress ? `${Math.round(bg.progress * 100)}%` : 'Cutting out'}</span>
+            </>
+          ) : (
+            <span>Queued</span>
+          )}
+        </div>
+      )}
+      {cutout && !asset.rejected && !bgBusy && (
+        cutDone ? (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); cutout.toggleOriginal(asset.id) }}
+            className="absolute right-1 top-[42px] z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+            style={{ background: 'rgba(0,0,0,.75)', color: '#fff', border: '1px solid rgba(255,255,255,.35)' }}
+            aria-label={asset.showOriginal ? 'Show cutout' : 'Show original'}
+            title={asset.showOriginal ? 'Show the background-removed version' : 'Show the original image'}
+          >
+            {asset.showOriginal ? 'Cutout' : 'Original'}
+          </button>
+        ) : bg?.status === 'error' ? (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); cutout.retry(asset.id) }}
+            className="absolute right-1 top-[42px] z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+            style={{ background: 'rgba(239,68,68,.9)', color: '#fff' }}
+            aria-label="Retry background removal"
+            title={bg.message}
+          >
+            Retry BG
+          </button>
+        ) : bg?.status === 'skipped' ? (
+          <div
+            className="pointer-events-none absolute right-1 top-[42px] z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+            style={{ background: 'rgba(0,0,0,.65)', color: '#d4d4d8' }}
+            title={bg.message}
+          >
+            {bg.message || 'No change'}
+          </div>
+        ) : !asset.hasTransparency ? (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); cutout.requestRemoval([asset.id]) }}
+            className="absolute right-1 top-[42px] z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+            style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
+            aria-label="Remove background"
+          >
+            {REMOVE_BG}
+          </button>
+        ) : null
+      )}
       {canEdit && (
         <button
           type="button"
@@ -207,6 +296,9 @@ export function DiscoveredAssetLightbox({
   onToggle,
   onRemove,
   onEdit,
+  onRevert,
+  cutout,
+  onSaveToAssets,
 }: {
   assets: DiscoveredAsset[]
   index: number
@@ -215,7 +307,12 @@ export function DiscoveredAssetLightbox({
   onToggle: (id: string) => void
   onRemove: (id: string) => void
   onEdit?: (asset: DiscoveredAsset) => void
+  onRevert?: (id: string) => void
+  cutout?: AutoCutoutControls
+  /** Save this asset to the project's assets (imports it). */
+  onSaveToAssets?: (id: string) => void
 }) {
+  const [compare, setCompare] = useState(false)
   const asset = assets[index]
   const count = assets.length
   const go = (delta: number) => onIndexChange((index + delta + count) % count)
@@ -232,8 +329,11 @@ export function DiscoveredAssetLightbox({
   })
 
   if (!asset) return null
-  const src = asset.editedDataUrl || asset.previewUrl
+  const src = discoveredAssetDisplayUrl(asset)
   const canEdit = Boolean(onEdit) && isImageEditSupported(asset)
+  const cutDone = hasBgCutout(asset)
+  const bgBusy = asset.bgRemoval?.status === 'running' || asset.bgRemoval?.status === 'queued'
+  const showCompare = cutDone && compare && Boolean(asset.editedDataUrl)
   const arrowStyle = {
     position: 'absolute' as const,
     top: '50%',
@@ -283,14 +383,37 @@ export function DiscoveredAssetLightbox({
       </div>
 
       <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 72px' }}>
-        {src ? (
+        {showCompare ? (
+          <BeforeAfterSlider
+            beforeUrl={asset.originalPreviewUrl || asset.previewUrl}
+            afterUrl={asset.editedDataUrl as string}
+            alt={`${asset.category} asset ${index + 1}`}
+          />
+        ) : src ? (
           <img
             src={src}
             alt={`${asset.category} asset ${index + 1}`}
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8 }}
+            style={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
+              borderRadius: 8,
+              background: showsTransparency(asset) ? CHECKERBOARD : undefined,
+            }}
           />
         ) : null}
+        {bgBusy && (
+          <div
+            role="status"
+            style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,.75)', color: 'white', borderRadius: 999, padding: '6px 14px', fontSize: 11, fontWeight: 800 }}
+          >
+            <Loader2 size={14} className="animate-spin" />
+            {asset.bgRemoval?.status === 'running'
+              ? `Removing background${asset.bgRemoval.progress ? ` ${Math.round(asset.bgRemoval.progress * 100)}%` : '…'}`
+              : 'Queued for background removal'}
+          </div>
+        )}
         {count > 1 && (
           <>
             <button type="button" aria-label="Previous asset" onClick={(e) => { e.stopPropagation(); go(-1) }} style={{ ...arrowStyle, left: 14 }}>‹</button>
@@ -315,6 +438,52 @@ export function DiscoveredAssetLightbox({
             {EDIT_WITH_AI}
           </button>
         )}
+        {cutout && !cutDone && !bgBusy && !asset.hasTransparency && (
+          <button type="button" onClick={() => cutout.requestRemoval([asset.id])} style={actionStyle}>
+            {asset.bgRemoval?.status === 'error' ? 'Retry Background Removal' : 'Remove Background'}
+          </button>
+        )}
+        {cutout && cutDone && (
+          <>
+            <button
+              type="button"
+              onClick={() => { setCompare(false); cutout.toggleOriginal(asset.id) }}
+              style={actionStyle}
+            >
+              {asset.showOriginal ? 'Show Cutout' : 'Show Original'}
+            </button>
+            <button
+              type="button"
+              aria-pressed={compare}
+              onClick={() => setCompare((v) => !v)}
+              style={{ ...actionStyle, borderColor: compare ? C.cyanBorder : C.borderStrong, color: compare ? C.cyan : 'white' }}
+            >
+              Before / After
+            </button>
+            <a
+              href={asset.editedDataUrl}
+              download={`bg-removed-${asset.id}.png`}
+              style={{ ...actionStyle, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+            >
+              Download Transparent PNG
+            </a>
+            {onRevert && (
+              <button type="button" onClick={() => { setCompare(false); onRevert(asset.id) }} style={actionStyle}>
+                Restore Original
+              </button>
+            )}
+          </>
+        )}
+        {onSaveToAssets && (
+          <button
+            type="button"
+            disabled={bgBusy}
+            onClick={() => { onSaveToAssets(asset.id); if (count <= 1) onClose() }}
+            style={{ ...actionStyle, opacity: bgBusy ? 0.5 : 1, cursor: bgBusy ? 'not-allowed' : 'pointer' }}
+          >
+            Save to Assets
+          </button>
+        )}
         <button
           type="button"
           onClick={() => {
@@ -328,6 +497,89 @@ export function DiscoveredAssetLightbox({
           Remove
         </button>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Controls for on-device background removal above the grid: the auto switch,
+ * progress, the first-use model-download notice and "Remove Background From
+ * Selected". Everything else in the grid works the same with or without it.
+ */
+export function BackgroundRemovalBar({ assets, cutout }: { assets: DiscoveredAsset[]; cutout: AutoCutoutControls }) {
+  const { stats } = cutout
+  const selectedToCut = assets.filter(
+    (a) => a.selected && !a.rejected && !a.hasTransparency && a.bgRemoval?.status !== 'running' && a.bgRemoval?.status !== 'queued',
+  )
+  const barButton = {
+    minHeight: 26,
+    padding: '0 10px',
+    borderRadius: 8,
+    border: `1px solid ${C.borderStrong}`,
+    background: C.panel,
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 800,
+    textTransform: 'uppercase' as const,
+    cursor: 'pointer',
+  }
+  return (
+    <div data-testid="background-removal-bar" style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={cutout.autoEnabled}
+          onClick={() => cutout.setAutoEnabled(!cutout.autoEnabled)}
+          style={{ ...barButton, borderColor: cutout.autoEnabled ? C.cyanBorder : C.borderStrong, color: cutout.autoEnabled ? C.cyan : 'white' }}
+        >
+          Auto-remove backgrounds: {cutout.autoEnabled ? 'On' : 'Off'}
+        </button>
+        {stats.active && !cutout.needsConsent && (
+          <span role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: C.cyan }}>
+            <Loader2 size={12} className="animate-spin" />
+            Removing backgrounds {Math.min(stats.finished, stats.total)}/{stats.total}…
+          </span>
+        )}
+        {!stats.active && stats.total > 0 && stats.finished === stats.total && stats.failed === 0 && (
+          <span style={{ fontSize: 11, color: C.green }}>Backgrounds removed — switch an image back to Original anytime.</span>
+        )}
+        {stats.failed > 0 && !stats.active && (
+          <span style={{ fontSize: 11, color: C.danger }}>{stats.failed} could not be processed.</span>
+        )}
+        {stats.active && (
+          <button type="button" onClick={cutout.cancelAll} style={barButton}>Cancel</button>
+        )}
+        {selectedToCut.length > 0 && (
+          <button type="button" onClick={() => cutout.requestRemoval(selectedToCut.map((a) => a.id))} style={barButton}>
+            Remove Background From Selected ({selectedToCut.length})
+          </button>
+        )}
+      </div>
+      {cutout.halted && (
+        <div role="alert" style={{ fontSize: 11, color: C.danger }}>
+          The background-removal model could not be loaded. Check your connection, reload the page and try again.
+        </div>
+      )}
+      {cutout.needsConsent && (
+        <div
+          role="dialog"
+          aria-label="Download background-removal model"
+          style={{ border: `1px solid ${C.cyanBorder}`, background: C.cyanSoft, borderRadius: 10, padding: 10, fontSize: 11, color: C.text }}
+        >
+          <div style={{ fontWeight: 800, marginBottom: 4 }}>Remove backgrounds on this device?</div>
+          <div style={{ color: C.muted, lineHeight: 1.5 }}>
+            This downloads a one-time ~{cutout.modelMB} MB model (kept on your device afterwards). Your images are processed
+            locally and are not uploaded. On mobile data this may use a lot of your plan.
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button type="button" onClick={cutout.grantConsent} style={{ ...barButton, background: C.cyan, color: '#000000', borderColor: C.cyan }}>
+              Download &amp; remove
+            </button>
+            <button type="button" onClick={cutout.declineConsent} style={barButton}>Not now</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -350,6 +602,8 @@ export function DiscoveredAssetGrid({
   onDragEnd,
   dropZones,
   onDropToSection,
+  cutout,
+  onSaveToAssets,
 }: {
   assets: DiscoveredAsset[]
   onToggle: (id: string) => void
@@ -366,6 +620,10 @@ export function DiscoveredAssetGrid({
   /** Drop targets rendered under the grid; used where the page has none of its own. */
   dropZones?: DiscoveredAssetDropZone[]
   onDropToSection?: (id: string, section: AssignedSection) => void
+  /** On-device background removal (auto queue + manual controls). Omitted = feature off. */
+  cutout?: AutoCutoutControls
+  /** Save one asset to the project's assets from the viewer. */
+  onSaveToAssets?: (id: string) => void
 }) {
   const [dragOverZone, setDragOverZone] = useState<AssignedSection | null>(null)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
@@ -392,8 +650,12 @@ export function DiscoveredAssetGrid({
           onToggle={onToggle}
           onRemove={onRemove}
           onEdit={onEdit}
+          onRevert={onRevert}
+          cutout={cutout}
+          onSaveToAssets={onSaveToAssets}
         />
       )}
+      {cutout && assets.length > 0 && <BackgroundRemovalBar assets={assets} cutout={cutout} />}
       {DISCOVERED_ASSET_CATEGORIES.map((cat) => {
         const items = assets.filter((a) => a.category === cat && !a.rejected)
         if (items.length === 0) return null
@@ -414,6 +676,7 @@ export function DiscoveredAssetGrid({
                   onEdit={onEdit ? () => onEdit(asset) : undefined}
                   onRevert={onRevert ? () => onRevert(asset.id) : undefined}
                   onRemoveFromSection={onRemoveFromSection ? () => onRemoveFromSection(asset.id) : undefined}
+                  cutout={cutout}
                   draggable={Boolean(onDragStart) || hasZones}
                   onDragStart={(e) => startDrag(asset, e)}
                   onDragEnd={(e) => {

@@ -83,6 +83,7 @@
   "dependencies": {
     "@ai-sdk/openai": "2.0.74",
     "@anthropic-ai/sdk": "0.137.0",
+    "@bg0/browser": "0.1.1",
     "@chakra-ui/react": "^2.10.10",
     "@clerk/clerk-js": "^6.20.0",
     "@clerk/react": "^6.12.4",

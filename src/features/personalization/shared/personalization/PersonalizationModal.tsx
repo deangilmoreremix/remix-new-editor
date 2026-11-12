@@ -601,6 +601,7 @@ export default function PersonalizationModal() {
     removeDiscoveredAssetFromSection,
     moveDiscoveredAssetToSection,
     revertDiscoveredAssetEdit,
+    autoCutout,
     selectRecommendedDiscoveredAssets,
     importDiscoveredAssets,
     cancelDiscovery,
@@ -1563,6 +1564,7 @@ export default function PersonalizationModal() {
                 deleteLibraryAsset={deleteLibraryAsset}
                 revertLibraryAssetToOriginal={revertLibraryAssetToOriginal}
                 revertDiscoveredAssetEdit={revertDiscoveredAssetEdit}
+                autoCutout={autoCutout}
               />
           )}
         </main>
@@ -1920,6 +1922,7 @@ function ConfigurationView(props: any) {
     deleteLibraryAsset,
     revertLibraryAssetToOriginal,
     revertDiscoveredAssetEdit,
+    autoCutout,
   } = props
 
   // ── Access mode ────────────────────────────────────────────────────────────
@@ -3450,6 +3453,8 @@ function ConfigurationView(props: any) {
             onCategoryChange={updateDiscoveredAssetCategory}
             onEdit={onEditDiscovered || undefined}
             onRevert={revertDiscoveredAssetEdit}
+            cutout={autoCutout}
+            onSaveToAssets={(id) => { void importDiscoveredAssets({ ids: [id] }) }}
             onRemoveFromSection={removeDiscoveredAssetFromSection}
             onRestoreAll={() => setDiscoveredAssets((prev) => prev.map((a) => ({ ...a, rejected: false })))}
             onDragStart={(asset, e) => handleAssetDragStart({

@@ -95,6 +95,7 @@ import { persistEditedPersonalizationAsset } from './editedAssetPersistence'
 import { normalizeUrl, TRACKING_PARAMS } from './urlNormalizer'
 import { createProjectPersistence, durableAssetUrls, loadProject, resolveRestoredAssetUrl, type LoadProjectResult, type PersonalizationProjectState } from './supabaseProjectPersistence'
 import { imageLoadsInBrowser } from './imageLoadProbe'
+import { useAutoCutout, type AutoCutoutControls } from './backgroundRemoval/useAutoCutout'
 import { buildPreviewInput } from './guided/buildPreviewInput'
 import { chooseFinalOutputPath } from './finalOutput'
 import {
@@ -618,6 +619,8 @@ export type DemoPersonalizeContextValue = {
   removeDiscoveredAssetFromSection: (id: string) => void
   moveDiscoveredAssetToSection: (id: string, section: AssignedSection) => void
   revertDiscoveredAssetEdit: (id: string) => void
+  /** On-device background removal for discovered assets (auto queue + manual controls). */
+  autoCutout: AutoCutoutControls
   selectRecommendedDiscoveredAssets: () => void
   /** Imports the selected assets, or only `ids` into `section` (a drop onto a section). */
   importDiscoveredAssets: (options?: ImportDiscoveredAssetsOptions) => Promise<void>
@@ -1268,6 +1271,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   const [discoveryStatus, setDiscoveryStatus] = useState<'idle' | 'discovering' | 'reviewing' | 'importing'>('idle')
   const [discoveryError, setDiscoveryError] = useState<string | null>(null)
   const [importConfirmation, setImportConfirmation] = useState<{ count: number; failedCount?: number; clientName?: string } | null>(null)
+  const autoCutout = useAutoCutout(discoveredAssets, setDiscoveredAssetsState, { paused: discoveryStatus === 'importing' })
   const [visionStatus, setVisionStatus] = useState<'idle' | 'analyzing' | 'complete' | 'error'>('idle')
   const [visionError, setVisionError] = useState<string | null>(null)
 
@@ -3337,6 +3341,10 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         visionValidation: undefined,
         videoReady: false,
         hasTransparency: false,
+        // Restoring the original also opts out of automatic background removal.
+        bgOptOut: true,
+        bgRemoval: { status: 'idle' },
+        showOriginal: false,
       } : a)),
     )
   }, [])
@@ -5186,6 +5194,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     removeDiscoveredAssetFromSection,
     moveDiscoveredAssetToSection,
     revertDiscoveredAssetEdit,
+    autoCutout,
     selectRecommendedDiscoveredAssets,
     importDiscoveredAssets,
     cancelDiscovery,
