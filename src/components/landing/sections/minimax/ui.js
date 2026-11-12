@@ -21,6 +21,38 @@ export function injectMinimaxStyles() {
   const style = document.createElement('style');
   style.id = 'mmx-styles';
   style.textContent = `
+    /* Instant tooltip for the studio letter buttons (T C F V I P). */
+    .mmx-tip::after {
+      content: attr(data-mmx-tip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translate(-50%, 4px);
+      width: max-content;
+      max-width: 200px;
+      padding: 5px 9px;
+      border-radius: 8px;
+      background: rgba(8, 10, 14, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+      line-height: 1.3;
+      text-align: center;
+      white-space: normal;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 30;
+    }
+    .mmx-tip:hover::after,
+    .mmx-tip:focus-visible::after {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
     .mmx-reveal {
       opacity: 0;
       transform: translateY(24px);
@@ -252,22 +284,41 @@ export function createStyleLink(demo, options = {}) {
  * the path-routed TemplateStudio (`template/{templateId}`).
  */
 export function createStudioIcon(demo, options = {}) {
-  const { route, params = {}, label, title } = options;
+  const { route, params = {}, label, title, loadPrompt } = options;
+  const isPersonalize = route === 'personalize';
 
   const button = document.createElement('button');
   button.type = 'button';
   button.dataset.mmxCta = 'studio-icon';
   button.dataset.mmxRoute = route;
-  button.title = title || route;
+  // Instant CSS tooltip (see .mmx-tip in injectMinimaxStyles); a native
+  // `title` would show a second, delayed one on top of it.
+  button.dataset.mmxTip = title || route;
+  button.setAttribute('aria-label', title || route);
+  if (isPersonalize) button.setAttribute('aria-haspopup', 'dialog');
 
   const base =
-    'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/12 text-[10px] font-bold uppercase tracking-tight text-white/70 transition-all duration-200 hover:border-cyan-400/60 hover:text-cyan-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]';
+    'mmx-tip relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/12 text-[10px] font-bold uppercase tracking-tight text-white/70 transition-all duration-200 hover:border-cyan-400/60 hover:text-cyan-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020205]';
 
   button.className = base;
   button.textContent = label;
 
-  button.addEventListener('click', () => {
-    goToRoute(route, params);
+  button.addEventListener('click', async () => {
+    if (!isPersonalize) {
+      goToRoute(route, params);
+      return;
+    }
+    // P: same flow as the "Personalize This Demo" button — load the prompt,
+    // then open the personalization studio with the demo's video.
+    let prompt = demo.prompt || '';
+    if (!prompt && typeof loadPrompt === 'function') {
+      try { prompt = (await loadPrompt(demo.slug)) || ''; } catch { prompt = ''; }
+    }
+    const { openDemoPersonalization } = await import('../../../../features/personalization/mount.jsx');
+    openDemoPersonalization({ ...demo, prompt }, {
+      access: routerIsMounted() ? 'authenticated' : 'anonymous',
+      trigger: button,
+    });
   });
 
   return button;
