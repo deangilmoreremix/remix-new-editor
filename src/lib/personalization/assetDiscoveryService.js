@@ -78,7 +78,11 @@ export async function persistPersonalizationAssetVersion({
   return payload.asset;
 }
 
-export async function importDiscoveredAsset(asset, { role, name } = {}) {
+/**
+ * `library` ({ client, businessId }) is optional: when given, the imported asset is also saved to the
+ * persistent business asset library so later videos can reuse it. A library failure never fails the import.
+ */
+export async function importDiscoveredAsset(asset, { role, name, library } = {}) {
   const assignedRole = role || asset?.assignedRole || defaultRoleForDiscoveredCategory(asset?.category);
   const sourceUrl = asset?.editedUrl || asset?.previewUrl || asset?.sourceUrl;
   if (!sourceUrl) throw new Error('Discovered asset has no image URL.');
@@ -100,7 +104,7 @@ export async function importDiscoveredAsset(asset, { role, name } = {}) {
   }
   if (!imported?.url) throw new Error('Import did not return a durable asset URL.');
 
-  return createPersonalizationAsset({
+  const record = createPersonalizationAsset({
     role: assignedRole,
     name: imported.name,
     url: imported.url,
@@ -115,4 +119,14 @@ export async function importDiscoveredAsset(asset, { role, name } = {}) {
     visionValidation: asset.visionValidation || null,
     editMetadata: asset.editMetadata || null,
   });
+
+  if (library?.client && library?.businessId) {
+    try {
+      const { saveBusinessAsset } = await import('./businessAssetStore.js');
+      await saveBusinessAsset(library.client, library.businessId, record, { origin: record.edited ? 'uploaded' : 'discovered' });
+    } catch (err) {
+      console.warn('[assetDiscovery] business library save failed', err);
+    }
+  }
+  return record;
 }
