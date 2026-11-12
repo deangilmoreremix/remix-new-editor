@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   slugify, isValidSlug, publicUrl, fetchPublishedVideo, resolveRecipient, sanitizeRecipientVariables,
-  setSlug, createRecipients, recipientsCsv, publishDraft, promoteRevision,
+  setSlug, createRecipients, recipientsCsv, publishDraft, promoteRevision, updateRecipientVariables, getMyVideo,
 } from '../publishClient.js';
 import { mountWatchPage } from '../../../../pages/WatchPage.jsx';
 
@@ -95,9 +95,32 @@ describe('owner operations', () => {
     const select = vi.fn(async () => ({ data: [{ id: '1', token: 't'.repeat(64), label: 'Smith' }], error: null }));
     const insert = vi.fn(() => ({ select }));
     const out = await createRecipients({ from: () => ({ insert }) }, 'vid', [{ label: 'Smith', variables: { FIRSTNAME: 'John', logoUrl: 'blob:no' } }]);
-    expect(insert.mock.calls[0][0][0]).toEqual({ video_id: 'vid', label: 'Smith', business_id: null, variables: { FIRSTNAME: 'John' }, expires_at: null });
+    expect(insert.mock.calls[0][0][0]).toEqual({ video_id: 'vid', label: 'Smith', business_id: null, contact_ref: null, variables: { FIRSTNAME: 'John' }, expires_at: null });
     expect(insert.mock.calls[0][0][0]).not.toHaveProperty('token');
     expect(out[0].token).toHaveLength(64);
+  });
+  it('chunks large batches, keeps the contact ref, and maps a duplicate-contact error', async () => {
+    const calls = [];
+    const insert = vi.fn((rows) => { calls.push(rows.length); return { select: async () => ({ data: rows.map((r, i) => ({ id: String(i), token: 't', label: r.label, contact_ref: r.contact_ref })), error: null }) }; });
+    const rows = Array.from({ length: 250 }, (_, i) => ({ label: `P${i}`, contactRef: `c${i}`, variables: {} }));
+    const out = await createRecipients({ from: () => ({ insert }) }, 'vid', rows);
+    expect(calls).toEqual([100, 100, 50]);
+    expect(out).toHaveLength(250);
+    expect(insert.mock.calls[0][0][7].contact_ref).toBe('c7');
+    const dup = { from: () => ({ insert: () => ({ select: async () => ({ data: null, error: { code: '23505', message: 'duplicate' } }) }) }) };
+    await expect(createRecipients(dup, 'vid', [{ contactRef: 'c1' }])).rejects.toThrow(/already have an active link/);
+  });
+  it('updates one recipient with sanitized variables only', async () => {
+    const eq = vi.fn(async () => ({ error: null })); const update = vi.fn(() => ({ eq }));
+    await updateRecipientVariables({ from: () => ({ update }) }, 'r1', { logoUrl: 'blob:no', brandImageUrl: 'https://cdn/b.png', FIRSTNAME: 'Ann' });
+    expect(update).toHaveBeenCalledWith({ variables: { brandImageUrl: 'https://cdn/b.png', FIRSTNAME: 'Ann' } });
+    expect(eq).toHaveBeenCalledWith('id', 'r1');
+  });
+  it('getMyVideo falls back when the slug column is not installed', async () => {
+    let n = 0;
+    const client = { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => (++n === 1 ? { data: null, error: { message: 'column published_videos.slug does not exist' } } : { data: { id: 'v' }, error: null }) }) }) }) };
+    expect(await getMyVideo(client, 'v')).toEqual({ id: 'v' });
+    expect(n).toBe(2);
   });
   it('publishDraft numbers revisions and promote calls the RPC', async () => {
     const insert = vi.fn(async () => ({ error: null }));

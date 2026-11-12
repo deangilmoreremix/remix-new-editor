@@ -82,3 +82,22 @@ do $$ begin
 end $$;
 reset role;
 \echo ALL SQL SECURITY CHECKS PASSED
+
+-- contact_ref: one ACTIVE link per contact per video, revoked links free the contact up, never exposed to viewers
+reset role; select pg_temp.as_user('userA');
+insert into video_recipients(video_id,label,contact_ref,variables) values ('vidAAAA1111','Ann','contact-1','{"FIRSTNAME":"Ann"}');
+do $$ begin
+  begin insert into video_recipients(video_id,label,contact_ref) values ('vidAAAA1111','Ann again','contact-1'); assert false,'duplicate active link accepted';
+  exception when unique_violation then null; end;
+  begin insert into video_recipients(video_id,contact_ref) values ('vidAAAA1111','bad ref!'); assert false,'bad contact_ref accepted';
+  exception when check_violation then null; end;
+end $$;
+update video_recipients set status='revoked' where contact_ref='contact-1';
+insert into video_recipients(video_id,label,contact_ref) values ('vidAAAA1111','Ann relinked','contact-1');   -- allowed after revoke
+reset role; select pg_temp.as_user('anon');
+do $$ declare t text; begin
+  select token into t from tok limit 1;
+  assert not (public.resolve_recipient('vidAAAA1111', t) ? 'contact_ref'), 'contact_ref leaked';
+end $$;
+reset role;
+\echo CONTACT_REF CHECKS PASSED

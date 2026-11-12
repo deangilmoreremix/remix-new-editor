@@ -160,9 +160,13 @@ export async function setPublished(client, id, published) {
 }
 
 export async function getMyVideo(client, id) {
-  const { data, error } = await client.from('published_videos').select('id, title, published, view_count, updated_at').eq('id', id).maybeSingle();
-  fail(error, 'Could not load the video');
-  return data;
+  // slug / live_revision exist only after 20261112130000_publish_links.sql; fall back so the Publish card keeps working without it.
+  let res = await client.from('published_videos').select('id, title, published, view_count, updated_at, slug, live_revision').eq('id', id).maybeSingle();
+  if (res.error && /column|slug|live_revision/i.test(res.error.message || '')) {
+    res = await client.from('published_videos').select('id, title, published, view_count, updated_at').eq('id', id).maybeSingle();
+  }
+  fail(res.error, 'Could not load the video');
+  return res.data;
 }
 
 // ------------------------------------------------------------------ owner: slugs, drafts, recipients
@@ -212,24 +216,32 @@ export async function promoteRevision(client, id, revision) {
   return revision;
 }
 
-/** rows: [{ label, businessId?, variables, expiresAt? }] -> [{ id, token, label }] (tokens are server-generated). */
-export async function createRecipients(client, videoId, rows = []) {
+/**
+ * rows: [{ label, businessId?, contactRef?, variables, expiresAt? }] -> [{ id, token, label, contact_ref }].
+ * Tokens are server-generated. Large batches are inserted in chunks; one video can hold only one ACTIVE link per contactRef.
+ */
+export async function createRecipients(client, videoId, rows = [], { chunk = 100 } = {}) {
   const insert = rows.map((r) => ({
     video_id: videoId,
     label: r.label ? String(r.label).slice(0, 200) : null,
     business_id: r.businessId || null,
+    contact_ref: r.contactRef && /^[A-Za-z0-9_-]{1,80}$/.test(String(r.contactRef)) ? String(r.contactRef) : null,
     variables: sanitizeRecipientVariables(r.variables),
     expires_at: r.expiresAt || null,
   }));
-  if (!insert.length) return [];
-  const { data, error } = await client.from('video_recipients').insert(insert).select('id, token, label');
-  fail(error, 'Could not create the links');
-  return data || [];
+  const out = [];
+  for (let i = 0; i < insert.length; i += chunk) {
+    const { data, error } = await client.from('video_recipients').insert(insert.slice(i, i + chunk)).select('id, token, label, contact_ref');
+    if (error?.code === '23505') throw new Error('Some of these contacts already have an active link.');
+    fail(error, 'Could not create the links');
+    out.push(...(data || []));
+  }
+  return out;
 }
 
 export async function listRecipients(client, videoId) {
   const { data, error } = await client.from('video_recipients')
-    .select('id, token, label, business_id, status, expires_at, created_at, revoked_at').eq('video_id', videoId).order('created_at', { ascending: false });
+    .select('id, token, label, business_id, contact_ref, variables, status, expires_at, created_at, revoked_at').eq('video_id', videoId).order('created_at', { ascending: false });
   fail(error, 'Could not load the links');
   return data || [];
 }
@@ -237,6 +249,12 @@ export async function listRecipients(client, videoId) {
 export async function revokeRecipient(client, recipientId) {
   const { error } = await client.from('video_recipients').update({ status: 'revoked' }).eq('id', recipientId);
   fail(error, 'Could not revoke the link');
+}
+
+/** Owner: replace one recipient's variables (sanitized). Use bulkLinks.mergeAssetVariables to refresh only asset slots. */
+export async function updateRecipientVariables(client, recipientId, variables) {
+  const { error } = await client.from('video_recipients').update({ variables: sanitizeRecipientVariables(variables) }).eq('id', recipientId);
+  fail(error, 'Could not update the link');
 }
 
 /** Owner export: label,url,status (the label is owner-facing only and never part of the URL). */

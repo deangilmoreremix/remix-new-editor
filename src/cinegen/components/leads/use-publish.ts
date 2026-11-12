@@ -11,7 +11,7 @@ const KEY = 'remix.cinegen.published.v1';
 const readIds = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
 const signedIn = () => !!(window as unknown as { Clerk?: { user?: unknown } }).Clerk?.user;
 
-export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string }
+export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string; slug?: string | null; live_revision?: number }
 
 export async function getClient() {
   if (!signedIn()) throw new Error('Sign in to publish videos');

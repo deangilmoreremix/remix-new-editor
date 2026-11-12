@@ -14,6 +14,7 @@
  *  - Only durable http(s) URLs are carried (publishClient.sanitizeRecipientVariables enforces it too).
  */
 import { sanitizeRecipientVariables } from './publishClient.js';
+import { isImageTokenKey } from '../../personalization/imageReadiness.js';
 
 const isHttp = (u) => /^https?:\/\//i.test(String(u || ''));
 
@@ -44,10 +45,26 @@ export function planBulkLinks({ contacts = [], assetsByBusiness = {}, requiredSl
 /** Rows to hand to createRecipients: only 'ready' ones (missing-assets rows wait for the user's decision). */
 export const rowsToCreate = (plan, { allowMissing = false } = {}) =>
   plan.filter((r) => r.status === 'ready' || (allowMissing && r.status === 'missing-assets'))
-    .map((r) => ({ label: r.label, businessId: r.businessId, variables: r.variables, contactId: r.contactId }));
+    .map((r) => ({ label: r.label, businessId: r.businessId, variables: r.variables, contactRef: r.contactId }));
 
 /** One-line summary for the bulk table header. */
 export function summarizePlan(plan) {
   const n = (s) => plan.filter((r) => r.status === s).length;
   return { total: plan.length, ready: n('ready'), missingAssets: n('missing-assets'), alreadyLinked: n('already-linked'), invalid: n('invalid') };
 }
+
+/**
+ * Refresh ONE existing recipient from the business's current assets: image-slot values are replaced (or removed
+ * when the business no longer has one, so the viewer gets the fallback instead of a stale image); every other
+ * variable - names, offers, text - is left exactly as it was.
+ */
+export function mergeAssetVariables(existing = {}, planned = {}) {
+  const out = {};
+  for (const [k, v] of Object.entries(existing || {})) if (!isImageTokenKey(k)) out[k] = v;
+  for (const [k, v] of Object.entries(planned || {})) if (isImageTokenKey(k) && isHttp(v)) out[k] = v;
+  return out;
+}
+
+/** True when the merge would change something (avoids pointless writes). */
+export const assetVariablesChanged = (existing = {}, merged = {}) => JSON.stringify(sortKeys(existing)) !== JSON.stringify(sortKeys(merged));
+const sortKeys = (o) => Object.fromEntries(Object.entries(o || {}).sort(([a], [b]) => (a < b ? -1 : 1)));

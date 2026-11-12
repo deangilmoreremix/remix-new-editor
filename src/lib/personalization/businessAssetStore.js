@@ -115,6 +115,12 @@ export async function listBusinessAssets(client, businessId, { category } = {}) 
   return (await unwrap(q.order('imported_at', { ascending: false }))) || [];
 }
 
+/** Assets of several businesses in one query (bulk link planning). Each row keeps its business_id. */
+export async function listAssetsForBusinesses(client, businessIds = []) {
+  if (!hasClient(client) || !businessIds.length) return [];
+  return (await unwrap(client.from('business_assets').select('*').in('business_id', businessIds))) || [];
+}
+
 export async function removeBusinessAsset(client, assetId) {
   if (!hasClient(client) || !assetId) return false;
   await unwrap(client.from('business_assets').delete().eq('id', assetId));

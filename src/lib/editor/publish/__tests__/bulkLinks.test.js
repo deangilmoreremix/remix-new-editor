@@ -41,3 +41,17 @@ describe('bulk link planning', () => {
     expect(plan[1].status).toBe('invalid');
   });
 });
+
+import { mergeAssetVariables, assetVariablesChanged } from '../bulkLinks.js';
+describe('refreshing existing links from the library', () => {
+  it('replaces image slots, removes ones the business no longer has, and never touches text', () => {
+    const existing = { FIRSTNAME: 'John', COMPANY: 'Smith Roofing', logoUrl: 'https://old/logo.png', productImageUrl: 'https://old/p.png' };
+    const merged = mergeAssetVariables(existing, { logoUrl: 'https://new/logo.png', FIRSTNAME: 'Mallory' });
+    expect(merged).toEqual({ FIRSTNAME: 'John', COMPANY: 'Smith Roofing', logoUrl: 'https://new/logo.png' });
+    expect(assetVariablesChanged(existing, merged)).toBe(true);
+    expect(assetVariablesChanged(merged, mergeAssetVariables(merged, { logoUrl: 'https://new/logo.png' }))).toBe(false);
+  });
+  it('ignores non-durable planned image URLs', () => {
+    expect(mergeAssetVariables({ logoUrl: 'https://old/l.png' }, { logoUrl: 'blob:x' })).toEqual({});
+  });
+});
