@@ -515,6 +515,12 @@ export function TimelineEditor({
         return;
       }
 
+      // [remix] A picture has no sound: dropped on an audio track it goes to the first free video track instead (mirrors the audio -> video redirect)
+      if (asset.type === 'image' && targetTrack && targetTrack.kind === 'audio') {
+        const videoTrack = tl.tracks.find((t) => t.kind === 'video' && !t.locked) ?? tl.tracks.find((t) => t.kind === 'video');
+        if (videoTrack) { setTimeline(addClipToTrack(tl, videoTrack.id, asset, snappedStart)); probeAssetDuration(asset); return; }
+      }
+
       setTimeline(addClipToTrack(tl, trackId, asset, snappedStart));
       probeAssetDuration(asset);
     },

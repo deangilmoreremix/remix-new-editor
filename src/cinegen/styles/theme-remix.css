@@ -169,3 +169,11 @@
 /* [remix] overlay blocks no longer borrow .clip-card (CineGen's timeline code queries that class for clips); same look */
 .overlay-card { position: absolute; border-radius: var(--radius-md); overflow: hidden; cursor: grab; touch-action: none; user-select: none; transition: border-color var(--transition-fast); }
 .overlay-card:active { cursor: grabbing; }
+
+/* [remix] Add one track menu next to "Add Track" */
+.timeline-bottom-bar__add-menu-wrap { position: relative; display: inline-flex; margin-left: 2px; }
+.timeline-bottom-bar__add-caret { padding-left: 8px; padding-right: 8px; }
+.timeline-bottom-bar__add-menu { position: absolute; bottom: calc(100% + 4px); left: 0; z-index: 30; min-width: 130px; display: flex; flex-direction: column; background: var(--bg-elevated, #131820); border: 1px solid var(--border-medium); border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+.timeline-bottom-bar__add-menu button { text-align: left; background: transparent; border: 0; color: var(--text-primary, #e8edf3); font-size: 12px; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+.timeline-bottom-bar__add-menu button:hover { background: rgba(34,211,238,.12); }
+.timeline-bottom-bar__add-caret { width: 28px; min-width: 0; flex: 0 0 auto; padding: 0; justify-content: center; }
