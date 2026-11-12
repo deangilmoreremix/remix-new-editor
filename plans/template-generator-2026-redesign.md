@@ -28,3 +28,14 @@ builder output and `onConfirm` payload, class names and `data-act` hooks.
 - Animated transition thumbnails (real mini previews) instead of emoji.
 - ⌘K command bar for sources / search; AI "suggest footage for this script".
 - Per-scene media slots driven by the script's scenes (storyboard mode).
+
+## Reusable templates (added)
+The generator's purpose is to *make templates that are saved and reused*, so it is named **Template Generator** everywhere
+(the old "Video Automation Creator" wording is gone from the modal and the toolbar).
+- **Start screen**: Create a template · My templates (count) · Close.
+- **Save as template** (Preview step): name + description; when a saved template was opened, choose *Update* or *Save as new*; or *Save & add to timeline*.
+- **My templates**: searchable grid with thumbnail, niche, clips · length, transition, uses and date; Use template · Duplicate · Delete (two-step).
+- **Use template** reopens the wizard on the Video step with its footage, script, transition and text so footage can be swapped.
+- Storage: `localStorage` (`remix.templateGenerator.templates.v1`) behind `createTemplateStore()`; the record is plain JSON
+  (`template-generator/templates.js`) so it can move to Supabase for cross-device sync without changing shape.
+- Local files / unfinished uploads (`blob:` links) can't survive a reload and are left out, with a warning.

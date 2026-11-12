@@ -2,6 +2,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { TemplateGeneratorModal } from '../components/modals/TemplateGeneratorModal.jsx';
 import { STEPS, STEP_LABELS } from '../components/modals/template-generator/rules.js';
+import { createTemplateStore } from '../components/modals/template-generator/templates.js';
+
+const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
 
 const item = (n, kind = 'video', source = 'pexels') => ({
   id: `${source}-${n}`, kind, source, title: `T${n}`, url: `https://x.test/${n}.${kind === 'video' ? 'mp4' : 'jpg'}`,
@@ -48,5 +51,55 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
     const { composition } = onConfirm.mock.calls[0][0];
     const media = composition.tracks.flatMap((t) => t.clips).filter((c) => c.asset);
     expect(media.map((c) => c.asset.source)).toEqual(['pexels', 'pexels']);
+  });
+
+  it('is called Template Generator, never Video Automation Creator', () => {
+    const m = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore: createTemplateStore(memory()) });
+    m.open();
+    expect(document.body.textContent).toContain('Template Generator');
+    expect(document.body.textContent).not.toMatch(/Video Automation Creator/);
+  });
+
+  it('saves a template, lists it under My templates, and reuses it with its footage and script', async () => {
+    const templateStore = createTemplateStore(memory());
+    const stockSearch = async () => ({ items: [item(1, 'video', 'pexels'), item(2, 'video', 'pexels')], hasMore: false });
+    const m = new TemplateGeneratorModal({ stockSearch, templateStore, onConfirm: vi.fn() });
+    m.open();
+    m.s.started = true; m.paint();
+    await m.runSearch(true);
+    for (const it of m.ui.results) m.pickVideo(it.id);
+    m.s.script.text = 'Welcome. Book today.';
+    m.s.selectedTransition = { type: 'fade', duration: 1 };
+    m.s.step = STEPS.PREVIEW; m.paint();
+    expect(document.querySelector('#tg-save')).toBeTruthy();
+
+    m.openSave();
+    expect(document.querySelector('#tg-tpl-name')).toBeTruthy();
+    m.ui.tplName = 'Weekend promo';
+    await m.saveTemplate(false);
+    const saved = templateStore.list();
+    expect(saved.length).toBe(1);
+    expect(saved[0]).toMatchObject({ name: 'Weekend promo', clipCount: 2, scriptId: null });
+    expect(saved[0].transition.type).toBe('fade');
+
+    // a brand-new modal: the template is in the library and reopens fully populated
+    const m2 = new TemplateGeneratorModal({ stockSearch, templateStore });
+    m2.open();
+    m2.ui.view = 'library'; m2.paint();
+    expect(document.body.textContent).toContain('Weekend promo');
+    m2.useTemplate(saved[0].id);
+    expect(m2.s.selectedVideos.length).toBe(2);
+    expect(m2.s.script.text).toBe('Welcome. Book today.');
+    expect(m2.s.selectedTransition.type).toBe('fade');
+    expect(m2.s.step).toBe(STEPS.VIDEO);
+
+    // saving again offers "update" and keeps one record; adding to the timeline counts a use
+    m2.s.step = STEPS.PREVIEW; m2.paint();
+    m2.openSave();
+    expect(m2.ui.tplMode).toBe('update');
+    await m2.saveTemplate(false);
+    expect(templateStore.list().length).toBe(1);
+    await m2.addToTimeline();
+    expect(templateStore.get(saved[0].id).uses).toBe(1);
   });
 });

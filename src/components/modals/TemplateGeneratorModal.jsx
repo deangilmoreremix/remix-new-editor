@@ -16,14 +16,16 @@ import {
 import {
   PROVIDERS, MEDIA_FILTERS, STOCK_HOME, createStockClient, remoteItem, probeVideo, kindFromUrlOrType,
 } from './template-generator/stock.js';
+import { snapshotTemplate, restoreTemplate, splitDurable, createTemplateStore } from './template-generator/templates.js';
 import { createPreviewPlayer, renderPlayerHTML, playlistFromPreview, formatTime } from './template-generator/preview.js';
 import '../../styles/template-generator.css';
 
 /**
- * TemplateGeneratorModal — the original "Video Automation Creator" wizard, ported to the
- * new Timeline editor.
+ * TemplateGeneratorModal — builds reusable templates (footage + script + transition + text) and
+ * adds them to the timeline. Templates are saved to "My templates" and can be opened again,
+ * edited and reused any number of times. Ported from the original wizard.
  *
- *   Start screen ("Do you want to use the Video Automation Creator?")
+ *   Start screen: Create a template, or open My templates
  *   1. Video    — "Find Free videos": Pixabay, Pexels, Upload, Remote URL (+ AI Generate)
  *   2. Script   — niche scripts, plus write / AI-write your own
  *   3. Overlay  — transitions between the videos (needs 2+), plus text elements
@@ -57,10 +59,17 @@ export class TemplateGeneratorModal extends BaseModal {
 
     this.timelineApi = options.timelineApi || null;
     this.s = createWizardState();
+    this.store = options.templateStore || createTemplateStore();
     this.stock = options.stockSearch || createStockClient({ pexels: pexelsApi, pixabay: pixabayApi });
 
     this.ui = {
       safariAccepted: false,
+      view: 'start',          // 'start' | 'library'
+      libQuery: '',
+      confirmDeleteId: null,
+      tplName: '',
+      tplDesc: '',
+      tplMode: 'new',        // 'new' | 'update'
       provider: 'pixabay',
       filter: 'all',
       query: '',
@@ -120,7 +129,7 @@ export class TemplateGeneratorModal extends BaseModal {
   }
 
   renderBody() {
-    return `<div class="tg-root">${this.s.started ? this.renderWizard() : this.renderStart()}</div>`;
+    return `<div class="tg-root">${this.s.started ? this.renderWizard() : (this.ui.view === 'library' ? this.renderLibrary() : this.renderStart())}</div>`;
   }
 
   renderFooter() { return ''; }
@@ -152,14 +161,80 @@ export class TemplateGeneratorModal extends BaseModal {
           <button type="button" class="generator-offer__btn generator-offer__yes" data-act="safari-accept">Accept</button>
         </div>`;
     }
+    const count = this.store.list().length;
     return `
       <div class="tg-start template-generator-modal">
-        <div class="generator-offer__text-box"><p class="generator-offer__text">Do you want to use the Video Automation Creator?</p></div>
-        <img class="generator-img" src="/static/images/generator.svg" alt="" width="133" height="86">
+        <span class="tg-badge-icon tg-badge-icon--lg" aria-hidden="true">✦</span>
+        <div class="generator-offer__text-box"><h2 class="generator-offer__text">Template Generator</h2></div>
+        <p class="tg-start__sub">Build a template once — footage, script, transition and text — save it, and reuse it for every video.</p>
         <div class="generator-offer__btns">
-          <button type="button" class="generator-offer__btn generator-offer__yes" data-act="start">Yes</button>
-          <button type="button" class="generator-offer__btn generator-offer__no" data-act="decline">No, thanks</button>
+          <button type="button" class="generator-offer__btn generator-offer__yes" data-act="start">Create a template</button>
+          <button type="button" class="generator-offer__btn generator-offer__no" data-act="open-library">My templates${count ? ` · ${count}` : ''}</button>
         </div>
+        <button type="button" class="tg-link" data-act="decline">Close</button>
+      </div>`;
+  }
+
+  // ------------------------------------------------------- My templates
+
+  libraryTemplates() {
+    const q = this.ui.libQuery.trim().toLowerCase();
+    return this.store.list().filter((t) => !q || `${t.name} ${t.description || ''} ${t.niche || ''}`.toLowerCase().includes(q));
+  }
+
+  renderLibraryCards() {
+    const all = this.store.list();
+    const list = this.libraryTemplates();
+    if (!all.length) return '<div class="tg-empty">No templates yet. Create your first one — it will be saved here so you can reuse it any time.</div>';
+    if (!list.length) return '<div class="tg-empty">No templates match your search.</div>';
+    return list.map((t) => {
+      const tr = this.transitions.find((x) => x.id === t.transition?.type);
+      const confirming = this.ui.confirmDeleteId === t.id;
+      return `
+        <article class="tg-tpl">
+          <div class="tg-tpl__thumb" style="background-image:${cssUrl(t.thumbnail)}">
+            ${t.niche ? `<span class="tg-badge">${esc(t.niche)}</span>` : ''}
+            <span class="tg-tpl__count">${t.clipCount || 0} clip${t.clipCount === 1 ? '' : 's'} · ${formatTime(t.duration || 0)}</span>
+          </div>
+          <div class="tg-tpl__body">
+            <h4 class="tg-tpl__name" title="${esc(t.name)}">${esc(t.name)}</h4>
+            ${t.description ? `<p class="tg-hint">${esc(t.description)}</p>` : ''}
+            <p class="tg-meta">${tr ? `${esc(tr.name)} transition · ` : ''}${t.uses ? `used ${t.uses}×` : 'not used yet'} · ${esc(new Date(t.updatedAt).toLocaleDateString())}</p>
+          </div>
+          <div class="tg-tpl__actions">
+            <button type="button" class="tg-btn tg-btn--primary tg-btn--sm" data-act="tpl-use" data-id="${esc(t.id)}">Use template</button>
+            <button type="button" class="tg-btn tg-btn--sm" data-act="tpl-dup" data-id="${esc(t.id)}">Duplicate</button>
+            <button type="button" class="tg-btn tg-btn--sm${confirming ? ' tg-btn--danger' : ''}" data-act="tpl-del" data-id="${esc(t.id)}">${confirming ? 'Confirm delete' : 'Delete'}</button>
+          </div>
+        </article>`;
+    }).join('');
+  }
+
+  renderLibrary() {
+    return `
+      <div class="template-generator-modal content tg-wizard">
+        <header class="tg-head">
+          <span class="tg-badge-icon" aria-hidden="true">✦</span>
+          <div class="tg-head__text">
+            <h2 class="tg-head__title">My templates</h2>
+            <p class="tg-head__sub">Saved templates you can open, tweak and add to any timeline.</p>
+          </div>
+          <button type="button" class="tg-iconbtn" data-act="close" aria-label="Close">✕</button>
+        </header>
+        <div class="generator-body"><div class="tg-step tg-lib">
+          <div class="tg-lib__bar">
+            <div class="library__search-box search-box tg-searchbox"><span aria-hidden="true">🔍</span>
+              <input type="search" id="tg-lib-query" data-query="library" placeholder="Search templates…" value="${esc(this.ui.libQuery)}" aria-label="Search templates"></div>
+          </div>
+          <div class="generator-list"><div class="tg-lib__grid" id="tg-lib-grid">${this.renderLibraryCards()}</div></div>
+        </div></div>
+        <footer class="tg-foot">
+          <button type="button" class="tg-btn tg-btn--ghost" data-act="library-back">← Back</button>
+          <div class="tg-summary"><span class="tg-pill is-on"><i>Saved</i>${this.store.list().length}</span></div>
+          <button type="button" class="tg-btn tg-btn--primary" data-act="start">＋ New template</button>
+        </footer>
+        <div class="tg-toast" id="tg-toast" role="status" aria-live="polite" hidden></div>
+        <div class="tg-popup-host" id="tg-popup"></div>
       </div>`;
   }
 
@@ -175,7 +250,7 @@ export class TemplateGeneratorModal extends BaseModal {
           <span class="tg-badge-icon" aria-hidden="true">✦</span>
           <div class="tg-head__text">
             <h2 class="tg-head__title">Template Generator</h2>
-            <p class="tg-head__sub">Pick footage, shape a script and drop a finished, editable cut onto your timeline.</p>
+            <p class="tg-head__sub">Build a reusable template — footage, script, transition and text — then save it and add it to any timeline.${this.s.templateName ? ` <span class="tg-pill is-on"><i>Template</i>${esc(this.s.templateName)}</span>` : ''}</p>
           </div>
           <button type="button" class="tg-iconbtn" data-act="close" aria-label="Close">✕</button>
         </header>
@@ -192,6 +267,7 @@ export class TemplateGeneratorModal extends BaseModal {
           <button type="button" class="tg-btn tg-btn--ghost" data-act="back" ${step === STEPS.VIDEO ? 'disabled' : ''}>← Back</button>
           <div class="tg-summary" id="tg-summary">${this.renderSummary()}</div>
           <span class="tg-stepcount" id="tg-stepcount">Step ${step + 1} of ${STEP_LABELS.length}</span>
+          ${last ? `<button type="button" class="tg-btn" id="tg-save" data-act="save-open" ${nextDisabled(this.s, step, this.ui.busy) ? 'disabled' : ''}>💾 ${this.s.templateId ? 'Save changes' : 'Save as template'}</button>` : ''}
           <button type="button" class="btn-add next-button tg-btn tg-btn--primary${disabled ? ' disabled' : ''}" id="tg-next" data-act="next" ${disabled ? 'disabled' : ''}>${this.ui.busy ? 'Adding…' : nextLabel(step)}${last ? '' : ' →'}</button>
         </footer>
         <div class="tg-toast" id="tg-toast" role="status" aria-live="polite" hidden></div>
@@ -577,6 +653,28 @@ export class TemplateGeneratorModal extends BaseModal {
   renderPopup() {
     const p = this.ui.popup;
     if (!p) return '';
+    if (p.kind === 'save') {
+      const lost = splitDurable(this.s.selectedVideos).dropped.length;
+      return `
+        <div class="tg-popup" role="dialog" aria-modal="true" aria-label="Save as template" data-act="popup-backdrop">
+          <div class="tg-popup__card tg-save">
+            <button type="button" class="tg-popup__close" data-act="popup-close" aria-label="Close">✕</button>
+            <h4>${this.s.templateId ? 'Save template' : 'Save as template'}</h4>
+            <p class="tg-hint">It will appear in “My templates” so you can reuse it. When you open it later you can swap footage and edit the script before adding it.</p>
+            <label class="tg-field">Name <input type="text" id="tg-tpl-name" data-bind="ui.tplName" maxlength="80" placeholder="e.g. Weekend listing promo" value="${esc(this.ui.tplName)}"></label>
+            <label class="tg-field">Description (optional) <input type="text" data-bind="ui.tplDesc" maxlength="240" placeholder="What is this template for?" value="${esc(this.ui.tplDesc)}"></label>
+            ${this.s.templateId ? `<div class="tg-chips" role="group" aria-label="Save mode">
+              <button type="button" class="tg-chip${this.ui.tplMode === 'update' ? ' is-active' : ''}" data-act="tpl-mode" data-id="update">Update “${esc(this.s.templateName)}”</button>
+              <button type="button" class="tg-chip${this.ui.tplMode === 'new' ? ' is-active' : ''}" data-act="tpl-mode" data-id="new">Save as a new template</button></div>` : ''}
+            ${lost ? `<p class="tg-status tg-status--error">${lost} clip${lost === 1 ? '' : 's'} (a local file or an upload still in progress) can’t be kept in a template and will be left out.</p>` : ''}
+            <div class="tg-popup__actions">
+              <button type="button" class="tg-btn" data-act="popup-close">Cancel</button>
+              <button type="button" class="tg-btn" data-act="save-confirm">Save template</button>
+              <button type="button" class="tg-btn tg-btn--primary" data-act="save-confirm-add">Save &amp; add to timeline</button>
+            </div>
+          </div>
+        </div>`;
+    }
     if (p.kind === 'video') {
       const it = this.itemsById.get(p.id);
       if (!it) return '';
@@ -676,6 +774,9 @@ export class TemplateGeneratorModal extends BaseModal {
       } else if (kind === 'script') {
         this.ui.scriptQuery = t.value;
         this._setHTML('#tg-script-list', this.renderScriptCards());
+      } else if (kind === 'library') {
+        this.ui.libQuery = t.value;
+        this._setHTML('#tg-lib-grid', this.renderLibraryCards());
       } else if (kind === 'overlay') {
         this.ui.overlayQuery = t.value;
         this._refreshTransitionList();
@@ -705,6 +806,15 @@ export class TemplateGeneratorModal extends BaseModal {
     switch (act) {
       case 'start': this.s.started = true; this.paint(); this.runSearch(true); break;
       case 'decline': this.onCancel(); this.close(); break;
+      case 'open-library': this.ui.view = 'library'; this.ui.confirmDeleteId = null; this.paint(); break;
+      case 'library-back': this.ui.view = 'start'; this.paint(); break;
+      case 'tpl-use': this.useTemplate(id); break;
+      case 'tpl-dup': this._dupTemplate(id); break;
+      case 'tpl-del': this._deleteTemplate(id); break;
+      case 'tpl-mode': this.ui.tplMode = id; this.setPopup(this.ui.popup); break;
+      case 'save-open': this.openSave(); break;
+      case 'save-confirm': this.saveTemplate(false); break;
+      case 'save-confirm-add': this.saveTemplate(true); break;
       case 'safari-accept': this.ui.safariAccepted = true; this.paint(); break;
       case 'tab': this.goTo(Number(el.dataset.step)); break;
       case 'back': this.goBack(); break;
@@ -852,6 +962,8 @@ export class TemplateGeneratorModal extends BaseModal {
     btn.textContent = this.ui.busy ? 'Adding…' : `${nextLabel(this.s.step)}${this.s.step === STEPS.PREVIEW ? '' : ' →'}`;
     const sum = this.overlay?.querySelector('#tg-summary');
     if (sum) sum.innerHTML = this.renderSummary();
+    const save = this.overlay?.querySelector('#tg-save');
+    if (save) save.disabled = disabled;
   }
 
   toast(message) {
@@ -1049,6 +1161,73 @@ export class TemplateGeneratorModal extends BaseModal {
     }
   }
 
+  // ---------------------------------------------------- saved templates
+
+  /** Open a saved template in the wizard (on the Video step, so footage can be swapped). */
+  useTemplate(id) {
+    const rec = this.store.get(id);
+    if (!rec) { this.toast('That template no longer exists.'); return; }
+    this.s = restoreTemplate(rec, (sid) => ALL_NICHE_TEMPLATES.find((x) => x.id === sid) || null);
+    for (const c of this.s.selectedVideos) this.itemsById.set(c.id, c);
+    this.ui.tplDesc = rec.description || '';
+    this.ui.tplName = rec.name;
+    this.ui.view = 'start';
+    this.ui.results = [];
+    this.paint();
+    this.runSearch(true);
+    this.toast(`Opened “${rec.name}”. Swap footage or edit anything, then add it to the timeline.`);
+  }
+
+  _dupTemplate(id) {
+    try {
+      const copy = this.store.duplicate(id);
+      this.ui.confirmDeleteId = null;
+      this.paint();
+      this.toast(copy ? `Duplicated as “${copy.name}”.` : 'That template no longer exists.');
+    } catch (err) { this.toast(err.message); }
+  }
+
+  _deleteTemplate(id) {
+    if (this.ui.confirmDeleteId !== id) { this.ui.confirmDeleteId = id; this._setHTML('#tg-lib-grid', this.renderLibraryCards()); return; }
+    this.ui.confirmDeleteId = null;
+    this.store.remove(id);
+    this.paint();
+    this.toast('Template deleted.');
+  }
+
+  openSave() {
+    if (nextDisabled(this.s, STEPS.PREVIEW, this.ui.busy)) { this.toast(guardStep(this.s, STEPS.PREVIEW) || 'Add at least one clip and a script first.'); return; }
+    this.ui.tplName = this.s.templateName || this.s.selectedScript?.name || this.s.niche || '';
+    if (!this.s.templateId) this.ui.tplDesc = '';
+    this.ui.tplMode = this.s.templateId ? 'update' : 'new';
+    this.setPopup({ kind: 'save' });
+    setTimeout(() => this.overlay?.querySelector('#tg-tpl-name')?.focus(), 30);
+  }
+
+  /** Save the wizard as a reusable template (optionally add it to the timeline straight away). */
+  async saveTemplate(andAdd = false) {
+    if (this.ui.busy) return;
+    this.ui.busy = true;
+    this._updateNext();
+    try {
+      const durable = [];
+      for (const it of this.s.selectedVideos) durable.push(await this._ensureDurable(it));
+      const snap = snapshotTemplate({ ...this.s, selectedVideos: durable }, { name: this.ui.tplName, description: this.ui.tplDesc });
+      const dropped = this.s.selectedVideos.length - snap.clipCount;
+      const rec = this.store.save(snap, { id: this.ui.tplMode === 'update' ? this.s.templateId : null });
+      this.s.templateId = rec.id;
+      this.s.templateName = rec.name;
+      this.ui.popup = null;
+      this.ui.busy = false;
+      this.toast(dropped ? `Saved “${rec.name}” — ${dropped} clip${dropped === 1 ? '' : 's'} that can’t be reused ${dropped === 1 ? 'was' : 'were'} left out.` : `Saved “${rec.name}” to My templates.`);
+      if (andAdd) await this.addToTimeline(); else this.paint();
+    } catch (err) {
+      this.ui.busy = false;
+      this._updateNext();
+      this.toast(err.message || 'Could not save the template.');
+    }
+  }
+
   async addToTimeline() {
     this.ui.busy = true;
     this._updateNext();
@@ -1078,6 +1257,7 @@ export class TemplateGeneratorModal extends BaseModal {
       } else {
         this.onConfirm(payload);
       }
+      if (this.s.templateId) this.store.touch(this.s.templateId);
       this.ui.busy = false;
       this.close();
     } catch (err) {
