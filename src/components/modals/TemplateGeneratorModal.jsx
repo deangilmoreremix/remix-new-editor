@@ -53,6 +53,11 @@ const PROVIDER_BLURB = {
   ai: 'Generate an image with AI (uses your OpenAI key).',
   library: 'Videos and images already in this project.',
 };
+/** The real still shown on a tile: the provider's poster, or the image itself. Never a video URL (that can't be a CSS image). */
+const stillOf = (it) => it.poster || (it.kind === 'image' ? (it.url || it.preview) : '');
+/** No poster for a video (own media, uploads, links)? Show its real first frame. */
+const firstFrame = (it) => (it.kind === 'video' && !stillOf(it) && (it.preview || it.url)
+  ? `<video class="tg-poster" muted playsinline preload="metadata" tabindex="-1" aria-hidden="true" src="${esc(`${it.preview || it.url}#t=0.1`)}"></video>` : '');
 const hueOf = (str) => { let h = 0; for (const ch of String(str)) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
 const TRANSITION_CATEGORY_LABELS = { fade: 'Fade', wipe: 'Wipe', push: 'Push', zoom: 'Zoom', iris: 'Iris', shape: 'Shape' };
 
@@ -179,6 +184,7 @@ export class TemplateGeneratorModal extends BaseModal {
     this._unsub?.();
     this._unsub = null;
     this._destroyLive();
+    this._hoverStop();
     this._moreObserver?.disconnect?.();
     super.destroy();
   }
@@ -191,6 +197,7 @@ export class TemplateGeneratorModal extends BaseModal {
 
   /** Repaint the whole modal body (tabs, step, Next button). Listeners are delegated: nothing to rebind. */
   paint() {
+    this._hoverStop();
     this._destroyPlayer();
     this.setBodyContent(this.renderBody());
     this._afterPaint();
@@ -249,6 +256,7 @@ export class TemplateGeneratorModal extends BaseModal {
       return `
         <article class="tg-tpl">
           <div class="tg-tpl__thumb" style="background-image:${cssUrl(t.thumbnail)}">
+            ${t.thumbnail ? '' : firstFrame({ kind: 'video', url: t.thumbnailVideo })}
             ${t.niche ? `<span class="tg-badge">${esc(t.niche)}</span>` : ''}
             <span class="tg-tpl__count">${t.clipCount || 0} clip${t.clipCount === 1 ? '' : 's'} · ${formatTime(t.duration || 0)}</span>
           </div>
@@ -533,10 +541,11 @@ export class TemplateGeneratorModal extends BaseModal {
     const thumb = it.poster || it.thumb;
     return `
       <div class="video-tile tg-anim${on ? ' active' : ''}" role="button" tabindex="0" aria-pressed="${on}" data-act="pick-video" data-id="${esc(it.id)}"
-           style="--tg-hue:${hueOf(it.category || it.id)};${thumb ? `background-image:${cssUrl(thumb)}` : ''}" title="${esc(it.description || it.title)}">
+           style="--tg-hue:${hueOf(it.category || it.id)}" title="${esc(it.description || it.title)}">
+        <span class="tg-anim__glyph" aria-hidden="true">${esc(it.glyph || '✺')}</span>
+        ${thumb ? `<img class="tg-thumb tg-anim__img" src="${esc(thumb)}" alt="" loading="lazy" decoding="async">` : ''}
         ${on ? '<span class="preview__select" aria-hidden="true">✓</span>' : ''}
         <span class="tg-badge">${esc(it.badge || 'ANIMATION')}${it.duration ? ` · ${formatTime(it.duration)}` : ''}</span>
-        ${thumb ? '' : `<span class="tg-anim__glyph" aria-hidden="true">${esc(it.glyph || '✺')}</span>`}
         <div class="tg-card-title">${esc(it.title)}</div>
         <button type="button" class="video__item__button tg-card-preview" data-act="preview-video" data-id="${esc(it.id)}">Preview</button>
       </div>`;
@@ -549,7 +558,8 @@ export class TemplateGeneratorModal extends BaseModal {
     const badge = it.kind === 'video' ? `VIDEO${it.duration ? ` · ${formatTime(it.duration)}` : ''}` : 'PHOTO';
     return `
       <div class="video-tile video__item video-element${selected ? ' active' : ''}" role="button" tabindex="0" aria-pressed="${selected}"
-           data-act="pick-video" data-id="${esc(it.id)}" style="background-image:${cssUrl(it.poster || it.preview)}" title="${esc(it.title)}">
+           data-act="pick-video" data-id="${esc(it.id)}" style="background-image:${cssUrl(stillOf(it))}" title="${esc(it.title)}">
+        ${firstFrame(it)}
         ${selected ? `<span class="preview__select" aria-hidden="true">${this.s.selectedVideos.findIndex((v) => v.id === it.id) + 1}</span>` : ''}
         <span class="tg-badge">${esc(badge)}</span>
         ${it.status === 'uploading' ? '<span class="tg-uploading">Uploading…</span>' : ''}
@@ -728,14 +738,16 @@ export class TemplateGeneratorModal extends BaseModal {
             <div class="preview-tab__content-overlays video-list">
               <div class="elements-list list-items">
                 ${s.selectedVideos.map((it) => `
-                  <div class="video-tile video__item video-element" style="background-image:${cssUrl(it.poster || it.preview)}" title="${esc(it.title)}">
+                  <div class="video-tile video__item video-element" style="background-image:${cssUrl(stillOf(it))}" title="${esc(it.title)}">
+                    ${firstFrame(it)}
                     <button type="button" class="preview__delete" aria-label="Remove ${esc(it.title)}" data-act="remove-video" data-id="${esc(it.id)}">−</button>
                     <div class="tg-card-title">${esc(it.title)}</div>
                   </div>`).join('')}
                 ${s.selectedAnimations.map((a) => `
                   <div class="video-tile video__item video-element tg-anim" style="--tg-hue:${hueOf(a.category || a.id)}" title="${esc(a.title)}">
                     <button type="button" class="preview__delete" aria-label="Remove ${esc(a.title)}" data-act="remove-animation" data-id="${esc(a.id)}">−</button>
-                    <span class="tg-badge">${esc(a.badge || 'ANIMATION')}</span><span class="tg-anim__glyph" aria-hidden="true">✺</span>
+                    <span class="tg-anim__glyph" aria-hidden="true">✺</span>${a.thumb ? `<img class="tg-thumb tg-anim__img" src="${esc(a.thumb)}" alt="" loading="lazy">` : ''}
+                    <span class="tg-badge">${esc(a.badge || 'ANIMATION')}</span>
                     <div class="tg-card-title">${esc(a.title)}</div>
                   </div>`).join('')}
                 <div class="overlays__item-container overlays__item select${hasOverlayTab ? '' : ' disabled'}" role="button" tabindex="0" data-act="tab" data-step="${STEPS.OVERLAY}">
@@ -948,6 +960,12 @@ export class TemplateGeneratorModal extends BaseModal {
       if (e.key === 'Enter' && e.target.id === 'tg-ai-prompt') { e.preventDefault(); this._act('ai-generate', e.target, e); }
     }, true);
 
+    // A thumbnail that fails to load disappears and the tile's glyph shows instead (error doesn't bubble: capture it).
+    root.addEventListener('error', (e) => { if (e.target?.classList?.contains('tg-thumb')) e.target.remove(); }, true);
+    // Real previews on hover: stock/own videos play, animations run live in the editor's sandboxed renderer.
+    root.addEventListener('mouseover', (e) => this._onHover(e));
+    root.addEventListener('mouseout', (e) => this._onHoverOut(e));
+
     root.addEventListener('input', (e) => this._onInput(e));
     root.addEventListener('change', (e) => this._onChange(e));
 
@@ -958,6 +976,51 @@ export class TemplateGeneratorModal extends BaseModal {
       e.preventDefault();
       this._addUploads(e.dataTransfer.files);
     });
+  }
+
+  _onHover(e) {
+    const tile = e.target.closest?.('.video-tile[data-id]');
+    if (!tile || tile === this._hoverTile || tile.closest('.tg-popup')) return;
+    this._hoverStop();
+    this._hoverTile = tile;
+    const it = this.itemsById.get(tile.dataset.id);
+    if (!it) return;
+    if (it.kind === 'video') {
+      const src = it.preview || it.url;
+      if (!src) return;
+      const v = document.createElement('video');
+      v.className = 'tg-hovervid'; v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true; v.preload = 'auto';
+      v.src = src;
+      tile.insertBefore(v, tile.firstChild);
+      try { v.play?.()?.catch?.(() => {}); } catch { /* autoplay blocked: the poster stays */ }
+      this._hoverEl = v;
+    } else if (it.kind === 'animation') {
+      this._hoverTimer = setTimeout(() => this._mountHoverLive(tile, it), 350);
+    }
+  }
+
+  _onHoverOut(e) {
+    const tile = e.target.closest?.('.video-tile[data-id]');
+    if (tile && tile === this._hoverTile && !tile.contains(e.relatedTarget)) this._hoverStop();
+  }
+
+  _mountHoverLive(tile, it) {
+    const src = this.extra.get(it.source);
+    if (!src?.mountPreview || !tile.isConnected || this._hoverTile !== tile) return;
+    const host = document.createElement('div');
+    host.className = 'tg-anim__live';
+    tile.appendChild(host);
+    try { this._hoverDestroy = src.mountPreview(host, it); tile.classList.add('is-live'); } catch { host.remove(); }
+  }
+
+  _hoverStop() {
+    clearTimeout(this._hoverTimer);
+    this._hoverEl?.remove(); this._hoverEl = null;
+    try { this._hoverDestroy?.(); } catch { /* ignore */ }
+    this._hoverDestroy = null;
+    this._hoverTile?.classList?.remove('is-live');
+    this._hoverTile?.querySelector?.('.tg-anim__live')?.remove();
+    this._hoverTile = null;
   }
 
   _onInput(e) {
@@ -1121,6 +1184,7 @@ export class TemplateGeneratorModal extends BaseModal {
   _refreshControls() { this._setHTML('#tg-step', this.renderStep()); }
 
   paintList() {
+    this._hoverStop();
     this._setHTML('#tg-list', this.renderProviderList());
     this._observeMore();
     const q = this.overlay?.querySelector('#tg-query');

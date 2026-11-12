@@ -420,3 +420,16 @@ h2.generator-offer__text { font-size: 30px; }
 .tg-popup__live .tg-anim__glyph { font-size: 64px; }
 .tg-popup__live iframe, .tg-popup__live > div { position: absolute; inset: 0; }
 #tg-tray { flex: none; }
+
+/* ------------------------------------------------------------- real previews on tiles */
+.tg-poster, .tg-hovervid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; pointer-events: none; }
+.tg-hovervid { z-index: 1; }
+.tg-anim__img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: contain; background: #0b0f16; pointer-events: none; }
+.tg-anim__live { position: absolute; inset: 0; z-index: 2; background: #0b0f16; overflow: hidden; pointer-events: none; }
+.tg-anim__live iframe, .tg-anim__live > div { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tg-anim .tg-badge, .tg-anim .tg-card-title, .tg-anim .preview__select, .tg-anim .preview__delete, .tg-anim .tg-card-preview,
+.video-tile .tg-badge, .video-tile .tg-card-title, .video-tile .tg-card-preview, .video-tile .preview__select, .video-tile .preview__delete { z-index: 3; }
+.tg-anim.is-live .tg-card-title, .tg-anim.is-live .tg-badge { opacity: 0.0; transition: opacity 0.15s; }
+.tg-tpl__thumb .tg-poster { z-index: 0; }
+.tg-tpl__thumb::after { z-index: 1; }
+.tg-tpl__count, .tg-tpl__thumb .tg-badge { z-index: 2; }

@@ -50,7 +50,9 @@ export function snapshotTemplate(s, { name = '', description = '' } = {}) {
     clips: keep.map(clipRecord),
     clipCount: keep.length,
     duration: Math.round(keep.reduce((n, v) => n + clipDuration(v), 0) * 10) / 10,
-    thumbnail: first ? (first.poster || first.preview || (first.kind === 'image' ? first.url : '')) : '',
+    // a real still when there is one; otherwise the first video itself (the library shows its first frame)
+    thumbnail: first ? (first.poster || (first.kind === 'image' ? first.url : '')) : '',
+    thumbnailVideo: first && !first.poster && first.kind === 'video' ? first.url : '',
   };
 }
 
