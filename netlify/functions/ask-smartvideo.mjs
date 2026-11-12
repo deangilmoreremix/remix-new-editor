@@ -32,7 +32,7 @@ const json = (status, body, extra = {}) => new Response(JSON.stringify(body), {
   headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...extra },
 });
 const sse = (event, data) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-const publicSource = (r, i) => ({ id: `S${i + 1}`, title: r.chunk.title, url: r.chunk.url, studioId: r.chunk.studioId, label: r.chunk.label });
+const publicSource = (r, i) => ({ id: `S${i + 1}`, title: r.chunk.title, url: r.chunk.url, kind: r.chunk.kind, studioId: r.chunk.studioId });
 
 /** Parse OpenAI's SSE stream, tolerating `data:` lines split across network chunks. */
 export async function* openAIDeltas(body) {
