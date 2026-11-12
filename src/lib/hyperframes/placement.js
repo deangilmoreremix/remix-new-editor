@@ -39,3 +39,6 @@ export function defaultFitFor(item) {
   if (/^(lt-|lower-third|yt-lower-third|news-ticker|rui:lower-third)/.test(id) || /lower-third|broadcast/.test(String(item?.category || '')) || tags.includes('lower-third')) return 'width-bottom';
   return 'contain';
 }
+
+/** Items drawn by vendored React code (RemotionUI `rui:` and the template repos `tpl:`) rather than HyperFrames HTML. */
+export const isReactItem = (id) => /^(rui|tpl):/.test(String(id || ''));

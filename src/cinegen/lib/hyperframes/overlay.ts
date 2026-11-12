@@ -7,9 +7,11 @@ import enabledJson from '../../../lib/hyperframes/catalog.enabled.json';
 // @ts-expect-error plain JSON from the main app's lib
 import disabledJson from '../../../lib/hyperframes/catalog.disabled.json';
 // @ts-expect-error plain JSON from the main app's lib
+import tplJson from '../../../lib/templates/catalog.json';
+// @ts-expect-error plain JSON from the main app's lib
 import labelsJson from '../../../lib/hyperframes/labels.json';
 // @ts-expect-error plain JS placement helpers
-import { defaultFitFor } from '../../../lib/hyperframes/placement.js';
+import { defaultFitFor, isReactItem } from '../../../lib/hyperframes/placement.js';
 // @ts-expect-error plain JS flag module
 import { isHyperframesRuntimeDisabled } from '../../../lib/hyperframes/featureFlag.js';
 
@@ -37,8 +39,9 @@ const ruiToItem = (r: RuiRaw): HfItem => ({
   id: r.id, type: 'remotionui', source: 'RemotionUI', title: r.title, description: r.description, tags: r.tags, category: r.category, dimensions: r.dimensions, duration: r.duration, sourceSha256: r.sourceSha256, slow: r.slow,
   editables: r.editables.map((e) => ({ ...e, target: { kind: 'prop', id: e.key } })),
 });
-const ruiAll: HfItem[] = ((ruiJson as { items: RuiRaw[] }).items).map(ruiToItem);
-const ruiEnabled = new Set(((ruiJson as { items: RuiRaw[] }).items).filter((r) => r.enabled).map((r) => r.id));
+const ruiRaw: RuiRaw[] = [...(ruiJson as { items: RuiRaw[] }).items, ...(tplJson as { items: RuiRaw[] }).items];
+const ruiAll: HfItem[] = ruiRaw.map(ruiToItem);
+const ruiEnabled = new Set(ruiRaw.filter((r) => r.enabled).map((r) => r.id));
 const LABELS = (labelsJson as { items: Record<string, Record<string, { label?: string; initial?: string }>> }).items;
 /** Apply customer-facing labels / neutral starting text (labels.json) to an item's editable fields. */
 const labelled = (i: HfItem): HfItem => (LABELS[i.id] ? { ...i, editables: i.editables.map((e) => { const l = LABELS[i.id][e.key]; return l ? { ...e, label: l.label ?? e.label, ...(l.initial !== undefined ? { initialValue: l.initial } : {}) } : e; }) } : i);
@@ -46,7 +49,7 @@ const catalogDisabled = new Set<string>((disabledJson as { ids: string[] }).ids 
 /** Items a customer can ADD (library). Catalog-disabled ids are hidden here but still resolve below, so saved projects keep working. */
 export const hyperframesItems = (): HfItem[] => [...(enabledJson as { items: HfItem[] }).items.filter((i) => !catalogDisabled.has(i.id)).map((i) => labelled({ ...i, source: 'HyperFrames' as const })), ...ruiAll.filter((i) => ruiEnabled.has(i.id) && !catalogDisabled.has(i.id))];
 /** Every pinned item, including catalog-disabled ones: used to render and export what is already in a project. */
-export const hyperframesItem = (id: string): HfItem | undefined => (id.startsWith('rui:') ? ruiAll.find((i) => i.id === id) : (() => { const it = (enabledJson as { items: HfItem[] }).items.find((i) => i.id === id); return it ? labelled(it) : undefined; })());
+export const hyperframesItem = (id: string): HfItem | undefined => (isReactItem(id) ? ruiAll.find((i) => i.id === id) : (() => { const it = (enabledJson as { items: HfItem[] }).items.find((i) => i.id === id); return it ? labelled(it) : undefined; })());
 /** Default fit for an item ('width-bottom' for lower thirds). */
 export const defaultFit = (item: HfItem): 'contain' | 'cover' | 'width-bottom' => defaultFitFor(item);
 export const isCatalogDisabled = (id: string): boolean => catalogDisabled.has(id);
