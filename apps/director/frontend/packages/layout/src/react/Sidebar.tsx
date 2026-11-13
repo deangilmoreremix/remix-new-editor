@@ -100,12 +100,16 @@ function SidebarItemComponent({
       data-active={isActive}
       onMouseEnter={(e) => {
         if (!isActive) {
-          Object.assign(itemEl.style, structure.item as any) as any).itemHover);
+          Object.assign(e.currentTarget.style, structure.itemHover as React.CSSProperties);
         }
       }}
       onMouseLeave={(e) => {
         if (!isActive) {
-          Object.assign(itemEl.style, structure.item as any) as any).item);
+          // Undo exactly what the hover style set, back to the resting item style.
+          Object.assign(e.currentTarget.style, {
+            background: '',
+            color: (structure.item as React.CSSProperties).color ?? '',
+          });
         }
       }}
     >

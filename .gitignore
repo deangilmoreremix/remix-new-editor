@@ -121,6 +121,8 @@ debug_signin.cjs
 *.jpg
 # the pre-made Animations / Library thumbnails (public/hyperframes/thumbs) are tracked so cards are never blank
 !public/hyperframes/thumbs/*.jpg
+# retired Motion Director recipes reference these backplates (legacyCards.test.ts); an ignored file was never committed and the recipe rendered a broken image
+!public/motion-studio/legacy-textures/*.jpg
 
 # Logs
 logs

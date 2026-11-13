@@ -101,3 +101,30 @@ Real-render results (`renderStillOnWeb`, 1920×1080): rotated text pivots about 
 - Unit/integration: `npx vitest run src/features/personalization/shared/personalization`.
 - Real renderer: `node scripts/stage1-render-check/run.mjs` (needs `npm install` and a Chromium; PNGs land in `scripts/stage1-render-check/out/`, git-ignored).
 - In the app (not run by me): open any studio's Personalize modal → Advanced Editing / step 4 overlay editor → select a text layer → Rotate / Duplicate / Group / Align; drag near the frame centre to see snap guides; use "Presenter / background footage", "Custom fields", "Saved layouts". No preview URL exists for this branch.
+
+
+## Post-Stage-1 repair pass (baseline errors and skipped tests) — 2026-11-13
+Requested by the user ("fix the errors and why did we skip 61"). Not a new stage; no feature work.
+
+### Fixed
+| Item | Cause | Fix |
+|---|---|---|
+| `tsc` syntax errors in `packages/layout/src/react/Sidebar.tsx` (and the identical copy under `apps/director/frontend/packages/`) | Corrupted hover handlers: `Object.assign(itemEl.style, structure.item as any) as any).itemHover)` — unbalanced parentheses and an undefined `itemEl` | Hover applies `structure.itemHover` to `e.currentTarget`; leave restores the resting style |
+| `tsc` syntax errors in `packages/tokens/src/index.ts` (+ copy) | CSS (`@import ...`) was saved inside a `.ts` file | Valid TS module that `import`s `index.css`, `layout.css`, `themes.css` (its stated purpose) |
+| `timeline-parity` test failing (224 > 220) | The Add-video-dialog / drop-onto-track change (99452b82) moved `timeline-editor.tsx` 4 lines past its drift budget | Budget raised to 230 on purpose with a `[remix]` note, as the test itself instructs. **This is a policy call:** it accepts the drift rather than reducing it |
+| Root cause of the missing texture | `.gitignore` has `*.jpg`, so `public/motion-studio/legacy-textures/agent-stream.jpg` was never committed | Added a negation so legacy-texture JPGs are tracked once supplied |
+
+### Still failing (needs your input)
+- `legacyCards.test.ts > its textures ... exist`: `public/motion-studio/legacy-textures/agent-stream.jpg` is not anywhere in the repo or its git history. A retired Motion Director recipe (`StreamResponse.tsx`) also references it, so that recipe renders a missing image. The original file must be supplied; I did not fabricate one.
+
+### `tsc` — what is true now
+- The 22 syntax errors are gone. But the root `tsc -p tsconfig.json` still reports **1,381 `TS6059`** errors (config: `rootDir: ./src` while the project also includes `packages/` and `apps/`), and `tsc` stops at config errors before type-checking, so it has never produced a real type check. It also needs a >4 GB heap (it ran out of memory at the default).
+- Overriding `--rootDir .` on the command line (config untouched) gives the real figure: **12,870 type errors**, mostly in vendored `apps/cinegen`, `src/cinegen`, `apps/video-agent-studio` (implicit `any`, unresolved aliases such as `@ohb/*`, missing `@types/node`). This is long-standing and was NOT fixed here.
+
+### Why 61 tests are skipped
+They are pre-existing `it.skip` / `describe.skip` / `it.skipIf` markers in 18 files, not something Stage 0/1 added. Un-skipping all of them temporarily (then restoring) showed: **37 fail when enabled**, the rest pass or are conditional (`skipIf` on a missing clone). Reasons:
+- ~24 are cinegen "upstream" tests from the desktop (Electron/Mac) app asserting desktop behaviour this web build does not have (`/Users/...` paths, `local-media://`, "native bridge on Mac", RunPod session nodes, Topview provider card).
+- 3 `ErrorBoundary` tests (`production-readiness.test.js`) are skipped because they are covered by Playwright E2E (its own comment) and fail under this vitest environment.
+- 2 `toImageBlob` tests are documented jsdom limits (jsdom `Blob` vs Node `Response`).
+- Others (`providerErrorRecovery`, `catalogBatch3a/3f`, `skills`) have no recorded reason.
+Skipped tests were never evidence of passing behaviour. None were un-skipped permanently.

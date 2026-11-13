@@ -1,8 +1,8 @@
 /**
  * Open Higgsfield AI - Design Tokens
- * Main CSS entry point
+ * Main entry point: loads the token stylesheets.
  */
 
-@import './index.css';
-@import './layout.css';
-@import './themes.css';
+import './index.css';
+import './layout.css';
+import './themes.css';

@@ -12,7 +12,7 @@ const BUDGET: Record<string, number> = {
   'components/edit/tool-sidebar.tsx': 30,
   'components/edit/left-panel.tsx': 80,
   'components/edit/timeline-viewer.tsx': 70,
-  'components/edit/timeline-editor.tsx': 220,
+  'components/edit/timeline-editor.tsx': 230, // [remix] was 220; the Add video dialog / drop-onto-track change (99452b82) brought drift to 224
   'components/edit/edit-tab.tsx': 260,
   'lib/editor/playback-engine.ts': 80,
 };
