@@ -6,7 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { usePublished, getClient } from '@cinegen/components/leads/use-publish';
 import { buildPublishState } from '@cinegen/lib/leads/publish-state';
-import { ensureProjectRow, linkVideoToProject, linkedProjectId } from '@cinegen/lib/leads/project-link';
+import { PublishedOverview } from '@cinegen/components/overview/published-overview';
+import { ensureProjectRow, linkVideoToProject, linkedProjectId, rowName } from '@cinegen/lib/leads/project-link';
 // @ts-expect-error plain JS
 import { audienceTab, retargetTab, notificationsTab } from '../../../lib/editor/projectLibrary/projectTabs.js';
 // @ts-expect-error plain JS
@@ -59,7 +60,7 @@ export function AnalyticsTab() {
         const client = await getClient();
         const { tl: t, state: s, title } = latest.current;
         const built = buildPublishState(t, s.assets, s.overlays ?? [], title);
-        await ensureProjectRow(client, { projectId: id, name: title, built, aspect: t?.aspect ?? null });
+        await ensureProjectRow(client, { projectId: id, name: await rowName(projectId, title), built, aspect: t?.aspect ?? null, cinegenProjectId: projectId, timelineId: t0.id });
         await linkVideoToProject(client, pub.id, id);
         if (!cancelled) { setRowId(id); setLinked('ok'); }
       } catch (e) { if (!cancelled) { setToast((e as Error).message); setLinked('unavailable'); } }
@@ -101,8 +102,12 @@ export function AnalyticsTab() {
   }, [view, opts, linked, rowId, pub.id, dispatch, openView]);
 
   const empty = (title: string, text: string) => (
-    <div className="cg-analytics__empty"><h3>{title}</h3><p>{text}</p>
-      <button type="button" className="cg-analytics__btn" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Open Publish &amp; Leads</button></div>
+    <>
+      <div className="cg-analytics__empty"><h3>{title}</h3><p>{text}</p>
+        <button type="button" className="cg-analytics__btn" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Open Publish &amp; Leads</button></div>
+      {/* Not published yet: still show how all your published videos are doing. */}
+      {pub.signedIn && <PublishedOverview onPublish={() => dispatch({ type: 'SET_TAB', tab: 'leads' })} />}
+    </>
   );
   const failed = (text: string) => (
     <div className="cg-analytics__empty" role="alert"><h3>Analytics is not available for this project yet</h3><p>{text}</p>

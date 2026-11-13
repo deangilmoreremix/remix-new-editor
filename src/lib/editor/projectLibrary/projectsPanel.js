@@ -87,7 +87,13 @@ export function renderProjectsPanel(host, deps) {
     loading = true; error = null; draw();
     try {
       const client = await deps.getClient();
-      const list = await listProjects(client, { limit: 200 });
+      let all = [];
+      for (let offset = 0; offset < 1000; offset += 200) {            // a row filter needs the whole list, not just the newest page
+        const page = await listProjects(client, { limit: 200, offset });
+        all = all.concat(page);
+        if (page.length < 200 || !deps.filterRows) break;
+      }
+      const list = deps.filterRows ? deps.filterRows(all) : all; // e.g. the new editor only lists its own projects
       const ids = list.map((r) => r.id);
       const [pub, stats] = await Promise.all([
         deps.getPublished ? deps.getPublished(ids).catch(() => ({})) : {},

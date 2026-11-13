@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { buildPublishState } from '@cinegen/lib/leads/publish-state';
-import { ensureProjectRow, readInterestMap, linkedProjectId } from '@cinegen/lib/leads/project-link';
+import { ensureProjectRow, readInterestMap, linkedProjectId, rowName } from '@cinegen/lib/leads/project-link';
 // @ts-expect-error plain JS
 import * as pub from '../../../lib/editor/publish/publishClient.js';
 // @ts-expect-error plain JS
@@ -61,7 +61,7 @@ export function usePublished() {
     // Tie the video to its project row so Analytics / Retarget / Alerts can find it. Best-effort: publishing never
     // fails because the link could not be written (Analytics links it later).
     if (rowId) {
-      try { await ensureProjectRow(c, { projectId: rowId, name: title, built, aspect: t?.aspect ?? null }); linked = rowId; } catch { linked = null; }
+      try { await ensureProjectRow(c, { projectId: rowId, name: await rowName(projectId, title), built, aspect: t?.aspect ?? null, cinegenProjectId: projectId, timelineId: t.id }); linked = rowId; } catch { linked = null; }
     }
     const project = pub.preparePublishProject(built, { title });
     const vid = readIds()[key] || pub.makeSlug();

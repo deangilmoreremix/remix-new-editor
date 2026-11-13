@@ -28,3 +28,7 @@
 .cg-analytics .primary-btn{background:var(--accent-grad);color:#03131a;border:0;border-radius:var(--r-md);padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
 .cg-analytics .text-input,.cg-analytics select,.cg-analytics input[type=text],.cg-analytics input[type=date],.cg-analytics textarea{background:var(--surface-sunken);color:inherit;border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;font:inherit;font-size:12px}
 .cg-analytics .prj-skel i{display:block;height:120px;border-radius:12px;background:var(--surface-2);margin-bottom:10px}
+/* embedded inside another screen (home, or under the empty Analytics message) */
+.cg-analytics--embedded{height:auto;overflow:visible;padding:12px 4px}
+.cg-analytics .prj-root-host{max-width:1200px;margin:0 auto}
+.cg-analytics .prj-body.prj-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr))}

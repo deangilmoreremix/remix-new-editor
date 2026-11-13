@@ -42,6 +42,13 @@ export function WebApp() {
     setOpenProject(project);
   }, []);
 
+  // [remix] The Projects overview (also shown inside an open project) asks the app to switch projects.
+  useEffect(() => {
+    const open = (e: Event) => { const id = (e as CustomEvent<{ id?: string }>).detail?.id; if (id) handleOpenProject(id, true); };
+    window.addEventListener('remix:cinegen-open-project', open);
+    return () => window.removeEventListener('remix:cinegen-open-project', open);
+  }, [handleOpenProject]);
+
   const handleBackToHome = useCallback(() => {
     replaceProjectLocation(null);
     setOpenProject(null);
