@@ -119,6 +119,11 @@ clerk_e2e_test.cjs
 debug_signin.cjs
 .playwright-mcp/
 *.jpg
+# ...except the real animation / template stills the Template Generator and the Animations library show
+# (made by scripts/generate-template-generator-thumbs.mjs; tests require every offered item to have one)
+!/public/hyperframes/thumbs/*.jpg
+!/public/occ-templates/thumbs/*.jpg
+!/public/overlay-templates/thumbs/*.jpg
 
 # Logs
 logs
