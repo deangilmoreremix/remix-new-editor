@@ -503,6 +503,8 @@ export function sanitizeSite(input) {
         placeholder: clip(c.placeholder, 60),
         value: clip(c.value, 40),
         cols: arr(c.cols, 4).map((x) => clip(x, 30)),
+        chrome: arr(c.chrome, 2).map((x) => clip(x, 60)).filter(Boolean),
+        side: arr(c.side, 6).map((x) => clip(x, 30)).filter(Boolean),
         items: arr(c.items, 8).map(item),
       })),
     band: {
@@ -511,6 +513,7 @@ export function sanitizeSite(input) {
       button: clip(band.button, 40),
       placeholder: clip(band.placeholder, 60),
       social: clip(band.social, 30),
+      tagline: clip(band.tagline, 80),
     },
   };
 }

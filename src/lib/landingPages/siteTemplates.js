@@ -21,7 +21,7 @@ export const SITE_TEMPLATES = [
     name: 'Neon lead-gen',
     description: 'Dark glass look: video, headline and demo form across the top, then a playbook card, mini CRM and results.',
     theme: { mode: 'dark', accent: '#19d9c6', highlight: '#7dd3fc', bg: '#060a1c', text: '#f1f5ff', font: 'system' },
-    layout: 'site-leadiq', compose: 'site', customPlayer: true, adaptive: true, family: 'site', radius: 16,
+    layout: 'site-leadiq', compose: 'site', canvas: 1672, customPlayer: true, adaptive: true, family: 'site', radius: 16,
     vars: { '--vp-s-hero': 'radial-gradient(1200px 500px at 10% -10%, rgba(124,58,237,.45), transparent 60%), radial-gradient(900px 500px at 100% 0%, rgba(20,184,166,.35), transparent 55%), #060a1c', '--vp-s-card': 'rgba(255,255,255,.05)', '--vp-s-line': 'rgba(148,163,255,.25)', '--vp-s-muted': '#b6bfdc', '--vp-surface': '#11163a', '--vp-surface-2': '#0b1030', '--vp-line': 'rgba(148,163,255,.25)' },
     approx: { surface: '#11163a' },
     site: {
@@ -30,14 +30,14 @@ export const SITE_TEMPLATES = [
       strip: { kind: 'benefits', title: '', items: [it('Personalized Video at Scale', { icon: 'video' }), it('Build & Grow Your List', { icon: 'users' }), it('Automated Lead Capture', { icon: 'bolt' }), it('Lead Tracking & Mini CRM', { icon: 'layers' }), it('Book More Sales Calls', { icon: 'calendar' }), it('Higher Conversions & Revenue', { icon: 'chart' })] },
       cards: [
         { type: 'playbook', w: 4, eyebrow: 'FREE RESOURCE', title: 'Get the Personalized Video Playbook', cover: 'The Personalized Video Playbook', text: 'Join our email list and get our proven framework, templates, and scripts to generate more leads with video.', button: 'Send Me the Playbook', placeholder: 'Enter your email' },
-        { type: 'table', w: 4, title: 'Lead Tracker (Mini CRM)', cols: ['Lead', 'Company', 'Engagement', 'Status'], items: [it('Sarah Chen', { text: 'Acme Co.', value: '100% watched', tag: 'Hot Lead' }), it('James Miller', { text: 'BrightTech', value: '87% watched', tag: 'Contacted' }), it('Elena Rodriguez', { text: 'GrowthLabs', value: '72% watched', tag: 'Nurturing' }), it('David Park', { text: 'NextWave', value: '56% watched', tag: 'New Lead' })] },
+        { type: 'table', w: 4, title: 'Lead Tracker (Mini CRM)', chrome: ['{{brand}}', 'Lead Tracker (Mini CRM)'], side: ['Leads', 'Videos', 'Campaigns', 'Automations', 'Reports'], cols: ['Lead', 'Company', 'Engagement', 'Status'], items: [it('Sarah Chen', { text: 'Acme Co.', value: '100% watched', tag: 'Hot Lead' }), it('James Miller', { text: 'BrightTech', value: '87% watched', tag: 'Contacted' }), it('Elena Rodriguez', { text: 'GrowthLabs', value: '72% watched', tag: 'Nurturing' }), it('David Park', { text: 'NextWave', value: '56% watched', tag: 'New Lead' })] },
         { type: 'stats', w: 4, title: 'Real Results for Growth-Minded Businesses', items: [it('Lead Conversion', { value: '+317%', icon: 'target' }), it('List Growth', { value: '+4.2x', icon: 'users' }), it('More Booked Calls', { value: '68%', icon: 'calendar' }), it('Pipeline Value', { value: '+289%', icon: 'chart' })] },
         { type: 'heading', w: 3, eyebrow: 'CUSTOMER LOVE', title: 'What Our Users Are Saying' },
         quote('Our email list grew by 3x in 30 days and the personalized videos get way more replies than standard emails.', 'Melissa Grant', 'CEO, Grant Marketing'),
         quote('Made it simple to create personalized outreach at scale. More leads, more calls, more real opportunities.', 'Ryan Carter', 'Founder, Carter Growth'),
         quote('The built-in lead tracking and automation is a game-changer. Like a marketing assistant that never sleeps.', 'Priya Desai', 'CMO, Elevate Brands'),
       ],
-      band: { title: 'Join 10,000+ marketers and business owners getting higher-quality leads with personalized video.', text: '', button: 'Get Started Free', placeholder: 'Enter your email address', social: 'Follow Us' },
+      band: { title: 'Join 10,000+ marketers and business owners getting higher-quality leads with personalized video.', text: '', button: 'Get Started Free', placeholder: 'Enter your email address', social: 'Follow Us', tagline: 'Personalized Video. More Leads. Real Growth.' },
     },
     defaults: {
       headline: "{{firstname|Hi}}, here's a smarter way to [[grow your business.]]",

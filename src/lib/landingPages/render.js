@@ -498,7 +498,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   // ---- structural layouts: the same blocks, arranged as a genuinely different page (see layouts.js)
   if (tpl.compose) {
     composeLayout(tpl.compose, {
-      doc, h, mark, clock, tryPlay, listen, root, main, config, tpl, t, own, tokens, preview, handlers, video, frame, player, media,
+      doc, h, mark, clock, tryPlay, listen, root, main, config, tpl, t, own, tokens, preview, handlers, video, frame, player, media, onDestroy: (fn) => cleanups.push(fn),
       blocks: { top: topEl, copy, media, actions, calendar: calendarBox, transcript: side, form: formBox, story: storyBox, sections: sectionEls, quote: quoteEl, logos: logosEl, foot: footEl, consent: consentEl },
     });
   } else if (tpl.pitch) {

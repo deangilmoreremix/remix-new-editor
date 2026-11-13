@@ -90,8 +90,23 @@ const CARD_BUILDERS = {
   },
   table(ctx, c, card) {
     const { doc, h, t } = ctx;
-    card.appendChild(h(doc, 'h2', 'vp-card-title', t(c.title)));
+    if (!c.chrome.length) card.appendChild(h(doc, 'h2', 'vp-card-title', t(c.title)));
     const table = h(doc, 'div', 'vp-table');
+    let win = null;
+    if (c.chrome.length || c.side.length) {
+      // Product-window look: traffic-light dots, a title bar and a sidebar of fixed labels around the table.
+      win = h(doc, 'div', 'vp-win');
+      const bar = h(doc, 'div', 'vp-win-bar');
+      const dots = h(doc, 'span', 'vp-win-dots');
+      ['', '', ''].forEach(() => dots.appendChild(h(doc, 'i')));
+      bar.appendChild(dots);
+      c.chrome.forEach((x, i) => bar.appendChild(h(doc, 'span', i ? 'vp-win-sub' : 'vp-win-title', t(x))));
+      const body = h(doc, 'div', 'vp-win-body');
+      const side = h(doc, 'div', 'vp-win-side');
+      c.side.forEach((x, i) => side.appendChild(h(doc, 'span', `vp-win-link${i === 0 ? ' is-on' : ''}`, t(x))));
+      body.append(side, table);
+      win.append(bar, body);
+    }
     table.setAttribute('role', 'table');
     const head = h(doc, 'div', 'vp-tr vp-tr--head');
     head.setAttribute('role', 'row');
@@ -109,7 +124,7 @@ const CARD_BUILDERS = {
       if (it.tag) row.appendChild(h(doc, 'span', 'vp-td vp-td--tag', it.tag));
       table.appendChild(row);
     });
-    card.appendChild(table);
+    card.appendChild(win || table);
   },
   stats(ctx, c, card) {
     const { doc, h, t } = ctx;
@@ -306,13 +321,20 @@ function siteLayout(ctx) {
   site.cards.forEach((c) => cards.appendChild(buildCard(ctx, c)));
   // Blocks the owner turned on elsewhere in the editor still appear (calendar, transcript, story, sections, quote, logos).
   const extras = present(b.calendar, b.transcript, b.story, ...b.sections, b.quote, b.logos);
-  extras.forEach((n) => { const w = h(doc, 'section', 'vp-card vp-card--block vp-w6'); w.appendChild(n); cards.appendChild(w); });
+  const extraWrap = h(doc, 'div', 'vp-wrap vp-extra');
+  const toExtras = !!ctx.tpl.canvas;
+  extras.forEach((n) => { const w = h(doc, 'section', 'vp-card vp-card--block vp-w6'); w.appendChild(n); (toExtras ? extraWrap : cards).appendChild(w); });
 
   // ---- sign-up band
   let band = null;
   if (site.band.title) {
     band = h(doc, 'section', 'vp-band');
     const inner = h(doc, 'div', 'vp-wrap vp-band-in');
+    if (site.band.tagline) {
+      const bb = h(doc, 'div', 'vp-band-brand');
+      bb.append(mark(doc, { imageUrl: config.theme.logoUrl, name: config.brand.name, className: 'vp-mark--sender' }), h(doc, 'b', '', config.brand.name), h(doc, 'span', '', t(site.band.tagline)));
+      inner.appendChild(bb);
+    }
     const txt = h(doc, 'div', 'vp-band-text');
     txt.appendChild(h(doc, 'b', 'vp-band-title', t(site.band.title)));
     if (site.band.text) txt.appendChild(h(doc, 'span', '', t(site.band.text)));
@@ -332,6 +354,28 @@ function siteLayout(ctx) {
   if (body.children.length) page.appendChild(body);
   if (band) page.appendChild(band);
   root.appendChild(page);
+
+  // Pixel-matched designs are authored at one fixed desktop width and scaled to fit; narrow screens get the flowing layout.
+  const designW = ctx.tpl.canvas || 0;
+  if (designW) {
+    const fit = () => {
+      const w = root.getBoundingClientRect().width || root.clientWidth;
+      if (!w) return;
+      const on = w >= 900;
+      page.classList.toggle('is-canvas', on);
+      if (on) page.style.setProperty('zoom', String(Math.min(1.5, w / designW)));
+      else page.style.removeProperty('zoom');
+    };
+    fit();
+    if (typeof globalThis.ResizeObserver === 'function') {
+      const ro = new globalThis.ResizeObserver(fit);
+      ro.observe(root);
+      ctx.onDestroy?.(() => ro.disconnect());
+    } else {
+      ctx.listen(globalThis, 'resize', fit);
+    }
+  }
+  if (extraWrap.children.length) root.appendChild(extraWrap);
   if (b.foot) root.appendChild(b.foot);
   if (b.consent) root.appendChild(b.consent);
 }
