@@ -119,6 +119,7 @@ clerk_e2e_test.cjs
 debug_signin.cjs
 .playwright-mcp/
 *.jpg
+# the pre-made Animations / Library thumbnails (public/hyperframes/thumbs) are tracked so cards are never blank
 !public/hyperframes/thumbs/*.jpg
 
 # Logs

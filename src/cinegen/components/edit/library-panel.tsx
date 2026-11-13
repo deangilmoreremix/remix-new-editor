@@ -9,6 +9,7 @@ import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates'
 import { buildAnimationCatalog, animationGroups, filterAnimations } from '@cinegen/lib/occ/animation-catalog';
 import { hyperframesItems, type HfItem } from '@cinegen/lib/hyperframes/overlay';
 import { groupOf, thumbOf } from './hyperframes-modal';
+import { openAddToTimeline } from './add-to-timeline-registry';
 // @ts-expect-error plain JS flag module
 import { isHyperframesEnabled } from '../../../lib/hyperframes/featureFlag.js';
 import { GL_TRANSITION_ORDER, glTransitionLabel } from '@cinegen/lib/occ/transitions';
@@ -196,6 +197,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
         ))}
       </div>
       <div className="library-panel__hint">{active.hint}</div>
+      <button type="button" className="library-panel__chip" data-testid="library-open-add" title="Open the Add to timeline window: every animation, motion graphic, overlay, form and end screen with previews" onClick={() => { if (!openAddToTimeline()) say('Open the timeline first.'); }} style={{ alignSelf: 'flex-start', margin: '2px 0 6px' }}>+ Browse everything with previews</button>
       {note && <div className="library-panel__note" role="status">{note}</div>}
       <div className="library-panel__body">{body()}</div>
     </div>
