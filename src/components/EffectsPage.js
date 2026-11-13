@@ -10,7 +10,7 @@ const EFFECT_TABS = [
 ];
 
 const FEATURES = [
-  { icon: '✨', title: '350+ Effects', description: 'Access a massive library of visual effects for images and videos' },
+  { icon: '✨', title: '200+ Effects', description: 'Access a massive library of visual effects for images and videos' },
   { icon: '🎬', title: 'Video Support', description: 'Apply effects to both static images and video content' },
   { icon: '⚡', title: 'Real-time Preview', description: 'See your effects instantly before applying' },
   { icon: '🎨', title: 'Customizable', description: 'Fine-tune each effect to match your vision' },

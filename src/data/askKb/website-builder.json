@@ -1,0 +1,391 @@
+{
+  "id": "website-builder",
+  "name": "Website Builder",
+  "route": "#/website-builder",
+  "description": "Website Builder (branded Smart Website Builder) lets you describe a website in plain language and have an AI agent write the code, preview it live in your browser and deploy it to a public address. You bring your own AI provider key.",
+  "shortDescription": "Build and publish a full website from a prompt using your own AI key.",
+  "fullDescription": "Website Builder is an embedded app (the OpenThorn builder, shown as Smart Website Builder) inside SmartVideo. You sign in with your normal SmartVideo account, land on the builder Dashboard, type what you want in the prompt box ('What do you want to build?'), choose an AI model from a provider you have a key for, and the agent writes the site, previews it live in the browser and lets you keep chatting to change it. When you are happy you click Deploy to publish it to a public address (Cloudflare Pages), or download the code as a ZIP. Both free and paid SmartVideo accounts can use it. The builder manages its own provider keys inside the studio (Settings, Providers), so you pay your AI provider directly at their normal rates; it does not use SmartVideo credits for the AI. It builds websites, not videos.",
+  "bestFor": "Founders, creators and small businesses who want a landing page, portfolio or small website built by AI quickly, are comfortable bringing their own AI provider API key, and want to download or publish the result.",
+  "whenToUse": [
+    "You want a landing page, portfolio or small website generated from a description.",
+    "You want a live preview in the browser and to keep changing it by chatting.",
+    "You want a one-click public address for the site.",
+    "You want the full source code to download and own.",
+    "You want to choose your own AI provider and pay them directly."
+  ],
+  "whenToUseAnother": [
+    "Use Video Agent (#/video-agent) when you want an animated video or motion graphics instead of a website.",
+    "Use Motion Director (#/motion-director) when you want a promo film made from your existing website.",
+    "Use Brand (#/brand) or Find My Brand (#/find-my-brand) when you want to define or discover your brand look first.",
+    "Use Image (#/image) or Video (#/video) when you need pictures or clips to place on the site.",
+    "Use Commercial (#/commercial) or Viral (#/viral) when you want an ad or social video for your product."
+  ],
+  "keyFeatures": [
+    "Prompt-to-website AI agent that writes the code and plans the work.",
+    "Live in-browser preview with no build wait.",
+    "Follow-up chat to change the site.",
+    "Model selector: you choose a provider and model you have a key for.",
+    "Agent thinking level control in the prompt box.",
+    "Attach files to the prompt (Upload files).",
+    "Deploy button that publishes the site (Cloudflare Pages, per the app documentation).",
+    "Download code as a ZIP.",
+    "Dashboard with your projects, search and sort (Recent, Starred).",
+    "Templates page and Community publishing ('Publish to Community').",
+    "Settings with Account, Providers (API Keys and Model Providers), Knowledge and Danger Zone, including deleting your builder data.",
+    "Multiple AI providers with automatic fallback to another provider on rate limits (per the app documentation).",
+    "Signs in automatically with your SmartVideo account; works on free and paid accounts."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Sign-in and access",
+      "explanation": "In SmartVideo, anyone signed in gets in automatically, paid or not, and lands on the builder Dashboard. While it checks you see 'Loading Website Builder...'. If you are signed out you see 'Sign in to use Smart Website Builder - Smart Website Builder uses your SmartVideo account.' with a Sign in button that goes to the sign-in page.",
+      "whyToUse": "No separate account is needed.",
+      "inputRequired": "A SmartVideo account.",
+      "restrictions": "The builder links your account by your verified primary email address; an unverified email is not linked."
+    },
+    {
+      "feature": "Prompt box",
+      "explanation": "The Dashboard greets you with 'What do you want to build, <your first name>?'. The prompt box is labelled 'Describe your website idea'. It has an Upload files button, an 'Agent thinking level' control, a model selector and a send button (it becomes 'Cancel message' while the agent is running).",
+      "whyToUse": "This is where you start every project.",
+      "inputRequired": "A description and a selected model.",
+      "restrictions": "If no model is selected you see 'Please select a model first.' Models are only available for providers whose key you have added."
+    },
+    {
+      "feature": "Model and provider keys",
+      "explanation": "You add your own provider API keys in the builder (Settings, then Providers: 'API Keys & Model Providers'). Keys are stored encrypted on the server and are not returned to your browser in raw form, per the app documentation.",
+      "whyToUse": "The AI that writes your site runs on your key and your provider bills you directly.",
+      "inputRequired": "An API key from at least one supported provider.",
+      "restrictions": "The documentation lists many providers (see modelCapabilities); the exact list available in this embed was not confirmed. A provider free tier or a local Ollama setup can reduce cost, per the landing text."
+    },
+    {
+      "feature": "Live preview and iteration",
+      "explanation": "The generated project is bundled in your browser and shown live. You keep chatting with the agent to change layout, text, colors and features. The agent runs checks before it says it is done.",
+      "whyToUse": "See changes right away without deploying.",
+      "inputRequired": "A generated project.",
+      "restrictions": "Package imports are restricted to an allow-list and resolved from a CDN according to the app notes; unusual libraries may not work."
+    },
+    {
+      "feature": "Deploy",
+      "explanation": "A Deploy button in the project builder opens a 'Deploy project' dialog, shows 'Deploying...' and then returns a public URL; after deploy the button opens the live site. Errors show 'Deploy failed'.",
+      "whyToUse": "Get a public address in one click.",
+      "inputRequired": "A finished project.",
+      "restrictions": "Deployment uses a shared platform account, so you do not need your own hosting account, per the app documentation."
+    },
+    {
+      "feature": "Download code",
+      "explanation": "Download the generated source as a ZIP at any time. SmartVideo allows downloads from the embedded builder so this works inside the page.",
+      "whyToUse": "Own your code or host it yourself.",
+      "inputRequired": "A project.",
+      "restrictions": "Per the documentation there is no paywall on code export."
+    },
+    {
+      "feature": "Dashboard and projects",
+      "explanation": "Your projects are listed with a 'Search projects...' box and a sort menu (for example Recent, Starred). A 'Launch checklist' onboarding panel may appear.",
+      "whyToUse": "Find and reopen earlier sites.",
+      "inputRequired": "None.",
+      "restrictions": "Projects are stored in the builder's own account tied to your email."
+    },
+    {
+      "feature": "Publish to Community",
+      "explanation": "A dialog titled 'Publish to Community' lets you add a short description ('What did you build? Add a short description...') and share your project in the community gallery.",
+      "whyToUse": "Share your work or start from others' templates.",
+      "inputRequired": "A project and an optional description.",
+      "restrictions": "Community content may be moderated; details were not confirmed."
+    }
+  ],
+  "howToUse": "1. Open Website Builder from the Agents group in the side menu (#/website-builder). 2. If you see 'Sign in to use Smart Website Builder', click Sign in with your SmartVideo account. 3. On the Dashboard, open Settings, then Providers, and add an API key for the AI provider you want to use. 4. Back on the Dashboard, type your idea into the box labelled 'Describe your website idea' under 'What do you want to build?'. 5. Choose a model in the model selector (otherwise you get 'Please select a model first.'), optionally set the agent thinking level and attach files. 6. Send it and watch the agent write the site and show a live preview. 7. Keep chatting to change things. 8. Click Deploy to publish and open the public address, or download the code as a ZIP.",
+  "howToSteps": [
+    "Open Website Builder; sign in if asked.",
+    "Add your AI provider key in Settings, Providers.",
+    "Describe your website in the prompt box and pick a model.",
+    "Send and review the live preview.",
+    "Refine by chatting with the agent.",
+    "Click Deploy for a public address, or download the ZIP."
+  ],
+  "gettingStarted": [
+    "Have an API key from an AI provider ready (a free tier works for trying it).",
+    "Write what the site is for, who it is for, the sections you want and the style.",
+    "Start with a small site and add pages later.",
+    "Check the preview before you deploy."
+  ],
+  "inputs": ["Website idea (prompt)", "Model and provider key", "Agent thinking level", "Attached files", "Follow-up chat messages", "Community description"],
+  "requiredInputs": ["Website idea (prompt)", "A selected model with a saved provider API key", "SmartVideo sign-in"],
+  "optionalInputs": ["Agent thinking level", "Attached files", "Follow-up chat messages", "Community description"],
+  "inputDetails": [
+    {
+      "name": "Website idea (prompt)",
+      "description": "A plain-language description of the site: purpose, sections, style, content.",
+      "required": true,
+      "whenToUse": "To start a project.",
+      "restrictions": "None specific were found in the code."
+    },
+    {
+      "name": "Provider API key and model",
+      "description": "Your key for a supported AI provider and the model you want to use.",
+      "required": true,
+      "whenToUse": "Add once under Settings, Providers.",
+      "restrictions": "A model must be selected before you can send."
+    },
+    {
+      "name": "Attached files",
+      "description": "Files you add to your prompt with Upload files.",
+      "required": false,
+      "whenToUse": "To give the agent images or reference material.",
+      "restrictions": "Allowed types and sizes were not confirmed."
+    },
+    {
+      "name": "Agent thinking level",
+      "description": "A control for how much the agent reasons.",
+      "required": false,
+      "whenToUse": "Raise for complex sites.",
+      "restrictions": "Available levels depend on the chosen provider and were not confirmed."
+    }
+  ],
+  "generationModes": ["Prompt to site", "Chat iteration", "Template start"],
+  "modeExplanations": [
+    {
+      "mode": "Prompt to site",
+      "description": "Describe a website on the Dashboard and the agent builds it.",
+      "useCase": "New sites."
+    },
+    {
+      "mode": "Chat iteration",
+      "description": "Keep messaging the agent inside a project to change the site.",
+      "useCase": "Refining."
+    },
+    {
+      "mode": "Template start",
+      "description": "The builder has a Templates page and community projects to start from.",
+      "useCase": "Starting from an example. Details of the template list were not confirmed."
+    }
+  ],
+  "modelCapabilities": "Website Builder does not use a SmartVideo-chosen model. You choose a model from the providers you have added a key for. The app documentation (README) lists 18 providers: OpenAI, Anthropic, Google Gemini, DeepSeek, Mistral, Groq, Together AI, xAI, Cohere, Perplexity, OpenRouter, RodiumAi, Ollama, Fireworks AI, Cerebras, Azure OpenAI, Amazon Bedrock and NVIDIA NIM, plus custom endpoints. SmartVideo's own landing text says 11 providers (OpenAI, Anthropic, Google Gemini, DeepSeek, Mistral, Groq, xAI, Perplexity, OpenRouter, Ollama, Cerebras) plus custom endpoints; the two lists disagree and the exact list in the embedded app was not confirmed. If one provider is rate limited the agent can switch to another provider mid-run. Which model is best depends on the provider; stronger reasoning models usually do better on complex sites.",
+  "outputs": [
+    "A website project with source code",
+    "A live in-browser preview",
+    "A public deployed address (URL)",
+    "A downloadable ZIP of the source code",
+    "Optional community-published project"
+  ],
+  "limitations": [
+    "Requires a SmartVideo sign-in.",
+    "Requires your own AI provider key; the AI cost is billed by your provider.",
+    "A model must be selected before sending.",
+    "It builds websites; it does not create videos.",
+    "Only allow-listed packages work in the preview.",
+    "Unlike most studios it does not show the provider key setup popup; keys are managed inside the builder."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Own provider key needed",
+      "impact": "Nothing can be generated until a key is added.",
+      "workaround": "Add a key in Settings, Providers. A free-tier or local provider can reduce cost."
+    },
+    {
+      "limitation": "Sign-in required",
+      "impact": "Signed-out visitors see a sign-in card instead of the builder.",
+      "workaround": "Click Sign in and use your SmartVideo account."
+    },
+    {
+      "limitation": "Preview restrictions",
+      "impact": "Sites that rely on packages outside the allow-list may not preview or build.",
+      "workaround": "Ask the agent to use plain HTML, CSS and common libraries."
+    }
+  ],
+  "troubleshooting": [
+    "Stuck on 'Loading Website Builder...': reload the page; check your connection.",
+    "'Sign in to use Smart Website Builder': click Sign in and use your SmartVideo account.",
+    "'Please select a model first.': pick a model in the model selector; if none appear add a provider key in Settings, Providers.",
+    "The agent does not respond or errors: check the provider key is valid, has credit and is not rate limited; try another provider or model.",
+    "Blank iframe or content fails to load: reload; if you are on a local development setup the builder runs on a separate dev server.",
+    "Deploy failed: open the 'Deploy project' dialog message, retry, and make sure the preview works first.",
+    "Download does nothing: allow downloads in your browser; the embedded builder permits downloads.",
+    "A popup blocked the live site: allow popups for SmartVideo so the deployed link can open in a new tab."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "I cannot send my prompt",
+      "steps": [
+        "Check that a model is selected.",
+        "Open Settings, Providers and make sure a key is saved for that provider.",
+        "Try another provider if one is rate limited.",
+        "Send again."
+      ]
+    },
+    {
+      "issue": "The site will not deploy",
+      "steps": [
+        "Make sure the preview loads without errors.",
+        "Click Deploy and read the 'Deploy project' dialog.",
+        "Retry; if it keeps failing download the ZIP and host it yourself."
+      ]
+    },
+    {
+      "issue": "I cannot get in",
+      "steps": [
+        "Sign in to SmartVideo.",
+        "Ensure your primary email is verified.",
+        "Reload #/website-builder."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The first result is not what I wanted",
+      "whyItHappens": "The prompt was too short or vague.",
+      "howToFix": "Add purpose, audience, sections, colors and tone, then iterate in chat."
+    },
+    {
+      "problem": "Costs are higher than expected",
+      "whyItHappens": "Your provider bills per use and long sessions use many tokens.",
+      "howToFix": "Use a cheaper model or a free tier, keep prompts focused, and review the provider's usage dashboard."
+    },
+    {
+      "problem": "No models are listed",
+      "whyItHappens": "No provider key has been added yet.",
+      "howToFix": "Add a key under Settings, Providers."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Landing page for a new product",
+      "steps": [
+        "Open Website Builder and add a provider key in Settings, Providers.",
+        "On the Dashboard, type 'A landing page for my meal-planning app with a hero, three features, pricing and a contact form, in a clean green style'.",
+        "Choose a model and send.",
+        "Ask for changes such as 'make the hero headline larger'.",
+        "Click Deploy and open the public address."
+      ]
+    },
+    {
+      "title": "Download and self-host",
+      "steps": [
+        "Build and preview your site.",
+        "Download the code as a ZIP.",
+        "Upload it to your own hosting."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Portfolio site",
+      "description": "Show your work with a gallery and an about page.",
+      "steps": [
+        "Describe sections and style.",
+        "Attach images with Upload files.",
+        "Deploy."
+      ],
+      "expectedOutput": "A live portfolio website."
+    },
+    {
+      "title": "Campaign microsite",
+      "description": "A one-page site for a launch that you can link from videos.",
+      "steps": [
+        "Describe the offer and call to action.",
+        "Iterate on copy.",
+        "Deploy and share the link."
+      ],
+      "expectedOutput": "A public one-page site."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Do I need a paid SmartVideo plan?",
+      "answer": "No. Any signed-in SmartVideo account can open the builder, paid or free."
+    },
+    {
+      "question": "Does it use SmartVideo credits?",
+      "answer": "The builder uses your own AI provider key and your provider bills you directly. Whether any SmartVideo charge applies was not found in the code reviewed."
+    },
+    {
+      "question": "Where do I add my AI key?",
+      "answer": "Inside the builder under Settings, then Providers (API Keys and Model Providers). The usual SmartVideo key popup is not shown for this studio."
+    },
+    {
+      "question": "Can I get the code?",
+      "answer": "Yes, you can download the generated source as a ZIP."
+    },
+    {
+      "question": "How do I publish?",
+      "answer": "Click Deploy in the project builder to get a public address."
+    },
+    {
+      "question": "What is the difference between #/website-builder and #/openthorn?",
+      "answer": "#/website-builder is the route that opens the builder in the app. OpenThorn is the name of the underlying open-source builder; the openthorn name appears as a landing-page entry labelled Smart Website Builder. Use #/website-builder."
+    }
+  ],
+  "glossary": {
+    "BYOK": "Bring your own key: you supply your AI provider's API key and pay that provider directly.",
+    "Provider": "A company that offers AI models, such as OpenAI or Anthropic.",
+    "Deploy": "Publish the site to a public web address.",
+    "Preview": "A live view of the site running in your browser before you publish.",
+    "OpenThorn": "The name of the open-source website builder that is embedded here as Smart Website Builder.",
+    "Agent thinking level": "How much extra reasoning the agent does before answering."
+  },
+  "tips": [
+    "Be concrete about sections, tone and colors in your first prompt.",
+    "Try a provider free tier first.",
+    "Preview thoroughly before deploying.",
+    "Download the ZIP as a backup."
+  ],
+  "bestPractices": [
+    "Keep your provider key private and rotate it if exposed.",
+    "Change one thing per follow-up message.",
+    "Check on a phone-size window in the preview.",
+    "Use Starred projects to keep your best builds handy."
+  ],
+  "relatedStudios": ["brand", "find-my-brand", "video-agent", "motion-director", "commercial", "image", "viral"],
+  "relatedStudioGuidance": [
+    {
+      "studio": "motion-director",
+      "relationship": "Once your site is live, Motion Director can turn its pages into a promo film.",
+      "whenToMove": "After you deploy and want a launch video.",
+      "why": "It captures real pages from your site."
+    },
+    {
+      "studio": "find-my-brand",
+      "relationship": "Helps discover brand colors and look.",
+      "whenToMove": "Before building, to choose a style.",
+      "why": "A clear brand makes better prompts."
+    },
+    {
+      "studio": "image",
+      "relationship": "Creates pictures you can attach to the site.",
+      "whenToMove": "When you need hero images or product shots.",
+      "why": "Website Builder writes code; it does not make photos."
+    }
+  ],
+  "notConfirmed": [
+    "The exact list of AI providers available in the embedded app: the app README says 18 and SmartVideo's landing text says 11.",
+    "Whether deployment to Cloudflare Pages works for every account and any limits on the number of sites or deploys.",
+    "The precise limits on attached files and the available agent thinking levels.",
+    "Pricing: the code and landing text say the platform is free and you pay your provider, but SmartVideo-side billing was not verified. The builder app also contains a Pricing page that was not read.",
+    "Exact labels of the model selector and sort options beyond those quoted.",
+    "What #/openthorn does as a route: no router entry for it was found in src/lib/router.js; it appears only as a landing-page and route-label entry named Smart Website Builder.",
+    "How real-time collaboration and the community moderation features behave in this embed.",
+    "Whether the embedded app is available in every environment: in local development it points to a separate dev server at localhost:5173."
+  ],
+  "sourceFiles": [
+    "src/components/OpenThornStudio.js",
+    "apps/openthorn/README.md",
+    "apps/openthorn/CLAUDE.md",
+    "apps/openthorn/src/pages/DashboardPage.tsx",
+    "apps/openthorn/src/pages/SettingsPage.tsx",
+    "apps/openthorn/src/pages/ProjectBuilderPage.tsx",
+    "apps/openthorn/src/components/PromptInput/PromptInput.tsx",
+    "netlify/functions/website-builder-session.js",
+    "netlify/functions/website-builder-api.mts",
+    "src/data/studioLandingPages.js",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js",
+    "src/main.js",
+    "src/components/AppsHub.js",
+    "src/features/ask-smartvideo/studioRegistry.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the iframe wrapper component, the OpenThorn README and developer notes, selected builder pages and prompt input, the SSO session function, the landing page entry and the routing files.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

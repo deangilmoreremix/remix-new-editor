@@ -51,7 +51,7 @@ const CAMERA_MOVEMENTS = {
   'Handheld': 'subtle handheld camera movement',
   'Pan': 'slow horizontal pan',
   'Tilt': 'vertical tilt movement',
-  'Dolly Zom': 'Hitchcock dolly zoom (vertigo effect)',
+  'Dolly Zoom': 'Hitchcock dolly zoom (vertigo effect)',
 };
 
 // Film looks promised by the intro copy ("Choose … film look to set the
@@ -1381,7 +1381,8 @@ export function CinemaStudio() {
             currentSettings.lens = entry.settings.lens;
             currentSettings.focal = entry.settings.focal;
             currentSettings.aperture = entry.settings.aperture;
-            currentSettings.movement = entry.settings.movement || 'Static';
+            // Saved projects from before the label was fixed ('Dolly Zom') keep their camera move.
+            currentSettings.movement = (entry.settings.movement === 'Dolly Zom' ? 'Dolly Zoom' : entry.settings.movement) || 'Static';
             currentSettings.look = entry.settings.look || 'Natural';
             currentSettings.aspect_ratio = entry.settings.aspect_ratio;
 

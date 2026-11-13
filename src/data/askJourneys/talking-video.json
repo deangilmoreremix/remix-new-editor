@@ -1,0 +1,150 @@
+{
+  "id": "talking-video",
+  "title": "Make a talking video from a photo",
+  "goal": "You end up with a finished video of a person from your portrait speaking your narration, which you can play and download.",
+  "bestFor": "Creators who want a presenter, character or avatar to speak a script without filming anyone.",
+  "whatYouNeed": [
+    "A MuAPI key saved in Settings -> API keys (the \"Muapi API Key\" form). Generation uses your own MuAPI credits. You must also be signed in.",
+    "A script: the exact words to be spoken. Keep the audio under 60 seconds (the in-app tip).",
+    "A clear, front-facing, well-lit portrait photo under 10MB, or an idea to create one in Image Studio or Character Studio.",
+    "Permission to use the face and any voice you use."
+  ],
+  "studios": ["image", "character", "audio", "lipsync", "avatar"],
+  "steps": [
+    {
+      "n": 1,
+      "studio": "image",
+      "action": "Make a portrait in Image Studio (or use your own photo).",
+      "buttons": ["Describe the image you want to create", "Generate", "Download"],
+      "details": "If you already have a clear, front-facing portrait, skip to step 3. Otherwise open Image Studio and type a short description in 'Describe the image you want to create', for example a front-facing portrait with the face clearly visible. Click Generate, then Download. Front-facing, clear, well-lit faces work best for lip sync.",
+      "result": "A portrait image file on your device.",
+      "handoff": "Download it (or find it in Library). You will upload it in Lip Sync Studio or Avatar Studio later."
+    },
+    {
+      "n": 2,
+      "studio": "character",
+      "action": "Optional: keep the same person across images in Character Studio.",
+      "buttons": ["Reference Face", "Character Description", "Generate Character", "Download"],
+      "details": "Use this only if you want the same face in a new outfit or scene. Under Reference Face, upload a clear, front-facing face photo (10MB max). In Character Description, describe the outfit, scene and mood, and keep it about clothes and place, not the face. Leave the model on Flux PuLID, or choose Subject Reference. Click Generate Character, then Download.",
+      "result": "A portrait image of the same person on your device.",
+      "handoff": "Download it (or find it in Library), then upload it as the portrait in Lip Sync Studio or Avatar Studio."
+    },
+    {
+      "n": 3,
+      "studio": "audio",
+      "action": "Create the narration in Audio Studio.",
+      "buttons": ["Prompt", "Generate Audio", "Download Audio"],
+      "details": "Open Audio Studio and use the model picker to choose a speech model. The default is Minimax Speech Turbo. Type the exact words to be spoken in the Prompt box. For speech, the Voice list and the Speed slider (0.5x to 2.0x, in Advanced) may appear depending on the model. If you want a tone, describe it in the prompt. Click Generate Audio, press Play to listen, then click Download Audio.",
+      "result": "A speech audio file on your device (also in Audio Studio history).",
+      "handoff": "Download it, then upload it in Lip Sync Studio with 'Upload audio file', or in Avatar Studio under 'Audio (for lip sync)'."
+    },
+    {
+      "n": 4,
+      "studio": "lipsync",
+      "action": "Option A: make the portrait talk in Lip Sync Studio.",
+      "buttons": ["Portrait Image", "Upload portrait image", "Upload audio file", "Generate"],
+      "details": "Open Lip Sync Studio (#/lipsync). Next to 'Input:' choose Portrait Image. Click the portrait image button (Upload portrait image) and add your photo, then click Upload audio file and add your narration. The status labels change to a check mark with the file name. Pick a model from the Portrait Image group (the first one, Infinite Talk, is preselected at 480p) and, if shown, a resolution. Optionally type a talking style in the prompt box. Click Generate and wait. Limits: images 10MB, audio 10MB.",
+      "result": "A talking video of your portrait in the result canvas.",
+      "handoff": "Stay on the result canvas. Check it in step 6, or try Avatar Studio in step 5 if you prefer it."
+    },
+    {
+      "n": 5,
+      "studio": "avatar",
+      "action": "Option B: use Avatar Studio instead (simpler single form).",
+      "buttons": ["Source Video/Image", "Audio (for lip sync)", "Generate Avatar Video"],
+      "details": "Open Avatar Studio (#/avatar), click the model button at the top and choose a model (the default is LTX LipSync; Kling Avatar models are described as Standard and Pro tiers). Under 'Source Video/Image' upload your portrait, then under 'Audio (for lip sync)' upload your narration. If a 'Prompt (optional)' box appears and the model requires it, fill it in. Leave 'Native Audio' off unless you want the model's own audio. Click 'Generate Avatar Video'. Pick Lip Sync Studio when you want the Portrait Image or Video toggle, a resolution picker and a history panel. Pick Avatar Studio when you want a simpler form, Advanced options and Kling Avatar models.",
+      "result": "A talking avatar video on the Avatar Studio page.",
+      "handoff": "Stay on the page and check it in the next step."
+    },
+    {
+      "n": 6,
+      "studio": "lipsync",
+      "action": "Check the mouth match and download the finished video.",
+      "buttons": ["Download", "Regenerate"],
+      "details": "Play the video. Check that the face looks like your photo and the mouth follows the audio. If the mouth does not match well, click Regenerate, use a clearer front-facing portrait, cleaner speech with little background noise, or try another model. When you are happy, click Download in Lip Sync Studio (or 'Download Video' in Avatar Studio). You can also click 'Add AI Captions'.",
+      "result": "You have a finished video: a talking video file you can play, which you downloaded with Download in Lip Sync Studio (or Download Video in Avatar Studio). Recent results also stay in the Lip Sync History panel and your generation history.",
+      "handoff": "Done. Play the downloaded file to check it."
+    }
+  ],
+  "checkpoints": [
+    "The portrait is clear and front-facing before you upload it.",
+    "You played the narration audio in Audio Studio and it says the right words before you upload it.",
+    "Both the portrait and the audio show as ready (a check mark with the file name) before you click Generate.",
+    "The finished video plays, the face looks like your photo and the mouth follows the speech.",
+    "The downloaded file plays on your device."
+  ],
+  "troubleshooting": [
+    {
+      "problem": "I see 'Please upload an audio file first.' in Lip Sync Studio.",
+      "fix": "Upload an audio file with Upload audio file before clicking Generate."
+    },
+    {
+      "problem": "I see 'Please upload a portrait image first.' in Lip Sync Studio.",
+      "fix": "You are in Portrait Image mode with no photo. Upload one, or switch to Video mode."
+    },
+    {
+      "problem": "I see 'Upload a source video or image first' in Avatar Studio.",
+      "fix": "Upload your portrait under 'Source Video/Image', then click Generate Avatar Video again."
+    },
+    {
+      "problem": "The mouth does not match the speech well.",
+      "fix": "Use a clear front-facing portrait, clean speech with little background noise, and try another model (for example Kling Avatar Pro in Avatar Studio)."
+    },
+    {
+      "problem": "Lip Sync shows 'No video URL returned by API'.",
+      "fix": "The model finished without a usable video. Try again, use another model, or a different photo or audio."
+    },
+    {
+      "problem": "I see 'Please enter a prompt for this model.' in Audio Studio.",
+      "fix": "Type the words to be spoken in the Prompt box before clicking Generate Audio."
+    },
+    {
+      "problem": "Generation will not start or a sign-in box appears ('Please sign in and add api credits.').",
+      "fix": "Sign in, make sure your MuAPI key is saved in Settings -> API keys, and that your account has credits."
+    }
+  ],
+  "tips": [
+    "Create the speech in Audio Studio first. Lip Sync Studio and Avatar Studio cannot take typed text; they are driven by an audio file.",
+    "Keep the audio short. The in-app tip is to keep it under 60 seconds.",
+    "For speech, write the exact words to be spoken in the Prompt box.",
+    "Do a quick test with a short line before you generate a long one.",
+    "Always download results you care about. Lip Sync History is stored only in your browser (up to 30 entries)."
+  ],
+  "relatedJourneys": ["photo-to-clip", "ugc-ad-batch", "explainer-promo", "social-shorts"],
+  "academy": { "track": "05-ai-avatars-and-influencers", "lesson": "03-voice-cloning-dialogue" },
+  "intents": [
+    "make a talking video from a photo",
+    "make my picture talk",
+    "walk me through making a talking video",
+    "lip sync a photo to audio",
+    "create an AI presenter that speaks my script",
+    "how do I make a talking avatar",
+    "photo plus voice to video",
+    "which is better, lip sync or avatar studio"
+  ],
+  "notConfirmed": [
+    "Cost per model is not documented. Generation uses your own MuAPI credits.",
+    "How long the audio or the finished video can be is not confirmed beyond the in-app tip to keep audio under 60 seconds; Lip Sync Studio shows no hard duration limit.",
+    "Which lip sync or avatar model gives the best likeness or mouth match is not confirmed.",
+    "No one-click hand-off between Image Studio, Character Studio, Audio Studio and Lip Sync Studio or Avatar Studio was confirmed in code (the Library 'Use in studio' list only offers Image, Edit, Upscale, Effects, Cinema, Storyboard, Video Tools and Audio studios), so those steps use download and upload.",
+    "Which Audio Studio speech models offer which voices is not confirmed beyond the MiniMax voice list (Female 1, Male Qingse)."
+  ],
+  "sourceFiles": [
+    "src/data/askKb/lipsync.json",
+    "src/data/askKb/avatar.json",
+    "src/data/askKb/audio.json",
+    "src/data/askKb/image.json",
+    "src/data/askKb/character.json",
+    "src/data/askKb/library.json",
+    "src/data/askKb/_app.json",
+    "src/data/askAcademyMap.js",
+    "src/components/LibraryPage.js",
+    "src/components/ImageStudio.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "askKb lipsync/avatar/audio/image/character/library/_app guides, askAcademyMap.js, LibraryPage.js, ImageStudio.js",
+    "verifiedAt": "2026-11-13",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}
