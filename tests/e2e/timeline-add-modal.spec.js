@@ -275,6 +275,33 @@ test.describe('Add to timeline modal', () => {
     await expect(page.getByText(/could not be rendered|gsap\.timeline is not a function/i)).toHaveCount(0);
   });
 
+  test('editor keyboard shortcuts do nothing while the window is open (Delete must not remove clips behind it)', async ({ page }) => {
+    // stands in for the editor's own window-level shortcuts (Delete removes selected clips, M adds a marker, ...)
+    await page.evaluate(() => { window.__keys = []; window.addEventListener('keydown', (e) => window.__keys.push(e.key)); });
+    await openModal(page, 'overlays');
+    await page.locator('.add-card').first().focus();
+    for (const k of ['Delete', 'Backspace', 'm', 'ArrowRight']) await page.keyboard.press(k); // focus inside the window
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    for (const k of ['Delete', 'm', 'Space']) await page.keyboard.press(k); // focus still on the page behind it
+    expect(await page.evaluate(() => window.__keys)).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(dialog(page)).toBeHidden();
+    await page.keyboard.press('m'); // with the window closed the shortcut reaches the page again
+    expect(await page.evaluate(() => window.__keys)).toContain('m');
+  });
+
+  test('a drag that starts inside the window and ends on the backdrop does not close it', async ({ page }) => {
+    await openModal(page, 'overlays');
+    const box = await dialog(page).getByText('Add to timeline', { exact: true }).first().boundingBox();
+    await page.mouse.move(box.x + 5, box.y + 5);
+    await page.mouse.down();
+    await page.mouse.move(3, 3);
+    await page.mouse.up();
+    await expect(dialog(page)).toBeVisible();
+    await page.mouse.click(3, 3); // a real click on the backdrop still closes it
+    await expect(dialog(page)).toBeHidden();
+  });
+
   for (const [name, selector] of [['Smart Speech', '.speech-modal'], ['Template Generator', '.modal-overlay.active'], ['Personalization', '.modal-overlay.active']]) {
     test(`the ${name} button opens its own modal`, async ({ page }) => {
       await page.getByRole('button', { name, exact: true }).click();
@@ -282,4 +309,21 @@ test.describe('Add to timeline modal', () => {
       await expect(dialog(page)).toHaveCount(0);
     });
   }
+});
+
+test.describe('Add to timeline modal: motion graphics fail to load', () => {
+  test('a failing load shows a message in the Motion graphics and All tabs, and Retry recovers', async ({ page }) => {
+    let broken = true;
+    // a template whose propSchema is not a list makes the loader throw
+    await page.route('**/occ-templates/social-shorts-templates.json', (route) => (broken ? route.fulfill({ contentType: 'application/json', body: JSON.stringify([{ id: 'bad', name: 'bad', propSchema: 'not-a-list' }]) }) : route.continue()));
+    await openEditor(page);
+    await openModal(page, 'motion');
+    await expect(dialog(page).getByTestId('mg-load-error')).toBeVisible();
+    await topTab(page, 'all').click();
+    await expect(dialog(page).getByTestId('mg-load-error')).toBeVisible();
+    broken = false;
+    await dialog(page).getByRole('button', { name: 'Retry' }).click();
+    await expect(dialog(page).getByTestId('mg-load-error')).toHaveCount(0);
+    await expect.poll(() => tabCount(page, 'motion')).toBeGreaterThan(200);
+  });
 });

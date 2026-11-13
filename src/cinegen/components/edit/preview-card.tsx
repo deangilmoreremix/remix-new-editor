@@ -65,8 +65,9 @@ function LiveStage({ preview, playing }: { preview: Extract<CardPreview, { kind:
   const [t, setT] = useState(still);
   useEffect(() => {
     if (!playing) { setT(still); return undefined; }
-    let raf = 0; const t0 = performance.now();
-    const tick = (now: number) => { setT(((now - t0) / 1000) % dur); raf = requestAnimationFrame(tick); };
+    let raf = 0; const t0 = performance.now(); let last = 0;
+    // ~30 fps is plenty for a thumbnail and halves the React renders when many cards are live
+    const tick = (now: number) => { if (now - last >= 33) { last = now; setT(((now - t0) / 1000) % dur); } raf = requestAnimationFrame(tick); };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [playing, dur, still]);
@@ -91,10 +92,12 @@ export function PreviewCard({ preview, title, sub, badge, onClick, testId, ariaL
   useEffect(() => { setPlaying(false); if (!hover) return undefined; const t = window.setTimeout(() => setPlaying(true), 250); return () => window.clearTimeout(t); }, [hover]);
 
   const image = preview.image;
-  const showImage = !!image && imgOk && !playing;
-  // live render when visible AND (no usable image, or the user is hovering to play it)
-  const wantLive = visible && !showImage;
+  const hasImage = !!image && imgOk;
+  // ask for a live render when visible AND (there is no usable picture, or the user is hovering to play it)
+  const wantLive = visible && (!hasImage || playing);
   const slot = useLiveSlot(wantLive);
+  // keep the picture until the live render really exists: when the pool is full a hovered card would otherwise go blank
+  const showImage = hasImage && !(wantLive && slot);
 
   return (
     <div ref={ref} className="add-card-wrap" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)}
@@ -102,7 +105,7 @@ export function PreviewCard({ preview, title, sub, badge, onClick, testId, ariaL
       <button type="button" className="add-card" onClick={onClick} aria-label={ariaLabel ?? title} data-testid={testId}
         style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', width: '100%', boxSizing: 'border-box', height: '100%' }}>
         <div data-live={slot ? 'true' : 'false'} style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: STAGE_BG }}>
-          {image && imgOk && <img src={image} alt="" loading="lazy" onError={() => setImgOk(false)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />}
+          {showImage && <img src={image} alt="" loading="lazy" onError={() => setImgOk(false)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }} />}
           {wantLive && slot && <LiveStage preview={preview} playing={playing} />}
           {badge && <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.65)', color: '#fff', zIndex: 20 }}>{badge}</span>}
         </div>

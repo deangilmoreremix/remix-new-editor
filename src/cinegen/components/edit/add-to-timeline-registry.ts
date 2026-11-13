@@ -85,4 +85,5 @@ export function buildCatalog(a: Pick<AddToTimelineActions, 'onAddKind' | 'onAddT
 
 /** The Library sidebar (a sibling of the timeline) opens the modal through this window event; TimelineEditor listens for it. */
 export const OPEN_ADD_MODAL_EVENT = 'cinegen:open-add-to-timeline';
-export const openAddToTimeline = () => window.dispatchEvent(new CustomEvent(OPEN_ADD_MODAL_EVENT));
+/** True when the editor took the event (it calls preventDefault); false when no timeline editor is mounted to open the window. */
+export const openAddToTimeline = (): boolean => !window.dispatchEvent(new CustomEvent(OPEN_ADD_MODAL_EVENT, { cancelable: true }));

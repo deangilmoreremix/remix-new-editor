@@ -92,7 +92,11 @@ const BROKEN_LEGACY_MATCHERS = [
 ];
 
 let declaredCache = null;
-const declaredDependencies = () => (declaredCache ??= new Set(Object.keys(JSON.parse(fs.readFileSync(path.resolve('package.json'), 'utf8')).dependencies || {})));
+const declaredDependencies = () => {
+  if (declaredCache) return declaredCache;
+  try { declaredCache = new Set(Object.keys(JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).dependencies || {})); } catch { declaredCache = new Set(); } // only used for a hint: never break resolution over it
+  return declaredCache;
+};
 
 const stubLegacy = () => ({
   name: 'stub-legacy-unresolved',

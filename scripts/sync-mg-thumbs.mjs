@@ -10,7 +10,7 @@ import path from 'node:path'
 
 const SRC = path.resolve('apps/video-agent-studio/assets/thumbnails')
 const OUT = path.resolve('public/occ-templates/thumbs')
-if (!fs.existsSync(SRC)) { console.log('sync-mg-thumbs: source folder missing, skipped'); process.exit(0) }
+if (!fs.existsSync(SRC)) { console.warn('sync-mg-thumbs: WARNING source folder missing (' + SRC + '), no thumbnails copied; Motion graphics cards fall back to a live render.'); process.exit(0) }
 fs.mkdirSync(OUT, { recursive: true })
 let n = 0
 for (const f of fs.readdirSync(SRC)) {
@@ -18,4 +18,8 @@ for (const f of fs.readdirSync(SRC)) {
   const to = path.join(OUT, f)
   if (!fs.existsSync(to) || fs.statSync(to).size !== fs.statSync(path.join(SRC, f)).size) { fs.copyFileSync(path.join(SRC, f), to); n++ }
 }
-console.log(`sync-mg-thumbs: ${n} copied, ${fs.readdirSync(OUT).length} available -> public/occ-templates/thumbs`)
+// remove copies whose source file no longer exists, so a deleted thumbnail does not linger
+const have = new Set(fs.readdirSync(SRC));
+let pruned = 0;
+for (const f of fs.readdirSync(OUT)) if (!have.has(f)) { fs.rmSync(path.join(OUT, f)); pruned++ }
+console.log(`sync-mg-thumbs: ${n} copied, ${pruned} pruned, ${fs.readdirSync(OUT).length} available -> public/occ-templates/thumbs`)

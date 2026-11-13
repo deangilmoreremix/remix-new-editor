@@ -2,12 +2,12 @@
 // the basic overlays and the End screen / Connect form templates. Smart Speech, Template Generator and Personalization have
 // their own modals (buttons in the overlay lane header), so they are not part of this one.
 // The cards come from add-to-timeline-registry.ts (every entry carries its own preview) and are drawn by preview-card.tsx.
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { hyperframesItems } from '@cinegen/lib/hyperframes/overlay';
 import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
 import { HyperframesPanel } from './hyperframes-modal';
-import { MgTemplatesPanel } from './mg-templates-modal';
+import { MgTemplatesPanel, MgLoadError } from './mg-templates-modal';
 import { PreviewCard, CARD_CSS } from './preview-card';
 import { buildCatalog, hfEntries, mgEntries, type AddToTimelineActions, type CatalogEntry, type CatalogTab } from './add-to-timeline-registry';
 
@@ -31,18 +31,31 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   const [q, setQ] = useState('');
   const [connect, setConnect] = useState<string | null>(null); // Connect Form template waiting for its phone number
   const [phone, setPhone] = useState('');
-  const [mg, setMg] = useState<MgTemplate[]>([]);
-  useEffect(() => { let live = true; void loadMgTemplates().then((t) => { if (live) setMg(t); }); return () => { live = false; }; }, []);
+  // The motion graphics are loaded once here and shared by the Motion graphics tab and the All tab (null while loading)
+  const [mg, setMg] = useState<MgTemplate[] | null>(null);
+  const [mgError, setMgError] = useState(false);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const loadMg = useCallback(() => {
+    setMgError(false);
+    void loadMgTemplates().then((t) => { if (alive.current) setMg(t); }, () => { if (alive.current) { setMg([]); setMgError(true); } });
+  }, []);
+  useEffect(() => { loadMg(); }, [loadMg]);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   // The parent passes fresh closures on every render; entries are built once and call the latest ones through a ref, so card
   // previews keep their identity (a rebuilt preview would restart every live render).
   const latest = useRef({ actions, onClose });
   latest.current = { actions, onClose };
-  // Esc closes from any tab (a key handler on the dialog only fires when something inside it has focus)
+  // Esc closes from any tab. Registered in the capture phase so that, while this window is open, the editor's own keyboard shortcuts
+  // (Delete removes the selected clips, M adds a marker, ...) cannot act on the page behind it, even when focus is still out there.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') latest.current.onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.stopPropagation(); latest.current.onClose(); return; }
+      if (!dialogRef.current?.contains(e.target as Node)) e.stopPropagation();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, []);
   const done = () => latest.current.onClose();
   const fixed = useMemo(() => buildCatalog(
@@ -50,7 +63,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
     { close: done, askPhone: (id) => { setConnect(id); setPhone(''); } },
   ), []); // eslint-disable-line react-hooks/exhaustive-deps
   const animations = useMemo(() => (hasAnimations ? hfEntries(hyperframesItems(), (i) => { latest.current.actions.onPickAnimation?.(i); done(); }) : []), [hasAnimations]); // eslint-disable-line react-hooks/exhaustive-deps
-  const motion = useMemo(() => mgEntries(mg, (t) => { latest.current.actions.onPickMotion(t); done(); }), [mg]); // eslint-disable-line react-hooks/exhaustive-deps
+  const motion = useMemo(() => mgEntries(mg ?? [], (t) => { latest.current.actions.onPickMotion(t); done(); }), [mg]); // eslint-disable-line react-hooks/exhaustive-deps
   const entries = useMemo<CatalogEntry[]>(() => [...animations, ...motion, ...fixed], [animations, motion, fixed]);
   const count = (t: CatalogTab) => entries.filter((e) => e.tab === t).length;
 
@@ -71,7 +84,9 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
 
   // Portaled to <body>: inside the editor the dialog sits in the edit tab's own stacking context and the app's side rail would paint over it.
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-labelledby={titleId} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
+    // closing on mousedown (not click) so a text selection that starts inside and ends on the backdrop does not close the window
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }} onKeyDown={(e) => e.stopPropagation()}>
       <style>{CARD_CSS}</style>
       <div style={{ width: 'min(1480px, 96vw)', height: 'min(900px, 92vh)', display: 'flex', flexDirection: 'column', background: 'var(--bg-raised)', border: '1px solid var(--border-medium)', borderRadius: 26, color: INK, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '24px 28px', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -95,10 +110,11 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
         </div>
         <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
           {tab === 'animations' && hasAnimations && <HyperframesPanel onPick={(i) => { actions.onPickAnimation?.(i); onClose(); }} />}
-          {tab === 'motion' && <MgTemplatesPanel onPick={(t) => { actions.onPickMotion(t); onClose(); }} />}
+          {tab === 'motion' && <MgTemplatesPanel templates={mg} error={mgError} onRetry={loadMg} onPick={(t) => { actions.onPickMotion(t); onClose(); }} />}
           {!isPanel && (
             <>
               <input type="text" autoFocus placeholder={tab === 'all' ? 'Search everything: animations, motion graphics, overlays, end screens…' : 'Search…'} aria-label="Search" value={q} onChange={(e) => setQ(e.target.value)} style={{ ...field, marginBottom: 12 }} />
+              {mgError && tab === 'all' && <div style={{ marginBottom: 12 }}><MgLoadError onRetry={loadMg} /></div>}
               {pending && (
                 <form onSubmit={(e) => { e.preventDefault(); actions.onAddTemplate(pending.id.slice(4), phone.trim() || undefined); onClose(); }}
                   style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12, padding: 12, border: '1px solid var(--accent)', borderRadius: 12, background: 'var(--accent-dim)' }}>

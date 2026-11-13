@@ -77,6 +77,7 @@ function HfHandle({ overlay, frame, onGeometry }: { overlay: OverlayClip; frame:
 }
 
 export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResume, onEditText, onGeometry, frame = { width: 1280, height: 720 } }: Props) {
+  const currentTimeRef = useRef(currentTime); currentTimeRef.current = currentTime;
   const hostRef = useRef<HTMLDivElement>(null);
   const addonRef = useRef<HTMLDivElement>(null);
   const selected = useSelectedOverlay();
@@ -195,7 +196,8 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, onPause, onResu
       previewRef.current ??= createCodePreview(host, { onError: (layerId: string, message: string) => { if (String(message).startsWith('[hyperframes:')) void import('../../lib/hyperframes/notify').then((m) => m.notifyHyperframes({ id: `hf:${layerId}`, title: 'Animation', message: m.stripHfPrefix(message) })); } });
       const fps = 30;
       const layers = [...mgOverlays.map((o) => mgOverlayLayer(o, fps)), ...hfOverlays.map((o) => hyperframesOverlayLayer(o, fps))];
-      void previewRef.current.update({ version: 1, fps, width: frame.width, height: frame.height, durationInFrames: Math.max(1, ...layers.map((l) => l.from + l.durationInFrames)), background: 'transparent', layers, audio: [], transitions: [], fonts: [] });
+      // the frame effect below ran before this client existed, so seek again once the model is in (a still frame would otherwise stay at frame 0)
+      void previewRef.current.update({ version: 1, fps, width: frame.width, height: frame.height, durationInFrames: Math.max(1, ...layers.map((l) => l.from + l.durationInFrames)), background: 'transparent', layers, audio: [], transitions: [], fonts: [] }).then(() => { if (live) previewRef.current?.frame(Math.round(currentTimeRef.current * 30)); });
     });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -123,7 +123,7 @@ export function TimelineEditor({
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackHeight = trackHeightProp;
   const [addOpen, setAddOpen] = useState(false); // the unified "Add to timeline" modal
-  useEffect(() => { const open = () => setAddOpen(true); window.addEventListener(OPEN_ADD_MODAL_EVENT, open); return () => window.removeEventListener(OPEN_ADD_MODAL_EVENT, open); }, []); // the Library sidebar's "Browse everything" button
+  useEffect(() => { const open = (e: Event) => { e.preventDefault(); setAddOpen(true); }; window.addEventListener(OPEN_ADD_MODAL_EVENT, open); return () => window.removeEventListener(OPEN_ADD_MODAL_EVENT, open); }, []); // the Library sidebar's "Browse everything" button
   const [bladeX, setBladeX] = useState<number | null>(null);
   const [rulerScrollLeft, setRulerScrollLeft] = useState(0);
 
