@@ -11,7 +11,7 @@ beforeAll(() => {
   URL.revokeObjectURL = vi.fn()
 })
 
-vi.mock('@ohb/lib/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -60,6 +60,19 @@ vi.mock('../postProcessor', () => ({
 
 vi.mock('@ohb/packages/studio/src/muapi', () => ({
   uploadFile: vi.fn().mockResolvedValue('https://uploaded.example.com/asset.png'),
+}))
+
+// The provider uploads an edited asset through the durable-storage service.
+// Without a storage backend that call rejects ("Durable storage is not
+// configured") — correct in the app, where the editor modal catches and shows
+// it, but these tests exercise the edit/replace state, not storage, so the
+// upload is stubbed to succeed. Failure handling has its own test
+// (editedAssetUploadFailure.test.tsx).
+vi.mock('../assetUploadService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../assetUploadService')>()),
+  uploadPersonalizationAsset: vi.fn().mockResolvedValue({
+    url: 'https://uploaded.example.com/asset.png',
+  }),
 }))
 
 function TestOpener({ source, onMounted }: { source: any; onMounted: (open: (opts: any) => void) => void }) {

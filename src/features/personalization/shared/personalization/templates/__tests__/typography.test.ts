@@ -33,7 +33,6 @@ import {
 } from '../typography'
 import {
   DESIGN_BODY_FONT_STACK,
-  DESIGN_CREDIT_FONT_STACK,
   DESIGN_DISPLAY_FONT_STACK,
   DESIGN_FONT_STACKS,
 } from '../designs/fonts'
@@ -97,7 +96,7 @@ describe('design typography is deterministic', () => {
   })
 
   it('never names the family "Inter", which the app already registers', () => {
-    // `app/layout.js` loads Inter through `next/font/google`, which declares
+    // `app/layout.js` loads Inter through `next/font/local`, which declares
     // a family called "Inter". A stylesheet that lands later in the cascade
     // would win over ours, so the bundled copy needs its own name.
     expect(DESIGN_FONT_FAMILY.toLowerCase()).not.toBe('inter')
@@ -281,7 +280,6 @@ describe('the design layer exposes the same stacks', () => {
   it('re-exports the canonical stack', () => {
     expect(DESIGN_BODY_FONT_STACK).toBe(DESIGN_FONT_STACK)
     expect(DESIGN_DISPLAY_FONT_STACK).toBe(DESIGN_FONT_STACK)
-    expect(DESIGN_CREDIT_FONT_STACK).toBe(DESIGN_FONT_STACK)
   })
 
   it('gives every role a stack', () => {

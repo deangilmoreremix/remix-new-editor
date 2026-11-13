@@ -23,10 +23,7 @@
 
 import React from 'react'
 import { AbsoluteFill } from 'remotion'
-import { DESIGN_CREDIT_FONT_STACK, useDesignFonts } from './fonts'
-// `DESIGN_FONT_ATTRIBUTION` is NOT re-exported by `./fonts`, and that module is
-// not this lane's file — so the OFL notice is imported straight from the source.
-import { DESIGN_FONT_ATTRIBUTION } from '../typography'
+import { useDesignFonts } from './fonts'
 import type { RemotionDesignComponentProps } from '../types'
 
 /**
@@ -37,23 +34,6 @@ import type { RemotionDesignComponentProps } from '../types'
  * prop doubles as the CTA label colour (see `PromoCtaDesign.tsx`).
  */
 export const TRANSPARENT = 'transparent'
-
-/**
- * Short credit line rendered inside every design.
- *
- * The upstream templates are MIT licensed and the licence requires the
- * copyright notice to travel with every copy. The designs are also set in
- * the bundled Inter Latin subset (SIL OFL 1.1, Phase 3 decision D2), so the
- * typeface's own attribution travels with the rendered artefact too —
- * appended after the MIT upstream credit in the same line.
- *
- * `catalog.ts` exposes the full attribution and the verbatim permission
- * notice for the product's credits surface; this short line is what actually
- * ends up in the preview and in the exported video. It is deliberately kept
- * on ONE unobtrusive 10px line (`white-space: nowrap`), which is why both
- * notices are joined with the same `·` separator instead of a second row.
- */
-export const DESIGN_VIDEO_CREDIT = `© 2026 Trimora Inc. (RenderComp) · MIT · ${DESIGN_FONT_ATTRIBUTION}`
 
 /**
  * The props every adapter receives.
@@ -173,36 +153,6 @@ export function darkenColor(value: string, factor: number): string {
 }
 
 /**
- * The small, low-opacity credit line drawn in the corner of the design.
- *
- * It is rendered in the *box* (not in the scaled composition) so its size
- * does not shrink with the design, and it is deliberately unobtrusive.
- */
-export function DesignCreditLine(): React.ReactElement {
-  return (
-    <div
-      data-remotion-design-credit
-      style={{
-        position: 'absolute',
-        right: 8,
-        bottom: 6,
-        fontFamily: DESIGN_CREDIT_FONT_STACK,
-        fontSize: 10,
-        lineHeight: 1.2,
-        fontWeight: 500,
-        letterSpacing: 0.2,
-        color: 'rgba(255,255,255,0.55)',
-        textShadow: '0 1px 3px rgba(0,0,0,0.65)',
-        whiteSpace: 'nowrap',
-        pointerEvents: 'none',
-      }}
-    >
-      {DESIGN_VIDEO_CREDIT}
-    </div>
-  )
-}
-
-/**
  * The stage every design renders into.
  *
  * Outer: fills the layer box the composition already positioned, and clips
@@ -262,7 +212,6 @@ export function DesignStage({
       >
         {children}
       </AbsoluteFill>
-      <DesignCreditLine />
     </AbsoluteFill>
   )
 }
