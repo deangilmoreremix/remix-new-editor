@@ -75,4 +75,16 @@ describe('captureRowThumbnail', () => {
     release(); await older; await newer;
     expect(c.updates).toEqual([{ thumbnail_url: 'https://cdn/old.jpg' }, { thumbnail_url: 'https://cdn/new.jpg' }]);
   });
+  it('a render that never settles times out and does not block later captures', async () => {
+    vi.useFakeTimers();
+    try {
+      const c = client({ thumbnail_url: null });
+      const hung = { ...deps(), renderStill: vi.fn(() => new Promise<{ blob: Blob }>(() => {})) };
+      const first = captureRowThumbnail(c, 'r8', withVideo, { deps: hung });
+      const second = captureRowThumbnail(c, 'r8', withVideo, { deps: deps(), force: true });
+      await vi.advanceTimersByTimeAsync(61_000);
+      expect(await first).toBeNull();
+      expect(await second).toBe('https://cdn/t.jpg');
+    } finally { vi.useRealTimers(); }
+  });
 });

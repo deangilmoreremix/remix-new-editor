@@ -14,6 +14,13 @@ export interface ThumbnailDeps {
 }
 
 const done = new Set<string>(); // rows captured (or already having one) this session
+/** A render or upload that never settles must not block later captures for the row. */
+export const CAPTURE_TIMEOUT_MS = 60_000;
+const withTimeout = <T>(p: Promise<T>, ms: number): Promise<T | null> =>
+  new Promise((resolve, reject) => {
+    const t = setTimeout(() => resolve(null), ms);
+    p.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+  });
 const chain = new Map<string, Promise<unknown>>(); // per-row queue so a newer capture always saves after an older one
 
 async function realDeps(aspect?: string | null): Promise<ThumbnailDeps> {
@@ -39,7 +46,7 @@ async function capture(client: Client, rowId: string, built: { timelineSeconds?:
       if (data?.thumbnail_url) return null; // already has one; the claim stays
     }
     const deps = opts.deps ?? await realDeps(opts.aspect);
-    const url: string | null = await captureThumbnail(built, { ...deps, fps: 30 });
+    const url: string | null = await withTimeout<string | null>(captureThumbnail(built, { ...deps, fps: 30 }), CAPTURE_TIMEOUT_MS);
     if (!url) { done.delete(rowId); return null; }
     const { error } = await client.from('timeline_projects').update({ thumbnail_url: url }).eq('id', rowId);
     if (error) { done.delete(rowId); return null; }
