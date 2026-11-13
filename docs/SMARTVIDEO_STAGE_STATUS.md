@@ -11,7 +11,7 @@
 | 6 | Captions, text & intelligent editing | **Complete and verified** (limits in the Stage 6 section) | Authorized ("finish all of the task" + approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 6") | 48 unit/panel/composition tests; live check 36/36 | Transcription accuracy depends on the model; see limits |
 | 7 | Thumbnails & personalized GIFs | **Complete and verified** (limits in the Stage 7 section) | Authorized (approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 7") | 66 unit/panel tests; live check 29/29 | GIFs are not uploaded anywhere yet (Stage 8/9) |
 | 8 | Personalized publishing & watch pages | **Complete for recipient identity, links, attribution and revocation; per-recipient video publishing is Stage 10** (see the Stage 8 section) | Authorized (approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 8") | 21 unit + 16 route + 14 video-events + 7 panel tests; SQL 43/43; full-stack check 9/9 | **Migration `20261115000000` is NOT applied anywhere** |
-| 9 | React Email & outreach | Not started | **NOT authorized** | — | — | — | — |
+| 9 | React Email & outreach | **Complete for building, checking, exporting and TEST-sending the email, plus unsubscribe and suppression; sending to a list is NOT built (Stage 10) and no real mail was sent** (see the Stage 9 section) | Authorized (approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 9") | 51 new unit/route/panel tests; SQL 21/21; real SMTP + SQL check 8/8; 12 mutation checks caught | Migration not applied; no email provider chosen; no real inbox delivery verified. |
 | 10 | Bulk personalization & automations | Not started | **NOT authorized** | — | — | — | — |
 | 11 | Analytics, notifications & reporting | Not started | **NOT authorized** | — | — | — | — |
 | 12 | Performance, recovery & final validation | Not started | **NOT authorized** | — | — | — | — |
@@ -447,3 +447,42 @@ Counts are **derived from the existing analytics tables** (contact_id = link id)
 * A link's address cannot be re-displayed (only the hash exists): lose it → revoke and re-issue. Anyone holding a link can open the video (that is what a link is); the panel says so.
 * The legacy `?c=` personalization values in a link are still read for page content (what the viewer sees themselves), but identity for analytics comes only from `?r=`.
 * Rate limiting of the Netlify routes uses the existing per-instance memory limiter for the owner API; the public resolver uses the shared database limiter.
+
+
+## Stage 9 — React Email and outreach (2026-11-13)
+
+**Authorization:** the approved Stages 6–12 plan. **Nothing was sent to a real address and no provider account was used.** The migration is tested on a throwaway local Postgres only; it is NOT applied anywhere. The Kit and MailerLite connectors in this session were not touched.
+
+### What was built
+| Piece | Where | Notes |
+|---|---|---|
+| Email model, merge fields, checks, plain text | `email/emailModel.ts` | Merge values are substituted as **text**; unsafe URLs are dropped; checks **block** on: no subject, no text, no valid sender address/name, no postal address, no unsubscribe link, hero without alt text; they **warn** on spammy wording, long subjects, missing preview line, unfilled `{{fields}}`, no link to the video. |
+| React Email template + renderer | `email/OutreachEmailTemplate.tsx`, `email/renderEmail.ts` | Table-based, inline-styled HTML; the personalized GIF is linked to the video page; footer has sender, postal address and unsubscribe. `htmlProblems` scans the *rendered* HTML (script, handlers, `javascript:`/`data:` URLs, iframes/forms, images without alt, non-http links); Gmail's ~102 KB clipping size is warned about. |
+| `.eml` export | `email/eml.ts` | `multipart/alternative`, base64 parts, RFC 2047 subjects, header-injection characters removed. |
+| Unsubscribe tokens, headers, recipient planning | `email/unsubscribe.ts` | HMAC-SHA256 signed token carrying owner + **hash** of the address (never the address); constant-time compare; 730-day max age; RFC 2369/8058 `List-Unsubscribe` + one-click headers; `planRecipients` separates invalid / duplicate / suppressed. |
+| Suppression list | `supabase/migrations/20261116000000_email_suppressions.sql` | Per sender, hash only, RLS own-row, RPCs `add / check / list / remove` for `service_role` only. |
+| Public unsubscribe endpoint | `netlify/functions/outreach-unsubscribe.js` (+ redirect in `netlify.toml`) | **GET only shows a confirmation page** (link scanners fetch links); POST / RFC 8058 one-click records the suppression after the signature verifies. Fails closed (503) without `OUTREACH_UNSUBSCRIBE_SECRET` (>= 16 chars), rate limited, strict CSP and `no-referrer`. |
+| Test-send route | `netlify/functions/_personalization/app/api/personalization/outreach/route.ts` (registered in `personalization-api.mts`) | Signed-in only; **disabled (503) unless** `OUTREACH_SEND_ENABLED=true`, `OUTREACH_SMTP_URL`, `OUTREACH_FROM_ADDRESS`, `OUTREACH_UNSUBSCRIBE_SECRET` are set; **only addresses on `OUTREACH_TEST_ALLOWLIST`** can receive (so it cannot become an open relay); `mode: 'send'` answers 501; From is *our* configured address and the owner's address is only Reply-To; subject is prefixed `[TEST]`; a suppressed address is never mailed (409), and an unreadable suppression list fails closed; blocking content problems refuse the send (400); 5 per hour per user. |
+| Client + panel | `email/outreachClient.ts`, `guided/EmailOutreachPanel.tsx` (mounted in the overlay editor) | Compose, merge sample values, sandboxed (`sandbox=""`) live preview, checklist, download HTML / text / `.eml`, "Send me a test" with every failure mapped to a plain message. |
+
+### Defects found by the tests/checks and fixed
+* **`@react-email/components` crashed in a plain Node function** (it loads `code-block` → `prismjs`, which needs a DOM `Element`). The jsdom tests hid it; the route test in a Node environment exposed it. The template now imports the eleven individual `@react-email/*` packages (exact versions, MIT) instead.
+* `htmlProblems` flagged *escaped* hostile text (e.g. `onerror=` inside an `alt` value) as an event handler; it now checks real tags with quoted values removed.
+* The checklist used a standing `role="alert"` per item, which collided with other panels' alerts and is noisy for screen readers; only action results use `alert` now.
+* `analyticsClient.test.js` still asserted the old `contact` field removed in Stage 8; updated to the token behaviour (it had not been in the Stage 8 related-suite run).
+
+### Verification actually run
+* **Unit/route/panel (51 new):** model/render/eml/unsubscribe/client 18, unsubscribe function 12, outreach route 12, panel 9.
+* **SQL assertions 21/21** on a throwaway local Postgres (`supabase/tests/run-email-suppressions-assertions.sh`).
+* **Full-stack check 8/8** (`npx vitest run --config scripts/stage9-email-check/vitest.stage9.config.mjs`): the real route + real `nodemailer` + a **real SMTP server on 127.0.0.1** (`smtp-server`), the received message parsed by an independent parser (`mailparser`): multipart, From/Reply-To, `[TEST]` subject, raw `List-Unsubscribe` / one-click headers, unicode subject and body intact; the unsubscribe link **taken from the received email** → GET changes nothing, one-click POST suppresses (hash only in the table), repeat is safe, the next send is refused and never reaches the SMTP server; suppression is per sender; forged/edited tokens record nothing; allow-list blocks strangers; SMTP rejection and server-down → 502 without leaking server details.
+* **Mutation checks, 12/12 caught:** signature check removed, GET unsubscribing, allow-list ignored, suppression ignored, From = owner address, client unsubscribe link trusted, token expiry ignored, header-injection cleaning removed, handler scanner removed, duplicate check removed, Send enabled with errors, blocked email still sent.
+* `eslint --quiet` on changed in-scope files clean; `npm run typecheck:personalization` 0 errors in scope (98 pre-existing out-of-scope); wider related run (`src/features/personalization`, `netlify`, `src/test`, `src/lib`) green after the two fixes above.
+
+### Limits and open items (not hidden)
+* **SMTP acceptance is not inbox delivery.** The check proves a standards-shaped message is handed to an SMTP server; it says nothing about spam placement, Gmail/Outlook rendering, or whether the GIF's first frame displays in Outlook for Windows. Those need real mailboxes and your approval to send.
+* **No provider chosen and nothing sent for real.** The route needs your SMTP settings and an allow-list; SPF, DKIM and DMARC for the sending domain are DNS work only you can do and are not verified here.
+* **Sending to a list is not built** (`mode: 'send'` is 501). It belongs with Stage 10's batches, once you decide how and where mail is sent. The existing `EmailCampaignModal` is still a simulation.
+* **The unsubscribe link in the panel's preview/downloads is a placeholder.** The real, signed link is made per recipient on the server at send time; a downloaded `.eml` therefore carries a non-working example link.
+* The migration `20261116000000_email_suppressions.sql` is **not applied**; until it is, the test route answers 502 ("could not check the suppression list") rather than sending.
+* Suppression is **per sender account** and keyed on the lower-cased address (plus-addressing and dots are not collapsed).
+* The preview is a sandboxed iframe of the generated HTML, not a rendering in real mail clients.

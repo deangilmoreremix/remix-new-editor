@@ -104,3 +104,11 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Closed: forgeable `?c=` recipient identity (Stage 0 finding).
 - Verified: SQL 43/43; full-stack 9/9; unit 58 (+6 mutation checks). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
 - NOT done: per-recipient personalized video publishing (Stage 10), Referrer-Policy / address-bar stripping, applying the migration.
+
+### Stage 9 — React Email and outreach
+- Authorization: the approved Stages 6–12 plan. No real email sent, no provider used; migration written and tested locally only (NOT applied).
+- Added: `shared/personalization/email/{emailModel,OutreachEmailTemplate,renderEmail,eml,unsubscribe,outreachClient}`, `guided/EmailOutreachPanel.tsx`, migration `20261116000000_email_suppressions.sql` + `supabase/tests/81_email_suppressions_assertions.sql` + runner, `netlify/functions/outreach-unsubscribe.js` (+ `netlify.toml` redirect), test-send route `outreach/route.ts` (registered), `scripts/stage9-email-check/` (real SMTP server + real SQL). Deps (exact): `@react-email/{body,button,container,head,hr,html,img,link,preview,render,section,text}`, `nodemailer` 10.5.0; dev: `smtp-server`, `mailparser`.
+- Fixed on the way: `@react-email/components` crashed in Node (prismjs) → individual packages; scanner false positive on escaped text; noisy alert roles; stale `analyticsClient` test from Stage 8.
+- Verified: 51 new unit tests, SQL 21/21, real SMTP + SQL check 8/8, 12/12 mutation checks. Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
+- NOT done: list sending (Stage 10), provider choice / DNS (SPF, DKIM, DMARC), real inbox delivery verification, applying the migration.
+

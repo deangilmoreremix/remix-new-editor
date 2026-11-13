@@ -53,7 +53,7 @@ describe('consent', () => {
 
 describe('batching and delivery', () => {
   it('opens with page_open and batches instead of sending per event', async () => {
-    const { a, fetchImpl, t } = make({ contactId: 'c-1' });
+    const { a, fetchImpl, t } = make({ recipient: 'Abcdefghijklmnopqrstuvwxyz012345', contactId: 'c-1' });
     expect(types(a)).toEqual(['page_open']);
     a.track('cta_click', { clip: 'cta1', props: { label: 'Quote' } });
     expect(fetchImpl).not.toHaveBeenCalled();
@@ -62,7 +62,8 @@ describe('batching and delivery', () => {
     const b = bodyOf(fetchImpl);
     expect(fetchImpl.mock.calls[0][0]).toBe(ENDPOINT);
     expect(b.video).toBe('abcdefgh12');
-    expect(b.contact).toBe('c-1');
+    expect(b.recipient).toBe('Abcdefghijklmnopqrstuvwxyz012345'); // the server-issued token is what identifies a recipient
+    expect(b.contact).toBeUndefined(); // a client-chosen contact id is never sent
     expect(b.events.map((e) => e.seq)).toEqual([0, 1]);
     expect(b.owner_id).toBeUndefined();
   });
