@@ -104,6 +104,15 @@
   for = "/cdn/beatapi/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+    # The Remotion export runner is a sandboxed frame with an opaque origin: reading these clips (decoding frames into a
+    # canvas) from it is a cross-origin request, so it needs CORS (same reason as /assets/* and /hyperframes/*).
+    Access-Control-Allow-Origin = "*"
+
+# Local demo / template clips and posters (public/media/**), same export-runner CORS requirement as above.
+[[headers]]
+  for = "/media/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
 
 # Template Generator AI (script writing + image generation). These /api paths had no
 # rewrite, so production served index.html (404) and the AI buttons failed.
