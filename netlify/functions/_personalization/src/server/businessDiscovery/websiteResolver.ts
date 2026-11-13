@@ -201,11 +201,21 @@ export function verifyPageMatchesBusiness(
   const locationHints = [input.city, input.region, input.postalCode]
     .map((value) => (value || '').trim().toLowerCase())
     .filter((value) => value.length >= 2)
-  const location = locationHints.find((hint) => pageText.includes(hint))
+  const location = locationHints.find((hint) => containsWholePhrase(pageText, hint))
   if (!location) return null
 
   evidence.push('business name in page title', `location "${location}" found on page`)
   return { confidence: 'medium', evidence }
+}
+
+/**
+ * True when `phrase` appears in `text` as whole words, not inside another word.
+ * A plain substring test lets a two-letter region like "ca" match "call us", which
+ * verified an unrelated same-name business in another state.
+ */
+function containsWholePhrase(text: string, phrase: string): boolean {
+  const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(?<![a-z0-9])${escaped}(?![a-z0-9])`).test(text)
 }
 
 export interface ResolverDeps {

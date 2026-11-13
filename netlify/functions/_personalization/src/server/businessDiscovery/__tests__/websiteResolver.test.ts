@@ -83,6 +83,18 @@ describe('verifyPageMatchesBusiness', () => {
     expect(match).toBeNull()
   })
 
+  it('does not take a two-letter region from inside another word', () => {
+    // "ca" sits inside "Call us"; this New York page has none of the Los Angeles business's location.
+    const la = { name: "Joe's Pizza", city: 'Los Angeles', region: 'CA' }
+    expect(verifyPageMatchesBusiness(page('Call us today. Best slices in Brooklyn.', "Joe's Pizza"), la, 'name_guess')).toBeNull()
+  })
+
+  it('still accepts a region or multi-word city that appears as whole words', () => {
+    const la = { name: "Joe's Pizza", city: 'Los Angeles', region: 'CA' }
+    expect(verifyPageMatchesBusiness(page('Visit us in Los Angeles, CA.', "Joe's Pizza"), la, 'name_guess')?.confidence).toBe('medium')
+    expect(verifyPageMatchesBusiness(page('Serving the CA 90210 area', "Joe's Pizza"), { name: "Joe's Pizza", region: 'CA', postalCode: '90210' }, 'name_guess')?.confidence).toBe('medium')
+  })
+
   it('accepts an email-domain site that mentions the name', () => {
     const match = verifyPageMatchesBusiness(page('Welcome to Joes kitchen'), { name: "Joe's Pizza" }, 'email_domain')
     expect(match?.confidence).toBe('high')
