@@ -387,7 +387,7 @@ export function sanitizeConfig(input) {
   };
 }
 
-export const CTA_KINDS = Object.freeze(['link', 'calendar', 'phone', 'sms', 'download']);
+export const CTA_KINDS = Object.freeze(['link', 'calendar', 'phone', 'sms', 'download', 'form']);
 
 /** Booking sites whose pages may be embedded under the player (https only, exact host or subdomain). */
 const CALENDAR_HOSTS = ['calendly.com', 'cal.com', 'tidycal.com', 'youcanbook.me', 'savvycal.com', 'calendar.google.com', 'calendar.app.google', 'zcal.co', 'chilipiper.com', 'acuityscheduling.com', 'outlook.office365.com', 'outlook.office.com'];
@@ -416,6 +416,7 @@ export function ctaHref(kind, value) {
   if (kind === 'sms') { const n = cleanPhone(v); return n ? `sms:${n}` : ''; }
   if (kind === 'download') return safeImageUrl(v); // https only
   if (kind === 'calendar') return /^https:\/\//i.test(v) && v.length <= 2048 ? v : '';
+  if (kind === 'form') return ''; // scrolls to the lead form on the page; no link
   return safeUrl(v);
 }
 
@@ -435,6 +436,26 @@ export function formatTranscript(items = []) {
     const t = Math.round(i.t);
     return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')} ${i.text}`;
   }).join('\n');
+}
+
+/**
+ * Value to prefill a form field from the viewer's contact tokens. Only names and company are ever prefilled;
+ * email is private by design (the contact lookup never returns it), so it is never revealed to a link holder.
+ */
+export function prefillFor(key, tokens = {}) {
+  const t = (k) => String(tokens[k] ?? '').trim();
+  if (key === 'name') return [t('firstname'), t('lastname')].filter(Boolean).join(' ');
+  if (key === 'firstname' || key === 'lastname' || key === 'company' || key === 'role' || key === 'city') return t(key);
+  return '';
+}
+
+/** Move an item inside an array (returns a new array); out-of-range moves are ignored. */
+export function moveItem(list, from, to) {
+  if (!Array.isArray(list) || from < 0 || to < 0 || from >= list.length || to >= list.length || from === to) return list;
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
 }
 
 /** Split `[[highlighted]]` markers out of a headline (before token filling, so a token value can't add markers). */

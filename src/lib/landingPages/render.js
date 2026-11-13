@@ -5,7 +5,7 @@
  * every URL passes safeUrl/safeImageUrl, so a hostile config can't inject markup.
  */
 import {
-  getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, readableOn, ctaHref, FONTS,
+  getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, readableOn, ctaHref, prefillFor, FONTS,
 } from './templates.js';
 
 const PROGRESS_MARKS = [
@@ -257,6 +257,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   main.append(copy, media);
 
   // ---- action buttons, Like, embedded calendar (any template; the pitch page is built around them)
+  let formBox = null; // the lead form is built below; "scroll to the form" buttons look it up when clicked
   let liked = false;
   const actions = h(doc, 'div', 'vp-actions');
   if (config.likes.enabled) {
@@ -282,13 +283,19 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   config.ctas.forEach((b) => {
     const label = t(b.label);
     const toCalendar = b.kind === 'calendar' && calendarUrl;
-    const href = toCalendar ? '' : ctaHref(b.kind, b.value);
-    if (!label || (!href && !toCalendar)) return;
+    const toForm = b.kind === 'form' && config.form.enabled;
+    const href = toCalendar || toForm ? '' : ctaHref(b.kind, b.value);
+    if (!label || (!href && !toCalendar && !toForm)) return;
     let node;
-    if (toCalendar) {
+    if (toCalendar || toForm) {
       node = h(doc, 'button', `vp-btn vp-btn--${b.style}`, label);
       node.type = 'button';
-      node.addEventListener('click', () => { calendarBox.scrollIntoView?.({ behavior: 'smooth', block: 'center' }); if (!preview) handlers.onCta?.(); });
+      node.addEventListener('click', () => {
+        const target = toCalendar ? calendarBox : formBox;
+        target?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+        if (toForm) target?.querySelector('input, textarea')?.focus?.({ preventScroll: true });
+        if (!preview) handlers.onCta?.();
+      });
     } else {
       node = h(doc, 'a', `vp-btn vp-btn--${b.style}`, label);
       node.href = href;
@@ -338,7 +345,6 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   }
 
   // ---- lead form
-  let formBox = null;
   if (config.form.enabled) {
     formBox = h(doc, 'section', 'vp-form');
     const title = t(config.form.title);
@@ -353,6 +359,8 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
       if (f.type !== 'textarea') input.type = f.type;
       else input.rows = 3;
       if (f.placeholder) input.placeholder = t(f.placeholder);
+      const pre = prefillFor(f.key, tokens);
+      if (pre) input.value = pre;
       input.name = f.key;
       input.required = f.required;
       input.maxLength = 2000;

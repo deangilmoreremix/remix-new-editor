@@ -10,13 +10,14 @@ import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
-import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript } from '../lib/landingPages/templates.js';
+import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
+import { contactLabel } from '../lib/landingPages/csv.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
 import {
-  listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats,
+  listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts,
 } from '../lib/landingPages/client.js';
 
 const INPUT = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50';
@@ -361,10 +362,10 @@ export function LandingPagesStudio() {
       const form = el('div', 'flex flex-col gap-4');
       const previewBox = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-black max-h-[80vh] overflow-y-auto');
       let view = null;
-      let sample = true;
+      let previewTokens = SAMPLE_TOKENS;
       const redraw = () => {
         view?.destroy();
-        view = renderLandingPage({ page: { ...current, title: titleInput.value }, tokens: sample ? SAMPLE_TOKENS : {}, preview: true });
+        view = renderLandingPage({ page: { ...current, title: titleInput.value }, tokens: previewTokens, preview: true });
         previewBox.replaceChildren(view.root);
       };
       const set = (fn) => { fn(current.config); current.config = sanitizeConfig(current.config); markDirty(); redraw(); };
@@ -434,8 +435,8 @@ export function LandingPagesStudio() {
       };
       const ctaEditor = () => {
         const wrap = el('div', 'flex flex-col gap-2');
-        const KINDS = [['link', 'Link to a URL'], ['calendar', 'Open a calendar'], ['phone', 'Call a phone number'], ['sms', 'Send a text'], ['download', 'Download a file']];
-        const HINT = { link: 'https://…', calendar: 'https://calendly.com/you/intro', phone: '+1 555 123 4567', sms: '+1 555 123 4567', download: 'https://…/one-pager.pdf' };
+        const KINDS = [['link', 'Link to a URL'], ['calendar', 'Open a calendar'], ['phone', 'Call a phone number'], ['sms', 'Send a text'], ['download', 'Download a file'], ['form', 'Scroll to the lead form']];
+        const HINT = { link: 'https://…', calendar: 'https://calendly.com/you/intro', phone: '+1 555 123 4567', sms: '+1 555 123 4567', download: 'https://…/one-pager.pdf', form: '(no link needed: scrolls to the form)' };
         const draw = () => {
           wrap.replaceChildren();
           const count = current.config.ctas.length;
@@ -474,7 +475,9 @@ export function LandingPagesStudio() {
           }
         };
         draw();
-        return wrap;
+        const box = el('div', 'flex flex-col gap-2');
+        box.append(el('p', 'text-xs text-secondary', 'A button shows on the page once it has text and a valid target (a link, number or calendar). Calendar buttons scroll to the embedded calendar when one is set.'), wrap);
+        return box;
       };
       const check = (label, get, apply) => {
         const i = el('input');
@@ -484,6 +487,48 @@ export function LandingPagesStudio() {
         const l = el('label', 'flex items-center gap-2 text-sm font-bold');
         l.append(i, document.createTextNode(label));
         return l;
+      };
+      const sectionsEditor = () => {
+        const wrap = el('div', 'flex flex-col gap-2');
+        const draw = () => {
+          wrap.replaceChildren();
+          current.config.sections.forEach((sec, i) => {
+            const row = el('div', 'flex flex-col gap-2 rounded-lg border border-white/10 p-2');
+            const head = el('input', INPUT);
+            head.value = sec.heading;
+            head.placeholder = 'Section heading';
+            head.setAttribute('aria-label', 'Section heading');
+            const body = el('textarea', INPUT);
+            body.rows = 3;
+            body.value = sec.body;
+            body.placeholder = 'Section text (tokens like {{company}} work here)';
+            body.setAttribute('aria-label', 'Section text');
+            const bar = el('div', 'flex gap-2');
+            const mk = (label, aria, fn, disabled) => { const b = el('button', BTN, label); b.type = 'button'; b.setAttribute('aria-label', aria); b.disabled = !!disabled; b.addEventListener('click', fn); return b; };
+            const last = current.config.sections.length - 1;
+            bar.append(
+              mk('↑', 'Move section up', () => { set((c) => { c.sections = moveItem(c.sections, i, i - 1); }); draw(); }, i === 0),
+              mk('↓', 'Move section down', () => { set((c) => { c.sections = moveItem(c.sections, i, i + 1); }); draw(); }, i === last),
+              mk('Remove', 'Remove section', () => { set((c) => { c.sections.splice(i, 1); }); draw(); }),
+            );
+            // Typing doesn't rebuild the rows (that would steal focus). A section with no heading and no text is dropped by
+            // sanitizing, so when the count changes the rows are redrawn to stay in step with the data.
+            const count = current.config.sections.length;
+            const edit = (patch) => { set((c) => { if (c.sections[i]) Object.assign(c.sections[i], patch); }); if (current.config.sections.length !== count) draw(); };
+            head.addEventListener('input', () => edit({ heading: head.value }));
+            body.addEventListener('input', () => edit({ body: body.value }));
+            row.append(head, body, bar);
+            wrap.appendChild(row);
+          });
+          if (current.config.sections.length < 6) {
+            const add = el('button', BTN, '+ Add a section');
+            add.type = 'button';
+            add.addEventListener('click', () => { set((c) => { c.sections.push({ heading: 'New section', body: 'Write something here.' }); }); draw(); });
+            wrap.appendChild(add);
+          }
+        };
+        draw();
+        return wrap;
       };
       const calendarEditor = () => {
         const url = el('input', INPUT);
@@ -546,12 +591,27 @@ export function LandingPagesStudio() {
       const formToggleLabel = el('label', 'flex items-center gap-2 text-sm font-bold');
       formToggleLabel.append(formToggle, document.createTextNode('Show a lead form'));
 
-      const sampleToggle = el('input');
-      sampleToggle.type = 'checkbox';
-      sampleToggle.checked = true;
-      sampleToggle.addEventListener('change', () => { sample = sampleToggle.checked; redraw(); });
-      const sampleLabel = el('label', 'flex items-center gap-2 text-xs text-secondary');
-      sampleLabel.append(sampleToggle, document.createTextNode('Preview as “Ann at Acme”'));
+      // Preview as: a sample, nobody (shows the {{token|fallback}} text), or any real contact of this page.
+      const previewSel = el('select', INPUT);
+      previewSel.setAttribute('aria-label', 'Preview as contact');
+      const contactTokens = new Map();
+      const addOpt = (v, l) => { const o = el('option', '', l); o.value = v; previewSel.appendChild(o); };
+      addOpt('sample', 'Sample: Ann at Acme');
+      addOpt('none', 'No contact (shows fallbacks)');
+      previewSel.addEventListener('change', () => {
+        previewTokens = previewSel.value === 'sample' ? SAMPLE_TOKENS : previewSel.value === 'none' ? {} : (contactTokens.get(previewSel.value) || {});
+        redraw();
+      });
+      ownerClient().then((c) => listContacts(c, current.id)).then((rows) => {
+        rows.slice(0, 200).forEach((r) => {
+          // Only the public token keys: exactly what a viewer of that contact's link would see (never the email).
+          const tk = {};
+          PUBLIC_TOKEN_KEYS.forEach((k) => { if (r.fields?.[k]) tk[k] = String(r.fields[k]); });
+          contactTokens.set(r.id, tk);
+          addOpt(r.id, contactLabel(r));
+        });
+      }).catch(() => { /* no contacts yet, or not signed in: the sample still works */ });
+      const sampleLabel = field('Preview as', previewSel);
 
       const hint = el('p', 'text-xs text-secondary');
       const updateHint = () => {
@@ -570,6 +630,7 @@ export function LandingPagesStudio() {
           ctaEditor(),
           check('Show a Like button', () => current.config.likes.enabled, (c, v) => { c.likes.enabled = v; }),
         ),
+        group('Extra sections (add, remove, reorder)', false, sectionsEditor()),
         group('Calendar, transcript & countdown', getTemplate(current.config.template).pitch,
           ...calendarEditor(),
           ...transcriptEditor(),
