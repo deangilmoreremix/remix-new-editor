@@ -1267,10 +1267,13 @@ export default defineConfig({
         // parses them with the plain js loader and fails with
         // "The JSX syntax extension is not currently enabled".
         esbuildOptions: { loader: { '.js': 'jsx' } },
+        // @ffmpeg/ffmpeg starts its own module worker via `new URL('./worker.js', import.meta.url)`.
+        // Pre-bundling moves the package into .vite/deps where that relative worker file no longer exists,
+        // so the Zack D final cut hung on "Loading encoder…". Serve both packages as source instead.
         // kokoro-js / phonemizer (free on-device voiceover) ship emscripten
         // asm.js; the jsx loader above misparses it ("(0 | n) is not a
         // function"). Serve them untouched.
-        exclude: ['kokoro-js', 'phonemizer'],
+        exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util', 'kokoro-js', 'phonemizer'],
     },
     // Many legacy modules under components/ are authored as .js files that
     // nevertheless contain JSX. @vitejs/plugin-react only reliably transforms

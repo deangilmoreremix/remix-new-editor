@@ -49,6 +49,8 @@ const ICONS = {
    'video-agent': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
    'motion-director': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 6l3-4M12 6l3-4M18 6l3-4"/><path d="M10 13.5l4 2.5-4 2.5z" fill="currentColor"/></svg>',
    'video-agent-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+   zackd: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="m2 7 3-5h4l-3 5M10 7l3-5h4l-3 5"/></svg>',
+   'zackd-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="m2 7 3-5h4l-3 5M10 7l3-5h4l-3 5"/></svg>',
    brand: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    'brand-dna': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
    campaign: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 2.7 2.5 6 2.5s6-1.5 6-2.5v-5"/></svg>',
@@ -89,6 +91,7 @@ export const STUDIO_ROUTES = {
   avatar: { label: 'Avatar Studio', category: 'Video' },
   audio: { label: 'Audio Studio', category: 'Video' },
   'video-agent': { label: 'Video Agent', category: 'Agents' },
+  zackd: { label: 'Zack D Studio', category: 'Agents' },
   'motion-director': { label: 'Motion Director', category: 'Agents' },
   director: { label: 'Director', category: 'Agents' },
   timeline: { label: 'Timeline Editor', category: 'Agents' },
@@ -185,6 +188,7 @@ export const NAV_GROUPS = [
   ] },
   { title: 'Agents', items: [
     { id: 'video-agent', label: 'Video Agent' },
+    { id: 'zackd', label: 'Zack D' },
     { id: 'director', label: 'Director' },
     { id: 'timeline', label: 'Timeline' },
     { id: 'workbench', label: 'Workbench' },
@@ -202,6 +206,7 @@ export const NAV_GROUPS = [
 const NAV_ALIASES = {
   cinegen: 'workbench',
   'video-agent-studio': 'video-agent',
+  'zackd-studio': 'zackd',
   'brand-dna': 'brand',
   campaign: 'brand',
   'campaign-page': 'brand',
