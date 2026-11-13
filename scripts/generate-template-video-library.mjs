@@ -36,16 +36,24 @@ const measured = JSON.parse(readFileSync(resolve(root, 'scripts/template-video-m
 // The upstream ZeroLu poster files are 8-byte stubs; real posters for the clips we use live in public/media/template-videos/posters.
 const posterOverride = (set, slug) => (set === 'zerolu' && existsSync(resolve(root, `public/media/template-videos/posters/${slug}.webp`)) ? `/media/template-videos/posters/${slug}.webp` : null);
 
+// Curated commercial-style names + subcategories (scripts/template-video-labels.json, keyed by clip id). The upstream prompt
+// title is kept as `sourceTitle` for attribution/search; categories are corrected where the upstream tag was wrong.
+const labels = JSON.parse(readFileSync(resolve(root, 'scripts/template-video-labels.json'), 'utf8'));
+
 const rows = [];
 const missing = [];
 for (const { set, slug } of allow) {
   const d = bySet[set]?.get(slug);
   if (!d || !d.videoSrc) { missing.push(`${set}:${slug}`); continue; }
+  const label = labels[`${set}:${slug}`];
+  if (!label) { missing.push(`${set}:${slug} (no label)`); continue; }
   rows.push({
     id: `${set}:${slug}`,
     slug,
-    title: d.title,
-    category: d.category,
+    title: label.title,
+    sourceTitle: d.title,
+    category: label.category,
+    subcategory: label.subcategory,
     duration: measured[`${set}:${slug}`] ?? d.duration ?? null,
     aspectRatio: d.aspectRatio ?? '16:9',
     videoSrc: same(d.videoSrc),
@@ -59,18 +67,27 @@ if (missing.length) { console.error('Missing from data files:', missing); proces
 const PREFERRED = ['Action', 'Animation', 'Cinema', 'Commercial', 'Fashion', 'Social', 'UGC', 'VFX'];
 const present = new Set(rows.map((r) => r.category));
 const CATEGORY_ORDER = [...PREFERRED.filter((c) => present.has(c)), ...[...present].filter((c) => !PREFERRED.includes(c)).sort()];
+// Subcategories per category, largest first (the second row of chips in the modal).
+const SUBCATEGORIES = Object.fromEntries(CATEGORY_ORDER.map((c) => {
+  const n = new Map();
+  rows.filter((r) => r.category === c).forEach((r) => n.set(r.subcategory, (n.get(r.subcategory) ?? 0) + 1));
+  return [c, [...n.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([k]) => k)];
+}));
 
 const out = `// AUTO-GENERATED FILE — do not edit by hand.
 // Regenerate with: node scripts/generate-template-video-library.mjs
 // ${rows.length} clips reviewed as free of logos / watermarks / captions; see scripts/template-video-allowlist.json.
 
-/** @typedef {{ id: string, slug: string, title: string, category: string, duration: number | null, aspectRatio: string, videoSrc: string, posterSrc: string | null, tags: string[], source: string }} TemplateVideo */
+/** @typedef {{ id: string, slug: string, title: string, sourceTitle: string, category: string, subcategory: string, duration: number | null, aspectRatio: string, videoSrc: string, posterSrc: string | null, tags: string[], source: string }} TemplateVideo */
 
 /** @type {TemplateVideo[]} */
 export const templateVideos = ${JSON.stringify(rows, null, 1)};
 
 /** Category tabs in display order (only categories that actually hold clips). */
 export const TEMPLATE_VIDEO_CATEGORIES = ${JSON.stringify(CATEGORY_ORDER)};
+
+/** Subcategory chips per category, largest first. */
+export const TEMPLATE_VIDEO_SUBCATEGORIES = ${JSON.stringify(SUBCATEGORIES, null, 1)};
 `;
 writeFileSync(resolve(root, 'src/data/templateVideoLibrary.js'), out);
 console.log(`wrote ${rows.length} clips`);

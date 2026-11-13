@@ -3,17 +3,17 @@ import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 // @ts-expect-error plain JS data module
-import { templateVideos, TEMPLATE_VIDEO_CATEGORIES } from '../../data/templateVideoLibrary.js';
+import { templateVideos, TEMPLATE_VIDEO_CATEGORIES, TEMPLATE_VIDEO_SUBCATEGORIES } from '../../data/templateVideoLibrary.js';
 
-type Row = { id: string; slug: string; title: string; category: string; duration: number | null; aspectRatio: string; videoSrc: string; posterSrc: string | null };
+type Row = { id: string; slug: string; title: string; sourceTitle: string; category: string; subcategory: string; duration: number | null; aspectRatio: string; videoSrc: string; posterSrc: string | null };
 const rows = templateVideos as Row[];
 const root = resolve(__dirname, '../../..');
 
 describe('template video library', () => {
-  it('matches the reviewed allowlist exactly (201 clips, unique ids)', () => {
+  it('matches the reviewed allowlist exactly (unique ids)', () => {
     const allow = JSON.parse(readFileSync(resolve(root, 'scripts/template-video-allowlist.json'), 'utf8')) as Array<{ set: string; slug: string }>;
     expect(rows).toHaveLength(allow.length);
-    expect(rows).toHaveLength(201);
+    expect(rows.length).toBeGreaterThan(150);
     expect(new Set(rows.map((r) => r.id)).size).toBe(rows.length);
     expect(rows.map((r) => r.id)).toEqual(allow.map((a) => `${a.set}:${a.slug}`));
   });
@@ -38,6 +38,17 @@ describe('template video library', () => {
       expect(r.title.length, r.id).toBeGreaterThan(0);
       expect(r.aspectRatio, r.id).toMatch(/^\d+:\d+$/);
       expect(TEMPLATE_VIDEO_CATEGORIES, r.id).toContain(r.category);
+    }
+  });
+
+  it('has unique, short commercial titles that are not prompt fragments, and a subcategory listed for its category', () => {
+    expect(new Set(rows.map((r) => r.title)).size).toBe(rows.length);
+    const subs = TEMPLATE_VIDEO_SUBCATEGORIES as Record<string, string[]>;
+    for (const r of rows) {
+      expect(r.title.length, r.id).toBeLessThanOrEqual(36);
+      expect(r.title, r.id).not.toMatch(/minimax|hailuo|seedance|prompt|reference|\bh3\b|@|created with/i);
+      expect(r.sourceTitle.length, r.id).toBeGreaterThan(0);
+      expect(subs[r.category], r.id).toContain(r.subcategory);
     }
   });
 });

@@ -1,8 +1,8 @@
-// Template videos library: a category-tabbed gallery of the 201 reviewed clips. Browsing only (no personalization);
+// Template videos library: a category-tabbed gallery of the reviewed clips. Browsing only (no personalization);
 // picking a card hands the clip to the editor, which adds it to the timeline.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { TemplateVideosModal, aspectBucket, ratioNumber, searchTemplateVideos, type TemplateVideo } from '@cinegen/components/edit/template-videos-modal';
+import { TemplateVideosModal, aspectBucket, durationBucket, ratioNumber, searchTemplateVideos, type TemplateVideo } from '@cinegen/components/edit/template-videos-modal';
 // @ts-expect-error plain JS data module
 import { templateVideos } from '../../data/templateVideoLibrary.js';
 
@@ -20,17 +20,17 @@ describe('TemplateVideosModal', () => {
   });
 
   it('shows every clip under All, with per-category counts that add up to the total', () => {
-    expect(ALL).toHaveLength(201);
-    expect(tab(/^▦All/).textContent).toContain('201');
+    expect(ALL.length).toBeGreaterThan(150);
+    expect(tab(/^▦All/).textContent).toContain(String(ALL.length));
     const tabs = screen.getAllByRole('tab').filter((t) => !/^▦All/.test(t.textContent ?? ''));
     const sum = tabs.reduce((n, t) => n + Number((t.textContent ?? '').match(/(\d+)$/)?.[1] ?? 0), 0);
-    expect(sum).toBe(201);
+    expect(sum).toBe(ALL.length);
   });
 
   it('starts with a window of 24 cards and "Show more" reveals the next batch', () => {
     expect(cards()).toHaveLength(24);
-    expect(screen.getByText(/Showing 24 of 201 videos/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: /Show more \(177 left\)/ }));
+    expect(screen.getByText(new RegExp(`Showing 24 of ${ALL.length} videos`))).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`Show more \\(${ALL.length - 24} left\\)`) }));
     expect(cards()).toHaveLength(48);
   });
 
@@ -48,6 +48,37 @@ describe('TemplateVideosModal', () => {
     fireEvent.change(screen.getByLabelText('Search template videos'), { target: { value: 'zzzz-no-such-clip' } });
     expect(cards()).toHaveLength(0);
     expect(screen.getByText(/No template videos match your search/)).toBeTruthy();
+  });
+
+  it('shows a subcategory row for the chosen category and filters by it, with counts that add up', () => {
+    expect(screen.queryByRole('tablist', { name: 'Subcategories' })).toBeNull();
+    fireEvent.click(tab(/^◈Commercial/));
+    const row = within(screen.getByRole('tablist', { name: 'Subcategories' }));
+    const chips = row.getAllByRole('tab').filter((c) => !/^All/.test(c.textContent ?? ''));
+    expect(chips.length).toBeGreaterThan(3);
+    const sum = chips.reduce((n, c) => n + Number((c.textContent ?? '').match(/(\d+)$/)?.[1] ?? 0), 0);
+    const total = ALL.filter((v) => v.category === 'Commercial').length;
+    expect(sum).toBe(total);
+    fireEvent.click(row.getByRole('tab', { name: /^Food & Beverage/ }));
+    const expected = ALL.filter((v) => v.category === 'Commercial' && v.subcategory === 'Food & Beverage').length;
+    expect(screen.getByText(new RegExp(`of ${expected} videos`))).toBeTruthy();
+    // switching category resets the subcategory
+    fireEvent.click(tab(/^⚡Action/));
+    expect(screen.getByText(new RegExp(`of ${ALL.filter((v) => v.category === 'Action').length} videos`))).toBeTruthy();
+  });
+
+  it('filters by duration', () => {
+    fireEvent.change(screen.getByLabelText('Duration'), { target: { value: 'extra' } });
+    const expected = ALL.filter((v) => durationBucket(v.duration) === 'extra').length;
+    expect(expected).toBeGreaterThan(0);
+    expect(screen.getByText(new RegExp(`of ${expected} videos`))).toBeTruthy();
+  });
+
+  it('finds a clip by its commercial title, its subcategory or its original prompt title', () => {
+    const v = ALL[2];
+    expect(searchTemplateVideos(ALL, v.title).map((x) => x.id)).toContain(v.id);
+    expect(searchTemplateVideos(ALL, v.sourceTitle).map((x) => x.id)).toContain(v.id);
+    expect(searchTemplateVideos(ALL, 'food & beverage').length).toBeGreaterThan(3);
   });
 
   it('filters by aspect ratio', () => {
@@ -86,5 +117,12 @@ describe('aspect helpers', () => {
     expect(aspectBucket('637:270')).toBe('16:9');
     expect(aspectBucket('3:4')).toBe('9:16');
     expect(ratioNumber('bogus')).toBeCloseTo(16 / 9);
+  });
+  it('buckets durations', () => {
+    expect(durationBucket(10.1)).toBe('short');
+    expect(durationBucket(15.18)).toBe('medium');
+    expect(durationBucket(30.15)).toBe('long');
+    expect(durationBucket(61)).toBe('extra');
+    expect(durationBucket(null)).toBe('short');
   });
 });

@@ -2,19 +2,20 @@
 // feature: category pills with counts, search, aspect filter, and a grid of cards whose clips load and play as they scroll into view.
 // Picking a card hands the clip to the editor, which adds it to the timeline at the playhead.
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { templateVideos, TEMPLATE_VIDEO_CATEGORIES } from '../../../data/templateVideoLibrary.js';
+import { templateVideos, TEMPLATE_VIDEO_CATEGORIES, TEMPLATE_VIDEO_SUBCATEGORIES } from '../../../data/templateVideoLibrary.js';
 
 export type TemplateVideo = {
-  id: string; slug: string; title: string; category: string; duration: number | null; aspectRatio: string;
+  id: string; slug: string; title: string; sourceTitle: string; category: string; subcategory: string; duration: number | null; aspectRatio: string;
   videoSrc: string; posterSrc: string | null; tags: string[]; source: string;
 };
 
 const ALL = templateVideos as unknown as TemplateVideo[];
 const CATEGORIES = TEMPLATE_VIDEO_CATEGORIES as unknown as string[];
+const SUBCATEGORIES = TEMPLATE_VIDEO_SUBCATEGORIES as unknown as Record<string, string[]>;
 const INITIAL = 24;
 const STEP = 24;
 
-const GLYPH: Record<string, string> = { All: '▦', Action: '⚡', Animation: '✺', Cinema: '🎬', Commercial: '◈', Fashion: '✦', Social: '◎', UGC: '☺', VFX: '✧', 'Web / UI': '▤' };
+const GLYPH: Record<string, string> = { All: '▦', Action: '⚡', Animation: '✺', Cinema: '🎬', Commercial: '◈', Fashion: '✦', Social: '◎', VFX: '✧' };
 const INK = 'rgba(229,237,245,.9)';
 const field: CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', color: 'inherit', border: '1px solid var(--border-medium)', borderRadius: 10, padding: '11px 12px', fontSize: 13 };
 const label: CSSProperties = { fontSize: 11, letterSpacing: '.06em', fontWeight: 600, textTransform: 'uppercase', opacity: 0.75, marginBottom: 6 };
@@ -29,10 +30,15 @@ export function aspectBucket(r: string): '16:9' | '9:16' | '1:1' {
   const n = ratioNumber(r);
   return Math.abs(n - 1) < 0.12 ? '1:1' : n > 1 ? '16:9' : '9:16';
 }
+/** Bucket for the duration filter. */
+export function durationBucket(d: number | null): 'short' | 'medium' | 'long' | 'extra' {
+  const n = d ?? 0;
+  return n <= 10.5 ? 'short' : n <= 20.5 ? 'medium' : n <= 30.5 ? 'long' : 'extra';
+}
 export function searchTemplateVideos(items: TemplateVideo[], q: string): TemplateVideo[] {
   const s = q.trim().toLowerCase();
   if (!s) return items;
-  return items.filter((i) => `${i.title} ${i.category} ${i.tags.join(' ')} ${i.source}`.toLowerCase().includes(s));
+  return items.filter((i) => `${i.title} ${i.category} ${i.subcategory} ${i.sourceTitle} ${i.tags.join(' ')} ${i.source}`.toLowerCase().includes(s));
 }
 
 /** Poster underneath, clip on top. The <video> is only mounted while the card is on screen (releases the decoder and keeps a
@@ -67,13 +73,18 @@ function CardVideo({ src, poster, title, ratio }: { src: string; poster: string 
 export function TemplateVideosModal({ onClose, onPick }: { onClose: () => void; onPick: (item: TemplateVideo) => void }) {
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
+  const [sub, setSub] = useState('all');
   const [ratio, setRatio] = useState('all');
+  const [dur, setDur] = useState('all');
   const [shown, setShown] = useState(INITIAL);
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [onClose]);
-  useEffect(() => { setShown(INITIAL); }, [q, cat, ratio]);
+  useEffect(() => { setSub('all'); }, [cat]);
+  useEffect(() => { setShown(INITIAL); }, [q, cat, sub, ratio, dur]);
   const counts = useMemo(() => { const m = new Map<string, number>(); for (const i of ALL) m.set(i.category, (m.get(i.category) ?? 0) + 1); return m; }, []);
   const tabs = useMemo(() => ['All', ...CATEGORIES.filter((c) => counts.has(c))], [counts]);
-  const list = useMemo(() => searchTemplateVideos(ALL, q).filter((i) => (cat === 'all' || i.category === cat) && (ratio === 'all' || aspectBucket(i.aspectRatio) === ratio)), [q, cat, ratio]);
+  const subTabs = useMemo(() => (cat === 'all' ? [] : SUBCATEGORIES[cat] ?? []), [cat]);
+  const subCounts = useMemo(() => { const m = new Map<string, number>(); for (const i of ALL) if (i.category === cat) m.set(i.subcategory, (m.get(i.subcategory) ?? 0) + 1); return m; }, [cat]);
+  const list = useMemo(() => searchTemplateVideos(ALL, q).filter((i) => (cat === 'all' || i.category === cat) && (sub === 'all' || i.subcategory === sub) && (ratio === 'all' || aspectBucket(i.aspectRatio) === ratio) && (dur === 'all' || durationBucket(i.duration) === dur)), [q, cat, sub, ratio, dur]);
   const visible = list.slice(0, shown);
   return (
     <div role="dialog" aria-label="Template videos" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
@@ -106,8 +117,22 @@ export function TemplateVideosModal({ onClose, onPick }: { onClose: () => void; 
               );
             })}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 18, marginBottom: 10 }}>
+          {subTabs.length > 0 && (
+            <div role="tablist" aria-label="Subcategories" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '-4px 0 14px' }}>
+              {['All', ...subTabs].map((c) => {
+                const on = sub === (c === 'All' ? 'all' : c);
+                return (
+                  <button key={c} role="tab" aria-selected={on} onClick={() => setSub(c === 'All' ? 'all' : c)}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 999, cursor: 'pointer', fontSize: 12, fontWeight: 600, border: `1px solid ${on ? 'var(--accent)' : 'var(--border-subtle)'}`, color: on ? 'var(--accent)' : 'inherit', background: on ? 'var(--accent-dim)' : 'transparent' }}>
+                    {c}<span style={{ opacity: 0.6, fontSize: 11 }}>{c === 'All' ? [...subCounts.values()].reduce((a, b) => a + b, 0) : subCounts.get(c)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: 18, marginBottom: 10 }}>
             <div><div style={label}>Search</div><input type="text" placeholder="⌕  Search template videos…" aria-label="Search template videos" value={q} onChange={(e) => setQ(e.target.value)} style={field} /></div>
+            <div><div style={label}>Duration</div><select aria-label="Duration" value={dur} onChange={(e) => setDur(e.target.value)} style={field}><option value="all">Any length</option><option value="short">Up to 10s</option><option value="medium">10–20s</option><option value="long">20–30s</option><option value="extra">Over 30s</option></select></div>
             <div><div style={label}>Aspect ratio</div><select aria-label="Aspect ratio" value={ratio} onChange={(e) => setRatio(e.target.value)} style={field}><option value="all">All aspect ratios</option><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
           </div>
           <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>Showing {visible.length} of {list.length} videos</div>
@@ -117,7 +142,7 @@ export function TemplateVideosModal({ onClose, onPick }: { onClose: () => void; 
                 style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' }}>
                 <div style={{ position: 'relative' }}>
                   <CardVideo src={i.videoSrc} poster={i.posterSrc} title={i.title} ratio={ratioNumber(i.aspectRatio)} />
-                  <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{i.category}</span>
+                  <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{i.subcategory}</span>
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.title}</div>
                 <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{i.duration ? `${Math.round(i.duration)}s · ` : ''}{aspectBucket(i.aspectRatio)} · {i.source}</div>
