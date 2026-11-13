@@ -183,7 +183,7 @@ export function useAutoCutout(
         if (controller.signal.aborted) throw new BackgroundRemovalFailure('cancelled', 'Cancelled')
         const blob = await withSniffedType(raw)
         if (!isRemovableImageType(blob.type)) {
-          finish({ status: 'skipped', message: 'Unsupported format' })
+          finish({ status: 'skipped', message: 'Unsupported' })
           return
         }
 
@@ -191,7 +191,7 @@ export function useAutoCutout(
         if (blob.type !== 'image/jpeg') {
           const before = await verifyAlphaChannel(await blobToDataUrl(blob))
           if (before.hasTransparentPixels && before.transparentRatio > 0.02) {
-            patch(id, (a) => ({ ...a, hasTransparency: true, bgRemoval: { status: 'skipped', message: 'Already transparent' } }))
+            patch(id, (a) => ({ ...a, hasTransparency: true, bgRemoval: { status: 'skipped', message: 'Transparent' } }))
             return
           }
         }
@@ -208,7 +208,7 @@ export function useAutoCutout(
         const dataUrl = await blobToDataUrl(result.blob)
         const check = await verifyAlphaChannel(dataUrl)
         if (!check.hasTransparentPixels) {
-          finish({ status: 'skipped', message: 'No background found' })
+          finish({ status: 'skipped', message: 'No background' })
           return
         }
 

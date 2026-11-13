@@ -144,7 +144,7 @@ export function DiscoveredAssetThumb({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); cutout.toggleOriginal(asset.id) }}
-            className="absolute right-1 top-[42px] z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+            className="absolute bottom-[19px] left-1 right-1 z-20 truncate rounded-md py-0.5 text-center text-[7px] font-black uppercase leading-none"
             style={{ background: 'rgba(0,0,0,.75)', color: '#fff', border: '1px solid rgba(255,255,255,.35)' }}
             aria-label={asset.showOriginal ? 'Show cutout' : 'Show original'}
             title={asset.showOriginal ? 'Show the background-removed version' : 'Show the original image'}
@@ -155,7 +155,7 @@ export function DiscoveredAssetThumb({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); cutout.retry(asset.id) }}
-            className="absolute right-1 top-[42px] z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+            className="absolute bottom-[19px] left-1 right-1 z-20 truncate rounded-md py-0.5 text-center text-[7px] font-black uppercase leading-none"
             style={{ background: 'rgba(239,68,68,.9)', color: '#fff' }}
             aria-label="Retry background removal"
             title={bg.message}
@@ -164,7 +164,7 @@ export function DiscoveredAssetThumb({
           </button>
         ) : bg?.status === 'skipped' ? (
           <div
-            className="pointer-events-none absolute right-1 top-[42px] z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+            className="pointer-events-none absolute bottom-[19px] left-1 right-1 z-20 truncate rounded-md py-0.5 text-center text-[7px] font-black uppercase leading-none"
             style={{ background: 'rgba(0,0,0,.65)', color: '#d4d4d8' }}
             title={bg.message}
           >
@@ -174,7 +174,7 @@ export function DiscoveredAssetThumb({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); cutout.requestRemoval([asset.id]) }}
-            className="absolute right-1 top-[42px] z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
+            className="absolute bottom-[19px] left-1 right-1 z-20 truncate rounded-md py-0.5 text-center text-[7px] font-black uppercase leading-none"
             style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
             aria-label="Remove background"
           >
@@ -204,7 +204,7 @@ export function DiscoveredAssetThumb({
           Revert
         </button>
       )}
-      {(asset.videoReady || (asset.edited && !onRevert)) && (
+      {(asset.videoReady || (asset.edited && !onRevert)) && !cutDone && (
         <div className="pointer-events-none absolute left-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase" style={{ background: 'rgba(34,197,94,.9)', color: '#fff' }}>
           {asset.videoReady ? 'Video Ready' : 'Edited'}
         </div>

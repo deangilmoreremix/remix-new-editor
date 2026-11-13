@@ -184,7 +184,7 @@ describe('useAutoCutout (auto queue)', () => {
     expect(state.order).toEqual([])
     expect(logo.editedDataUrl).toBeUndefined()
     expect(logo.hasTransparency).toBe(true)
-    expect(logo.bgRemoval).toMatchObject({ status: 'skipped', message: 'Already transparent' })
+    expect(logo.bgRemoval).toMatchObject({ status: 'skipped', message: 'Transparent' })
   })
 
   it('does nothing automatically when auto mode is off, but still runs a manual request', async () => {

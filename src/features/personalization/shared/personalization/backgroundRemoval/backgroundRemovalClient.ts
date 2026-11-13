@@ -4,8 +4,10 @@
  *
  * - The library (and its model download) is imported lazily on first use, so
  *   it never lands in the main bundle.
- * - BG0 needs a DOM (canvas, localStorage), so it cannot run inside a Worker;
- *   WebGPU inference is async, and jobs run strictly one at a time.
+ * - Inference runs in a dedicated Worker (removeBackgroundWorker.js): WASM
+ *   inference blocks for ~10 s per image, which would freeze the page. Where a
+ *   Worker is unavailable (or fails to start) it falls back to the main thread.
+ * - Jobs run strictly one at a time.
  * - Nothing leaves the device. The result is a transparent PNG Blob.
  */
 
@@ -95,6 +97,91 @@ function toFailure(error: unknown): BackgroundRemovalFailure {
 // Strictly sequential: each job starts after the previous one settles.
 let tail: Promise<unknown> = Promise.resolve()
 
+type Progress = (progress: BackgroundRemovalProgress) => void
+
+// ── Worker path ──────────────────────────────────────────────────────────────
+
+let worker: Worker | null = null
+let workerBroken = false
+let nextJobId = 0
+
+function getWorker(): Worker | null {
+  if (workerBroken || typeof Worker === 'undefined') return null
+  if (!worker) {
+    try {
+      worker = new Worker(new URL('./removeBackgroundWorker.js', import.meta.url), { type: 'module' })
+    } catch {
+      workerBroken = true
+      return null
+    }
+  }
+  return worker
+}
+
+/** Thrown when the worker itself cannot run (script failed to load): retry on the main thread. */
+class WorkerUnavailable extends Error {}
+
+function runInWorker(
+  w: Worker,
+  blob: Blob,
+  quality: BackgroundRemovalQuality,
+  onProgress: Progress | undefined,
+  signal: AbortSignal | undefined,
+): Promise<BackgroundRemovalOutput> {
+  const id = ++nextJobId
+  return new Promise<BackgroundRemovalOutput>((resolve, reject) => {
+    const cleanup = () => {
+      w.removeEventListener('message', onMessage)
+      w.removeEventListener('error', onError)
+      signal?.removeEventListener('abort', onAbort)
+    }
+    const onAbort = () => w.postMessage({ type: 'cancel', id })
+    const onMessage = ({ data }: MessageEvent) => {
+      if (!data || data.id !== id) return
+      if (data.type === 'progress') {
+        onProgress?.({ stage: data.stage, progress: data.progress, message: data.message })
+      } else if (data.type === 'done') {
+        cleanup()
+        resolve({ blob: data.blob, width: data.width, height: data.height, provider: data.provider, quality: data.quality, durationMs: data.durationMs })
+      } else if (data.type === 'error') {
+        cleanup()
+        reject(Object.assign(new Error(data.message), { code: data.code }))
+      }
+    }
+    const onError = (event: ErrorEvent) => {
+      cleanup()
+      // A script / module load failure: this worker is unusable from now on.
+      workerBroken = true
+      worker = null
+      reject(new WorkerUnavailable(event.message || 'Background removal worker failed to start'))
+    }
+    w.addEventListener('message', onMessage)
+    w.addEventListener('error', onError)
+    signal?.addEventListener('abort', onAbort)
+    w.postMessage({ type: 'remove', id, blob, quality })
+  })
+}
+
+// ── Main-thread fallback ─────────────────────────────────────────────────────
+
+async function runOnMainThread(
+  blob: Blob,
+  quality: BackgroundRemovalQuality,
+  onProgress: Progress | undefined,
+  signal: AbortSignal | undefined,
+): Promise<BackgroundRemovalOutput> {
+  const { removeBackground } = await import('@bg0/browser')
+  const result = await removeBackground(blob, { quality, signal, onProgress })
+  return {
+    blob: result.blob,
+    width: result.width,
+    height: result.height,
+    provider: result.provider,
+    quality: result.quality,
+    durationMs: result.durationMs,
+  }
+}
+
 /**
  * Removes the background from `blob` and resolves with a transparent PNG.
  * Jobs queue and run one at a time. Aborting `signal` rejects with a
@@ -105,7 +192,7 @@ export function removeAssetBackground(
   blob: Blob,
   options: {
     quality?: BackgroundRemovalQuality
-    onProgress?: (progress: BackgroundRemovalProgress) => void
+    onProgress?: Progress
     signal?: AbortSignal
   } = {},
 ): Promise<BackgroundRemovalOutput> {
@@ -117,16 +204,16 @@ export function removeAssetBackground(
     if (!isRemovableImageType(blob.type)) throw new BackgroundRemovalFailure('unsupported-image', FRIENDLY['unsupported-image'])
     if (blob.size > BACKGROUND_REMOVAL_MAX_BYTES) throw new BackgroundRemovalFailure('image-too-large', FRIENDLY['image-too-large'])
     try {
-      const { removeBackground } = await import('@bg0/browser')
-      const result = await removeBackground(blob, { quality, signal, onProgress })
-      return {
-        blob: result.blob,
-        width: result.width,
-        height: result.height,
-        provider: result.provider,
-        quality: result.quality,
-        durationMs: result.durationMs,
+      const w = getWorker()
+      if (w) {
+        try {
+          return await runInWorker(w, blob, quality, onProgress, signal)
+        } catch (error) {
+          if (!(error instanceof WorkerUnavailable)) throw error
+          // fall through to the main thread
+        }
       }
+      return await runOnMainThread(blob, quality, onProgress, signal)
     } catch (error) {
       throw toFailure(error)
     }
