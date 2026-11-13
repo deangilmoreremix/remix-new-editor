@@ -5,9 +5,9 @@
 | 0 | Application & feature audit | **Complete (audit-only)** | Authorized by the master prompt (Stage 0 only) | 2026-11-13 | see `git log` for the commit titled "Stage 0 audit" | Baseline below | See master plan §5 |
 | 1 | Personalization data & visual editing | **Complete and verified** (see limits in the Stage 1 completion section) | Authorized by the user ("continue with the next phase", then "complete all of stage 1") | 2026-11-13 | see `git log` ("Stage 1 completion") | Full suite 766/766 files, 10,988 passed, 0 failed, 61 skipped; typecheck gate 0 errors; eslint src 0 errors; live checks 8/8, 19/19, 31/31; SQL 40/40 | Migration for synced layouts is **not applied** anywhere |
 | 2 | Website backgrounds & business assets | **Complete and verified** (limits listed in the Stage 2 section) | Authorized by the user (approval of the roadmap plan, which authorized Stage 2 only) | 2026-11-13 | see `git log` ("Stage 2") | Full suite 770/770 files, 11,114 passed, 0 failed, 61 skipped; typecheck gate 0; eslint src 0 errors; Stage 2 real-chain check 29/29 | Capture bucket is still public-by-URL; see limits |
-| 3 | MediaPipe presenter effects | Not started | **NOT authorized** | — | — | — | — |
-| 4 | Advanced browser audio | Not started | **NOT authorized** | — | — | — | — |
-| 5 | Advanced video effects & motion | Not started | **NOT authorized** | — | — | — | — |
+| 3 | MediaPipe presenter effects | **Complete and verified** (limits listed in the Stage 3 section) | Authorized by the user ("let's only check every 3 phases": Stages 3–5 run back to back, then stop) | 2026-11-13 | see `git log` ("Stage 3") | Stage 3 unit/panel tests 78; personalization suite 191 files, 2,360 passed; typecheck gate 0; live check 53/53 (see below) | Processed footage is stored in the browser only; see limits |
+| 4 | Advanced browser audio | Not started | Authorized (3-stage cadence) | — | — | — | — |
+| 5 | Advanced video effects & motion | Not started | Authorized (3-stage cadence) | — | — | — | — |
 | 6 | Captions, text & intelligent editing | Not started | **NOT authorized** | — | — | — | — |
 | 7 | Thumbnails & personalized GIFs | Not started | **NOT authorized** | — | — | — | — |
 | 8 | Personalized publishing & watch pages | Not started | **NOT authorized** | — | — | — | — |
@@ -16,7 +16,7 @@
 | 11 | Analytics, notifications & reporting | Not started | **NOT authorized** | — | — | — | — |
 | 12 | Performance, recovery & final validation | Not started | **NOT authorized** | — | — | — | — |
 
-**Next authorized stage: none.** Stage 2 is the last authorized stage. Stage 3 requires an explicit user instruction (e.g. "Approved. Start Stage 3."), or an instruction to fix Stage 2.
+**Review cadence (user instruction, 2026-11-13: "We need to finish all of these stages so let's only check every 3 phases").** Work proceeds through Stages 3, 4 and 5 without stopping between them, then STOPS for review with a combined report. After approval: Stages 6–8, then 9–11, then 12. Every stage still gets its own real tests, commit and entry in this file and in `IMPLEMENTATION_LOG.md`. Anything that needs a decision only the user can make (email provider for Stage 9, VAPID keys for Stage 11, applying migrations, production deploys) is NOT covered by this cadence and will be flagged, not assumed. The queued Personalization Studio prompt is still not authorized.
 
 Scope note: the Recorder is excluded — being completed in another chat.
 
@@ -228,3 +228,39 @@ Authorized by the user's approval of the roadmap plan (Stage 2 only).
 - One website background per project. Per-recipient backgrounds arrive with bulk personalization (Stage 10).
 - Hand-over transitions are fade, slide and cut (no wipe).
 - Rotation/zoom limits from Stage 1 apply to the presenter footage; compositing the presenter over the website (bubble/cut-out) is Stage 3.
+
+
+## Stage 3 — MediaPipe presenter effects (2026-11-13)
+
+**Authorization:** the 3-stage cadence instruction above. **Scope kept:** no Recorder changes; no new database, renderer, player, server or paid API; no migration; nothing deployed.
+
+### What was built
+| Capability | Where | Notes |
+|---|---|---|
+| Presenter model (pure): layout `full` / `bubble` / `pip`, shape `circle` / `rounded` / `rect`, size/position, border/shadow, zoom + pan + mirror, background `keep` / `blur` / `colour` / `picture` / `remove`, validation, presets | `preview/presenter.ts` | One source of truth for the preview, the editor stage and the export. Stored as `settings.presenter` (optional: absent = the old full-frame video). |
+| Rendering inside the shared composition | `preview/PresenterLayer.tsx`, `PersonalizationComposition.tsx` | Drawn above the Stage 2 website layer, so a cut-out or bubble presenter stands over the website. |
+| Segmentation engines | `src/lib/editor/ml/mediapipeSegmenter.js` (new), existing `remotion/bgRemoval.js` (MODNet) | MediaPipe Image Segmenter (`selfie_segmenter`, Apache-2.0), CPU delegate, ~30 ms/frame. Model file `public/mediapipe/selfie_segmenter.tflite` (249,537 bytes, sha256 `191ac952…6658b`, same hash the sibling app pins); wasm bundled by Vite. Nothing is fetched from a third party at run time for MediaPipe. |
+| Bake once, reuse everywhere ("processed footage") | `guided/presenterBake.ts`, `presenterMatteStore.ts`, `preview/presenterMatteRegistry.ts` | Transparent VP9+alpha WebM with the audio kept, cached in IndexedDB under a content key (video URL + engine + settings), LRU-evicted at 400 MB. A render never runs a model. Temporal smoothing + edge hardening + a quality gate (refuses "no person" and "everything is person"). Measures the person's bounds. |
+| Honest fallback | `presenterRenderPlan` | A background mode with no usable processed footage (never made, cleared, made from a different video) draws the **untouched** video and the panel says why. It never pretends. |
+| Editor | `guided/PresenterPanel.tsx`, `PresenterStageBox.tsx`, `presenterEdit.ts`, `probeVideoAspect.ts` | Presets, layout/shape/size/position/ratio/roundness, border/shadow, zoom/centre/mirror, **Frame head and shoulders** (uses the measured person), background modes, engine choice, Process / Cancel / progress / failure messages, drag or arrow-key the box on the stage (one drag = one undo step). |
+
+### Pre-existing defects found and fixed on the way
+* `@remotion/media`'s `<Video>` takes **`objectFit` as a prop**; the composition passed it as CSS, which is ignored, so a portrait clip in a landscape frame was letterboxed instead of covered (the Stage 1 "source transform" also depended on it). Fixed for the existing full-frame path as well. **Behaviour change:** footage whose aspect differs from the frame now covers the frame (cropping) instead of letterboxing; same-aspect footage is unchanged.
+* Remotion's web renderer does not draw inset `box-shadow`; the presenter border is a real `border`.
+
+### Verification actually run
+* **Unit + panel tests:** 53 (model, geometry, plan, mask maths, framing property tests, cache keys, store eviction/restore, bake pipeline with fake engine: reuse, force, quality gates, engine/encoder failure, cancel, smoothing) + 25 (panel, every failure kind, cancel, reuse, probing, stage box pointer + keyboard). Five deliberate mutations (unmuted blur matte, stale matte accepted, box not clamped, media gap, gate disabled) were each caught, then restored.
+* **Personalization suite:** 191 files, 2,360 passed, 10 skipped (pre-existing). **Typecheck gate:** 0 errors in scope. **ESLint:** 0 errors on the new files.
+* **Real-browser check (`scripts/stage3-presenter-check/check.mjs`, 53/53):** real MediaPipe bake of a real person clip (122 frames in ~3.5 s, alpha WebM with audio), reuse in 4 ms vs 3.6 s, restore from real IndexedDB, then real exports decoded with ffmpeg: silhouette IoU against the matte 0.91–0.95; person pixels match the source frame (mean abs diff ≈ 10/255); chosen background colour exact in 100% of background pixels; the website shows through behind a cut-out presenter in 100% of background pixels; blur softens the room to <25% of source edge energy with brightness preserved and the person sharp; the bubble is clipped to a circle, the ring and position match `presenterRect` within 2 px; the matte is in sync with the timeline; audio is **not doubled or dropped** (same level as the no-presenter export in every mode) and aligned within 1 ms; the real editor panel → process → frame → mouse-drag flow; the real preview Player frame vs the exported frame for the same settings (mean abs diff 3.1/255, presenter centroid identical).
+* **MODNet** on a head-and-shoulders crop agrees with MediaPipe (IoU 0.99, 36 frames in 50 s on CPU/WASM).
+
+### Limits and open items (not hidden)
+* **Processed footage lives in the browser that made it.** Another device, cleared site data or a different browser has none: the presenter then shows the original video and says so. Nothing uploads it (no Supabase storage was added). Per-recipient batch processing is Stage 10.
+* **MODNet is a portrait matting model and fails on full-body footage** (IoU 0.45 vs MediaPipe on the sample, holes in the torso); the panel labels it "head-and-shoulders only". MediaPipe is the default. MODNet takes ~1.4 s/frame on CPU/WASM here (WebGPU browsers are faster; not measured).
+* MediaPipe edges are soft/slightly haloed at feet and hands (visible in the sample); there is no hair-level matting. Check the preview before exporting.
+* Only the SIMD MediaPipe wasm is bundled; a browser without WebAssembly SIMD gets a clear error from the bake.
+* Blur is the original blurred under the sharp person (no inpainted background plate); a faint colour bleed of the person's clothes into the blur is possible on close inspection (not visible in the 4× crop checked).
+* Presenter geometry is **not** part of the Stage 1 saved layouts (presets cover it); an on-canvas corner-resize handle for the box was not built (size slider only).
+* The sample clip has no soundtrack: audio checks used a synthetic soundtrack muxed into a copy. The exporter's own loudness on the pre-existing no-presenter path measured ×1.39 of the source file (not introduced here, not investigated).
+* Real-browser checks ran in headless Chromium with software rendering; other browsers (Safari/Firefox) were not run.
+* Production `vite build` result: see the Stage 3 entry in `IMPLEMENTATION_LOG.md`.

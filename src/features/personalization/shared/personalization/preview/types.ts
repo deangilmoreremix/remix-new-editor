@@ -6,6 +6,7 @@
 
 import type { ImageHints, ImageRole, ImageStyle } from './imageStyle'
 import type { WebsiteBackground } from './websiteBackground'
+import type { PresenterSettings } from './presenter'
 
 export type PreviewLayoutId =
   | 'business-introduction'
@@ -222,6 +223,11 @@ export interface PersonalizationPreviewSettings {
    * Absent = no website background.
    */
   websiteBackground?: WebsiteBackground
+  /**
+   * How the person in the source video is shown: full frame, camera bubble or picture-in-picture, with the
+   * background kept, blurred, replaced or removed (Stage 3). Absent = the video fills the frame, as before.
+   */
+  presenter?: PresenterSettings
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */

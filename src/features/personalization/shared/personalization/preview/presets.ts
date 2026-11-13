@@ -8,6 +8,7 @@
 
 import { normalizeCustomFields, normalizeRotation, normalizeSourceTransform } from './layerTransform'
 import { normalizeWebsiteBackground } from './websiteBackground'
+import { normalizePresenter } from './presenter'
 import { contractFor, roleForLayer } from './mediaRoles'
 import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
 import type {
@@ -1122,6 +1123,8 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
   if (customFields) out.customFields = customFields
   const websiteBackground = normalizeWebsiteBackground(raw.websiteBackground)
   if (websiteBackground) out.websiteBackground = websiteBackground
+  const presenter = normalizePresenter(raw.presenter)
+  if (presenter) out.presenter = presenter
 
    return out
   } catch {

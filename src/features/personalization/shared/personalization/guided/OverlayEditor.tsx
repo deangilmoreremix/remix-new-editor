@@ -10,6 +10,8 @@ import { ImageStyleControls } from './ImageStyleControls'
 import { LayerToolsPanel } from './LayerToolsPanel'
 import { KonvaTransformOverlay } from './KonvaTransformOverlay'
 import { WebsiteBackgroundPanel } from './WebsiteBackgroundPanel'
+import { PresenterPanel } from './PresenterPanel'
+import { PresenterStageBox } from './PresenterStageBox'
 import { applyCustomFields, rotationCss, sourceMediaStyle } from '../preview/layerTransform'
 import { maxScrollPx } from '../preview/websiteBackground'
 import { computeSnap, groupMemberIds, layerRect, moveLayers, setLayerRotation, unionRect, type SnapGuide } from './layerOps'
@@ -612,6 +614,8 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
             }}
           />
 
+          {editPreviewSettings ? <PresenterStageBox settings={settings} edit={editPreviewSettings} factor={factor} compW={compW} compH={compH} /> : null}
+
           {guides.map((g) => (
             <div
               key={`${g.axis}-${g.at}`}
@@ -1164,6 +1168,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
           )}
 
           {editPreviewSettings && <WebsiteBackgroundPanel settings={settings} edit={editPreviewSettings} defaultUrl={brand.website} />}
+          {editPreviewSettings && <PresenterPanel settings={settings} edit={editPreviewSettings} videoUrl={inputProps.videoUrl} />}
         </div>
       </div>
 

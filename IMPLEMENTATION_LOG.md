@@ -56,4 +56,15 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Security: asset-finder SSRF check now delegates to the shared guard; capture quota is database-backed with a fail-closed memory fallback.
 - Verified: full vitest 770/770; typecheck gate 0; eslint src 0 errors; real engine capture of smartvid.app -> real editor/preview -> real MP4 (29/29), scroll accuracy against the captured screenshot.
 - NOT done: capture bucket still public-by-URL; production route not exercised with real Clerk; real site with logo/sections not captured; free-draw cursor path; per-recipient backgrounds (Stage 10).
-- Stage 3 is **not** authorized.
+- Stage 3 was authorized later (see the cadence entry below).
+
+### Review cadence (user instruction, 2026-11-13)
+- "We need to finish all of these stages so let's only check every 3 phases." Stages 3, 4, 5 run back to back, then stop for review; then 6–8; 9–11; 12. Per-stage tests, commits and doc updates continue. Decisions only the user can make (email provider, VAPID keys, applying migrations, deploys) are flagged, not assumed. The queued Personalization Studio prompt remains unauthorized.
+
+### Stage 3 — MediaPipe presenter effects
+- Authorization: the cadence instruction above.
+- Added: `preview/presenter.ts` (pure model, framing, mask maths, presets, cache keys), `PresenterLayer`, `presenterMatteRegistry`, `guided/presenterBake|presenterMatteStore|presenterEdit|probeVideoAspect`, `PresenterPanel`, `PresenterStageBox`, `src/lib/editor/ml/mediapipeSegmenter.js`, `public/mediapipe/selfie_segmenter.tflite` (sha256-verified), the `presenter` field of the settings.
+- New dependency: `@mediapipe/tasks-vision` 1.0.1 (Apache-2.0, exact pin, same version as `apps/video-agent-studio`). Model file is Apache-2.0 (MediaPipe selfie segmenter).
+- Fixed: `<Video objectFit>` is a prop, not CSS (portrait footage was letterboxed in a landscape frame; now covers); web renderer ignores inset box-shadow (border is a real border).
+- Verified: 78 unit/panel tests (+5 mutation checks), personalization suite 191 files / 2,360 passed, typecheck gate 0, live check 53/53 (real MediaPipe bake, IndexedDB reuse/restore, decoded exports vs the source frames and the matte, audio not doubled and aligned, real editor drag, preview-vs-export parity). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
+- NOT done: durable/shared storage of processed footage (browser-only), WebGPU timing of MODNet, Safari/Firefox, saved-layout presenter geometry, corner-resize handle.

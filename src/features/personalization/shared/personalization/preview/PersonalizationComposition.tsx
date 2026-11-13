@@ -1,5 +1,6 @@
 import { applyCustomFields, rotationCss, sourceMediaStyle } from './layerTransform'
 import { WebsiteBackgroundLayer } from './WebsiteBackgroundLayer'
+import { PresenterLayer } from './PresenterLayer'
 import { contractFor, layerZIndex, roleForLayer } from './mediaRoles'
 import { ownText, resolveLayerImageUrl, resolveLayerText } from './layerContent'
 import { endCardFrames } from './endCard'
@@ -346,6 +347,10 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
     clearPreviewMediaFailure()
   }, [videoUrl])
 
+  // A presenter (camera bubble, PiP, cut-out…) replaces the full-frame source video. If the media failed to
+  // load, the existing poster fallback is used instead.
+  const presenterActive = Boolean(settings.presenter?.enabled && videoUrl && !isImageSource && !mediaFailed)
+
   const renderBackground = () => {
     if (isImageSource && !videoUrl) {
       if (!posterUrl) return null
@@ -369,6 +374,9 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
           // streamed through the same-origin /api/media/remote proxy.
           src={toPlayablePreviewMediaUrl(videoUrl)}
           muted={false}
+          // objectFit is a PROP of @remotion/media's <Video>; the CSS object-fit below is ignored by its canvas
+          // (found in Stage 3: a portrait clip in a landscape frame was letterboxed, not covered).
+          objectFit="cover"
           onError={handleMediaError}
           style={{ width: '100%', height: '100%', objectFit: 'cover', ...sourceMediaStyle(settings.sourceTransform) }}
         />
@@ -451,9 +459,15 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   return (
     <SequenceManagerBoundary>
     <AbsoluteFill style={{ background: '#05070a' }}>
-      {renderBackground()}
+      {presenterActive ? (
+        // The presenter is drawn above the website, so the video is not the full-frame background here.
+        <AbsoluteFill style={{ background: `linear-gradient(135deg, ${settings.brandColors.primary}, #05070a)` }} />
+      ) : renderBackground()}
       {settings.websiteBackground ? (
         <WebsiteBackgroundLayer background={settings.websiteBackground} frame={frame} compW={compW} compH={compH} accent={settings.brandColors.accent} />
+      ) : null}
+      {presenterActive && videoUrl ? (
+        <PresenterLayer presenter={settings.presenter as NonNullable<typeof settings.presenter>} videoUrl={toPlayablePreviewMediaUrl(videoUrl)} compW={compW} compH={compH} />
       ) : null}
       {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
       <AbsoluteFill
