@@ -4,17 +4,17 @@ import { AbsoluteFill } from 'remotion';
 import { TransitionSeries } from '@remotion/transitions';
 import { useVideoConfig } from '../shim';
 import { TransitionLightLeak } from "../vendored/primitives/transition-light-leak";
-const Scene = ({ a }) => (<AbsoluteFill style={{ background: a ? 'linear-gradient(135deg,#1d4ed8,#7c3aed)' : 'linear-gradient(135deg,#f97316,#ec4899)', color: '#fff', fontFamily: 'system-ui,sans-serif', fontSize: 120, fontWeight: 800, alignItems: 'center', justifyContent: 'center' }}>{a ? 'Scene A' : 'Scene B'}</AbsoluteFill>);
-export function Demo() {
+const Scene = ({ a, text, color }) => (<AbsoluteFill style={{ background: color, color: '#fff', fontFamily: 'system-ui,sans-serif', fontSize: 120, fontWeight: 800, alignItems: 'center', justifyContent: 'center' }}>{text}</AbsoluteFill>);
+export function Demo({ textA = 'Scene A', textB = 'Scene B', colorA = '#2563eb', colorB = '#f97316' }) {
   const { durationInFrames } = useVideoConfig();
   const half = Math.max(60, Math.floor(durationInFrames * 0.62));
   return (
     <TransitionSeries>
-      <TransitionSeries.Sequence durationInFrames={half}><Scene a /></TransitionSeries.Sequence>
+      <TransitionSeries.Sequence durationInFrames={half}><Scene a text={textA} color={colorA} /></TransitionSeries.Sequence>
       <TransitionSeries.Overlay durationInFrames={30}>
   <TransitionLightLeak seed={2} hueShift={45} />
 </TransitionSeries.Overlay>
-      <TransitionSeries.Sequence durationInFrames={half}><Scene /></TransitionSeries.Sequence>
+      <TransitionSeries.Sequence durationInFrames={half}><Scene text={textB} color={colorB} /></TransitionSeries.Sequence>
     </TransitionSeries>
   );
 }

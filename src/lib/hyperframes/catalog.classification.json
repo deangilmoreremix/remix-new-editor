@@ -7,8 +7,8 @@
   "minExportFps": 8.0
  },
  "totals": {
-  "verified-export": 219,
-  "unsupported": 53,
+  "verified-export": 220,
+  "unsupported": 52,
   "not-tested": 2,
   "adapter-compatible": 72,
   "specialized": 81,
@@ -16,8 +16,8 @@
  },
  "byType": {
   "block": {
-   "verified-export": 114,
-   "unsupported": 50,
+   "verified-export": 115,
+   "unsupported": 49,
    "not-tested": 2,
    "adapter-compatible": 19,
    "specialized": 25
@@ -57,7 +57,7 @@
   "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 118,
+ "enabledCount": 119,
  "items": {
   "ai-answer-rank": {
    "type": "block",
@@ -1088,8 +1088,8 @@
   },
   "code-slice-hero": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'",
+   "status": "verified-export",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (block loaded from its own pinned folder); real 1080p browser export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1098,10 +1098,17 @@
      1.0
     ],
     "ssimMin": 1.0,
-    "export": null
+    "export": {
+     "ok": true,
+     "fps": 17.4
+    },
+    "viaDemoSsimMin": 0.98,
+    "nonBlank": 0.1163,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": []
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "viaFolder": true
   },
   "code-snippet-apple-terminal-pro": {
    "type": "block",
