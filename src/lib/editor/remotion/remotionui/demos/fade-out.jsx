@@ -6,7 +6,7 @@ export function Demo(__o) {
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif', fontSize: 96, fontWeight: 700 }}>
       <FadeOut durationInFrames={24} {...__o}>
-        <div>Goodbye</div>
+        <div>{__o.text1 ?? "Goodbye"}</div>
       </FadeOut>
     </div>
   );

@@ -21,6 +21,54 @@ export function makeSlug(length = 10, rand = (n) => crypto.getRandomValues(new U
 
 export const watchUrl = (id, origin = globalThis.location?.origin || '') => `${origin}/watch/${encodeURIComponent(id)}`;
 
+// ---------------------------------------------------------------- readable URLs
+// Mirrors public.slug_is_valid() (supabase/migrations/20261112010000_*). The
+// database is the authority (reserved words, uniqueness, ownership); this is
+// for instant feedback and for suggesting slugs.
+export const RESERVED_SLUGS = Object.freeze([
+  'admin', 'api', 'app', 'assets', 'auth', 'billing', 'account', 'profile', 'dashboard', 'embed',
+  'help', 'login', 'logout', 'new', 'null', 'undefined', 'settings', 'signin', 'signup', 'static',
+  'support', 'v', 'watch', 'www', 'openthorn', 'netlify', 'supabase', 'smartvideo', 'smartvid',
+  'official', 'root', 'system', 'video', 'videos', 'edit', 'preview', 'public', 'private',
+]);
+
+/** null when valid, otherwise a short human reason. */
+export function validateSlug(raw) {
+  const s = String(raw ?? '');
+  if (s.length < 3 || s.length > 48) return 'Use 3-48 characters';
+  if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(s)) return 'Use lowercase letters, numbers and single hyphens; start and end with a letter or number';
+  if (s.includes('--')) return 'Use single hyphens only';
+  if (RESERVED_SLUGS.includes(s)) return 'That name is reserved';
+  return null;
+}
+
+/** "My Spring Promo!" -> "my-spring-promo" (may still need a suffix / validation). */
+export function slugify(text, fallback = 'video') {
+  const s = String(text ?? '')
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48).replace(/-+$/g, '');
+  return validateSlug(s) ? fallback : s;
+}
+
+/** Canonical public URL: /v/<business>/<slug> when set, else /watch/<id>. */
+export function canonicalUrl(video, origin = globalThis.location?.origin || '') {
+  if (video?.business && video?.slug) return `${origin}/v/${encodeURIComponent(video.business)}/${encodeURIComponent(video.slug)}`;
+  return watchUrl(video.id, origin);
+}
+
+const SLUG_ERRORS = {
+  slug_taken: 'That name is already taken. Try another.',
+  invalid_slug: 'That name is not allowed. Use 3-48 lowercase letters, numbers and hyphens.',
+  business_required: 'Choose a business name first.',
+  not_found: 'Publish the video first.',
+  not_authenticated: 'Sign in to change your link.',
+};
+const slugFail = (error) => {
+  if (!error) return;
+  const key = Object.keys(SLUG_ERRORS).find((k) => String(error.message || '').includes(k));
+  throw new Error(key ? SLUG_ERRORS[key] : (error.message || 'Could not update the link'));
+};
+
 export function embedCode(id, origin) {
   const src = `${watchUrl(id, origin)}?embed=1`;
   return `<iframe src="${src}" width="960" height="540" style="border:0;max-width:100%;aspect-ratio:16/9;height:auto" allow="autoplay; fullscreen" allowfullscreen title="Interactive video"></iframe>`;
@@ -79,6 +127,9 @@ export function preparePublishProject(state, { title } = {}) {
     tracks,
     listBuilder: state?.listBuilder ? clean(state.listBuilder) : null,
     multiCam: state?.multiCam ? clean(state.multiCam) : null,
+    // The owner's mapping of sections to products/services (Projects > Retarget): lets the
+    // server score viewer interest from observed behaviour. Absent when not mapped.
+    ...(Array.isArray(state?.interestMap) && state.interestMap.length ? { interestMap: clean(state.interestMap.slice(0, 20)) } : {}),
   };
 }
 
@@ -123,9 +174,11 @@ const fail = (error, fallback) => {
   throw new Error(msg);
 };
 
-export async function publishVideo(client, { id, project }) {
+export async function publishVideo(client, { id, project, projectId = null }) {
   const row = { id, title: project.title, project, published: true };
-  const { data, error } = await client.from('published_videos').upsert(row, { onConflict: 'id' }).select('id, title, view_count, updated_at').single();
+  if (projectId) row.project_id = projectId; // link to the editable source project
+  const { data, error } = await client.from('published_videos').upsert(row, { onConflict: 'id' })
+    .select('id, title, view_count, updated_at, slug, privacy, revision').single();
   fail(error, 'Publishing failed');
   return data;
 }
@@ -136,9 +189,43 @@ export async function setPublished(client, id, published) {
 }
 
 export async function getMyVideo(client, id) {
-  const { data, error } = await client.from('published_videos').select('id, title, published, view_count, updated_at').eq('id', id).maybeSingle();
+  const { data, error } = await client.from('published_videos').select('id, title, published, view_count, updated_at, slug, privacy, revision').eq('id', id).maybeSingle();
   fail(error, 'Could not load the video');
+  if (!data) return data;
+  const { business } = await getMyBusiness(client).catch(() => ({ business: null }));
+  return { ...data, business };
+}
+
+export async function getMyBusiness(client) {
+  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name').maybeSingle();
+  fail(error, 'Could not load your business name');
+  return { business: data?.business_slug || null, displayName: data?.display_name || null };
+}
+
+export async function claimBusinessSlug(client, slug, displayName = null) {
+  const { data, error } = await client.rpc('claim_business_slug', { p_slug: slug, p_display: displayName });
+  slugFail(error);
   return data;
+}
+
+export async function setVideoSlug(client, id, slug) {
+  const { data, error } = await client.rpc('set_video_slug', { p_video_id: id, p_slug: slug });
+  slugFail(error);
+  return data;
+}
+
+export async function setVideoPrivacy(client, id, privacy) {
+  if (!['public', 'unlisted'].includes(privacy)) throw new Error('Unknown privacy setting');
+  const { error } = await client.from('published_videos').update({ privacy }).eq('id', id);
+  fail(error, 'Could not update privacy');
+}
+
+/** Immutable published revisions, newest first. */
+export async function listRevisions(client, id) {
+  const { data, error } = await client.from('published_video_revisions')
+    .select('revision, title, created_at').eq('video_id', id).order('revision', { ascending: false }).limit(20);
+  fail(error, 'Could not load revisions');
+  return data || [];
 }
 
 // ------------------------------------------------------------------ public API (viewer, no SDK)
@@ -148,49 +235,29 @@ function env() {
   return { url: String(e.VITE_SUPABASE_URL || '').replace(/\/$/, ''), key: e.VITE_SUPABASE_ANON_KEY || '' };
 }
 
-/** Load a published video for the viewer. Returns null when missing/unpublished. */
-export async function fetchPublishedVideo(id, { url, key, fetchImpl = fetch } = env()) {
-  if (!/^[A-Za-z0-9_-]{8,32}$/.test(String(id || ''))) return null;
+/**
+ * Load a published video for the viewer through get_published_video() (the
+ * table itself is not publicly readable). Look up by id (/watch/<id>) or by
+ * { business, slug } (/v/<business>/<slug>). Resolves to the sanitized video,
+ * { redirect: {id, business, slug} } for a renamed link, or null when missing
+ * or unpublished.
+ */
+export async function fetchPublishedVideo(ref, { url, key, fetchImpl = fetch } = env()) {
+  const byId = typeof ref === 'string';
+  const args = byId
+    ? { p_id: ref }
+    : { p_business: String(ref?.business || ''), p_slug: String(ref?.slug || '') };
+  if (byId && !/^[A-Za-z0-9_-]{8,32}$/.test(ref)) return null;
+  if (!byId && (validateSlug(args.p_business) || validateSlug(args.p_slug))) return null;
   if (!url || !key) throw new Error('Video service is not configured');
-  const res = await fetchImpl(`${url}/rest/v1/published_videos?id=eq.${encodeURIComponent(id)}&published=eq.true&select=id,title,project,updated_at`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
+  const res = await fetchImpl(`${url}/rest/v1/rpc/get_published_video`, {
+    method: 'POST',
+    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(args),
   });
   if (!res.ok) throw new Error(`Could not load the video (HTTP ${res.status})`);
-  const rows = await res.json();
-  return Array.isArray(rows) && rows[0] ? rows[0] : null;
-}
-
-export async function countView(id, { url, key, fetchImpl = fetch } = env()) {
-  if (!url || !key) return;
-  try {
-    await fetchImpl(`${url}/rest/v1/rpc/increment_video_view`, {
-      method: 'POST',
-      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ video_id: id }),
-    });
-  } catch { /* counting is best-effort */ }
-}
-
-export const VIDEO_EVENT_KINDS = Object.freeze(['view', 'play', 'complete', 'cta_click', 'lead']);
-
-/**
- * Record what a viewer did on /watch/<id> (best-effort). Personal links
- * (?c=<contactId>) attribute it to that contact.
- */
-export async function recordVideoEvent(id, { kind, contactId = null, clipId = null } = {}, { url, key, fetchImpl = fetch } = env()) {
-  if (!url || !key || !VIDEO_EVENT_KINDS.includes(kind)) return;
-  try {
-    await fetchImpl(`${url}/rest/v1/rpc/record_video_event`, {
-      method: 'POST',
-      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        video_id: id,
-        kind,
-        contact_id: contactId && /^[A-Za-z0-9_-]{1,80}$/.test(String(contactId)) ? String(contactId) : null,
-        clip_id: clipId != null ? String(clipId).slice(0, 80) : null,
-      }),
-    });
-  } catch { /* analytics is best-effort */ }
+  const data = await res.json();
+  return data && typeof data === 'object' ? data : null;
 }
 
 /** Owner: totals per contact for one of their videos. */

@@ -5,7 +5,7 @@ import './components/modals/modal-styles.css';
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
 // real error surfaces in the dev-tools console if any step fails.
 import { initPopcorn } from './lib/popcornInit.js';
-const IS_WATCH_PAGE = /^\/watch\//.test(window.location.pathname) || /^#\/watch\//.test(window.location.hash);
+const IS_WATCH_PAGE = /^\/(watch|v)\//.test(window.location.pathname) || /^#\/(watch|v)\//.test(window.location.hash);
 // The public video player (/watch/<id>) doesn't use Popcorn.
 (IS_WATCH_PAGE ? Promise.resolve(null) : initPopcorn()).then(() => {
   if (IS_WATCH_PAGE) return;
@@ -154,6 +154,15 @@ try {
     const { mountWatchPage } = await import('./pages/WatchPage.jsx');
     await mountWatchPage(app, decodeURIComponent(initialPage.slice('watch/'.length).split(/[/?#]/)[0]));
     console.log('[App] Watch page rendered');
+    return;
+  }
+
+  // Readable public link: /v/<business>/<video-slug> (same player).
+  if (initialPage.startsWith('v/')) {
+    const [business, slug] = initialPage.slice(2).split(/[?#]/)[0].split('/').map((p) => decodeURIComponent(p || ''));
+    const { mountWatchPage } = await import('./pages/WatchPage.jsx');
+    await mountWatchPage(app, { business, slug });
+    console.log('[App] Watch page rendered (readable link)');
     return;
   }
 

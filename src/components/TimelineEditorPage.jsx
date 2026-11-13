@@ -3,6 +3,7 @@ import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
+import { isTypingTarget } from '../lib/editor/keyboard.js';
 import { renderMediaGrid, addMediaToTimeline } from '../lib/editor/mediaLibrary.js';
 import { assetStore } from '../lib/assets/assetStore.js';
 import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, openGTMPromptModal } from '../lib/uiIntegration.js';
@@ -60,6 +61,7 @@ import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos 
 import '../../styles/timeline-tokens.css';
 import '../../styles/timeline-editor-page.css';
 import '../../styles/personalize-ui.css';
+import '../../styles/projects-panel.css';
 import '../../styles/timeline-addons.css';
 // Import rendiv animation primitives
 import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } from '../lib/editor/animationControls.jsx';
@@ -595,6 +597,10 @@ export function TimelineEditorPage() {
         <div class="card-title">🎬 Stock Media</div>
         <div id="stockBrowser"></div>
       </aside>
+      <aside class="side-card" id="projectsPanel" hidden data-tooltip="Projects - every saved video, its status and performance">
+        <div class="card-title">📁 Projects</div>
+        <div id="projectsBody"></div>
+      </aside>
       <aside class="side-card" id="sharePanel" hidden data-tooltip="Share - publish an interactive video link and embed code">
         <div class="card-title">🔗 Share</div>
         <div id="shareBody"></div>
@@ -771,6 +777,7 @@ export function TimelineEditorPage() {
       quickCommands: ['⚡Generate','Retake','Extend','B-Roll','🎬 Detect Scenes'],
       railActions: [
         ['＋', 'Media'],
+        ['📁', 'Projects'],
         ['✨', 'Generate', true],
         ['⬆', 'Export'],
         ['⚡', 'Interactive'],
@@ -1148,13 +1155,16 @@ export function TimelineEditorPage() {
 
     // Keyboard shortcuts for undo/redo
     function handleKeyboardShortcuts(event) {
-      if (event.key === 'Delete' || event.key === 'Backspace') {
+      // Timeline-editing shortcuts never apply while the user is typing in a field
+      // (otherwise Backspace could not edit a text box and would delete a clip).
+      const typing = isTypingTarget(event.target);
+      if (!typing && (event.key === 'Delete' || event.key === 'Backspace')) {
         event.preventDefault();
         deleteSelectedClip();
         return;
       }
       
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd') {
+      if (!typing && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd') {
         event.preventDefault();
         duplicateSelectedClip();
         return;
@@ -1181,6 +1191,7 @@ export function TimelineEditorPage() {
       if (event.ctrlKey || event.metaKey) {
         switch (event.key) {
           case 'z':
+            if (typing) break; // native undo inside text fields
             if (event.shiftKey) {
               event.preventDefault();
               if (redo(state)) renderAll();
@@ -1190,6 +1201,7 @@ export function TimelineEditorPage() {
             }
             break;
           case 'y':
+            if (typing) break;
             event.preventDefault();
             if (redo(state)) renderAll();
             break;
@@ -1204,6 +1216,11 @@ export function TimelineEditorPage() {
 
     // Add keyboard event listeners
     cleanup.addDocumentListener('keydown', handleKeyboardShortcuts);
+
+    // Header bell -> open Projects on the project with the most unread alerts.
+    const openProjectsFromBell = async () => { openPanel('projectsPanel'); await mountProjectsPanel(); projectsPanel?.openMostUnread?.(); };
+    cleanup.addWindowListener('remix:open-projects', openProjectsFromBell);
+    try { if (sessionStorage.getItem('remix_open_projects')) { sessionStorage.removeItem('remix_open_projects'); cleanup.addTimer(setTimeout(openProjectsFromBell, 700)); } } catch { /* storage unavailable */ }
     // The Personalize window (OpenHiggsBolt) keeps its clients and saved Lead
     // Finder leads in its own storage. Copy them into the contact store the
     // editor reads, on load, on focus, and whenever the studio saves something.
@@ -1237,6 +1254,7 @@ export function TimelineEditorPage() {
         try {
           syncCurrentTimelineFromState(state);
           saveProjectToStorage(state);
+          scheduleCloudSave();
         } catch (err) {
           // QuotaExceededError or serialization failure: surface to user
           if (err && err.name === 'QuotaExceededError') {
@@ -2322,8 +2340,13 @@ export function TimelineEditorPage() {
       try {
         const modal = new SaveProjectModal({
           projectData: state,
-          onComplete: (result) => {
-            state.projectId = result.projectId;
+          projectName: state.projectTitle && state.projectTitle !== 'Untitled Sequence' ? state.projectTitle : '',
+          onComplete: async (result) => {
+            try {
+              await saveAsProject(result);
+            } catch (err) {
+              showToast(`Project save failed: ${err.message || err}`, 'error');
+            }
           },
           onError: (error) => console.log(`Project save failed: ${error}`, 'error')
         });
@@ -5866,6 +5889,191 @@ export function TimelineEditorPage() {
     }
 
     // ---------------------------------------------------------------
+    // Projects: durable, per-owner project library (timeline_projects).
+    // The editor keeps working from localStorage; a project is that same state
+    // mirrored to Supabase under state.projectId. Publishing and rendering never
+    // overwrite the editable source.
+    // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
+    var projectsPanel = null;
+    // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
+    var cloudSaveTimer = null;
+    // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
+    var cloudSaveWarned = false;
+    async function projectStore() { return import('../lib/editor/projectLibrary/projectStore.js'); }
+    function scheduleCloudSave() {
+      if (!state.projectId || !window.Clerk?.user) return;
+      if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(async () => {
+        cloudSaveTimer = null;
+        try {
+          const store = await projectStore();
+          await store.saveProjectData(await publishOwnerClient(), state.projectId, state);
+          cloudSaveWarned = false;
+        } catch (err) {
+          if (!cloudSaveWarned) { cloudSaveWarned = true; showToast(`Cloud save failed (kept locally): ${err.message || err}`, 'error'); }
+        }
+      }, 3000);
+      cleanup.addTimer(cloudSaveTimer);
+    }
+    async function saveAsProject({ projectName, tags } = {}) {
+      const store = await projectStore();
+      const client = await publishOwnerClient();
+      syncCurrentTimelineFromState(state);
+      const name = store.cleanName(projectName, state.projectTitle);
+      if (state.projectId) {
+        await store.renameProject(client, state.projectId, name);
+        if (Array.isArray(tags)) await store.setProjectTags(client, state.projectId, tags);
+        await store.saveProjectData(client, state.projectId, state);
+      } else {
+        const row = await store.createProject(client, { name, state, tags });
+        state.projectId = row.id;
+        await store.saveProjectData(client, row.id, state); // persist projectId inside data
+      }
+      state.projectTitle = name;
+      if (els.projectTitle) els.projectTitle.textContent = name;
+      saveProjectToStorage(state);
+      projectsPanel?.refresh();
+      showToast(`Saved project "${name}"`, 'success');
+      captureProjectThumbnail();
+    }
+    async function openProjectRow(row) {
+      if (!row) return;
+      if (row.id === state.projectId) { showToast('This project is already open', 'info'); return; }
+      // Library rows are summaries without `data`; opening one without it would later cloud-save an empty timeline
+      // over the project's real source, so load the full project first.
+      if (!row.data) {
+        try { row = await (await projectStore()).loadProject(await publishOwnerClient(), row.id); } catch { row = null; }
+        if (!row?.data) { showToast('Could not load that project', 'error'); return; }
+      }
+      if (!state.projectId && !window.confirm('Your current timeline is not saved as a project and will be replaced. Open the selected project anyway?')) return;
+      // Flush the current project first so no edits are lost.
+      if (state.projectId) {
+        try { syncCurrentTimelineFromState(state); await (await projectStore()).saveProjectData(await publishOwnerClient(), state.projectId, state); } catch { /* local copy remains */ }
+      }
+      const data = { ...(row.data || {}), projectId: row.id, projectTitle: row.name };
+      localStorage.setItem('timeline-editor-project', JSON.stringify(data));
+      window.location.reload();
+    }
+    async function mountProjectsPanel() {
+      const host = root.querySelector('#projectsBody');
+      if (!host) return;
+      if (projectsPanel) { projectsPanel.refresh(); return; }
+      const { renderProjectsPanel } = await import('../lib/editor/projectLibrary/projectsPanel.js');
+      projectsPanel = renderProjectsPanel(host, {
+        getClient: publishOwnerClient,
+        getCurrentProjectId: () => state.projectId || null,
+        async getPublished(ids) {
+          if (!ids.length) return {};
+          const client = await publishOwnerClient();
+          const me = window.Clerk?.user?.id;
+          const { data } = await client.from('published_videos').select('id, published, project_id, clerk_user_id').in('project_id', ids);
+          const out = {};
+          for (const v of data || []) if (v.clerk_user_id === me && v.project_id) out[v.project_id] = v;
+          return out;
+        },
+        async onCreate() {
+          if (state.projectId) { showToast('The open timeline is already a project', 'info'); return; }
+          openSaveProjectModal(state, showToast);
+        },
+        onOpen: openProjectRow,
+        onPreview(row) { if (row?.id === state.projectId) { showToast('Use the player above to preview the open project', 'info'); } else { openProjectRow(row); } },
+        onExport(row) { if (row?.id === state.projectId) openExportModal(state, showToast); else showToast('Open the project, then choose Export', 'info'); },
+        onShare(row) { if (row?.id === state.projectId) openPanel('sharePanel'); else showToast('Open the project, then use Share to publish', 'info'); },
+        onToast: showToast,
+        // Card numbers come from the owner-only analytics RPCs; absent rows stay "unavailable".
+        async getStats(ids) {
+          const client = await publishOwnerClient();
+          const { periodRange } = await import('../lib/editor/projectLibrary/analytics/analyticsData.js');
+          const { from, to } = periodRange('30d');
+          const { data, error } = await client.rpc('owner_video_stats', { p_from: from, p_to: to });
+          if (error) throw error;
+          const notes = await client.from('owner_notifications').select('project_id, type').is('read_at', null).in('project_id', ids);
+          const unread = {}; const follow = {};
+          for (const n of notes.data || []) { unread[n.project_id] = (unread[n.project_id] || 0) + 1; if (['followup_opportunity', 'high_interest'].includes(n.type)) follow[n.project_id] = true; }
+          const out = {};
+          for (const r of data || []) {
+            if (!r.project_id) continue;
+            const plays = Number(r.plays) || 0; const uniq = Number(r.unique_viewers) || 0;
+            out[r.project_id] = {
+              plays, unique_viewers: plays > 0 && uniq === 0 ? null : uniq,
+              completion_pct: r.completion_pct == null ? null : Number(r.completion_pct),
+              cta_clicks: (Number(r.cta_clicks) || 0) + (Number(r.call_clicks) || 0), leads: Number(r.leads) || 0,
+              needs_follow_up: !!follow[r.project_id], unread_notifications: unread[r.project_id] || 0,
+            };
+          }
+          return out;
+        },
+        async getPortfolio() {
+          const client = await publishOwnerClient();
+          const { periodRange } = await import('../lib/editor/projectLibrary/analytics/analyticsData.js');
+          const { from, to } = periodRange('30d');
+          const { data, error } = await client.rpc('owner_portfolio_summary', { p_from: from, p_to: to });
+          if (error) throw error;
+          return data;
+        },
+        async getUnread() { return (await import('../lib/editor/projectLibrary/tabsData.js')).unreadCount(await publishOwnerClient()); },
+        tabs: await projectTabs(),
+      });
+    }
+    // Detail-tab renderers (Analytics = the supplied dashboard component; the rest share its look).
+    async function projectTabs() {
+      const [{ audienceTab, retargetTab, notificationsTab, shareTab }, { mountAnalyticsTab }] = await Promise.all([
+        import('../lib/editor/projectLibrary/projectTabs.js'),
+        import('../lib/editor/projectLibrary/analytics/mountAnalyticsTab.jsx'),
+      ]);
+      const tabDeps = {
+        getClient: publishOwnerClient,
+        navigate: (page) => import('../lib/router.js').then((m) => m.navigate(page)),
+        onToast: showToast,
+        onUnreadChanged: () => { projectsPanel?.refresh(); window.dispatchEvent(new Event('remix:notifications-changed')); },
+      };
+      return {
+        audience: audienceTab(tabDeps),
+        retarget: retargetTab(tabDeps),
+        notifications: notificationsTab(tabDeps),
+        share: shareTab({ ...tabDeps, getOpenProjectId: () => state.projectId || null, mountShare: (host) => createSharePanel(host) }),
+        analytics: (panel, ctx) => {
+          let stop = null; let cancelled = false;
+          publishOwnerClient().then((client) => {
+            if (cancelled) return;
+            stop = mountAnalyticsTab(panel, ctx, {
+              client,
+              onPublish: () => (ctx.project.id === state.projectId ? openPanel('sharePanel') : showToast('Open the project, then use Share to publish', 'info')),
+              onOpenOpportunity: (id) => ctx.openTab('notifications', { focusId: id }),
+              onCreateFollowup: () => ctx.openTab('retarget'),
+            });
+          }).catch((err) => { panel.textContent = err.message; });
+          return () => { cancelled = true; stop?.(); };
+        },
+      };
+    }
+    async function recordRender(info) {
+      if (!state.projectId || !window.Clerk?.user) return;
+      try { await (await projectStore()).setRenderInfo(await publishOwnerClient(), state.projectId, info); projectsPanel?.refresh(); } catch { /* non-fatal */ }
+    }
+    // One representative frame of the timeline becomes the project's thumbnail (best-effort, never blocks).
+    let thumbBusy = false;
+    async function captureProjectThumbnail() {
+      if (thumbBusy || !state.projectId || !window.Clerk?.user) return;
+      thumbBusy = true;
+      try {
+        const [{ captureThumbnail }, { renderStill }, { timelineToComposition }] = await Promise.all([
+          import('../lib/editor/projectLibrary/thumbnail.js'),
+          import('../lib/editor/remotion/exportClient.js'),
+          import('../lib/editor/remotion/timelineToComposition.js'),
+        ]);
+        syncCurrentTimelineFromState(state);
+        const url = await captureThumbnail(state, {
+          fps: ENGINE_FPS,
+          buildModel: (st) => timelineToComposition(st, { fps: ENGINE_FPS, quality: '720p', profile: getActivePersonalizationProfile() }),
+          renderStill,
+          upload: uploadFileToStorage,
+        });
+        if (url) { await (await projectStore()).setThumbnail(await publishOwnerClient(), state.projectId, url); projectsPanel?.refresh(); }
+      } catch { /* the card keeps its placeholder */ } finally { thumbBusy = false; }
+    }
+
+    // ---------------------------------------------------------------
     // Share: publish the timeline as an interactive video (/watch/<id>).
     // eslint-disable-next-line no-var -- created on first open
     var sharePanel = null;
@@ -5903,11 +6111,15 @@ export function TimelineEditorPage() {
     async function mountSharePanel() {
       const host = root.querySelector('#shareBody');
       if (sharePanel || !host) return;
+      sharePanel = await createSharePanel(host);
+    }
+    // Builds the Share panel in any host: the rail panel, or the open project's "Publish & Share" tab.
+    async function createSharePanel(host) {
       const pub = await import('../lib/editor/publish/publishClient.js');
       const { renderSharePanel } = await import('../lib/editor/publish/sharePanel.js');
       const { localMediaBlob } = await import('../lib/editor/remotion/localMedia.js');
       const videoId = () => (state.publishedVideos || {})[publishedKey()] || null;
-      sharePanel = renderSharePanel(host, {
+      return renderSharePanel(host, {
         defaultTitle: state.projectTitle || 'Untitled video',
         async getInfo() {
           const id = videoId();
@@ -5921,14 +6133,38 @@ export function TimelineEditorPage() {
             renderTracks();
             scheduleEngineUpdate();
           }
+          // Interest mapping lives with the project (Projects > Retarget); publishing carries it to viewers.
+          if (state.projectId) {
+            try { state.interestMap = (await (await projectStore()).loadProject(client, state.projectId))?.settings?.interestMap || undefined; } catch { /* publish without a mapping */ }
+          }
           const project = pub.preparePublishProject(state, { title });
           const id = videoId() || pub.makeSlug();
-          const info = await pub.publishVideo(client, { id, project });
+          const info = await pub.publishVideo(client, { id, project, projectId: state.projectId || null });
           state.publishedVideos = { ...(state.publishedVideos || {}), [publishedKey()]: id };
           debouncedSave();
+          // With a business name already chosen, give a new video a readable
+          // link automatically (suffix on collision); owners can rename it later.
+          try {
+            const mine = await pub.getMyBusiness(client);
+            if (mine.business && !info.slug) {
+              const base = pub.slugify(title, 'video');
+              for (let n = 1; n <= 5; n += 1) {
+                try { await pub.setVideoSlug(client, id, n === 1 ? base : `${base}-${n}`.slice(0, 48)); break; } catch (e) { if (!/already taken/i.test(e.message)) break; }
+              }
+            }
+          } catch { /* the /watch/<id> link always works */ }
           showToast('Published — copy the link to share it', 'success');
-          return { ...info, published: true };
+          captureProjectThumbnail();
+          return { ...(await pub.getMyVideo(client, id).catch(() => info)), published: true };
         },
+        async saveLink({ business, slug }) {
+          const client = await publishOwnerClient();
+          if (business) await pub.claimBusinessSlug(client, business);
+          await pub.setVideoSlug(client, videoId(), slug);
+          return pub.getMyVideo(client, videoId());
+        },
+        async setPrivacy(privacy) { await pub.setVideoPrivacy(await publishOwnerClient(), videoId(), privacy); },
+        async listRevisions() { return pub.listRevisions(await publishOwnerClient(), videoId()); },
         async setPublished(on) {
           await pub.setPublished(await publishOwnerClient(), videoId(), on);
           showToast(on ? 'Published' : 'Unpublished — the link no longer works', 'success');
@@ -7748,6 +7984,7 @@ export function TimelineEditorPage() {
       if (id === 'localAIPanel') mountLocalAIPanel();
       if (id === 'storyboardPanelCard') mountStoryboardPanel();
       if (id === 'sharePanel') mountSharePanel();
+      if (id === 'projectsPanel') mountProjectsPanel();
       if (id === 'colorScopesPanel') mountColorScopesPanel();
       if (id === 'multiCameraPanel') renderMultiCamera();
       el.hidden = false;
@@ -7818,6 +8055,7 @@ export function TimelineEditorPage() {
       'AI Chat': 'aiChatPanelCard',
       'Storyboard': 'storyboardPanelCard',
       'Share': 'sharePanel',
+      'Projects': 'projectsPanel',
       'Scene Detector': 'sceneDetectorPanel',
       'Camera FX': 'cameraEffectsPanel',
       'Color Scopes': 'colorScopesPanel',
@@ -8276,6 +8514,11 @@ export function TimelineEditorPage() {
             onProgress: (p) => setProgress(p * 100, `Rendering... ${Math.round(p * 100)}%`),
           });
           downloadBlob(blob, `${name}.${EXTENSIONS[container] || 'mp4'}`);
+          if (state.projectId && window.Clerk?.user) {
+            // Keep the rendered file with the project (upload is best-effort; the download above is unaffected).
+            import('../lib/editor/projectLibrary/thumbnail.js').then(({ storeRender }) => storeRender(blob, { container, quality, durationS: state.timelineSeconds, name, upload: uploadFileToStorage }))
+              .then((info) => { recordRender(info); if (info.stored) showToast('Export saved to your project', 'success'); captureProjectThumbnail(); });
+          }
           setProgress(100, `Export complete (${(blob.size / 1048576).toFixed(1)} MB)`);
           showToast('Export complete — your video is downloading', 'success');
           setTimeout(closeModal, 1500);

@@ -68,8 +68,11 @@
   "durationInFrames",
   "color"
  ],
- "blur-in": [],
- "blur-reveal": [],
+ "blur-reveal": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
  "browser-flow": [
   "url"
  ],
@@ -135,7 +138,11 @@
   "placeholder",
   "accentColor"
  ],
- "chromatic-aberration-wipe": [],
+ "chromatic-aberration-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
  "claude-chat": [
   "placeholder",
   "prompt",
@@ -251,7 +258,11 @@
   "maxBlur",
   "aperture"
  ],
- "directional-wipe": [],
+ "directional-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
  "donut-chart": [
   "size",
   "thickness",
@@ -319,7 +330,11 @@
   "successLabel",
   "charsPerSecond"
  ],
- "frosted-glass-wipe": [],
+ "frosted-glass-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
  "funnel-chart": [
   "width",
   "height",
@@ -657,7 +672,6 @@
  "skew-in": [
   "durationInFrames"
  ],
- "slide-left": [],
  "slide-up": [
   "mask",
   "exit"
@@ -678,7 +692,11 @@
   "color",
   "upColor"
  ],
- "spatial-push": [],
+ "spatial-push": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
  "speaker-label-captions": [
   "defaultSpeaker",
   "fontSize",
@@ -729,7 +747,6 @@
   "decimals",
   "label"
  ],
- "strikethrough-replace": [],
  "stroke-to-fill-text": [
   "text",
   "strokeColor",
@@ -797,17 +814,63 @@
   "lineHeight",
   "activeColor"
  ],
- "transition-blinds": [],
- "transition-card-flip": [],
- "transition-circle-reveal": [],
- "transition-clock-wipe": [],
- "transition-fade": [],
- "transition-light-leak": [],
- "transition-liquid-warp": [],
- "transition-morph-shape": [],
- "transition-slide": [],
- "transition-whip-pan": [],
- "transition-wipe": [],
+ "transition-blinds": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-card-flip": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-circle-reveal": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-clock-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-fade": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-light-leak": [
+  "textA",
+  "textB",
+  "colorA",
+  "colorB"
+ ],
+ "transition-liquid-warp": [
+  "textA",
+  "textB",
+  "colorA",
+  "colorB"
+ ],
+ "transition-morph-shape": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-slide": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-whip-pan": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "transition-wipe": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
  "treemap-blocks": [
   "width",
   "height",
@@ -859,5 +922,16 @@
   "color",
   "uppercase"
  ],
- "zoom-through": []
+ "zoom-through": [
+  "textA",
+  "textB",
+  "colorB"
+ ],
+ "blur-in": [
+  "text1"
+ ],
+ "slide-left": [
+  "text1"
+ ],
+ "strikethrough-replace": []
 }
