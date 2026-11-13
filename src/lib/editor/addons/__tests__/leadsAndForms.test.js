@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
+  submitLead, fetchLeads, postWebhooksDirect, testWebhooks, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   buildOptinForm, showListBuilderOverlay, showPauseOverlay, ensureOverlayLayer, formBackground,
   renderAddonEditor, getAddon,
@@ -50,6 +50,33 @@ describe('lead client', () => {
       .mockResolvedValueOnce({ ok: true })
       .mockResolvedValueOnce({ ok: false });
     expect(await postWebhooksDirect(['https://a', 'https://b'], { x: 1 }, fetchImpl)).toEqual({ forwarded: 1, failed: 1 });
+  });
+
+  it('tests webhooks with a flagged sample payload', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce({ ok: true }).mockRejectedValueOnce(new Error('cors'));
+    expect(await testWebhooks(['https://a', 'https://b'], { kind: 'list-builder', data: { EMAIL: 'x' } }, fetchImpl)).toEqual({ total: 2, failed: 1 });
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toMatchObject({ event: 'video_opted_in', test: true, kind: 'list-builder' });
+  });
+
+  it('list builder Integrations tab has a Test Webhook action only while webhooks are on', () => {
+    const tab = (cfg) => listBuilderFields(cfg).filter((f) => f.tab === 'Integrations' && (!f.showIf || f.showIf(cfg)));
+    expect(tab({ kind: 'list-builder', webhookEnabled: false }).some((f) => f.type === 'action')).toBe(false);
+    expect(tab({ kind: 'list-builder', webhookEnabled: true }).find((f) => f.type === 'action')?.action).toBe('testWebhooks');
+    expect(tab({ kind: 'list-builder' }).some((f) => f.key === 'fbPixelId')).toBe(true);
+  });
+
+  it('renders the action button and runs services.fieldAction', async () => {
+    document.body.innerHTML = '<div id="c"></div>';
+    const container = document.getElementById('c');
+    const fieldAction = vi.fn(async (_a, _o, { setResult }) => setResult('2/2 succeeded'));
+    renderAddonEditor(container, {
+      options: { webhookEnabled: true }, services: { fieldAction },
+      fields: [{ key: '_t', label: 'Test Webhook', type: 'action', action: 'testWebhooks' }],
+    });
+    container.querySelector('[data-field-action]').click();
+    await Promise.resolve(); await Promise.resolve();
+    expect(fieldAction).toHaveBeenCalledWith('testWebhooks', { webhookEnabled: true }, expect.any(Object));
+    expect(container.querySelector('.addon-action-result').textContent).toBe('2/2 succeeded');
   });
 });
 

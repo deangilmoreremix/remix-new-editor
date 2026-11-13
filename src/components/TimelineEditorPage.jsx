@@ -25,7 +25,7 @@ import {
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
-  submitLead, fetchLeads, postWebhooksDirect, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  submitLead, fetchLeads, postWebhooksDirect, testWebhooks, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
@@ -5370,6 +5370,21 @@ export function TimelineEditorPage() {
         options: lb,
         fieldsFor: (o) => listBuilderFields(o),
         idPrefix: 'listbuilder',
+        services: {
+          fieldAction: async (action, config, { setResult }) => {
+            if (action !== 'testWebhooks') return;
+            const urls = webhookUrlsFor(listBuilderWebhookConfig(config));
+            if (!urls.length) { setResult('No valid https webhook URL configured'); return; }
+            setResult('Testing...');
+            const tokens = leadFieldTokens(config.elements);
+            const sample = Object.fromEntries(tokens.map((t) => [t, /MAIL/.test(t) ? 'test@example.com' : 'Test']));
+            const { total, failed } = await testWebhooks(urls, {
+              kind: config.kind || 'list-builder', projectId: null, clipId: 'list-builder', data: sample, submittedAt: new Date().toISOString(),
+            });
+            setResult(failed ? `${failed}/${total} failed` : `${total}/${total} succeeded`);
+            showToast(failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', failed ? 'error' : 'success');
+          },
+        },
         onChange: (next) => {
           const kindChanged = next.kind !== state.listBuilder.kind;
           state.listBuilder = kindChanged ? switchListBuilderKind(next, next.kind) : next;

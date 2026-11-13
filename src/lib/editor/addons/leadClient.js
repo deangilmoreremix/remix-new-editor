@@ -93,6 +93,21 @@ export async function postWebhooksDirect(urls, data, fetchImpl = globalThis.fetc
 }
 
 /**
+ * "Test Webhook": POST a sample lead (flagged `test: true`) to each URL from
+ * the browser and report how many answered 2xx. Nothing is stored. Receivers
+ * that don't send CORS headers can report a false failure here.
+ */
+export async function testWebhooks(urls, payload, fetchImpl = globalThis.fetch) {
+  const results = await Promise.allSettled(urls.map((url) => fetchImpl(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event: 'video_opted_in', test: true, ...payload }),
+  })));
+  const failed = results.filter((r) => r.status === 'rejected' || (r.value && r.value.ok === false)).length;
+  return { total: urls.length, failed };
+}
+
+/**
  * Load stored leads for a clip (or a whole project) via the edge function.
  * Returns [] when the backend is unavailable or the caller isn't signed in.
  */
