@@ -16,7 +16,7 @@ import { userLutTextSync } from '@cinegen/lib/occ/user-luts';
 import { pluginFxSnapshotSync, type FxSnapshot } from '@cinegen/lib/occ/plugins';
 
 export interface ExportTrackInfo { id: string; kind: 'video' | 'audio'; muted: boolean; solo: boolean; visible: boolean; volume: number }
-export interface ExportTransitionInfo { type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; clipAId: string; clipBId?: string; glType?: string; glDef?: unknown }
+export interface ExportTransitionInfo { type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; clipAId: string; clipBId?: string; glType?: string; glDef?: unknown; glParams?: Record<string, number | boolean | number[]> }
 export interface ExportClipInput {
   id?: string; name?: string; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: 'video' | 'audio' | 'image';
   trackKind?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean;
@@ -51,7 +51,7 @@ export function exportTracksFromTimeline(timeline: Timeline): ExportTrackInfo[] 
 
 /** Every transition, for the export hand-off (GL ones carry glType/glDef, plain ones are turned into opacity ramps). */
 export function exportTransitionsFromTimeline(timeline: Timeline): ExportTransitionInfo[] {
-  return (timeline.transitions ?? []).map((t) => ({ type: t.type, duration: t.duration, clipAId: t.clipAId, clipBId: t.clipBId, glType: t.glType, glDef: t.glDef }));
+  return (timeline.transitions ?? []).map((t) => ({ type: t.type, duration: t.duration, clipAId: t.clipAId, clipBId: t.clipBId, glType: t.glType, glDef: t.glDef, ...(t.glParams ? { glParams: t.glParams } : {}) }));
 }
 
 /** Same rule as PlaybackEngine.updateMutedTracks: with any solo only soloed tracks play, otherwise muted tracks are silent (and hidden). */

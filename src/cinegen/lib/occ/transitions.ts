@@ -3,12 +3,13 @@ import { addTransition, removeTransition } from '@cinegen/lib/editor/timeline-op
 import { clipEffectiveDuration, clipEndTime, type Clip, type Timeline, type Transition } from '@cinegen/types/timeline';
 import { GLSL_TRANSITIONS } from '../../../openchatcut/gl/transitions';
 import { t } from '../../../openchatcut/i18n/t';
+import { gltLabel, isGltId } from '../../../openchatcut/gl/glt';
 import { isKnownTransition, transitionSnapshotFor } from './plugins';
 
 /** Their transition catalog order (editor/transitionTypes.ts TRANSITION_ORDER). */
 export const GL_TRANSITION_ORDER = ['anticipation-zoom', 'clean-line-wipe', 'cross-dissolve', 'dip-to-black', 'flash', 'impact-shake', 'luma-blend', 'organic-dissolve', 'page-curl', 'rack-focus', 'soft-wipe', 'whip-pan', 'circle-wipe', 'radial-blur', 'glitch-cut', 'dip-to-color'] as const;
 const ZH: Record<string, string> = { 'anticipation-zoom': '推进转场', 'clean-line-wipe': '白色划线转场', 'cross-dissolve': '叠化转场', 'dip-to-black': '闪黑转场', flash: '闪白转场', 'impact-shake': '冲击抖动转场', 'luma-blend': '叠加转场', 'organic-dissolve': '光溶转场', 'page-curl': '翻页转场', 'rack-focus': '焦点转场', 'soft-wipe': '柔化擦除转场', 'whip-pan': '甩镜转场', 'circle-wipe': '圆形擦除转场', 'radial-blur': '径向模糊转场', 'glitch-cut': '故障切换转场', 'dip-to-color': '闪色转场' };
-export const glTransitionLabel = (id: string) => t(ZH[id] ?? id);
+export const glTransitionLabel = (id: string) => (isGltId(id) ? gltLabel(id) : t(ZH[id] ?? id));
 export const isGlTransition = (id?: string, snap?: Transition['glDef']): id is string => isKnownTransition(id, snap);
 
 /** The clip that follows `clip` on its track (the cut a transition would sit on). */
@@ -22,12 +23,15 @@ export const transitionBetween = (tl: Timeline, a: Clip, b: Clip): Transition | 
 /** Spare source material available for an overlap (CineGen needs trim handles on both sides). */
 export const transitionHandle = (a: Clip, b: Clip) => Math.min(a.trimEnd, b.trimStart);
 
-export function addGlTransition(tl: Timeline, a: Clip, b: Clip, glType: string, duration: number, glDef?: Transition['glDef']): Timeline {
-  const next = addTransition(tl, { id: `tr-${a.id}-${b.id}`, type: 'dissolve', duration, clipAId: a.id, clipBId: b.id, glType, ...(glDef ? { glDef } : {}) });
+export function addGlTransition(tl: Timeline, a: Clip, b: Clip, glType: string, duration: number, glDef?: Transition['glDef'], glParams?: Transition['glParams']): Timeline {
+  const next = addTransition(tl, { id: `tr-${a.id}-${b.id}`, type: 'dissolve', duration, clipAId: a.id, clipBId: b.id, glType, ...(glDef ? { glDef } : {}), ...(glParams && Object.keys(glParams).length ? { glParams } : {}) });
   return next;
 }
 export const setGlType = (tl: Timeline, id: string, glType: string | undefined, glDef?: Transition['glDef']): Timeline =>
-  ({ ...tl, transitions: (tl.transitions ?? []).map((x) => (x.id === id ? { ...x, glType, glDef } : x)) });
+  ({ ...tl, transitions: (tl.transitions ?? []).map((x) => (x.id === id ? { ...x, glType, glDef, glParams: undefined } : x)) });
+/** [remix] Stage 6: replace a cut's vendored-shader parameter overrides (empty = back to defaults) and optionally its duration. */
+export const setGlParams = (tl: Timeline, id: string, glParams: Transition['glParams'] | undefined): Timeline =>
+  ({ ...tl, transitions: (tl.transitions ?? []).map((x) => (x.id === id ? { ...x, glParams: glParams && Object.keys(glParams).length ? glParams : undefined } : x)) });
 export { transitionSnapshotFor };
 export { removeTransition };
 
@@ -39,7 +43,7 @@ export function activeGlTransition(tl: Timeline, time: number) {
     if (!a || !b) continue;
     const start = b.startTime; const end = clipEndTime(a);
     if (end - start <= 1e-6 || time < start || time >= end) continue;
-    return { glType: tr.glType, glDef: tr.glDef, outClipId: a.id, inClipId: b.id, progress: (time - start) / (end - start) };
+    return { glType: tr.glType, glDef: tr.glDef, glParams: tr.glParams, outClipId: a.id, inClipId: b.id, progress: (time - start) / (end - start) };
   }
   return null;
 }

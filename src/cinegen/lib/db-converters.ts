@@ -213,6 +213,8 @@ export function transitionFromRow(row: Record<string, unknown>): Transition {
     clipBId: optStr(row['clip_b_id']),
     ...(typeof row['gl_type'] === 'string' && row['gl_type'] ? { glType: row['gl_type'] as string } : {}),
     ...(typeof row['gl_def_json'] === 'string' && row['gl_def_json'] ? { glDef: JSON.parse(row['gl_def_json'] as string) } : {}),
+    // [remix] Stage 6: one JSON column; absent on rows saved before it existed
+    ...(typeof row['gl_params_json'] === 'string' && row['gl_params_json'] ? { glParams: JSON.parse(row['gl_params_json'] as string) } : {}),
   };
 }
 
@@ -420,5 +422,6 @@ export function transitionToRow(
     clip_b_id: transition.clipBId ?? null,
     gl_type: transition.glType ?? null, // [remix] OpenChatCut GL transition
     gl_def_json: transition.glDef ? JSON.stringify(transition.glDef) : null,
+    gl_params_json: transition.glParams ? JSON.stringify(transition.glParams) : null,
   };
 }

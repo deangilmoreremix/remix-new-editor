@@ -1,0 +1,1912 @@
+{
+ "commit": "d2f250e5cee85d9cfb225b584aeabecfbf8dea42",
+ "transitions": [
+  {
+   "name": "Accordion",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ApertureWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "ArrowWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Ascii",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "BandWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "BlockCover",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "BlockSlide",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "BloomDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "BokehDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "BookFlip",
+   "author": "hong",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Bounce",
+   "author": "Adrian Purser",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "BowTie",
+   "author": "KMojek",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "BowTieHorizontal",
+   "author": "huynx",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "BrushWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "BurnThrough",
+   "author": "liubailin2020@gmail.com",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ButterflyWaveScrawler",
+   "author": "mandubian",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "CameraShake",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "CardSwipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "CellDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Chessboard",
+   "author": "lql",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "CircleBurst",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "CircleIris",
+   "author": "Fernando Kuteken",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "CircleOpen",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "ClockWipe",
+   "author": "Fernando Kuteken",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Clothesline",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "CodeRain",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ColorCoords",
+   "author": "haiyoucuv",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ColorDistance",
+   "author": "P-Seebauer",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ColorPanelWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 7,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ColorPhase",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "ColorWrap",
+   "author": "Yoni Maltsman @friendlyspinach",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Comb",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ComicPanels",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "CrazyParametricFun",
+   "author": "mandubian",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "CrossWarp",
+   "author": "Eke Péter <peterekepeter@gmail.com>",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "CrossZoom",
+   "author": "rectalogic",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Crosshatch",
+   "author": "pthrasher",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Crumple",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Cube",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "CurtainRise",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Curtains",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "CurvedWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "CylinderRoll",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "DefocusBlur",
+   "author": "Sergey Kosarevsky",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "DiamondWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Directional",
+   "author": "Gaëtan Renaudeau",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "DirectionalEased",
+   "author": "Max Plotnikov",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "DirectionalScaled",
+   "author": "Thibaut Foussard",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "DirectionalWarp",
+   "author": "pschroen",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "DirectionalWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Disintegrate",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "DisplacementMap",
+   "author": "Travis Fischer",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [
+    "displacementMap"
+   ],
+   "vendored": false,
+   "excluded": "needs an extra texture"
+  },
+  {
+   "name": "DitherDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "DominoFall",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "DoomMelt",
+   "author": "Zeh Fernando",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Doorway",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Drape",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Dreamy",
+   "author": "mikolalysenko",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "DreamyZoom",
+   "author": "Zeh Fernando",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "DuotoneFade",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "EdgeGlow",
+   "author": "Woohyun Kim",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "EyeBlink",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "FacetedGlass",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Fade",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "duplicate of built-in cross-dissolve"
+  },
+  {
+   "name": "FadeColor",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "duplicate of built-in dip-to-color"
+  },
+  {
+   "name": "FadeGrayscale",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "near-duplicate of dip-to-color"
+  },
+  {
+   "name": "FallOver",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "FilmBurn",
+   "author": "Anastasia Dunbar",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "FilmDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "FilmStrip",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Fisheye",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "FlameWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "FlashFade",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "FlowerWipe",
+   "author": "Fernando Kuteken",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "FlyEye",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Fold",
+   "author": "nwoeanhinnogaehr",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "FrostWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Funnel",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Gallery",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "GeometricCollage",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 7,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "GlintDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 7,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "GlitchBands",
+   "author": "Yoni Maltsman @friendlyspinach",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "GlitchDisplace",
+   "author": "Matt DesLauriers",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "GlitchFlicker",
+   "author": "bread",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "GlitchMemories",
+   "author": "Gunnar Roth",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "GlitterDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "GlowDissolve",
+   "author": "hjm1fb",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "GooeyWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "GravityLens",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "GridFlip",
+   "author": "TimDonselaar",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Halftone",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "HeartWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "HeatHaze",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Hexagonalize",
+   "author": "Fernando Kuteken",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "HingedSquares",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Hologram",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Honeycomb",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "HorizontalClose",
+   "author": "martiniti",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "HorizontalHold",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "HorizontalOpen",
+   "author": "martiniti",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "HsvFade",
+   "author": "nwoeanhinnogaehr",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "InkBleed",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "InsetWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "InsideCube",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "InvertedPageCurl",
+   "author": "Hewlett-Packard",
+   "license": "BSD 3 Clause",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "duplicate of built-in page-curl (BSD-3, hence not worth the extra notice)"
+  },
+  {
+   "name": "Kaleidoscope",
+   "author": "nwoeanhinnogaehr",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "KeyholeWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "LayoutGrid",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "LeafWipe",
+   "author": "@Flexi23",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "LedWall",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 7,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "LeftRight",
+   "author": "zhmy",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "LensFlare",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "LightRays",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "LightStreaks",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "LightWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "LightningFlash",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "LiquidFill",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "LissajousTiles",
+   "author": "Boundless <info@boundless-beta.com>",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "LumaWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [
+    "luma"
+   ],
+   "vendored": false,
+   "excluded": "needs an extra texture"
+  },
+  {
+   "name": "LuminanceMelt",
+   "author": "Ian McEwan, Ashima Arts.",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "MoireWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Morph",
+   "author": "paniq",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Mosaic",
+   "author": "Xaychru",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "MultiplyBlend",
+   "author": "Fernando Kuteken",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "NoiseDissolve",
+   "author": "towrabbit",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Overexposure",
+   "author": "Ben Zhang",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "PaperFold",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "PaperTear",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "PerlinDissolve",
+   "author": "Rich Harris",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "PhotoDevelop",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Pinwheel",
+   "author": "Mr Speaker",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "PixelStretch",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Pixelize",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "PlasmaDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "PlusWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "PolkaDotsCurtain",
+   "author": "bobylito",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "PopIn",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "PowerKaleido",
+   "author": "Boundless",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Prisms",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "ProjectorThrow",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Puzzle",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "PuzzleCube",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "RadialWipe",
+   "author": "Xaychru",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "RandomSquares",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "RectangleCover",
+   "author": "martiniti",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "RectangleIris",
+   "author": "martiniti",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Refraction",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Revolve",
+   "author": "bread",
+   "license": "MIT",
+   "paramCount": 10,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "RibbonTwist",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "RingSpin",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "RingsWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 7,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Ripple",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Rolls",
+   "author": "Mark Craig",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "RotateScaleFade",
+   "author": "Fernando Kuteken",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "RotateScaleVanish",
+   "author": "Mark Craig",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SawtoothWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Shatter",
+   "author": "lbl",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Shred",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ShutterWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "SimpleFlip",
+   "author": "nwoeanhinnogaehr",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "SimpleZoom",
+   "author": "0gust1",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "SimpleZoomOut",
+   "author": "Tianshuo",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "SketchDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SlideAwayRight",
+   "author": "lizhongjian",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Slides",
+   "author": "Mark Craig",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "SlotReels",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SmokeDissolve",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SnakeBlockWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Snapshot",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Sphere",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SpiralBlockWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SpiralWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "SplatterWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SplitFlap",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 8,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SplitSlideInHorizontal",
+   "author": "OllyOllyOlly",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "SplitSlideInOutHorizontal",
+   "author": "OllyOllyOlly",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SplitSlideInOutVertical",
+   "author": "OllyOllyOlly",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SplitSlideInVertical",
+   "author": "OllyOllyOlly",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SplitSlideOutHorizontal",
+   "author": "OllyOllyOlly",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SplitSlideOutVertical",
+   "author": "OllyOllyOlly",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "SpotlightWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "SquaresWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Squeeze",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "StarWipe",
+   "author": "Ben Lucas",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "StaticFade",
+   "author": "Ben Lucas",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "StaticWipe",
+   "author": "Ben Lucas",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "StereoViewer",
+   "author": "Ted Schundler",
+   "license": "BSD 2 Clause",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "StretchSlide",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "StripDatamoshGlitch",
+   "author": "bread",
+   "license": "MIT",
+   "paramCount": 9,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Swap",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Swirl",
+   "author": "Sergey Kosarevsky",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "TangentMotionBlur",
+   "author": "chenkai",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "TilesWave",
+   "author": "numb3r23",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "TopBottom",
+   "author": "zhmy",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "TruchetWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Tumble",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Tunnel",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "TvLostSignal",
+   "author": "mernking (gitlab.com/Godswork)",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "TvRoll",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "TvStatic",
+   "author": "Brandon Anzaldi",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "TvTurnOff",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "UndulatingBurnOut",
+   "author": "pthrasher",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "VerticalClose",
+   "author": "martiniti",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "VerticalOpen",
+   "author": "martiniti",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "VhsTracking",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "Vortex",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "WarpSpeed",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "WaterDrop",
+   "author": "Paweł Płóciennik",
+   "license": "MIT",
+   "paramCount": 5,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "WaveWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 6,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "WedgeWipe",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 3,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "WhipPan",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": false,
+   "excluded": "duplicate of built-in whip-pan"
+  },
+  {
+   "name": "WhipSpin",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "WhipTilt",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 4,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "Wind",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "WindowBlinds",
+   "author": "Fabien Benetou",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "WindowSlices",
+   "author": "gre",
+   "license": "MIT",
+   "paramCount": 2,
+   "textures": [],
+   "vendored": true
+  },
+  {
+   "name": "ZoomInCircles",
+   "author": "dycm8009",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ZoomInOut",
+   "author": "OllyOllyOlly",
+   "license": "MIT",
+   "paramCount": 0,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ZoomWipeLeft",
+   "author": "Handk",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  },
+  {
+   "name": "ZoomWipeRight",
+   "author": "Handk",
+   "license": "MIT",
+   "paramCount": 1,
+   "textures": [],
+   "vendored": false,
+   "excluded": "not in curated set"
+  }
+ ]
+}

@@ -141,7 +141,7 @@ export function drawCustomTransitionFrame(
   dest: HTMLCanvasElement | CanvasRenderingContext2D,
   frag: string,
   progress: number,
-  uniforms: Record<string, number> = {},
+  uniforms: Record<string, import('./runtime').UniformValue> = {},
 ): boolean {
   return paintTransition(dest, frag, progress, uniforms, 'custom');
 }
@@ -216,7 +216,7 @@ export function getCachedCustomTransitionThumbUrl(id: string, frag: string): str
 export function customTransitionThumbUrl(
   id: string,
   frag: string,
-  uniforms: Record<string, number>,
+  uniforms: Record<string, import('./runtime').UniformValue>,
 ): string {
   const key = customStillKey(id, frag);
   const hit = readStill(key);

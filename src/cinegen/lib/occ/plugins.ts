@@ -9,6 +9,7 @@ import { GLSL_TRANSITIONS } from '../../../openchatcut/gl/transitions';
 import { listPacks } from '../../../openchatcut/plugins/store';
 import { isPluginAssetId, pluginAssetId } from '../../../openchatcut/plugins/types';
 import type { GlslTransitionType } from '../../../openchatcut/types';
+import { gltFrag, gltUniforms, isGltId, type GltParams } from '../../../openchatcut/gl/glt';
 
 export { hydratePlugins, subscribePlugins, listPacks, removePack, setPackEnabled } from '../../../openchatcut/plugins/store';
 export { installFromText, installFromUrl } from '../../../openchatcut/plugins/install';
@@ -54,14 +55,15 @@ export async function transitionSnapshotFor(id: string): Promise<CustomTransitio
 }
 
 /** Fragment + uniforms for a cut's transition: built-in GLSL transition, a registered plugin one, or its stored snapshot. */
-export function resolveTransition(glType: string, snap?: CustomTransitionDef): { frag: string; uniforms: (ctx: { time: number; aspect: number }) => Record<string, number> } | null {
+export function resolveTransition(glType: string, snap?: CustomTransitionDef, glParams?: GltParams): { frag: string; uniforms: (ctx: { time: number; aspect: number }) => Record<string, number | number[]> } | null {
   const builtin = GLSL_TRANSITIONS[glType as GlslTransitionType];
   if (builtin) return { frag: builtin.frag, uniforms: (c) => builtin.uniforms({ ...c, direction: 'left' }) as Record<string, number> };
+  if (isGltId(glType)) return { frag: gltFrag(glType)!, uniforms: () => gltUniforms(glType, glParams) };
   const def = getCustomTransition(glType) ?? (snap && (registerCustomTransition(snap), snap));
   if (!def) return null;
   return { frag: def.frag, uniforms: () => customTransitionUniforms(def) };
 }
-export const isKnownTransition = (glType?: string, snap?: CustomTransitionDef): boolean => !!glType && (glType in GLSL_TRANSITIONS || !!getCustomTransition(glType) || !!snap);
+export const isKnownTransition = (glType?: string, snap?: CustomTransitionDef): boolean => !!glType && (glType in GLSL_TRANSITIONS || isGltId(glType) || !!getCustomTransition(glType) || !!snap);
 
 /** Synchronous snapshot of a registered plugin fx / LUT for the export payload (LUT cube text comes from the clip's stored snapshot). */
 export function pluginFxSnapshotSync(id: string): FxSnapshot | undefined {

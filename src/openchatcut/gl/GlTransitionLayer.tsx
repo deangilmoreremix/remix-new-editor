@@ -10,6 +10,7 @@ import { GLSL_TRANSITIONS } from './transitions';
 import { customTransitionUniforms, type CustomTransitionDef } from './customTransitions';
 import { buildTransitionShaderFrame } from './shaderFrame';
 import type { GlslTransitionType } from '../types';
+import { gltFrag, gltUniforms, isGltId, type GltParams } from './glt';
 
 export interface GlSource { src: string; trimBefore: number; playbackRate?: number }
 
@@ -23,7 +24,7 @@ function drawFit(ctx: CanvasRenderingContext2D, source: CanvasImageSource, fit: 
   ctx.drawImage(source, (W - nw * k) / 2, (H - nh * k) / 2, nw * k, nh * k);
 }
 
-export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'cover', customDef }: { out: GlSource; inn: GlSource; glType: string; durationInFrames: number; fit?: 'contain' | 'cover'; customDef?: CustomTransitionDef }) {
+export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'cover', customDef, glParams }: { out: GlSource; inn: GlSource; glType: string; durationInFrames: number; fit?: 'contain' | 'cover'; customDef?: CustomTransitionDef; glParams?: GltParams }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const env = useRemotionEnvironment();
@@ -35,7 +36,8 @@ export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'c
   const mk = () => { const c = document.createElement('canvas'); c.width = width; c.height = height; return c; };
   const stage = useMemo(() => ({ out: mk(), inn: mk() }), [width, height]); // eslint-disable-line react-hooks/exhaustive-deps
   // [remix] plugin (openchatcut-plugin@1) transitions arrive as a snapshot: same two-input fragment contract, props → u_<key> defaults
-  const def = GLSL_TRANSITIONS[glType as GlslTransitionType] ?? (customDef ? { frag: customDef.frag, uniforms: () => customTransitionUniforms(customDef) } : undefined);
+  // [remix] Stage 6: vendored gl-transitions (glt-*) with their stored parameter overrides
+  const def = GLSL_TRANSITIONS[glType as GlslTransitionType] ?? (isGltId(glType) ? { frag: gltFrag(glType)!, uniforms: () => gltUniforms(glType, glParams) } : undefined) ?? (customDef ? { frag: customDef.frag, uniforms: () => customTransitionUniforms(customDef) } : undefined);
 
   useEffect(() => {
     const canvas = glRef.current;
@@ -56,7 +58,7 @@ export function GlTransitionLayer({ out, inn, glType, durationInFrames, fit = 'c
     };
     tick();
     return () => { cancelAnimationFrame(raf); finish(); };
-  }, [frame, def, glType, durationInFrames, fps, width, height, rendering, stage]);
+  }, [frame, def, glType, glParams, durationInFrames, fps, width, height, rendering, stage]);
   useEffect(() => () => disposeRuntimeSlot(runtimeRef), []);
 
   if (!def) return null;
