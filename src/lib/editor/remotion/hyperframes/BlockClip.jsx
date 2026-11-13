@@ -14,6 +14,7 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { useCurrentFrame, useVideoConfig, useDelayRender } from 'remotion';
 import { gsap } from 'gsap';
+import { TextPlugin } from 'gsap/TextPlugin';
 import { validateAssetUrl, stripUnsafeAttributes, validateOverrides } from './security.js';
 import { applyOverrides, stampHfIds } from './overrides.js';
 import { patchConfig } from './config.js';
@@ -438,6 +439,7 @@ const applyVisibility = (host, t, wins) => {
 /** Defensive: the bundled gsap import must expose timeline(); otherwise try a default-export shape, then a global copy, else null. */
 const usableGsap = (g) => (g && typeof g.timeline === 'function' && typeof g.set === 'function' ? g : null);
 const describeGsap = (g) => (g === undefined ? 'undefined' : g === null ? 'null' : `${typeof g} with keys [${Object.keys(g).slice(0, 8).join(', ')}]`);
+try { gsap.registerPlugin(TextPlugin); } catch { /* blocks that tween `text` then report their own error */ } // some blocks (typed-text effects) tween `text`, which needs this plugin
 export const resolveGsap = () => usableGsap(gsap) || usableGsap(gsap?.gsap) || usableGsap(globalThis.gsap);
 
 const BLOCK_ID = /^[a-z0-9][a-z0-9-]{0,80}$/;
