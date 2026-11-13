@@ -37,4 +37,4 @@ All 7 done: params with defaults/ranges, inspector sliders and keyframes via the
 Same harness and results as Stage 3 (`node docs/stage-3/smoke/fx-gl-check.cjs`: 21/21 pass in headless Chromium/SwiftShader, covering these 7: compile, probe differs, neutral ~ identity where defined, deterministic, animated ones change with time). Vitest `occ-stage35-fx.test.ts` also asserts: vendored shader headers contain repo, file, commit, MIT and the author; the notice lists each file and commit; the banned Seriously effects are never referenced; no NC-SA/CC-BY text appears in any shader.
 
 ## Limits
-Shader-level and function-level only: no real exported frame was rendered through the web renderer. The MIT texts were read from `Seriously.js/LICENSE` (only the copyright line re-checked at the end; the standard MIT body in the notice was typed from the standard text, not diffed against the file).
+Shader-level and function-level only: no real exported frame was rendered through the web renderer. The MIT body in the notice was diffed against `Seriously.js/LICENSE` at the commit above and is identical.
