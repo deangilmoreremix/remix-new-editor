@@ -25,6 +25,23 @@ describe('leads logic', () => {
     expect(filterRows(rows, { query: 'ANN' })).toHaveLength(1);
     expect(filterRows(rows, { form: lg.id, query: 'y.com' })).toHaveLength(1);
   });
+  it('filters by date range', () => {
+    const now = new Date(2026, 10, 13, 12, 0);
+    const at = (d: Date) => d.toISOString();
+    const dated = [
+      row('a', 'lead-form', 'x', { EMAIL: 'a@x.com' }, at(new Date(2026, 10, 13, 9, 0))), // today
+      row('b', 'lead-form', 'x', { EMAIL: 'b@x.com' }, at(new Date(2026, 10, 8, 9, 0))), // 5 days ago
+      row('c', 'lead-form', 'x', { EMAIL: 'c@x.com' }, at(new Date(2026, 9, 20, 9, 0))), // 24 days ago
+      row('d', 'lead-form', 'x', { EMAIL: 'd@x.com' }, at(new Date(2026, 8, 1, 9, 0))), // old
+      row('e', 'lead-form', 'x', { EMAIL: 'e@x.com' }, 'not a date'),
+    ];
+    const ids = (range: 'all' | 'today' | '7d' | '30d') => filterRows(dated, { range, now }).map((r) => r.id);
+    expect(ids('all')).toEqual(['a', 'b', 'c', 'd', 'e']);
+    expect(ids('today')).toEqual(['a']);
+    expect(ids('7d')).toEqual(['a', 'b']);
+    expect(ids('30d')).toEqual(['a', 'b', 'c']);
+    expect(filterRows(dated, { range: '7d', query: 'b@x', now }).map((r) => r.id)).toEqual(['b']);
+  });
   it('builds columns and CSV', () => {
     expect(answerColumns(rows).map((c) => c.label)).toEqual(['Email', 'First Name', 'Phone']);
     const csv = rowsToCsv(rows, leadForms([wall, lg]));

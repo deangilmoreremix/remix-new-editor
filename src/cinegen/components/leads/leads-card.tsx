@@ -1,7 +1,7 @@
 // [remix] Right column of the Leads tab: KPIs, filter chips, search, CSV, table, delete.
 import { useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
-import { answerColumns, countsByForm, filterRows, leadForms, rowFormKey, rowsToCsv, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
+import { answerColumns, countsByForm, filterRows, leadForms, rowFormKey, rowsToCsv, whenLabel, LEAD_RANGES, type LeadRange, type LeadRow } from '@cinegen/lib/leads/leads';
 import { setLeadsForm, useLeadsForm } from '@cinegen/lib/leads/leads-filter';
 import type { LeadsData } from './use-leads';
 
@@ -9,9 +9,10 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
   const { state } = useWorkspace();
   const form = useLeadsForm();
   const [query, setQuery] = useState('');
+  const [range, setRange] = useState<LeadRange>('all');
   const forms = leadForms(state.overlays ?? []);
   const counts = countsByForm(data.rows);
-  const shown = filterRows(data.rows, { form, query });
+  const shown = filterRows(data.rows, { form, query, range });
   const cols = answerColumns(shown);
   const total = data.rows.length;
   const wall = counts['list-builder'] ?? 0;
@@ -36,6 +37,9 @@ export function LeadsCard({ data, published, views }: { data: LeadsData; publish
           </div>
           <div className="leads-row">
             <input className="leads-input" placeholder="Search leads…" value={query} onChange={(e) => setQuery(e.target.value)} data-testid="leads-search" />
+            <select className="leads-input leads-select" aria-label="Date range" value={range} onChange={(e) => setRange(e.target.value as LeadRange)} data-testid="leads-range">
+              {LEAD_RANGES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+            </select>
             <button type="button" className="leads-btn" onClick={() => void data.reload()} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
             <button type="button" className="leads-btn" onClick={download} disabled={!shown.length} data-testid="leads-csv">Download CSV</button>
           </div>

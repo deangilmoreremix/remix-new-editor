@@ -35,3 +35,4 @@ a.leads-btn{text-decoration:none;display:inline-block}
 .leads-modal__box{width:min(1100px,100%);background:var(--bg-raised,#10141c);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
 .leads-modal__bar{display:flex;justify-content:space-between;align-items:center;font-size:12px}
 .leads-modal .leads-preview{aspect-ratio:auto;height:min(720px,80vh)}
+.leads-row .leads-select{flex:0 0 auto;width:auto}

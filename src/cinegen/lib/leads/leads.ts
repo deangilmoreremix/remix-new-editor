@@ -40,10 +40,26 @@ export function countsByForm(rows: LeadRow[]): Record<string, number> {
   return out;
 }
 
-export function filterRows(rows: LeadRow[], { form = 'all', query = '' }: { form?: string; query?: string } = {}): LeadRow[] {
+export type LeadRange = 'all' | 'today' | '7d' | '30d';
+export const LEAD_RANGES: Array<[LeadRange, string]> = [['all', 'All time'], ['today', 'Today'], ['7d', 'Last 7 days'], ['30d', 'Last 30 days']];
+
+/** Earliest allowed timestamp (ms) for a range, or null for "all". "today" is since local midnight; N days is a rolling window. */
+function rangeStart(range: LeadRange, now: Date): number | null {
+  if (range === 'today') return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  if (range === '7d') return now.getTime() - 7 * 86400000;
+  if (range === '30d') return now.getTime() - 30 * 86400000;
+  return null;
+}
+
+export function filterRows(rows: LeadRow[], { form = 'all', query = '', range = 'all', now = new Date() }: { form?: string; query?: string; range?: LeadRange; now?: Date } = {}): LeadRow[] {
   const q = query.trim().toLowerCase();
+  const since = rangeStart(range, now);
   return rows.filter((r) => {
     if (form !== 'all' && rowFormKey(r) !== form) return false;
+    if (since !== null) {
+      const t = new Date(r.createdAt).getTime();
+      if (Number.isNaN(t) || t < since) return false;
+    }
     if (!q) return true;
     return Object.values(r.data).some((v) => String(v).toLowerCase().includes(q));
   });
