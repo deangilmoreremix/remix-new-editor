@@ -301,7 +301,8 @@ export class FakeSupabase {
       let m;
       if ((m = /^\/rest\/v1\/rpc\/(\w+)$/.exec(path))) {
         const out = this.rpc(m[1], JSON.parse(req.postData() || '{}'), sub);
-        return json(200, out === undefined ? null : out);
+        // PostgREST answers a function that returns NULL with the JSON text `null` (not an empty body)
+        return route.fulfill({ status: 200, headers: { ...cors, 'content-type': 'application/json' }, body: JSON.stringify(out === undefined ? null : out) });
       }
       if ((m = /^\/rest\/v1\/(\w+)$/.exec(path))) {
         const body = req.postData() ? JSON.parse(req.postData()) : null;
