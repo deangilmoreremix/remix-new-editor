@@ -50,10 +50,13 @@ export function mgPreview(t: MgTemplate): CardPreview {
   mgCache.set(t, p);
   return p;
 }
+/** Pre-made picture of an animation (public/hyperframes/thumbs). Every ':' in the id becomes '-'. */
+export const thumbOf = (id: string): string => `/hyperframes/thumbs/${id.replace(/:/g, '-')}.jpg`;
+
 const hfCache = new Map<string, CardPreview>();
 export function hfPreview(i: HfItem): CardPreview {
   const hit = hfCache.get(i.id); if (hit) return hit;
-  const p: CardPreview = { kind: 'overlay', build: () => [createHyperframesOverlay(i, 0)], duration: i.duration, frame: { width: i.dimensions.width, height: i.dimensions.height }, image: `/hyperframes/thumbs/${i.id.replace(':', '-')}.jpg` };
+  const p: CardPreview = { kind: 'overlay', build: () => [createHyperframesOverlay(i, 0)], duration: i.duration, frame: { width: i.dimensions.width, height: i.dimensions.height }, image: thumbOf(i.id) };
   hfCache.set(i.id, p);
   return p;
 }
@@ -79,3 +82,7 @@ export function buildCatalog(a: Pick<AddToTimelineActions, 'onAddKind' | 'onAddT
   }
   return list;
 }
+
+/** The Library sidebar (a sibling of the timeline) opens the modal through this window event; TimelineEditor listens for it. */
+export const OPEN_ADD_MODAL_EVENT = 'cinegen:open-add-to-timeline';
+export const openAddToTimeline = () => window.dispatchEvent(new CustomEvent(OPEN_ADD_MODAL_EVENT));

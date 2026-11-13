@@ -73,6 +73,7 @@ import {
 } from '@cinegen/lib/utils/api-key';
 import { markWorkspaceSavePending } from './workspace-persistence';
 import { useMcpBridge } from './use-mcp-bridge';
+import { HelpTooltipLayer } from '@cinegen/components/ui/help-tooltip-layer'; // [remix] hover help for every control
 
 /* ------------------------------------------------------------------
    Actions
@@ -197,6 +198,7 @@ const UNDOABLE_ACTIONS: WorkspaceAction['type'][] = [
   'MOVE_ELEMENTS', 'ADD_ELEMENT_FOLDER', 'UPDATE_ELEMENT_FOLDER', 'REMOVE_ELEMENT_FOLDER',
   'SET_DIRECTOR',
   'ADD_SET', 'UPDATE_SET', 'REMOVE_SET',
+  'ADD_OVERLAY', 'REMOVE_OVERLAY', // [remix] adding / removing an overlay can be undone (moving one is not pushed per pixel)
 ];
 
 interface HistoryState {
@@ -1469,6 +1471,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
 
   return (
     <WorkspaceContext.Provider value={{ state, dispatch: wrappedDispatch, projectId }}>
+      <HelpTooltipLayer />
       <TopTabs
         activeTab={state.activeTab}
         onTabChange={handleTabChange}

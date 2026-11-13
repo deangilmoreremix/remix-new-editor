@@ -12,6 +12,10 @@ export default [
       'dist',
       // vendored third-party source (RemotionUI, MIT), pinned and hashed in src/lib/remotionui/registry.lock.json
       'src/lib/editor/remotion/remotionui/vendored',
+      // vendored third-party template repos (MIT), pinned by commit in src/lib/templates/lock.json
+      'src/lib/editor/remotion/templates/free',
+      'src/lib/editor/remotion/templates/video',
+      'src/lib/editor/remotion/templates/rve',
     ],
   },
   js.configs.recommended,

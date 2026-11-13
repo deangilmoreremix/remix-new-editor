@@ -19,6 +19,7 @@ export default defineConfig({
     '**/video-agent-studio.spec.js',
     '**/template-generator.spec.js',
     '**/website-builder-navigation.spec.js',
+    '**/projects-analytics.spec.js',
   ],
   testIgnore: '**/node_modules/**',
 
