@@ -84,4 +84,4 @@ New: `src/lib/editor/publish/heatmapCapture.js`, `src/lib/editor/publish/heatmap
 ## Run results
 - 7 new test files, **67 tests, all passed** (`video-events-heat`, `heatmapGeometry`, `heatmapCapture`, `heatmapRenderer`, `heatmapData`, `HeatmapsSection`, `heatmap-migration`).
 - Related areas re-run together (video-events, publish, projectLibrary analytics, `src/cinegen`, migration test): 214 files, 1550 passed, 27 skipped, **1 failed**: `src/cinegen/__tests__/timeline-parity.test.ts` (`timeline-editor.tsx` line-budget), the same pre-existing failure recorded in the Stage 0 baseline; unrelated to this stage.
-- The full `npx vitest run` was started but had not finished when this report was written, so a full-suite count is **not claimed**. `tsc`, `eslint` and `npm run build` were not run.
+- Full `npx vitest run` (finished after the first version of this report): 774 files, **772 passed, 2 failed**; tests **11230 passed, 2 failed, 61 skipped** (11293). The 2 failures are the same two pre-existing Stage 0 baseline failures (`timeline-parity.test.ts`, `legacyCards.test.ts`). `tsc`, `eslint` and `npm run build` were not run.
