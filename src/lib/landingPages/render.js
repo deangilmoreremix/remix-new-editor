@@ -5,7 +5,7 @@
  * every URL passes safeUrl/safeImageUrl, so a hostile config can't inject markup.
  */
 import {
-  getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, readableOn, FONTS,
+  getTemplate, sanitizeConfig, fillTokens, safeUrl, safeImageUrl, splitAccent, formatDuration, readableOn, ctaHref, FONTS,
 } from './templates.js';
 
 const PROGRESS_MARKS = [
@@ -80,7 +80,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   // ---- top bar: co-branded (sender × recipient) or a plain logo
   const company = (own.company || '').trim();
   const tagline = t(config.brand.tagline);
-  if (config.brand.name || tagline || (tpl.customPlayer && company)) {
+  if (config.brand.name || tagline || (tpl.intro && company)) {
     const top = h(doc, 'header', 'vp-top');
     const brandBox = h(doc, 'div', 'vp-cobrand');
     if (config.brand.name || theme.logoUrl) {
@@ -89,7 +89,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
       if (config.brand.name) me.appendChild(h(doc, 'span', 'vp-brand-name', config.brand.name));
       brandBox.appendChild(me);
     }
-    if (company) {
+    if (company && tpl.intro) {
       if (brandBox.childNodes.length) brandBox.appendChild(h(doc, 'span', 'vp-times', '×'));
       const them = h(doc, 'span', 'vp-brand-item');
       them.append(mark(doc, { imageUrl: own.companylogo, name: company, className: 'vp-mark--recipient' }), h(doc, 'span', 'vp-brand-name', company));
@@ -113,6 +113,23 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
 
   // ---- copy (pill, headline, subhead, CTA)
   const copy = h(doc, 'section', 'vp-copy');
+  let countdownTimer = null;
+  if (config.countdown.enabled) {
+    const cd = h(doc, 'div', 'vp-countdown');
+    const prefix = t(config.countdown.label) || 'Offer ends in';
+    const end = Date.parse(config.countdown.endsAt);
+    const tick = () => {
+      const ms = end - Date.now();
+      if (ms <= 0) { cd.hidden = true; if (countdownTimer) clearInterval(countdownTimer); return; }
+      const s = Math.floor(ms / 1000);
+      const dd = Math.floor(s / 86400);
+      const pad = (n) => String(n).padStart(2, '0');
+      cd.textContent = `${prefix} ${dd ? `${dd}d ` : ''}${pad(Math.floor((s % 86400) / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+    };
+    tick();
+    if (!cd.hidden) countdownTimer = setInterval(tick, 1000);
+    copy.appendChild(cd);
+  }
   const badge = t(config.badge);
   if (badge) copy.appendChild(h(doc, 'span', 'vp-pill', badge));
   if (config.headline) {
@@ -239,6 +256,87 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
 
   main.append(copy, media);
 
+  // ---- action buttons, Like, embedded calendar (any template; the pitch page is built around them)
+  let liked = false;
+  const actions = h(doc, 'div', 'vp-actions');
+  if (config.likes.enabled) {
+    const like = h(doc, 'button', 'vp-like');
+    like.type = 'button';
+    like.setAttribute('aria-pressed', 'false');
+    const heart = h(doc, 'span', 'vp-like-icon', '♡');
+    const word = h(doc, 'span', 'vp-like-word', 'Like');
+    like.append(heart, word);
+    like.addEventListener('click', () => {
+      if (liked) return;
+      liked = true;
+      heart.textContent = '♥';
+      word.textContent = 'Liked';
+      like.classList.add('is-liked');
+      like.setAttribute('aria-pressed', 'true');
+      if (!preview) handlers.onLike?.();
+    });
+    actions.appendChild(like);
+  }
+  const calendarUrl = config.calendar.url;
+  const calendarBox = calendarUrl ? h(doc, 'section', 'vp-calendar') : null;
+  config.ctas.forEach((b) => {
+    const label = t(b.label);
+    const toCalendar = b.kind === 'calendar' && calendarUrl;
+    const href = toCalendar ? '' : ctaHref(b.kind, b.value);
+    if (!label || (!href && !toCalendar)) return;
+    let node;
+    if (toCalendar) {
+      node = h(doc, 'button', `vp-btn vp-btn--${b.style}`, label);
+      node.type = 'button';
+      node.addEventListener('click', () => { calendarBox.scrollIntoView?.({ behavior: 'smooth', block: 'center' }); if (!preview) handlers.onCta?.(); });
+    } else {
+      node = h(doc, 'a', `vp-btn vp-btn--${b.style}`, label);
+      node.href = href;
+      if (b.kind === 'download') node.setAttribute('download', '');
+      if (/^https?:/i.test(href)) { node.target = '_blank'; node.rel = 'noopener noreferrer'; }
+      node.addEventListener('click', () => { if (!preview) handlers.onCta?.(); });
+    }
+    actions.appendChild(node);
+  });
+  if (actions.children.length) media.after(actions);
+  if (calendarBox) {
+    const title = t(config.calendar.title);
+    if (title) calendarBox.appendChild(h(doc, 'h2', 'vp-calendar-title', title));
+    const frameEl = h(doc, 'iframe', 'vp-calendar-frame');
+    frameEl.src = calendarUrl;
+    frameEl.title = title || 'Book a time';
+    frameEl.loading = 'lazy';
+    frameEl.referrerPolicy = 'no-referrer-when-downgrade';
+    frameEl.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');
+    calendarBox.appendChild(frameEl);
+    (actions.children.length ? actions : media).after(calendarBox);
+  }
+
+  // ---- transcript panel (beside the video on the pitch page, below it elsewhere)
+  let side = null;
+  if (config.transcript.enabled && config.transcript.items.length) {
+    side = h(doc, 'aside', 'vp-transcript');
+    side.appendChild(h(doc, 'h2', 'vp-transcript-title', 'Transcript'));
+    const list = h(doc, 'ol', 'vp-transcript-list');
+    const lines = [];
+    config.transcript.items.forEach((it) => {
+      const li = h(doc, 'li', 'vp-line-item');
+      const b = h(doc, 'button', 'vp-line');
+      b.type = 'button';
+      b.append(h(doc, 'span', 'vp-line-time', clock(it.t)), h(doc, 'span', 'vp-line-text', it.text));
+      listen(b, 'click', () => { video.currentTime = it.t; tryPlay(video); });
+      li.appendChild(b);
+      list.appendChild(li);
+      lines.push({ t: it.t, b });
+    });
+    side.appendChild(list);
+    listen(video, 'timeupdate', () => {
+      let active = -1;
+      lines.forEach((l, i) => { if (video.currentTime >= l.t) active = i; });
+      lines.forEach((l, i) => l.b.classList.toggle('is-active', i === active));
+    });
+  }
+
   // ---- lead form
   let formBox = null;
   if (config.form.enabled) {
@@ -364,6 +462,22 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   }
   if (config.consent.notice) root.appendChild(h(doc, 'p', 'vp-consent', config.consent.notice));
 
+  // ---- pitch layout: card, main column + transcript column
+  if (tpl.pitch) {
+    const left = h(doc, 'div', 'vp-pitch-main');
+    [...main.children].forEach((n) => left.appendChild(n));
+    main.appendChild(left);
+    main.classList.add('vp-pitch-grid');
+    if (side) main.appendChild(side); else main.classList.add('vp-pitch-grid--single');
+  } else if (side) {
+    main.appendChild(side);
+  }
+  if ((tpl.traits || []).includes('card')) {
+    const card = h(doc, 'div', 'vp-card');
+    [...root.children].forEach((n) => card.appendChild(n));
+    root.appendChild(card);
+  }
+
   // ---- viewer events (public page only)
   const fired = new Set();
   const once = (kind, fn) => { if (!fired.has(kind)) { fired.add(kind); fn?.(kind); } };
@@ -382,6 +496,7 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
     root,
     video,
     destroy() {
+      if (countdownTimer) clearInterval(countdownTimer);
       cleanups.forEach((fn) => fn());
       video.pause?.();
       video.removeAttribute('src');

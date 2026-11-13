@@ -11,7 +11,7 @@ import { sanitizeConfig, safeImageUrl } from './templates.js';
 
 export const PAGE_ID_RE = /^[A-Za-z0-9_-]{8,32}$/;
 export const CONTACT_ID_RE = /^[A-Za-z0-9_-]{6,40}$/;
-export const PAGE_EVENT_KINDS = Object.freeze(['view', 'play', 'progress_25', 'progress_50', 'progress_75', 'complete', 'cta_click', 'lead']);
+export const PAGE_EVENT_KINDS = Object.freeze(['view', 'play', 'progress_25', 'progress_50', 'progress_75', 'complete', 'cta_click', 'lead', 'like']);
 
 export const pageUrl = (id, origin = globalThis.location?.origin || '') => `${origin}/p/${encodeURIComponent(id)}`;
 export const personalUrl = (id, contactId, origin) => `${pageUrl(id, origin)}?c=${encodeURIComponent(contactId)}`;
@@ -80,7 +80,7 @@ export async function fetchPageStats(client, id) {
   const r = (Array.isArray(data) ? data[0] : data) || {};
   return {
     views: num(r.views), plays: num(r.plays), completes: num(r.completes),
-    ctaClicks: num(r.cta_clicks), leads: num(r.leads), uniqueContacts: num(r.unique_contacts),
+    ctaClicks: num(r.cta_clicks), leads: num(r.leads), likes: num(r.likes), uniqueContacts: num(r.unique_contacts),
   };
 }
 

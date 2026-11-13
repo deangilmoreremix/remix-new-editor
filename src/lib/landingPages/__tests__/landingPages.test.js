@@ -232,6 +232,6 @@ describe('client', () => {
 
   it('maps stats rows', async () => {
     const client = { rpc: async () => ({ data: [{ views: '5', plays: 3, completes: 1, cta_clicks: 2, leads: 1, unique_contacts: '4' }], error: null }) };
-    expect(await fetchPageStats(client, 'abc12345')).toEqual({ views: 5, plays: 3, completes: 1, ctaClicks: 2, leads: 1, uniqueContacts: 4 });
+    expect(await fetchPageStats(client, 'abc12345')).toEqual({ views: 5, plays: 3, completes: 1, ctaClicks: 2, leads: 1, likes: 0, uniqueContacts: 4 });
   });
 });

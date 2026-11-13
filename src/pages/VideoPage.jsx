@@ -67,6 +67,7 @@ export async function mountVideoPage(container, id, deps = {}) {
       onProgress: (kind) => track(kind),
       onComplete: () => track('complete'),
       onCta: () => track('cta_click'),
+      onLike: () => track('like'),
       onLead: async (data) => {
         const res = await (deps.submitLead || submitPageLead)({ pageId: page.id, contactId, data });
         if (!res?.error) track('lead');

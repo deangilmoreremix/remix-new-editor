@@ -10,7 +10,7 @@ import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
-import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, tokensUsed } from '../lib/landingPages/templates.js';
+import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
@@ -235,7 +235,7 @@ export function LandingPagesStudio() {
       c.setAttribute('aria-pressed', String(on));
     });
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    [['Layouts', TEMPLATES.filter((t) => !t.intro)], ['Personal intro designs (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)]].forEach(([label, list]) => {
+    [['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch)], ['Personal intro designs (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
       const grp = el('div', 'flex flex-col gap-2');
       grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
       const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
@@ -384,7 +384,7 @@ export function LandingPagesStudio() {
       };
 
       const tplSel = el('select', INPUT);
-      [['Layouts', TEMPLATES.filter((t) => !t.intro)], ['Personal intro designs', TEMPLATES.filter((t) => t.intro)]].forEach(([label, list]) => {
+      [['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch)], ['Personal intro designs', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
         const og = el('optgroup');
         og.label = label;
         list.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; og.appendChild(o); });
@@ -431,6 +431,85 @@ export function LandingPagesStudio() {
           return { name: name || '', imageUrl: imageUrl || '' };
         }).filter((l) => l.name || l.imageUrl))));
         return field(label, a);
+      };
+      const ctaEditor = () => {
+        const wrap = el('div', 'flex flex-col gap-2');
+        const KINDS = [['link', 'Link to a URL'], ['calendar', 'Open a calendar'], ['phone', 'Call a phone number'], ['sms', 'Send a text'], ['download', 'Download a file']];
+        const HINT = { link: 'https://…', calendar: 'https://calendly.com/you/intro', phone: '+1 555 123 4567', sms: '+1 555 123 4567', download: 'https://…/one-pager.pdf' };
+        const draw = () => {
+          wrap.replaceChildren();
+          const count = current.config.ctas.length;
+          current.config.ctas.forEach((b, i) => {
+            const row = el('div', 'grid grid-cols-2 gap-2 rounded-lg border border-white/10 p-2');
+            const kind = el('select', INPUT);
+            KINDS.forEach(([v, l]) => { const o = el('option', '', l); o.value = v; kind.appendChild(o); });
+            kind.value = b.kind;
+            const styleSel = el('select', INPUT);
+            [['primary', 'Primary button'], ['secondary', 'Secondary button'], ['text', 'Text link']].forEach(([v, l]) => { const o = el('option', '', l); o.value = v; styleSel.appendChild(o); });
+            styleSel.value = b.style;
+            const label = el('input', INPUT);
+            label.value = b.label;
+            label.placeholder = 'Button text';
+            label.setAttribute('aria-label', 'Button text');
+            const value = el('input', INPUT);
+            value.value = b.value;
+            value.placeholder = HINT[b.kind];
+            value.setAttribute('aria-label', 'Button target');
+            const rm = el('button', `${BTN} col-span-2 text-red-300`, 'Remove button');
+            rm.type = 'button';
+            const edit = (patch) => { set((c) => { c.ctas[i] = { ...c.ctas[i], ...patch }; }); if (current.config.ctas.length !== count) draw(); };
+            kind.addEventListener('change', () => { edit({ kind: kind.value }); value.placeholder = HINT[kind.value]; });
+            styleSel.addEventListener('change', () => edit({ style: styleSel.value }));
+            label.addEventListener('input', () => edit({ label: label.value }));
+            value.addEventListener('input', () => edit({ value: value.value }));
+            rm.addEventListener('click', () => { set((c) => { c.ctas.splice(i, 1); }); draw(); });
+            row.append(kind, styleSel, label, value, rm);
+            wrap.appendChild(row);
+          });
+          if (current.config.ctas.length < 5) {
+            const add = el('button', BTN, '+ Add a button');
+            add.type = 'button';
+            add.addEventListener('click', () => { set((c) => { c.ctas.push({ label: 'New button', kind: 'link', value: '', style: 'secondary' }); }); draw(); });
+            wrap.appendChild(add);
+          }
+        };
+        draw();
+        return wrap;
+      };
+      const check = (label, get, apply) => {
+        const i = el('input');
+        i.type = 'checkbox';
+        i.checked = get();
+        i.addEventListener('change', () => set((c) => apply(c, i.checked)));
+        const l = el('label', 'flex items-center gap-2 text-sm font-bold');
+        l.append(i, document.createTextNode(label));
+        return l;
+      };
+      const calendarEditor = () => {
+        const url = el('input', INPUT);
+        url.value = current.config.calendar.url;
+        url.placeholder = 'https://calendly.com/you/intro';
+        const warn = el('p', 'text-xs text-amber-300 min-h-[1rem]');
+        const hint = () => { warn.textContent = url.value.trim() && !isCalendarUrl(url.value) ? 'Not embedded: only https links from Calendly, Cal.com, HubSpot Meetings, TidyCal, YouCanBookMe, SavvyCal, Google, Zcal, Chili Piper, Acuity and Outlook are allowed.' : ''; };
+        url.addEventListener('input', () => { set((c) => { c.calendar.url = url.value; }); hint(); });
+        hint();
+        return [field('Calendar link to embed under the video', url), warn, text('title', 'Calendar heading', { path: ['calendar'] })];
+      };
+      const transcriptEditor = () => {
+        const a = el('textarea', INPUT);
+        a.rows = 6;
+        a.placeholder = '0:00 Hi Maya, thanks for taking a look.\n0:12 Here is the idea in one minute.';
+        a.value = formatTranscript(current.config.transcript.items);
+        a.addEventListener('input', () => set((c) => { c.transcript.items = parseTranscript(a.value); }));
+        return [check('Show a transcript panel', () => current.config.transcript.enabled, (c, v) => { c.transcript.enabled = v; }), field('Transcript (one line per moment: m:ss text)', a)];
+      };
+      const countdownEditor = () => {
+        const when = el('input', INPUT);
+        when.type = 'datetime-local';
+        const iso = current.config.countdown.endsAt;
+        if (iso) { const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); when.value = d.toISOString().slice(0, 16); }
+        when.addEventListener('input', () => set((c) => { const ms = Date.parse(when.value); c.countdown.endsAt = Number.isFinite(ms) ? new Date(ms).toISOString() : ''; if (!Number.isFinite(ms)) c.countdown.enabled = false; }));
+        return [check('Show a countdown', () => current.config.countdown.enabled, (c, v) => { c.countdown.enabled = v; }), field('Ends at', when), text('label', 'Countdown text (default: Offer ends in)', { path: ['countdown'] })];
       };
       const group = (title, open, ...children) => {
         const d = el('details', 'rounded-xl border border-white/10 p-3');
@@ -487,7 +566,16 @@ export function LandingPagesStudio() {
         hint,
         field('Accent color (buttons)', accent),
         color('Highlight color (company name in headline)', () => current.config.theme.highlight, (c, v) => { c.theme.highlight = v; }),
-        group('Header & branding', getTemplate(current.config.template).intro,
+        group('Action buttons & Like', getTemplate(current.config.template).pitch,
+          ctaEditor(),
+          check('Show a Like button', () => current.config.likes.enabled, (c, v) => { c.likes.enabled = v; }),
+        ),
+        group('Calendar, transcript & countdown', getTemplate(current.config.template).pitch,
+          ...calendarEditor(),
+          ...transcriptEditor(),
+          ...countdownEditor(),
+        ),
+        group('Header & branding', getTemplate(current.config.template).intro || getTemplate(current.config.template).pitch,
           text('logoUrl', 'Your logo image URL (https)', { path: ['theme'] }),
           text('name', 'Your brand name', { path: ['brand'] }),
           text('tagline', 'Header tagline', { path: ['brand'] }),
@@ -555,9 +643,9 @@ export function LandingPagesStudio() {
           const pct = (n, d) => (d ? `${Math.round((n / d) * 100)}%` : '0%');
           const cards = [
             ['Views', s.views], ['Plays', s.plays], ['Play rate', pct(s.plays, s.views)],
-            ['Watched to end', s.completes], ['CTA clicks', s.ctaClicks], ['Leads', s.leads],
+            ['Watched to end', s.completes], ['CTA clicks', s.ctaClicks], ['Likes', s.likes], ['Leads', s.leads],
           ];
-          const grid = el('div', 'grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6');
+          const grid = el('div', 'grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-7');
           cards.forEach(([k, v]) => {
             const c = el('div', 'rounded-xl border border-white/10 bg-panel-bg p-4');
             c.append(el('div', 'text-[11px] uppercase tracking-wide text-secondary', k), el('div', 'text-2xl font-black', String(v)));

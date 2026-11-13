@@ -127,6 +127,13 @@ export const TEMPLATES = Object.freeze([
     theme: { mode: 'dark', accent: '#be185d', highlight: '#22d3ee', bg: '#070713', text: '#e2e8f0', font: 'mono' },
     layout: 'intro', customPlayer: true, intro: true, family: 'intro', radius: 10, traits: ['grid', 'glow'],
   },
+  {
+    id: 'pitch',
+    name: 'Pitch page',
+    description: 'Sales-outreach page: headline, video, a row of action buttons (link, calendar, call, text, download), a Like button, an embedded booking calendar and a transcript panel.',
+    theme: { mode: 'light', accent: '#5b3df5', highlight: '#5b3df5', bg: '#f6f1ea', text: '#1b1b3a', font: 'system' },
+    layout: 'pitch', customPlayer: true, pitch: true, family: 'pitch', radius: 14, traits: ['card'],
+  },
 ]);
 
 /** Templates that use the co-branded "intro" anatomy. */
@@ -191,6 +198,22 @@ export function defaultConfig(templateId = 'clean', { title = '', brand = {} } =
     consent: { notice: '' },
     autoplay: false,
   };
+  if (t.pitch) {
+    return sanitizeConfig({
+      ...base,
+      brand: { name: brand.name || '', tagline: '' },
+      headline: 'Hi {{firstname|there}}, a quick idea for {{company|your team}}',
+      subhead: 'A short video on how we could help.',
+      cta: { label: '', url: '', type: 'link' },
+      ctas: [
+        { label: 'Book a call', kind: 'calendar', value: '', style: 'primary' },
+        { label: 'See pricing', kind: 'link', value: '', style: 'secondary' },
+      ],
+      likes: { enabled: true },
+      form: { ...base.form, enabled: false },
+      footer: { text: '', optOutUrl: '' },
+    });
+  }
   if (!personal) return sanitizeConfig(base);
 
   // Personal intro: the co-branded one-to-one page. Copy is a starting point the
@@ -281,6 +304,22 @@ export function sanitizeConfig(input) {
   const testimonial = obj(c.testimonial);
   const footer = obj(c.footer);
   const accent = color(theme.accent, t.theme.accent);
+  const ctas = (Array.isArray(c.ctas) ? c.ctas : [])
+    .map((b) => {
+      const kind = CTA_KINDS.includes(b?.kind) ? b.kind : 'link';
+      return {
+        label: clip(b?.label, 60),
+        kind,
+        value: clip(b?.value, 2048).trim(),
+        style: ['primary', 'secondary', 'text'].includes(b?.style) ? b.style : 'secondary',
+      };
+    })
+    .filter((b) => b.label || b.value)
+    .slice(0, 5);
+  const calendar = obj(c.calendar);
+  const transcript = obj(c.transcript);
+  const countdown = obj(c.countdown);
+  const endsMs = Date.parse(String(countdown.endsAt || ''));
   const logos = (Array.isArray(c.logos) ? c.logos : [])
     .map((l) => ({ name: clip(l?.name, 60), imageUrl: safeImageUrl(l?.imageUrl) }))
     .filter((l) => l.name || l.imageUrl)
@@ -327,10 +366,75 @@ export function sanitizeConfig(input) {
       .slice(0, 6),
     testimonial: { quote: clip(testimonial.quote, 280), by: clip(testimonial.by, 120) },
     logos,
+    ctas,
+    calendar: { url: isCalendarUrl(calendar.url) ? String(calendar.url).trim() : '', title: clip(calendar.title, 80) },
+    likes: { enabled: !!obj(c.likes).enabled },
+    transcript: {
+      enabled: !!transcript.enabled,
+      items: (Array.isArray(transcript.items) ? transcript.items : [])
+        .map((i) => ({ t: Math.max(0, Math.min(86400, Number(i?.t) || 0)), text: clip(i?.text, 300) }))
+        .filter((i) => i.text.trim())
+        .slice(0, 300),
+    },
+    countdown: {
+      enabled: !!countdown.enabled && Number.isFinite(endsMs) && Math.abs(endsMs - Date.now()) < 5 * 365 * 864e5,
+      endsAt: Number.isFinite(endsMs) ? new Date(endsMs).toISOString() : '',
+      label: clip(countdown.label, 80),
+    },
     footer: { text: clip(footer.text, 160), optOutUrl: safeUrl(footer.optOutUrl) },
     consent: { notice: clip(c.consent?.notice, 300) },
     autoplay: !!c.autoplay,
   };
+}
+
+export const CTA_KINDS = Object.freeze(['link', 'calendar', 'phone', 'sms', 'download']);
+
+/** Booking sites whose pages may be embedded under the player (https only, exact host or subdomain). */
+const CALENDAR_HOSTS = ['calendly.com', 'cal.com', 'tidycal.com', 'youcanbook.me', 'savvycal.com', 'calendar.google.com', 'calendar.app.google', 'zcal.co', 'chilipiper.com', 'acuityscheduling.com', 'outlook.office365.com', 'outlook.office.com'];
+const HUBSPOT_MEETINGS = /^meetings(-[a-z0-9]+)?\.hubspot\.com$/;
+
+export function isCalendarUrl(value) {
+  let u;
+  try { u = new URL(String(value || '').trim()); } catch { return false; }
+  if (u.protocol !== 'https:' || u.username || u.password) return false;
+  const host = u.hostname.toLowerCase();
+  return HUBSPOT_MEETINGS.test(host) || CALENDAR_HOSTS.some((d) => host === d || host.endsWith(`.${d}`));
+}
+
+/** Phone number for tel:/sms: links: digits with an optional leading +; '' when it doesn't look like a number. */
+export function cleanPhone(value) {
+  const s = String(value ?? '').trim();
+  if (!/^\+?[\d\s().-]{5,25}$/.test(s)) return '';
+  const digits = s.replace(/[^\d]/g, '');
+  return digits.length >= 5 && digits.length <= 15 ? `${s.startsWith('+') ? '+' : ''}${digits}` : '';
+}
+
+/** Safe href for an action button, or '' when the value is missing or unsafe. */
+export function ctaHref(kind, value) {
+  const v = String(value ?? '').trim();
+  if (kind === 'phone') { const n = cleanPhone(v); return n ? `tel:${n}` : ''; }
+  if (kind === 'sms') { const n = cleanPhone(v); return n ? `sms:${n}` : ''; }
+  if (kind === 'download') return safeImageUrl(v); // https only
+  if (kind === 'calendar') return /^https:\/\//i.test(v) && v.length <= 2048 ? v : '';
+  return safeUrl(v);
+}
+
+/** "0:00 Hello" / "1:05 Next point" lines -> [{ t, text }]. Lines without a time continue from the previous one. */
+export function parseTranscript(text) {
+  const out = [];
+  String(text ?? '').split(/\r?\n/).forEach((line) => {
+    const m = /^\s*(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s+(.+)$/.exec(line);
+    if (m) out.push({ t: (Number(m[1] || 0) * 3600) + (Number(m[2]) * 60) + Number(m[3]), text: m[4].trim() });
+    else if (line.trim() && out.length) out[out.length - 1].text += ` ${line.trim()}`;
+  });
+  return out.slice(0, 300);
+}
+
+export function formatTranscript(items = []) {
+  return items.map((i) => {
+    const t = Math.round(i.t);
+    return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')} ${i.text}`;
+  }).join('\n');
 }
 
 /** Split `[[highlighted]]` markers out of a headline (before token filling, so a token value can't add markers). */
