@@ -152,13 +152,13 @@ function makeProps(
 function canvasText(container: HTMLElement): string {
   const canvas = container.querySelector('[data-remotion-design-canvas]') as HTMLElement | null
   return ((canvas ?? container).textContent ?? '')
-    .replace(/ /g, ' ')
+    .replace(/\u00a0/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
 function plainText(container: HTMLElement): string {
-  return (container.textContent ?? '').replace(/ /g, ' ').replace(/\s+/g, ' ').trim()
+  return (container.textContent ?? '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 function isPainted(value: string | undefined): boolean {

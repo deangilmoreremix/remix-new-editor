@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- partial result doubles */
 /**
  * Publish must never hand a browser-only blob: URL to the publishing service.
  */

@@ -157,7 +157,7 @@ function cleanup(): void {
 /** The design's text without the credit block. */
 function designText(host: HTMLElement): string {
   const canvas = host.querySelector('[data-remotion-design-canvas]')
-  return (canvas?.textContent ?? '').replace(/ /g, ' ').replace(/\s+/g, ' ').trim()
+  return (canvas?.textContent ?? '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 const originalWarn = console.warn

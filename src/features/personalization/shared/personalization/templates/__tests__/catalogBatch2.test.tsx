@@ -131,7 +131,7 @@ function designText(container: HTMLElement): string {
   const canvas = container.querySelector('[data-remotion-design-canvas]')
   const root = (canvas as HTMLElement | null) ?? container
   return (root.textContent ?? '')
-    .replace(/ /g, ' ')
+    .replace(/\u00a0/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }

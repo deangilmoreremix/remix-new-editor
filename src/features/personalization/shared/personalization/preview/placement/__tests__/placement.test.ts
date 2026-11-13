@@ -387,7 +387,7 @@ describe('image overlay presets in the quality check', () => {
     expect(q.blocksExport).toBe(false)
   })
   it('Split Screen over a verified subject asks for the other side; away from it, nothing is reported', () => {
-    let s: PersonalizationPreviewSettings = { ...settingsFor('product-showcase'), imageHints: hints as PersonalizationPreviewSettings["imageHints"] }
+    const s: PersonalizationPreviewSettings = { ...settingsFor('product-showcase'), imageHints: hints as PersonalizationPreviewSettings["imageHints"] }
     const right = withStyle(s, 'productImage', { ...presetStyle('split-screen', '16:9', false), splitSide: 'right' })
     const subjectRight = zone(0.6, 0.1, 0.3, 0.8)
     expect(evaluateLayoutQuality(build(right, { zones: [subjectRight], samples: [flat(0.05)] })).issues.find((i) => i.code === 'split-covers-footage')?.severity).toBe('adjust')

@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-/* eslint-disable @typescript-eslint/no-explicit-any -- partial context doubles */
 /**
  * Simple Mode buttons found by the click-through to do nothing, or the wrong
  * thing: each now does its job or says why it can't.

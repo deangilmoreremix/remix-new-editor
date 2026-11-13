@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-function-type -- test harness shared with sharedDiscovery.test.tsx */
 /**
  * Finding a business pre-loads its content: research fills the client form
  * (with "from website" tags), the best logo and photos land in empty asset

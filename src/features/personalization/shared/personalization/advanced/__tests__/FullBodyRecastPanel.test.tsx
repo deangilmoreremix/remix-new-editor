@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-function-type -- test harness shared with sharedDiscovery.test.tsx */
 /**
  * Advanced Editing → Full Body Recast tab, inside the real modal + provider.
  * Harness (mocks, style shim, fetch routing) mirrors sharedDiscovery.test.tsx.

@@ -144,7 +144,7 @@ function upstreamRoot(container: HTMLElement): HTMLElement {
 
 function designText(container: HTMLElement): string {
   return (canvasOf(container)?.textContent ?? container.textContent ?? '')
-    .replace(/ /g, ' ')
+    .replace(/\u00a0/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }

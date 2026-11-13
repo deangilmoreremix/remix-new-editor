@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-/* eslint-disable @typescript-eslint/no-explicit-any -- test harness shared with PersonalizationModalLayout.test.tsx */
 /**
  * The Advanced Editing "what's left" checklist, the step-bar warning and the
  * footer reason all come from validateProjectRequirements, so a customer sees

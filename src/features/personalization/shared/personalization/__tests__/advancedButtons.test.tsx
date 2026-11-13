@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-/* eslint-disable @typescript-eslint/no-explicit-any -- test harness shared with PersonalizationModalLayout.test.tsx */
 /**
  * Advanced Editing buttons that used to do nothing (or the wrong thing) when
  * clicked: each now does its job.

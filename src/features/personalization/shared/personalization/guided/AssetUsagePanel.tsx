@@ -46,7 +46,6 @@ export function AssetUsagePanel(): React.JSX.Element | null {
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
         {summary.items.map((a) => (
           <li key={a.assetId} data-testid={`asset-usage-${a.assetId}`} data-state={a.state} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: C.text }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={a.url} alt="" style={{ width: 34, height: 34, objectFit: 'cover', borderRadius: 6, border: `1px solid ${C.border}` }} />
             <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</span>
             <span style={badgeStyle(a.state === 'rendered' ? 'green' : undefined)}>

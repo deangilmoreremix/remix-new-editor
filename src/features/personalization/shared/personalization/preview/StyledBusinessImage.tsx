@@ -42,7 +42,6 @@ export interface StyledBusinessImageProps {
 }
 
 const PlainImg: React.FC<StyledImageProps> = ({ src, alt = '', style }) => (
-  // eslint-disable-next-line @next/next/no-img-element
   <img src={src} alt={alt} style={style} draggable={false} />
 )
 
