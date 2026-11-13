@@ -1,4 +1,4 @@
-/* global Buffer, URL, window, CustomEvent, console, process */
+/* global Buffer, URL, window, document, getComputedStyle, CustomEvent, console, process */
 /**
  * Personalized links, end to end in a real browser (Chromium) against the real app.
  *
