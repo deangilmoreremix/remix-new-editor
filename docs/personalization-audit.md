@@ -60,21 +60,34 @@ URLs, is readable by table query); `record_video_event` does not validate recipi
 Backend is `tests/e2e/fixtures/fakeSupabase.js`, which models the live project's behavior. The live database and
 every other external service were never contacted (any outgoing request is aborted and the last test fails if one occurred).
 
-24 passed, 1 `fixme`. Covered: assets (upload, assign, states, persistence across reload, isolation between businesses),
+26 passed, 0 skipped. Covered: assets (upload, assign, states, persistence across reload, isolation between businesses),
+assets found inside the real Personalization Modal reaching the business library (discovery endpoint is a fixture),
 publish + business/video link names, 22 personalized links from one video with no new media, anonymous visitors in separate
 browsers seeing only their own text, images, call number and website, lead form timing/pause/resume, refresh-images,
-draft save/preview/publish on the same URLs, 20-contact CSV import, export, revoke, and visitor-side security checks
-(invented/edited/expired/revoked tokens, hostile text, unpublished video, renamed link redirect).
+draft save/preview/publish on the same URLs, 20-contact CSV import, export, revoke, visitor-side security checks
+(invented/edited/expired/revoked tokens, hostile text, unpublished video, renamed link redirect), and per-recipient MP4
+export (G): each business's MP4 is rendered in the browser, probed with ffprobe (h264, duration) and frame crops sampled with
+ffmpeg show only that business's logo/photo colours, greeting and call button.
 
-Bugs found by the browser test and fixed (separate commits): REST requests went out as anonymous (supabase-js Headers
+Production build: `playwright.links.prod.config.ts` + `personalization-links.prod.spec.js` run the hosted viewer from a
+`vite build`, served by `vite preview`, with the browser's content-security rules enforced (no bypass): two visitors each see
+their own greeting, images and call link, playback is proven by the lead form appearing at 1.5 s, no CSP violations.
+(The data comes from `fixtures/published-fixture.json`, captured through the real publish path with `E2E_DUMP_FIXTURE=1`.)
+
+Bugs found by the browser tests and fixed (separate commits): REST requests went out as anonymous (supabase-js Headers
 object); call/website destinations were not personalized; action notices vanished; early play taps were lost (two races);
-replaced images were pinned by a stale contact variable; CSV import added every contact twice.
+replaced images were pinned by a stale contact variable; CSV import added every contact twice; assets imported in the
+Personalization Modal never reached the business library (the modal now emits `remix:personalization-assets-imported`, the
+library hook saves them); recipient links copied every contact variable (they now carry only what the video reads).
 
-Open (not fixed, found by the browser test):
-- The Personalization Modal's `onComplete` fires only when a personalization run finishes and carries generated outputs;
-  assets found or assigned inside the modal stay in the modal's own saved project and are never written to the business
-  library (`test.fixme`). Decision needed on how to bridge them.
+Findings that remain (not fixed):
 - The remix-side Asset Finder client (`assetDiscoveryService.js`) and `personalizer-api.js` authenticate with a Supabase
   Auth session, which does not exist under Clerk sign-in ("Sign in to use business asset discovery.").
-- Recipient links copy every contact variable (including email) into the recipient's own token payload.
-- Not browser-tested: MP4 export per recipient, real Business Finder / Asset Finder on real websites, the real database.
+- By design of the token engine, `businessPhone` falls back to the contact's email when there is no phone, so a link for such
+  a contact carries that email under `businessPhone` (the call button reads that token).
+- The Remotion web renderer calls `www.remotion.pro/api/track/register-usage-point` on every render (library usage tracking).
+  The test aborts it and asserts the body carries no customer data; production would send it.
+- Not tested: real Business Finder / Asset Finder on real websites, the real database through the browser (needs a real
+  Clerk login), a Netlify deploy preview (response headers come from netlify.toml and edge functions, not `vite preview`).
+- Four unit tests fail identically on the base commit and on this branch (remotionui ledger, motion-director legacyCards,
+  two businessDiscovery research-provider tests); this branch changes nothing under their paths.
