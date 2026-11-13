@@ -37,6 +37,13 @@ export function AnalyticsTab() {
     try { if (sessionStorage.getItem(OPEN_FLAG)) { sessionStorage.removeItem(OPEN_FLAG); setView('notifications'); } } catch { /* storage unavailable */ }
   }, []);
 
+  // Bell clicked while this tab is already open: the shell only re-selects this tab, so switch the sub-view here too.
+  useEffect(() => {
+    const open = () => { try { sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } setOpts({}); setView('notifications'); };
+    window.addEventListener('remix:open-projects', open);
+    return () => window.removeEventListener('remix:open-projects', open);
+  }, []);
+
   // Make sure the published video is tied to this project (older publications were not).
   useEffect(() => {
     let cancelled = false;
@@ -63,7 +70,7 @@ export function AnalyticsTab() {
     host.innerHTML = '';
     const panel = document.createElement('div');
     host.appendChild(panel);
-    const ctx = { project: { id: projectId, name: latest.current.title }, card: { id: projectId, published: true, publishedId: pub.id }, openTab: (v: View, o?: Record<string, unknown>) => openView(v, o) };
+    const ctx = { project: { id: projectId, name: latest.current.title, videoId: pub.id }, card: { id: projectId, published: true, publishedId: pub.id }, openTab: (v: View, o?: Record<string, unknown>) => openView(v, o) };
     const deps = {
       getClient,
       navigate: (page: string) => import('../../../lib/router.js').then((m) => m.navigate(page)),
