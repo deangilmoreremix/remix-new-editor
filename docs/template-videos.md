@@ -8,7 +8,11 @@ library of ready-made AI video clips and adds the chosen one to the timeline as 
 - Inputs (all in `scripts/`): `template-video-allowlist.json` (which clips; every one was reviewed for logos/watermarks/captions),
   `template-video-labels.json` (commercial names, category, subcategory), `template-video-measured-durations.json`
   (real durations measured in a browser), `template-video-sources.json` (generated: original locations, used by the uploader).
-- UI: `src/cinegen/components/edit/template-videos-modal.tsx`; placement on the timeline: `template-video-placement.ts`.
+- UI: `src/cinegen/components/edit/template-videos-modal.tsx` exports `TemplateVideosPanel` (the browsing content: category + subcategory
+  chips, filters, grid) and `TemplateVideosModal` (the window around it, opened from *Add overlay → Template videos…*). The panel follows the same
+  Panel/Modal split as `HyperframesPanel` / `MgTemplatesPanel`, so it can also become a **Template videos tab** in the unified *Add to timeline* window
+  (`add-to-timeline-modal.tsx`, currently on branch `claude/elegant-wright-6s6w2l`): add a tab entry and render
+  `<TemplateVideosPanel onPick={...} />` for it. Placement on the timeline: `template-video-placement.ts`.
 
 ## Hosting — Supabase Storage bucket `demo-template-videos`
 The Supabase project is **shared by many apps**. The bucket `demo-template-videos` is dedicated to this library and nothing else may

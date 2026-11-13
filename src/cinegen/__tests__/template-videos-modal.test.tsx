@@ -2,7 +2,7 @@
 // picking a card hands the clip to the editor, which adds it to the timeline.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { TemplateVideosModal, aspectBucket, durationBucket, ratioNumber, searchTemplateVideos, type TemplateVideo } from '@cinegen/components/edit/template-videos-modal';
+import { TemplateVideosModal, TemplateVideosPanel, aspectBucket, durationBucket, ratioNumber, searchTemplateVideos, type TemplateVideo } from '@cinegen/components/edit/template-videos-modal';
 // @ts-expect-error plain JS data module
 import { templateVideos } from '../../data/templateVideoLibrary.js';
 
@@ -106,6 +106,19 @@ describe('TemplateVideosModal', () => {
     expect(onClose).toHaveBeenCalledTimes(2);
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(onClose).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('TemplateVideosPanel (reusable inside a bigger window, e.g. an Add-to-timeline tab)', () => {
+  it('renders the browsing content without any dialog shell, and picks a clip', () => {
+    const onPick = vi.fn();
+    render(<TemplateVideosPanel onPick={onPick} />);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByLabelText('Close library')).toBeNull();
+    expect(screen.getByRole('tablist', { name: 'Categories' })).toBeTruthy();
+    fireEvent.click(screen.queryAllByTestId(/^template-video-/)[0]);
+    expect(onPick).toHaveBeenCalledTimes(1);
+    expect((onPick.mock.calls[0][0] as TemplateVideo).videoSrc).toMatch(/^https:\/\//);
   });
 });
 
