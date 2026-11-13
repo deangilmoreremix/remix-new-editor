@@ -6,8 +6,8 @@ import { copyButtonLabel, useCopiedFlash } from '@cinegen/hooks/use-copied-flash
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { createSyncedTimeline } from '@cinegen/lib/editor/timeline-operations';
 import { BatchSyncDialog } from './batch-sync-dialog';
-import { filesToUrls, fetchVideoUrl } from '@cinegen/adapters/web-media'; // [remix]
-import { AddVideoDialog } from './add-video-dialog'; // [remix]
+import { filesToUrls } from '@cinegen/adapters/web-media'; // [remix]
+import { AddVideoControl, useDesktopImport } from './add-video-dialog'; // [remix]
 import {
   getAnalyzeVisionOnImportEnabled,
   getApiKey,
@@ -370,7 +370,6 @@ export function LeftPanel({
     if (currentFolderId === folderId) setCurrentFolderId(null);
   }, [onRemoveFolder, currentFolderId]);
 
-  const [addVideoOpen, setAddVideoOpen] = useState(false); // [remix]
   const handleImport = useCallback(async (dropped?: string[]): Promise<Asset[]> => { // [remix] `dropped`: files dragged in from the desktop skip the dialog
     if (!projectId || !onAddAsset) return [];
 
@@ -450,15 +449,7 @@ export function LeftPanel({
     return createdAssets;
   }, [projectId, currentFolderId, onAddAsset]);
 
-  // [remix] Desktop files dropped on the timeline are imported here (the media pool owns import), then placed by the timeline.
-  useEffect(() => {
-    const onImportFiles = (event: Event) => {
-      const { files, resolve } = (event as CustomEvent<{ files: File[]; resolve: (assets: Asset[]) => void }>).detail;
-      void filesToUrls(files).then((urls) => handleImport(urls)).then(resolve, () => resolve([]));
-    };
-    window.addEventListener('remix:import-files', onImportFiles);
-    return () => window.removeEventListener('remix:import-files', onImportFiles);
-  }, [handleImport]);
+  useDesktopImport(handleImport); // [remix] timeline / media-pool drops of desktop files
 
   const commitRename = useCallback(() => {
     if (!renamingId || !renameValue.trim()) { setRenamingId(null); return; }
@@ -1445,9 +1436,6 @@ export function LeftPanel({
         {visibleAssets.length === 0 && visibleFolders.length === 0 && (
           <div className="mp__empty">
             {searchQuery ? 'No results found' : currentFolderId ? 'Drag assets here or go back' : 'No assets imported'}
-            {!searchQuery && !currentFolderId && projectId && onAddAsset && (
-              <div><button type="button" className="mp__tool-btn" onClick={() => setAddVideoOpen(true)}>Add video: upload, drop or paste a link</button></div>
-            )}
           </div>
         )}
         {marquee && (() => {
@@ -1459,17 +1447,6 @@ export function LeftPanel({
         })()}
       </div>
 
-      {addVideoOpen && (
-        <AddVideoDialog
-          onClose={() => setAddVideoOpen(false)}
-          onFiles={async (files) => { await handleImport(await filesToUrls(files)); }}
-          onUrl={async (link) => {
-            const r = await fetchVideoUrl(link);
-            await handleImport(r.file ? await filesToUrls([r.file]) : [r.linkedUrl!]);
-            return r.note;
-          }}
-        />
-      )}
       {/* Bottom toolbar */}
       <div className="mp__toolbar">
         <div className="mp__toolbar-left">
@@ -1478,12 +1455,7 @@ export function LeftPanel({
               <ImportIcon />
             </button>
           )}
-          {projectId && onAddAsset && (
-            <button className="mp__tool-btn" onClick={() => setAddVideoOpen(true)} title="Add video (upload, drag and drop, or link)">
-              <ImportIcon />
-              <span style={{ marginLeft: 4, fontSize: 11 }}>Add video</span>
-            </button>
-          )}
+          {projectId && onAddAsset && <AddVideoControl handleImport={handleImport} />}{/* [remix] */}
           <button className="mp__tool-btn" onClick={handleCreateFolder} title="New folder">
             <NewFolderIcon />
           </button>

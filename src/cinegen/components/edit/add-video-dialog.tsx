@@ -1,5 +1,7 @@
 // [remix] "Add video": one place to bring a customer's video into the project by upload, drag and drop, or link.
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { Asset } from '@cinegen/types/project';
+import { filesToUrls, fetchVideoUrl } from '@cinegen/adapters/web-media';
 import { createPortal } from 'react-dom';
 
 interface AddVideoDialogProps {
@@ -67,4 +69,39 @@ export function AddVideoDialog({ onFiles, onUrl, onClose }: AddVideoDialogProps)
     </div>,
     document.body,
   );
+}
+
+/** Toolbar button + dialog for the media pool. */
+export function AddVideoControl({ handleImport }: { handleImport: (paths?: string[]) => Promise<Asset[]> }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button className="mp__tool-btn" onClick={() => setOpen(true)} title="Add video (upload, drag and drop, or link)">
+        <span style={{ fontSize: 11 }}>Add video</span>
+      </button>
+      {open && (
+        <AddVideoDialog
+          onClose={() => setOpen(false)}
+          onFiles={async (files) => { await handleImport(await filesToUrls(files)); }}
+          onUrl={async (link) => {
+            const r = await fetchVideoUrl(link);
+            await handleImport(r.file ? await filesToUrls([r.file]) : [r.linkedUrl!]);
+            return r.note;
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+/** Desktop files dropped on the timeline are imported by the media pool (it owns import), then placed by the timeline. */
+export function useDesktopImport(handleImport: (paths?: string[]) => Promise<Asset[]>) {
+  useEffect(() => {
+    const onImportFiles = (event: Event) => {
+      const { files, resolve } = (event as CustomEvent<{ files: File[]; resolve: (assets: Asset[]) => void }>).detail;
+      void filesToUrls(files).then((urls) => handleImport(urls)).then(resolve, () => resolve([]));
+    };
+    window.addEventListener('remix:import-files', onImportFiles);
+    return () => window.removeEventListener('remix:import-files', onImportFiles);
+  }, [handleImport]);
 }
