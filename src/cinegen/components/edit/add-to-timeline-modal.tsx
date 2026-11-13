@@ -143,7 +143,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
                   style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12, padding: 12, border: '1px solid var(--accent)', borderRadius: 12, background: 'var(--accent-dim)' }}>
                   <span style={{ fontSize: 13, flex: '0 0 auto' }}>Phone number the buttons should dial</span>
                   <input type="tel" autoFocus placeholder="212 555 0147" aria-label={PHONE_LABEL} value={phone} onChange={(e) => setPhone(e.target.value)} style={{ ...field, flex: 1, padding: '8px 10px' }} />
-                  <button type="submit" style={{ padding: '8px 14px', borderRadius: 10, border: 0, background: 'var(--accent)', color: '#000', fontWeight: 700, cursor: 'pointer' }}>Add</button>
+                  <button type="submit" style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,.12)', borderLeft: '2px solid var(--accent)', background: 'transparent', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Add</button>
                   <button type="button" onClick={() => setConnect(null)} style={{ background: 'transparent', border: 0, color: 'inherit', cursor: 'pointer' }}>Cancel</button>
                 </form>
               )}

@@ -108,7 +108,7 @@ export function ChatInput({
       <form onSubmit={handleSubmit}>
         <div
           className={`bg-background-elevated rounded-xl border p-3 transition-colors ${
-            isDragging ? "border-blue-500 bg-blue-500/10" : "border-border"
+            isDragging ? "border-primary bg-primary/10" : "border-border"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -231,7 +231,7 @@ export function ChatInput({
                 size="icon-sm"
                 disabled={!prompt.trim() || isLoading}
                 loading={isLoading}
-                className="bg-foreground text-background hover:bg-gray-200 h-7 w-7 ml-1"
+                className="h-7 w-7 ml-1"
               >
                 <ArrowUp className="w-4 h-4" />
               </Button>

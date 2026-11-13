@@ -1,5 +1,5 @@
 /* [remix] The approved colours (user-confirmed, do not change): #05070b background, glass panels
-   rgba(255,255,255,.05), borders rgba(255,255,255,.1), cyan #22d3ee accent in place of CineGen's gold,
+   rgba(255,255,255,.05), borders rgba(255,255,255,.1), lime #d9ff00 accent (the app's --color-primary, matches Image/Viral studios) in place of CineGen's gold,
    emerald #34d399 for audio, Inter. */
 :root, .cinegen-root {
   --bg-void: #05070b;
@@ -11,11 +11,11 @@
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.6);
   --text-tertiary: rgba(255, 255, 255, 0.4);
-  --accent: #22d3ee;
-  --accent-hover: #67e8f9;
-  --accent-dim: rgba(34, 211, 238, 0.16);
+  --accent: #d9ff00;
+  --accent-hover: #c4e600;
+  --accent-dim: rgba(217, 255, 0, 0.16);
   --success: #34d399;
-  --port-video: #22d3ee;
+  --port-video: #d9ff00;
   --port-audio: #34d399;
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-medium: rgba(255, 255, 255, 0.1);
@@ -58,7 +58,7 @@
 .help-tip {
   position: fixed; z-index: 100000; width: 280px; max-width: calc(100vw - 20px);
   padding: 10px 12px 11px; border-radius: 10px;
-  background: #0d1016; color: #e8edf3; border: 1px solid rgba(34, 211, 238, 0.35);
+  background: #0d1016; color: #e8edf3; border: 1px solid rgba(217, 255, 0, 0.35);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55); font: 12px/1.45 var(--font-display, Inter, ui-sans-serif, system-ui, sans-serif);
   pointer-events: auto; animation: help-tip-in 0.12s ease-out;
 }
@@ -67,10 +67,10 @@
 .help-tip__name { font-size: 13px; font-weight: 600; color: #fff; }
 .help-tip__key { font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 3px 6px; border-radius: 5px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14); color: #cfe9f0; }
 .help-tip__summary { margin: 4px 0 0; color: #b4bfca; }
-.help-tip__hint { display: block; margin-top: 7px; font-size: 10px; letter-spacing: 0.04em; color: rgba(34, 211, 238, 0.75); }
+.help-tip__hint { display: block; margin-top: 7px; font-size: 10px; letter-spacing: 0.04em; color: rgba(217, 255, 0, 0.75); }
 .help-tip__more { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.09); }
 .help-tip__what { margin: 0 0 8px; color: #dfe6ed; }
-.help-tip__label { display: block; margin-bottom: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #22d3ee; }
+.help-tip__label { display: block; margin-bottom: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #d9ff00; }
 .help-tip__how { margin: 0; padding-left: 18px; list-style: decimal; color: #c9d2db; }
 .help-tip__how li { margin: 2px 0; }
 @keyframes help-tip-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
@@ -87,7 +87,7 @@
 .overlay-lane__item:hover .overlay-lane__remove, .overlay-lane__item:focus-within .overlay-lane__remove, .overlay-lane__item--selected .overlay-lane__remove,
 .caption-lane__item:hover .caption-lane__remove, .caption-lane__item:focus-within .caption-lane__remove { opacity: 1; }
 .overlay-lane__remove:hover, .caption-lane__remove:hover { background: #ef4444; }
-.overlay-lane__remove:focus-visible, .caption-lane__remove:focus-visible { outline: 2px solid #22d3ee; outline-offset: 1px; opacity: 1; }
+.overlay-lane__remove:focus-visible, .caption-lane__remove:focus-visible { outline: 2px solid #d9ff00; outline-offset: 1px; opacity: 1; }
 .overlay-lane__item:focus { outline: none; }
 
 /* [remix] Clip remove (×): bigger, and visible while the clip is selected (it used to appear only on hover). */
@@ -108,22 +108,22 @@
 /* [remix] Library (components/edit/library-panel.tsx) and the Media | Library switch at the top of the left column. */
 .left-panel__switch { display: flex; gap: 4px; padding: 6px 8px 0; flex: 0 0 auto; }
 .left-panel__switch-btn { flex: 1; padding: 5px 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.1); background: transparent; color: rgba(232, 237, 243, 0.65); cursor: pointer; }
-.left-panel__switch-btn:hover { color: #fff; border-color: rgba(34, 211, 238, 0.4); }
-.left-panel__switch-btn--on { color: #22d3ee; border-color: #22d3ee; background: rgba(34, 211, 238, 0.08); }
+.left-panel__switch-btn:hover { color: #fff; border-color: rgba(217, 255, 0, 0.4); }
+.left-panel__switch-btn--on { color: #d9ff00; border-color: #d9ff00; background: rgba(217, 255, 0, 0.08); }
 .left-panel--library { display: flex; flex-direction: column; min-height: 0; }
 .library-panel { display: flex; flex-direction: column; gap: 8px; padding: 8px; min-height: 0; flex: 1; overflow: hidden; }
 .library-panel__search { width: 100%; background: #0d1218; color: inherit; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 6px; padding: 6px 8px; font-size: 12px; }
 .library-panel__chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .library-panel__chip { padding: 3px 8px; font-size: 11px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.14); background: transparent; color: rgba(232, 237, 243, 0.75); cursor: pointer; }
 .library-panel__chip:hover { color: #fff; }
-.library-panel__chip--on { color: #22d3ee; border-color: #22d3ee; background: rgba(34, 211, 238, 0.08); }
+.library-panel__chip--on { color: #d9ff00; border-color: #d9ff00; background: rgba(217, 255, 0, 0.08); }
 .library-panel__hint { font-size: 10px; letter-spacing: 0.03em; color: rgba(232, 237, 243, 0.55); }
-.library-panel__note { font-size: 11px; line-height: 1.35; padding: 6px 8px; border-radius: 6px; background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.35); color: #cfeff5; }
+.library-panel__note { font-size: 11px; line-height: 1.35; padding: 6px 8px; border-radius: 6px; background: rgba(217, 255, 0, 0.1); border: 1px solid rgba(217, 255, 0, 0.35); color: #cfeff5; }
 .library-panel__body { flex: 1; min-height: 0; overflow: auto; padding-right: 2px; }
 .library-panel__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
 .library-panel__grid--wide { grid-template-columns: 1fr; }
 .library-panel__stack { display: flex; flex-direction: column; gap: 8px; }
-.library-panel__subhead { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #22d3ee; margin-top: 4px; }
+.library-panel__subhead { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #d9ff00; margin-top: 4px; }
 .library-panel__sound { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); }
 .library-panel__empty { font-size: 12px; opacity: 0.65; padding: 6px 2px; }
 
@@ -159,12 +159,12 @@
 /* Media | Library switch: slim underline tabs instead of a bar of buttons */
 .left-panel__switch { padding: 4px 10px 0; gap: 14px; border-bottom: 1px solid rgba(255,255,255,.06); }
 .left-panel__switch-btn { flex: 0 0 auto; padding: 3px 0 5px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; font-size: 11px; }
-.left-panel__switch-btn--on { background: transparent; border-bottom-color: #22d3ee; }
+.left-panel__switch-btn--on { background: transparent; border-bottom-color: #d9ff00; }
 .left-panel__switch-btn:hover { border-color: transparent; }
-.left-panel__switch-btn--on:hover { border-bottom-color: #22d3ee; }
+.left-panel__switch-btn--on:hover { border-bottom-color: #d9ff00; }
 
 /* [remix] drop highlight while a Library card is dragged over a track or clip */
-.lib-drop-target { outline: 2px dashed var(--accent, #22d3ee) !important; outline-offset: -2px; background-image: linear-gradient(rgba(34,211,238,.10), rgba(34,211,238,.10)); }
+.lib-drop-target { outline: 2px dashed var(--accent, #d9ff00) !important; outline-offset: -2px; background-image: linear-gradient(rgba(217, 255, 0,.10), rgba(217, 255, 0,.10)); }
 
 /* [remix] overlay blocks no longer borrow .clip-card (CineGen's timeline code queries that class for clips); same look */
 .overlay-card { position: absolute; border-radius: var(--radius-md); overflow: hidden; cursor: grab; touch-action: none; user-select: none; transition: border-color var(--transition-fast); }
@@ -175,7 +175,7 @@
 .timeline-bottom-bar__add-caret { padding-left: 8px; padding-right: 8px; }
 .timeline-bottom-bar__add-menu { position: absolute; bottom: calc(100% + 4px); left: 0; z-index: 30; min-width: 130px; display: flex; flex-direction: column; background: var(--bg-elevated, #131820); border: 1px solid var(--border-medium); border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
 .timeline-bottom-bar__add-menu button { text-align: left; background: transparent; border: 0; color: var(--text-primary, #e8edf3); font-size: 12px; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
-.timeline-bottom-bar__add-menu button:hover { background: rgba(34,211,238,.12); }
+.timeline-bottom-bar__add-menu button:hover { background: rgba(217, 255, 0,.12); }
 .timeline-bottom-bar__add-caret { width: 28px; min-width: 0; flex: 0 0 auto; padding: 0; justify-content: center; }
 
 /* [remix] Clips show only their content: the picture / frames at full strength, no tint, no coloured border or bar.
@@ -188,10 +188,54 @@
 .clip-card__thumb--placeholder, .clip-card__filmstrip--placeholder { filter: none !important; }
 .clip-card__filmstrip { --filmstrip-gap: 0px; }
 .clip-card__filmstrip-frame:not(:last-child) { border-right: 0 !important; }
-.clip-card--selected { border-color: #22d3ee !important; box-shadow: 0 0 0 1px #22d3ee !important; }
+.clip-card--selected { border-color: #d9ff00 !important; box-shadow: 0 0 0 1px #d9ff00 !important; }
 /* audio: neutral background, neutral waveform (the canvas is recoloured with a filter) */
 .clip-card--audio { background: #101216 !important; }
 .clip-card--audio .clip-card__waveform, .clip-card--audio canvas { filter: grayscale(1) brightness(1.5); opacity: 0.85; }
 /* label: no bar over the picture, just text with a soft shadow */
 .clip-card__overlay { background: linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)) !important; padding: 10px 8px 3px; }
 .clip-card__name, .clip-card__duration { color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.9); }
+
+/* [remix] Outlined buttons, never filled: same language as the app's .btn-primary-modern / .btn-action-secondary / .btn-personalize
+   (src/styles/global.css, gtm-prompt-modal.css). Primary = white hairline + 2px lime left edge; active toggles = lime tint + lime hairline. */
+:is(.svm__inline-submit, .svm__accept-btn:not(.svm__accept-btn--secondary), .music-popup__generate, .fgm__btn--primary, .em__btn--primary,
+    .fcm__btn--accent, .fcm__send, .export-settings__render-btn, .element-modal__save-btn, .mp-confirm__btn--go, .sam3__btn--accent,
+    .sync-dialog__btn--sync, .render-progress__download-btn, .pm-bottombar__btn--primary) {
+  background: transparent; color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12); border-left: 2px solid var(--accent);
+  box-shadow: none; filter: none; text-shadow: none;
+}
+:is(.svm__inline-submit, .svm__accept-btn:not(.svm__accept-btn--secondary), .music-popup__generate, .fgm__btn--primary, .em__btn--primary,
+    .fcm__btn--accent, .fcm__send, .export-settings__render-btn, .element-modal__save-btn, .mp-confirm__btn--go, .sam3__btn--accent,
+    .sync-dialog__btn--sync, .render-progress__download-btn, .pm-bottombar__btn--primary):hover:not(:disabled) {
+  background: transparent; color: #fff; opacity: 1; filter: none;
+  border-color: rgba(217, 255, 0, 0.5); border-left: 2px solid var(--accent);
+  box-shadow: 0 0 16px rgba(217, 255, 0, 0.08);
+}
+.pm-bottombar__btn--primary:disabled { background: transparent; color: rgba(255, 255, 255, 0.4); border-color: rgba(255, 255, 255, 0.08); border-left-color: rgba(217, 255, 0, 0.3); opacity: 0.6; }
+.fcm__send { width: 42px; height: 42px; }
+
+/* active toggles: tint, not a solid fill */
+.tool-sidebar__btn--active, .tool-sidebar__btn--active:hover,
+.timeline-editor__snap-btn--active, .timeline-editor__snap-btn--active:hover {
+  background: rgba(217, 255, 0, 0.08); color: var(--accent); border-color: rgba(217, 255, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(217, 255, 0, 0.25);
+}
+.tool-sidebar__btn--active .tool-sidebar__img-icon { filter: invert(0.85); }
+
+/* danger: red outline */
+.mp-confirm__btn--delete, .mp-confirm__btn--delete:hover {
+  background: transparent; color: #ff8078; border: 1px solid rgba(255, 69, 58, 0.45); box-shadow: none;
+}
+.mp-confirm__btn--delete:hover { background: rgba(255, 69, 58, 0.08); border-color: rgba(255, 69, 58, 0.7); }
+
+/* already-tinted secondary stays an outline */
+.svm__accept-btn--secondary { background: rgba(217, 255, 0, 0.08); border: 1px solid rgba(217, 255, 0, 0.25); color: #fff; }
+
+/* [remix] transcription modal uses bare .btn classes that had no CSS: outlined like the rest. */
+.btn.btn--secondary, .btn.btn--primary {
+  padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; background: transparent; color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.2s ease;
+}
+.btn.btn--primary { border-left: 2px solid var(--accent); }
+.btn.btn--secondary:hover, .btn.btn--primary:hover { color: #fff; border-color: rgba(217, 255, 0, 0.5); }

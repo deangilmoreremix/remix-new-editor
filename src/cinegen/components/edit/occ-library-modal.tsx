@@ -31,7 +31,7 @@ export function OccLibraryModal({ onClose, onPickFx, onPickLut, onPickTransition
       <div style={{ width: 'min(760px, 94vw)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: '#0b1016', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8, padding: 14 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
           {([['fx', `Effects (${FX_IDS.length + pfx.length})`], ['lut', `LUTs & looks (${LUT_IDS.length + userLutIds().length + plut.length})`], ['tr', `Transitions (${GL_TRANSITION_ORDER.length + ptr.length})`], ['ext', `Extensions (${packs.length})`]] as Array<[Tab, string]>).map(([k, label]) => (
-            <button key={k} className="clip-properties-panel__toggle-btn" style={tab === k ? { borderColor: '#22d3ee' } : undefined} onClick={() => setTab(k)}>{label}</button>
+            <button key={k} className="clip-properties-panel__toggle-btn" style={tab === k ? { borderColor: '#d9ff00' } : undefined} onClick={() => setTab(k)}>{label}</button>
           ))}
           <span style={{ flex: 1 }} />
           <button className="clip-properties-panel__toggle-btn" aria-label="Close library" onClick={onClose}>×</button>

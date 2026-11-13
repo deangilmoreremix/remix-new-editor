@@ -7,7 +7,7 @@ import { readScriptQuote, resolveScriptQuote, quoteFromElementRange, type Script
 import { PaginatedPages } from './paginated-pages';
 
 export const ELEMENT_TYPES: { id: ScreenplayElementType; name: string; color: string }[] = [
-  { id: 'scene', name: 'Scene Heading', color: '#22d3ee' },
+  { id: 'scene', name: 'Scene Heading', color: '#d9ff00' },
   { id: 'action', name: 'Action', color: '#8a8a96' },
   { id: 'character', name: 'Character', color: '#9db4ff' },
   { id: 'dialogue', name: 'Dialogue', color: '#e8e8ee' },

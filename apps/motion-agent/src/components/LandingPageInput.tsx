@@ -102,7 +102,7 @@ export function LandingPageInput({
       <form onSubmit={handleSubmit} className="w-full max-w-3xl">
         <div
           className={`bg-background-elevated rounded-xl border p-4 transition-colors ${
-            isDragging ? "border-blue-500 bg-blue-500/10" : "border-border"
+            isDragging ? "border-primary bg-primary/10" : "border-border"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -207,7 +207,6 @@ export function LandingPageInput({
                 size="icon-sm"
                 disabled={!prompt.trim() || isNavigating}
                 loading={isNavigating}
-                className="bg-foreground text-background hover:bg-gray-200"
               >
                 <ArrowUp className="w-5 h-5" />
               </Button>

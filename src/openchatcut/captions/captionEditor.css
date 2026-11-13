@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later — OpenChatCut (apps/video-agent-studio/src/index.css, caption editor rules), vendored. */
 /* [remix] --cc-* tokens map their theme variables onto this app's cyan scheme; scoped to .cc-cap-host. */
-.cc-cap-host{--cc-panel:#0b1016;--cc-panel-alt:#0d1218;--cc-border:rgba(255,255,255,.14);--cc-border-light:rgba(255,255,255,.24);--cc-hover:rgba(255,255,255,.08);--cc-text:#e5e7eb;--cc-text-strong:#fff;--cc-text-muted:#9ca3af;--cc-text-dim:#6b7280;--cc-accent:#22d3ee;--cc-accent-deep:#0891b2;--cc-on-accent:#05070b;--cc-danger:#f87171;--cc-gold:#f59e0b;--cc-success:#34d399;}
+.cc-cap-host{--cc-panel:#0b1016;--cc-panel-alt:#0d1218;--cc-border:rgba(255,255,255,.14);--cc-border-light:rgba(255,255,255,.24);--cc-hover:rgba(255,255,255,.08);--cc-text:#e5e7eb;--cc-text-strong:#fff;--cc-text-muted:#9ca3af;--cc-text-dim:#6b7280;--cc-accent:#d9ff00;--cc-accent-deep:#a8c400;--cc-on-accent:#05070b;--cc-danger:#f87171;--cc-gold:#f59e0b;--cc-success:#34d399;}
 .cc-cap-panel {
   border-top:0.5px solid var(--cc-border); padding:0;
   display:flex; flex-direction:column; gap:0; flex-shrink:0;

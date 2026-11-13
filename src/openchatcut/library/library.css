@@ -1,5 +1,5 @@
 /* OpenChatCut library-card styles (index.css), vendored. The --cc-* tokens map onto our theme. */
-.occ-library{--cc-panel-alt:#0d1218;--cc-border:rgba(255,255,255,.14);--cc-border-light:rgba(34,211,238,.5);--cc-hover:rgba(255,255,255,.08);--cc-text:#e5e7eb;--cc-text-muted:#9ca3af;--cc-ink-rgb:255,255,255;}
+.occ-library{--cc-panel-alt:#0d1218;--cc-border:rgba(255,255,255,.14);--cc-border-light:rgba(217, 255, 0,.5);--cc-hover:rgba(255,255,255,.08);--cc-text:#e5e7eb;--cc-text-muted:#9ca3af;--cc-ink-rgb:255,255,255;}
 .cc-resource-card {
   min-width:0; padding:0; border:0; background:transparent; color:var(--cc-text-muted);
   cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:4px;

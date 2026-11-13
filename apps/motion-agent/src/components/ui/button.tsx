@@ -10,13 +10,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary-hover",
-        destructive: "bg-destructive text-foreground hover:bg-destructive/90",
+        // Outlined, never filled: primary = white hairline + 2px lime left edge (app's .btn-primary-modern)
+        default:
+          "bg-transparent text-foreground border border-white/12 border-l-2 border-l-primary hover:border-primary/50 hover:shadow-[0_0_16px_rgba(217,255,0,0.08)]",
+        destructive:
+          "bg-transparent text-destructive border border-destructive/45 hover:bg-destructive/10 hover:border-destructive/70",
         outline:
-          "border border-border bg-transparent text-foreground hover:bg-accent",
+          "border border-border bg-transparent text-foreground hover:border-primary/50 hover:bg-primary/5",
+        // secondary = ghost hairline (app's .btn-action-secondary)
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "text-foreground hover:bg-accent",
+          "bg-transparent text-foreground/75 border border-white/10 hover:text-foreground hover:border-white/25",
+        ghost: "text-foreground hover:bg-primary/5 hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
