@@ -9438,6 +9438,105 @@
     }
    },
    "motion": "animated"
+  },
+  {
+   "id": "thread-message-stack",
+   "type": "block",
+   "title": "Thread Message Stack",
+   "description": "A source-owned editable conversation stack with arbitrary incoming and outgoing messages",
+   "tags": [
+    "social",
+    "conversation",
+    "messages"
+   ],
+   "category": "social",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 8,
+   "sourceSha256": "4efa717d9e0f625728dbf66cf0be95c7ad4dd2afa1736570e066158e191bc8ee",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "thread-message-stack.html",
+     "target": "compositions/thread-message-stack.html",
+     "sha256": "4efa717d9e0f625728dbf66cf0be95c7ad4dd2afa1736570e066158e191bc8ee"
+    }
+   ],
+   "editables": [
+    {
+     "key": "msg0",
+     "label": "Message 1",
+     "defaultValue": "wait, that is actually wild",
+     "type": "text",
+     "target": {
+      "kind": "data",
+      "path": "messages.0.text"
+     }
+    },
+    {
+     "key": "msg1",
+     "label": "Message 2",
+     "defaultValue": "can you fix it?",
+     "type": "text",
+     "target": {
+      "kind": "data",
+      "path": "messages.1.text"
+     }
+    },
+    {
+     "key": "msg2",
+     "label": "Message 3",
+     "defaultValue": "way ahead of you",
+     "type": "text",
+     "target": {
+      "kind": "data",
+      "path": "messages.2.text"
+     }
+    },
+    {
+     "key": "msg3",
+     "label": "Message 4",
+     "defaultValue": "you are unreal",
+     "type": "text",
+     "target": {
+      "kind": "data",
+      "path": "messages.3.text"
+     }
+    },
+    {
+     "key": "msg4",
+     "label": "Message 5",
+     "defaultValue": "he owes you dinner for this one",
+     "type": "text",
+     "target": {
+      "kind": "data",
+      "path": "messages.4.text"
+     }
+    },
+    {
+     "key": "msg5",
+     "label": "Message 6",
+     "defaultValue": "already booked",
+     "type": "text",
+     "target": {
+      "kind": "data",
+      "path": "messages.5.text"
+     }
+    },
+    {
+     "key": "sender",
+     "label": "Sender name",
+     "defaultValue": "Northbeam support",
+     "type": "text",
+     "target": {
+      "kind": "data",
+      "path": "messages.0.sender"
+     }
+    }
+   ],
+   "motion": "animated"
   }
  ]
 }

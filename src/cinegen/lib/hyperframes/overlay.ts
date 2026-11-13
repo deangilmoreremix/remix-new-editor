@@ -24,7 +24,7 @@ export interface HfEditable {
   initialValue?: string | number | boolean;
   min?: number; max?: number; step?: number; options?: Array<string | { value: string; label?: string }>;
   /** Where the value goes in the block, as an OverrideSet entry: `<hfId>.text`, `<hfId>.style.<prop>`, `<hfId>.attr.<name>`, or `cfg.<path>` (a leaf of the block's published `var CONFIG` object), or `var.<id>` (a declared composition variable). */
-  target: { hfId?: string; kind: 'text' | 'style' | 'attr' | 'cfg' | 'var' | 'prop'; prop?: string; path?: string; id?: string };
+  target: { hfId?: string; kind: 'text' | 'style' | 'attr' | 'cfg' | 'data' | 'var' | 'prop'; prop?: string; path?: string; id?: string };
 }
 export interface HfItem {
   id: string; type?: 'block' | 'component' | 'example' | 'remotionui'; source?: 'HyperFrames' | 'RemotionUI'; title: string; description: string; tags: string[]; category: string;
@@ -82,6 +82,7 @@ export function overridesFromProps(item: HfItem, props: Record<string, unknown>)
     const { hfId, kind, prop, path, id } = e.target;
     if (kind === 'prop') { if (id) out[id] = v as string | number | boolean; continue; }
     if (kind === 'var') { if (id) out[`var.${id}`] = v as string | number | boolean; continue; }
+    if (kind === 'data') { if (path) out[`data.${path}`] = v as string | number; continue; }
     if (kind === 'cfg') { if (path) out[`cfg.${path}`] = v as string | number | boolean; continue; }
     if (typeof v !== 'string' || !hfId) continue;
     out[kind === 'text' ? `${hfId}.text` : kind === 'style' ? `${hfId}.style.${prop}` : `${hfId}.attr.${prop}`] = v;

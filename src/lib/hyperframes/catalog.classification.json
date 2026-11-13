@@ -7,19 +7,19 @@
   "minExportFps": 8.0
  },
  "totals": {
-  "verified-export": 220,
-  "unsupported": 52,
+  "verified-export": 221,
+  "unsupported": 49,
   "not-tested": 2,
-  "adapter-compatible": 72,
+  "adapter-compatible": 74,
   "specialized": 81,
   "host-dependent": 30
  },
  "byType": {
   "block": {
-   "verified-export": 115,
-   "unsupported": 49,
+   "verified-export": 116,
+   "unsupported": 46,
    "not-tested": 2,
-   "adapter-compatible": 19,
+   "adapter-compatible": 21,
    "specialized": 25
   },
   "component": {
@@ -57,7 +57,7 @@
   "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 119,
+ "enabledCount": 120,
  "items": {
   "ai-answer-rank": {
    "type": "block",
@@ -1136,8 +1136,8 @@
   },
   "code-snippet-dark-2026": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline code-snippet-dark-2026: no __timelines entry",
+   "status": "adapter-compatible",
+   "reason": "renders and animates correctly (visual review) and 3 of 4 title fields are editable, but the real 1080p browser export runs at 1.6 fps (< 3 fps minimum), so it stays held back; the earlier \"no timeline\" reason was wrong",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1149,12 +1149,14 @@
     "export": null
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export too slow (1.6 fps)"
+   ]
   },
   "code-snippet-dark-modern": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline code-snippet-dark-modern: no __timelines entry",
+   "status": "adapter-compatible",
+   "reason": "renders and animates correctly (visual review) and 3 of 4 title fields are editable, but the real 1080p browser export runs at 1.6 fps (< 3 fps minimum), so it stays held back; the earlier \"no timeline\" reason was wrong",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1166,7 +1168,9 @@
     "export": null
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "export too slow (1.6 fps)"
+   ]
   },
   "code-typing": {
    "type": "block",
@@ -3552,8 +3556,8 @@
   },
   "thread-message-stack": {
    "type": "block",
-   "status": "unsupported",
-   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline thread-message-stack: no __timelines entry",
+   "status": "verified-export",
+   "reason": "Visually verified (no SSIM: the native HyperFrames renderer produces a blank reference for this block); production render shows the full animation, 7 editable fields measured visible, real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3562,10 +3566,16 @@
      1.0
     ],
     "ssimMin": 1.0,
-    "export": null
+    "export": {
+     "ok": true,
+     "fps": 13.2
+    },
+    "kind": "animated",
+    "nonBlank": 1.0
    },
-   "enabled": false,
-   "enabledBlockedBy": []
+   "enabled": true,
+   "enabledBlockedBy": [],
+   "visualReview": true
   },
   "tiktok-follow": {
    "type": "block",
