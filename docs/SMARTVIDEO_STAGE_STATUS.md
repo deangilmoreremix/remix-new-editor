@@ -9,7 +9,7 @@
 | 4 | Advanced browser audio | **Complete and verified** (limits in the Stage 4 section) | Authorized (3-stage cadence) | 2026-11-13 | see `git log` ("Stage 4") | 71 unit/panel/composition tests; personalization suite 194 files, 2,431 passed; typecheck gate 0; live check 40/40 | Mixdown stored in the browser only; tested on short clips only |
 | 5 | Advanced video effects & motion | **Complete and verified** (limits in the Stage 5 section) | Authorized (3-stage cadence) | 2026-11-13 | see `git log` ("Stage 5") | 48 unit/panel/composition tests; personalization suite 197 files, 2,479 passed; typecheck gate 0; live check 40/40 | Transitions beyond the existing website hand-over and the GL effect system were not touched |
 | 6 | Captions, text & intelligent editing | **Complete and verified** (limits in the Stage 6 section) | Authorized ("finish all of the task" + approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 6") | 48 unit/panel/composition tests; live check 36/36 | Transcription accuracy depends on the model; see limits |
-| 7 | Thumbnails & personalized GIFs | Not started | **NOT authorized** | — | — | — | — |
+| 7 | Thumbnails & personalized GIFs | **Complete and verified** (limits in the Stage 7 section) | Authorized (approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 7") | 66 unit/panel tests; live check 29/29 | GIFs are not uploaded anywhere yet (Stage 8/9) |
 | 8 | Personalized publishing & watch pages | Not started | **NOT authorized** | — | — | — | — |
 | 9 | React Email & outreach | Not started | **NOT authorized** | — | — | — | — |
 | 10 | Bulk personalization & automations | Not started | **NOT authorized** | — | — | — | — |
@@ -380,3 +380,37 @@ Authorized by the user's approval of the roadmap plan (Stage 2 only).
 * Scene detection is tuned for hard cuts at 5 fps; it can miss a cut between two near-identical shots and cannot see dissolves/wipes (it deliberately ignores cross-fades). It was tested on synthetic clips.
 * Codec check reads the container's first video track only; it reports whether THIS browser can decode, not whether other viewers can.
 * SRT import keeps text and times only (no styling tags, positions or multi-line layout).
+
+
+## Stage 7 — Thumbnails and personalized GIFs (2026-11-13)
+
+**Authorization:** the approved Stages 6–12 plan.
+
+### The defective encoder (Stage 0 finding) — replaced
+`src/lib/gifEncoder.js` drew each frame **before its image had loaded** (blank frames), indexed **every frame against the first frame's palette** (wrong colours from frame 2 on), sent any colour beyond the 256th to index 0, used string dictionary keys, and spread whole frames into `Array.push` (stack overflow at real sizes). It now delegates to a new codec and is `async` (its one caller, the thumbnail studio, now `await`s it).
+
+### What was built
+| Capability | Where | Notes |
+|---|---|---|
+| GIF89a **encoder**: median-cut palette over ALL frames; exact colours when ≤ 256; optional Floyd–Steinberg dithering; integer-keyed LZW; each frame reduced to its changed rectangle; identical frames merged into one longer delay; loop on/off; 20 ms delay floor; limits (4096 px, 300 frames) with plain errors | `gif/gifCodec.ts` | Pure. |
+| GIF **decoder** (independent of the encoder; validated against a GIF written by ffmpeg) | same | Used by tests; bounded loops, errors instead of hangs on corrupt input. |
+| Thumbnail: **automatic best-frame choice** (candidates spread over the video, skipping fades and the ends; each scored for detail, contrast and exposure at 192 px; only the winner is rendered full size), manual frame, play button, JPEG/PNG | `preview/stills.ts`, `guided/renderStills.ts` | The scoring parts are returned and explained in the panel. |
+| GIF from the **real composition** (recipient name, website, presenter, captions, effects) frame by frame through Remotion's web renderer; plan clipped to the video; size advice for email | same | Nothing is uploaded. |
+| Panel: settings, create, preview, size/email advice, download JPG/GIF, cancel, every error | `guided/ThumbnailGifPanel.tsx`, `stillsEdit.ts` | `settings.thumbnail`, `settings.gif`. |
+
+### Defects found by the tests/checks and fixed
+* The decoder looped forever on corrupt data (a mutation of the LZW encoder hung the test run); loops are now bounded and truncated/corrupt files throw.
+* My first GIF-plan maths ignored that the video can end before the chosen length (panel said 24 frames when only 9 existed); `gifPlan` now reports `truncated`.
+* A first live check compared the GIF with an ffmpeg-made fixture whose colours Chromium decodes differently (BT.601 vs 709, up to 33/255 off); the fixture is now tagged BT.709.
+
+### Verification actually run
+* **66 tests** (14+1 codec incl. the ffmpeg reference GIF and every truncation point; 20 stills; 12 panel; 3 legacy wrapper; others). Mutations caught: palette from the first frame only (the old bug), LZW code size one late, frame merging off, exposure ignored, first frame as a candidate, loop flag ignored.
+* **Live check 29/29** (`scripts/stage7-stills-check/check.mjs`): 24-frame 320×180 GIF made from the real composition in ~1 s and 23 KB; ffmpeg reads it (GIF, right size, one frame per planned frame); Chromium decodes it; **every frame's colour matches the source video at that moment (≤ 14/255)**; the personalized headline is in all frames; a different recipient name changes only the text; identical inputs give identical bytes; dither/loop flags; the automatic thumbnail avoids the black first second; the JPEG is real and the right size; a manual frame shows the video's own picture; the play button is drawn in the middle only; PNG works; the **legacy encoder now yields correct red/green/blue frames**; the editor's Create/Download flows.
+
+### Limits and open items (not hidden)
+* GIF is 256 colours: photographic video bands without dithering and costs more with it. Typical 3 s / 8 fps / 480 px GIFs of flat or lightly animated content are small (tens to hundreds of KB); busy footage can exceed email limits (the panel warns at 1 MB and 3 MB). No lossy GIF optimisation (gifsicle-style) was added.
+* Some email apps (e.g. Outlook on Windows) show only the first GIF frame; the panel says so. Mail-client rendering was not tested.
+* The play button is drawn onto the thumbnail pixels; it is not a clickable overlay (the email/watch page adds the link, Stages 8–9).
+* Thumbnails/GIFs are made in the browser that edits the project and downloaded; they are not stored per recipient or uploaded yet (Stages 8–10).
+* The best-frame score is a heuristic (detail, contrast, exposure); it does not detect faces or closed eyes.
+* Rendering uses `renderStillOnWeb` per frame; very long GIFs (100 frames) take proportionally longer (≈ 40 ms per frame at 320 px here); not timed on slow machines.

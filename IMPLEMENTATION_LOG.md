@@ -90,3 +90,10 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Fixed/found: library paging spanned silences; text-stroke eats thin text; whisper-tiny hallucination (base is the default).
 - Verified: 48 tests (+6 mutation checks), live check 36/36 (captions measured in exported pixels, real Whisper on real speech, scene scan on clips with known cuts). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
 - NOT done: other-language/real-speech accuracy testing, per-caption fonts/animations, translation, dissolve detection.
+
+### Stage 7 — Thumbnails and GIFs
+- Authorization: the approved Stages 6–12 plan.
+- Added: `gif/gifCodec.ts` (encoder + independent decoder), `preview/stills.ts`, `guided/renderStills|ThumbnailGifPanel|stillsEdit`; `settings.thumbnail`, `settings.gif`. **Replaced** `src/lib/gifEncoder.js` (now async, delegates to the codec); `TemplateThumbnailModal.jsx` awaits it.
+- Found/fixed: old encoder bugs (blank/wrong frames, palette from frame 1, 257th colour → index 0, stack overflow); decoder hang on corrupt data; GIF plan ignoring video end; fixture colour-matrix mismatch.
+- Verified: 66 tests (+7 mutation checks), live check 29/29 (ffmpeg as independent decoder). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
+- NOT done: lossy GIF optimisation, mail-client rendering tests, per-recipient storage/upload.

@@ -12,6 +12,7 @@ import { normalizePresenter } from './presenter'
 import { normalizeAudioMix } from './audioMix'
 import { normalizeFootageEffects } from './videoEffects'
 import { normalizeCaptionTrack } from './captions'
+import { normalizeThumbnail, normalizeGif } from './stills'
 import { normalizeLayerEffect, normalizeLayerExit } from './layerEffects'
 import { contractFor, roleForLayer } from './mediaRoles'
 import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
@@ -1145,6 +1146,10 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
   if (footageEffects) out.footageEffects = footageEffects
   const captions = normalizeCaptionTrack(raw.captions)
   if (captions) out.captions = captions
+  const thumbnail = normalizeThumbnail(raw.thumbnail)
+  if (thumbnail) out.thumbnail = thumbnail
+  const gif = normalizeGif(raw.gif)
+  if (gif) out.gif = gif
 
    return out
   } catch {

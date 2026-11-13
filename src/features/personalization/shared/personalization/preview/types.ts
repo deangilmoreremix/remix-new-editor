@@ -10,6 +10,7 @@ import type { PresenterSettings } from './presenter'
 import type { AudioMix } from './audioMix'
 import type { FootageEffects } from './videoEffects'
 import type { CaptionTrack } from './captions'
+import type { ThumbnailSettings, GifSettings } from './stills'
 import type { LayerEffect, LayerExit } from './layerEffects'
 
 export type PreviewLayoutId =
@@ -246,6 +247,10 @@ export interface PersonalizationPreviewSettings {
   footageEffects?: FootageEffects
   /** Subtitles drawn over the video (Stage 6). */
   captions?: CaptionTrack
+  /** How this video's thumbnail is chosen and drawn (Stage 7). */
+  thumbnail?: ThumbnailSettings
+  /** The animated GIF made from this video (Stage 7). */
+  gif?: GifSettings
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */

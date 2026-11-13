@@ -3826,7 +3826,7 @@ export class TemplateThumbnailModal extends BaseModal {
           if (frameDataUrls.length === 0) {
             throw new Error('No valid frame data available for GIF assembly');
           }
-          this.gifDataUrl = encodeGif(frameDataUrls, width, height, this.gifDelayMs);
+          this.gifDataUrl = await encodeGif(frameDataUrls, width, height, this.gifDelayMs);
         } catch (gifErr) {
           console.error('[thumbnail] GIF assembly failed:', gifErr);
           this.gifDataUrl = '';
