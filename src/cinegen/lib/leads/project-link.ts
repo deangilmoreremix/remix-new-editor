@@ -16,10 +16,23 @@ type Client = { from: (t: string) => any }; // eslint-disable-line @typescript-e
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isLinkableProjectId = (id: unknown): id is string => typeof id === 'string' && UUID.test(id);
 
+/**
+ * The Supabase row id for one published timeline. A CineGen project can hold several timelines and each is published
+ * separately, so every (project, timeline) pair gets its own deterministic uuid. That keeps each video's data, saved
+ * interest mapping and analytics apart, and can never collide with a classic-editor row.
+ */
+export async function linkedProjectId(projectId: string, timelineId: string): Promise<string> {
+  const bytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`cinegen:${projectId}:${timelineId}`))).slice(0, 16);
+  bytes[6] = (bytes[6] & 0x0f) | 0x50; bytes[8] = (bytes[8] & 0x3f) | 0x80; // RFC 4122 version 5 layout
+  const h = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20, 32)}`;
+}
+
 /** The owner's saved Retarget mapping for this project, so republishing keeps it. */
 export async function readInterestMap(client: Client, projectId: string): Promise<unknown[] | null> {
   if (!isLinkableProjectId(projectId)) return null;
-  const { data } = await client.from('timeline_projects').select('settings').eq('id', projectId).maybeSingle();
+  const { data, error } = await client.from('timeline_projects').select('settings').eq('id', projectId).maybeSingle();
+  if (error) throw new Error(error.message || 'Could not read the saved audience mapping');
   const m = data?.settings?.interestMap;
   return Array.isArray(m) ? m : null;
 }
@@ -37,8 +50,10 @@ export async function ensureProjectRow(client: Client, input: LinkInput): Promis
     duration_s: Number.isFinite(built.timelineSeconds) ? built.timelineSeconds : null,
     aspect_ratio: aspect || '16:9',
   };
-  const { data: existing, error: readErr } = await client.from('timeline_projects').select('id').eq('id', projectId).maybeSingle();
+  const { data: existing, error: readErr } = await client.from('timeline_projects').select('id, settings').eq('id', projectId).maybeSingle();
   if (readErr) throw new Error(readErr.message || 'Could not read the project');
+  // Never take over a row this feature did not create.
+  if (existing && existing.settings?.source !== 'cinegen') throw new Error('This project id belongs to another project');
   const res = existing
     ? await client.from('timeline_projects').update(fields).eq('id', projectId)
     : await client.from('timeline_projects').insert({ id: projectId, ...fields, settings: { source: 'cinegen' } });

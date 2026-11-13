@@ -14,7 +14,7 @@ const post=(vid,i)=>execSync(`curl -s -m 20 -X POST http://127.0.0.1:8890/api/vi
  await p.waitForURL(/project=/,{timeout:60000}); await p.waitForTimeout(4000);
  const pid=new URL(p.url()).searchParams.get('project');
  await p.locator('.top-nav button',{hasText:/^LEADS$/i}).first().click(); await p.getByTestId('publish-btn').waitFor(); await p.getByTestId('publish-btn').click(); await p.waitForTimeout(4000);
- const vid=sql(`select id from published_videos where project_id='${pid}'`); console.log('video',vid);
+ const vid=sql(`select id from published_videos where project_id in (select id from timeline_projects where settings->>'source'='cinegen') order by created_at desc limit 1`); console.log('video',vid);
  for (const i of [1,2,3,4]) post(vid,i);
  const db=sql(`select plays||'/'||cta_clicks||'/'||leads from video_analytics_daily where video_id='${vid}'`); console.log('DB plays/cta/leads',db);
  await p.locator('.top-nav button',{hasText:/^ANALYTICS$/i}).first().click(); await p.waitForTimeout(3000);

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { usePublished, getClient } from '@cinegen/components/leads/use-publish';
 import { buildPublishState } from '@cinegen/lib/leads/publish-state';
-import { ensureProjectRow, linkVideoToProject, isLinkableProjectId } from '@cinegen/lib/leads/project-link';
+import { ensureProjectRow, linkVideoToProject, linkedProjectId } from '@cinegen/lib/leads/project-link';
 // @ts-expect-error plain JS
 import { audienceTab, retargetTab, notificationsTab } from '../../../lib/editor/projectLibrary/projectTabs.js';
 // @ts-expect-error plain JS
@@ -26,6 +26,8 @@ export function AnalyticsTab() {
   const [opts, setOpts] = useState<Record<string, unknown>>({});
   const [linked, setLinked] = useState<'checking' | 'ok' | 'unavailable'>('checking');
   const [toast, setToast] = useState('');
+  const [rowId, setRowId] = useState<string | null>(null); // this timeline's project row (one per published timeline)
+  const [retry, setRetry] = useState(0);
   const hostRef = useRef<HTMLDivElement>(null);
   const tl = state.timelines.find((t) => t.id === state.activeTimelineId) ?? state.timelines[0];
   const latest = useRef({ tl, state, title: pub.title }); latest.current = { tl, state, title: pub.title };
@@ -50,27 +52,29 @@ export function AnalyticsTab() {
     (async () => {
       if (!pub.loaded) return;
       if (!pub.info || !pub.id) { setLinked('unavailable'); return; }
-      if (!isLinkableProjectId(projectId)) { setLinked('unavailable'); return; }
+      const { tl: t0 } = latest.current;
+      if (!projectId || !t0?.id) { setLinked('unavailable'); return; }
       try {
+        const id = await linkedProjectId(projectId, t0.id);
         const client = await getClient();
         const { tl: t, state: s, title } = latest.current;
         const built = buildPublishState(t, s.assets, s.overlays ?? [], title);
-        await ensureProjectRow(client, { projectId, name: title, built, aspect: t?.aspect ?? null });
-        await linkVideoToProject(client, pub.id, projectId);
-        if (!cancelled) setLinked('ok');
+        await ensureProjectRow(client, { projectId: id, name: title, built, aspect: t?.aspect ?? null });
+        await linkVideoToProject(client, pub.id, id);
+        if (!cancelled) { setRowId(id); setLinked('ok'); }
       } catch (e) { if (!cancelled) { setToast((e as Error).message); setLinked('unavailable'); } }
     })();
     return () => { cancelled = true; };
-  }, [pub.loaded, pub.info, pub.id, projectId]);
+  }, [pub.loaded, pub.info, pub.id, projectId, tl?.id, retry]);
 
   // Mount the selected view into the host element.
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || linked !== 'ok') return undefined;
+    if (!host || linked !== 'ok' || !rowId) return undefined;
     host.innerHTML = '';
     const panel = document.createElement('div');
     host.appendChild(panel);
-    const ctx = { project: { id: projectId, name: latest.current.title, videoId: pub.id }, card: { id: projectId, published: true, publishedId: pub.id }, openTab: (v: View, o?: Record<string, unknown>) => openView(v, o) };
+    const ctx = { project: { id: rowId, name: latest.current.title, videoId: pub.id }, card: { id: rowId, published: true, publishedId: pub.id }, openTab: (v: View, o?: Record<string, unknown>) => openView(v, o) };
     const deps = {
       getClient,
       navigate: (page: string) => import('../../../lib/router.js').then((m) => m.navigate(page)),
@@ -94,11 +98,15 @@ export function AnalyticsTab() {
       if (typeof r === 'function') stop = r;
     }
     return () => { cancelled = true; try { stop?.(); } catch { /* already unmounted */ } };
-  }, [view, opts, linked, projectId, pub.id, dispatch, openView]);
+  }, [view, opts, linked, rowId, pub.id, dispatch, openView]);
 
   const empty = (title: string, text: string) => (
     <div className="cg-analytics__empty"><h3>{title}</h3><p>{text}</p>
       <button type="button" className="cg-analytics__btn" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Open Publish &amp; Leads</button></div>
+  );
+  const failed = (text: string) => (
+    <div className="cg-analytics__empty" role="alert"><h3>Analytics is not available for this project yet</h3><p>{text}</p>
+      <button type="button" className="cg-analytics__btn" onClick={() => { setToast(''); setLinked('checking'); setRetry((n) => n + 1); }}>Try again</button></div>
   );
 
   return (
@@ -106,7 +114,7 @@ export function AnalyticsTab() {
       {!pub.signedIn ? empty('Sign in to see analytics', 'Viewer data belongs to your account.')
         : !pub.loaded || linked === 'checking' ? <div className="cg-analytics__empty" aria-busy="true"><p>Loading…</p></div>
         : !pub.info ? empty('Publish this video first', 'Viewer data is collected on the published video page. Publish it, share the link, and plays, watch time, clicks and forms show up here.')
-        : linked === 'unavailable' ? empty('Analytics is not available for this project yet', toast || 'This project could not be linked to its published video.')
+        : linked === 'unavailable' ? failed(toast || 'This project could not be linked to its published video.')
         : (
           <>
             <div className="cg-analytics__tabs" role="tablist">

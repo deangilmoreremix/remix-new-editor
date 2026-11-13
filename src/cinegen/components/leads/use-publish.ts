@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { buildPublishState } from '@cinegen/lib/leads/publish-state';
-import { ensureProjectRow, readInterestMap, isLinkableProjectId } from '@cinegen/lib/leads/project-link';
+import { ensureProjectRow, readInterestMap, linkedProjectId } from '@cinegen/lib/leads/project-link';
 // @ts-expect-error plain JS
 import * as pub from '../../../lib/editor/publish/publishClient.js';
 // @ts-expect-error plain JS
@@ -50,12 +50,13 @@ export function usePublished() {
     // Tie the video to its project (same id) so Analytics / Retarget / Alerts can find it; keep the owner's saved
     // interest mapping on republish. Linking is best-effort: publishing itself must never fail because of it.
     let linked: string | null = null;
-    if (isLinkableProjectId(projectId)) {
+    if (projectId && t?.id) {
       try {
-        const map = await readInterestMap(c, projectId);
+        const rowId = await linkedProjectId(projectId, t.id);
+        const map = await readInterestMap(c, rowId);
         if (map) (built as { interestMap?: unknown }).interestMap = map;
-        await ensureProjectRow(c, { projectId, name: title, built, aspect: t?.aspect ?? null });
-        linked = projectId;
+        await ensureProjectRow(c, { projectId: rowId, name: title, built, aspect: t?.aspect ?? null });
+        linked = rowId;
       } catch { linked = null; }
     }
     const project = pub.preparePublishProject(built, { title });

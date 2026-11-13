@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ensureProjectRow, linkVideoToProject, readInterestMap, isLinkableProjectId } from '@cinegen/lib/leads/project-link';
+import { ensureProjectRow, linkVideoToProject, readInterestMap, isLinkableProjectId, linkedProjectId } from '@cinegen/lib/leads/project-link';
 
 /** Minimal in-memory stand-in for the supabase-js query builder (transport only). */
 function fake(seed: Record<string, any>[] = [], videos: Record<string, any>[] = []) {
@@ -56,5 +56,22 @@ describe('CineGen project link', () => {
     const c = fake([], [{ id: 'vid00000001', project_id: null }]);
     await linkVideoToProject(c, 'vid00000001', ID);
     expect(c.tables.published_videos[0].project_id).toBe(ID);
+  });
+  it('each published timeline gets its own stable uuid row id', async () => {
+    const a = await linkedProjectId('proj-1', 'tl-a');
+    expect(isLinkableProjectId(a)).toBe(true);
+    expect(await linkedProjectId('proj-1', 'tl-a')).toBe(a);        // deterministic
+    expect(await linkedProjectId('proj-1', 'tl-b')).not.toBe(a);    // another timeline of the same project
+    expect(await linkedProjectId('proj-2', 'tl-a')).not.toBe(a);    // another project
+    expect(isLinkableProjectId(await linkedProjectId('not-a-uuid-at-all', 'x'))).toBe(true); // any CineGen id works
+  });
+  it('never takes over a row this feature did not create', async () => {
+    const c = fake([{ id: ID, name: 'Classic project', data: { tracks: [] }, settings: {} }]);
+    await expect(ensureProjectRow(c, { projectId: ID, name: 'x', built })).rejects.toThrow(/belongs to another project/);
+    expect(c.tables.timeline_projects[0].name).toBe('Classic project');
+  });
+  it('surfaces a failed read of the saved mapping instead of silently dropping it', async () => {
+    const c = { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: 'denied' } }) }) }) }) };
+    await expect(readInterestMap(c as any, ID)).rejects.toThrow(/denied/);
   });
 });
