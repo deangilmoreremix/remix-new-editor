@@ -1,0 +1,34 @@
+/* Heatmaps section of the Analytics tab (Stage 7) + print stylesheet for the report. */
+.sv-heat-types{display:flex;gap:3px;flex-wrap:wrap;background:var(--sv-panel-soft);padding:4px;border-radius:11px;margin:10px 0 14px}
+.sv-heat-types button{border:0;border-radius:8px;padding:9px 13px;background:transparent;font-size:12px;font-weight:650;color:var(--sv-muted);flex:1 1 auto}
+.sv-heat-types .active{background:var(--sv-panel);box-shadow:0 1px 4px #00000012;color:var(--sv-text)}
+.sv-heat-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+.sv-heat-filters label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--sv-muted)}
+.sv-heat-filters select,.sv-heat-filters input[type=date]{font:inherit;color:var(--sv-text);background:var(--sv-panel-soft);border:1px solid var(--sv-border);border-radius:8px;padding:8px 10px;min-width:0}
+.sv-heat-check{flex-direction:row!important;align-items:center;gap:8px!important}
+.sv-heat-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.sv-heat-stage{position:relative;width:100%;max-width:760px;margin-inline:auto;border-radius:12px;overflow:hidden;background:var(--sv-panel-soft);margin:14px 0}
+.sv-heat-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.sv-heat-wire{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:6% 8%;background:repeating-linear-gradient(0deg,transparent 0 23px,var(--sv-grid) 23px 24px)}
+.sv-heat-wire span{width:100%;aspect-ratio:16/9;max-height:60%;display:grid;place-items:center;border:2px dashed var(--sv-muted);border-radius:10px;color:var(--sv-muted);font-weight:700}
+.sv-heat-canvas{position:absolute;inset:0;pointer-events:none;mix-blend-mode:normal}
+.sv-heat-strip{margin:14px 0 4px;border-radius:10px;overflow:hidden;background:var(--sv-panel-soft)}
+.sv-heat-strip canvas{display:block}
+.sv-heat-facts{margin:12px 0;padding-left:18px;font-size:13px}
+.sv-heat-table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+.sv-heat-table th,.sv-heat-table td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--sv-border)}
+.sv-heat-table th{font-size:11px;color:var(--sv-muted);text-transform:uppercase;letter-spacing:.04em}
+@media(max-width:600px){.sv-heat-table{font-size:12px}.sv-heat-table th,.sv-heat-table td{padding:7px 4px}}
+
+/* Printable report: only the selected heatmap (title, filters, chart/table) is printed, on white, without controls. */
+@media print{
+  body *{visibility:hidden!important}
+  .sv-heatmaps .sv-heat-report,.sv-heatmaps .sv-heat-report *{visibility:visible!important}
+  .sv-heatmaps .sv-heat-report{position:absolute;left:0;top:0;width:100%;border:0;background:#fff!important;color:#000!important;padding:0}
+  .sv-heatmaps .sv-heat-report .sv-subtitle,.sv-heatmaps .sv-heat-report .sv-hint{color:#333!important}
+  .sv-heat-stage,.sv-heat-strip{background:#f3f4f6!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sv-heat-report-head h3::after{content:" - SmartVideo heatmap report";font-weight:400}
+  .sv-heat-table th,.sv-heat-table td{border-color:#999}
+  .sv-bar-track{border:1px solid #999;background:#eee!important}.sv-bar-fill{background:#2563eb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{margin:14mm}
+}

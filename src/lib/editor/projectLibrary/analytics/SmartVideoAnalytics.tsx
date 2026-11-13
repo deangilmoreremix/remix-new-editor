@@ -20,7 +20,7 @@ export type ProjectAnalyticsData = {
 };
 export type AnalyticsPeriod = 'today' | '7d' | '30d' | '90d' | 'custom'; // ADAPT: Today + Custom range (date-filter requirement)
 export type CustomRange = { from: string; to: string }; // YYYY-MM-DD (UTC days)
-export type AnalyticsTab = 'overview' | 'engagement' | 'conversions';
+export type AnalyticsTab = 'overview' | 'engagement' | 'conversions' | 'heatmaps';
 export type SmartVideoAnalyticsProps = {
   project: ProjectAnalyticsData;
   period: AnalyticsPeriod;
@@ -32,6 +32,7 @@ export type SmartVideoAnalyticsProps = {
   customRange?: CustomRange;
   onCustomRangeChange?: (range: CustomRange) => void;
   renderPreview?: (project: ProjectAnalyticsData) => React.ReactNode;
+  renderHeatmaps?: () => React.ReactNode; // Stage 7: when given, a "Heatmaps" tab shows this section
   footerNote?: string;
   theme?: 'light' | 'dark' | 'editor'; // ADAPT: 'editor' = the Timeline Editor palette (cyan/emerald on near-black); the supplied default stays light
 };
@@ -100,7 +101,7 @@ export function MarketingOpportunities({items,onOpen}:{items:Opportunity[];onOpe
    {items.length===0?<p className="sv-subtitle">No opportunities detected for this period.</p>:items.map((i)=><button type="button" className="sv-opportunity" key={i.id} onClick={()=>onOpen?.(i.id)}><span className="sv-op-icon"><Icon name={i.icon}/>{i.unread&&<span className="sv-op-unread" role="img" aria-label="Unread"/>}</span><span className="sv-op-content"><strong>{i.title}</strong><span>{i.explanation}</span><b>{i.suggestion}</b></span><span className="sv-op-chevron">›</span></button>)}
  </div>;
 }
-export default function SmartVideoAnalytics({project,period,onPeriodChange,onCreateFollowup,onSeekTo,onOpenOpportunity,customRange,onCustomRangeChange,renderPreview,footerNote,theme='light'}:SmartVideoAnalyticsProps){
+export default function SmartVideoAnalytics({project,period,onPeriodChange,onCreateFollowup,onSeekTo,onOpenOpportunity,customRange,onCustomRangeChange,renderPreview,renderHeatmaps,footerNote,theme='light'}:SmartVideoAnalyticsProps){
  const [tab,setTab]=useState<AnalyticsTab>('overview');
  const [copied,setCopied]=useState(false);
  const numbers=project.metrics;
@@ -110,10 +111,11 @@ export default function SmartVideoAnalytics({project,period,onPeriodChange,onCre
   <div className="sv-heading"><div><div className="sv-breadcrumb"><Icon name="folder"/> Timeline Editor / Projects</div><h1>Video Analytics</h1></div><span className={`sv-status ${project.status==='published'?'sv-status-published':''}`}>{project.status==='published'?'✓ ':''}{project.status}</span></div>
   <div className="sv-toolbar"><div className="sv-project-name"><label>Selected project</label><div>{project.projectName}</div></div><div className="sv-toolbar-actions"><div className="sv-segment" aria-label="Reporting period">{(['today','7d','30d','90d','custom'] as const).map(p=><button key={p} aria-pressed={period===p} className={period===p?'active':''} onClick={()=>onPeriodChange(p)}>{p==='today'?'Today':p==='7d'?'7 days':p==='30d'?'30 days':p==='90d'?'90 days':'Custom'}</button>)}</div><button className="sv-secondary-btn" disabled={!project.publishedUrl} onClick={copyUrl}><Icon name="link"/>{copied?'Copied':'Copy video URL'}</button></div></div>
   {period==='custom'&&customRange&&<div className="sv-custom-range" role="group" aria-label="Custom date range"><label>From<input type="date" value={customRange.from} max={customRange.to} onChange={e=>onCustomRangeChange?.({...customRange,from:e.target.value})}/></label><label>To<input type="date" value={customRange.to} min={customRange.from} onChange={e=>onCustomRangeChange?.({...customRange,to:e.target.value})}/></label></div>}
-  <nav className="sv-tabs" aria-label="Analytics views">{(['overview','engagement','conversions'] as const).map(t=><button key={t} aria-current={tab===t?'page':undefined} className={tab===t?'active':''} onClick={()=>setTab(t)}>{t[0].toUpperCase()+t.slice(1)}</button>)}</nav>
+  <nav className="sv-tabs" aria-label="Analytics views">{(['overview','engagement','conversions',...(renderHeatmaps?['heatmaps' as const]:[])] as const).map(t=><button key={t} aria-current={tab===t?'page':undefined} className={tab===t?'active':''} onClick={()=>setTab(t)}>{t[0].toUpperCase()+t.slice(1)}</button>)}</nav>
   {tab==='overview'&&<><section className="sv-stat-grid"><Stat icon="play" label="Video plays" value={n(numbers.plays)}/><Stat icon="users" label="Unique viewers" value={numbers.uniqueViewers===null?'—':n(numbers.uniqueViewers)}/><Stat icon="check" label="Completion rate" value={pct(numbers.completionRate)}/><Stat icon="clock" label="Avg. watch time" value={duration(numbers.avgWatchSeconds)}/><Stat icon="click" label="CTA clicks" value={n(numbers.ctaClicks)}/><Stat icon="lead" label="Leads captured" value={n(numbers.leads)}/></section><div className="sv-card"><div className="sv-panel-head"><h3>Video plays over time</h3><span className="sv-subtitle">Daily</span></div><LineChart labels={labels} values={project.playsOverTime.map(i=>i.plays)}/></div><div className="sv-insight"><div className="sv-insight-title"><Icon name="insight"/> Marketing insight</div><p>{project.opportunities[0]?.explanation ?? 'Insights will appear when your published video collects engagement data.'}</p><button type="button" className="sv-primary-btn" onClick={()=>onCreateFollowup?.(project.projectId)} disabled={!onCreateFollowup}>Plan personalized follow-up <span>→</span></button></div></>}
   {tab==='engagement'&&<><div className="sv-card"><h3>Audience retention</h3><p className="sv-subtitle">Percentage of playback sessions reaching each position in this video.</p>{project.retention.length===0?<p className="sv-subtitle sv-empty">No playback data for this period.</p>:<RetentionChart points={project.retention}/>}</div><EngagementExplorer project={project} onSeekTo={onSeekTo} renderPreview={renderPreview}/><div className="sv-card"><h3>Top engaged sections</h3>{project.sections.map(s=><div className="sv-section-bar" key={s.id}><div><span>{s.title}</span><strong>{pct(s.engagementPercent)}</strong></div><div className="sv-progress"><span style={{width:`${Math.max(0,Math.min(100,s.engagementPercent??0))}%`}}/></div></div>)}{project.sections.length===0&&<p className="sv-subtitle">No sections to show.</p>}</div></>}
   {tab==='conversions'&&<><div className="sv-card"><h3>Conversion activity</h3><p className="sv-subtitle">Interactions with the video’s published calls to action.</p>{project.conversions.length===0?<p className="sv-subtitle sv-empty">No call-to-action activity for this period.</p>:<Bars items={project.conversions}/>}</div><div className="sv-stat-grid"><Stat label="CTA clicks" value={n(numbers.ctaClicks)} icon="click"/><Stat label="Leads captured" value={n(numbers.leads)} icon="lead"/></div></>}
+  {tab==='heatmaps'&&renderHeatmaps?.()}
   <MarketingOpportunities items={project.opportunities} onOpen={onOpenOpportunity}/>
   <p className="sv-footer-note">{footerNote ?? 'Based on first-party tracking from your published video. Viewers are anonymous sessions, not identified people.'}</p>
  </main>;

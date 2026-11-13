@@ -12,6 +12,7 @@ import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery }
 import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
+import { createHeatmapCapture, singleLeadClipId } from '../lib/editor/publish/heatmapCapture.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
 
 const FPS = 30;
@@ -111,6 +112,8 @@ export async function mountWatchPage(container, ref, deps = {}) {
   });
   const labels = ctaLabels(video.project);
   const labelFor = (clipId) => (clipId != null ? labels[String(clipId)] || null : null);
+  // Stage 7 heatmap capture (clicks, CTA impressions, scroll depth, per-second watch buckets); inert when analytics is off.
+  const heat = deps.heatmap || createHeatmapCapture({ analytics, container, frame, labelFor, leadClipId: singleLeadClipId(video.project) });
   const player = createInteractivePlayer({
     project: video.project,
     stage: $('[data-stage]'),
@@ -127,6 +130,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
     },
     onChange: ({ playing, time, duration, gating }) => {
       analytics.onPlayerChange({ playing, time, duration });
+      heat.onPlayerChange({ playing, time, duration });
       $('[data-play]').textContent = playing ? '❚❚' : '▶';
       $('[data-play]').setAttribute('aria-label', playing ? 'Pause' : 'Play');
       // The big play button never covers a form the viewer must fill in.
@@ -185,7 +189,7 @@ export async function mountWatchPage(container, ref, deps = {}) {
   }, true);
   // Playback errors are measured too (the viewer sees the player's own message).
   frame.addEventListener('error', (e) => { if (e.target?.tagName === 'VIDEO' || e.target?.tagName === 'AUDIO') analytics.track('error', { props: { reason: 'media' } }); }, true);
-  globalThis.addEventListener?.('pagehide', () => analytics.destroy(), { once: true });
+  globalThis.addEventListener?.('pagehide', () => { heat.destroy(); analytics.destroy(); }, { once: true });
 
   return player;
 }
