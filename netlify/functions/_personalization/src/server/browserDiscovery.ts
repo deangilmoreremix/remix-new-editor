@@ -2617,3 +2617,150 @@ export async function capturePageScreenshots(
     CAPTURE_CLOSE_MS,
   )
 }
+
+// ---------------------------------------------------------------------------
+// Brand Studio scrape (POST /api/scrape)
+// ---------------------------------------------------------------------------
+
+/** Brand Studio scrape budget. The host cuts a synchronous request off at about 30 s. */
+export const BRAND_SCRAPE_DEADLINE_MS = 24_000
+export const BRAND_SCRAPE_NAVIGATION_TIMEOUT = 14_000
+const BRAND_SCRAPE_IDLE_TIMEOUT = 4_000
+const BRAND_SCRAPE_SHOT_TIMEOUT = 4_000
+const BRAND_SCRAPE_CLOSE_MS = 1_500
+const BRAND_SCRAPE_BLOCKED_RESOURCE_TYPES = ['media'] as const
+
+/** Same shape the open-pomelli `scrapeSite` returns, with the screenshot as base64 PNG. */
+export interface BrandScrapeResult {
+  url: string
+  title: string
+  description: string
+  bodyText: string
+  ogImage: string | null
+  favicon: string | null
+  logoCandidates: string[]
+  fonts: string[]
+  rawColors: string[]
+  screenshot: string | null
+}
+
+/**
+ * Port of open-pomelli's `scrapeSite` (src/lib/scraper.ts) behind the same SSRF
+ * guard as discovery and Motion Studio capture: the URL, every redirect hop and
+ * every subresource must pass the gate.
+ */
+export async function scrapeBrandSite(
+  rawUrl: string,
+  options: { guard?: BrandScrapeGuard; deadlineMs?: number } = {},
+): Promise<BrandScrapeResult> {
+  const started = Date.now()
+  const guard = options.guard ?? createSsrfGuard()
+  const baseTarget = await guard.validateNavigationTarget(rawUrl)
+  const deadlineMs = options.deadlineMs ?? BRAND_SCRAPE_DEADLINE_MS
+
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('The page took too long to scrape')), deadlineMs)
+  })
+
+  const running = withGuardedContext(
+    {
+      guard,
+      baseTarget,
+      contextOptions: {
+        userAgent: 'Mozilla/5.0 (compatible; SmartVideoBrandStudio/1.0)',
+        viewport: { width: 1440, height: 900 },
+      },
+      blockedResourceTypes: BRAND_SCRAPE_BLOCKED_RESOURCE_TYPES,
+    },
+    async (context) => {
+      const page = await context.newPage()
+      try {
+        await page.goto(baseTarget.url, {
+          waitUntil: 'domcontentloaded',
+          timeout: Math.min(BRAND_SCRAPE_NAVIGATION_TIMEOUT, Math.max(2_000, deadlineMs - (Date.now() - started) - 6_000)),
+        })
+        await page.waitForLoadState('networkidle', { timeout: BRAND_SCRAPE_IDLE_TIMEOUT }).catch(() => undefined)
+
+        const data = await page.evaluate(() => {
+          const meta = (sel: string) =>
+            (document.querySelector(sel) as HTMLMetaElement | null)?.getAttribute('content') ?? ''
+          const abs = (href: string | null) => {
+            if (!href) return null
+            try {
+              const u = new URL(href, location.href)
+              return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : null
+            } catch {
+              return null
+            }
+          }
+          const logos: string[] = []
+          document.querySelectorAll('img').forEach((img) => {
+            const src = img.getAttribute('src') ?? ''
+            const alt = img.getAttribute('alt') ?? ''
+            if (/logo/i.test(src) || /logo/i.test(alt)) {
+              const u = abs(src)
+              if (u) logos.push(u)
+            }
+          })
+          const fonts = new Set<string>()
+          const colors = new Set<string>()
+          Array.from(document.querySelectorAll('body *'))
+            .slice(0, 800)
+            .forEach((el) => {
+              const cs = getComputedStyle(el as Element)
+              cs.fontFamily.split(',').forEach((f) => fonts.add(f.trim().replace(/^['"]|['"]$/g, '')))
+              if (cs.color && cs.color !== 'rgba(0, 0, 0, 0)') colors.add(cs.color)
+              if (cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)') colors.add(cs.backgroundColor)
+            })
+          const favHref = document.querySelector('link[rel~="icon"]')?.getAttribute('href') ?? null
+          return {
+            title: document.title ?? '',
+            description: meta('meta[name="description"]') || meta('meta[property="og:description"]') || '',
+            bodyText: (document.body?.innerText ?? '').slice(0, 8000),
+            ogImage: abs(meta('meta[property="og:image"]') || null),
+            favicon: abs(favHref),
+            logoCandidates: Array.from(new Set(logos)).slice(0, 5),
+            fonts: Array.from(fonts).filter(Boolean).slice(0, 20),
+            colors: Array.from(colors).slice(0, 40),
+          }
+        })
+
+        // The screenshot is a bonus: a page that will not paint still yields its text, fonts and colours.
+        let screenshot: string | null = null
+        try {
+          const png: Buffer = await page.screenshot({ type: 'png', fullPage: false, timeout: BRAND_SCRAPE_SHOT_TIMEOUT })
+          screenshot = png.toString('base64')
+        } catch (error) {
+          console.warn(`[brand-scrape] ${baseTarget.hostname} screenshot failed: ${error instanceof Error ? error.message.split('\n')[0] : String(error)}`)
+        }
+
+        return {
+          url: rawUrl,
+          title: data.title,
+          description: data.description,
+          bodyText: data.bodyText,
+          ogImage: data.ogImage,
+          favicon: data.favicon,
+          logoCandidates: data.logoCandidates,
+          fonts: data.fonts,
+          rawColors: data.colors,
+          screenshot,
+        }
+      } finally {
+        void page.close().catch(() => undefined)
+      }
+    },
+    BRAND_SCRAPE_CLOSE_MS,
+  )
+
+  try {
+    return await Promise.race([running, deadline])
+  } finally {
+    if (timer) clearTimeout(timer)
+    // A run that lost the race keeps closing its browser in the background; its rejection is already handled.
+    running.catch(() => undefined)
+  }
+}
+
+type BrandScrapeGuard = BrowserSsrfGuard

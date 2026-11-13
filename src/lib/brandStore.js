@@ -247,6 +247,10 @@ export function listAssets(campaignId) {
   return safeGet(STORE_KEYS.assets, []).filter(a => a.campaignId === campaignId);
 }
 
+export function getAsset(id) {
+  return safeGet(STORE_KEYS.assets, []).find(a => a.id === id) || null;
+}
+
 export function saveAsset(asset) {
   const assets = safeGet(STORE_KEYS.assets, []);
   const idx = assets.findIndex(a => a.id === asset.id);

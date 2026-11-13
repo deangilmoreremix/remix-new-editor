@@ -1613,6 +1613,22 @@ export class MuapiClient {
         return MuapiClient.extractMediaUrl(r);
     }
 
+    // nano-banana text-to-image (Open-Pomelli `muapi.image`).
+    async image(prompt, aspectRatio = '1:1', signal) {
+        const r = await this._runPrediction('nano-banana', { prompt, aspect_ratio: aspectRatio }, signal);
+        return MuapiClient.extractMediaUrl(r);
+    }
+
+    // nano-banana-edit with reference images, e.g. the brand logo (Open-Pomelli `muapi.imageEdit`).
+    async imageEdit(prompt, imagesList, aspectRatio = 'Auto', signal) {
+        const r = await this._runPrediction('nano-banana-edit', {
+            prompt,
+            images_list: imagesList,
+            aspect_ratio: aspectRatio,
+        }, signal);
+        return MuapiClient.extractMediaUrl(r);
+    }
+
     async image2(prompt, opts = {}, signal) {
         const r = await this._runPrediction('nano-banana-2', {
             prompt,

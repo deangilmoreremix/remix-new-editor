@@ -6,6 +6,8 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { getCampaign, listAssets, getBrand } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
 
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
 export function CampaignPage(params = {}) {
   const container = document.createElement('div');
   container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
@@ -83,12 +85,14 @@ export function CampaignPage(params = {}) {
       const card = document.createElement('div');
       card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-5';
       card.innerHTML = `
-        <div class="text-sm font-bold text-white mb-1">Concept ${idx + 1}</div>
-        <div class="text-sm font-bold text-white mb-1">${concept.headline || ''}</div>
-        <div class="text-xs text-secondary mb-2">${concept.body || ''}</div>
-        ${concept.cta ? `<div class="text-[10px] text-primary font-bold uppercase tracking-wider mb-2">${concept.cta}</div>` : ''}
-        <div class="text-[10px] text-muted uppercase tracking-wider mb-1">Rationale</div>
-        <div class="text-xs text-secondary">${concept.rationale || ''}</div>
+        <div class="text-[10px] text-muted uppercase tracking-wider mb-1">Concept ${idx + 1}</div>
+        <div class="text-sm font-bold text-white mb-1">${esc(concept.title || concept.headline)}</div>
+        ${concept.theme ? `<div class="text-xs text-secondary mb-2">${esc(concept.theme)}</div>` : ''}
+        <div class="text-xs text-white mb-2">${esc(concept.key_message || concept.body)}</div>
+        ${concept.hook ? `<div class="text-xs text-secondary italic mb-2">“${esc(concept.hook)}”</div>` : ''}
+        ${concept.cta ? `<div class="text-[10px] text-primary font-bold uppercase tracking-wider mb-2">${esc(concept.cta)}</div>` : ''}
+        <div class="text-[10px] text-muted uppercase tracking-wider mb-1">Tone notes</div>
+        <div class="text-xs text-secondary">${esc(concept.tone_notes || concept.rationale)}</div>
       `;
       conceptGrid.appendChild(card);
     });
@@ -128,10 +132,20 @@ export function CampaignPage(params = {}) {
       body.innerHTML = `
         <div class="text-xs font-bold text-white mb-1">${asset.platform || 'Asset'}</div>
         <div class="text-xs text-secondary mb-2">${asset.format || ''}</div>
-        ${asset.headline ? `<div class="text-xs text-white font-bold mb-1">${asset.headline}</div>` : ''}
-        ${asset.body ? `<div class="text-xs text-secondary mb-2">${asset.body}</div>` : ''}
-        ${asset.cta ? `<div class="text-[10px] text-primary font-bold uppercase tracking-wider">${asset.cta}</div>` : ''}
+        ${asset.headline ? `<div class="text-xs text-white font-bold mb-1">${esc(asset.headline)}</div>` : ''}
+        ${asset.body ? `<div class="text-xs text-secondary mb-2">${esc(asset.body)}</div>` : ''}
+        ${asset.cta ? `<div class="text-[10px] text-primary font-bold uppercase tracking-wider">${esc(asset.cta)}</div>` : ''}
+        <div class="flex gap-2 mt-3">
+          <button class="btn-secondary-modern flex-1" data-asset-edit>Edit</button>
+          <button class="btn-secondary-modern flex-1" data-asset-animate>Animate</button>
+        </div>
       `;
+      body.querySelector('[data-asset-edit]').onclick = () => navigate('asset-edit', { id: asset.id, brandId: campaign.brandId });
+      body.querySelector('[data-asset-animate]').onclick = () => {
+        if (!asset.imageUrl) return;
+        try { sessionStorage.setItem('storyboard_animate_frame', JSON.stringify({ imageUrl: asset.imageUrl, prompt: asset.headline || '' })); } catch { /* storage unavailable */ }
+        navigate('animate');
+      };
       card.appendChild(body);
       assetGrid.appendChild(card);
     });

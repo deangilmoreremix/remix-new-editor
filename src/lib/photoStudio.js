@@ -6,51 +6,171 @@ import { muapi } from './muapi.js';
 import { generateId } from './brandStore.js';
 
 export const PHOTO_CATEGORIES = [
-  { id: 'studio', label: 'Studio White', prompt: 'professional product photography on a clean white studio background, soft shadow, commercial lighting' },
-  { id: 'marble', label: 'Marble Clean', prompt: 'luxury product photography on a polished white marble surface, soft natural light, high-end editorial look' },
-  { id: 'urban', label: 'Urban Street', prompt: 'product photography on an urban street backdrop, gritty texture, neon reflections, street style' },
-  { id: 'golden', label: 'Golden Hour', prompt: 'product photography during golden hour, warm sunlight, outdoor lifestyle, natural shadows' },
-  { id: 'restaurant', label: 'Restaurant Plated', prompt: 'food photography on a restaurant table setting, Michelin-star plating, warm ambient light' },
-  { id: 'scandi', label: 'Scandi Living', prompt: 'product photography in a scandinavian living room, minimal decor, natural light, cozy aesthetic' },
-  { id: 'dark', label: 'Dark Techy', prompt: 'product photography on a dark tech surface, LED accents, cyberpunk aesthetic, dramatic lighting' },
-  { id: 'nature', label: 'Nature Organic', prompt: 'product photography in a natural outdoor setting, organic textures, soft bokeh, eco-friendly aesthetic' },
+  {
+    id: 'general',
+    label: 'General',
+    description: 'Universal product photography looks',
+    styles: [
+      { id: 'studio_white', label: 'Studio white', aspect: '1:1',
+        prompt: 'Clean white seamless studio background, soft diffused key light, subtle floor shadow, hero centered.' },
+      { id: 'lifestyle_natural', label: 'Lifestyle natural', aspect: '4:5',
+        prompt: 'Lifestyle setting with natural daylight, shallow depth of field, lived-in textures around the product.' },
+      { id: 'dark_dramatic', label: 'Dark dramatic', aspect: '1:1',
+        prompt: 'Moody dark backdrop, single rim light, deep shadows, premium cinematic mood.' },
+      { id: 'gradient_modern', label: 'Gradient modern', aspect: '1:1',
+        prompt: 'Smooth two-tone color gradient backdrop in brand-adjacent hues, soft global lighting, clean shadow.' },
+      { id: 'paper_set', label: 'Paper set', aspect: '4:5',
+        prompt: 'Folded colored paper backdrop and props, playful editorial styling, even lighting.' },
+    ],
+  },
+  {
+    id: 'beauty',
+    label: 'Beauty',
+    description: 'Skincare, cosmetics, fragrance',
+    styles: [
+      { id: 'marble_clean', label: 'Marble clean', aspect: '1:1',
+        prompt: 'White marble surface, ingredient minimal styling, soft daylight, fresh and aspirational.' },
+      { id: 'water_splash', label: 'Water splash', aspect: '1:1',
+        prompt: 'Frozen water droplet splash around the product, glossy reflective surface, cool color temperature.' },
+      { id: 'ingredient_flat_lay', label: 'Ingredient flat lay', aspect: '1:1',
+        prompt: 'Top-down flat lay with key natural ingredients arranged around the product, soft shadows, magazine styling.' },
+      { id: 'soft_pastel', label: 'Soft pastel', aspect: '4:5',
+        prompt: 'Pastel pink/peach gradient set, soft fabric folds, dreamy soft lighting, beauty-counter polish.' },
+      { id: 'magazine_editorial', label: 'Magazine editorial', aspect: '4:5',
+        prompt: 'High-fashion editorial composition, sculptural shadows, bold negative space, glossy magazine look.' },
+    ],
+  },
+  {
+    id: 'fashion',
+    label: 'Fashion',
+    description: 'Apparel, accessories',
+    styles: [
+      { id: 'editorial_studio', label: 'Editorial studio', aspect: '4:5',
+        prompt: 'Editorial studio with directional rim lighting, neutral seamless backdrop, structured shadows, vogue-grade composition.' },
+      { id: 'urban_street', label: 'Urban street', aspect: '4:5',
+        prompt: 'Urban street setting, golden hour, candid feel, shallow depth of field, on-figure feeling without showing a model.' },
+      { id: 'minimalist_void', label: 'Minimalist void', aspect: '1:1',
+        prompt: 'Single-color seamless void backdrop, hero subject only, sharp single light source, gallery-grade composition.' },
+      { id: 'golden_hour', label: 'Golden hour', aspect: '16:9',
+        prompt: 'Outdoor golden-hour scene, warm sun flare, soft long shadows, summer fashion mood.' },
+      { id: 'monochrome', label: 'Monochrome', aspect: '1:1',
+        prompt: 'Monochrome tonal staging — backdrop, surface and props all in one hue family complementing the product.' },
+    ],
+  },
+  {
+    id: 'food',
+    label: 'Food & Beverage',
+    description: 'CPG, restaurants, drinks',
+    styles: [
+      { id: 'top_down_marble', label: 'Top-down marble', aspect: '1:1',
+        prompt: 'Top-down view on white marble, fresh ingredient props, daylight from one side, crisp restaurant editorial.' },
+      { id: 'rustic_wood', label: 'Rustic wood', aspect: '4:5',
+        prompt: 'Rustic wood table, warm tungsten lighting, hand-styled imperfections, farm-to-table feel.' },
+      { id: 'ingredient_scatter', label: 'Ingredient scatter', aspect: '1:1',
+        prompt: 'Hero product with ingredients scattered organically around it, soft shadow, appetite-driving styling.' },
+      { id: 'restaurant_plated', label: 'Restaurant plated', aspect: '16:9',
+        prompt: 'Plated on a fine dining surface, narrow depth of field, ambient candle warmth, cinematic mood.' },
+      { id: 'bright_studio', label: 'Bright studio', aspect: '1:1',
+        prompt: 'Bright airy studio, white surface, vibrant color pop, advertising-grade clarity.' },
+    ],
+  },
+  {
+    id: 'home',
+    label: 'Home & Living',
+    description: 'Furniture, decor, kitchenware',
+    styles: [
+      { id: 'scandi_living', label: 'Scandi living', aspect: '16:9',
+        prompt: 'Scandinavian living room, white walls, natural oak, linen textures, soft window light, in-context staging.' },
+      { id: 'warm_kitchen', label: 'Warm kitchen', aspect: '4:5',
+        prompt: 'Warm kitchen scene, terracotta and brass accents, evening tungsten light, cozy domestic mood.' },
+      { id: 'plant_filled', label: 'Plant-filled', aspect: '4:5',
+        prompt: 'Indoor space filled with greenery, dappled daylight through leaves, biophilic styling.' },
+      { id: 'gallery_white', label: 'Gallery white', aspect: '1:1',
+        prompt: 'Minimal white gallery space, single product as sculptural object, museum lighting, design-magazine clean.' },
+      { id: 'cozy_evening', label: 'Cozy evening', aspect: '16:9',
+        prompt: 'Evening interior, warm lamp glow, soft fabrics and books, intimate hygge atmosphere.' },
+    ],
+  },
+  {
+    id: 'tech',
+    label: 'Tech & Hardware',
+    description: 'Gadgets, electronics, peripherals',
+    styles: [
+      { id: 'white_studio_iso', label: 'White studio iso', aspect: '1:1',
+        prompt: 'White studio infinity, clean isometric-feeling lighting, crisp specular highlights, Apple-keynote grade clarity.' },
+      { id: 'dark_techy', label: 'Dark techy', aspect: '1:1',
+        prompt: 'Dark studio with cyan/magenta rim lights, glossy reflection floor, futuristic premium hardware mood.' },
+      { id: 'in_use_lifestyle', label: 'In-use lifestyle', aspect: '16:9',
+        prompt: 'Product on a working desk surrounded by complementary tech objects, daylight, productive workspace mood.' },
+      { id: 'minimalist_desk', label: 'Minimalist desk', aspect: '16:9',
+        prompt: 'Minimalist desk flatlay, monochrome accessories, top-down composition, design-blog tidy.' },
+      { id: 'blueprint_3d', label: 'Blueprint', aspect: '1:1',
+        prompt: 'Technical blueprint backdrop with subtle grid, single hero product, cool tonal palette, engineering aesthetic.' },
+    ],
+  },
 ];
 
-export const PHOTO_STYLES = [
-  { id: 'clean', label: 'Clean', prompt: 'clean minimal composition, centered product, no distractions' },
-  { id: 'dramatic', label: 'Dramatic', prompt: 'dramatic side lighting, deep shadows, high contrast, cinematic mood' },
-  { id: 'flatlay', label: 'Flat Lay', prompt: 'flat lay top-down view, styled props, balanced composition' },
-  { id: 'lifestyle', label: 'Lifestyle', prompt: 'in-context lifestyle photography, human element, natural interaction' },
-  { id: 'macro', label: 'Macro', prompt: 'extreme close-up macro detail, texture focus, shallow depth of field' },
-];
+export function findStyle(categoryId, styleId) {
+  const category = PHOTO_CATEGORIES.find((c) => c.id === categoryId);
+  const style = category?.styles.find((s) => s.id === styleId);
+  return category && style ? { category, style } : null;
+}
 
-export async function generateProductPhoto({ productImageUrl, logoUrl, category, style, direction = '', resolution = '2k' }) {
-  const categoryMeta = PHOTO_CATEGORIES.find(c => c.id === category) || PHOTO_CATEGORIES[0];
-  const styleMeta = PHOTO_STYLES.find(s => s.id === style) || PHOTO_STYLES[0];
+/** Every preset as a flat list of { category, style } (30 entries). */
+export const ALL_PHOTO_PRESETS = PHOTO_CATEGORIES.flatMap((category) =>
+  category.styles.map((style) => ({ category, style })),
+);
 
-  const prompt = `${categoryMeta.prompt}, ${styleMeta.prompt}${direction ? `, ${direction}` : ''}, brand-aware, high resolution, commercial quality`;
+const asList = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x) : []);
 
-  const imagesList = [productImageUrl];
-  if (logoUrl) imagesList.push(logoUrl);
+export function buildPhotoshootPrompt(style, brand, userDirection) {
+  const lines = [
+    'Professional product photography. Use the product from the reference image as the exact focal subject — preserve its geometry, color, materials and proportions perfectly.',
+    '',
+    `Style: ${style.label}`,
+    style.prompt,
+  ];
+  const palette = asList(brand?.primaryColors);
+  if (palette.length > 0) {
+    lines.push('', `Brand palette to influence backdrop and props (do not paint the product itself): ${palette.join(', ')}.`);
+  }
+  if (brand?.imageryStyle) lines.push(`Brand imagery style: ${brand.imageryStyle}.`);
+  if (userDirection) lines.push('', `Additional direction: ${userDirection}`);
+  lines.push(
+    '',
+    'Composition rules: realistic lighting and shadows that match the staged scene, sharp focus on the product, no text, no watermarks, no overlaid logos, no warping or distortion of the product, no model faces.',
+  );
+  return lines.join('\n');
+}
 
-  // Use nano-banana-2-edit for brand-aware product photography
-  const imageUrl = await muapi.imageEdit2(prompt, imagesList, {
-    aspectRatio: '1:1',
+export async function generateProductPhoto({ productImageUrl, logoUrl, brand = null, category, style, direction = '', resolution = '2k', aspect }) {
+  const found = findStyle(category, style) || ALL_PHOTO_PRESETS[0];
+  const styleMeta = found.style;
+  const categoryMeta = found.category;
+  const prompt = buildPhotoshootPrompt(styleMeta, brand, direction);
+  const aspectRatio = aspect || styleMeta.aspect;
+
+  const refs = [productImageUrl];
+  if (logoUrl) refs.push(logoUrl);
+
+  // nano-banana-2-edit with the product photo (and brand logo) as references.
+  const imageUrl = await muapi.imageEdit2(prompt, refs, {
+    aspectRatio,
     resolution: ['1k', '2k', '4k'].includes(resolution) ? resolution : '2k',
     outputFormat: 'png',
   });
-
   if (!imageUrl) throw new Error('Photo studio returned no image');
 
   return {
     id: generateId(),
     productImageUrl,
-    category,
-    styleId: style,
+    category: categoryMeta.label,
+    categoryId: categoryMeta.id,
+    styleId: styleMeta.id,
     styleLabel: styleMeta.label,
     prompt,
     imageUrl,
-    aspect: '1:1',
+    aspect: aspectRatio,
     resolution,
     createdAt: new Date().toISOString(),
   };

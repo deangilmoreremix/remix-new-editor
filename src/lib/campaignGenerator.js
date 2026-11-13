@@ -5,142 +5,197 @@
 import { muapi } from './muapi.js';
 import { generateId } from './brandStore.js';
 import { PLATFORMS } from './platforms.js';
+import { defaultLayout } from './layout.js';
 
 export const CAMPAIGN_GOALS = [
-  { value: 'product-launch', label: 'Product Launch' },
-  { value: 'lead-gen', label: 'Lead Generation' },
-  { value: 'awareness', label: 'Brand Awareness' },
-  { value: 'engagement', label: 'Engagement' },
-  { value: 'thought-leadership', label: 'Thought Leadership' },
-  { value: 'sales', label: 'Sales' },
+  { value: 'product-launch', label: 'Product Launch', description: 'Announce a new product or feature' },
+  { value: 'lead-gen', label: 'Lead Generation', description: 'Capture qualified prospects' },
+  { value: 'awareness', label: 'Brand Awareness', description: 'Reach new audiences' },
+  { value: 'engagement', label: 'Engagement', description: 'Drive replies, shares, comments' },
+  { value: 'thought-leadership', label: 'Thought Leadership', description: 'Establish authority and POV' },
+  { value: 'sales', label: 'Direct Sales', description: 'Drive purchases or sign-ups' },
 ];
 
-const CAMPAIGN_PROMPT = `You are a creative director. Given the brand DNA below and the campaign goal, generate 4 distinct campaign concepts as STRICT JSON (no markdown, no commentary):
+const list = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x) : []);
+const dash = (s) => s || '—';
 
-{
-  "concepts": [
-    {
-      "title": "string — short internal concept name",
-      "theme": "string — visual/emotional theme",
-      "key_message": "string — the single most important message",
-      "hook": "string — attention-grabbing opener",
-      "cta": "string — call to action",
-      "recommended_platforms": ["string — platform ids from: instagram-feed, instagram-story, linkedin, facebook, twitter, web-banner, email, youtube"],
-      "tone_notes": "string — guidance for copy and visual tone",
-      "visual_direction": "string — detailed prompt for the hero image"
-    }
-  ]
-}
-
-BRAND: {{brandName}}
-INDUSTRY: {{industry}}
-TAGLINE: {{tagline}}
-TONE: {{tone}}
-PERSONALITY: {{personality}}
-KEY MESSAGES: {{messages}}
-GOAL: {{goal}}
-DIRECTION: {{direction}}`;
-
-function countWords(str) {
-  return (str || '').trim().split(/\s+/).filter(Boolean).length;
+function parseJSON(text) {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const candidate = fenced ? fenced[1] : text;
+  const m = candidate.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error(`No JSON in response: ${String(text).slice(0, 200)}`);
+  return JSON.parse(m[0]);
 }
 
 function truncateToWordCap(text, max) {
   const words = (text || '').trim().split(/\s+/).filter(Boolean);
-  return words.length > max ? words.slice(0, max).join(' ') : text;
+  return words.length > max ? words.slice(0, max).join(' ') : (text || '').trim();
+}
+
+function buildConceptsPrompt(brand, goal, userDirection) {
+  const goalLabel = CAMPAIGN_GOALS.find((g) => g.value === goal)?.label ?? goal;
+  return `You are a senior brand strategist. Generate exactly 4 distinct on-brand marketing campaign concepts for the brand below, tailored to the goal: "${goalLabel}".
+
+Return STRICT JSON only — an object with a "concepts" array of 4 objects with this exact shape (no markdown, no commentary):
+{
+  "concepts": [
+    {
+      "title": "short evocative concept name (max 6 words)",
+      "theme": "1 sentence — the strategic angle",
+      "key_message": "1 sentence — what the audience should remember",
+      "hook": "1 short line — the opening line of the lead asset",
+      "cta": "2-4 word call to action",
+      "recommended_platforms": ["platform ids from: ${PLATFORMS.map((p) => p.id).join(', ')}"],
+      "tone_notes": "how to write this concept — match the brand's voice",
+      "visual_direction": "1-2 sentences — palette, imagery, layout cues"
+    }
+  ]
+}
+
+Keep concepts genuinely distinct in angle. Match the brand voice and palette. Be specific to the brand, not generic marketing fluff.
+
+BRAND
+- Name: ${dash(brand.brandName)}
+- Industry: ${dash(brand.industry)}
+- Tagline: ${dash(brand.tagline)}
+- Value proposition: ${dash(brand.valueProposition)}
+- Target audience: ${dash(brand.targetAudience)}
+- Tone of voice: ${list(brand.toneOfVoice).join(', ') || '—'}
+- Personality: ${list(brand.brandPersonality).join(', ') || '—'}
+- Key messages: ${list(brand.keyMessages).join(' • ') || '—'}
+- Primary colors: ${list(brand.primaryColors).join(', ') || '—'}
+- Imagery style: ${dash(brand.imageryStyle)}
+- Layout style: ${dash(brand.layoutStyle)}
+
+GOAL: ${goalLabel}
+${userDirection ? `USER DIRECTION: ${userDirection}` : ''}`;
+}
+
+export async function generateCampaignConcepts(brand, goal, direction = '') {
+  const raw = await muapi.text(buildConceptsPrompt(brand, goal, direction));
+  const parsed = parseJSON(raw);
+  const concepts = Array.isArray(parsed.concepts) ? parsed.concepts : [];
+  if (concepts.length === 0) throw new Error('Concepts response had no concepts');
+
+  return concepts.slice(0, 4).map((c) => ({
+    title: String(c.title ?? c.headline ?? ''),
+    theme: String(c.theme ?? ''),
+    key_message: String(c.key_message ?? c.body ?? ''),
+    hook: String(c.hook ?? ''),
+    cta: String(c.cta ?? ''),
+    recommended_platforms: list(c.recommended_platforms),
+    tone_notes: String(c.tone_notes ?? ''),
+    visual_direction: String(c.visual_direction ?? c.visual_prompt ?? ''),
+    // Kept for the campaign page / older saved concepts.
+    headline: String(c.headline ?? c.title ?? ''),
+    body: String(c.body ?? c.key_message ?? ''),
+    rationale: String(c.rationale ?? c.tone_notes ?? ''),
+  }));
 }
 
 export function buildCopyPrompt(brand, concept, spec) {
-  const platform = PLATFORMS.find(p => p.id === spec.platform) || PLATFORMS[0];
+  const platform = PLATFORMS.find((p) => p.id === spec.platform) || PLATFORMS[0];
   const copy = platform.copy || {};
   const hm = copy.headlineMaxWords ?? 8;
   const bm = copy.bodyMaxWords ?? 40;
   const cm = copy.ctaMaxWords ?? 3;
-  const tone = copy.tone || 'brand-aligned';
-  const title = concept.title || concept.headline || 'this campaign';
-  const keyMessage = concept.key_message || concept.body || '';
 
-  return `Write on-brand copy for a ${platform.label} post. Concept: "${title}" — ${keyMessage}. Platform constraints: headline ≤ ${hm} words, body ≤ ${bm} words, CTA ≤ ${cm} words. Tone: ${tone}. Return STRICT JSON: {"headline":"...","body":"...","cta":"..."}`;
+  return `You are writing on-brand marketing copy for a single asset. Return STRICT JSON only:
+{
+  "headline": "string (max ${hm} words)",
+  "body": "string (max ${bm} words${bm === 0 ? ' — return empty string' : ''})",
+  "cta": "string (max ${cm} words${cm === 0 ? ' — return empty string' : ''})"
+}
+
+PLATFORM: ${platform.label}
+COPY TONE: ${copy.tone || 'on-brand'}
+
+BRAND
+- Name: ${dash(brand.brandName)}
+- Voice: ${list(brand.toneOfVoice).join(', ') || '—'}
+- Personality: ${list(brand.brandPersonality).join(', ') || '—'}
+
+CAMPAIGN CONCEPT
+- Title: ${dash(concept.title)}
+- Theme: ${dash(concept.theme)}
+- Hook: ${dash(concept.hook)}
+- Key message: ${dash(concept.key_message || concept.body)}
+- Default CTA: ${dash(concept.cta)}
+- Tone notes: ${dash(concept.tone_notes)}
+
+Match the brand voice exactly. Stay under the word caps. Do not use hashtags in body. Do not add markdown.`;
 }
 
 export function buildImagePrompt(brand, concept, spec, headline, opts = {}) {
-  const platform = PLATFORMS.find(p => p.id === spec.platform) || PLATFORMS[0];
-  const copy = platform.copy || {};
-  let prompt = concept.visual_direction || concept.visual_prompt || '';
+  const platform = PLATFORMS.find((p) => p.id === spec.platform) || PLATFORMS[0];
+  const primary = list(brand.primaryColors).join(', ') || 'brand colors';
+  const secondary = list(brand.secondaryColors);
+  const palette = secondary.length > 0
+    ? `Primary palette: ${primary}. Accent palette: ${secondary.join(', ')}.`
+    : `Palette: ${primary}.`;
 
-  if (opts.noText) {
-    prompt += ', clean background, no text overlay, no watermark';
-  }
+  const textRule = opts.noText
+    ? 'IMPORTANT: render NO text, NO words, NO letters, NO typography on this image. Pure visual background only — text will be overlaid afterward in HTML. Leave generous negative space where copy can go.'
+    : `Overlay headline (large, on-brand typography): "${headline}"`;
 
-  prompt += `, ${platform.label} format, aspect ratio ${platform.aspect}, brand-aligned, high resolution, commercial quality`;
-  if (headline) {
-    prompt += `. Headline context: "${headline}"`;
-  }
-  return prompt;
+  return `Marketing creative for ${platform.label}. ${platform.copy?.imageHint || ''}
+
+Concept: ${concept.title || ''} — ${concept.theme || ''}
+Visual direction: ${concept.visual_direction || concept.visual_prompt || ''}
+Imagery style: ${brand.imageryStyle || 'modern'}. Layout style: ${brand.layoutStyle || 'modern'}.
+${palette}
+
+${textRule}
+
+Composition rules: clean focal hierarchy, brand-consistent palette, no extraneous logos, no watermarks, no stock-photo aesthetic, no lorem ipsum. Make it feel native to the brand.`;
 }
 
-export async function generateCampaignConcepts(brand, goal, direction = '') {
-  const prompt = CAMPAIGN_PROMPT
-    .replace('{{brandName}}', brand.brandName || 'Unknown')
-    .replace('{{industry}}', brand.industry || 'General')
-    .replace('{{tagline}}', brand.tagline || '')
-    .replace('{{tone}}', (brand.toneOfVoice || []).join(', ') || 'modern')
-    .replace('{{personality}}', (brand.brandPersonality || []).join(', ') || 'clean')
-    .replace('{{messages}}', (brand.keyMessages || []).join('; ') || 'quality, innovation')
-    .replace('{{goal}}', goal)
-    .replace('{{direction}}', direction || 'open');
+/** The logo (when detected) is passed as a reference image so the creative stays on-brand. */
+async function renderImage(brand, platformMeta, imagePrompt) {
+  const refs = brand.logoUrl ? [brand.logoUrl] : [];
+  return refs.length > 0
+    ? muapi.imageEdit(imagePrompt, refs, platformMeta.aspect)
+    : muapi.image(imagePrompt, platformMeta.aspect);
+}
 
-  const raw = await muapi.text(prompt);
-  const parsed = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || raw);
-
-  return (parsed.concepts || []).map(c => ({
-    title: c.title || c.headline || '',
-    theme: c.theme || '',
-    key_message: c.key_message || c.body || '',
-    hook: c.hook || '',
-    cta: c.cta || '',
-    recommended_platforms: Array.isArray(c.recommended_platforms) ? c.recommended_platforms : [],
-    tone_notes: c.tone_notes || '',
-    visual_direction: c.visual_direction || c.visual_prompt || '',
-    headline: c.headline || c.title || '',
-    body: c.body || c.key_message || '',
-    rationale: c.rationale || c.tone_notes || '',
-  }));
+/** New background for an existing asset ("Swap image"), or a text-free one for the canvas editor ("Clean background"). */
+export async function regenerateImage(brand, concept, platform, headline, opts = {}) {
+  const platformMeta = PLATFORMS.find((p) => p.id === platform) || PLATFORMS[0];
+  const imagePrompt = buildImagePrompt(brand, concept, { platform: platformMeta.id }, headline, opts);
+  return renderImage(brand, platformMeta, imagePrompt);
 }
 
 export async function generateAssetForConcept(brand, concept, platform, opts = {}) {
-  const platformMeta = PLATFORMS.find(p => p.id === platform) || PLATFORMS[0];
+  const platformMeta = PLATFORMS.find((p) => p.id === platform) || PLATFORMS[0];
   const copyConstraints = platformMeta.copy || {};
 
-  const copyPrompt = buildCopyPrompt(brand, concept, { platform });
-  const copyRaw = await muapi.text(copyPrompt);
-  const copyJson = JSON.parse(copyRaw.match(/\{[\s\S]*\}/)?.[0] || copyRaw);
+  const copyRaw = await muapi.text(buildCopyPrompt(brand, concept, { platform: platformMeta.id }));
+  const copyJson = parseJSON(copyRaw);
 
-  if (copyJson.headline) copyJson.headline = truncateToWordCap(copyJson.headline, copyConstraints.headlineMaxWords ?? 999);
-  if (copyJson.body) copyJson.body = truncateToWordCap(copyJson.body, copyConstraints.bodyMaxWords ?? 9999);
-  if (copyJson.cta) copyJson.cta = truncateToWordCap(copyJson.cta, copyConstraints.ctaMaxWords ?? 999);
+  const headline = truncateToWordCap(String(copyJson.headline ?? ''), copyConstraints.headlineMaxWords ?? 999);
+  const body = truncateToWordCap(String(copyJson.body ?? ''), copyConstraints.bodyMaxWords ?? 9999);
+  const cta = truncateToWordCap(String(copyJson.cta ?? ''), copyConstraints.ctaMaxWords ?? 999);
 
-  const imagePrompt = buildImagePrompt(brand, concept, { platform }, copyJson.headline, { noText: true });
+  // The copy is laid over the picture by the canvas editor, so the picture itself carries no text.
+  const imageUrl = await renderImage(
+    brand,
+    platformMeta,
+    buildImagePrompt(brand, concept, { platform: platformMeta.id }, headline, { noText: opts.noText ?? true }),
+  );
 
-  const imagesList = [imagePrompt];
-  if (brand.logoUrl) imagesList.push(brand.logoUrl);
-
-  const imageUrl = await muapi.imageEdit2(imagePrompt, imagesList, {
-    aspectRatio: platformMeta.aspect,
-    resolution: opts.resolution || '2k',
-    outputFormat: 'png',
-  });
-
+  const fontFamily = (brand.fonts || []).find((f) => f && !/^-/.test(f) && !/^system-ui$/i.test(f));
   return {
     id: generateId(),
     campaignId: null,
     platform: platformMeta.id,
     format: platformMeta.label,
     imageUrl: imageUrl || '',
-    headline: copyJson.headline || '',
-    body: copyJson.body || '',
-    cta: copyJson.cta || '',
-    variants: null,
+    headline,
+    body,
+    cta,
+    layout: defaultLayout(headline, body, cta, fontFamily ? `${fontFamily}, system-ui, sans-serif` : 'system-ui, sans-serif'),
+    // Which concept/platform made this asset, so the editor can regenerate its image.
+    variants: { conceptIndex: concept.index ?? 0, platformId: platformMeta.id },
     createdAt: new Date().toISOString(),
   };
 }

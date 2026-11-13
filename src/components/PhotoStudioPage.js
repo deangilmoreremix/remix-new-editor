@@ -5,7 +5,7 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { listBrands, savePhotoshoot, resolveBrandId } from '../lib/brandStore.js';
 import { navigate } from '../lib/brandNavigation.js';
-import { PHOTO_CATEGORIES, PHOTO_STYLES, generateProductPhoto } from '../lib/photoStudio.js';
+import { PHOTO_CATEGORIES, findStyle, generateProductPhoto } from '../lib/photoStudio.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createSafeImage } from '../lib/security.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
@@ -29,8 +29,8 @@ export function PhotoStudioPage() {
   const state = {
     productImageUrl: null,
     logoUrl: selectedBrand?.logoUrl || null,
-    selectedCategories: [],
-    selectedStyles: [],
+    // Preset keys as 'categoryId/styleId' (6 categories × 5 styles = 30 presets).
+    selectedPresets: [],
     resolution: '2k',
     direction: '',
     negativePrompt: '',
@@ -265,46 +265,61 @@ export function PhotoStudioPage() {
     muapiModelWrapper.appendChild(select);
   }
 
-  // ---- Category + Style Selectors (multi-select) ----
+  // ---- Preset picker: 6 categories, each with its own 5 styles ----
   const selectorRow = document.createElement('div');
-  selectorRow.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6';
+  selectorRow.className = 'flex flex-col gap-4 mb-6';
 
-  const createMultiSelector = (label, options, selected, onChange) => {
+  const createPresetPicker = () => {
     const wrapper = document.createElement('div');
-    const lbl = document.createElement('label');
-    lbl.className = 'text-xs font-bold text-secondary uppercase tracking-wider block mb-2';
-    lbl.textContent = label;
-    wrapper.appendChild(lbl);
+    wrapper.className = 'flex flex-col gap-4';
+    PHOTO_CATEGORIES.forEach((category) => {
+      const keys = category.styles.map((st) => `${category.id}/${st.id}`);
+      const allOn = keys.every((k) => state.selectedPresets.includes(k));
+      const group = document.createElement('div');
+      group.dataset.photoCategory = category.id;
 
-    const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-2 gap-2';
-    options.forEach(opt => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      const isSelected = selected.includes(opt.id);
-      btn.className = `px-3 py-2 rounded-xl text-xs font-bold transition-all border ${isSelected ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
-      btn.textContent = opt.label;
-      btn.onclick = () => {
-        const idx = selected.indexOf(opt.id);
-        if (idx >= 0) {
-          selected.splice(idx, 1);
-        } else {
-          selected.push(opt.id);
-        }
-        onChange(selected);
+      const head = document.createElement('div');
+      head.className = 'flex items-center justify-between mb-2';
+      const title = document.createElement('div');
+      title.innerHTML = `<div class="text-xs font-bold text-secondary uppercase tracking-wider">${category.label}</div><div class="text-[10px] text-muted">${category.description}</div>`;
+      const all = document.createElement('button');
+      all.type = 'button';
+      all.className = 'text-[10px] font-bold text-primary hover:underline';
+      all.textContent = allOn ? 'Clear' : 'Select all';
+      all.onclick = () => {
+        state.selectedPresets = allOn
+          ? state.selectedPresets.filter((k) => !keys.includes(k))
+          : [...new Set([...state.selectedPresets, ...keys])];
         renderSelectors();
       };
-      grid.appendChild(btn);
+      head.appendChild(title);
+      head.appendChild(all);
+      group.appendChild(head);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2';
+      category.styles.forEach((st) => {
+        const key = `${category.id}/${st.id}`;
+        const on = state.selectedPresets.includes(key);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.photoPreset = key;
+        btn.title = st.prompt;
+        btn.className = `px-3 py-2 rounded-xl text-xs font-bold transition-all border ${on ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
+        btn.textContent = `${st.label} · ${st.aspect}`;
+        btn.onclick = () => {
+          state.selectedPresets = on ? state.selectedPresets.filter((k) => k !== key) : [...state.selectedPresets, key];
+          renderSelectors();
+        };
+        grid.appendChild(btn);
+      });
+      group.appendChild(grid);
+      wrapper.appendChild(group);
     });
-    wrapper.appendChild(grid);
     return wrapper;
   };
 
-  const categorySelector = createMultiSelector('Category', PHOTO_CATEGORIES, state.selectedCategories, (v) => { state.selectedCategories = v; });
-  const styleSelector = createMultiSelector('Style', PHOTO_STYLES, state.selectedStyles, (v) => { state.selectedStyles = v; });
-
-  selectorRow.appendChild(categorySelector);
-  selectorRow.appendChild(styleSelector);
+  selectorRow.appendChild(createPresetPicker());
   root.appendChild(selectorRow);
 
   // ---- Generate Button ----
@@ -316,8 +331,8 @@ export function PhotoStudioPage() {
       showToast('Please upload a product image first', 'error');
       return;
     }
-    if (state.selectedCategories.length === 0 || state.selectedStyles.length === 0) {
-      showToast('Please select at least one category and style', 'error');
+    if (state.selectedPresets.length === 0) {
+      showToast('Please select at least one photo style', 'error');
       return;
     }
 
@@ -331,12 +346,10 @@ export function PhotoStudioPage() {
     const overlay = createLoadingOverlay('Generating product photos...');
     container.appendChild(overlay);
 
-    const selectedPairs = [];
-    state.selectedCategories.forEach(cat => {
-      state.selectedStyles.forEach(style => {
-        selectedPairs.push({ category: cat, style });
-      });
-    });
+    const selectedPairs = state.selectedPresets
+      .map((key) => key.split('/'))
+      .filter(([cat, style]) => findStyle(cat, style))
+      .map(([category, style]) => ({ category, style }));
 
     try {
       const queue = [...selectedPairs];
@@ -344,8 +357,7 @@ export function PhotoStudioPage() {
         const batch = queue.splice(0, CONCURRENCY);
         const batchResults = await Promise.allSettled(
           batch.map(async ({ category, style }) => {
-            const categoryMeta = PHOTO_CATEGORIES.find(c => c.id === category) || PHOTO_CATEGORIES[0];
-            const styleMeta = PHOTO_STYLES.find(s => s.id === style) || PHOTO_STYLES[0];
+            const { category: categoryMeta, style: styleMeta } = findStyle(category, style);
 
             if (state.muapiMode && state.selectedMuapiModel) {
               const result = await muapi.generateI2I({
@@ -384,6 +396,7 @@ export function PhotoStudioPage() {
             const result = await generateProductPhoto({
               productImageUrl: state.productImageUrl,
               logoUrl: state.logoUrl || null,
+              brand: selectedBrand,
               category,
               style,
               direction: state.direction || '',
@@ -460,8 +473,7 @@ export function PhotoStudioPage() {
 
   function renderSelectors() {
     selectorRow.innerHTML = '';
-    selectorRow.appendChild(createMultiSelector('Category', PHOTO_CATEGORIES, state.selectedCategories, (v) => { state.selectedCategories = v; }));
-    selectorRow.appendChild(createMultiSelector('Style', PHOTO_STYLES, state.selectedStyles, (v) => { state.selectedStyles = v; }));
+    selectorRow.appendChild(createPresetPicker());
   }
 
   function renderResults() {
@@ -509,7 +521,7 @@ export function PhotoStudioPage() {
             studioName: 'Photo Studio',
             mediaUrl: result.imageUrl,
             mediaType: 'image',
-            aspectRatio: '1:1',
+            aspectRatio: result.aspect || '1:1',
             prompt: result.direction || state.direction || '',
             title: result.styleLabel || 'Product photo',
             trigger: personalizeBtn,
