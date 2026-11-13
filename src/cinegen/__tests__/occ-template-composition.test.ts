@@ -94,3 +94,11 @@ describe('Template Generator sources in this editor', () => {
     expect(await end.resolve(ends.items[0])).toEqual({ templateId: ends.items[0].id.replace('tpl:', '') });
   });
 });
+
+describe('wizard media gets a fileRef (so CineGen\'s media backfill can make thumbnails / filmstrips)', () => {
+  it('sets fileRef on assets created from the composition', () => {
+    const tl = { id: 't', name: 'T', tracks: [{ id: 'v1', name: 'V1', kind: 'video', color: '#000', muted: false, solo: false, locked: false, visible: true, volume: 1 }], clips: [], duration: 0, transitions: [], markers: [] } as never;
+    const out = applyComposition(tl, { tracks: [{ type: 'video', clips: [{ type: 'video', duration: 4, asset: { id: 'a1', type: 'video', name: 'Stock', url: 'https://cdn.example/stock.mp4', duration: 4 } }] }] });
+    expect(out.assets[0].fileRef).toBe('https://cdn.example/stock.mp4');
+  });
+});

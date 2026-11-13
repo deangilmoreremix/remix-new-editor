@@ -255,7 +255,8 @@ export async function prepareElementReferences(
     const result = await api({ projectId, assetId: `${element.id}-reference-${image.id}`, assetType: image === durable.voice?.referenceAudio ? 'audio' : 'image', ...(remote ? { remoteUrl: source } : { localPathHint: source }) });
     if ('error' in result) throw new Error(result.error);
     if (!result.path) throw new Error('Reference storage returned no saved file.');
-    image.url = `local-media://file${result.path}`;
+    // [remix] on the web the storage adapter returns a URL (hosted https, or inline data:), not a file path
+    image.url = /^(https?:|blob:|data:|local-media:)/i.test(result.path) ? result.path : `local-media://file${result.path}`;
     sources.set(source, image.url);
   }
   return durable;
