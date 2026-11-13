@@ -113,7 +113,7 @@ export class CaptionParseError extends Error {
 
 /** Parses SRT or VTT text. Throws CaptionParseError with a plain message when nothing usable is found. */
 export function parseCaptionFile(text: string, fileName = ''): { cues: CaptionCue[]; format: 'srt' | 'vtt' } {
-  const src = String(text || '').replace(/^﻿/, '')
+  const src = String(text || '').replace(/^\uFEFF/, '')
   if (!src.trim()) throw new CaptionParseError('The file is empty.')
   if (src.length > 5_000_000) throw new CaptionParseError('The file is too large to be a subtitle file.')
   const format = /\.vtt$/i.test(fileName) || /^WEBVTT/.test(src.trim()) ? 'vtt' : 'srt'
