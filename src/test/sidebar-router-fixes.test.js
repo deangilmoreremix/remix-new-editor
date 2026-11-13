@@ -54,6 +54,9 @@ describe('Sidebar fixes', () => {
     expect(getNavItemForRoute('cinegen')).toBe('workbench');
     expect(getNavItemForRoute('video-agent-studio')).toBe('video-agent');
     expect(getNavItemForRoute('template/anime-converter')).toBe('templates');
+    expect(getNavItemForRoute('academy')).toBe('academy');
+    expect(getNavItemForRoute('academy/track/02-ai-filmmaking')).toBe('academy');
+    expect(getNavItemForRoute('academyfoo')).toBeNull();
     expect(getNavItemForRoute('settings')).toBeNull();
   });
 

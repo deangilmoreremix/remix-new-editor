@@ -58,8 +58,8 @@ const STUDIO_INSTRUCTIONS = {
     title: 'Effects Studio',
     steps: [
       { number: 1, heading: 'Upload your photo', description: 'Start with a clear, well-lit photo. Face-forward portraits work best for most effects.' },
-      { number: 2, heading: 'Browse effects', description: 'Explore 350+ effects organized by category: transformations, styles, VFX, overlays, and more.' },
-      { number: 3, heading: 'Apply and preview', description: 'Select an effect to see the transformation. Most effects process in under 30 seconds.' },
+      { number: 2, heading: 'Browse effects', description: 'Explore 200+ effects across six tabs: Image Effects, Nano Banana, Kontext Effects, Video Effects, Motion Controls and Video FX v2.' },
+      { number: 3, heading: 'Apply and preview', description: 'Select an effect and generate. Image effects take seconds; video effects can take a minute or more.' },
     ],
     quickTips: [
       'Higher resolution input photos produce better results',
@@ -70,28 +70,28 @@ const STUDIO_INSTRUCTIONS = {
   edit: {
     title: 'Edit Studio',
     steps: [
-      { number: 1, heading: 'Upload your media', description: 'Upload the image or video you want to edit. Supports JPG, PNG, WebP for images and MP4, WebM for videos.' },
-      { number: 2, heading: 'Select an edit tool', description: 'Choose from: remove objects, remove background, reframe, expand canvas, inpaint, or relight.' },
-      { number: 3, heading: 'Mark the edit area', description: 'For removal tools, paint over the area you want to change. For reframe, select the new crop.' },
+      { number: 1, heading: 'Upload your media', description: 'Upload the image you want to edit (JPG, PNG or WebP). Edit Studio works on images only.' },
+      { number: 2, heading: 'Select an edit tool', description: 'Choose from 16 image tools, including Remove Object, Remove Background, Extend Image, AI Edit, Reframe, Change Dress, Colorize, Face Swap and Product Shot.' },
+      { number: 3, heading: 'Mark the edit area', description: 'For Remove Object, paint over the area you want gone (or upload a mask). For Reframe, pick the new aspect ratio.' },
       { number: 4, heading: 'Apply changes', description: 'The AI processes your edit and shows the result. You can undo and retry with different settings.' },
     ],
     quickTips: [
       'Use a larger brush for object removal to include surrounding context',
       'Background removal works best with clear subject-background separation',
-      'Relight can dramatically change the mood of a portrait',
+      'Enhance Skin and Colorize give portraits and old photos a quick polish',
     ],
   },
   upscale: {
     title: 'Upscale Suite',
     steps: [
-      { number: 1, heading: 'Upload your media', description: 'Upload a low-resolution or blurry image or video that you want to enhance.' },
-      { number: 2, heading: 'Choose upscale method', description: 'Select from standard upscale (2x-4x), creative upscale (adds detail), or face enhancement.' },
+      { number: 1, heading: 'Upload your media', description: 'Upload a low-resolution or blurry image that you want to enhance.' },
+      { number: 2, heading: 'Choose upscale method', description: 'Choose AI Upscaler (2x or 4x), Topaz Upscale or Seed Upscale (SeedVR2).' },
       { number: 3, heading: 'Process and download', description: 'The AI enhances your image while preserving the original content. Download the high-res result.' },
     ],
     quickTips: [
-      'Creative upscale adds AI-generated detail, best for artistic images',
-      'Face enhancement specifically improves facial features and skin texture',
-      'Standard upscale is most faithful to the original image',
+      'Topaz Upscale is a premium-quality enhancer for photos',
+      'Seed Upscale (SeedVR2) restores fine detail in blurry or compressed images',
+      'AI Upscaler is the quickest option and lets you pick 2x or 4x',
     ],
   },
   character: {
@@ -154,15 +154,15 @@ const STUDIO_INSTRUCTIONS = {
   'videotools': {
     title: 'Video Tools',
     steps: [
-      { number: 1, heading: 'Upload your video', description: 'Select a video file (MP4, WebM) to process. Videos should be under 30 seconds for best results.' },
-      { number: 2, heading: 'Choose a tool', description: 'Select from upscaling, interpolation, stabilization, color correction, or other enhancement tools.' },
+      { number: 1, heading: 'Upload your video', description: 'Select a video file (MP4, WebM) to process.' },
+      { number: 2, heading: 'Choose a tool', description: 'Pick a tool, such as AI Video Upscaler, Topaz Video Upscale, Luma Flash Reframe, AI Clipping, HeyGen Video Translate, Seedance Watermark Remover or AI Captions.' },
       { number: 3, heading: 'Configure options', description: 'Set output quality, resolution, and other parameters specific to your chosen tool.' },
       { number: 4, heading: 'Process and download', description: 'The AI processes your video with the selected enhancements. Download when complete.' },
     ],
     quickTips: [
       'Upscale from 480p to 720p for significant quality improvement',
-      'Video stabilization works best with shaky handheld footage',
-      'Frame interpolation smooths choppy footage to higher fps',
+      'AI Clipping cuts a long video into short clips, and AI Captions adds subtitles',
+      'Seedance Watermark Remover removes watermarks, logos and captions from a video',
       'Higher output resolutions take longer to process',
     ],
   },

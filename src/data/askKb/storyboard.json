@@ -1,0 +1,261 @@
+{
+  "id": "storyboard",
+  "name": "Storyboard Studio",
+  "route": "#/storyboard",
+  "description": "Storyboard Studio turns a short description into a plan of 3 to 12 shots, draws each shot as an AI image frame, and lets you edit, reorder, compare, save and export the result, or send it on to be animated or turned into a video.",
+  "shortDescription": "Plan scenes as AI storyboard frames, then turn them into video.",
+  "fullDescription": "Storyboard Studio has two stages. In the first stage ('Describe your storyboard') you write what you want to make, optionally customise video type, tone, total length, number of frames, audience, call to action, characters and look, and press 'Generate storyboard'. The studio plans the shots (using your OpenAI key if you have one, otherwise a built-in story-arc template) and, if 'Also generate frame images' is ticked, draws every frame. In the second stage you see the board: one card per frame with Shot, Camera, Seconds, 'What we see', 'Narration / dialogue', 'Director notes', a reference image option, a generate button and Animate / Publish actions. A toolbar offers Save, Load, Export (PDF shot sheet, CSV shot list, JSON), Add frame, Undo, Redo, Layout (Horizontal, Grid, Story), model and aspect ratio choices, 'Generate all frames', and a menu with GTM Boost, Recipes, Monetize, Prompts and Compare frames. 'Send to video studio' passes the frames to Cinema Templates.",
+  "bestFor": "Anyone who wants to plan a video before making it: ad concepts, short films, explainers, social reels and client pitches. Also useful for keeping characters and look consistent across frames.",
+  "whenToUse": [
+    "You want to plan the shots of a video (shot type, camera move, length) before generating video.",
+    "You want a visual shot list or PDF shot sheet to share with a client or team.",
+    "You want consistent characters and setting across several images (use the 'Characters, setting and look' box and the previous-frame reference option).",
+    "You want to quickly turn a one-paragraph idea into 3-12 frames with narration and director notes.",
+    "You want to animate individual frames or pass the whole board into Cinema Templates."
+  ],
+  "whenToUseAnother": [
+    "Use Video Studio (#/video) when you just want a video clip from a prompt or image without planning.",
+    "Use Cinema Studio (#/cinema) when you want one cinematic shot with camera, lens and film-look controls.",
+    "Use Cinema Templates (#/cinema-template) when you want a ready-made cinematic format; you can bring your storyboard there with 'Send to video studio'.",
+    "Use Image Studio (#/image) when you only need a single image with full image controls.",
+    "Use Animate (#/animate) to animate a single image."
+  ],
+  "keyFeatures": [
+    "Story brief: description box plus 'Customize (type, tone, length, frames, characters, style)'.",
+    "Automatic plan of 3 to 12 frames with shot type, camera movement, duration, visual description, narration and notes.",
+    "Fallback template storyboard that follows a story arc (Hook, Setup, Problem, Turn, Detail, Action, Experience, Scale, Payoff) when no OpenAI key is available.",
+    "Per-frame editing: Shot, Camera, Seconds, 'What we see', 'Narration / dialogue', 'Director notes', reference image, '✨ Start from shot preset', GTM enhance.",
+    "Frame image generation for one frame, all frames ('Generate all frames' / 'Stop'), and 'Retry failed'.",
+    "Toolbar: project name box, Save, Load, Export menu, '+ Add frame', Undo, Redo, Layout, model button, aspect ratio button, 'Send to video studio', Thumbnail, Personalize, and a tools menu.",
+    "Generation settings panel: Negative prompt, Guidance scale, Steps, Seed and 'Use the previous frame as a reference'.",
+    "Timeline strip showing the total length and each frame's shot, camera and seconds.",
+    "Compare frames overlay (choose two frames side by side).",
+    "Autosave after you have saved or loaded a project, and keyboard shortcuts Ctrl+S, Ctrl+Z, Ctrl+Shift+Z."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Describe and generate a storyboard",
+      "explanation": "Type your idea in 'What do you want your storyboard to be about?' (example placeholder: a 30-second launch ad for a trail-running shoe). Press 'Generate storyboard'. While it works the button reads 'Planning...' and placeholder cards say 'Planning shots...'. A length written in the text such as '30 second' or '2 minute' sets the total length if you have not set it yourself.",
+      "whyToUse": "Fastest way to get a full shot plan.",
+      "inputRequired": "A description or a title/subject. Otherwise 'Describe what you want to make first.'",
+      "restrictions": "If frames already exist you are asked 'Replace the current frames with a new storyboard?'."
+    },
+    {
+      "feature": "Customize panel",
+      "explanation": "Optional fields: 'Title or subject (optional)', Video type (Commercial, Brand Film, Trailer, Social Reel, Testimonial, Documentary, Short Film, Explainer), Tone (Dramatic, Cinematic, Upbeat, Luxury, Gritty, Minimal, Emotional, Humorous), 'Total length (sec)' (minimum 6, maximum 300; default 60), 'Frames (3-12)', Audience, 'Call to action (optional)', 'Characters, setting and look (kept the same in every frame)', Visual style, Lighting and Color grade.",
+      "whyToUse": "Steer the story and keep the same character and look in every frame.",
+      "inputRequired": "None.",
+      "restrictions": "Frames are clamped to 3-12. By default about one frame per 5 seconds of length."
+    },
+    {
+      "feature": "Also generate frame images",
+      "explanation": "A checkbox next to the Generate button, ticked by default. When ticked and an image key is available, every frame is drawn right after planning.",
+      "whyToUse": "Get pictures straight away.",
+      "inputRequired": "An OpenAI key or a MuAPI key for images.",
+      "restrictions": "Untick it to plan first and draw later with 'Generate all frames'."
+    },
+    {
+      "feature": "Frame cards",
+      "explanation": "Each frame has move earlier/later arrows, duplicate and delete buttons, an image area, a Shot list (Wide Shot, Medium Shot, Close-Up, Extreme Close-Up, POV, Overhead, Low Angle), a Camera list (Static, Pan Left, Pan Right, Tilt Up, Tilt Down, Dolly In, Dolly Out, Tracking, Handheld, Crane / Drone, Zoom In, Orbit), Seconds (1 to 60), 'What we see' ('Describe this shot...'), 'Narration / dialogue', 'Director notes', a reference image option, a button reading 'Generate frame' (or 'Regenerate' once there is an image) and the actions '▶ Animate' and 'Publish'.",
+      "whyToUse": "Fine control over each shot.",
+      "inputRequired": "A description for each frame you want drawn ('Describe this frame first.').",
+      "restrictions": "At most 40 frames in total ('That is plenty of frames. Delete some first.'). The last frame cannot be deleted."
+    },
+    {
+      "feature": "Start from shot preset",
+      "explanation": "The button '✨ Start from shot preset' fills the description with a starter for the chosen shot type, for example Wide Shot becomes 'Establishing shot, wide angle, epic landscape, professional cinematography'. If the box already has text you are asked 'Replace this frame's description?'.",
+      "whyToUse": "Overcome a blank page.",
+      "inputRequired": "A shot type.",
+      "restrictions": "Replaces the description."
+    },
+    {
+      "feature": "Generate all frames / Retry failed",
+      "explanation": "'Generate all frames' draws every frame with a description, two at a time, with a progress bar and a count like '3/6 · 1 failed'. The same button becomes 'Stop'. 'Retry failed' reruns frames that failed. Finished frames are kept when you stop ('Stopped. Finished frames are kept.'). When done you see 'All frames generated' or 'N frame(s) failed. Use \"Retry failed\".'.",
+      "whyToUse": "Draw the whole board in one go.",
+      "inputRequired": "At least one frame with a description ('Describe at least one frame first.') and an API key.",
+      "restrictions": "Each frame is tried up to 3 times before failing and each image has a 180-second time limit."
+    },
+    {
+      "feature": "Generation settings",
+      "explanation": "A collapsed 'Generation settings' panel. 'Negative prompt' (example: blurry, text, watermark, extra fingers), 'Guidance scale', 'Steps' and 'Seed (-1 = random)' appear only when the selected model supports them. The checkbox 'Use the previous frame as a reference' feeds the previous frame's image into the next one to keep characters consistent.",
+      "whyToUse": "Improve consistency and avoid unwanted details.",
+      "inputRequired": "None.",
+      "restrictions": "With an OpenAI key, frames are drawn by OpenAI and only the negative prompt applies; seed, guidance and steps apply to MuAPI models."
+    },
+    {
+      "feature": "Save, Load and Export",
+      "explanation": "Type a name in 'Project name' and press Save (Ctrl+S) or Load. Saved boards are listed under 'Saved storyboards' with an Open button. Export menu: 'PDF shot sheet', 'CSV shot list', 'JSON'. The PDF opens in a new window ('Popup blocked. Please allow popups to export PDF.' if blocked).",
+      "whyToUse": "Keep and share your plan.",
+      "inputRequired": "A project name; frames to export ('Nothing to export yet. Generate a storyboard first.').",
+      "restrictions": "Projects are saved in your browser. If storage is full or blocked: 'Could not save: browser storage is full or blocked. Export JSON instead.' Large images may be left out of a saved project ('Saved \"name\" without N large image(s). Export a PDF to keep them.')."
+    },
+    {
+      "feature": "Layout, Undo and Redo",
+      "explanation": "Layout list: Horizontal, Grid, Story. Undo and Redo buttons (Ctrl+Z, Ctrl+Shift+Z) step through your edits.",
+      "whyToUse": "View the board your way and recover from mistakes.",
+      "inputRequired": "None.",
+      "restrictions": "Keyboard undo is ignored while you are typing in a text field."
+    },
+    {
+      "feature": "Compare frames",
+      "explanation": "In the tools menu choose '⚖ Compare frames' to open an overlay where you select two frames ('Frame 1', 'Frame 2') and view them side by side. Press Escape to close.",
+      "whyToUse": "Check consistency between shots.",
+      "inputRequired": "Two frames with images.",
+      "restrictions": "Shows 'No image' for frames not generated yet."
+    },
+    {
+      "feature": "Send to video studio and Animate",
+      "explanation": "'Send to video studio ▸' passes your frames to Cinema Templates, which opens with a 'Storyboard Loaded' banner. '▶ Animate' on a frame sends that frame's image, description (plus camera move) and duration to Animate (#/animate).",
+      "whyToUse": "Turn the plan into video.",
+      "inputRequired": "A generated image on the frame to animate ('Generate this frame first, then animate it.').",
+      "restrictions": "If browser storage is blocked: 'Could not pass the frame along (browser storage is blocked).'"
+    }
+  ],
+  "howToUse": "1. Open Storyboard Studio from the side menu (#/storyboard). 2. In 'Describe your storyboard' type what you want to make. 3. Optional: open 'Customize (type, tone, length, frames, characters, style)' and set Video type, Tone, Total length, Frames, Audience, Call to action, 'Characters, setting and look' and the style/lighting/color grade. 4. Choose whether to keep 'Also generate frame images' ticked. 5. Click 'Generate storyboard'. 6. On the board, edit each frame's Shot, Camera, Seconds, 'What we see', 'Narration / dialogue' and 'Director notes'. 7. Pick the model and aspect ratio buttons in the toolbar. 8. Click 'Generate all frames' (or 'Generate frame' on a single card; 'Retry failed' for failures). 9. Reorder with the arrows, '+ Add frame', duplicate or delete as needed. 10. Type a Project name and click Save, then use Export (PDF shot sheet, CSV shot list, JSON). 11. Click '▶ Animate' on a frame or 'Send to video studio ▸' to continue in video.",
+  "howToSteps": [
+    "Describe the story in the main box.",
+    "Open Customize if you want to set tone, length, frames, characters and style.",
+    "Click Generate storyboard.",
+    "Edit frames and descriptions on the board.",
+    "Generate or regenerate frame images.",
+    "Save and export.",
+    "Animate frames or send the board to Cinema Templates."
+  ],
+  "gettingStarted": [
+    "Try: 'A 30-second launch ad for a trail-running shoe: a runner climbs a misty ridge at dawn, laces tighten, the city wakes below. End on Run further.'",
+    "Leave everything else at default and click Generate storyboard.",
+    "Add an OpenAI key in Settings if you want a custom AI-written story; without one the studio uses a built-in story-arc template and tells you so.",
+    "If you are not signed in or have no key, a sign-in box appears when you try to draw images."
+  ],
+  "inputs": ["Story description", "Title or subject", "Video type", "Tone", "Total length (sec)", "Frames (3-12)", "Audience", "Call to action", "Characters, setting and look", "Visual style", "Lighting", "Color grade", "Reference attachments", "Model", "Aspect ratio", "Per-frame Shot, Camera, Seconds, What we see, Narration / dialogue, Director notes", "Negative prompt, Guidance scale, Steps, Seed", "Reference image per frame", "Project name"],
+  "requiredInputs": ["A story description or a title/subject (to plan)", "A description for each frame you want drawn"],
+  "optionalInputs": ["Everything under Customize", "Reference images", "Generation settings", "Narration and director notes", "Project name (needed only to save)"],
+  "inputDetails": [
+    {"name": "Story description", "description": "Plain-language idea. A phrase like '30 second' or '2 minute' sets the length.", "required": true, "whenToUse": "Always when planning.", "restrictions": "Or provide a title/subject instead."},
+    {"name": "Total length (sec)", "description": "Whole-story length. Minimum 6, maximum 300, default 60. Durations are split across frames in whole seconds.", "required": false, "whenToUse": "Match your target video length.", "restrictions": "Each frame's Seconds is between 1 and 60."},
+    {"name": "Frames (3-12)", "description": "Number of frames. Default follows about one frame per 5 seconds.", "required": false, "whenToUse": "More frames for more detail.", "restrictions": "Clamped to 3-12 when planning; you can add up to 40 by hand."},
+    {"name": "Characters, setting and look", "description": "Text that is repeated in every frame prompt to keep characters and place consistent.", "required": false, "whenToUse": "Whenever people or places repeat.", "restrictions": "Keep it short and specific."},
+    {"name": "Aspect ratio", "description": "16:9, 9:16, 1:1 or 4:5, limited to what the model supports.", "required": false, "whenToUse": "Match the final video.", "restrictions": "Changing model may change the ratio to the model's first supported one."},
+    {"name": "Reference image (per frame)", "description": "An uploaded or stock (Pexels) image attached to a frame to guide its look.", "required": false, "whenToUse": "To match an existing look.", "restrictions": "MuAPI needs web URLs; inline images from OpenAI cannot be sent to it."}
+  ],
+  "generationModes": ["AI-planned storyboard (needs OpenAI key)", "Template-planned storyboard (no OpenAI key)", "Build frames by hand ('or build the frames by hand')", "Per-frame image generation", "Generate all frames"],
+  "modeExplanations": [
+    {"mode": "AI-planned storyboard", "description": "If you have an OpenAI key the studio asks it for a JSON plan of frames. Toast: 'Storyboard planned'.", "useCase": "Custom stories."},
+    {"mode": "Template-planned storyboard", "description": "Without a key, or if the AI answer is unusable, a built-in story arc (Hook, Setup, Problem, Turn, Detail, Action, Experience, Scale, Payoff) is used. Toast: 'Storyboard planned from a template. Add an OpenAI key in Settings for a custom story.'", "useCase": "Quick generic structure."},
+    {"mode": "Build by hand", "description": "Click 'or build the frames by hand' to start with an empty board and use '+ Add frame'.", "useCase": "Full manual control."}
+  ],
+  "modelCapabilities": "Frame images use text-to-image models. The model button lists the app's text-to-image catalog (84 models); the first and default model is Nano Banana. Other early entries are Flux Dev, Flux Kontext Dev T2I, an Ai Anime Generator, Wan2.1 Text To Image and Flux Kontext Pro T2I. If an OpenAI key is saved, frames are drawn by OpenAI first (sizes 1536x1024 for 16:9, 1024x1536 for 9:16 and 4:5, 1024x1024 for 1:1) and only fall back to the selected MuAPI model if OpenAI fails and a MuAPI key exists. The app's comparison table gives relative scores for some image models, for example Nano Banana price 1 speed 3 quality 4, Flux Dev price 3 speed 4 quality 5, Flux Schnell price 2 speed 2 quality 4, Seedream 5.0 price 4 speed 5 quality 5, Midjourney V7 price 5 speed 6 quality 5; these are relative numbers, not real prices. Planning text uses OpenAI only when a key is present.",
+  "outputs": ["A board of 3-12 (up to 40) frames with images, shot, camera, duration, description, narration and notes", "PDF shot sheet", "CSV shot list", "JSON file", "Saved project in the browser", "Frames passed to Animate or Cinema Templates"],
+  "limitations": [
+    "Planning yields 3 to 12 frames; you can add more by hand up to 40.",
+    "Without an OpenAI key the story is a generic template, not a custom plan.",
+    "Saved projects live in your browser's storage and may drop large images.",
+    "Each image times out after 180 seconds and failed frames are retried up to 3 times.",
+    "Seed, guidance and steps are used only with MuAPI models that expose them.",
+    "Storyboard frames are still images; video comes from Animate, Video Studio or Cinema Templates."
+  ],
+  "limitationDetails": [
+    {"limitation": "Browser-only saving", "impact": "Clearing site data or using another browser loses saved projects.", "workaround": "Export JSON or PDF regularly."},
+    {"limitation": "Template story without an OpenAI key", "impact": "Frames follow a generic arc.", "workaround": "Add an OpenAI key in Settings or edit frames by hand."},
+    {"limitation": "Consistency between frames", "impact": "Characters can still drift.", "workaround": "Fill 'Characters, setting and look' and tick 'Use the previous frame as a reference'."}
+  ],
+  "troubleshooting": [
+    "'Describe what you want to make first.': type a description or a title/subject before pressing Generate storyboard.",
+    "'Could not plan the storyboard: ...': the plan failed; the text after the colon is the reason; try again.",
+    "'Storyboard planned from a template. Add an OpenAI key in Settings for a custom story.': this is expected without an OpenAI key; edit frames by hand or add a key.",
+    "'Describe this frame first.': the frame's 'What we see' box is empty.",
+    "'Describe at least one frame first.': no frame has a description, so Generate all frames has nothing to draw.",
+    "A frame shows 'Failed. Try again.' and a toast 'Frame N: ...': click Regenerate on that frame or 'Retry failed'; check your key and credits.",
+    "A sign-in box appears when drawing: add an OpenAI or MuAPI key / sign in.",
+    "'Could not save: browser storage is full or blocked. Export JSON instead.': allow site storage or use Export > JSON.",
+    "'Type a project name. Saved: ...' or 'No saved storyboard named \"x\".': enter an existing name to Load.",
+    "'Popup blocked. Please allow popups to export PDF.': allow popups for this site and export again.",
+    "'Nothing to export yet. Generate a storyboard first.': create frames first.",
+    "'That is plenty of frames. Delete some first.': you reached the 40-frame limit."
+  ],
+  "troubleshootingSteps": [
+    {"issue": "Frames come out inconsistent", "steps": ["Fill 'Characters, setting and look' with names, clothes and place.", "Open Generation settings and tick 'Use the previous frame as a reference'.", "Regenerate the frames that drift."]},
+    {"issue": "Generate all frames stops partway", "steps": ["Check the progress label for the failed count.", "Click 'Retry failed'.", "If it keeps failing, change the model or check your key and credits."]},
+    {"issue": "I lost my storyboard", "steps": ["Open the 'Saved storyboards' list or type the project name and click Load.", "Use Undo (Ctrl+Z) for recent edits.", "In future use Save and Export JSON."]},
+    {"issue": "Animate button does nothing useful", "steps": ["Generate the frame image first.", "Click '▶ Animate' again.", "Allow browser storage if you see 'Could not pass the frame along'."]}
+  ],
+  "commonProblems": [
+    {"problem": "Only some frames have images", "whyItHappens": "'Also generate frame images' was unticked, no image key was available, or some frames failed.", "howToFix": "Click 'Generate all frames' or 'Retry failed'."},
+    {"problem": "Aspect ratio changed when I changed the model", "whyItHappens": "The new model does not support the current ratio.", "howToFix": "Choose the ratio again after changing the model."},
+    {"problem": "Seed or steps not visible in Generation settings", "whyItHappens": "The selected model does not expose them.", "howToFix": "Choose a MuAPI model that does."},
+    {"problem": "Brief disappeared after generating", "whyItHappens": "The board stage shows a one-line summary of the brief.", "howToFix": "Click 'Edit brief' or 'New storyboard'."}
+  ],
+  "exampleWorkflows": [
+    {"title": "Ad storyboard in minutes", "steps": ["Describe the ad in the main box.", "Open Customize: Video type Commercial, Tone Upbeat, Total length 30, add the Call to action.", "Click Generate storyboard.", "Tweak frames, then Export > PDF shot sheet for the client."]},
+    {"title": "Consistent character short", "steps": ["Describe the story.", "In 'Characters, setting and look' write 'Mara, 30s, red jacket, short dark hair. Rainy neon city at night.'", "Generate and tick 'Use the previous frame as a reference'.", "Use Compare frames to check consistency."]},
+    {"title": "From board to video", "steps": ["Finish the frames.", "Click 'Send to video studio ▸' to open Cinema Templates with the storyboard, or '▶ Animate' on single frames."]}
+  ],
+  "useCases": [
+    {"title": "Client pitch", "description": "Show the idea as frames with narration and notes.", "steps": ["Generate the board.", "Export PDF shot sheet."], "expectedOutput": "A shot sheet with images, shot, camera, time and narration."},
+    {"title": "Social reel plan", "description": "Plan a vertical reel.", "steps": ["Choose 9:16.", "Pick Social Reel video type.", "Generate and animate key frames."], "expectedOutput": "A set of vertical frames ready to animate."}
+  ],
+  "faqs": [
+    {"question": "How many frames can I have?", "answer": "The planner makes 3 to 12 frames. You can add more with '+ Add frame', up to 40 in total."},
+    {"question": "Do I need an OpenAI key?", "answer": "Not required. Without one the studio plans from a built-in story-arc template and shows a message saying so. With one, the story is AI-written and frames are drawn by OpenAI. You still need either an OpenAI or MuAPI key to draw images."},
+    {"question": "Does it make video?", "answer": "No, it makes still frames. Use '▶ Animate' on a frame or 'Send to video studio ▸' to continue in video tools."},
+    {"question": "How do I keep characters the same?", "answer": "Describe them in 'Characters, setting and look' and tick 'Use the previous frame as a reference'."},
+    {"question": "How do I export?", "answer": "Open the Export menu: PDF shot sheet, CSV shot list or JSON."},
+    {"question": "Where is my project saved?", "answer": "In your browser's storage after you press Save or Load a named project. Export to keep a copy."},
+    {"question": "What are the shot and camera choices?", "answer": "Shots: Wide Shot, Medium Shot, Close-Up, Extreme Close-Up, POV, Overhead, Low Angle. Camera: Static, Pan Left, Pan Right, Tilt Up, Tilt Down, Dolly In, Dolly Out, Tracking, Handheld, Crane / Drone, Zoom In, Orbit."},
+    {"question": "Can I undo?", "answer": "Yes: Undo / Redo buttons or Ctrl+Z and Ctrl+Shift+Z (not while typing in a text field)."},
+    {"question": "Can I start from scratch without AI planning?", "answer": "Yes. Click 'or build the frames by hand'."}
+  ],
+  "glossary": {
+    "Storyboard": "A sequence of pictures that plans the shots of a video.",
+    "Frame": "One shot in the storyboard.",
+    "Shot type": "How close or wide the camera is, such as Wide Shot or Close-Up.",
+    "Camera movement": "How the camera moves in the shot, such as Dolly In or Handheld.",
+    "POV": "Point of view: the shot is seen through a person's eyes.",
+    "Shot sheet": "A printable table of frames with images and details.",
+    "Story bible": "The 'Characters, setting and look' text repeated in every frame to keep things consistent.",
+    "Negative prompt": "Things you do not want in the picture.",
+    "Seed": "A number that makes image results repeatable."
+  },
+  "tips": [
+    "Start with 4-6 frames for a simple scene (built-in help tip).",
+    "Describe camera angles for each shot for variety.",
+    "Use consistent character descriptions across frames.",
+    "Put the length in your description, like '30-second ad', and the studio sets the total length.",
+    "Use '✨ Start from shot preset' when a description box is blank."
+  ],
+  "bestPractices": [
+    "Plan first, draw second: untick 'Also generate frame images' if you expect to edit the plan.",
+    "Save with a clear project name and export JSON as a backup.",
+    "Keep each 'What we see' to one clear visual.",
+    "Check the timeline strip total against your target length."
+  ],
+  "relatedStudios": ["cinema-template", "video", "cinema", "animate", "image", "render", "timeline"],
+  "relatedStudioGuidance": [
+    {"studio": "cinema-template", "relationship": "Receives your board through 'Send to video studio'.", "whenToMove": "When the plan is ready and you want to generate video with a template.", "why": "Frames become the template's scenes."},
+    {"studio": "animate", "relationship": "Animates a single image.", "whenToMove": "When one frame should become a clip.", "why": "'▶ Animate' passes the image, description and duration."},
+    {"studio": "video", "relationship": "General video generator.", "whenToMove": "When you want to generate clips yourself from frame images.", "why": "Use a frame as a start image."}
+  ],
+  "notConfirmed": [
+    "Exact prices, credits per image or timing for each image model.",
+    "Which image model the OpenAI path uses internally and its pricing.",
+    "Where exactly to add an OpenAI key beyond the studio's message saying 'in Settings'.",
+    "Whether the template-to-storyboard hand-off carries every field into Cinema Templates; only the banner and toast were verified.",
+    "docs and audits (CINEMA_STORYBOARD_EFFECTS_AUDIT.md) were not treated as authoritative where they differ from code; the built-in help entry says frames are 3-12 which matches the code.",
+    "Whether Personalize and GTM Boost behave identically in this studio as in others."
+  ],
+  "sourceFiles": [
+    "src/components/StoryboardStudio.js",
+    "src/lib/storyboardEngine.js",
+    "src/lib/instructions.js",
+    "src/lib/models.js",
+    "src/lib/modelComparisonData.js",
+    "src/lib/router.js",
+    "CINEMA_STORYBOARD_EFFECTS_AUDIT.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read StoryboardStudio.js (brief form, toolbar, frame cards, generation queue, save/export, hand-off) and storyboardEngine.js (limits, beats, AI planning, image generation), plus instructions and model data.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

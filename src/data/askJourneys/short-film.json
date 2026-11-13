@@ -1,0 +1,233 @@
+{
+  "id": "short-film",
+  "title": "Make a short film from a story",
+  "goal": "You end up with a finished short film video (an MP4 exported from the Timeline Editor) made from your own story idea, planned as frames, generated as cinematic clips and joined with music.",
+  "bestFor": "Beginners with a story or idea who want a multi-shot film without cameras: story first, then shots, then one edited video.",
+  "whatYouNeed": [
+    "A MuAPI key saved in Settings -> API keys (generation uses your own MuAPI credits; cost per model is not documented in the app)",
+    "An OpenAI key in Settings -> API keys if you want Storyboard Studio to write a custom story plan (without it the studio uses a generic story-arc template and tells you so)",
+    "A story idea in a few sentences: who, where, what happens, how it ends",
+    "One clear image per shot to use as a start frame (Cinema Templates need a start image for most cinematic templates; images up to 10MB)"
+  ],
+  "studios": [
+    "storyboard",
+    "cinema-template",
+    "cinema",
+    "audio",
+    "timeline"
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "studio": "storyboard",
+      "action": "Write your story idea and let Storyboard Studio plan the shots.",
+      "buttons": [
+        "Describe your storyboard",
+        "Generate storyboard",
+        "Total length",
+        "Frames"
+      ],
+      "details": "Open Storyboard Studio at #/storyboard. In 'Describe your storyboard' type your story in plain words, for example 'A 30-second film: a lone runner climbs a misty ridge at dawn, the city wakes below, she reaches the top'. A phrase like '30 second' sets the length. Optionally open Customize and set Total length (6 to 300 seconds, default 60) and Frames (3 to 12), and fill 'Characters, setting and look' so people and places stay the same in every frame. Click Generate storyboard. If you need help writing the story first, the Academy lesson 'Screenplay and story' in the AI Filmmaking track covers it.",
+      "result": "A board of 3 to 12 frames, each with a shot, camera, seconds, 'What we see' and notes.",
+      "handoff": "Stay in Storyboard Studio and edit the frames in step 2."
+    },
+    {
+      "n": 2,
+      "studio": "storyboard",
+      "action": "Edit the frames, draw them and save the board.",
+      "buttons": [
+        "What we see",
+        "Generate all frames",
+        "Retry failed",
+        "Save"
+      ],
+      "details": "On the board, fix each frame's 'What we see', Camera, Seconds and notes. Click Generate all frames to draw the images (use Retry failed if a frame fails). Type a Project name and click Save. Saved boards live only in your browser, so also use Export (PDF shot sheet, CSV shot list or JSON) to keep a copy. Storyboard frames are still pictures, not video.",
+      "result": "A saved storyboard with drawn frames that match your story.",
+      "handoff": "Click 'Send to video studio' (the button in the toolbar). It opens Cinema Templates with your storyboard loaded. This button sends the text plan and does not carry large inline images, so keep your frame pictures for step 3."
+    },
+    {
+      "n": 3,
+      "studio": "cinema-template",
+      "action": "Open the storyboard in Cinema Templates and choose a template.",
+      "buttons": [
+        "Storyboard Loaded",
+        "Clear",
+        "Quick Mode"
+      ],
+      "details": "Cinema Templates opens with a 'Storyboard Loaded' banner showing your project name and the number of frames, and the toast 'Storyboard applied to template' appears. Your frames become the scenes in the Scene Timeline. If the banner is missing, go back and click 'Send to video studio' again. Pick a template card such as Cinematic Short Film (or Brand Film), choose Quick Mode, and fill the template fields (Genre, Story Premise and Tone for Cinematic Short Film). Click Clear on the banner only if you want to drop the storyboard.",
+      "result": "A template screen with your storyboard scenes loaded and the template fields filled in.",
+      "handoff": "Stay on this screen and generate in step 4."
+    },
+    {
+      "n": 4,
+      "studio": "cinema-template",
+      "action": "Add a start image and generate the clip.",
+      "buttons": [
+        "Media Sources",
+        "Generate",
+        "Download"
+      ],
+      "details": "Under Media Sources add a start image (your storyboard frame picture or any clear image); most cinematic templates need one and show 'Please upload an image before generating.' without it. Leave the AI Enhancer on and read the Enhanced Prompt in the Output panel. Click Generate and wait, then use Download. A template's story length (for example 90 seconds for Cinematic Short Film) describes the story, not the clip: the real clip length depends on the model, so generate your scenes one at a time and join them later in Timeline.",
+      "result": "One generated cinematic clip for a scene, saved on your computer.",
+      "handoff": "Repeat steps 3 and 4 for each scene you want. Download each clip (or find it in Library) and import it in the Timeline Editor in step 7."
+    },
+    {
+      "n": 5,
+      "studio": "cinema",
+      "action": "Optional: shoot extra single shots with real camera controls.",
+      "buttons": [
+        "Start frame",
+        "Use This Setup",
+        "Generate",
+        "Download"
+      ],
+      "details": "Open Cinema Studio at #/cinema when you want one shot with your own camera choices. Switch to Video, type your scene in the prompt box, optionally attach a Start frame, open the Quick camera builder, pick Movement and Film Look and press Use This Setup. Then generate the shot (the generate button's tooltip is 'Generate cinema shot') and use Download. Camera, lens and movement are added to your prompt as words, not as physical settings. Cinema Studio has no extend or edit tools.",
+      "result": "Extra cinematic clips saved on your computer.",
+      "handoff": "There is no one-click button from Cinema Studio to Timeline Editor. Download the clip (or find it in Library), then import it in step 7."
+    },
+    {
+      "n": 6,
+      "studio": "audio",
+      "action": "Make a music track (and optional narration) for the film.",
+      "buttons": [
+        "Suno Create Music",
+        "Style",
+        "Generate Audio",
+        "Download Audio"
+      ],
+      "details": "Open Audio Studio at #/audio. Choose Suno Create Music, describe the mood of your film, pick a Style and a Duration (15s, 30s, 60s or 120s; you cannot type an exact length), then click Generate Audio. Play it and click Download Audio. For narration, pick a speech model such as Minimax Speech Turbo, type the words and generate again.",
+      "result": "A music file (and optional voice file) saved on your computer.",
+      "handoff": "Download Audio, then import the file in the Timeline Editor in step 7. You can trim it there."
+    },
+    {
+      "n": 7,
+      "studio": "timeline",
+      "action": "Import your clips and music and cut them together.",
+      "buttons": [
+        "New project",
+        "Project name",
+        "Edit",
+        "Add Track",
+        "Music Tool"
+      ],
+      "details": "Open Timeline Editor at #/timeline and click New project, type a Project name and open it, then go to the Edit tab. In the media pool click the import button at the bottom (tooltip 'Import media files') or double-click empty space in the pool, and pick all your downloaded clips and the music file. Drag the clips onto a video track in story order and the music onto an audio track (Add Track if you need another one). Press Space to play and use the Blade tool (B) to trim. Turn Snap on (S) to avoid small gaps.",
+      "result": "Your whole film laid out on the timeline with music underneath.",
+      "handoff": "Stay in Timeline Editor and open the Export tab."
+    },
+    {
+      "n": 8,
+      "studio": "timeline",
+      "action": "Export the film as an MP4.",
+      "buttons": [
+        "Export",
+        "Preset",
+        "Frame Rate",
+        "Aspect ratio",
+        "Render"
+      ],
+      "details": "Open the Export tab. Choose a Preset (Draft 720p, Standard 1080p or High Quality 4K; default Standard), a Frame Rate (24, 30 or 60; default 30) and the Aspect ratio that matches your clips, for example 16:9. Try Draft first for a quick check, then Standard or High Quality for the final. Click Render and wait for the progress to finish.",
+      "result": "You have a finished short film video, an MP4 you can play and download. The finished job appears in the Export tab progress area, where you click Open Export on the latest job: the finished video opens in a new browser tab, and you save it from there with your browser's download or Save video as option.",
+      "handoff": "This is the end of the journey. Render Studio (#/render) is a separate tool for re-exporting one finished video and is not needed here."
+    }
+  ],
+  "checkpoints": [
+    "After step 1: the frames tell your story in a sensible order.",
+    "After step 2: the board is saved and exported as a backup.",
+    "After step 3: the 'Storyboard Loaded' banner shows the right project name and frame count.",
+    "After step 4: each clip downloads and plays.",
+    "After step 7: the clips play in story order with music underneath.",
+    "After step 8: the exported MP4 plays from start to end."
+  ],
+  "troubleshooting": [
+    {
+      "problem": "'Describe what you want to make first.' in Storyboard Studio",
+      "fix": "Type a description in 'Describe your storyboard' (or a title or subject) before pressing Generate storyboard."
+    },
+    {
+      "problem": "'Storyboard planned from a template. Add an OpenAI key in Settings for a custom story.'",
+      "fix": "This is expected without an OpenAI key. Edit the frames by hand or add an OpenAI key in Settings -> API keys."
+    },
+    {
+      "problem": "A frame shows 'Failed. Try again.'",
+      "fix": "Click Regenerate on that frame or Retry failed, and check your key and credits."
+    },
+    {
+      "problem": "Cinema Templates opens without the 'Storyboard Loaded' banner",
+      "fix": "Go back to Storyboard Studio, make sure at least one frame has a description, and click 'Send to video studio' again."
+    },
+    {
+      "problem": "'Please upload an image before generating.' in Cinema Templates",
+      "fix": "Attach a start image under Media Sources, then click Generate."
+    },
+    {
+      "problem": "Cinema Studio does nothing when I press generate",
+      "fix": "The prompt box is empty. Type a scene description and try again."
+    },
+    {
+      "problem": "My saved storyboard is gone",
+      "fix": "Saved boards live in your browser storage. Open the 'Saved storyboards' list or type the project name and click Load, and use Export (JSON or PDF) as a backup."
+    },
+    {
+      "problem": "The Render button in Timeline Editor is greyed out",
+      "fix": "Add at least one clip to the timeline in the Edit tab first."
+    }
+  ],
+  "tips": [
+    "Fill 'Characters, setting and look' in Storyboard Studio so people and places stay the same in every frame.",
+    "Keep the story to 3 to 6 frames for a first film.",
+    "Generate each scene separately and join them in Timeline; do not expect one long clip.",
+    "Download important results soon after generating; Library also keeps everything you generate."
+  ],
+  "relatedJourneys": [
+    "text-to-video",
+    "photo-to-clip",
+    "talking-video",
+    "explainer-promo"
+  ],
+  "academy": {
+    "track": "02-ai-filmmaking",
+    "lesson": "04-assembling-short-film"
+  },
+  "intents": [
+    "turn my story into a short film",
+    "make a short film with AI",
+    "make a movie from my idea",
+    "make a cinematic video from a script",
+    "plan a storyboard and make it into a video",
+    "make a film trailer",
+    "make a short story video",
+    "how do I make a multi-scene video",
+    "turn my photos into a short film",
+    "make a movie from my pictures",
+    "make a short movie"
+  ],
+  "notConfirmed": [
+    "Cost per model is not documented in the app; generation uses your own MuAPI credits (and your OpenAI key only for Storyboard story planning).",
+    "How long each clip is and how long generation takes depends on the model and is not documented.",
+    "Whether the storyboard hand-off carries every field (such as frame images) into Cinema Templates is not confirmed; the code puts the frames in as scenes and shows the 'Storyboard Loaded' banner, so you still add a start image yourself.",
+    "How to save a storyboard frame image to your computer is not documented in the Storyboard guide; any clear image can be used as the start image.",
+    "There is no one-click hand-off from Cinema Templates, Cinema Studio or Audio Studio into Timeline Editor that was found in code, so files are downloaded and imported by hand.",
+    "Which audio file format Audio Studio downloads was not confirmed; Timeline Editor's import dialog accepts wav, mp3, aac, flac, ogg and m4a audio, mp4, mov, avi, mkv, webm, mxf and m4v video, and common image types.",
+    "Exactly where the exported MP4 is stored and how long its link stays valid is not confirmed."
+  ],
+  "sourceFiles": [
+    "src/data/askKb/storyboard.json",
+    "src/data/askKb/cinema-template.json",
+    "src/data/askKb/cinema.json",
+    "src/data/askKb/audio.json",
+    "src/data/askKb/timeline.json",
+    "src/data/askKb/library.json",
+    "src/data/askKb/_app.json",
+    "src/data/askAcademyMap.js",
+    "src/components/StoryboardStudio.js",
+    "src/components/CinemaTemplateStudio.js",
+    "src/cinegen/components/edit/left-panel.tsx",
+    "src/cinegen/components/export/render-progress.tsx"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "askKb guides for storyboard, cinema-template, cinema, audio, timeline, library, _app; StoryboardStudio.js sendBtn hand-off, CinemaTemplateStudio.js Storyboard Loaded banner and scene ingestion, cinegen import and export progress",
+    "verifiedAt": "2026-11-13",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

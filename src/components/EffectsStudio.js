@@ -157,7 +157,7 @@ async function EffectsCatalogStudio() {
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  topBar.appendChild(createStudioHeader('effects', 'Effects Studio', 'Apply 350+ motion and visual effects to your photos and videos', 'mb-4'));
+  topBar.appendChild(createStudioHeader('effects', 'Effects Studio', 'Apply 200+ motion and visual effects to your photos and videos', 'mb-4'));
 
   const tabRow = document.createElement('div');
   tabRow.className = 'flex gap-2 overflow-x-auto no-scrollbar pb-2';

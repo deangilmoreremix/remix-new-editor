@@ -16,7 +16,8 @@ const IS_WATCH_PAGE = /^\/(watch|v)\//.test(window.location.pathname) || /^#\/(w
 
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
-import { initRouter, navigate } from './lib/router.js';
+import { initRouter, navigate, getCurrentPage } from './lib/router.js';
+import { mountAskSmartVideo } from './features/ask-smartvideo/AskSmartVideo.js';
 import { mountGenerationNotifications } from './components/studio/generationNotifications.js';
 import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
@@ -195,6 +196,7 @@ try {
   const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
   mountGenerationNotifications((page) => navigate(page));
+  mountAskSmartVideo({ navigate: (page) => navigate(page), getPage: () => getCurrentPage() || '' });
 
   const body = document.createElement('div');
   // min-h-0 keeps the row inside the viewport: without it the (long) sidebar

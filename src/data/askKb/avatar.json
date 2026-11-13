@@ -1,0 +1,306 @@
+{
+  "id": "avatar",
+  "name": "Avatar Studio",
+  "route": "#/avatar",
+  "description": "Avatar Studio creates talking avatar and lip sync videos. You pick a model, upload a source video or image and an audio file, and click Generate Avatar Video.",
+  "shortDescription": "Create talking avatars and lip sync videos.",
+  "fullDescription": "Avatar Studio is a single-form studio for talking-avatar and lip sync models. You choose a model from the model button at the top, upload a 'Source Video/Image', upload 'Audio (for lip sync)', open Advanced for any model-specific options, and click 'Generate Avatar Video'. The result plays on the page with Download Video, Publish to Social and Add AI Captions buttons. The form adapts to the model: the audio uploader, prompt box and Native Audio toggle only show when the selected model supports them. This studio does not design avatars (no hair, clothes or expression controls) and has no saved avatar library; it animates the image or video that you supply.",
+  "bestFor": "Beginners who want a quick talking avatar or lip sync video from an image or video plus a voice recording, using one simple form.",
+  "whenToUse": [
+    "You have a face image or a video and an audio track and want a talking avatar video.",
+    "You want to try the Kling Avatar, Infinite Talk, Wan 2.2 Speech to Video, LTX, VEED, Creatify or LatentSync models from one place.",
+    "You want a talking spokesperson clip you can caption and publish to social."
+  ],
+  "whenToUseAnother": [
+    "Use Lip Sync Studio (#/lipsync) when you want a clear Portrait Image vs Video mode toggle, a resolution picker, history sidebar and the larger image-mode and video-mode model groups.",
+    "Use Audio Studio (#/audio) to create the speech, music or sound effects that you upload here.",
+    "Use Character Studio (#/character) or Influencer Studio (#/influencer) to design a consistent character or virtual influencer first.",
+    "Use Video Studio (#/video) to generate new footage from a prompt instead of animating a supplied face."
+  ],
+  "keyFeatures": [
+    "Model selector button at the top with a searchable list of avatar and lip sync models.",
+    "'Source Video/Image' upload (also browse stock media from Pexels).",
+    "'Audio (for lip sync)' upload (shown only for models that use audio).",
+    "'Prompt (optional)' box with placeholder 'Describe the animation you want...' (shown only for models that accept a prompt).",
+    "'Native Audio' toggle (shown only for models that support it).",
+    "Advanced panel for model-specific options, and a Thumbnail button for a custom thumbnail.",
+    "Result card with video player, 'Download Video', 'Publish to Social' and '💬 Add AI Captions'.",
+    "More-tools menu: GTM Boost, Recipes, Monetize, Prompts; Personalize trigger.",
+    "Example gallery of sample avatar assets at the bottom of the page."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Model selector",
+      "explanation": "The button at the top shows the current model name and provider. Click it to open the list and choose another model. The form updates to match the model.",
+      "whyToUse": "Different models offer different quality tiers (for example Kling Avatar Standard vs Pro).",
+      "inputRequired": "None.",
+      "restrictions": "The default model is the first in the list, LTX LipSync."
+    },
+    {
+      "feature": "Source Video/Image upload",
+      "explanation": "The media that will be animated or re-synced. You can upload a file or browse stock videos and images from Pexels.",
+      "whyToUse": "Every listed model needs source media.",
+      "inputRequired": "One image or video.",
+      "restrictions": "If you click Generate without it the studio shows 'Upload a source video or image first'. Shared MuAPI upload limits: images 10MB, video 50MB."
+    },
+    {
+      "feature": "Audio (for lip sync)",
+      "explanation": "Upload the voice or audio that the avatar should speak. It is shown when the selected model uses audio (all current models in the list do).",
+      "whyToUse": "The audio drives the mouth movement.",
+      "inputRequired": "An audio file (audio/*).",
+      "restrictions": "Audio uploads fail with 'Audio upload failed: ...' if rejected. The shared upload limit for audio is 10MB. The studio does not stop you from clicking Generate without audio, so upload it before generating."
+    },
+    {
+      "feature": "Prompt (optional)",
+      "explanation": "A text box to describe the animation. It only appears for models that accept a prompt.",
+      "whyToUse": "To steer the performance on models that support it.",
+      "inputRequired": "If the box is shown and empty, Generate shows 'Please enter a prompt for this avatar model.'",
+      "restrictions": "None of the currently listed standard models show the prompt box; it appears only if a model supports a prompt."
+    },
+    {
+      "feature": "Native Audio toggle",
+      "explanation": "Appears only for models whose inputs include native audio. It is off by default.",
+      "whyToUse": "Lets a supporting model generate its own audio.",
+      "inputRequired": "None.",
+      "restrictions": "Hidden on models that do not support it."
+    },
+    {
+      "feature": "Advanced options",
+      "explanation": "Model-specific extra controls are built automatically from the model's options (video_url, audio_url and prompt are excluded because they have their own fields).",
+      "whyToUse": "Fine-tune options a particular model exposes.",
+      "inputRequired": "None.",
+      "restrictions": "Most listed models expose few or no extra options, so the panel may be empty."
+    },
+    {
+      "feature": "Result actions",
+      "explanation": "After generation the video plays in a card with 'Download Video', 'Publish to Social' and '💬 Add AI Captions'.",
+      "whyToUse": "Save, share or caption the result.",
+      "inputRequired": "A completed generation.",
+      "restrictions": "Success toast: 'Avatar generated successfully!'."
+    }
+  ],
+  "howToUse": "1. Open Avatar Studio from the side menu (#/avatar). 2. Click the model button at the top and choose a model. 3. Under 'Source Video/Image', upload your image or video (or browse Pexels). 4. If shown, upload your voice file under 'Audio (for lip sync)'. 5. If a 'Prompt (optional)' box appears, describe the animation you want. 6. If a 'Native Audio' toggle appears, switch it on only if you want the model's own audio. 7. Optionally open Advanced for extra options or click '🖼 Thumbnail' for a custom thumbnail. 8. Click 'Generate Avatar Video'. The button shows 'Generating...'. 9. When the video appears, click 'Download Video', 'Publish to Social' or '💬 Add AI Captions'.",
+  "howToSteps": [
+    "Choose a model with the model button.",
+    "Upload the source video or image.",
+    "Upload the audio file.",
+    "Fill the prompt if the box is shown.",
+    "Click Generate Avatar Video.",
+    "Download, publish or caption the result."
+  ],
+  "gettingStarted": [
+    "Keep the default model for a first test.",
+    "Use a clear front-facing face image.",
+    "Use a short, clean voice recording.",
+    "Click Generate Avatar Video and review the result before trying other models."
+  ],
+  "inputs": ["Model", "Source Video/Image", "Audio (for lip sync)", "Prompt (optional)", "Native Audio toggle", "Advanced options", "Thumbnail"],
+  "requiredInputs": ["Model", "Source Video/Image", "Audio (needed for lip sync to work; the studio does not block Generate without it)"],
+  "optionalInputs": ["Prompt (only where shown)", "Native Audio", "Advanced options", "Custom thumbnail"],
+  "inputDetails": [
+    {
+      "name": "Source Video/Image",
+      "description": "The face image or video that will be animated or lip-synced. Upload a file or choose from Pexels.",
+      "required": true,
+      "whenToUse": "Always for the listed models.",
+      "restrictions": "Limits: images 10MB, video 50MB (shared MuAPI limits). Error toast if missing: 'Upload a source video or image first'."
+    },
+    {
+      "name": "Audio (for lip sync)",
+      "description": "Voice or sound file that drives the mouth movement.",
+      "required": true,
+      "whenToUse": "Always in practice; every listed model has audio input.",
+      "restrictions": "Shared audio upload limit 10MB."
+    },
+    {
+      "name": "Prompt (optional)",
+      "description": "Text describing the animation. Placeholder: 'Describe the animation you want...'.",
+      "required": false,
+      "whenToUse": "Only when the selected model shows the box.",
+      "restrictions": "If shown, it must not be empty."
+    },
+    {
+      "name": "Native Audio",
+      "description": "Toggle, off by default.",
+      "required": false,
+      "whenToUse": "Only on models that expose it.",
+      "restrictions": "Hidden for most models."
+    }
+  ],
+  "generationModes": ["Image + audio -> talking avatar video", "Video + audio -> lip-synced video"],
+  "modeExplanations": [
+    {
+      "mode": "Image-driven talking avatar",
+      "description": "Models such as Kling Avatar, Infinite Talk Image to Video and WAN 2.2 Speech to Video animate a still image from audio.",
+      "useCase": "Talking spokesperson from a single photo."
+    },
+    {
+      "mode": "Video lip sync",
+      "description": "Models such as VEED LipSync, Creatify LipSync, LatentSync and InfiniteTalk Video to Video re-sync an existing video to audio.",
+      "useCase": "Dubbing or replacing speech in a clip."
+    }
+  ],
+  "modelCapabilities": "Avatar Studio lists the models in avatarModels (src/lib/models.js), in this order: LTX LipSync (default; described as real-time lip sync from audio), LTX 19B LipSync (high-quality lip sync with 19B model), VEED LipSync, Creatify LipSync (for marketing videos), LatentSync (advanced latent space lip synchronization), Kling Avatar v2 Pro (professional AI avatar generation), Kling Avatar v2 Standard, Kling Avatar v1 Pro, Kling Avatar v1 Standard, WAN 2.2 Speech to Video (animate image from audio speech), InfiniteTalk Image to Video (create talking video from still image), InfiniteTalk Video to Video (lip sync video to video), and FLUX 3 Avatar (which has prompt, image, audio, video and native audio inputs). All except FLUX 3 Avatar are flagged as needing a video/image source and audio, with no prompt. The code does not rank them for price, speed or quality; the comparison data file has no avatar or lip sync entries. Kling Standard vs Pro are described as standard vs premium/professional tiers. For a larger, categorized lip sync model list with resolution options, see Lip Sync Studio.",
+  "outputs": ["A talking avatar / lip-synced video shown on the page", "Downloadable video via 'Download Video'", "Optional AI-captioned preview", "Entry saved to your generation history (studio 'avatar')"],
+  "limitations": [
+    "No avatar design tools: no hair, clothing, skin, background or expression controls.",
+    "No saved avatar library or voice library; you supply the source and audio each time.",
+    "No language or accent selection; the audio you upload determines the speech.",
+    "No in-page video trimming or timeline editing.",
+    "Needs a signed-in account with credits to generate.",
+    "Upload size limits follow the shared MuAPI limits (image 10MB, video 50MB, audio 10MB)."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "You must bring your own audio",
+      "impact": "Text cannot be typed to be spoken here.",
+      "workaround": "Generate speech in Audio Studio (#/audio) and upload it."
+    },
+    {
+      "limitation": "No avatar customization",
+      "impact": "You cannot change how the avatar looks inside this studio.",
+      "workaround": "Create or edit the face image in Character Studio (#/character) or Image Studio (#/image) first."
+    },
+    {
+      "limitation": "Generate is not blocked when audio is missing",
+      "impact": "You may spend a generation without audio and get an unsuitable result.",
+      "workaround": "Always upload audio before clicking Generate Avatar Video."
+    }
+  ],
+  "troubleshooting": [
+    "Toast 'Upload a source video or image first': upload media under 'Source Video/Image', then click Generate again.",
+    "Toast 'Please enter a prompt for this avatar model.': the selected model shows a prompt box that must be filled.",
+    "Toast 'Audio upload failed: ...': check the audio file type and size and try again; sign in if asked.",
+    "Alert 'Please sign in and add api credits.': sign in and add credits, then retry.",
+    "Toast 'Error: ...' after Generate: read the message, check your files, and try again or choose another model.",
+    "Audio section is missing: the selected model does not use audio; pick a model that does.",
+    "Native Audio toggle is missing: it only appears for models that support it.",
+    "Result mouth does not match: use a clearer front-facing image, cleaner audio, or switch model (for example Kling Avatar Pro)."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Generate shows an error toast",
+      "steps": ["Read the exact text.", "Upload any missing source or fill the prompt.", "Sign in or add credits if asked.", "Click Generate Avatar Video again."]
+    },
+    {
+      "issue": "Video is generated but the avatar is not speaking",
+      "steps": ["Check that you uploaded an audio file.", "Use clean speech.", "Try a different model.", "Generate again."]
+    },
+    {
+      "issue": "Upload will not finish",
+      "steps": ["Check file size limits (image 10MB, video 50MB, audio 10MB).", "Use common formats such as JPG/PNG, MP4, MP3/WAV.", "Retry."]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "I cannot see the audio upload or prompt box",
+      "whyItHappens": "The form shows only what the selected model needs.",
+      "howToFix": "Choose a different model from the model button."
+    },
+    {
+      "problem": "Where do I choose resolution?",
+      "whyItHappens": "Avatar Studio has no dedicated resolution button.",
+      "howToFix": "Open Advanced to see any options the model exposes, or use Lip Sync Studio (#/lipsync) which has a resolution picker."
+    },
+    {
+      "problem": "Generation seems stuck",
+      "whyItHappens": "Video models can take a while.",
+      "howToFix": "Wait for 'Generating...' to finish. If it errors, retry with a shorter audio clip."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Talking avatar from a photo",
+      "steps": ["Open Avatar Studio.", "Choose Kling Avatar v2 Standard or keep the default model.", "Upload a clear portrait under 'Source Video/Image'.", "Upload your voice recording.", "Click 'Generate Avatar Video' and then 'Download Video'."]
+    },
+    {
+      "title": "Captioned spokesperson clip",
+      "steps": ["Generate the avatar video.", "Click '💬 Add AI Captions'.", "Wait for the preview to update with captions.", "Click 'Publish to Social' or download."]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Spokesperson intro",
+      "description": "A recurring on-screen presenter built from one image.",
+      "steps": ["Pick an image-based model.", "Upload the presenter image and the script audio.", "Generate."],
+      "expectedOutput": "A short talking-presenter video."
+    },
+    {
+      "title": "Re-voice an existing clip",
+      "description": "Replace the speech in a video.",
+      "steps": ["Pick a video model such as VEED LipSync or InfiniteTalk Video to Video.", "Upload the video and new audio.", "Generate."],
+      "expectedOutput": "The clip with lips matched to the new audio."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What is the difference between Avatar Studio and Lip Sync Studio?",
+      "answer": "Both use talking-avatar and lip sync models. Lip Sync Studio has a Portrait Image / Video mode toggle, a resolution picker and a history panel; Avatar Studio is a simpler single form with a model button, Advanced options and a result card."
+    },
+    {
+      "question": "Can I design my own avatar here?",
+      "answer": "No. Avatar Studio animates the image or video you upload. It has no hair, clothing or expression controls."
+    },
+    {
+      "question": "Do I need audio?",
+      "answer": "Yes, for lip sync. Upload it under 'Audio (for lip sync)'. The form does not stop you if it is missing, but the result will not be useful."
+    },
+    {
+      "question": "Which model should I start with?",
+      "answer": "The default model (LTX LipSync) is a fine first test. Kling Avatar models are described as Standard and Pro tiers for talking avatars."
+    },
+    {
+      "question": "Can I add subtitles?",
+      "answer": "Yes. After the video appears click '💬 Add AI Captions'."
+    }
+  ],
+  "glossary": {
+    "Avatar": "A talking character video made from an image or video plus audio.",
+    "Lip sync": "Matching mouth movement to audio.",
+    "Native Audio": "A toggle on some models that lets the model produce its own audio.",
+    "Source Video/Image": "The face media you provide to be animated.",
+    "Advanced": "Panel with extra model-specific options."
+  },
+  "tips": [
+    "Use concise, clear scripts for best avatar performance.",
+    "Photo avatars work best with well-lit, front-facing photos.",
+    "Preview the result before publishing.",
+    "Keep the audio clean and free of background music for better lip matching."
+  ],
+  "bestPractices": [
+    "Test with a short audio clip first.",
+    "Download the video immediately after it is generated.",
+    "Create voice tracks in Audio Studio for consistent results."
+  ],
+  "relatedStudios": ["lipsync", "audio", "character", "influencer", "video"],
+  "relatedStudioGuidance": [
+    {"studio": "lipsync", "relationship": "Sibling studio with a mode toggle and resolution picker.", "whenToMove": "When you need 480p/720p/1080p control or a history panel.", "why": "More control over lip sync inputs."},
+    {"studio": "audio", "relationship": "Creates the voice audio.", "whenToMove": "When you have only text and need speech.", "why": "Avatar Studio needs an audio file."},
+    {"studio": "character", "relationship": "Designs consistent characters.", "whenToMove": "When you need a character image to animate.", "why": "Avatar Studio does not design avatars."},
+    {"studio": "influencer", "relationship": "Builds virtual influencer content.", "whenToMove": "When you want a persona-driven series rather than one clip.", "why": "Avatar Studio makes single clips."}
+  ],
+  "notConfirmed": [
+    "Per-model price, speed, quality or maximum duration: not in the code or comparison data.",
+    "Whether FLUX 3 Avatar can be used end to end: it is not flagged as needing a source video or audio, so the Source and Audio uploaders may not appear for it.",
+    "Exact audio file formats and the exact audio size limit for this studio's uploader (it uses a generic audio/* picker and the shared limits).",
+    "Which Advanced options each model exposes.",
+    "Whether the Prompt box appears for any model in practice (all standard listed models are flagged without prompt)."
+  ],
+  "sourceFiles": [
+    "src/components/AvatarStudio.js",
+    "src/lib/instructions.js",
+    "src/lib/models.js",
+    "src/lib/modelInputExtensions.js",
+    "src/lib/modelComparisonData.js",
+    "src/lib/modelDescriptions.js",
+    "public/api/model-catalog.json",
+    "src/lib/editor/uploadLimits.js",
+    "AUDIO_AVATAR_TRAINING_AUDIT.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read AvatarStudio.js in full, avatarModels in models.js, instructions.js, upload limits, catalog and comparison files.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "id": "text-to-video",
+  "title": "Make a video from a text description",
+  "goal": "You end up with a finished AI video clip, made from a few words, that you can play and download as a video file.",
+  "bestFor": "Beginners who have an idea but no pictures or footage yet and want a short clip fast.",
+  "whatYouNeed": [
+    "A MuAPI key saved in Settings -> API keys (the \"Muapi API Key\" form). Generation uses your own MuAPI credits. You must also be signed in.",
+    "A simple idea written as one subject doing one action, for example 'A slow dolly in on a steaming coffee cup on a wooden table, morning light'.",
+    "Optional: a first-frame picture, if you want to control how the clip starts (see the optional Image Studio step)."
+  ],
+  "studios": ["image", "video"],
+  "steps": [
+    {
+      "n": 1,
+      "studio": "video",
+      "action": "Open Video Studio and decide your idea.",
+      "buttons": [],
+      "details": "Open Video Studio from the side menu (#/video). Leave the workflow on 'Text to video'. You do not need any file for this path. Decide on one subject and one action, and keep the idea short.",
+      "result": "Video Studio is open and ready for a prompt.",
+      "handoff": "Stay in Video Studio and type your prompt in the next step."
+    },
+    {
+      "n": 2,
+      "studio": "video",
+      "action": "Type your description in the prompt box.",
+      "buttons": ["Describe the video you want to create"],
+      "details": "Click the prompt box that says 'Describe the video you want to create' and type your idea. One subject and one clear action works best. Without a prompt, Generate shows 'Please enter a prompt to generate a video.'",
+      "result": "Your description is in the prompt box.",
+      "handoff": "Stay in Video Studio and choose a model in the next step."
+    },
+    {
+      "n": 3,
+      "studio": "video",
+      "action": "Pick a model and the video shape.",
+      "buttons": ["Select AI video model"],
+      "details": "For a first run you can leave the default model and the default aspect ratio. To change the model, click the model button (tooltip 'Select AI video model') and pick one. Then use the aspect ratio, duration, resolution and quality buttons. Only the values the selected model supports are listed. If you want 9:16 or 16:9 and it is missing, the model does not support it, so choose another model.",
+      "result": "A model, aspect ratio and duration are set.",
+      "handoff": "Stay in Video Studio. Optionally add a first frame in the next step, or skip to step 5."
+    },
+    {
+      "n": 4,
+      "studio": "image",
+      "action": "Optional branch: make a first-frame picture in Image Studio.",
+      "buttons": ["Describe the image you want to create", "Generate", "Download"],
+      "details": "Skip this step if you only want text-to-video. If you want to control how the clip starts, open Image Studio, type your picture idea in 'Describe the image you want to create', click Generate, then click Download. Reference images in the app are limited to 10MB each. Note that attaching an image later turns the run into image-to-video, where your prompt only describes the motion.",
+      "result": "An image file saved on your device (also kept in Image Studio History and the Library).",
+      "handoff": "Download it (or find it in Library), then in Video Studio attach it as the start frame with the start-frame attachment button next to the prompt box. The workflow then switches to 'Animate image'."
+    },
+    {
+      "n": 5,
+      "studio": "video",
+      "action": "Generate the clip.",
+      "buttons": ["Generate"],
+      "details": "Click Generate. A progress overlay with a cancel option shows while the clip renders. If a sign-in box appears, sign in and make sure your MuAPI key is saved, then click Generate again. If the result is not what you described, shorten the prompt to one subject and one action and try again.",
+      "result": "A generated clip appears on the result screen and in the History strip.",
+      "handoff": "Stay on the result screen and review the clip in the next step."
+    },
+    {
+      "n": 6,
+      "studio": "video",
+      "action": "Review the clip and try another take if needed.",
+      "buttons": ["Regenerate", "Extend"],
+      "details": "Play the clip. If you want another take, click Regenerate. If you want a longer clip and the Extend button is shown, use it; it only appears when a continuation model exists for the model you used. If the clip looks wrong, change the prompt or pick a different model and compare.",
+      "result": "A clip you are happy with.",
+      "handoff": "Stay on the result screen and save the file in the next step."
+    },
+    {
+      "n": 7,
+      "studio": "video",
+      "action": "Download your finished video.",
+      "buttons": ["Download"],
+      "details": "Click Download on the result screen to save the video to your device. You can also click 'Add AI Captions' first, or 'Open in Render' to keep editing it in Render.",
+      "result": "You have a finished video: an MP4-style clip you can play, which you downloaded with the Download button on the Video Studio result screen (earlier results stay in the History strip and the Library).",
+      "handoff": "Done. Play the downloaded file to check it, or use 'Open in Render' to edit further."
+    }
+  ],
+  "checkpoints": [
+    "Your prompt describes one subject and one action before you click Generate.",
+    "The clip plays on the result screen and matches your idea before you download it.",
+    "If you added a first-frame image, the clip starts from that picture.",
+    "The downloaded file plays on your device."
+  ],
+  "troubleshooting": [
+    {
+      "problem": "Generate does nothing, or a sign-in box appears.",
+      "fix": "Sign in and make sure your MuAPI key is saved in Settings -> API keys and your account has credits ('Please sign in and add api credits.'). Then click Generate again."
+    },
+    {
+      "problem": "I see 'Please enter a prompt to generate a video.'",
+      "fix": "Type a description in the prompt box, or attach an image if you want image-to-video."
+    },
+    {
+      "problem": "I see 'Please upload a start frame image first.'",
+      "fix": "An image workflow is selected. Attach a start frame image, or switch the workflow to 'Text to video'."
+    },
+    {
+      "problem": "I see 'Service temporarily unavailable. Try again shortly.'",
+      "fix": "Wait a minute and click Generate again. If it repeats, choose a different model from the model picker."
+    },
+    {
+      "problem": "The aspect ratio or duration I want is missing.",
+      "fix": "The selected model does not support it. Choose another model."
+    },
+    {
+      "problem": "The model changed by itself.",
+      "fix": "Attaching an image or video switches the model list, and clearing media switches back to the first text-to-video model. Pick your model again."
+    }
+  ],
+  "tips": [
+    "Start with one subject and one action, such as 'A slow dolly in on a steaming coffee cup on a wooden table, morning light'.",
+    "On the first run, keep the default model and default aspect ratio to see how it behaves.",
+    "Use Regenerate to compare a few takes, and try the same prompt in two models.",
+    "Set Style Preset to None and put the style in your own words if the Style Preset looks different than expected.",
+    "If you want more predictable results, use a clear start image (image-to-video)."
+  ],
+  "relatedJourneys": ["photo-to-clip", "social-shorts", "product-ad", "short-film"],
+  "academy": { "track": "13-ai-tools-mastery", "lesson": "02-video-models-which-one-for-which-use-case" },
+  "intents": [
+    "make a video from a text description",
+    "turn my idea into a video",
+    "how do I create a video with AI",
+    "text to video walkthrough",
+    "I have no footage, can I still make a video",
+    "generate a video from words",
+    "walk me through making my first video",
+    "make a short clip from a prompt"
+  ],
+  "notConfirmed": [
+    "Cost per model is not documented. Generation uses your own MuAPI credits.",
+    "Exact clip length, resolution and quality depend on the selected model and are not confirmed here; the built-in help text mentions about 3 to 10 seconds but the real list comes from the model.",
+    "Which model gives the best result for your idea is not confirmed; the studio does not rank models.",
+    "Whether the default model is available on every account is not confirmed.",
+    "There is no one-click button from Image Studio's result to Video Studio's start frame that was confirmed (only the sketch Draw modal has a hand-off to Video Studio), so the optional branch uses download and upload."
+  ],
+  "sourceFiles": [
+    "src/data/askKb/video.json",
+    "src/data/askKb/image.json",
+    "src/data/askKb/_app.json",
+    "src/data/askAcademyMap.js",
+    "src/components/VideoStudio.js",
+    "src/components/ImageStudio.js",
+    "src/lib/attachmentToolbar.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "src/data/askKb/video.json, image.json, _app.json, src/data/askAcademyMap.js, src/components/VideoStudio.js, ImageStudio.js, src/lib/attachmentToolbar.js",
+    "verifiedAt": "2026-11-13",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

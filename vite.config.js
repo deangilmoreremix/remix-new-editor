@@ -1383,6 +1383,11 @@ export default defineConfig({
             // Netlify functions CLI on :8888 if available; otherwise fall back to
             // a same-origin placeholder so the dev server doesn't crash.
             // Template Generator AI functions (same Netlify functions server as below).
+            // Ask SmartVideo (streaming v2 function, serves /api/ask-smartvideo itself).
+            '/api/ask-smartvideo': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             '/api/timeline-script': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,

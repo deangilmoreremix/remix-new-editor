@@ -1,0 +1,473 @@
+{
+  "id": "character",
+  "name": "Character Studio",
+  "route": "#/character",
+  "description": "Character Studio turns one clear reference face photo plus a text description into a new image of the same person in a new outfit, scene or mood. It offers two face-preserving image models and five one-click expression presets.",
+  "shortDescription": "Consistent characters with face ID preservation",
+  "fullDescription": "Character Studio (#/character, in the Image group of the side menu) is a single-image generator built around a reference face. You upload one clear face photo or short video clip (or pick a stock photo from Pexels), choose either Flux PuLID or Subject Reference as the model, describe the new look in the Character Description box, and click Generate Character. The result appears below the form with Download, Generate Again and Publish to Social buttons. Five Expression Presets (Happy, Sad, Angry, Surprised, Neutral) append expression wording to your description. A Saved Characters list and an Example Gallery sit lower on the page. The studio works on one image at a time and has no training step, no multi-photo reference and no seed lock.",
+  "bestFor": "Creators, marketers and storytellers who already have a face photo (of themselves with permission, a model, or a generated portrait) and want the same face in new outfits, settings and expressions for thumbnails, social posts, ads and concept art.",
+  "whenToUse": [
+    "You have one clear, front-facing face photo and want new images of that same person in different outfits, scenes or styles.",
+    "You want a quick portrait variation (for example the same face as a cyberpunk hacker or in a 1920s style).",
+    "You want to try an expression (Happy, Sad, Angry, Surprised, Neutral) on an existing face.",
+    "You need a still image reference to feed into a video studio later."
+  ],
+  "whenToUseAnother": [
+    "Use Image Studio (#/image) when you have no reference face and want to create an image from text alone.",
+    "Use Edit Studio (#/edit) when you want to edit an existing photo (remove an object, change a background) rather than recreate the person.",
+    "Use AI Influencer (#/influencer) when you want to design a character from visual attributes (gender, eye color, hair, body, rendering style) with a style preset and a history list.",
+    "Use Avatar Studio (#/avatar) or Lip Sync Studio (#/lipsync) when you need the face to talk or move.",
+    "Use Cinema Studio (#/cinema) or Video Studio (#/video) when you need the character in moving video.",
+    "Use Upscale Suite (#/upscale) when the finished portrait needs more resolution."
+  ],
+  "keyFeatures": [
+    "Two face-preserving models: Flux PuLID (Black Forest Labs) and Subject Reference (MiniMax).",
+    "Reference Face upload for a photo or video, plus a Pexels stock-photo browser button.",
+    "Character Description text box with an example placeholder.",
+    "Five Expression Presets that add wording to your description: Happy, Sad, Angry, Surprised, Neutral.",
+    "Model-specific Advanced controls (shown when the chosen model defines extra options such as aspect ratio).",
+    "Action row with Thumbnail, Advanced and Personalize buttons, plus a three-dot tools menu (GTM Boost, Recipes, Monetize, Prompts).",
+    "Saved Characters list that can reload a stored character's image and description into the form.",
+    "Result card with Download, Generate Again and Publish to Social.",
+    "Every successful image is saved to your generation history under the character studio.",
+    "Example Gallery of sample characters at the bottom of the page."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Model selector (Flux PuLID / Subject Reference)",
+      "explanation": "A button at the top of the form opens a dropdown with the two models. Flux PuLID is described as 'Face ID preservation with text prompt'. Subject Reference is described as 'Maintain subject consistency across images'.",
+      "whyToUse": "Try Flux PuLID first for keeping a face recognisable. Try Subject Reference if you want a different look or more aspect ratio options.",
+      "inputRequired": "Pick one model (Flux PuLID is the default).",
+      "restrictions": "Only these two models are offered in this studio."
+    },
+    {
+      "feature": "Reference Face",
+      "explanation": "Upload a face photo or video with the upload button, or click the compass-style Pexels button (tooltip 'Browse stock photos from Pexels') to pick a stock photo. The hint text reads 'Upload a clear face photo or video'.",
+      "whyToUse": "The model copies the identity from this image, so it is the most important input.",
+      "inputRequired": "Required. Without it you get the toast 'Upload a reference face first'.",
+      "restrictions": "Uploads use the shared upload picker: images up to 10MB and videos up to 50MB. Only one reference is used."
+    },
+    {
+      "feature": "Character Description",
+      "explanation": "A text box labelled Character Description. Placeholder: 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style'. Describe the scene, clothes and mood, not the face.",
+      "whyToUse": "This is what changes between images while the face stays the same.",
+      "inputRequired": "Optional. If left empty the studio sends 'professional portrait photo'.",
+      "restrictions": "The model definitions list a prompt limit of 1500 characters."
+    },
+    {
+      "feature": "Expression Presets",
+      "explanation": "Five buttons under the form: Happy, Sad, Angry, Surprised, Neutral. Clicking one appends wording such as 'smiling, happy expression, cheerful' (or the matching phrase) to the description box, separated by a comma. Clicking several keeps adding phrases.",
+      "whyToUse": "A fast way to get an expression without writing it yourself.",
+      "inputRequired": "None. Click before generating.",
+      "restrictions": "They only edit the text box. They have no intensity slider and clicking again does not remove the phrase; edit the text manually to remove it."
+    },
+    {
+      "feature": "Advanced panel",
+      "explanation": "The Advanced button in the action row reveals extra options defined for the selected model (prompt and image fields are hidden). The options differ per model.",
+      "whyToUse": "Fine-tune things like aspect ratio when the model offers it.",
+      "inputRequired": "Optional.",
+      "restrictions": "If the model defines no extra options, the panel stays empty/hidden."
+    },
+    {
+      "feature": "Thumbnail",
+      "explanation": "The Thumbnail button opens a thumbnail panel for this studio (1:1) where you can generate or clear a custom thumbnail. The chosen thumbnail is sent with your next generation.",
+      "whyToUse": "To give the generation a cover image in your history and gallery.",
+      "inputRequired": "Optional.",
+      "restrictions": "Does not change the generated image itself."
+    },
+    {
+      "feature": "Personalize",
+      "explanation": "Personalize lets you use contact tokens in the description. When a contact profile is selected, tokens in your text are replaced with that contact's details before generating.",
+      "whyToUse": "To make personalised batches of images for specific people or leads.",
+      "inputRequired": "Optional; needs a contact profile.",
+      "restrictions": "Exact token names are managed by the Personalizer feature and are not listed in this studio's code."
+    },
+    {
+      "feature": "Three-dot tools menu",
+      "explanation": "A small menu with GTM Boost (opens a prompt-builder modal and puts the result in the description), Recipes, Monetize and Prompts (a prompt gallery that inserts a prompt).",
+      "whyToUse": "Help writing prompts or ideas for selling character content.",
+      "inputRequired": "None.",
+      "restrictions": "Prompts inserts into the first text area on the page."
+    },
+    {
+      "feature": "Saved Characters",
+      "explanation": "A section listing characters kept in your browser storage (key character_library), showing a count such as '0 saved'. Clicking one loads its image as the reference and its description into the text box and shows the toast 'Loaded character: <name>'.",
+      "whyToUse": "Quickly reuse a character you saved before.",
+      "inputRequired": "None.",
+      "restrictions": "In the current code nothing in the app writes new entries, so the list is normally empty ('No saved characters yet. Generate a character and save it!'). There is no Save button in this studio."
+    },
+    {
+      "feature": "Result card",
+      "explanation": "After a successful run the image appears with Download, Generate Again and Publish to Social.",
+      "whyToUse": "Save the picture, re-run with the same settings for a new variation, or share it.",
+      "inputRequired": "None.",
+      "restrictions": "Generate Again re-clicks the main button with whatever is currently in the form."
+    }
+  ],
+  "howToUse": "1. Open Character Studio from the side menu (Image group) or go to #/character. 2. Under Model, leave Flux PuLID selected or open the dropdown and choose Subject Reference. 3. Under Reference Face, click the upload button and choose a clear, front-facing face photo (or use the Pexels button). 4. In Character Description, describe the outfit, scene and mood, for example 'wearing a leather jacket, standing in a neon-lit alley, cyberpunk style'. 5. Optionally click an Expression Preset (Happy, Sad, Angry, Surprised, Neutral) to add an expression. 6. Optionally open Advanced to change model options. 7. Click Generate Character. The button shows 'Generating...'. 8. When the image appears, click Download to save it, Generate Again for another variation, or Publish to Social.",
+  "howToSteps": [
+    "Open Character Studio (#/character).",
+    "Choose the model: Flux PuLID (default) or Subject Reference.",
+    "Upload a clear face photo or video under Reference Face.",
+    "Write the scene and outfit in Character Description.",
+    "Optionally add an Expression Preset.",
+    "Click Generate Character and wait for the image.",
+    "Download, regenerate or publish the result."
+  ],
+  "gettingStarted": [
+    "Have one sharp, well-lit, front-facing face photo ready (JPG/PNG/WebP under 10MB).",
+    "Make sure you are signed in with an active plan and your API key is connected, otherwise an upgrade prompt or key dialog appears when you click Generate.",
+    "Start with a short description and Flux PuLID, then change one thing at a time."
+  ],
+  "inputs": [
+    "Model",
+    "Reference Face",
+    "Character Description",
+    "Expression Presets",
+    "Advanced model options",
+    "Thumbnail",
+    "Personalize contact"
+  ],
+  "requiredInputs": [
+    "Reference Face"
+  ],
+  "optionalInputs": [
+    "Model (defaults to Flux PuLID)",
+    "Character Description (defaults to 'professional portrait photo')",
+    "Expression Presets",
+    "Advanced model options",
+    "Thumbnail",
+    "Personalize contact"
+  ],
+  "inputDetails": [
+    {
+      "name": "Reference Face",
+      "description": "A photo or video of the face to keep. Upload from your device, a URL via the picker, or pick a Pexels stock photo.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "One reference only. Shared limits: images 10MB, videos 50MB. A clear front-facing face works best."
+    },
+    {
+      "name": "Character Description",
+      "description": "Text describing the new look, scene, clothing and style.",
+      "required": false,
+      "whenToUse": "Almost always; otherwise you only get a plain portrait.",
+      "restrictions": "Prompt limit of 1500 characters per the model definitions. Default if empty: 'professional portrait photo'."
+    },
+    {
+      "name": "Model",
+      "description": "Flux PuLID or Subject Reference.",
+      "required": false,
+      "whenToUse": "Switch if the face does not look right with the first model.",
+      "restrictions": "Only two choices."
+    },
+    {
+      "name": "Expression Presets",
+      "description": "Five buttons that append expression wording to the description.",
+      "required": false,
+      "whenToUse": "When you want a specific emotion.",
+      "restrictions": "No strength control."
+    },
+    {
+      "name": "Advanced options",
+      "description": "Per-model extras such as aspect ratio.",
+      "required": false,
+      "whenToUse": "When you need a specific shape of image.",
+      "restrictions": "Depends on the model. Flux PuLID lists aspect ratios 16:9, 9:16, 1:1, 4:3, 3:4 in its definition; Subject Reference lists 16:9, 9:16, 1:1, 4:3, 3:4, 3:2, 2:3, 21:9."
+    }
+  ],
+  "generationModes": [
+    "Single image from reference face + description (image-to-image)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Image-to-image with face reference",
+      "description": "Both models take your reference image plus text and return one new image that keeps the face.",
+      "useCase": "Putting the same person in new scenes and outfits."
+    }
+  ],
+  "modelCapabilities": "The studio offers exactly two models. 'Flux PuLID' (id flux-pulid, provider Black Forest Labs): catalog description 'Flux-based identity-preserving image generation from a reference face.' 'Subject Reference' (id minimax-image-01-subject-reference, provider MiniMax): catalog description 'MiniMax Image 01 subject-reference driven editing.' In the studio list they are labelled 'Face ID preservation with text prompt' and 'Maintain subject consistency across images'. The model files list per-model options such as aspect ratio, render speed, style and image count, but this studio does not state prices, speeds or quality rankings for either model, so none are given here. Model comparison data does not include these two ids.",
+  "outputs": [
+    "One generated image per click (shown in the result card)",
+    "Downloadable image file",
+    "Entry in your generation history (studio: character)",
+    "Optional social publish"
+  ],
+  "limitations": [
+    "One reference image or video only; no multi-angle references.",
+    "No training step, no seed lock and no saved-character 'anchor' in this studio.",
+    "Expression Presets have no intensity slider and only edit text.",
+    "No pose, age, gender or outfit-reference controls beyond the text description.",
+    "Saved Characters list is read-only in practice; there is no Save button.",
+    "Requires sign-in/plan access and a connected API key to generate.",
+    "Results depend on reference photo quality; side-on, blurry or hidden faces give weaker likeness."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Only one reference face",
+      "impact": "Likeness can drift for unusual angles or expressions.",
+      "workaround": "Pick the clearest front-facing photo; try the other model."
+    },
+    {
+      "limitation": "No built-in way to save a character",
+      "impact": "You must re-upload the reference each session unless a character was added to the library elsewhere.",
+      "workaround": "Keep your reference photo and favourite description in your own files; reuse them."
+    },
+    {
+      "limitation": "Expression Presets cannot be toggled off",
+      "impact": "Clicking several adds conflicting phrases (for example happy and angry).",
+      "workaround": "Edit the description text box manually to remove a phrase."
+    },
+    {
+      "limitation": "Output is a still image",
+      "impact": "No motion or voice.",
+      "workaround": "Send the result to Animate, Video, Avatar or Lip Sync studios."
+    }
+  ],
+  "troubleshooting": [
+    "Toast 'Upload a reference face first': click the upload button (or the Pexels button) and add a photo before generating.",
+    "An upgrade prompt appears when you click Generate Character: your account does not have full access; follow the prompt to upgrade or sign in.",
+    "A key/sign-in dialog appears: connect your API key, then click Generate Character again.",
+    "Toast 'Error: ...' after generating: read the message; common causes are an unsupported or oversized file or a service hiccup. Try again, or switch model.",
+    "The face does not look like the reference: use a sharper, front-facing, well-lit photo; switch between Flux PuLID and Subject Reference; keep the description about scene and clothes, not the face.",
+    "Result looks plain: your description was empty, so 'professional portrait photo' was used. Add an outfit, place and mood.",
+    "Expression text is contradictory: you clicked several Expression Presets; delete the extra phrases from the description box.",
+    "Saved Characters says '0 saved': nothing has been stored in your browser's character library; this is expected.",
+    "Upload rejected for size: images must be 10MB or smaller and videos 50MB or smaller; compress or resize the file."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Nothing happens or I get an upgrade prompt when I click Generate Character",
+      "steps": [
+        "Check you are signed in.",
+        "Complete the upgrade prompt if shown.",
+        "If a key dialog appears, connect your key, then click Generate Character again."
+      ]
+    },
+    {
+      "issue": "The generated face is not the same person",
+      "steps": [
+        "Replace the reference with a close-up, front-facing, evenly lit photo.",
+        "Remove face details (hair colour, eye colour) from the description unless you want them changed.",
+        "Open the Model dropdown and try the other model.",
+        "Click Generate Again for a new variation."
+      ]
+    },
+    {
+      "issue": "I want a different image shape",
+      "steps": [
+        "Click Advanced.",
+        "Look for an aspect ratio option for the selected model.",
+        "If none appears, switch to Subject Reference, which lists more ratios, or crop later in Edit Studio."
+      ]
+    },
+    {
+      "issue": "The reference upload fails",
+      "steps": [
+        "Check the file is an image (or video) and within 10MB (image) or 50MB (video).",
+        "Try the Pexels button to pick a stock photo instead.",
+        "Retry the upload."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Face drifts between generations",
+      "whyItHappens": "Only one reference is used and there is no seed lock.",
+      "howToFix": "Use the same strong reference every time and keep descriptions short and consistent."
+    },
+    {
+      "problem": "Description ignored",
+      "whyItHappens": "Very long or conflicting prompts, or stacked Expression Presets.",
+      "howToFix": "Shorten to one scene, one outfit, one mood."
+    },
+    {
+      "problem": "Generate button stays disabled",
+      "whyItHappens": "A generation is still running ('Generating...').",
+      "howToFix": "Wait for it to finish; the button returns to 'Generate Character'."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Cyberpunk portrait of the same person",
+      "steps": [
+        "Upload a front-facing photo under Reference Face.",
+        "Keep Flux PuLID selected.",
+        "Type 'wearing a leather jacket, standing in a neon-lit alley, cyberpunk style'.",
+        "Click Generate Character.",
+        "Click Download."
+      ]
+    },
+    {
+      "title": "Expression set for a thumbnail",
+      "steps": [
+        "Upload the reference photo.",
+        "Write 'studio background, soft light, close-up portrait'.",
+        "Click Surprised, then Generate Character.",
+        "Click Generate Again after swapping the expression phrase for Happy by editing the text.",
+        "Compare results and download your favourite."
+      ]
+    },
+    {
+      "title": "Character to video",
+      "steps": [
+        "Generate a portrait here and click Download.",
+        "Open Animate Studio or Video Studio.",
+        "Upload the portrait as the starting image and describe the motion."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Social media avatar variations",
+      "description": "Create several themed images of one face for a profile series.",
+      "steps": [
+        "Upload the reference.",
+        "Generate with different outfit descriptions.",
+        "Download the best ones."
+      ],
+      "expectedOutput": "A set of same-face portraits in different looks."
+    },
+    {
+      "title": "Concept art for a story character",
+      "description": "Visualise a character in different scenes.",
+      "steps": [
+        "Use a portrait of the actor or model as reference.",
+        "Describe scenes such as 'medieval knight armor, dramatic lighting'.",
+        "Use Subject Reference if Flux PuLID alters the face too much."
+      ],
+      "expectedOutput": "Consistent-looking character frames for a pitch or storyboard."
+    },
+    {
+      "title": "Ad creative with a spokesperson face",
+      "description": "Place a (licensed) face in different ad settings.",
+      "steps": [
+        "Upload the licensed photo.",
+        "Describe the setting and wardrobe.",
+        "Publish to Social or download."
+      ],
+      "expectedOutput": "Ready-to-use still images."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many photos do I need?",
+      "answer": "One. The studio accepts a single Reference Face photo or video. The in-app help text elsewhere mentions several photos and a training step, but the Character Studio form itself has only one upload and no training step."
+    },
+    {
+      "question": "Which model should I pick?",
+      "answer": "Start with Flux PuLID (the default, 'Face ID preservation with text prompt'). If the likeness is weak, try Subject Reference ('Maintain subject consistency across images')."
+    },
+    {
+      "question": "What happens if I leave the description empty?",
+      "answer": "The studio sends 'professional portrait photo'."
+    },
+    {
+      "question": "Do Expression Presets change the face?",
+      "answer": "They only add words to the description (for example 'smiling, happy expression, cheerful'). The model decides how strongly to apply them."
+    },
+    {
+      "question": "Can I save my character?",
+      "answer": "There is a Saved Characters list read from your browser storage, but this studio has no Save button, so it is normally empty."
+    },
+    {
+      "question": "Where are my images stored?",
+      "answer": "Each successful image is added to your generation history, and you can download it from the result card."
+    },
+    {
+      "question": "Can I use any face photo?",
+      "answer": "Only use faces you have the right to use. The studio does not check permissions for you."
+    },
+    {
+      "question": "Can I make the character talk or move?",
+      "answer": "Not here. Download the image and use Avatar, Lip Sync, Animate or Video studios."
+    }
+  ],
+  "glossary": {
+    "Reference Face": "The photo or video whose face the model tries to keep.",
+    "Face ID preservation": "Keeping the same facial identity while changing everything else.",
+    "Flux PuLID": "A Black Forest Labs image model that keeps identity from a reference face.",
+    "Subject Reference": "A MiniMax image model that keeps the subject consistent across images.",
+    "Expression Preset": "A button that adds expression wording to your description.",
+    "GTM Boost": "A prompt helper in the three-dot menu.",
+    "Personalize": "Replaces contact tokens in your text with a selected contact's details."
+  },
+  "tips": [
+    "Use a sharp, front-facing, evenly lit reference with no sunglasses or heavy filters.",
+    "Describe clothes, place, lighting and mood; leave the face to the reference.",
+    "Change one thing per run so you can see what worked.",
+    "Generate Again is the fastest way to get more variations.",
+    "Use Download straight away; keep originals of your references."
+  ],
+  "bestPractices": [
+    "Keep a folder of approved reference photos.",
+    "Reuse the same reference and a similar description pattern for a consistent series.",
+    "Use only faces you have permission to use.",
+    "Upscale final images in Upscale Suite if you need print or large-screen size."
+  ],
+  "relatedStudios": [
+    "influencer",
+    "image",
+    "edit",
+    "upscale",
+    "avatar",
+    "lipsync",
+    "video",
+    "cinema"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "influencer",
+      "relationship": "Alternative for designing a character from attributes with style presets",
+      "whenToMove": "You do not have a reference photo or want to build a stylised character from options.",
+      "why": "AI Influencer Studio has attribute pickers, 20 style presets and a history list."
+    },
+    {
+      "studio": "image",
+      "relationship": "Text-to-image generation",
+      "whenToMove": "You do not need a specific face.",
+      "why": "Image Studio offers many more models."
+    },
+    {
+      "studio": "avatar",
+      "relationship": "Next step for talking characters",
+      "whenToMove": "You want your character image to speak.",
+      "why": "Avatar Studio animates a face with audio."
+    },
+    {
+      "studio": "upscale",
+      "relationship": "Post-processing",
+      "whenToMove": "The portrait needs higher resolution.",
+      "why": "Upscale Suite enlarges images."
+    }
+  ],
+  "notConfirmed": [
+    "The in-app Instructions text says to upload 1-3 photos and 'train the face model' for about a minute; the Character Studio code has a single upload and no training step, so this was not stated as fact.",
+    "The landing page and some audit/report documents mention identity locking, reusable character anchors, character sheet export, voice, expression intensity, seed lock and a Save-to-library button; none of these exist in CharacterStudio.js, so they are not claimed.",
+    "Prices, credits per image, speed and quality rankings for Flux PuLID and Subject Reference are not present in the catalog or comparison files read.",
+    "Exact contents of the Advanced panel for each model depend on shared model-extension data that was not fully traced.",
+    "Whether any other part of the app writes to the character_library storage key was not found.",
+    "src/lib/characterConsistency.js (IndexedDB store for omni-reference images and first/last frames) is used by Cinema and Video studios, not by Character Studio."
+  ],
+  "sourceFiles": [
+    "src/components/CharacterStudio.js",
+    "src/lib/characterConsistency.js",
+    "src/lib/instructions.js",
+    "src/data/studioLandingPages.js",
+    "UPSCALE_CHARACTER_COMMERCIAL_AUDIT.md",
+    "SMARTVIDEO_UIUX_RECOVERY_REPORT.md",
+    "public/api/model-catalog.json",
+    "src/lib/modelDescriptions.js",
+    "src/lib/models.js",
+    "src/lib/muapi.js",
+    "src/lib/clerkEntitlements.js",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read CharacterStudio.js, characterConsistency.js, instructions.js, studioLandingPages.js, model-catalog.json, modelDescriptions.js, models.js (model entries), muapi.js generateI2I, router.js and the two audit docs; trusted code over audit docs.",
+    "verifiedAt": "2026-11-12",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

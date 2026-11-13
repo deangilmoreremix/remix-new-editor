@@ -9,7 +9,7 @@
 
 import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { getBrand, saveBrand } from '../lib/brandStore.js';
+import { getBrand, saveBrand, resolveBrandId, rememberBrandId } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
 
 export function BrandDnaEditor(params = {}) {
@@ -17,8 +17,9 @@ export function BrandDnaEditor(params = {}) {
   container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
   mountStudioChrome(container, { currentRoute: 'brand-dna', title: 'Brand DNA' });
 
-  const brandId = params.id;
+  const brandId = resolveBrandId(params, { allowId: true });
   const brand = getBrand(brandId);
+  if (brand) rememberBrandId(brand.id);
 
   if (!brand) {
     const empty = document.createElement('div');

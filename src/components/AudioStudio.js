@@ -4,6 +4,7 @@ import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.j
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
+import { modelHasField, deliveryParams, hardcodedAudioKeys, DELIVERY_HINT } from '../lib/audioStudioFields.js';
 import { AuthModal } from './AuthModal.js';
 import { getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
@@ -230,8 +231,7 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
 
   Object.entries(selectedModel.inputs).forEach(([key, schema]) => {
     if (key === 'model') return;
-    const hardcodedKeys = ['prompt', 'style', 'duration', 'voice', 'tone', 'emotion', 'speed', 'pitch'];
-    if (hardcodedKeys.includes(key)) return;
+    if (hardcodedAudioKeys(selectedModel).includes(key)) return;
 
     if (schema.type === 'string' && schema.field === 'audio') {
       const uploader = createAudioFileUploader(schema.title || key, schemaParams[key] || '', (url) => {
@@ -958,6 +958,12 @@ export function AudioStudio() {
   pitchGroup.appendChild(pitchRow);
   formCard.appendChild(pitchGroup);
 
+  // Shown instead of Tone / Emotion / Pitch when the selected speech model has no such field.
+  const deliveryHint = document.createElement('p');
+  deliveryHint.className = 'hidden text-xs text-secondary leading-relaxed';
+  deliveryHint.textContent = DELIVERY_HINT;
+  formCard.appendChild(deliveryHint);
+
   // Thumbnail studio button
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
@@ -1092,9 +1098,16 @@ export function AudioStudio() {
     const supportsVoice = modelType === 'tts';
     voiceGroup.classList.toggle('hidden', !supportsVoice);
 
-    const supportsSpeedPitch = modelType === 'tts';
-    speedGroup.classList.toggle('hidden', !supportsSpeedPitch);
-    pitchGroup.classList.toggle('hidden', !supportsSpeedPitch);
+    // Speed is a speech-model control. Tone, Emotion and Pitch only appear when this
+    // model's schema has the field (so they are really sent); otherwise show the hint.
+    speedGroup.classList.toggle('hidden', modelType !== 'tts');
+    const hasTone = modelHasField(selectedModel, 'tone');
+    const hasEmotion = modelHasField(selectedModel, 'emotion');
+    const hasPitch = modelHasField(selectedModel, 'pitch');
+    toneGroup.classList.toggle('hidden', !hasTone);
+    emotionGroup.classList.toggle('hidden', !hasEmotion);
+    pitchGroup.classList.toggle('hidden', !hasPitch);
+    deliveryHint.classList.toggle('hidden', modelType !== 'tts' || hasTone || hasEmotion || hasPitch);
 
     renderSchemaControlsSection();
   }
@@ -1442,6 +1455,9 @@ export function AudioStudio() {
         mergedSchemaParams.reference_videos = resolvedVideos;
       }
 
+      // Tone / Emotion / Pitch go out only for models whose schema has those fields.
+      Object.assign(mergedSchemaParams, deliveryParams(selectedModel, { tone: toneValue, emotion: emotionValue, pitch }));
+
       if (modelType === 'music') {
         result = await muapi.generateMusic({
           model: selectedModel.id,
@@ -1453,6 +1469,7 @@ export function AudioStudio() {
       } else if (modelType === 'tts') {
         result = await muapi.generateAudio({
           model: selectedModel.id,
+          prompt: processedPrompt, // generateAudio sends `prompt`; `text` was silently dropped
           text: processedPrompt,
           speed: speed,
           voice: selectedVoice,
