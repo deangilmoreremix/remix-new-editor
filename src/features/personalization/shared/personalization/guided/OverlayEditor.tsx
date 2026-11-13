@@ -9,7 +9,9 @@ import { MEDIA_ROLE_CONTRACTS, roleForLayer } from '../preview/mediaRoles'
 import { ImageStyleControls } from './ImageStyleControls'
 import { LayerToolsPanel } from './LayerToolsPanel'
 import { KonvaTransformOverlay } from './KonvaTransformOverlay'
+import { WebsiteBackgroundPanel } from './WebsiteBackgroundPanel'
 import { applyCustomFields, rotationCss, sourceMediaStyle } from '../preview/layerTransform'
+import { maxScrollPx } from '../preview/websiteBackground'
 import { computeSnap, groupMemberIds, layerRect, moveLayers, setLayerRotation, unionRect, type SnapGuide } from './layerOps'
 import { DesignLayerPlayer } from './DesignLayerPlayer'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
@@ -571,7 +573,22 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
             touchAction: 'none',
           }}
         >
-          {inputProps.posterUrl ? (
+          {settings.websiteBackground?.enabled ? (
+            // The website's opening frame (scroll at its start position), so layers are arranged over what will actually play.
+            <img
+              data-testid="stage-website-background"
+              src={settings.websiteBackground.page.url}
+              alt=""
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                width: '100%',
+                maxWidth: 'none',
+                transform: `translateY(${-Math.round(maxScrollPx(settings.websiteBackground, compW, compH) * settings.websiteBackground.scroll.from * factor)}px)`,
+              }}
+            />
+          ) : inputProps.posterUrl ? (
             <img
               src={inputProps.posterUrl}
               alt=""
@@ -1145,6 +1162,8 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
               onSnapGridChange={setSnapGrid}
             />
           )}
+
+          {editPreviewSettings && <WebsiteBackgroundPanel settings={settings} edit={editPreviewSettings} defaultUrl={brand.website} />}
         </div>
       </div>
 

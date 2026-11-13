@@ -1,5 +1,5 @@
 import { lookup } from 'node:dns/promises';
-import { isIP } from 'node:net';
+import { isBlockedIpAddress } from './_personalization/src/lib/networkSafety';
 
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -45,38 +45,16 @@ const IMPORT_ROLES = new Set([
   'cta_graphic', 'background_reference', 'audio_reference', 'saved_reference',
 ]);
 
-function isPrivateIpv4(address) {
-  const p = address.split('.').map(Number);
-  if (p.length !== 4 || p.some((v) => !Number.isInteger(v))) return false;
-  return (
-    p[0] === 10 ||
-    p[0] === 127 ||
-    (p[0] === 169 && p[1] === 254) ||
-    (p[0] === 172 && p[1] >= 16 && p[1] <= 31) ||
-    (p[0] === 192 && p[1] === 168) ||
-    p[0] === 0
-  );
-}
-
-function isPrivateIpv6(address) {
-  const normalized = String(address || '').toLowerCase();
-  return (
-    normalized === '::1' ||
-    normalized === '::' ||
-    normalized.startsWith('fc') ||
-    normalized.startsWith('fd') ||
-    normalized.startsWith('fe80:') ||
-    normalized.startsWith('::ffff:127.') ||
-    normalized.startsWith('::ffff:10.') ||
-    normalized.startsWith('::ffff:192.168.')
-  );
-}
-
+/**
+ * True when an address (IPv4/IPv6 literal, bracketed or not) is not a public internet destination.
+ *
+ * This used to be a second, hand-written list that missed CGNAT (100.64/10), benchmarking, documentation,
+ * multicast and reserved ranges and IPv4-mapped IPv6 such as ::ffff:169.254.169.254 (cloud metadata). It now
+ * delegates to the same guard every other server-side fetch uses, so there is ONE list to keep correct.
+ * A value that is not an IP literal (a hostname) is not blocked here: the caller resolves it and checks each answer.
+ */
 function isPrivateAddress(address) {
-  const version = isIP(address);
-  if (version === 4) return isPrivateIpv4(address);
-  if (version === 6) return isPrivateIpv6(address);
-  return false;
+  return isBlockedIpAddress(String(address ?? ''));
 }
 
 export async function sanitizePublicHttpUrl(input) {

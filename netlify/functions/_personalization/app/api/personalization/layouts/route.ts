@@ -81,8 +81,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'INVALID_LAYOUT' }, { status: 400 })
   }
   // Rebuild from the normalizer's output: only known geometry fields are ever persisted.
-  const { aspectRatio, layers, sourceTransform } = parsed[0]
-  const stored = { aspectRatio, layers, ...(sourceTransform ? { sourceTransform } : {}) }
+  const { aspectRatio, layers, sourceTransform, websiteMotion } = parsed[0]
+  const stored = { aspectRatio, layers, ...(sourceTransform ? { sourceTransform } : {}), ...(websiteMotion ? { websiteMotion } : {}) }
 
   const { data, error } = await createServerClient().rpc('personalization_saved_layouts_save', { p_clerk_user_id: userId, p_name: parsed[0].name, p_layout: stored })
   if (error) {

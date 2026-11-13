@@ -1,4 +1,5 @@
 import { applyCustomFields, rotationCss, sourceMediaStyle } from './layerTransform'
+import { WebsiteBackgroundLayer } from './WebsiteBackgroundLayer'
 import { contractFor, layerZIndex, roleForLayer } from './mediaRoles'
 import { ownText, resolveLayerImageUrl, resolveLayerText } from './layerContent'
 import { endCardFrames } from './endCard'
@@ -451,6 +452,9 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
     <SequenceManagerBoundary>
     <AbsoluteFill style={{ background: '#05070a' }}>
       {renderBackground()}
+      {settings.websiteBackground ? (
+        <WebsiteBackgroundLayer background={settings.websiteBackground} frame={frame} compW={compW} compH={compH} accent={settings.brandColors.accent} />
+      ) : null}
       {audioUrl ? <Audio src={toPlayablePreviewMediaUrl(audioUrl)} /> : null}
       <AbsoluteFill
           style={{

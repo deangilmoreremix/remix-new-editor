@@ -84,3 +84,47 @@ export function rateLimit(
   return { allowed: true, remaining: remaining - 1, retryAfterMs: 0 }
 }
 
+
+// ── Shared (database-backed) limiter ─────────────────────────────────────────
+// The limiter above lives in one process, so on serverless every instance has its own count and a caller who lands on
+// different instances multiplies their allowance. For costly, abusable operations (e.g. launching a browser to capture a
+// website) use this one: it counts in the database through the repo's `rate_limit_check` RPC, shared by every instance.
+
+/** The slice of a Supabase client this needs: `rpc(name, args)`. */
+export interface RpcClient {
+  rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: { message?: string } | null }>
+}
+
+/**
+ * Counts one call against `scope`/`key` in the database. If the database cannot answer (error, thrown exception, malformed
+ * reply, no client) it falls back to the in-process limiter, which is weaker but still enforces a limit: this never
+ * "fails open". `rate_limit_check` is a fixed window aligned to the epoch.
+ */
+export async function rateLimitShared(
+  client: RpcClient | null | undefined,
+  scope: string,
+  key: string,
+  opts: { windowMs: number; max: number },
+): Promise<RateLimitResult & { source: 'database' | 'memory' }> {
+  const fallback = () => ({ ...rateLimit(`${scope}:${key || '__anonymous__'}`, opts), source: 'memory' as const })
+  if (!client) return fallback()
+  try {
+    const { data, error } = await client.rpc('rate_limit_check', {
+      p_scope: scope,
+      p_key: key || '__anonymous__',
+      p_limit: opts.max,
+      p_window_seconds: Math.max(1, Math.ceil(opts.windowMs / 1000)),
+    })
+    const reply = data as { allowed?: unknown; count?: unknown; reset_at?: unknown } | null
+    if (error || !reply || typeof reply.allowed !== 'boolean' || typeof reply.count !== 'number') return fallback()
+    const resetMs = typeof reply.reset_at === 'string' ? Date.parse(reply.reset_at) : NaN
+    return {
+      allowed: reply.allowed,
+      remaining: Math.max(0, opts.max - reply.count),
+      retryAfterMs: reply.allowed ? 0 : Math.max(1000, Number.isFinite(resetMs) ? resetMs - Date.now() : opts.windowMs),
+      source: 'database',
+    }
+  } catch {
+    return fallback()
+  }
+}

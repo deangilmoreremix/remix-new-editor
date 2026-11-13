@@ -12,6 +12,7 @@
  * windows and the editor must keep working without it.
  */
 import { normalizeRotation, normalizeSourceTransform } from '../preview/layerTransform'
+import { applyWebsiteMotion, extractWebsiteMotion, normalizeWebsiteMotion, type WebsiteMotion } from '../preview/websiteBackground'
 import type {
   PersonalizationPreviewSettings,
   PreviewAspectRatio,
@@ -44,6 +45,8 @@ export interface SavedLayout {
   aspectRatio: PreviewAspectRatio
   layers: LayoutLayerSnapshot[]
   sourceTransform?: SourceTransform
+  /** Website scroll/zoom/cursor/timing — motion only, never the website's URL, title or picture. */
+  websiteMotion?: WebsiteMotion
 }
 
 const ASPECTS: PreviewAspectRatio[] = ['16:9', '9:16', '1:1', '4:5']
@@ -73,6 +76,7 @@ export function snapshotLayout(
   if (layers.length === 0) return null
   const layout: SavedLayout = { id, name: cleanName, createdAt, aspectRatio: settings.aspectRatio, layers }
   if (settings.sourceTransform) layout.sourceTransform = { ...settings.sourceTransform }
+  if (settings.websiteBackground) layout.websiteMotion = extractWebsiteMotion(settings.websiteBackground)
   return layout
 }
 
@@ -122,6 +126,8 @@ export function applyLayout(
   const out: PersonalizationPreviewSettings = { ...settings, layers }
   if (layout.sourceTransform) out.sourceTransform = { ...layout.sourceTransform }
   else delete out.sourceTransform
+  // Website motion applies to THIS project's own website picture; a project without one is left alone.
+  if (layout.websiteMotion && settings.websiteBackground) out.websiteBackground = applyWebsiteMotion(settings.websiteBackground, layout.websiteMotion)
   return { settings: out, matched: pairs.size }
 }
 
@@ -164,6 +170,8 @@ export function normalizeSavedLayouts(raw: unknown): SavedLayout[] {
     }
     const st = normalizeSourceTransform(r.sourceTransform)
     if (st) layout.sourceTransform = st
+    const wm = normalizeWebsiteMotion(r.websiteMotion)
+    if (wm) layout.websiteMotion = wm
     out.push(layout)
   }
   return out
@@ -253,11 +261,11 @@ export async function fetchRemoteLayouts(fetchFn: typeof fetch = fetch): Promise
 
 /** Saves (or replaces, by name) one layout. Only geometry fields are sent. */
 export async function saveRemoteLayout(layout: SavedLayout, fetchFn: typeof fetch = fetch): Promise<RemoteResult<SavedLayout>> {
-  const { aspectRatio, layers, sourceTransform } = layout
+  const { aspectRatio, layers, sourceTransform, websiteMotion } = layout
   const r = await call(fetchFn, LAYOUTS_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: layout.name, layout: { aspectRatio, layers, ...(sourceTransform ? { sourceTransform } : {}) } }),
+    body: JSON.stringify({ name: layout.name, layout: { aspectRatio, layers, ...(sourceTransform ? { sourceTransform } : {}), ...(websiteMotion ? { websiteMotion } : {}) } }),
   })
   if (!r) return failure('unavailable')
   if (r.status !== 200) return failure(reasonFor(r.status))

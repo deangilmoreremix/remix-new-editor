@@ -4,7 +4,7 @@
 |---|---|---|---|---|---|---|---|
 | 0 | Application & feature audit | **Complete (audit-only)** | Authorized by the master prompt (Stage 0 only) | 2026-11-13 | see `git log` for the commit titled "Stage 0 audit" | Baseline below | See master plan §5 |
 | 1 | Personalization data & visual editing | **Complete and verified** (see limits in the Stage 1 completion section) | Authorized by the user ("continue with the next phase", then "complete all of stage 1") | 2026-11-13 | see `git log` ("Stage 1 completion") | Full suite 766/766 files, 10,988 passed, 0 failed, 61 skipped; typecheck gate 0 errors; eslint src 0 errors; live checks 8/8, 19/19, 31/31; SQL 40/40 | Migration for synced layouts is **not applied** anywhere |
-| 2 | Website backgrounds & business assets | Not started | **NOT authorized** | — | — | — | — |
+| 2 | Website backgrounds & business assets | **Complete and verified** (limits listed in the Stage 2 section) | Authorized by the user (approval of the roadmap plan, which authorized Stage 2 only) | 2026-11-13 | see `git log` ("Stage 2") | Full suite 770/770 files, 11,114 passed, 0 failed, 61 skipped; typecheck gate 0; eslint src 0 errors; Stage 2 real-chain check 29/29 | Capture bucket is still public-by-URL; see limits |
 | 3 | MediaPipe presenter effects | Not started | **NOT authorized** | — | — | — | — |
 | 4 | Advanced browser audio | Not started | **NOT authorized** | — | — | — | — |
 | 5 | Advanced video effects & motion | Not started | **NOT authorized** | — | — | — | — |
@@ -16,7 +16,7 @@
 | 11 | Analytics, notifications & reporting | Not started | **NOT authorized** | — | — | — | — |
 | 12 | Performance, recovery & final validation | Not started | **NOT authorized** | — | — | — | — |
 
-**Next authorized stage: none.** Stage 1 is the last authorized stage. Stage 2 requires an explicit user instruction (e.g. "Approved. Start Stage 2."), or an instruction to fix Stage 1.
+**Next authorized stage: none.** Stage 2 is the last authorized stage. Stage 3 requires an explicit user instruction (e.g. "Approved. Start Stage 3."), or an instruction to fix Stage 2.
 
 Scope note: the Recorder is excluded — being completed in another chat.
 
@@ -181,3 +181,50 @@ Requested by the user: "complete all of stage 1 and make sure there are no error
 - Real renderer / editor / export (needs `npm install`, ffmpeg and a Chromium; set `CHROMIUM_PATH` if not at `/opt/pw-browsers/chromium`): `node scripts/stage1-render-check/run.mjs`, `.../editor-check.mjs`, `.../export-check.mjs` (screenshots, PNGs and MP4s land in `scripts/stage1-render-check/out/`, git-ignored).
 - RLS on a local database (needs a local PostgreSQL 16): `supabase/tests/run-layouts-assertions.sh` (with `PGHOST`/`PGUSER` for a superuser connection).
 - In the app: open a Personalize modal -> overlay editor: select a layer and drag the round rotate handle above it (Shift = 15° steps); in an image layer's style controls press "Crop & zoom…" and drag the picture; "Saved layouts" shows whether layouts go to your account or this browser.
+
+
+## Stage 2 — Website backgrounds and business assets (2026-11-13)
+Authorized by the user's approval of the roadmap plan (Stage 2 only).
+
+### What was built (reusing the existing capture service; no second screenshot backend)
+| Feature | Where | Notes |
+|---|---|---|
+| Website capture from the editor | Overlay editor → **Website background** panel (`guided/WebsiteBackgroundPanel.tsx`) | Uses the existing `captureSite` client, `/api/motion-studio/capture` (Clerk sign-in + SmartVideo GO entitlement + SSRF guard + quota) and its job polling. Address is pre-filled from the business's website when the project knows it. Progress, cancel, and plain-language errors (sign-in, plan, quota, refused address, timeout) |
+| Full-page / section pictures | Same panel | Choose any captured page, or a **section picture** (crop) instead of the whole page |
+| Animated scrolling | `preview/websiteBackground.ts` + `WebsiteBackgroundLayer.tsx` | Scroll start/end (0-100%), easing, timing window in seconds, "scroll to section" when the capture found sections |
+| Zoom and pan | Same | Zoom start/end 1-3x about a chosen centre |
+| Cursor animation + click effects | Same | Arrow/hand cursor, 4 movement presets, ripple/pulse, add/remove clicks |
+| Website-to-presenter hand-over | Same | Fade, slide or cut at the end of the window; the source/presenter video shows again |
+| Asset preview and assignment to video roles | Same | The capture's logo, pictures and asset-finder pictures: **Use as Logo / Product image / Service image** (durable http(s) URLs only), with attribution |
+| Source attribution | Stored in the project (`websiteBackground.source`) and shown in the panel | "Captured from host on date. The pictures belong to that site's owner: use them only with permission." |
+| Reusable website layouts | Saved layouts now include the website **motion** | Motion only: never the URL, title, section names or picture (verified by test and mutation). Applies to another prospect's own website picture |
+| Editor stage shows the website | `OverlayEditor` | The stage draws the website's opening frame, so layers are arranged over what will play |
+| Persistence | `settings.websiteBackground`, normalized on load | URLs must be durable http(s); numbers clamped; old projects load without it |
+| Preview == export | One composition | The shared Remotion composition draws the layer, so the live Player and the exported video are the same pixels |
+
+### Security and quota fixes made on the way
+- **SSRF:** the asset finder's private-address check (`_personalizationAssets.js`) was a weaker second list (missed CGNAT 100.64/10, benchmarking, documentation, multicast, reserved ranges and mapped IPv6 such as `::ffff:169.254.169.254`, the cloud-metadata address, when it came back from DNS). It now delegates to the shared guard (`isBlockedIpAddress`). Test: 65 cases (literals, disguised forms, DNS answers, mixed answers), red before the fix and green after, plus a parity check against the shared guard.
+- **Capture quota:** the capture route counted in process memory, so every serverless instance had its own allowance. It now counts through the database's `rate_limit_check` (shared by all instances) and falls back to memory if the database is unreachable (never fails open). Verified: refused with 429 before any browser is launched.
+- **Capture client extracted:** `captureSite` / `DirectorError` / `post` moved to a small `motion-director/lib/captureClient.ts` (re-exported by `directorClient`, no behaviour change) so the editor does not load the whole Motion Studio just to capture a page.
+
+### Test and verification evidence (all run this session)
+| Command | Result |
+|---|---|
+| `npx vitest run` (full) | **770/770 files, 11,114 passed, 0 failed, 61 skipped** |
+| `npm run typecheck:personalization` | 0 errors in scope |
+| `eslint src` | 0 errors |
+| New unit/integration tests | website motion model 26; panel + helpers + layouts 28; asset-finder SSRF 65; shared limiter + capture-route quota 9 |
+| `npx tsx scripts/stage2-website-check/capture.mjs` | The **real capture engine** captured `https://smartvid.app/` (your own production site): title found, 3840x3492 full-page screenshot, a section crop, in ~21 s, through the real storage/response builders |
+| `node scripts/stage2-website-check/check.mjs` | **29/29** (real editor + real preview Player + app's own exporter): capture through the real client incl. job polling; controls write the motion; attribution shown; preview fade-in, scroll, cursor at the right place, click ripple (94 px vs 0 before the click), hand-over to the presenter video; **exported H.264 MP4** 640x360, 180 frames, 6.02 s; preview vs export agree (PSNR 30 dB); click ripple present in the export (A/B against the same video without it); **scroll accuracy against the actual captured screenshot: 31-33 dB vs 13-15 dB for a wrong offset** |
+| Mutation checks | Removing the layer from the composition fails 10 of 28 checks (restored: all pass); breaking the end-frame hand-over, the click position, the layout no-leak guarantee and the limiter's fail-closed fallback each fails the matching tests |
+| Stage 1 live checks (re-run) | render 8/8, editor 19/19, export 31/31 |
+
+### Limits (honest)
+- **The real capture ran outside Netlify.** In this sandbox the engine's own network dial is blocked, so a test-only harness (`scripts/stage2-website-check/sandbox-egress.mjs`, used only with `USE_SANDBOX_EGRESS=1`) tunnels that one dial through the sandbox's proxy; TLS verification stayed on and no engine code was changed. The Clerk sign-in, entitlement and background-function path of the production route were **not** exercised end to end (the quota path was, with mocked auth).
+- **The captured site was your own** (`smartvid.app`, a single-page app). It returned one page, one section crop, **no logo, no gallery pictures and no layout sections**. So "assign pictures to roles" and "scroll to section" are verified with realistic fake capture data in tests, not with a real site that has them. Please try a business site with a logo and sections.
+- **Capture storage is still public-by-URL** (bucket `motion-capture`, unguessable paths). Making it private needs a migration, a production bucket change and signed URLs; not done, needs your decision.
+- The editor panel types or pre-fills one URL; it does not yet run a Lead Finder search inline (Lead Finder's resolved website is pre-filled when the project has it).
+- Cursor movement is chosen from presets (no free-draw path editor); clicks can be added/removed but their moment is fixed by the preset (50% when added by button).
+- One website background per project. Per-recipient backgrounds arrive with bulk personalization (Stage 10).
+- Hand-over transitions are fade, slide and cut (no wipe).
+- Rotation/zoom limits from Stage 1 apply to the presenter footage; compositing the presenter over the website (bubble/cut-out) is Stage 3.

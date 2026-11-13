@@ -5,6 +5,7 @@
  */
 
 import type { ImageHints, ImageRole, ImageStyle } from './imageStyle'
+import type { WebsiteBackground } from './websiteBackground'
 
 export type PreviewLayoutId =
   | 'business-introduction'
@@ -216,6 +217,11 @@ export interface PersonalizationPreviewSettings {
    * `{{key}}`; any other `{{token}}` is left untouched.
    */
   customFields?: Record<string, string>
+  /**
+   * A captured website shown behind the video (scroll, zoom, cursor, clicks), then handing over to the source video.
+   * Absent = no website background.
+   */
+  websiteBackground?: WebsiteBackground
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */

@@ -48,3 +48,12 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - NOT done: the layouts migration is not applied to production or any branch (needs the user's decision). Not exercised: deployed route with a real Clerk session.
 - Reported (not changed): the Supabase advisor shows 117 public tables with RLS disabled.
 - Stage 2 is **not** authorized.
+
+### Stage 2 — Website backgrounds and business assets
+- Authorization: the user's approval of the roadmap plan, which authorized Stage 2 only.
+- Reused: `/api/motion-studio/capture` + `captureSite` (Clerk, entitlement, SSRF guard, quota), the capture's logo/pictures, the shared Remotion composition, Stage 1 saved layouts.
+- Added: `preview/websiteBackground.ts` (pure motion model + validation), `WebsiteBackgroundLayer`, `WebsiteBackgroundPanel`, website motion in saved layouts, `captureClient.ts` extraction, editor-stage website frame, asset-to-role assignment, attribution.
+- Security: asset-finder SSRF check now delegates to the shared guard; capture quota is database-backed with a fail-closed memory fallback.
+- Verified: full vitest 770/770; typecheck gate 0; eslint src 0 errors; real engine capture of smartvid.app -> real editor/preview -> real MP4 (29/29), scroll accuracy against the captured screenshot.
+- NOT done: capture bucket still public-by-URL; production route not exercised with real Clerk; real site with logo/sections not captured; free-draw cursor path; per-recipient backgrounds (Stage 10).
+- Stage 3 is **not** authorized.

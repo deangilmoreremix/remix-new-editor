@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from '../../../../shims/next-server'
 import { randomUUID } from 'node:crypto'
 import { BrowserSsrfError, capturePageScreenshots, createSsrfGuard } from '../../../../src/server/browserDiscovery'
 import { CAPTURE_BUCKET, buildCaptureResponse, captureImages, captureIsEmpty, storeCaptureImages, writeCaptureJob, type CaptureStorage } from '../../../../src/server/motionCapture'
-import { rateLimit, rateLimit429 } from '../../../../lib/rateLimit'
+import { rateLimit429, rateLimitShared, type RpcClient } from '../../../../lib/rateLimit'
 import { requireMotionStudioUser } from '../lib/auth'
 
 export const dynamic = 'force-dynamic'
@@ -30,6 +30,16 @@ export const maxDuration = 60
 async function captureStorage(): Promise<CaptureStorage> {
   const { createServerClient } = await import('../../../../src/lib/supabase')
   return createServerClient().storage.from(CAPTURE_BUCKET) as unknown as CaptureStorage
+}
+
+/** The service client for the shared limiter, or null where Supabase is not configured (local development, tests). */
+async function captureRateClient(): Promise<RpcClient | null> {
+  try {
+    const { createServerClient } = await import('../../../../src/lib/supabase')
+    return createServerClient() as unknown as RpcClient
+  } catch {
+    return null
+  }
 }
 
 const INTERNAL_FUNCTION_SECRET = process.env.INTERNAL_FUNCTION_SECRET || ''
@@ -86,7 +96,9 @@ export async function POST(req: NextRequest) {
   if (!url) return NextResponse.json({ error: 'A page URL is required', code: 'BAD_REQUEST' }, { status: 400 })
   if (!/^https?:\/\//i.test(url)) url = `https://${url}`
 
-  const limit = rateLimit(`motion-studio-capture:${user.userId}`, { windowMs: 10 * 60_000, max: 10 })
+  // A capture launches a browser: count it in the database so every serverless instance shares one allowance
+  // (the in-memory counter is per instance and was trivially multiplied). Falls back to memory if the database is unreachable.
+  const limit = await rateLimitShared(await captureRateClient(), 'motion-studio-capture', user.userId, { windowMs: 10 * 60_000, max: 10 })
   if (!limit.allowed) return rateLimit429(limit.retryAfterMs)
 
   if (backgroundCaptureEnabled()) {
