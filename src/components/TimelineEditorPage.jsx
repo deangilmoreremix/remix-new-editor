@@ -25,7 +25,7 @@ import {
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
-  submitLead, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  submitLead, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
@@ -3211,6 +3211,8 @@ export function TimelineEditorPage() {
             emailNotificationEnabled: clip.emailNotificationEnabled,
             notificationEmail: clip.notificationEmail,
             fbPixelId: clip.fbPixelId,
+            espProvider: clip.espProvider,
+            espListId: clip.espListId,
             _submittedLeads: clip._submittedLeads,
             style: clip.style,
             phoneNumber: clip.phoneNumber,
@@ -3806,6 +3808,16 @@ export function TimelineEditorPage() {
               <span id="lf-webhook-secret-result" role="status" style="font-size:11px;color:var(--text-dim);word-break:break-all"></span>
             </div>
             <div class="clip-editor__field">
+              <label for="lf-esp-provider">Add leads to an email list (published videos)</label>
+              <select id="lf-esp-provider">${ESP_PROVIDERS.map(([v, l]) => `<option value="${v}" ${(clip.espProvider || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+            </div>
+            <div class="clip-editor__field" id="lf-esp-extra" ${clip.espProvider ? '' : 'hidden'}>
+              <label for="lf-esp-list" id="lf-esp-list-label">${espListLabel(clip.espProvider)}</label>
+              <input id="lf-esp-list" type="text" value="${clip.espListId || ''}" placeholder="1234567" />
+              <button id="lf-esp-connect" type="button" class="mini-btn" style="width:100%;margin-top:6px">Connect ${espName(clip.espProvider) || 'account'}</button>
+              <span id="lf-esp-status" role="status" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
               <label for="lf-email-enabled"><input id="lf-email-enabled" type="checkbox" ${clip.emailNotificationEnabled ? 'checked' : ''} /> Email notification on submit</label>
             </div>
             <div class="clip-editor__field">
@@ -4060,6 +4072,29 @@ export function TimelineEditorPage() {
         else if (!r.secret) out.textContent = 'Signing is not set up on the server yet';
         else out.textContent = `${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`;
       });
+      {
+        const espStatus = els.clipEditorContainer.querySelector('#lf-esp-status');
+        const showEsp = async () => { espStatus.textContent = integrationStatusText(clip.espProvider, await fetchIntegrations(supabase)); };
+        els.clipEditorContainer.querySelector('#lf-esp-provider').addEventListener('change', (e) => {
+          clip.espProvider = e.target.value;
+          els.clipEditorContainer.querySelector('#lf-esp-extra').hidden = !clip.espProvider;
+          els.clipEditorContainer.querySelector('#lf-esp-list-label').textContent = espListLabel(clip.espProvider);
+          els.clipEditorContainer.querySelector('#lf-esp-connect').textContent = `Connect ${espName(clip.espProvider) || 'account'}`;
+          if (clip.espProvider) showEsp(); else espStatus.textContent = '';
+        });
+        els.clipEditorContainer.querySelector('#lf-esp-list').addEventListener('input', (e) => { clip.espListId = e.target.value.trim(); });
+        els.clipEditorContainer.querySelector('#lf-esp-connect').addEventListener('click', async () => {
+          const provider = clip.espProvider;
+          if (!provider) return;
+          const key = window.prompt(`Paste your ${espName(provider)} API key (it is verified, then stored encrypted and never shown again)`);
+          if (!key) { showEsp(); return; }
+          espStatus.textContent = 'Checking...';
+          const r = await saveIntegration(supabase, provider, key);
+          if (r.ok) await showEsp(); else espStatus.textContent = r.error;
+          showToast(r.ok ? `${espName(provider)} connected` : r.error, r.ok ? 'success' : 'error');
+        });
+        if (clip.espProvider) showEsp();
+      }
       els.clipEditorContainer.querySelector('#lf-email-enabled').addEventListener('change', (e) => {
         clip.emailNotificationEnabled = e.target.checked;
         els.clipEditorContainer.querySelector('#lf-email-address').disabled = !e.target.checked;
@@ -5399,6 +5434,17 @@ export function TimelineEditorPage() {
               if (!r.ok) setResult(r.error);
               else if (!r.secret) setResult('Signing is not set up on the server yet');
               else setResult(`${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`);
+              return;
+            }
+            if (action === 'connectEsp') {
+              const provider = config.espProvider;
+              if (!provider) return;
+              const key = window.prompt(`Paste your ${espName(provider)} API key (it is verified, then stored encrypted and never shown again)`);
+              if (!key) { setResult(integrationStatusText(provider, await fetchIntegrations(supabase))); return; }
+              setResult('Checking...');
+              const r = await saveIntegration(supabase, provider, key);
+              setResult(r.ok ? integrationStatusText(provider, await fetchIntegrations(supabase)) : r.error);
+              showToast(r.ok ? `${espName(provider)} connected` : r.error, r.ok ? 'success' : 'error');
               return;
             }
             if (action !== 'testWebhooks') return;

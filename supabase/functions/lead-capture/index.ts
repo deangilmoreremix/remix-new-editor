@@ -23,7 +23,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, savedNotifyEmail, isValidEmail, buildLeadEmail,
-  isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, type Json,
+  isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook,
+  savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, type HttpCall, type Json,
 } from "./logic.ts";
 export { isForwardableWebhook, savedWebhooks, isCallClip, leadConfigFor };
 
@@ -42,6 +43,8 @@ const LEAD_EMAIL_FROM = Deno.env.get("LEAD_EMAIL_FROM") ?? "";
 // Webhook signing: every delivery carries X-Remix-Signature, an HMAC with a per-owner secret
 // derived from this master secret (set WEBHOOK_SIGNING_SECRET to any long random string).
 const WEBHOOK_SIGNING_MASTER = Deno.env.get("WEBHOOK_SIGNING_SECRET") ?? "";
+// Kit / MailerLite API keys are stored AES-GCM encrypted with this key (any long random string).
+const INTEGRATIONS_KEY = Deno.env.get("INTEGRATIONS_ENCRYPTION_KEY") ?? "";
 
 const KINDS = new Set(["lead-form", "list-builder", "personalizer", "call-attempt"]);
 const WEBHOOK_TIMEOUT_MS = 8000; // email requests
@@ -175,6 +178,39 @@ async function logDeliveries(db: Db, ownerId: string | null, ctx: { projectId: s
   if (error) console.warn("[lead-capture] delivery log failed:", error.code);
 }
 
+type EspStatus = "sent" | "failed" | "not_connected" | null;
+
+/** Run provider calls in order; false on the first non-2xx / network error. Fixed provider hosts only. */
+async function callEsp(calls: HttpCall[]): Promise<boolean> {
+  for (const c of calls) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), WEBHOOK_TIMEOUT_MS);
+    try {
+      const res = await fetch(c.url, { ...c.init, signal: ctrl.signal, redirect: "manual" });
+      await res.body?.cancel();
+      if (!res.ok) { console.warn("[lead-capture] list provider failed:", hostOf(c.url), res.status); return false; }
+    } catch (err) {
+      console.warn("[lead-capture] list provider error:", hostOf(c.url), (err as Error)?.name);
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  return true;
+}
+
+/** Subscribe the lead to the owner's Kit tag / MailerLite group (published videos only). */
+async function pushToEsp(admin: Db, ownerId: string, esp: ReturnType<typeof savedEsp>, data: Record<string, string>): Promise<EspStatus> {
+  const contact = esp ? leadContact(data) : null;
+  if (!esp || !contact) return null;
+  if (!INTEGRATIONS_KEY) return "not_connected";
+  const { data: row } = await admin.from("lead_integrations").select("secret_enc")
+    .eq("clerk_user_id", ownerId).eq("provider", esp.provider).maybeSingle();
+  const key = row?.secret_enc ? await decryptSecret(INTEGRATIONS_KEY, String(row.secret_enc)) : "";
+  if (!key) return "not_connected";
+  return (await callEsp(espRequests(esp.provider, key, esp.listId, contact))) ? "sent" : "failed";
+}
+
 type EmailStatus = "sent" | "failed" | "not_configured" | null;
 
 /** Email the video owner about a lead. `to` must already be a validated, owner-chosen address. */
@@ -267,14 +303,15 @@ Deno.serve(async (req: Request) => {
     // The recipient always comes from the saved project, never from the request.
     const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? callNotify : "") : savedNotifyEmail(config, listBuilder);
     const ownerId = String(video.clerk_user_id ?? "");
-    const [sent, email] = await Promise.all([
+    const [sent, email, esp] = await Promise.all([
       hooks.length
         ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString() }, { secret: await ownerSecret(ownerId) })
         : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
       notify(notifyTo, leadKind, leadData),
+      leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
     ]);
     await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);
-    return json(req, { ok: true, stored: !insertError, forwarded: sent.forwarded, failed: sent.failed, email });
+    return json(req, { ok: true, stored: !insertError, forwarded: sent.forwarded, failed: sent.failed, email, esp });
   }
 
   if (body.action === "list") {
@@ -285,6 +322,43 @@ Deno.serve(async (req: Request) => {
     const { data, error } = await query;
     if (error) return json(req, { ok: false, error: "Could not load leads" }, 500);
     return json(req, { ok: true, leads: data ?? [] });
+  }
+
+  // Email-list integrations (Kit / MailerLite): the owner's API key is verified with the provider,
+  // then stored encrypted. Keys are never returned, only whether one is connected.
+  if (typeof body.action === "string" && body.action.startsWith("integration-")) {
+    if (!hasSession) return json(req, { ok: false, error: "Sign in to manage integrations" }, 401);
+    if (!SUPABASE_SERVICE_ROLE_KEY || !INTEGRATIONS_KEY) {
+      if (body.action === "integration-status") return json(req, { ok: true, configured: false, kit: false, mailerlite: false });
+      return json(req, { ok: false, error: "Email-list integrations aren't set up on the server yet" }, 501);
+    }
+    const ownerId = await callerSub(db);
+    if (!ownerId) return json(req, { ok: false, error: "Sign in to manage integrations" }, 401);
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    if (body.action === "integration-status") {
+      const { data: rows } = await admin.from("lead_integrations").select("provider").eq("clerk_user_id", ownerId);
+      const have = new Set((rows ?? []).map((r: { provider: string }) => r.provider));
+      return json(req, { ok: true, configured: true, kit: have.has("kit"), mailerlite: have.has("mailerlite") });
+    }
+    const provider = ESP_PROVIDERS.find((p) => p === body.provider);
+    if (!provider) return json(req, { ok: false, error: "Unknown provider" }, 400);
+    if (body.action === "integration-remove") {
+      const { error } = await admin.from("lead_integrations").delete().eq("clerk_user_id", ownerId).eq("provider", provider);
+      return error ? json(req, { ok: false, error: "Could not remove it" }, 500) : json(req, { ok: true });
+    }
+    if (body.action === "integration-save") {
+      const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
+      if (apiKey.length < 8 || apiKey.length > 300 || /\s/.test(apiKey)) return json(req, { ok: false, error: "That doesn't look like an API key" }, 400);
+      if (!(await callEsp([espCheckRequest(provider, apiKey)]))) {
+        return json(req, { ok: false, error: `${provider === "kit" ? "Kit" : "MailerLite"} rejected that API key` }, 400);
+      }
+      const { error } = await admin.from("lead_integrations").upsert(
+        { clerk_user_id: ownerId, provider, secret_enc: await encryptSecret(INTEGRATIONS_KEY, apiKey), updated_at: new Date().toISOString() },
+        { onConflict: "clerk_user_id,provider" },
+      );
+      return error ? json(req, { ok: false, error: "Could not save the key" }, 500) : json(req, { ok: true });
+    }
+    return json(req, { ok: false, error: "Unknown action" }, 400);
   }
 
   // The owner's webhook signing secret, for them to paste into their receiver.

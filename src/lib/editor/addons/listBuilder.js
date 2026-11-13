@@ -29,7 +29,7 @@
 import {
   POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, isTargetDesign,
 } from './pointerDesigns.js';
-import { leadFieldTokens } from './leadClient.js';
+import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
 import { FIELD_LAYOUTS } from './addonOverlay.js';
 
 export const LIST_BUILDER_KINDS = {
@@ -183,6 +183,8 @@ export function defaultOptin(kind = 'list-builder') {
     emailEnabled: false,
     emailAddress: '',
     fbPixelId: '',
+    espProvider: '',
+    espListId: '',
     transition: 'popcorn-none',
     ...POINTER_DEFAULTS,
     pointerEnabled: !lead, // upstream only showed the arrow on the List Builder
@@ -312,6 +314,9 @@ export function listBuilderFields(config) {
       { key: 'emailEnabled', label: 'Email Notification', type: 'toggle', tab: 'Integrations' },
       { key: 'emailAddress', label: 'Notification Address', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
       { key: 'fbPixelId', label: 'Facebook Pixel ID', type: 'text', tab: 'Integrations' },
+      { key: 'espProvider', label: 'Add leads to an email list (published videos)', type: 'select', options: ESP_PROVIDERS, tab: 'Integrations' },
+      { key: 'espListId', label: espListLabel(config?.espProvider), type: 'text', tab: 'Integrations', showIf: (o) => !!o.espProvider },
+      { key: '_espConnect', label: `Connect ${espName(config?.espProvider) || 'account'}`, type: 'action', action: 'connectEsp', tab: 'Integrations', showIf: (o) => !!o.espProvider },
     );
   }
   return fields;
@@ -353,6 +358,8 @@ const CLIP_KEYS = {
   emailEnabled: 'emailNotificationEnabled',
   emailAddress: 'notificationEmail',
   fbPixelId: 'fbPixelId',
+  espProvider: 'espProvider',
+  espListId: 'espListId',
 };
 
 // opt-in option → clip.style key.

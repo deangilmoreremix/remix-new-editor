@@ -4,6 +4,7 @@ import {
   isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, leadConfigFor, MAX_DATA_BYTES,
   isValidEmail, savedNotifyEmail, buildLeadEmail,
   isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, MAX_ATTEMPTS,
+  savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret,
 } from '../../supabase/functions/lead-capture/logic.ts';
 
 describe('lead-capture webhook safety', () => {
@@ -111,5 +112,57 @@ describe('lead-capture webhook retries + signing', () => {
     expect(a).not.toBe(await deriveSigningSecret('master', 'user_b'));
     expect(await deriveSigningSecret('', 'user_a')).toBe('');
     expect(await deriveSigningSecret('master', '')).toBe('');
+  });
+});
+
+describe('lead-capture email-list delivery', () => {
+  it('reads the provider and tag/group id from saved config', () => {
+    expect(savedEsp({ espProvider: 'kit', espListId: ' 123 ' })).toEqual({ provider: 'kit', listId: '123' });
+    expect(savedEsp({ espProvider: 'mailerlite', espListId: '' })).toEqual({ provider: 'mailerlite', listId: '' });
+    expect(savedEsp({ espProvider: 'kit', espListId: '12/../x' })).toEqual({ provider: 'kit', listId: '' });
+    expect(savedEsp({ espProvider: 'mailchimp' })).toBeNull();
+    expect(savedEsp({})).toBeNull();
+    expect(savedEsp(null)).toBeNull();
+  });
+
+  it('picks the email (and name) out of a lead', () => {
+    expect(leadContact({ NAME: 'Ada', EMAIL: 'ada@x.io' })).toEqual({ email: 'ada@x.io', name: 'Ada' });
+    expect(leadContact({ 'EMAIL ADDRESS': 'a@b.co' })).toEqual({ email: 'a@b.co', name: '' });
+    expect(leadContact({ PHONE: '555', EMAIL: 'not-an-email' })).toBeNull();
+    expect(leadContact({ PHONE: '555' })).toBeNull();
+  });
+
+  it('builds Kit calls: create the subscriber, then tag them', () => {
+    const calls = espRequests('kit', 'k_123456789', '77', { email: 'a@b.co', name: 'Ada' });
+    expect(calls.map((c) => c.url)).toEqual(['https://api.kit.com/v4/subscribers', 'https://api.kit.com/v4/tags/77/subscribers']);
+    expect(calls[0].init.headers['X-Kit-Api-Key']).toBe('k_123456789');
+    expect(JSON.parse(calls[0].init.body)).toEqual({ email_address: 'a@b.co', first_name: 'Ada' });
+    expect(JSON.parse(calls[1].init.body)).toEqual({ email_address: 'a@b.co' });
+    expect(espRequests('kit', 'k_123456789', '', { email: 'a@b.co', name: '' })).toHaveLength(1);
+  });
+
+  it('builds one MailerLite call with the group', () => {
+    const [call, ...rest] = espRequests('mailerlite', 'ml_123456789', '9', { email: 'a@b.co', name: 'Ada' });
+    expect(rest).toHaveLength(0);
+    expect(call.url).toBe('https://connect.mailerlite.com/api/subscribers');
+    expect(call.init.headers.Authorization).toBe('Bearer ml_123456789');
+    expect(JSON.parse(call.init.body)).toEqual({ email: 'a@b.co', fields: { name: 'Ada' }, groups: ['9'] });
+  });
+
+  it('only ever calls the fixed provider hosts', () => {
+    for (const p of ['kit', 'mailerlite']) {
+      const urls = [...espRequests(p, 'key_123456', '1', { email: 'a@b.co', name: '' }), espCheckRequest(p, 'key_123456')].map((c) => new URL(c.url).hostname);
+      expect(urls.every((h) => ['api.kit.com', 'connect.mailerlite.com'].includes(h))).toBe(true);
+    }
+  });
+
+  it('encrypts API keys at rest and decrypts only with the right master key', async () => {
+    const token = await encryptSecret('master-key', 'sk_live_abc123');
+    expect(token).toMatch(/^v1\.[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=]+$/);
+    expect(token).not.toContain('sk_live_abc123');
+    expect(token).not.toBe(await encryptSecret('master-key', 'sk_live_abc123')); // fresh IV each time
+    expect(await decryptSecret('master-key', token)).toBe('sk_live_abc123');
+    expect(await decryptSecret('wrong-key', token)).toBe('');
+    expect(await decryptSecret('master-key', 'garbage')).toBe('');
   });
 });

@@ -124,6 +124,82 @@ export async function signWebhook(secret: string, body: string, timestampSec: nu
   return `t=${timestampSec},v1=${await hmacHex(secret, `${timestampSec}.${body}`)}`;
 }
 
+// ------------------------------------------------ email-list delivery (Kit / MailerLite)
+
+export type EspProvider = "kit" | "mailerlite";
+export const ESP_PROVIDERS: readonly EspProvider[] = ["kit", "mailerlite"];
+const LIST_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+
+/** The provider + tag/group id saved on a clip or the List Builder ("" listId = just add the subscriber). */
+export function savedEsp(config: Json | null | undefined): { provider: EspProvider; listId: string } | null {
+  const provider = config?.espProvider;
+  if (typeof provider !== "string" || !(ESP_PROVIDERS as readonly string[]).includes(provider)) return null;
+  const raw = String(config?.espListId ?? "").trim();
+  return { provider: provider as EspProvider, listId: LIST_ID_RE.test(raw) ? raw : "" };
+}
+
+/** The subscriber to add: the first valid email answer, plus a name if one was asked for. */
+export function leadContact(data: Record<string, string>): { email: string; name: string } | null {
+  const entries = Object.entries(data);
+  const email = entries.find(([k, v]) => /MAIL/i.test(k) && isValidEmail(v))?.[1];
+  if (!email) return null;
+  const name = entries.find(([k, v]) => /NAME/i.test(k) && !/MAIL/i.test(k) && v)?.[1] ?? "";
+  return { email: email.trim(), name: name.slice(0, 100) };
+}
+
+export type HttpCall = { url: string; init: { method: string; headers: Record<string, string>; body?: string } };
+
+/** Calls (run in order, stop on the first failure) that subscribe `contact` and tag/group them. */
+export function espRequests(provider: EspProvider, apiKey: string, listId: string, contact: { email: string; name: string }): HttpCall[] {
+  if (provider === "kit") {
+    const headers = { "Content-Type": "application/json", "X-Kit-Api-Key": apiKey };
+    const calls: HttpCall[] = [{
+      url: "https://api.kit.com/v4/subscribers",
+      init: { method: "POST", headers, body: JSON.stringify({ email_address: contact.email, ...(contact.name ? { first_name: contact.name } : {}) }) },
+    }];
+    if (listId) calls.push({ url: `https://api.kit.com/v4/tags/${encodeURIComponent(listId)}/subscribers`, init: { method: "POST", headers, body: JSON.stringify({ email_address: contact.email }) } });
+    return calls;
+  }
+  return [{
+    url: "https://connect.mailerlite.com/api/subscribers",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ email: contact.email, ...(contact.name ? { fields: { name: contact.name } } : {}), ...(listId ? { groups: [listId] } : {}) }),
+    },
+  }];
+}
+
+/** A cheap authenticated GET used to check an API key before saving it. */
+export function espCheckRequest(provider: EspProvider, apiKey: string): HttpCall {
+  return provider === "kit"
+    ? { url: "https://api.kit.com/v4/account", init: { method: "GET", headers: { "X-Kit-Api-Key": apiKey, Accept: "application/json" } } }
+    : { url: "https://connect.mailerlite.com/api/subscribers?limit=1", init: { method: "GET", headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" } } };
+}
+
+/** API keys are stored AES-GCM encrypted: `v1.<iv>.<ciphertext>` (base64). */
+async function aesKey(master: string): Promise<CryptoKey> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(master));
+  return crypto.subtle.importKey("raw", digest, "AES-GCM", false, ["encrypt", "decrypt"]);
+}
+const b64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
+const unb64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+export async function encryptSecret(master: string, plaintext: string): Promise<string> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await aesKey(master), new TextEncoder().encode(plaintext)));
+  return `v1.${b64(iv)}.${b64(ct)}`;
+}
+
+/** "" when the token is malformed or the master key is wrong. */
+export async function decryptSecret(master: string, token: string): Promise<string> {
+  try {
+    const [v, iv, ct] = token.split(".");
+    if (v !== "v1" || !iv || !ct) return "";
+    return new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(iv) }, await aesKey(master), unb64(ct)));
+  } catch { return ""; }
+}
+
 // ------------------------------------------------------------- notification email
 
 const EMAIL_RE = /^[^\s@<>"',;]+@[^\s@<>"',;]+\.[^\s@<>"',;]{2,}$/;

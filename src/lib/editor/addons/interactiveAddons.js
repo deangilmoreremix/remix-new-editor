@@ -104,6 +104,8 @@ export const LEAD_FORM = registerAddon({
     emailNotificationEnabled: false,
     notificationEmail: '',
     fbPixelId: '',
+    espProvider: '',
+    espListId: '',
     style: {
       fontFamily: 'Raleway',
       backgroundColor: '#000000',

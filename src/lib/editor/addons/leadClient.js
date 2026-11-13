@@ -179,6 +179,48 @@ export async function fetchSigningSecret(supabase) {
   }
 }
 
+// ------------------------------------------------ email-list delivery (Kit / MailerLite)
+
+export const ESP_PROVIDERS = [['', 'None'], ['kit', 'Kit'], ['mailerlite', 'MailerLite']];
+export const espName = (provider) => (ESP_PROVIDERS.find(([id]) => id === provider) || ['', ''])[1];
+/** What the tag/group box is called for each provider. */
+export const espListLabel = (provider) => (provider === 'kit' ? 'Kit tag ID (optional)' : 'MailerLite group ID (optional)');
+
+async function integrationCall(supabase, body) {
+  try {
+    const { data, error } = await supabase.functions.invoke('lead-capture', { body });
+    if (error || !data) return { ok: false, error: data?.error || error?.message || 'Lead backend unavailable' };
+    return data.ok === true ? data : { ok: false, error: data.error || 'Request failed' };
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) };
+  }
+}
+
+/** { ok, configured, kit, mailerlite }: which accounts are connected (keys are never returned). */
+export async function fetchIntegrations(supabase) {
+  const r = await integrationCall(supabase, { action: 'integration-status' });
+  return r.ok ? { ok: true, configured: !!r.configured, kit: !!r.kit, mailerlite: !!r.mailerlite } : { ok: false, configured: false, kit: false, mailerlite: false, error: r.error };
+}
+
+/** Verify an API key with the provider and store it encrypted: { ok, error }. */
+export async function saveIntegration(supabase, provider, apiKey) {
+  const r = await integrationCall(supabase, { action: 'integration-save', provider, apiKey });
+  return { ok: !!r.ok, error: r.ok ? null : r.error };
+}
+
+export async function removeIntegration(supabase, provider) {
+  const r = await integrationCall(supabase, { action: 'integration-remove', provider });
+  return { ok: !!r.ok, error: r.ok ? null : r.error };
+}
+
+/** Status line under the provider box. */
+export function integrationStatusText(provider, status) {
+  if (!provider) return '';
+  if (!status?.ok) return status?.error ? `${status.error} (sign in to connect)` : '';
+  if (!status.configured) return 'Not set up on the server yet';
+  return status[provider] ? `${espName(provider)} connected ✓ — leads from published videos are added to your list` : `${espName(provider)} not connected yet`;
+}
+
 /**
  * Load stored leads for a clip (or a whole project) via the edge function.
  * Returns [] when the backend is unavailable or the caller isn't signed in.

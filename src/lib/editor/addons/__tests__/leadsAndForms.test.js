@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  submitLead, fetchLeads, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, deliveriesSummary, fetchSigningSecret, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
+  submitLead, fetchLeads, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, deliveriesSummary, fetchSigningSecret, integrationStatusText, fetchIntegrations, saveIntegration, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   buildOptinForm, showListBuilderOverlay, showPauseOverlay, ensureOverlayLayer, formBackground,
   renderAddonEditor, getAddon,
@@ -81,6 +81,29 @@ describe('lead client', () => {
     ])).toBe('✓ hooks.zapier.com · ✗ x.test (HTTP 500, 3 tries)');
     const supa = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, configured: true, secret: 'whsec_abc' }, error: null }) } };
     expect(await fetchSigningSecret(supa)).toEqual({ ok: true, configured: true, secret: 'whsec_abc', error: null });
+  });
+
+  it('shows email-list status and talks to the integration actions', async () => {
+    expect(integrationStatusText('', { ok: true })).toBe('');
+    expect(integrationStatusText('kit', { ok: true, configured: false })).toMatch(/not set up on the server/i);
+    expect(integrationStatusText('kit', { ok: true, configured: true, kit: true })).toMatch(/^Kit connected/);
+    expect(integrationStatusText('mailerlite', { ok: true, configured: true, mailerlite: false })).toBe('MailerLite not connected yet');
+    const supa = { functions: { invoke: vi.fn()
+      .mockResolvedValueOnce({ data: { ok: true, configured: true, kit: true, mailerlite: false }, error: null })
+      .mockResolvedValueOnce({ data: { ok: false, error: 'Kit rejected that API key' }, error: null }) } };
+    expect(await fetchIntegrations(supa)).toEqual({ ok: true, configured: true, kit: true, mailerlite: false });
+    expect(await saveIntegration(supa, 'kit', 'bad')).toEqual({ ok: false, error: 'Kit rejected that API key' });
+    expect(supa.functions.invoke.mock.calls[1][1].body).toEqual({ action: 'integration-save', provider: 'kit', apiKey: 'bad' });
+  });
+
+  it('list builder Integrations tab offers an email-list provider, then its id and connect button', () => {
+    const tab = (cfg) => listBuilderFields(cfg).filter((f) => f.tab === 'Integrations' && (!f.showIf || f.showIf(cfg)));
+    expect(tab({ kind: 'list-builder' }).map((f) => f.key)).toContain('espProvider');
+    expect(tab({ kind: 'list-builder' }).map((f) => f.key)).not.toContain('espListId');
+    const on = tab({ kind: 'list-builder', espProvider: 'kit' });
+    expect(on.find((f) => f.key === 'espListId').label).toBe('Kit tag ID (optional)');
+    expect(on.find((f) => f.key === '_espConnect')).toMatchObject({ type: 'action', action: 'connectEsp', label: 'Connect Kit' });
+    expect(tab({ kind: 'personalizer', espProvider: 'kit' })).toHaveLength(0);
   });
 
   it('list builder Integrations tab has a Test Webhook action only while webhooks are on', () => {
