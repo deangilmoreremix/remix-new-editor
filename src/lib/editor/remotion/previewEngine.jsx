@@ -47,6 +47,8 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
   let player = null;
   let current = model;
   let detach = () => {};
+  // A play() requested before the Remotion player has mounted (it waits for effects and fonts) must not be lost.
+  let wantPlay = false;
 
   const bind = (ref) => {
     if (!ref || ref === player) return;
@@ -63,6 +65,7 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
     Object.entries(handlers).forEach(([ev, fn]) => player.addEventListener(ev, fn));
     detach = () => Object.entries(handlers).forEach(([ev, fn]) => player?.removeEventListener(ev, fn));
     onReady?.();
+    if (wantPlay) player.play();
   };
 
   // Effect modules and fonts load lazily; render once they're ready so the
@@ -84,8 +87,8 @@ export function createPreviewEngine(host, { model, onFrame, onPlay, onPause, onE
       current = nextModel;
       render();
     },
-    play() { player?.play(); },
-    pause() { player?.pause(); },
+    play() { wantPlay = true; player?.play(); },
+    pause() { wantPlay = false; player?.pause(); },
     isPlaying() { return !!player?.isPlaying(); },
     seekToFrame(frame) {
       if (!player) return;
