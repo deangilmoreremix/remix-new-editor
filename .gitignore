@@ -121,6 +121,8 @@ debug_signin.cjs
 *.jpg
 # the pre-made Animations / Library thumbnails (public/hyperframes/thumbs) are tracked so cards are never blank
 !public/hyperframes/thumbs/*.jpg
+# Academy lesson/studio example media (served at /academy/<track>/images|gifs|videos)
+!public/academy/**/*.jpg
 
 # Logs
 logs
