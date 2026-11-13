@@ -272,24 +272,6 @@ test.describe('D. interactive behavior in the published player', () => {
     await a.ctx.close(); await b.ctx.close();
   });
 
-  test('DIAG2 click target', async () => {
-    const { ctx, page: v } = await openViewer(links.A);
-    await v.waitForTimeout(3000);
-    const info = await v.evaluate(() => {
-      const b = document.querySelector('[data-bigplay]'); const r = b.getBoundingClientRect();
-      const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-      return { big: { w: r.width, h: r.height, hidden: b.hidden }, hit: at && (at.tagName + '.' + String(at.className).slice(0, 40) + ' data=' + (at.getAttribute('data-bigplay') ?? '')), layer: [...document.querySelectorAll('.watch-frame > *')].map((e) => e.tagName + '.' + String(e.className).slice(0, 30)) };
-    });
-    console.log('DIAG2', JSON.stringify(info));
-    await v.locator('[data-bigplay]').click();
-    await v.waitForTimeout(1500);
-    console.log('DIAG2 after real click:', await v.evaluate(() => ({ t: document.querySelector('[data-time]').textContent, big: !document.querySelector('[data-bigplay]').hidden })));
-    await v.evaluate(() => document.querySelector('[data-bigplay]').dispatchEvent(new MouseEvent('click', { bubbles: true })));
-    await v.waitForTimeout(1500);
-    console.log('DIAG2 after synthetic click:', await v.evaluate(() => ({ t: document.querySelector('[data-time]').textContent, big: !document.querySelector('[data-bigplay]').hidden })));
-    await ctx.close();
-  });
-
   test('the lead form appears at its time, pauses the video, accepts a submission, then resumes', async () => {
     const { ctx, page: v } = await openViewer(links.A);
     const time = () => v.locator('[data-time]').innerText();

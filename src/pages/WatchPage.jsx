@@ -78,6 +78,12 @@ export async function mountWatchPage(container, id, deps = {}) {
       </section>
     </main>`;
   const $ = (s) => container.querySelector(s);
+  // The buttons are on screen before the player below exists (it loads the engine, the recipient and the profile first).
+  // A tap in that window must start playback once the player is ready instead of hitting an inert button.
+  let tappedEarly = false;
+  const rememberTap = () => { tappedEarly = true; };
+  $('[data-bigplay]').addEventListener('click', rememberTap);
+  $('[data-play]').addEventListener('click', rememberTap);
   const frame = $('[data-frame]');
 
   const createEngine = deps.createEngine || await (async () => {
@@ -144,8 +150,11 @@ export async function mountWatchPage(container, id, deps = {}) {
   }
 
   const start = () => { player.play(); };
+  $('[data-bigplay]').removeEventListener('click', rememberTap);
+  $('[data-play]').removeEventListener('click', rememberTap);
   $('[data-bigplay]').addEventListener('click', start);
   $('[data-play]').addEventListener('click', () => player.toggle());
+  if (tappedEarly) start();
   const seekInput = $('[data-seek]');
   seekInput.addEventListener('input', () => {
     scrubbing = true;
