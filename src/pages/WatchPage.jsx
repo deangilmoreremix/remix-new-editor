@@ -13,6 +13,7 @@ import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
+import { pixelIdFor, fireLeadPixel } from '../lib/editor/publish/pixel.js';
 
 const FPS = 30;
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -122,7 +123,10 @@ export async function mountWatchPage(container, ref, deps = {}) {
     voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
     onLead: async ({ clipId, kind, data }) => {
       const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data });
-      if (kind !== 'call-attempt' && res?.stored !== false) analytics.track('lead_submit', { clip: clipId, props: labelFor(clipId) ? { label: labelFor(clipId) } : undefined });
+      if (kind !== 'call-attempt' && res?.stored !== false) {
+        analytics.track('lead_submit', { clip: clipId, props: labelFor(clipId) ? { label: labelFor(clipId) } : undefined });
+        if (!deps.onLead) fireLeadPixel(pixelIdFor(video.project, kind, clipId));
+      }
       return res;
     },
     onChange: ({ playing, time, duration, gating }) => {
