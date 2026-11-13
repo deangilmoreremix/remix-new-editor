@@ -6,6 +6,7 @@ import { copyButtonLabel, useCopiedFlash } from '@cinegen/hooks/use-copied-flash
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { createSyncedTimeline } from '@cinegen/lib/editor/timeline-operations';
 import { BatchSyncDialog } from './batch-sync-dialog';
+import { filesToUrls } from '@cinegen/adapters/web-media'; // [remix]
 import {
   getAnalyzeVisionOnImportEnabled,
   getApiKey,
@@ -368,10 +369,10 @@ export function LeftPanel({
     if (currentFolderId === folderId) setCurrentFolderId(null);
   }, [onRemoveFolder, currentFolderId]);
 
-  const handleImport = useCallback(async () => {
+  const handleImport = useCallback(async (dropped?: string[]) => { // [remix] `dropped`: files dragged in from the desktop skip the dialog
     if (!projectId || !onAddAsset) return;
 
-    const result = await window.electronAPI.dialog.showOpen({
+    const result = dropped ?? await window.electronAPI.dialog.showOpen({
       properties: ['openFile', 'multiSelections'],
       filters: [
         { name: 'Media Files', extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm', 'mxf', 'm4v', 'wav', 'mp3', 'aac', 'flac', 'ogg', 'm4a', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'] },
@@ -932,6 +933,9 @@ export function LeftPanel({
     if (e.dataTransfer.types.includes('application/x-asset-id')) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
+    } else if (e.dataTransfer.types.includes('Files')) { // [remix] desktop files
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
     }
   }, []);
 
@@ -939,7 +943,10 @@ export function LeftPanel({
     // Don't move assets on background drop — too easy to trigger accidentally
     // (e.g. cancelled timeline drags). Use context menu "Move to Root" instead.
     e.preventDefault();
-  }, []);
+    // [remix] Files dragged in from the desktop are imported like the Import dialog.
+    const files = Array.from(e.dataTransfer?.files ?? []).filter((f) => /^(video|audio|image)\//.test(f.type));
+    if (files.length > 0) void filesToUrls(files).then((urls) => handleImport(urls));
+  }, [handleImport]);
 
   // --- Breadcrumb drag-drop ---
   const handleCrumbDragOver = useCallback((e: React.DragEvent) => {
@@ -1438,7 +1445,7 @@ export function LeftPanel({
       <div className="mp__toolbar">
         <div className="mp__toolbar-left">
           {projectId && onAddAsset && (
-            <button className="mp__tool-btn" onClick={handleImport} title="Import media files">
+            <button className="mp__tool-btn" onClick={() => void handleImport()} title="Import media files">
               <ImportIcon />
             </button>
           )}

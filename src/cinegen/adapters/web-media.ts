@@ -264,16 +264,21 @@ export const webMediaApi = {
       const accept = (o?.filters?.[0]?.extensions ?? []).map((e) => `.${e}`).join(',') || 'video/*,audio/*,image/*';
       const files = await pickFiles(accept, Boolean(o?.properties?.includes('multiSelections')));
       if (!files.length) return null;
-      const urls: string[] = [];
-      for (const file of files) {
-        // [remix] pictures are inlined (a blob: URL would not survive a reload of the node that holds it); video and audio keep durable / blob URLs
-        const url = file.type.startsWith('image/') && file.size < 8 * 1024 * 1024 ? await persistentUrl(file) : await durableUrl(file);
-        webFiles.set(url, { name: file.name, type: file.type, size: file.size });
-        (window as unknown as { __remixFileNames: Map<string, string> }).__remixFileNames.set(url, file.name);
-        urls.push(url);
-      }
-      return urls;
+      return filesToUrls(files);
     },
   },
   file: { getPathForFile: (file: File) => (file as unknown as { path?: string }).path ?? '' },
 };
+
+/** [remix] Files dropped onto the media pool take the same path as the Import dialog: durable / inline URLs + remembered names. */
+export async function filesToUrls(files: File[]): Promise<string[]> {
+  const urls: string[] = [];
+  for (const file of files) {
+    // pictures are inlined (a blob: URL would not survive a reload of the node that holds it); video and audio keep durable / blob URLs
+    const url = file.type.startsWith('image/') && file.size < 8 * 1024 * 1024 ? await persistentUrl(file) : await durableUrl(file);
+    webFiles.set(url, { name: file.name, type: file.type, size: file.size });
+    (window as unknown as { __remixFileNames: Map<string, string> }).__remixFileNames.set(url, file.name);
+    urls.push(url);
+  }
+  return urls;
+}
