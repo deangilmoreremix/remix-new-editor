@@ -10,6 +10,7 @@ import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
 import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery } from '../lib/editor/publish/publishClient.js';
 import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
+import { recipientFromSearch } from '../features/personalization/shared/personalization/publish/recipientToken.ts';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
@@ -100,13 +101,15 @@ export async function mountWatchPage(container, ref, deps = {}) {
 
   let codePreview = null;
   let scrubbing = false;
-  // Per-contact analytics (personal links carry ?c=<contactId>).
+  // Per-recipient analytics: a personal link carries a server-issued token (?r=<token>). The page content (?c= and the contact's
+  // values) is presentation only; WHO the viewer is for analytics comes from the token alone, resolved by the server.
   const viewerProfile = profileFromQuery();
+  const recipient = recipientFromSearch(typeof location !== 'undefined' ? location.search : '');
   // First-party analytics (netlify/functions/video-events.js): batched, idempotent,
   // consent-aware. Playback milestones / watch time come from onChange below.
   const analytics = deps.analytics || createAnalytics({
     videoId: video.id,
-    contactId: viewerProfile?.id || null,
+    recipient,
     sections: projectSections(video.project).map((x) => ({ id: x.id, start: x.start, end: x.end })),
   });
   const labels = ctaLabels(video.project);

@@ -10,7 +10,7 @@
 | 5 | Advanced video effects & motion | **Complete and verified** (limits in the Stage 5 section) | Authorized (3-stage cadence) | 2026-11-13 | see `git log` ("Stage 5") | 48 unit/panel/composition tests; personalization suite 197 files, 2,479 passed; typecheck gate 0; live check 40/40 | Transitions beyond the existing website hand-over and the GL effect system were not touched |
 | 6 | Captions, text & intelligent editing | **Complete and verified** (limits in the Stage 6 section) | Authorized ("finish all of the task" + approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 6") | 48 unit/panel/composition tests; live check 36/36 | Transcription accuracy depends on the model; see limits |
 | 7 | Thumbnails & personalized GIFs | **Complete and verified** (limits in the Stage 7 section) | Authorized (approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 7") | 66 unit/panel tests; live check 29/29 | GIFs are not uploaded anywhere yet (Stage 8/9) |
-| 8 | Personalized publishing & watch pages | Not started | **NOT authorized** | — | — | — | — |
+| 8 | Personalized publishing & watch pages | **Complete for recipient identity, links, attribution and revocation; per-recipient video publishing is Stage 10** (see the Stage 8 section) | Authorized (approved Stages 6–12 plan) | 2026-11-13 | see `git log` ("Stage 8") | 21 unit + 16 route + 14 video-events + 7 panel tests; SQL 43/43; full-stack check 9/9 | **Migration `20261115000000` is NOT applied anywhere** |
 | 9 | React Email & outreach | Not started | **NOT authorized** | — | — | — | — |
 | 10 | Bulk personalization & automations | Not started | **NOT authorized** | — | — | — | — |
 | 11 | Analytics, notifications & reporting | Not started | **NOT authorized** | — | — | — | — |
@@ -414,3 +414,36 @@ Authorized by the user's approval of the roadmap plan (Stage 2 only).
 * Thumbnails/GIFs are made in the browser that edits the project and downloaded; they are not stored per recipient or uploaded yet (Stages 8–10).
 * The best-frame score is a heuristic (detail, contrast, exposure); it does not detect faces or closed eyes.
 * Rendering uses `renderStillOnWeb` per frame; very long GIFs (100 frames) take proportionally longer (≈ 40 ms per frame at 320 px here); not timed on slow machines.
+
+
+## Stage 8 — Recipient tokens, personal links, attribution (2026-11-13)
+
+**Authorization:** the approved Stages 6–12 plan. **The migration is written and tested on a throwaway local Postgres only; it is NOT applied to any Supabase project or branch.**
+
+### The security defect (Stage 0 finding) — closed
+Personalized links used `?c=<contactId>`, checked only by a regex and passed unauthenticated to the analytics function, so **anyone could attribute views, clicks and leads to any contact id**, and a contact was never tied to the video's owner. Now a recipient is identified ONLY by a **server-issued token** (24 random bytes, 192 bits, 32 URL-safe characters). The database stores only its **SHA-256 hash**.
+
+### What was built
+| Piece | Where | Notes |
+|---|---|---|
+| Token / hash / label planning / URL / CSV helpers (pure, isomorphic) | `publish/recipientToken.ts` | CSV neutralises spreadsheet formulas. |
+| Table `recipient_links` + RPCs `issue`, `list`, `revoke`, `resolve` | `supabase/migrations/20261115000000_recipient_links.sql` | RLS own-row (Clerk sub); RPCs security-definer, pinned search_path, **service_role only**; `anon`/`authenticated` have no access at all; unique hash; one live link per (video, name); ≤200 per call, ≤5000 live per video; expiry ≤ 2 years; cascade on video delete. |
+| Owner API | `netlify/functions/_personalization/app/api/personalization/recipient-links/route.ts` (registered in `personalization-api.mts`) | GET list (with views/plays/CTA clicks/leads), POST issue, DELETE revoke. Token made here, returned **once** (`Cache-Control: no-store`), never stored. User comes from the verified Clerk session, never the request. 404 for "missing" and "not yours". |
+| Visitor path | `netlify/functions/video-events.js` | `recipient` token is hashed and resolved **for this video**; the client-supplied `contact` is **ignored**; unknown/revoked/expired/other-video tokens attribute nothing (the view is still recorded); an extra per-IP limit on resolution. |
+| Client | `src/lib/editor/publish/analyticsClient.js`, `src/pages/WatchPage.jsx`, `publish/recipientLinksClient.ts` | The watch page sends `?r=` (validated shape) and no longer sends a contact id. |
+| Panel | `guided/RecipientLinksPanel.tsx` | Paste a published video address, list names, optional expiry, make links (shown once with Copy and CSV), see per-recipient counts and status, revoke. |
+
+Counts are **derived from the existing analytics tables** (contact_id = link id), so they are idempotent: a retried batch does not double count.
+
+### Verification actually run
+* **SQL assertions 43/43** on a throwaway local Postgres (shim + the real rate limiter, publishing and analytics migrations + this one): ownership, "missing vs not yours" indistinguishable, hash-only storage, resolve rules (other video, made-up, malformed, plain text instead of hash), attribution through the REAL `ingest_video_events` with idempotent retries, revoke/expiry, anon/authenticated denied everything, cascade.
+* **Full-stack check 9/9** (real route handlers + real `video-events` handler + real SQL): issue → only hashes stored; attribution and exact counts; retry safe; **forged `?c=` (including a real link id) attributes nothing**; made-up/truncated/plain-hash/other-video tokens attribute nothing and do not break the view; another user cannot list, revoke or issue; revoke is immediate and history stays; expiry; duplicates/limits/bad input.
+* **Unit:** 21 token/client, 16 route (auth, validation, hash-only to the DB, user from session, error mapping with no leaks, rate limit), 14 video-events (token resolution, malformed tokens, forged contact, resolver failure, extra limit), 7 panel; watch page sends the token and nothing else. Six mutations (trust `contact` again, resolve ignoring the video, ignoring revocation, issue without ownership, plain token stored, client sending identity again) were each caught — three of them only by the full-stack check.
+
+### Limits and open items (not hidden)
+* **Not applied anywhere.** It needs your decision (ideally a Supabase branch first). The route is registered but returns an error until the table exists; the panel then says "not available on this server yet".
+* **Not done in this stage (per the plan, Stage 10):** publishing a *different personalized video per recipient* (rendering, uploading and creating a published video per recipient). Today one published video can be shared with many unguessable links and each recipient is tracked separately; the video content itself is the same for all. Lead capture (`lead-capture` Supabase function / `video_leads`) was **not** changed; leads are attributed through the analytics event `lead_submit`.
+* **The token is in the URL**, so it can appear in browser history, server logs and (if the page links out) the Referer header. Mitigations: 192 random bits, per-link revoke and expiry, hash-only storage. Not done: `Referrer-Policy: no-referrer` on the watch page and stripping the token from the address bar after load (would break reload); both are cheap follow-ups.
+* A link's address cannot be re-displayed (only the hash exists): lose it → revoke and re-issue. Anyone holding a link can open the video (that is what a link is); the panel says so.
+* The legacy `?c=` personalization values in a link are still read for page content (what the viewer sees themselves), but identity for analytics comes only from `?r=`.
+* Rate limiting of the Netlify routes uses the existing per-instance memory limiter for the owner API; the public resolver uses the shared database limiter.

@@ -97,3 +97,10 @@ Branch: `claude/jolly-cannon-ofqf7h`
 - Found/fixed: old encoder bugs (blank/wrong frames, palette from frame 1, 257th colour → index 0, stack overflow); decoder hang on corrupt data; GIF plan ignoring video end; fixture colour-matrix mismatch.
 - Verified: 66 tests (+7 mutation checks), live check 29/29 (ffmpeg as independent decoder). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
 - NOT done: lossy GIF optimisation, mail-client rendering tests, per-recipient storage/upload.
+
+### Stage 8 — Recipient tokens, personal links, attribution
+- Authorization: the approved Stages 6–12 plan. Migration written and tested locally only; NOT applied.
+- Added: `publish/recipientToken.ts`, `publish/recipientLinksClient.ts`, `guided/RecipientLinksPanel.tsx`, migration `20261115000000_recipient_links.sql`, route `recipient-links/route.ts` (registered), `supabase/tests/80_recipient_links_assertions.sql` + runner, `scripts/stage8-recipient-check/` (full stack against real SQL). Changed `video-events.js` (token resolution; client `contact` ignored), `analyticsClient.js`, `WatchPage.jsx`.
+- Closed: forgeable `?c=` recipient identity (Stage 0 finding).
+- Verified: SQL 43/43; full-stack 9/9; unit 58 (+6 mutation checks). Details and limits: `docs/SMARTVIDEO_STAGE_STATUS.md`.
+- NOT done: per-recipient personalized video publishing (Stage 10), Referrer-Policy / address-bar stripping, applying the migration.

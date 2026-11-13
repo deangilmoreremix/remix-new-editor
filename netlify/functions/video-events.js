@@ -5,7 +5,7 @@
  * /v/<business>/<slug>). It is the ONLY writer of analytics tables:
  *
  *   POST /api/video-events
- *   { video, session, viewer?, contact?, ref?, events: [{ type, seq, t?, clip?, section?, props? }] }
+ *   { video, session, viewer?, recipient?, ref?, events: [{ type, seq, t?, clip?, section?, props? }] }
  *   → 200 { ok, accepted, duplicates }
  *   → 400 invalid · 404 unknown/unpublished video · 413 too large · 429 rate limited
  *
@@ -15,6 +15,9 @@
  *   - the video, its owner and its published revision are resolved in the
  *     database — a client can never name an owner, a revision or a score
  *   - unknown or unpublished videos are rejected
+ *   - a recipient is identified ONLY by a server-issued token (`recipient`, 192 random bits, see recipient_links): it is hashed and
+ *     resolved in the database for THIS video; an unknown, revoked, expired or other-video token attributes nothing. The old
+ *     client-supplied `contact` id is ignored (it was forgeable: anyone could attribute views and leads to any contact id)
  *   - idempotent: (session, seq) is unique, so retried batches never double count
  *   - abuse control: shared database rate limits per client, session and video
  *   - privacy: the random viewer id is hashed with a server salt before it is
@@ -35,7 +38,7 @@ export const MAX_BODY = 8192;
 export const MAX_EVENTS = 25;
 const VIDEO = /^[A-Za-z0-9_-]{8,32}$/;
 const SESSION = /^[A-Za-z0-9_-]{16,64}$/;
-const CONTACT = /^[A-Za-z0-9_-]{1,80}$/;
+const RECIPIENT = /^[A-Za-z0-9_-]{32}$/;
 const HOST = /^[A-Za-z0-9.-]{1,120}$/;
 
 const json = (statusCode, body) => ({
@@ -83,6 +86,8 @@ export function deviceClass(ua = '') {
 }
 
 const sha = (...parts) => createHash('sha256').update(parts.join(':')).digest('hex');
+/** The exact hash the recipient-links route stores (sha256 of the token, hex). */
+const sha256hex = (token) => createHash('sha256').update(token).digest('hex');
 
 function config(env) {
   const url = String(env.SUPABASE_URL || env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
@@ -125,14 +130,26 @@ export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch,
   if (!events.length) return fail(400, 'bad_request', 'No valid events');
 
   const viewer = typeof body.viewer === 'string' && SESSION.test(body.viewer) ? sha(cfg.salt, body.viewer).slice(0, 32) : null;
-  const contact = typeof body.contact === 'string' && CONTACT.test(body.contact) ? body.contact : null;
+  const recipientToken = typeof body.recipient === 'string' && RECIPIENT.test(body.recipient) ? body.recipient : null;
   const referrer = typeof body.ref === 'string' && HOST.test(body.ref) ? body.ref : null;
 
   if (await limited(cfg, fetchImpl, [
     ['video-events-client', sha(cfg.salt, ip, body.video).slice(0, 24), 120],
     ['video-events-session', sha(cfg.salt, body.session).slice(0, 24), 60],
     ['video-events-video', body.video, 1200],
+    ...(recipientToken ? [['video-events-recipient', sha(cfg.salt, ip).slice(0, 24), 60]] : []),
   ])) return fail(429, 'rate_limited', 'Too many events, slow down');
+
+  // Resolve the recipient (if any) in the database. A failure to resolve never blocks the view: it is simply not attributed.
+  let contact = null;
+  if (recipientToken) {
+    try {
+      const id = await rpc(cfg, fetchImpl, 'recipient_link_resolve', { p_video_id: body.video, p_token_hash: sha256hex(recipientToken) });
+      contact = typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id) ? id : null;
+    } catch (err) {
+      console.warn('[video-events] recipient resolution failed:', err?.message);
+    }
+  }
 
   let result;
   try {

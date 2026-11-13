@@ -61,8 +61,8 @@ describe('watch page records first-party analytics', () => {
     window.history.replaceState(null, '', '/');
   });
 
-  it('opens real analytics (with the personal-link contact) when no override is given', async () => {
-    window.history.replaceState(null, '', '/watch/abcdefgh12?c=c_acme');
+  it('opens real analytics (with the personal-link recipient TOKEN) when no override is given', async () => {
+    window.history.replaceState(null, '', '/watch/abcdefgh12?c=c_acme&r=Abcdefghijklmnopqrstuvwxyz012345');
     const box = document.createElement('div');
     document.body.appendChild(box);
     const { create } = fakeEngine();
@@ -75,7 +75,8 @@ describe('watch page records first-party analytics', () => {
     const [url, init] = fetchSpy.mock.calls[0];
     expect(url).toBe('/api/video-events');
     const body = JSON.parse(init.body);
-    expect(body).toMatchObject({ video: 'abcdefgh12', contact: 'c_acme' });
+    expect(body).toMatchObject({ video: 'abcdefgh12', recipient: 'Abcdefghijklmnopqrstuvwxyz012345' });
+    expect(body.contact).toBeUndefined(); // the client-chosen ?c= id is never sent as an identity
     expect(body.events[0].type).toBe('page_open');
     expect(body.owner_id).toBeUndefined();
     fetchSpy.mockRestore();
@@ -122,5 +123,27 @@ describe('share panel: views by contact', () => {
       fetchStats: async () => { throw Object.assign(new Error('Could not find the function public.video_events_by_contact'), { code: 'PGRST202' }); },
     });
     await vi.waitFor(() => expect(box.textContent).toContain('once the analytics update is installed'));
+  });
+});
+
+describe('watch page: a link without a valid token is anonymous', () => {
+  it('?c= alone (the old forgeable id) and a malformed ?r= attribute nothing', async () => {
+    for (const q of ['?c=c_acme', '?c=c_acme&r=short', '?r=' + 'x'.repeat(40)]) {
+      window.history.replaceState(null, '', `/watch/abcdefgh12${q}`);
+      const box = document.createElement('div');
+      document.body.appendChild(box);
+      const { create } = fakeEngine();
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, status: 200 });
+      Object.defineProperty(navigator, 'doNotTrack', { value: '0', configurable: true });
+      const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, onLead: vi.fn() });
+      player.destroy();
+      window.dispatchEvent(new Event('pagehide'));
+      await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalled());
+      const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
+      expect(body.recipient).toBeUndefined();
+      expect(body.contact).toBeUndefined();
+      fetchSpy.mockRestore();
+    }
+    window.history.replaceState(null, '', '/');
   });
 });

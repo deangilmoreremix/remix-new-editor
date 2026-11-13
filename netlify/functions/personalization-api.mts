@@ -16,6 +16,7 @@
  *   POST          /api/personalization/image-analyze | image-edit | image-smart-edit | download-image
  *   GET|POST|DELETE /api/personalization/project
  *   GET|POST|DELETE /api/personalization/layouts   (saved layer layouts, geometry only)
+ *   GET|POST|DELETE /api/personalization/recipient-links   (server-issued per-recipient watch-page tokens)
  *   POST          /api/personalization/record
  *   POST          /api/personalization/persist-edited-asset
  *   POST          /api/personalization/resolve-website  (find a business's own site from its OSM listing)
@@ -47,6 +48,7 @@ import * as imageSmartEdit from './_personalization/app/api/personalization/imag
 import * as downloadImage from './_personalization/app/api/personalization/download-image/route'
 import * as project from './_personalization/app/api/personalization/project/route'
 import * as layouts from './_personalization/app/api/personalization/layouts/route'
+import * as recipientLinks from './_personalization/app/api/personalization/recipient-links/route'
 import * as record from './_personalization/app/api/personalization/record/route'
 import * as demoDiscover from './_personalization/app/api/demo/discover/route'
 import * as persistEditedAsset from './_personalization/extra/persistEditedAsset'
@@ -77,6 +79,7 @@ const STATIC_ROUTES: Record<string, RouteModule> = {
   '/api/personalization/download-image': downloadImage as RouteModule,
   '/api/personalization/project': project as RouteModule,
   '/api/personalization/layouts': layouts as RouteModule,
+  '/api/personalization/recipient-links': recipientLinks as RouteModule,
   '/api/personalization/record': record as RouteModule,
   '/api/personalization/persist-edited-asset': persistEditedAsset as unknown as RouteModule,
   '/api/personalization/resolve-website': resolveWebsite as RouteModule,

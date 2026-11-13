@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { createHash } from 'node:crypto';
 import { describe, it, expect, vi } from 'vitest';
 import { handle, handler, normalizeEvent, deviceClass, MAX_BODY, EVENT_TYPES } from '../video-events.js';
 
@@ -6,7 +7,7 @@ const env = { SUPABASE_URL: 'https://db.test', SUPABASE_SERVICE_ROLE_KEY: 'servi
 const base = { video: 'abcdefgh12', session: 'sess_0123456789abcdef', events: [{ type: 'page_open', seq: 0 }] };
 
 /** fetch fake: records RPC calls; `ingest` / `limit` customise answers. */
-function fakeFetch({ ingest = { ok: true, accepted: 1, duplicates: 0 }, limit = { allowed: true }, limiterDown = false } = {}) {
+function fakeFetch({ ingest = { ok: true, accepted: 1, duplicates: 0 }, limit = { allowed: true }, limiterDown = false, resolve = null, resolveFails = false } = {}) {
   const calls = [];
   const fn = vi.fn(async (url, init) => {
     const name = url.split('/rpc/')[1];
@@ -14,6 +15,10 @@ function fakeFetch({ ingest = { ok: true, accepted: 1, duplicates: 0 }, limit = 
     if (name === 'rate_limit_check') {
       if (limiterDown) return { ok: false, status: 500, json: async () => ({}) };
       return { ok: true, json: async () => limit };
+    }
+    if (name === 'recipient_link_resolve') {
+      if (resolveFails) return { ok: false, status: 500, json: async () => ({}) };
+      return { ok: true, json: async () => resolve };
     }
     return { ok: true, json: async () => ingest };
   });
@@ -73,6 +78,9 @@ describe('video-events: trust boundary', () => {
     expect(Object.keys(ingest.args).sort()).toEqual(['p_contact_id', 'p_device', 'p_events', 'p_referrer', 'p_session_key', 'p_video_id', 'p_viewer_hash']);
     expect(JSON.stringify(ingest.args)).not.toMatch(/attacker|interest_score|"score"|revision/);
     expect(ingest.args.p_events).toEqual([{ type: 'play', seq: 1 }]);
+    // The client-supplied contact id is NOT trusted any more: nothing is attributed without a server-issued token.
+    expect(ingest.args.p_contact_id).toBeNull();
+    expect(f.calls.some((c) => c.name === 'recipient_link_resolve')).toBe(false);
     expect(ingest.args.p_device).toBe('mobile');
     // The raw viewer id and the IP never reach the database.
     expect(ingest.args.p_viewer_hash).toMatch(/^[a-f0-9]{32}$/);
@@ -109,5 +117,53 @@ describe('video-events: trust boundary', () => {
     expect(deviceClass('Mozilla/5.0 (iPad)')).toBe('tablet');
     expect(deviceClass('Mozilla/5.0 (Linux; Android 14) Mobile')).toBe('mobile');
     expect(deviceClass('Mozilla/5.0 (X11; Linux x86_64)')).toBe('desktop');
+  });
+});
+
+describe('video-events: recipient tokens', () => {
+  const TOKEN = 'Abcdefghijklmnopqrstuvwxyz012345';
+  const LINK_ID = '11111111-1111-4111-8111-111111111111';
+  const sha = (t) => createHash('sha256').update(t).digest('hex');
+
+  it('resolves the token in the database (by its HASH, for THIS video) and attributes the events to the link id', async () => {
+    const f = fakeFetch({ resolve: LINK_ID });
+    const res = await handle({ ...base, recipient: TOKEN }, { fetchImpl: f, env });
+    expect(res.statusCode).toBe(200);
+    const r = f.calls.find((c) => c.name === 'recipient_link_resolve');
+    expect(r.args).toEqual({ p_video_id: 'abcdefgh12', p_token_hash: sha(TOKEN) });
+    expect(JSON.stringify(f.calls)).not.toContain(TOKEN); // the plain token never leaves this function
+    expect(f.calls.find((c) => c.name === 'ingest_video_events').args.p_contact_id).toBe(LINK_ID);
+  });
+
+  it('an unknown / revoked / expired / other-video token attributes nothing but the view is still recorded', async () => {
+    const f = fakeFetch({ resolve: null });
+    const res = await handle({ ...base, recipient: TOKEN }, { fetchImpl: f, env });
+    expect(res.statusCode).toBe(200);
+    expect(f.calls.find((c) => c.name === 'ingest_video_events').args.p_contact_id).toBeNull();
+  });
+
+  it('a malformed token is ignored without a database lookup; a forged contact id with a bad token still attributes nothing', async () => {
+    for (const bad of ['short', 'x'.repeat(33), "a'; drop table--aaaaaaaaaaaaaaaaaaaa", 12345, {}, null]) {
+      const f = fakeFetch({ resolve: LINK_ID });
+      await handle({ ...base, recipient: bad, contact: LINK_ID }, { fetchImpl: f, env });
+      expect(f.calls.some((c) => c.name === 'recipient_link_resolve')).toBe(false);
+      expect(f.calls.find((c) => c.name === 'ingest_video_events').args.p_contact_id).toBeNull();
+    }
+  });
+
+  it('a resolver failure never blocks recording; a garbage resolver answer is not trusted', async () => {
+    expect((await handle({ ...base, recipient: TOKEN }, { fetchImpl: fakeFetch({ resolveFails: true }), env })).statusCode).toBe(200);
+    const f = fakeFetch({ resolve: "'; delete from video_events; --" });
+    await handle({ ...base, recipient: TOKEN }, { fetchImpl: f, env });
+    expect(f.calls.find((c) => c.name === 'ingest_video_events').args.p_contact_id).toBeNull();
+  });
+
+  it('adds a per-client limit on token resolution (slows guessing)', async () => {
+    const f = fakeFetch();
+    await handle({ ...base, recipient: TOKEN }, { fetchImpl: f, env, ip: '198.51.100.7' });
+    expect(f.calls.filter((c) => c.name === 'rate_limit_check').map((c) => c.args.p_scope)).toContain('video-events-recipient');
+    const g = fakeFetch();
+    await handle(base, { fetchImpl: g, env });
+    expect(g.calls.filter((c) => c.name === 'rate_limit_check').map((c) => c.args.p_scope)).not.toContain('video-events-recipient');
   });
 });

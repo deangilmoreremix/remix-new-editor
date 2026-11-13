@@ -53,7 +53,8 @@ function referrerHost(doc) {
 /**
  * @param {object} o
  *   videoId      published video id
- *   contactId?   personal-link contact id (?c=)
+ *   recipient?   the server-issued recipient token from the personal link (?r=). It identifies the recipient; the server resolves it
+ *                (a client-chosen contact id is no longer sent or trusted).
  *   sections?    [{ id, start, end }] seconds; enables section_rewatch
  *   mode?        override consentMode()
  * plus injectables for tests: fetchImpl, beacon, storage, rand, doc, setTimer, clearTimer, flushMs
@@ -93,7 +94,7 @@ export function createAnalytics(o = {}) {
 
   const payload = (events) => JSON.stringify({
     video: o.videoId, session: sessionId, ...(viewerId ? { viewer: viewerId } : {}),
-    ...(o.contactId ? { contact: o.contactId } : {}), ...(ref ? { ref } : {}), events,
+    ...(typeof o.recipient === 'string' && /^[A-Za-z0-9_-]{32}$/.test(o.recipient) ? { recipient: o.recipient } : {}), ...(ref ? { ref } : {}), events,
   });
 
   function schedule(ms) {

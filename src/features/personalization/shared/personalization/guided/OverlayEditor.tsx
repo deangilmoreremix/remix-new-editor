@@ -16,6 +16,7 @@ import { FootageEffectsPanel } from './FootageEffectsPanel'
 import { LayerEffectsPanel } from './LayerEffectsPanel'
 import { CaptionsPanel } from './CaptionsPanel'
 import { ThumbnailGifPanel } from './ThumbnailGifPanel'
+import { RecipientLinksPanel } from './RecipientLinksPanel'
 import { PresenterStageBox } from './PresenterStageBox'
 import { applyCustomFields, rotationCss, sourceMediaStyle } from '../preview/layerTransform'
 import { maxScrollPx } from '../preview/websiteBackground'
@@ -1179,6 +1180,7 @@ export function OverlayEditor({ inputProps }: OverlayEditorProps): React.JSX.Ele
           {editPreviewSettings && <LayerEffectsPanel settings={settings} edit={editPreviewSettings} selected={selectionIds.length <= 1 ? selected ?? undefined : undefined} />}
           {editPreviewSettings && <CaptionsPanel settings={settings} edit={editPreviewSettings} videoUrl={inputProps.isImageSource ? null : inputProps.videoUrl} />}
           {editPreviewSettings && <ThumbnailGifPanel inputProps={inputProps} edit={editPreviewSettings} />}
+          <RecipientLinksPanel />
         </div>
       </div>
 
