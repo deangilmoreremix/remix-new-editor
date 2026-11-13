@@ -229,7 +229,7 @@ export function LandingPageInput({
                   borderColor: `${example.color}40`,
                   color: example.color,
                 }}
-                className="rounded-full bg-background-elevated border hover:brightness-125 transition-all flex items-center gap-1 px-1.5 py-0.5 text-[11px]"
+                className="rounded-full bg-transparent border hover:brightness-125 transition-all flex items-center gap-1 px-1.5 py-0.5 text-[11px]"
               >
                 <Icon className="w-3 h-3" />
                 {example.headline}
