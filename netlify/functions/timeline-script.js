@@ -17,6 +17,8 @@
  *     aspectRatio: string,
  *     templateContext: { name?, basePrompt?, description? },
  *     personalizationEnabled: boolean,
+ *     scenes: string[] (optional) — scene names; when given the script is written as exactly one line per scene,
+ *     business: { business_name?, city?, offer?, about? } (optional) — the user's own details, used verbatim,
  *     previousResponseId: string (optional, for stateful chaining),
  *   }
  *
@@ -99,8 +101,33 @@ Optimize the provided script for AI voice narration (TTS).
 - Return only the optimized script text.`,
 };
 
-function buildContextBlock(input) {
+const clip = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
+export const cleanScenes = (scenes) => (Array.isArray(scenes) ? scenes.map((x) => clip(x, 80)).filter(Boolean).slice(0, 12) : []);
+export const cleanBusiness = (b) => ({ business_name: clip(b?.business_name, 120), city: clip(b?.city, 120), offer: clip(b?.offer, 160), about: clip(b?.about, 600) });
+
+/** Extra rules when the script must be one line per scene (they override the length / ending rules above them). */
+export function sceneRules(scenes) {
+  if (!scenes.length) return '';
+  return `\n\nSCENE STRUCTURE (these rules override anything above about length or how the script ends):
+- Write exactly ${scenes.length} lines, one for each scene, in the order given, separated by a single newline.
+- Each line is the spoken narration for its scene. Do not number the lines, do not name the scenes, do not add headings.
+- Keep the whole script within the word budget in the context.
+- The call to action is shown separately: do NOT put it in the lines.`;
+}
+
+export function buildContextBlock(input) {
   const ctx = [];
+  const scenes = cleanScenes(input.scenes);
+  const biz = cleanBusiness(input.business);
+  if (biz.business_name) ctx.push(`Business name (use it exactly as written): ${biz.business_name}`);
+  if (biz.city) ctx.push(`City / location: ${biz.city}`);
+  if (biz.offer) ctx.push(`Current offer (mention it naturally): ${biz.offer}`);
+  if (biz.about) ctx.push(`About the business: ${biz.about}`);
+  if (scenes.length) {
+    ctx.push(`Scenes, in order (write one line for each):\n${scenes.map((s, i) => `${i + 1}. ${s}`).join('\n')}`);
+    if (input.duration) ctx.push(`Word budget: about ${Math.round(Number(input.duration) * 2.4)} words in total (roughly 2.4 spoken words per second).`);
+  }
+  if (scenes.length || biz.business_name || biz.city) ctx.push('Do not invent facts (awards, years in business, prices, guarantees, medical or legal outcomes). If a detail is missing, write around it.');
   if (input.niche) ctx.push(`Niche/Industry: ${input.niche}`);
   if (input.templateContext?.name) ctx.push(`Template: ${input.templateContext.name}`);
   if (input.templateContext?.basePrompt) ctx.push(`Template base prompt: ${input.templateContext.basePrompt}`);
@@ -173,7 +200,7 @@ export async function handler(event) {
     return jsonResponse(400, { ok: false, error: `Unknown action: ${action}` });
   }
 
-  const instructions = ACTION_INSTRUCTIONS[action];
+  const instructions = ACTION_INSTRUCTIONS[action] + sceneRules(cleanScenes(body.scenes));
   const userText = buildInputText(body);
 
   const requestBody = {

@@ -1,6 +1,6 @@
 import { BaseModal } from './BaseModal.jsx';
 import { ALL_NICHE_TEMPLATES } from '../../lib/nicheTemplatesIndex.js';
-import { generateScript, rewriteScript, shortenScript, expandScript } from '../../lib/editor/scriptAiService.js';
+import { generateScript, rewriteScript, shortenScript, expandScript, normalizeSceneLines } from '../../lib/editor/scriptAiService.js';
 import { generateImage } from '../../lib/editor/aiImageService.js';
 import { buildCompositionFromState, buildPreviewFromState } from '../../lib/editor/templateCompositionBuilder.js';
 import { normalizeAsset } from '../../lib/editor/assetModel.js';
@@ -18,6 +18,7 @@ import {
 } from './template-generator/stock.js';
 import { snapshotTemplate, restoreTemplate, splitDurable } from './template-generator/templates.js';
 import { createSyncedTemplateStore, SYNC_STATUS } from './template-generator/sync.js';
+import { templateScript, placeholdersLeft, DETAIL_FIELDS } from '../../lib/nicheScripts/index.js';
 import { createPreviewPlayer, renderPlayerHTML, playlistFromPreview, formatTime } from './template-generator/preview.js';
 import '../../styles/template-generator.css';
 
@@ -614,7 +615,17 @@ export class TemplateGeneratorModal extends BaseModal {
         </div>
         <aside class="tg-script-right">
           <h4>Your script ${sel ? `<span class="tg-meta">· ${esc(sel.name)}</span>` : ''}</h4>
-          <p class="tg-hint">Optional. Each line becomes a caption on its scene. Write your own or let AI help (uses your OpenAI key).</p>
+          <p class="tg-hint">Pick a template on the left to start from its written script (one line per scene), or write your own. Each line becomes a caption on its scene.</p>
+          <fieldset class="tg-details" aria-label="Your details">
+            <legend>Your details <span class="tg-meta">fill the script in and guide the AI</span></legend>
+            <div class="tg-form-row">
+              ${DETAIL_FIELDS.map((f) => `<label>${f.label}<input type="text" data-bind="s.details.${f.key}" placeholder="${esc(f.placeholder)}" value="${esc(this.s.details[f.key])}" maxlength="120"></label>`).join('')}
+            </div>
+            <label class="tg-field">About your business (optional, helps the AI)
+              <input type="text" data-bind="s.details.about" placeholder="e.g. Family-run Italian place, wood-fired pizza, cosy patio" value="${esc(this.s.details.about)}" maxlength="400"></label>
+          </fieldset>
+          <p class="tg-status tg-status--warn" id="tg-placeholders" ${placeholdersLeft(sc.text + ' ' + sc.cta).length ? '' : 'hidden'}>${this.placeholderHint()}</p>
+          ${sel && templateScript(sel.id) && sc.text !== this.s.autoText ? `<button type="button" class="tg-chip is-active" data-act="use-template-script">Use “${esc(sel.name)}” written script</button>` : ''}
           <textarea id="tg-script-text" class="tg-textarea" rows="8" data-bind="s.script.text" placeholder="Write or paste your script here…">${esc(sc.text)}</textarea>
           <div class="tg-form-row">
             <label>Tone
@@ -623,7 +634,7 @@ export class TemplateGeneratorModal extends BaseModal {
               <select data-bind="s.script.audience">${['general', 'business', 'consumer', 'youth', 'professionals', 'creators'].map((a) => `<option value="${a}"${sc.audience === a ? ' selected' : ''}>${a[0].toUpperCase() + a.slice(1)}</option>`).join('')}</select></label>
           </div>
           <label class="tg-field">Call to action
-            <input type="text" data-bind="s.script.cta" placeholder="e.g. Book your free consultation today" value="${esc(sc.cta)}"></label>
+            <input type="text" id="tg-script-cta" data-bind="s.script.cta" placeholder="e.g. Book your free consultation today" value="${esc(sc.cta)}"></label>
           <div class="tg-ai-tools">
             ${[['generate', '✨ Write with AI'], ['rewrite', '🔄 Rewrite'], ['shorten', '📝 Shorten'], ['expand', '📖 Expand']].map(([k, label]) => `<button type="button" class="tg-chip" data-act="ai-script" data-kind="${k}" ${u.scriptBusy ? 'disabled' : ''}>${u.scriptBusy === k ? '⏳ Working…' : label}</button>`).join('')}
           </div>
@@ -900,7 +911,12 @@ export class TemplateGeneratorModal extends BaseModal {
           <h4>${esc(t.name)}</h4>
           <p class="tg-meta">${esc(t.niche)} · ${esc((t.aspectRatios || []).join(' / '))}${d.default ? ` · about ${d.default}s` : ''}</p>
           <p>${esc(t.description)}</p>
-          <ol class="tg-scenes">${(t.sceneStructure || []).map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
+          ${(() => {
+            const ts = templateScript(t.id, this.s.details);
+            return ts
+              ? `<ol class="tg-scenes tg-scenes--script">${(t.sceneStructure || []).map((x, i) => `<li><b>${esc(x)}</b><span>${esc(ts.lines[i] || '')}</span></li>`).join('')}</ol><p class="tg-credit"><b>Call to action:</b> ${esc(ts.cta)}</p>`
+              : `<ol class="tg-scenes">${(t.sceneStructure || []).map((x) => `<li>${esc(x)}</li>`).join('')}</ol>`;
+          })()}
           <div class="tg-popup__actions">
             <button type="button" class="tg-chip" data-act="popup-close">Close</button>
             <button type="button" class="tg-chip is-active" data-act="popup-use-script" data-id="${esc(t.id)}">Use this script</button>
@@ -1043,7 +1059,11 @@ export class TemplateGeneratorModal extends BaseModal {
       }
       return;
     }
-    if (t.dataset?.bind && t.type !== 'checkbox' && t.tagName !== 'SELECT') this._bind(t);
+    if (t.dataset?.bind && t.type !== 'checkbox' && t.tagName !== 'SELECT') {
+      this._bind(t);
+      if (t.dataset.bind.startsWith('s.details.')) this._refillScript();
+      else if (t.dataset.bind === 's.script.text' || t.dataset.bind === 's.script.cta') this._refillScript();
+    }
   }
 
   _onChange(e) {
@@ -1099,6 +1119,7 @@ export class TemplateGeneratorModal extends BaseModal {
       case 'script-pick': this.pickScript(id); break;
       case 'script-preview': this.setPopup({ kind: 'script', id }); break;
       case 'ai-script': this.runScriptAction(el.dataset.kind); break;
+      case 'use-template-script': this._applyTemplateScript(true); this.paint(); break;
       case 'overlay-tab': this.ui.overlayTab = id; this.paint(); break;
       case 'transition-cat': this.ui.overlayCategory = id; this.paint(); break;
       case 'transition-pick': this.pickTransition(id); break;
@@ -1166,7 +1187,40 @@ export class TemplateGeneratorModal extends BaseModal {
     const t = ALL_NICHE_TEMPLATES.find((x) => x.id === id);
     if (!t) return;
     this.s.selectedScript = this.s.selectedScript?.id === id ? null : t;
+    if (this.s.selectedScript) this._applyTemplateScript(false);
     this.paint();
+  }
+
+  /**
+   * Put the template's written script (with the user's details filled in) into the editor. Only when the text is empty or is
+   * still exactly what we filled in last time; `force` replaces whatever is there (the "Use written script" button).
+   */
+  _applyTemplateScript(force) {
+    const t = this.s.selectedScript;
+    const ts = t && templateScript(t.id, this.s.details);
+    if (!ts) return false;
+    const sc = this.s.script;
+    const untouched = !sc.text.trim() || sc.text === this.s.autoText;
+    if (!force && !untouched) return false;
+    sc.text = ts.text; this.s.autoText = ts.text;
+    if (force || !sc.cta.trim() || sc.cta === this.s.autoCta) sc.cta = ts.cta;
+    this.s.autoCta = ts.cta;
+    return true;
+  }
+
+  placeholderHint() {
+    const left = placeholdersLeft(`${this.s.script.text} ${this.s.script.cta}`);
+    return left.length ? `Fill in your details above to replace ${left.join(', ')}.` : '';
+  }
+
+  /** The details changed: re-fill an untouched written script in place (no repaint, so typing keeps its focus). */
+  _refillScript() {
+    if (this._applyTemplateScript(false)) {
+      const ta = this.overlay?.querySelector('#tg-script-text'); if (ta) ta.value = this.s.script.text;
+      const cta = this.overlay?.querySelector('#tg-script-cta'); if (cta) cta.value = this.s.script.cta;
+    }
+    const hint = this.overlay?.querySelector('#tg-placeholders');
+    if (hint) { const msg = this.placeholderHint(); hint.textContent = msg; hint.hidden = !msg; }
   }
 
   pickTransition(id) {
@@ -1372,6 +1426,20 @@ export class TemplateGeneratorModal extends BaseModal {
 
   // AI script --------------------------------------------------------------
 
+  /** The scenes the AI writes for: the template's own, else one per picked clip (5 when none are picked yet). */
+  aiScenes() {
+    const sc = this.s.selectedScript;
+    if (sc?.sceneStructure?.length) return sc.sceneStructure;
+    const base = ['Opening hook', 'What we do', 'Why choose us', 'Proof or highlight', 'Closing line'];
+    const n = this.s.selectedVideos.length || 5;
+    return Array.from({ length: n }, (_, i) => base[i] || `Highlight ${i - 3}`);
+  }
+
+  aiDuration(sc, sceneCount) {
+    const d = sc && (typeof sc.duration === 'string' ? (() => { try { return JSON.parse(sc.duration); } catch { return null; } })() : sc.duration);
+    return Number(d?.default) || Math.round(sceneCount * 8);
+  }
+
   async runScriptAction(kind) {
     const fns = { generate: generateScript, rewrite: rewriteScript, shorten: shortenScript, expand: expandScript };
     const fn = fns[kind];
@@ -1383,17 +1451,24 @@ export class TemplateGeneratorModal extends BaseModal {
     this.paint();
     try {
       const sc = this.s.selectedScript;
+      const scenes = this.aiScenes();
       const result = await fn({
         niche: sc?.niche || null,
         existingScript: this.s.script.text,
         tone: this.s.script.tone,
         audience: this.s.script.audience,
-        cta: this.s.script.cta,
-        templateContext: sc || undefined,
+        // the CTA is shown separately; the AI must not repeat it inside the lines, and must not be fed our [Your …] reminders
+        cta: this.s.script.cta.includes('[Your') ? '' : this.s.script.cta,
+        templateContext: sc ? { name: sc.name, description: sc.description } : undefined,
         personalizationEnabled: this.s.personalization.enabled,
+        scenes,
+        business: { ...this.s.details },
+        duration: this.aiDuration(sc, scenes.length),
       });
       if (!result.ok) throw new Error(result.error || 'The script service failed');
-      this.s.script.text = result.text;
+      // one line per scene, so each line lands on its own clip as a caption
+      this.s.script.text = normalizeSceneLines(result.text, scenes.length).join('\n');
+      this.s.autoText = '';
     } catch (err) {
       this.ui.scriptError = err.message || 'The script service failed';
     }

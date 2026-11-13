@@ -327,4 +327,151 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
       m.destroy();
     });
   });
+
+  describe('written niche scripts, your details, and scene-aware AI', () => {
+    const open = () => {
+      const m = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore: createTemplateStore(memory()) });
+      m.open(); m.s.started = true; m.s.step = STEPS.SCRIPT; m.paint();
+      return m;
+    };
+    const type = (selector, value) => { const el = document.querySelector(selector); el.value = value; el.dispatchEvent(new Event('input', { bubbles: true })); };
+    const ta = () => document.querySelector('#tg-script-text');
+    const cta = () => document.querySelector('#tg-script-cta');
+
+    it('picking a template puts its written script (one line per scene) and call to action in the editor', () => {
+      const m = open();
+      m.pickScript('midnight_table_film');
+      const lines = ta().value.split('\n');
+      expect(lines).toHaveLength(5);                                   // the template has 5 scenes
+      expect(lines[0]).toMatch(/comes alive/);
+      expect(ta().value).toContain('[Your business]');                 // nothing typed yet: a visible reminder
+      expect(cta().value).toContain('[Your business]');
+      expect(document.querySelector('#tg-placeholders').hidden).toBe(false);
+      m.destroy();
+    });
+
+    it('typing your details fills the script in place, without losing focus-friendly state', () => {
+      const m = open();
+      m.pickScript('midnight_table_film');
+      type('[data-bind="s.details.business_name"]', 'Luna Bistro');
+      type('[data-bind="s.details.city"]', 'Austin');
+      expect(ta().value).toContain('Luna Bistro');
+      expect(ta().value).toContain('Austin');
+      expect(ta().value).not.toContain('[Your');
+      expect(cta().value).toBe('Reserve your table tonight at Luna Bistro.');
+      expect(document.querySelector('#tg-placeholders').hidden).toBe(true);
+      expect(m.s.script.text).toBe(ta().value);                        // state and screen agree
+      m.destroy();
+    });
+
+    it('never overwrites what the user wrote; a button brings the written script back', () => {
+      const m = open();
+      m.pickScript('midnight_table_film');
+      type('#tg-script-text', 'My own words. Edited by hand.');
+      type('[data-bind="s.details.business_name"]', 'Luna Bistro');
+      expect(ta().value).toBe('My own words. Edited by hand.');      // untouched by the details
+      m.paint();
+      const btn = document.querySelector('[data-act="use-template-script"]');
+      expect(btn.textContent).toContain('Midnight Table Film');
+      btn.click();
+      expect(m.s.script.text.split('\n')).toHaveLength(5);
+      expect(m.s.script.text).toContain('Luna Bistro');
+      expect(document.querySelector('[data-act="use-template-script"]')).toBeNull();   // already in use
+      m.destroy();
+    });
+
+    it('a template pick does not replace text the user already typed', () => {
+      const m = open();
+      m.s.script.text = 'Something I wrote first.'; m.paint();
+      m.pickScript('midnight_table_film');
+      expect(m.s.script.text).toBe('Something I wrote first.');
+      expect(document.querySelector('[data-act="use-template-script"]')).toBeTruthy();
+      m.destroy();
+    });
+
+    it('the script preview shows each scene with its written line', () => {
+      const m = open();
+      m.s.details.business_name = 'Luna Bistro';
+      m.setPopup({ kind: 'script', id: 'midnight_table_film' });
+      const items = [...document.querySelectorAll('.tg-scenes--script li')];
+      expect(items).toHaveLength(5);
+      expect(items[0].querySelector('b').textContent).toBe('opening atmosphere');
+      expect(items[0].querySelector('span').textContent).toMatch(/Luna Bistro/);
+      expect(document.querySelector('.tg-popup').textContent).toMatch(/Call to action/);
+      m.destroy();
+    });
+
+    it('captions follow the script: each of 5 clips gets its own scene\'s line; fewer clips share the lines evenly', async () => {
+      const { toBuilderState } = await import('../components/modals/template-generator/rules.js');
+      const m = open();
+      m.pickScript('midnight_table_film');
+      const lines = m.s.script.text.split('\n');
+      for (let i = 1; i <= 5; i += 1) m.s.selectedVideos.push(item(i));
+      const five = toBuilderState(m.s).overlays.filter((o) => o.kind === 'caption').map((o) => o.text);
+      expect(five).toEqual(lines);                                      // clip n ↔ scene n
+      m.s.selectedVideos.splice(3);                                     // keep 3 clips
+      const three = toBuilderState(m.s).overlays.filter((o) => o.kind === 'caption').map((o) => o.text);
+      expect(three).toEqual([`${lines[0]} ${lines[1]}`, `${lines[2]} ${lines[3]}`, lines[4]]);
+      m.destroy();
+    });
+
+    it('"Write with AI" asks for one line per scene, with your details, on the customer\'s own key', async () => {
+      const sent = [];
+      vi.stubGlobal('fetch', vi.fn(async (url, opts) => { sent.push({ url, body: JSON.parse(opts.body) }); return { ok: true, json: async () => ({ ok: true, text: '1. Hook line.\n2. Dish line.\n3. Detail line.\n4. Texture line.\n5. Closing line.' }) }; }));
+      const m = open();
+      m.pickScript('signature_plate_showcase');
+      type('[data-bind="s.details.business_name"]', 'Luna Bistro');
+      type('[data-bind="s.details.about"]', 'wood-fired pizza, cosy patio');
+      await m.runScriptAction('generate');
+      const { url, body } = sent[0];
+      expect(url).toBe('/api/timeline-script');
+      expect(body.scenes).toEqual(['opening tease', 'plate reveal', 'detail shots', 'texture showcase', 'final presentation']);
+      expect(body.business).toMatchObject({ business_name: 'Luna Bistro', about: 'wood-fired pizza, cosy patio' });
+      expect(body.duration).toBe(30);
+      expect(body.templateContext).toMatchObject({ name: 'Signature Plate Showcase' });
+      expect(m.s.script.text.split('\n')).toEqual(['Hook line.', 'Dish line.', 'Detail line.', 'Texture line.', 'Closing line.']);   // numbering stripped
+      expect(m.s.autoText).toBe('');                                   // AI text now belongs to the user: details won't overwrite it
+      vi.unstubAllGlobals(); m.destroy();
+    });
+
+    it('with no template, the AI writes one line per picked clip', async () => {
+      const sent = [];
+      vi.stubGlobal('fetch', vi.fn(async (url, opts) => { sent.push(JSON.parse(opts.body)); return { ok: true, json: async () => ({ ok: true, text: 'A\nB\nC' }) }; }));
+      const m = open();
+      m.s.selectedVideos.push(item(1), item(2), item(3));
+      await m.runScriptAction('generate');
+      expect(sent[0].scenes).toHaveLength(3);
+      expect(m.s.script.text).toBe('A\nB\nC');
+      vi.unstubAllGlobals(); m.destroy();
+    });
+
+    it('does not feed the [Your …] reminders to the AI as a call to action, and shows a missing-key message', async () => {
+      let body;
+      vi.stubGlobal('fetch', vi.fn(async (url, opts) => { body = JSON.parse(opts.body); return { ok: false, status: 401, json: async () => ({ ok: false, error: 'This uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).' }) }; }));
+      const m = open();
+      m.pickScript('midnight_table_film');                               // the CTA is "[Your business]"-style until details are typed
+      await m.runScriptAction('generate');
+      expect(body.cta).toBe('');
+      expect(document.querySelector('.tg-status--error').textContent).toMatch(/your own OpenAI key/);
+      vi.unstubAllGlobals(); m.destroy();
+    });
+
+    it('your details are saved with a template and come back when it is reused', async () => {
+      const store = createTemplateStore(memory());
+      const m = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore: store });
+      m.open(); m.s.started = true; m.s.step = STEPS.SCRIPT; m.paint();
+      m.pickScript('midnight_table_film');
+      type('[data-bind="s.details.business_name"]', 'Luna Bistro');
+      m.s.selectedVideos.push(item(1)); m.s.step = STEPS.PREVIEW; m.paint();
+      m.openSave(); m.ui.tplName = 'Luna promo';
+      await m.saveTemplate(false);
+      const rec = store.list()[0];
+      expect(rec.details.business_name).toBe('Luna Bistro');
+      expect(rec.script.text).toContain('Luna Bistro');
+      const m2 = new TemplateGeneratorModal({ stockSearch: async () => ({ items: [], hasMore: false }), templateStore: store });
+      m2.open(); m2.useTemplate(rec.id);
+      expect(m2.s.details.business_name).toBe('Luna Bistro');
+      m.destroy(); m2.destroy();
+    });
+  });
 });

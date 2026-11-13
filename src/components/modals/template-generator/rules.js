@@ -108,6 +108,9 @@ export function createWizardState() {
     selectedAnimations: [],      // up to MAX_ANIMATIONS overlay refs: animations, motion graphics, end screens
     selectedScript: null,        // a niche script card (a niche template)
     script: { text: '', tone: 'conversational', audience: 'general', cta: '' },
+    details: { business_name: '', city: '', offer: '', about: '' },   // the user's own details: fill the {placeholders} and guide the AI
+    autoText: '',                // the last script text WE filled in (so edits by the user are never overwritten)
+    autoCta: '',
     selectedTransition: null,    // { type, duration } from the editor's transitions library
     // Text elements the timeline can create today (applyTemplate makes media + text/caption clips).
     elements: { captions: true, title: '', lowerThird: '', cta: '' },
@@ -151,7 +154,9 @@ export function sceneNames(s) {
 
 /** Split script text into one caption line per scene (kept simple: sentences/lines, grouped to fit). */
 export function scriptLines(text, sceneCount) {
-  const parts = String(text || '').split(/\n+|(?<=[.!?])\s+/).map((t) => t.trim()).filter(Boolean);
+  // A script written one line per scene (the written niche scripts, AI scene lines) keeps its lines; otherwise split into sentences.
+  const byLine = String(text || '').split(/\n+/).map((t) => t.trim()).filter(Boolean);
+  const parts = byLine.length > 1 ? byLine : String(text || '').split(/(?<=[.!?])\s+/).map((t) => t.trim()).filter(Boolean);
   if (!parts.length || sceneCount < 1) return [];
   if (parts.length <= sceneCount) return parts;
   const per = Math.ceil(parts.length / sceneCount);

@@ -79,3 +79,17 @@ The Supabase project ("VideoRemix Product") is shared by several apps, so everyt
 - `20261113041000_template_generator_templates_ignore_stale_writes.sql` — makes the database drop a late-arriving *older* write so a
   slow device can't overwrite a newer edit or a delete (review finding on the sync race). SQL verified on the live database in a rolled-back
   transaction; **not applied yet** (awaiting approval).
+
+## Written niche scripts and AI writing (added)
+- **120 written scripts** (`src/lib/nicheScripts/`, one file per industry, merged in `index.js`): one per niche template, **exactly one line per
+  scene** in the template's own order, plus a call to action. Written to the video length (about 1–2.9 spoken words per second), with no
+  guarantees, cure or outcome claims (legal / dental / med-spa / wellness lines carry disclaimers where needed). Fill-ins: `{business_name}`,
+  `{city}`, `{offer}`; anything left empty shows as `[Your business]` / `[Your city]` / `[Your offer]` so it can't be missed.
+- **Script step**: picking a template puts its script in the editor; **Your details** (business, city, offer, about) fill it in live; anything the
+  user edits is never overwritten (a button brings the written script back); the Preview popup shows each scene with its line. Captions follow the
+  script's own lines (5 clips ↔ 5 scenes, fewer clips share the lines).
+- **AI writing is scene-aware** and runs on the **customer's own OpenAI key** (no platform fallback; `X-OpenAI-Key`): "Write with AI / Rewrite /
+  Shorten / Expand" send the template's scenes (or one per picked clip), the user's details, tone and a word budget; the answer is cleaned to exactly
+  one line per scene. The call to action is kept separate and the model is told not to invent facts.
+- Saved templates keep the user's details. Tests: `src/test/niche-scripts.test.js`, `netlify/functions/__tests__/timeline-script.test.js`, plus
+  wizard tests in `template-generator-modal-smoke.test.js`.

@@ -42,6 +42,7 @@ export function snapshotTemplate(s, { name = '', description = '' } = {}) {
     scriptId: s.selectedScript?.id || null,
     scriptName: s.selectedScript?.name || null,
     script: { text: s.script.text, tone: s.script.tone, audience: s.script.audience, cta: s.script.cta },
+    details: { ...(s.details || {}) },
     transition: s.selectedTransition ? { type: s.selectedTransition.type, duration: s.selectedTransition.duration || 1 } : null,
     elements: { ...s.elements },
     voice: { enabled: !!s.voice.enabled, provider: s.voice.provider, voice: s.voice.voice, instructions: s.voice.instructions },
@@ -68,6 +69,7 @@ export function restoreTemplate(rec, findScript = () => null) {
   s.niche = rec.niche || null;
   s.selectedScript = rec.scriptId ? findScript(rec.scriptId) : null;
   s.script = { text: '', tone: 'conversational', audience: 'general', cta: '', ...rec.script };
+  s.details = { ...s.details, ...(rec.details || {}) };
   s.selectedTransition = rec.transition ? { ...rec.transition } : null;
   s.elements = { captions: true, title: '', lowerThird: '', cta: '', ...rec.elements };
   s.voice = { ...s.voice, ...rec.voice };
