@@ -322,7 +322,7 @@ Authorized by the user's approval of the roadmap plan (Stage 2 only).
 ### Verification actually run
 * **48 tests** (26 pure: validation, CSS strings, colour maths against browser-measured values, motion endpoints/easing/cover guarantee, fades, exits, entrances, edits; 12 composition: nothing changes with no effect, filter/overlays/transform/fade cover, presenter integration incl. removed background, text effects, exit window, entrances, original animations unchanged; 10 panel). Six mutations (sepia args, fade end, exit window, overlays on transparency, composition ignoring the look, shadow form) were each caught, then restored.
 * **Live check 40/40** (`scripts/stage5-effects-check/check.mjs`): 24 pixels across 6 presets and 7 single controls match the model within 3/255; vignette centre untouched / corner dark; blur turns a hard edge into a ramp; zoom 1→1.5 and drift put the picture edge where the maths says (±3 px) at frames 0/14/29; fades reach black at both ends and half-brightness halfway; glow/outline/shadow each measured against the same text without them and the glyph unchanged; fade exit gone at its end frame, slide-up exit 14 px as modelled, zoom-in ×1.2 settling, bounce settles, blur-in sharpens, the original fade entrance unchanged; the bubble shadow is drawn; real editor panel → Player → export agree (mean abs diff < 10) and the fade-out reaches black.
-* **Production build** of the tree at the end of Stage 4 completed (`vite build`, 3 m 25 s; the MediaPipe wasm, loader and model are emitted). The build of the final Stage 5 tree is recorded in the checkpoint report.
+* **Production build** of the tree at the end of Stage 4 completed (`vite build`, 3 m 25 s; the MediaPipe wasm, loader and model are emitted). The build of the final Stage 5 code tree also completed (3 m 11 s).
 
 ### Limits and open items (not hidden)
 * **Not used:** the existing OpenChatCut GL effect system / `@remotion/effects` (WebGL shaders, LUTs, GL transitions). They are a different rendering path that was not verified in the web renderer; Stage 5 deliberately used only effects measured in a real export. No 3D LUTs, grain, sharpening, chromatic aberration, glitch or speed ramps.
@@ -332,3 +332,17 @@ Authorized by the user's approval of the roadmap plan (Stage 2 only).
 * Fades are **picture only**. Exits need the layer to have an end frame. Text effects are for text layers; picture layers keep their existing styles.
 * The H.264 export shifts nominal colours slightly (a flat (200,50,50) clip decodes as (212,62,49) in the exporter); this is pre-existing and affects looks and plain exports alike.
 * Headless Chromium with software rendering only; other browsers not run. Preview of heavy blur on long clips was not timed.
+
+
+## Checkpoint 1 — Stages 3, 4, 5 (verified together on the final tree, 2026-11-13)
+| Check | Result |
+|---|---|
+| Full vitest (`npx vitest run`) | 778 files, **11,313 passed, 0 failed**, 61 skipped (unchanged, pre-existing; see the repair-pass notes) |
+| New tests in this checkpoint | 78 (Stage 3) + 71 (Stage 4) + 48 (Stage 5) = 197, plus 17 deliberate mutations each caught and restored |
+| `npm run typecheck:personalization` | 0 errors in scope (98 pre-existing out-of-scope, unchanged) |
+| `eslint src --quiet` | exit 0 (0 errors) |
+| `vite build` (final code tree) | succeeded, 3 m 11 s; MediaPipe wasm + loader + model emitted |
+| Live check Stage 3 / 4 / 5 | 53/53, 40/40, 40/40 (re-run on the final tree after all three stages) |
+| Not run | other browsers, real Clerk/Supabase paths, any deployment, any migration |
+
+**Awaiting the user (unchanged from earlier + new):** apply the layouts migration? private capture bucket? 117 RLS-disabled tables? real business site for a fuller capture test? email provider (needed before Stage 9)? Recorder status (needed before Stage 10 uses it)? Next after approval: Stages 6, 7, 8 (then stop again).
