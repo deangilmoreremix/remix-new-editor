@@ -121,9 +121,27 @@
     "Move to Video Effects or Motion Controls to get a 5 second clip from the same photo.",
     "Make sure your MuAPI key is set in the settings window and your account has full access, otherwise Generate will ask you to upgrade or enter a key."
   ],
-  "inputs": ["Effect (card selection)", "Input image or video", "Optional prompt", "Reference attachments", "Advanced settings", "Effect Layers", "Motion graphics description, aspect ratio and duration"],
-  "requiredInputs": ["Effect (card selection)", "Input image or video"],
-  "optionalInputs": ["Optional prompt", "Reference attachments", "Advanced settings", "Effect Layers", "Thumbnail", "Personalize tokens"],
+  "inputs": [
+    "Effect (card selection)",
+    "Input image or video",
+    "Optional prompt",
+    "Reference attachments",
+    "Advanced settings",
+    "Effect Layers",
+    "Motion graphics description, aspect ratio and duration"
+  ],
+  "requiredInputs": [
+    "Effect (card selection)",
+    "Input image or video"
+  ],
+  "optionalInputs": [
+    "Optional prompt",
+    "Reference attachments",
+    "Advanced settings",
+    "Effect Layers",
+    "Thumbnail",
+    "Personalize tokens"
+  ],
   "inputDetails": [
     {
       "name": "Effect (card selection)",
@@ -168,7 +186,13 @@
       "restrictions": "Empty prompt shows: Describe the motion graphic you want first. In Edit mode an empty prompt shows: Describe the change you want to make., and no source shows: Pick the generation you want to edit."
     }
   ],
-  "generationModes": ["Image effect (still)", "Video effect (5 second clip)", "Camera move (Motion Controls)", "Motion graphics: Generate", "Motion graphics: Edit / Remix"],
+  "generationModes": [
+    "Image effect (still)",
+    "Video effect (5 second clip)",
+    "Camera move (Motion Controls)",
+    "Motion graphics: Generate",
+    "Motion graphics: Edit / Remix"
+  ],
   "modeExplanations": [
     {
       "mode": "Image effect (still)",
@@ -229,8 +253,8 @@
       "workaround": "Compress or trim the file before uploading."
     },
     {
-      "limitation": "Effect count differs from the marketing text",
-      "impact": "The header and help text say 350+ effects, but the tabs add up to 200 presets (18 + 17 + 13 + 64 + 47 + 41).",
+      "limitation": "The count is 200 presets, not more",
+      "impact": "The six tabs add up to 200 presets (18 + 17 + 13 + 64 + 47 + 41), which is what the header and Apps card now say (200+).",
       "workaround": "Trust the counts shown on the tab buttons."
     }
   ],
@@ -251,19 +275,36 @@
   "troubleshootingSteps": [
     {
       "issue": "Generate does nothing or asks me to upgrade",
-      "steps": ["Check that you are signed in with an account that has full access.", "If a settings window opens, enter your MuAPI key and save.", "Press Generate again."]
+      "steps": [
+        "Check that you are signed in with an account that has full access.",
+        "If a settings window opens, enter your MuAPI key and save.",
+        "Press Generate again."
+      ]
     },
     {
       "issue": "Generation fails or times out",
-      "steps": ["Read the red error toast; it shows the message returned by the service.", "Press the Generate button again (it turns into a retry button after a failure).", "Use a smaller photo (under 10 MB) and a clear subject.", "On video tabs, wait up to 3 minutes; on image tabs up to 90 seconds."]
+      "steps": [
+        "Read the red error toast; it shows the message returned by the service.",
+        "Press the Generate button again (it turns into a retry button after a failure).",
+        "Use a smaller photo (under 10 MB) and a clear subject.",
+        "On video tabs, wait up to 3 minutes; on image tabs up to 90 seconds."
+      ]
     },
     {
       "issue": "I cannot find the effect I saw before",
-      "steps": ["Open the tab that holds it: image looks are in the first three tabs and video presets in the last three.", "Type part of the name in Search effects...", "Remember Video Effects (64), Video FX v2 (41) and Motion Controls (47) are separate lists."]
+      "steps": [
+        "Open the tab that holds it: image looks are in the first three tabs and video presets in the last three.",
+        "Type part of the name in Search effects...",
+        "Remember Video Effects (64), Video FX v2 (41) and Motion Controls (47) are separate lists."
+      ]
     },
     {
       "issue": "Result is not saved in my library",
-      "steps": ["Press Add to Library under the Output.", "Look for the toast Added to media library.", "If you see Failed to add to library, press the button again."]
+      "steps": [
+        "Press Add to Library under the Output.",
+        "Look for the toast Added to media library.",
+        "If you see Failed to add to library, press the button again."
+      ]
     }
   ],
   "commonProblems": [
@@ -335,26 +376,38 @@
     {
       "title": "Social profile makeover",
       "description": "Restyle a profile photo as a figurine, comic character or decade look.",
-      "steps": ["Open Image Effects or Nano Banana.", "Pick a look and upload a portrait.", "Generate and download."],
+      "steps": [
+        "Open Image Effects or Nano Banana.",
+        "Pick a look and upload a portrait.",
+        "Generate and download."
+      ],
       "expectedOutput": "A styled still image of the same person."
     },
     {
       "title": "Short-form teaser clip",
       "description": "Create an eye-catching 5 second effect from a product or portrait photo.",
-      "steps": ["Open Video Effects.", "Choose an effect and upload a photo.", "Generate and publish."],
+      "steps": [
+        "Open Video Effects.",
+        "Choose an effect and upload a photo.",
+        "Generate and publish."
+      ],
       "expectedOutput": "A 720p 5 second video ready for social."
     },
     {
       "title": "Quick photo fix",
       "description": "Change the background, time of day or weather with the Kontext Effects tab.",
-      "steps": ["Open Kontext Effects.", "Pick Background Change, Time of Day or Weather Effect.", "Describe the change in the prompt and generate."],
+      "steps": [
+        "Open Kontext Effects.",
+        "Pick Background Change, Time of Day or Weather Effect.",
+        "Describe the change in the prompt and generate."
+      ],
       "expectedOutput": "An edited still image."
     }
   ],
   "faqs": [
     {
       "question": "How many effects does Effects Studio have?",
-      "answer": "The tabs in the code list 200 presets: Image Effects 18, Nano Banana 17, Kontext Effects 13, Video Effects 64, Motion Controls 47 and Video FX v2 41. Some on-screen text says 350+, but the counts on the tab buttons are the accurate numbers."
+      "answer": "The tabs list 200 presets: Image Effects 18, Nano Banana 17, Kontext Effects 13, Video Effects 64, Motion Controls 47 and Video FX v2 41."
     },
     {
       "question": "Do I need to write a prompt?",
@@ -409,23 +462,58 @@
     "Describe the subject, not the camera, in the prompt on Motion Controls.",
     "Generate one effect at a time; layers multiply the number of generations."
   ],
-  "relatedStudios": ["ai-vfx", "animate", "videotools", "image", "edit", "upscale", "timeline", "cinema", "video"],
+  "relatedStudios": [
+    "ai-vfx",
+    "animate",
+    "videotools",
+    "image",
+    "edit",
+    "upscale",
+    "timeline",
+    "cinema",
+    "video"
+  ],
   "relatedStudioGuidance": [
-    {"studio": "ai-vfx", "relationship": "Uses the same Video Effects and Motion Controls presets plus explosion style VFX presets, with duration, size and quality controls.", "whenToMove": "When you want a 10 second clip, 480p or 720p choice, or a cleaner single-purpose VFX page.", "why": "It exposes Aspect, Duration, Size and Quality selectors that Effects Studio fixes."},
-    {"studio": "animate", "relationship": "Free-form image-to-video with your own motion prompt.", "whenToMove": "When no preset fits and you want to describe the motion yourself.", "why": "You can pick from the full image-to-video model list."},
-    {"studio": "videotools", "relationship": "Processes existing videos (upscale, translate, captions, recast).", "whenToMove": "After you have a clip and want to improve or transform it.", "why": "Effects Studio only creates new effect clips from images."},
-    {"studio": "timeline", "relationship": "Editor where finished clips can be arranged.", "whenToMove": "After pressing Insert into Timeline or when you need several clips in one video.", "why": "Effects Studio produces single clips."},
-    {"studio": "image", "relationship": "Text-to-image and image generation.", "whenToMove": "When you want to create a new image rather than apply an effect.", "why": "It offers many image models and full prompt control."}
+    {
+      "studio": "ai-vfx",
+      "relationship": "Uses the same Video Effects and Motion Controls presets plus explosion style VFX presets, with duration, size and quality controls.",
+      "whenToMove": "When you want a 10 second clip, 480p or 720p choice, or a cleaner single-purpose VFX page.",
+      "why": "It exposes Aspect, Duration, Size and Quality selectors that Effects Studio fixes."
+    },
+    {
+      "studio": "animate",
+      "relationship": "Free-form image-to-video with your own motion prompt.",
+      "whenToMove": "When no preset fits and you want to describe the motion yourself.",
+      "why": "You can pick from the full image-to-video model list."
+    },
+    {
+      "studio": "videotools",
+      "relationship": "Processes existing videos (upscale, translate, captions, recast).",
+      "whenToMove": "After you have a clip and want to improve or transform it.",
+      "why": "Effects Studio only creates new effect clips from images."
+    },
+    {
+      "studio": "timeline",
+      "relationship": "Editor where finished clips can be arranged.",
+      "whenToMove": "After pressing Insert into Timeline or when you need several clips in one video.",
+      "why": "Effects Studio produces single clips."
+    },
+    {
+      "studio": "image",
+      "relationship": "Text-to-image and image generation.",
+      "whenToMove": "When you want to create a new image rather than apply an effect.",
+      "why": "It offers many image models and full prompt control."
+    }
   ],
   "notConfirmed": [
     "The exact credit or dollar cost per effect or per tab is not in the code or catalog files read, so no price is stated.",
-    "Typical generation time: the studio waits up to 90 seconds for images and 180 seconds for videos before cancelling; actual times per effect are not documented. The help text claim of under 30 seconds is unverified.",
+    "Typical generation time: the studio waits up to 90 seconds for images and 180 seconds for videos before cancelling; actual times per effect are not documented. Image effects usually take seconds and video effects can take a minute or more.",
     "Whether a video (not an image) can be used as the source for each effect. The code sends the upload as image_url.",
     "Whether every Advanced control (Guidance, Steps, Denoise, Effect Strength) actually changes the output for each effect; the code forwards them but backend support is not documented.",
     "Effect Layers: the layer rows only have a name, blend mode and opacity (no per-layer effect or image chooser), so each layer simply repeats the same effect generation. The live canvas preview needs a layer image that the screen does not set. Treat layers as experimental.",
     "The animate (film clapper) toggles beside each slider add a single keyframe at time 0 and no keyframe editor is visible, so real parameter animation is not confirmed.",
     "Output resolution of Video FX v2 presets: the studio sends 720p and 5 seconds, but the endpoint's own limits are not documented.",
-    "The 350+ effects claim in on-screen help and the landing page; the code lists 200. Landing page revenue figures are marketing text and not part of the product behaviour.",
+    "Landing page revenue figures are marketing text and not part of the product behaviour.",
     "Exact wording of the error shown when a key is missing: the studio opens the settings window for the MuAPI key rather than showing a message."
   ],
   "sourceFiles": [

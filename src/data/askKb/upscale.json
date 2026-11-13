@@ -55,7 +55,7 @@
       "explanation": "Starts the job. The button becomes 'Upscaling...' and returns to 'Upscale Image' when done. The finished image appears in a result card.",
       "whyToUse": "Run the upscale.",
       "inputRequired": "An uploaded image; a signed-in account with access; an API key.",
-      "restrictions": "If no image is loaded you get an alert: 'Upload an image or video first'. Errors appear as an alert 'Error: <message>'."
+      "restrictions": "If no image is loaded you get an alert: 'Upload an image first'. Errors appear as an alert 'Error: <message>'."
     },
     {
       "feature": "Result card: Download and Publish to Social",
@@ -85,9 +85,22 @@
     "Compare the result by opening the original and the download side by side.",
     "If you want a different look, run the same image with Topaz Upscale or Seed Upscale."
   ],
-  "inputs": ["Method", "Image to upscale", "Scale Factor (AI Upscaler only)", "Optional attachments (reference images/videos)", "Custom thumbnail"],
-  "requiredInputs": ["Image to upscale"],
-  "optionalInputs": ["Method (a default is selected)", "Scale Factor (default 2x)", "Reference attachments", "Custom thumbnail"],
+  "inputs": [
+    "Method",
+    "Image to upscale",
+    "Scale Factor (AI Upscaler only)",
+    "Optional attachments (reference images/videos)",
+    "Custom thumbnail"
+  ],
+  "requiredInputs": [
+    "Image to upscale"
+  ],
+  "optionalInputs": [
+    "Method (a default is selected)",
+    "Scale Factor (default 2x)",
+    "Reference attachments",
+    "Custom thumbnail"
+  ],
   "inputDetails": [
     {
       "name": "Image to upscale",
@@ -118,7 +131,11 @@
       "restrictions": "Start frame, end frame and audio attachments are turned off in this studio."
     }
   ],
-  "generationModes": ["Image upscale (AI Upscaler, 2x or 4x)", "Image upscale (Topaz Upscale)", "Image upscale (Seed Upscale / SeedVR2)"],
+  "generationModes": [
+    "Image upscale (AI Upscaler, 2x or 4x)",
+    "Image upscale (Topaz Upscale)",
+    "Image upscale (Seed Upscale / SeedVR2)"
+  ],
   "modeExplanations": [
     {
       "mode": "AI Upscaler",
@@ -143,7 +160,7 @@
     "A history entry (type upscale) available in the Library"
   ],
   "limitations": [
-    "Image upscaling only; there is no video upscaling method in this studio even though the upload hint mentions video.",
+    "Image upscaling only; there is no video upscaling method in this studio.",
     "The scale factor choice (2x/4x) exists only for AI Upscaler in this studio.",
     "No before/after comparison slider on this page.",
     "No batch upscaling; one image at a time.",
@@ -169,7 +186,7 @@
     }
   ],
   "troubleshooting": [
-    "Alert 'Upload an image or video first': you clicked Upscale Image with nothing loaded. Upload an image and try again.",
+    "Alert 'Upload an image first': you clicked Upscale Image with nothing loaded. Upload an image and try again.",
     "Alert 'Error: ...': the upscale failed. Read the message, try again, or switch to another method.",
     "An upgrade prompt appears when you click Upscale Image: your account does not have full access. Upgrade or sign in, then try again.",
     "A sign-in / API key dialog opens: complete it; the upscale restarts automatically afterwards.",
@@ -254,13 +271,22 @@
     {
       "title": "Prepare images for print or large displays",
       "description": "Increase pixel size of web images.",
-      "steps": ["Upload", "Choose AI Upscaler and 4x", "Upscale Image", "Download"],
+      "steps": [
+        "Upload",
+        "Choose AI Upscaler and 4x",
+        "Upscale Image",
+        "Download"
+      ],
       "expectedOutput": "A larger, sharper image."
     },
     {
       "title": "Restore old or low-quality photos",
       "description": "Try Seed Upscale for restoration-style enlargement.",
-      "steps": ["Upload scan", "Choose Seed Upscale", "Upscale Image"],
+      "steps": [
+        "Upload scan",
+        "Choose Seed Upscale",
+        "Upscale Image"
+      ],
       "expectedOutput": "An enlarged, cleaner version."
     }
   ],
@@ -271,7 +297,7 @@
     },
     {
       "question": "Can I upscale a video here?",
-      "answer": "No. The three methods are image upscalers. The upload hint mentions video, but use Video Tools or a video studio for clips."
+      "answer": "No. The three methods are image upscalers and the upload asks for an image. Use Video Tools or a video studio for clips."
     },
     {
       "question": "Which method is best?",
@@ -312,11 +338,32 @@
     "Download the upscaled result right away; only the latest one is shown on the page.",
     "Use Edit Studio's Upscale tool when you need Topaz 4x/8x or SeedVR2 resolution control or a Before/After slider."
   ],
-  "relatedStudios": ["image", "edit", "video", "videotools", "library"],
+  "relatedStudios": [
+    "image",
+    "edit",
+    "video",
+    "videotools",
+    "library"
+  ],
   "relatedStudioGuidance": [
-    { "studio": "edit", "relationship": "Photo editing, also has an Upscale tool", "whenToMove": "When you need per-model upscale settings, a Before/After slider, or want to clean the photo first.", "why": "Edit Studio shows each upscaler's own settings." },
-    { "studio": "image", "relationship": "Where images are made", "whenToMove": "When you want a new image instead of a larger copy.", "why": "Image Studio generates and restyles." },
-    { "studio": "videotools", "relationship": "Video utilities", "whenToMove": "When your media is a video.", "why": "Upscale Suite handles images only." }
+    {
+      "studio": "edit",
+      "relationship": "Photo editing, also has an Upscale tool",
+      "whenToMove": "When you need per-model upscale settings, a Before/After slider, or want to clean the photo first.",
+      "why": "Edit Studio shows each upscaler's own settings."
+    },
+    {
+      "studio": "image",
+      "relationship": "Where images are made",
+      "whenToMove": "When you want a new image instead of a larger copy.",
+      "why": "Image Studio generates and restyles."
+    },
+    {
+      "studio": "videotools",
+      "relationship": "Video utilities",
+      "whenToMove": "When your media is a video.",
+      "why": "Upscale Suite handles images only."
+    }
   ],
   "notConfirmed": [
     "Exact output pixel size for each method and factor.",
@@ -324,7 +371,7 @@
     "Whether the AI Upscaler actually receives and honours the 2x/4x factor (the studio sends it; the model schema in the app lists no inputs for it).",
     "What factor or resolution Topaz Upscale and Seed Upscale use by default when this page sends none (Edit Studio's schema shows Topaz default 2 and SeedVR2 default 4k).",
     "Price/credits, speed and quality ranking of the three methods.",
-    "Whether uploading a video does anything useful; the in-app help text mentions video and creative or face-enhancement upscale options that are not present in the code.",
+    "Whether the optional attachment toolbar (reference images or videos) has any effect on an upscale.",
     "What effect, if any, the optional attachment toolbar files have on an upscale."
   ],
   "sourceFiles": [

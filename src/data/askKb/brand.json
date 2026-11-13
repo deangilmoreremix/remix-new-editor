@@ -45,7 +45,7 @@
       "explanation": "Five cards under 'Brand tools': Brand DNA ('Review and edit your brand identity'), Campaigns ('Create on-brand campaigns'), Asset Editor ('Edit campaign assets'), Photo Studio ('Create branded photos') and Animate ('Animate branded creative assets').",
       "whyToUse": "Jump into any tool.",
       "inputRequired": "None.",
-      "restrictions": "Brand DNA, Campaigns and Asset Editor need a selected brand; see troubleshooting for 'Brand not found'."
+      "restrictions": "Brand DNA, Campaigns and Asset Editor open the brand you came from. If none is given they open the brand you used last, then your first saved brand. 'Brand not found' only appears when you have no saved brands or the link points at a brand that no longer exists."
     },
     {
       "feature": "Recent Brands",
@@ -80,7 +80,7 @@
       "explanation": "Upload a product image (images only), optionally choose a brand from a dropdown (first option: No brand logo), type an optional Direction ('Describe the look, mood, or specific details...'), pick Resolution (1k, 2k default, 4k), then multi-select Category (Studio White, Marble Clean, Urban Street, Golden Hour, Restaurant Plated, Scandi Living, Dark Techy, Nature Organic) and Style (Clean, Dramatic, Flat Lay, Lifestyle, Macro). Generate Product Photos makes one image for every category-and-style pair (2 categories x 3 styles = 6 images), two at a time. Each result shows Download, Personalize and an 'Animate' link.",
       "whyToUse": "Many product visuals from one photo.",
       "inputRequired": "A product image plus at least one Category and one Style.",
-      "restrictions": "Output is 1:1 PNG. Toasts: 'Please upload a product image first', 'Please select at least one category and style', 'Generated N photos', 'N photo(s) failed'."
+      "restrictions": "Output is 1:1 PNG. Toasts: 'Please upload a product image first', 'Please select at least one category and style', 'Generated N photos', 'N photo(s) failed'. The brand dropdown controls which logo is used and which brand the photo is saved under; choosing 'No brand logo' uses no logo. Each result's 'Animate →' button sends that photo to Animate Studio."
     },
     {
       "feature": "Photo Studio: Generation Mode (Brand API / Direct MuAPI)",
@@ -231,7 +231,7 @@
     "'Please enter a valid website URL (e.g. https://example.com)': include http:// or https://.",
     "A sign-in/key dialog appears on Analyze: connect your API key and click Analyze again.",
     "Error text in red under the form after Analyze: the site could not be analysed; try the home page URL or retry.",
-    "'Brand not found - The brand you are looking for does not exist.' on Brand DNA, Campaign or Asset Editor: the page did not receive a selected brand; click 'Back to Brand Studio', open the brand from Recent Brands or run Analyze again.",
+    "'Brand not found - The brand you are looking for does not exist.' on Brand DNA, Campaign or Asset Editor: this only happens when you have no saved brand (the page has nothing to open) or the link is for a brand that was deleted. Click 'Back to Brand Studio', then run Analyze to create a brand, or pick one under Recent Brands.",
     "Photo Studio toast 'Please upload a product image first': upload an image (video is not accepted).",
     "Toast 'Please select at least one category and style': choose at least one of each.",
     "'N photo(s) failed' or 'N platform(s) failed': retry; failed items show an error card/row.",
@@ -250,8 +250,8 @@
       "issue": "Brand not found on sub-tools",
       "steps": [
         "Click Back to Brand Studio.",
-        "Pick the brand under Recent Brands or run Analyze again.",
-        "Open the tool from the Brand DNA page buttons."
+        "If you have no brands yet, paste your website address and click Analyze to create one.",
+        "Otherwise pick the brand under Recent Brands, then open the tool from the Brand DNA page buttons."
       ]
     },
     {
@@ -433,9 +433,6 @@
   "notConfirmed": [
     "Which specific language and vision models do Brand analysis and campaign copy use; the code calls generic text and vision functions.",
     "Whether the web-page scraping backend is available in every deployment; when it is not, the code falls back to inferring from the domain name.",
-    "Whether the router passes the selected brand to Brand DNA, Campaign and Asset Editor pages at runtime: the page loaders in router.js call these components without arguments while the pages read a brand id from their parameters, so the 'Brand not found' screen may appear; this was not tested live.",
-    "Whether the Photo Studio brand dropdown changes the logo used in Brand API mode: the dropdown updates a value, but the generation code reads the first saved brand's logo.",
-    "Whether the Animate link on photo results (a plain /animate address) works under hash routing.",
     "Whether Text Color in the Asset Editor visibly changes the preview.",
     "Whether brand data syncs to a cloud account; the store mentions it can be extended but only local storage was confirmed.",
     "The header comment in Asset Editor mentions a 9-position grid and font controls; neither exists in the UI.",

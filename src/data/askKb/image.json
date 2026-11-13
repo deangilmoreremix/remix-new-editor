@@ -50,7 +50,7 @@
       "explanation": "Add a reference image with the picker button at the left of the prompt bar, the Pexels button, the attachment toolbar or the Draw button. The studio switches to image-to-image mode, the placeholder changes to 'Describe how to transform this image (optional)', and the model list switches to image-to-image models.",
       "whyToUse": "Restyle a photo, change a scene, apply an effect, combine several photos, or follow a sketch.",
       "inputRequired": "At least one reference image. The prompt is optional in this mode. Without an image you see 'Please upload a reference image first.'",
-      "restrictions": "Images up to 10MB each (the shared upload limit). The number of images depends on the model; the picker shows 'Add up to N images' when a model takes several. Right after you add an image the studio picks the first image-to-image model in its list, which is AI Image Upscaler, so open the model button and choose the editing model you actually want."
+      "restrictions": "Images up to 10MB each (the shared upload limit). The number of images depends on the model; the picker shows 'Add up to N images' when a model takes several. When you add an image the studio keeps your model if it already accepts images, otherwise it switches to the matching editing version (for example Nano Banana becomes Nano Banana Edit) or a general editing model such as Seedream 5.0 Edit. You can always change it with the model button."
     },
     {
       "feature": "Model picker",
@@ -118,9 +118,36 @@
     "Open Tools and try a Quick Starter or the Prompt Enhancer if you are unsure what to write.",
     "Once you like the result, change the Aspect Ratio to match where you will post it and generate again."
   ],
-  "inputs": ["Prompt", "Model", "Aspect Ratio", "Resolution / quality", "Reference image(s)", "Swap face image", "Effect", "Style Preset", "Batch Count", "Reference Strength", "Advanced model options", "Sketch (Draw)"],
-  "requiredInputs": ["Prompt (text-to-image mode)", "At least one reference image (image-to-image mode)", "Swap face image (only for face-swap models)"],
-  "optionalInputs": ["Prompt (in image-to-image mode)", "Aspect Ratio", "Resolution / quality", "Style Preset", "Batch Count", "Reference Strength", "Negative prompt and other model-specific advanced options", "Effect", "Custom thumbnail"],
+  "inputs": [
+    "Prompt",
+    "Model",
+    "Aspect Ratio",
+    "Resolution / quality",
+    "Reference image(s)",
+    "Swap face image",
+    "Effect",
+    "Style Preset",
+    "Batch Count",
+    "Reference Strength",
+    "Advanced model options",
+    "Sketch (Draw)"
+  ],
+  "requiredInputs": [
+    "Prompt (text-to-image mode)",
+    "At least one reference image (image-to-image mode)",
+    "Swap face image (only for face-swap models)"
+  ],
+  "optionalInputs": [
+    "Prompt (in image-to-image mode)",
+    "Aspect Ratio",
+    "Resolution / quality",
+    "Style Preset",
+    "Batch Count",
+    "Reference Strength",
+    "Negative prompt and other model-specific advanced options",
+    "Effect",
+    "Custom thumbnail"
+  ],
   "inputDetails": [
     {
       "name": "Prompt",
@@ -186,7 +213,12 @@
       "restrictions": "It is only sent when it differs from 50, and only some models may use it."
     }
   ],
-  "generationModes": ["Text-to-image", "Image-to-image (single reference)", "Image-to-image (multiple references)", "Sketch-to-image (via Draw)"],
+  "generationModes": [
+    "Text-to-image",
+    "Image-to-image (single reference)",
+    "Image-to-image (multiple references)",
+    "Sketch-to-image (via Draw)"
+  ],
   "modeExplanations": [
     {
       "mode": "Text-to-image",
@@ -215,7 +247,7 @@
     "A valid sign-in/plan (entitlement) and an API key are required before generating.",
     "Uploaded reference images are limited to 10MB each.",
     "The model list is long and every model has different ratios, resolutions and options, so some controls appear or disappear when you change model.",
-    "Adding a reference image first selects AI Image Upscaler, which is not an editing model; you must choose another image-to-image model yourself.",
+    "After you add a reference image the studio switches to an image-to-image model for you (your model's own editing version, or a general editing model); you can change it with the model button.",
     "The studio shows one result at a time on the canvas.",
     "No built-in Variations, Upscale, Edit or Favorite buttons on the result canvas; use Upscale Suite and Edit Studio for those.",
     "Generation can take a while; the Generate button shows 'Generating...' and a progress overlay appears."
@@ -227,9 +259,9 @@
       "workaround": "Resize or compress the image to under 10MB and upload again."
     },
     {
-      "limitation": "Default model after adding a reference image is AI Image Upscaler",
-      "impact": "If you click Generate without changing the model, you get an upscale instead of the transformation you described.",
-      "workaround": "Open the model button right after adding the image and pick an image-to-image model such as an editor or restyler."
+      "limitation": "The model changes when you add a reference image",
+      "impact": "Text-to-image models cannot use a reference, so the studio switches to an image-to-image editing model. The result can look different from what your original model would make.",
+      "workaround": "Open the model button after adding the image and pick the image-to-image model you prefer."
     },
     {
       "limitation": "Model-specific options",
@@ -249,7 +281,7 @@
     "The Generate button briefly shows 'Error: ...' and returns to 'Generate': the request failed; the first 40 characters of the error are shown. Try again, or switch model or reduce options.",
     "An upgrade or plan prompt appears when you click Generate: your account does not have full access yet. Upgrade or sign in, then try again.",
     "A sign-in / API key dialog opens when you click Generate: no API key is stored. Complete the dialog; Generate then runs automatically.",
-    "I added a photo and the result is just a bigger photo: the studio auto-selected AI Image Upscaler. Open the model button and choose an editing or restyling model.",
+    "The result does not look like my original model: adding a reference image switches the studio to an editing model. Open the model button and choose the image-to-image model you want.",
     "The Resolution button is missing: the selected model has no resolution or quality option. Choose a model that has one (for example Nano Banana Pro or Seedream 5.0).",
     "I reloaded the page while it was generating: when the job finishes you should see 'Recovered a generation that finished while you were away' and the image appears in History.",
     "'Attachment upload failed: ...' or 'Sketch upload failed: ...' toasts: the file did not upload. Check the file size (10MB max) and your connection and try again.",
@@ -267,8 +299,8 @@
     {
       "issue": "Image-to-image gives an unexpected result",
       "steps": [
-        "Look at the model button: if it says AI Image Upscaler, change it.",
-        "Pick an editing or restyling model from the image-to-image list.",
+        "Look at the model button to see which editing model is selected.",
+        "Pick a different editing or restyling model from the image-to-image list if needed.",
         "Write what to change in the prompt and lower or raise Reference Strength in Advanced.",
         "Click Regenerate."
       ]
@@ -298,7 +330,7 @@
     },
     {
       "problem": "Model button shows a different model than I picked earlier",
-      "whyItHappens": "Adding a reference image switches to the first image-to-image model, and clearing it switches back to the first text-to-image model (Nano Banana).",
+      "whyItHappens": "Adding a reference image switches to an image-to-image model (your model's editing version where one exists), and clearing it switches back to the first text-to-image model (Nano Banana).",
       "howToFix": "Re-select your model after adding or clearing a reference image."
     },
     {
@@ -328,7 +360,7 @@
       "title": "Restyle your own photo",
       "steps": [
         "Click the picker button at the left of the prompt bar and upload a photo (10MB max).",
-        "Open the model button and choose an editing or restyling model instead of AI Image Upscaler.",
+        "Check the model button: the studio picks an editing model for you; change it if you want a different one.",
         "Type 'turn this into a watercolor painting, soft pastel colors'.",
         "Open Advanced and adjust Reference Strength if needed.",
         "Click Generate, then Download."
@@ -356,19 +388,33 @@
     {
       "title": "Marketing and social visuals",
       "description": "Create eye-catching posts, banners and story images from a sentence.",
-      "steps": ["Write the prompt", "Choose the ratio for the platform", "Generate", "Download or Publish to Social"],
+      "steps": [
+        "Write the prompt",
+        "Choose the ratio for the platform",
+        "Generate",
+        "Download or Publish to Social"
+      ],
       "expectedOutput": "A ready-to-post image in your chosen shape."
     },
     {
       "title": "Concept art and illustration",
       "description": "Explore characters, scenes and moods quickly across different models.",
-      "steps": ["Pick an art-focused model", "Set Style Preset in Advanced", "Generate several times with Regenerate"],
+      "steps": [
+        "Pick an art-focused model",
+        "Set Style Preset in Advanced",
+        "Generate several times with Regenerate"
+      ],
       "expectedOutput": "A set of concept images in History to compare."
     },
     {
       "title": "Photo transformation",
       "description": "Change the style or setting of an existing photo.",
-      "steps": ["Upload the photo", "Choose an image-to-image model", "Describe the change", "Generate"],
+      "steps": [
+        "Upload the photo",
+        "Choose an image-to-image model",
+        "Describe the change",
+        "Generate"
+      ],
       "expectedOutput": "A transformed version of your photo."
     }
   ],
@@ -379,7 +425,7 @@
     },
     {
       "question": "How do I turn a photo into something else?",
-      "answer": "Add it with the picker button, then choose an image-to-image model from the model button and describe the change in the prompt. Remember the studio first selects AI Image Upscaler, so change it."
+      "answer": "Add it with the picker button, then check the model button: the studio switches to an image-to-image model for you (your model's editing version, or a general editing model). Describe the change in the prompt."
     },
     {
       "question": "Does Image Studio remember my settings?",
@@ -436,13 +482,48 @@
     "Re-check the model button after adding or clearing a reference image.",
     "Download results you want to keep; History lives in your browser."
   ],
-  "relatedStudios": ["edit", "upscale", "video", "character", "commercial", "brand", "library", "explore", "templates"],
+  "relatedStudios": [
+    "edit",
+    "upscale",
+    "video",
+    "character",
+    "commercial",
+    "brand",
+    "library",
+    "explore",
+    "templates"
+  ],
   "relatedStudioGuidance": [
-    { "studio": "edit", "relationship": "Focused photo-editing tools", "whenToMove": "When you want Remove Object, Remove Background, Extend Image, Reframe, Face Swap, Change Dress or similar.", "why": "Each tool has the right inputs (mask painting, second image) built in." },
-    { "studio": "upscale", "relationship": "Increase resolution", "whenToMove": "When the image content is right but it needs more pixels.", "why": "It runs dedicated upscaling models." },
-    { "studio": "video", "relationship": "Animate the image", "whenToMove": "When you want motion. The Draw button can send a sketch to Video Studio as a start frame.", "why": "Video Studio turns images and prompts into clips." },
-    { "studio": "character", "relationship": "Consistent characters", "whenToMove": "When you need the same person across many images.", "why": "Character Studio is built for that." },
-    { "studio": "library", "relationship": "Saved results", "whenToMove": "When you want to find past generations.", "why": "Generations are saved there." }
+    {
+      "studio": "edit",
+      "relationship": "Focused photo-editing tools",
+      "whenToMove": "When you want Remove Object, Remove Background, Extend Image, Reframe, Face Swap, Change Dress or similar.",
+      "why": "Each tool has the right inputs (mask painting, second image) built in."
+    },
+    {
+      "studio": "upscale",
+      "relationship": "Increase resolution",
+      "whenToMove": "When the image content is right but it needs more pixels.",
+      "why": "It runs dedicated upscaling models."
+    },
+    {
+      "studio": "video",
+      "relationship": "Animate the image",
+      "whenToMove": "When you want motion. The Draw button can send a sketch to Video Studio as a start frame.",
+      "why": "Video Studio turns images and prompts into clips."
+    },
+    {
+      "studio": "character",
+      "relationship": "Consistent characters",
+      "whenToMove": "When you need the same person across many images.",
+      "why": "Character Studio is built for that."
+    },
+    {
+      "studio": "library",
+      "relationship": "Saved results",
+      "whenToMove": "When you want to find past generations.",
+      "why": "Generations are saved there."
+    }
   ],
   "notConfirmed": [
     "Real credit or money cost per image: no prices are stated in the studio code; only relative numbers exist for some models.",

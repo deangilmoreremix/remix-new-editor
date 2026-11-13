@@ -163,9 +163,32 @@
     "Then try AI Edit with a simple instruction such as 'make the sky a sunset'.",
     "Use 'Use result as new source' to chain two edits, for example Remove Background then Product Shot."
   ],
-  "inputs": ["Source image", "Mask (painted or uploaded)", "Outfit image", "New face photo", "Watermark / logo image", "More reference images", "Model", "Prompt / Scene description", "Settings"],
-  "requiredInputs": ["Source image (every tool)", "Painted or uploaded mask (Remove Object)", "Outfit image (Change Dress)", "New face photo (Face Swap)", "Watermark / logo image (Add Watermark)", "Prompt (AI Edit, Character & Reference)", "Scene description (Product Shot)"],
-  "optionalInputs": ["Mask image upload (Remove Object, instead of painting)", "More reference images (models that accept several)", "Model choice", "Settings such as aspect ratio, quality, render speed, opacity"],
+  "inputs": [
+    "Source image",
+    "Mask (painted or uploaded)",
+    "Outfit image",
+    "New face photo",
+    "Watermark / logo image",
+    "More reference images",
+    "Model",
+    "Prompt / Scene description",
+    "Settings"
+  ],
+  "requiredInputs": [
+    "Source image (every tool)",
+    "Painted or uploaded mask (Remove Object)",
+    "Outfit image (Change Dress)",
+    "New face photo (Face Swap)",
+    "Watermark / logo image (Add Watermark)",
+    "Prompt (AI Edit, Character & Reference)",
+    "Scene description (Product Shot)"
+  ],
+  "optionalInputs": [
+    "Mask image upload (Remove Object, instead of painting)",
+    "More reference images (models that accept several)",
+    "Model choice",
+    "Settings such as aspect ratio, quality, render speed, opacity"
+  ],
   "inputDetails": [
     {
       "name": "Source image",
@@ -217,7 +240,11 @@
       "restrictions": "The panel is hidden when a tool has no settings."
     }
   ],
-  "generationModes": ["Single-tool edit with before/after preview", "Chained edits (Use result as new source)", "Model-switching within multi-model tools"],
+  "generationModes": [
+    "Single-tool edit with before/after preview",
+    "Chained edits (Use result as new source)",
+    "Model-switching within multi-model tools"
+  ],
   "modeExplanations": [
     {
       "mode": "Gallery view",
@@ -243,7 +270,7 @@
     "The result is also registered in your generation history (Library)"
   ],
   "limitations": [
-    "Images only: the upload picker does not accept video or documents. Older help text that mentions video editing does not match the current studio.",
+    "Images only: the upload picker does not accept video or documents.",
     "There are no separate Inpaint or Relight tools; the 16 tools are the ones listed.",
     "Each upload is limited to 10MB.",
     "Edits are applied one at a time; the progress bar is an estimate that moves up to about 90% until the result arrives.",
@@ -377,19 +404,31 @@
     {
       "title": "E-commerce product images",
       "description": "Remove backgrounds and place products in lifestyle scenes.",
-      "steps": ["Remove Background", "Product Shot with a scene description", "Download"],
+      "steps": [
+        "Remove Background",
+        "Product Shot with a scene description",
+        "Download"
+      ],
       "expectedOutput": "A polished product image."
     },
     {
       "title": "Photo restoration and fun",
       "description": "Colorize old photos, retouch skin or apply a Ghibli or figurine look.",
-      "steps": ["Open Colorize, Enhance Skin, Ghibli Style or Photo Effects", "Upload the photo", "Apply Edit"],
+      "steps": [
+        "Open Colorize, Enhance Skin, Ghibli Style or Photo Effects",
+        "Upload the photo",
+        "Apply Edit"
+      ],
       "expectedOutput": "A transformed copy of your photo."
     },
     {
       "title": "Virtual try-on",
       "description": "Show a person in a different outfit.",
-      "steps": ["Open Change Dress", "Upload the person and the outfit image", "Apply Edit"],
+      "steps": [
+        "Open Change Dress",
+        "Upload the person and the outfit image",
+        "Apply Edit"
+      ],
       "expectedOutput": "The person wearing the new outfit."
     }
   ],
@@ -450,12 +489,40 @@
     "Keep each upload under 10MB.",
     "Download results you want to keep."
   ],
-  "relatedStudios": ["image", "upscale", "character", "commercial", "brand", "videotools", "library"],
+  "relatedStudios": [
+    "image",
+    "upscale",
+    "character",
+    "commercial",
+    "brand",
+    "videotools",
+    "library"
+  ],
   "relatedStudioGuidance": [
-    { "studio": "image", "relationship": "Create or transform images with a prompt", "whenToMove": "When you want a brand-new image or free-form image-to-image with many models.", "why": "Image Studio has the full model picker and prompt bar." },
-    { "studio": "upscale", "relationship": "Dedicated upscaling", "whenToMove": "When the only goal is more resolution.", "why": "Upscale Suite is built just for that." },
-    { "studio": "character", "relationship": "Consistent characters", "whenToMove": "When the same person must appear across many images.", "why": "Character Studio focuses on that." },
-    { "studio": "videotools", "relationship": "Video editing tools", "whenToMove": "When your media is a video.", "why": "Edit Studio does not take video." }
+    {
+      "studio": "image",
+      "relationship": "Create or transform images with a prompt",
+      "whenToMove": "When you want a brand-new image or free-form image-to-image with many models.",
+      "why": "Image Studio has the full model picker and prompt bar."
+    },
+    {
+      "studio": "upscale",
+      "relationship": "Dedicated upscaling",
+      "whenToMove": "When the only goal is more resolution.",
+      "why": "Upscale Suite is built just for that."
+    },
+    {
+      "studio": "character",
+      "relationship": "Consistent characters",
+      "whenToMove": "When the same person must appear across many images.",
+      "why": "Character Studio focuses on that."
+    },
+    {
+      "studio": "videotools",
+      "relationship": "Video editing tools",
+      "whenToMove": "When your media is a video.",
+      "why": "Edit Studio does not take video."
+    }
   ],
   "notConfirmed": [
     "Real credit/price per edit: not stated in code.",
@@ -463,7 +530,6 @@
     "Exact on-screen labels of some model-specific settings (they come from each model's schema titles, for example for Change Angle).",
     "Whether the studio's Library 'use in studio' hand-off works in every case (the code says the source picker is mounted first to receive it).",
     "Output file format and exact resolution of each result.",
-    "Older in-app help text and the landing page mention video editing, inpaint and relight; these are not present in the current Edit Studio code.",
     "Whether the AI Image Upscaler honours a scale factor (Edit Studio shows no factor setting for it)."
   ],
   "sourceFiles": [
