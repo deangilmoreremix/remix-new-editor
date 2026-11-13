@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  submitLead, fetchLeads, postWebhooksDirect, testWebhooks, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
+  submitLead, fetchLeads, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, deliveriesSummary, fetchSigningSecret, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
   buildOptinForm, showListBuilderOverlay, showPauseOverlay, ensureOverlayLayer, formBackground,
   renderAddonEditor, getAddon,
@@ -56,6 +56,31 @@ describe('lead client', () => {
     const fetchImpl = vi.fn().mockResolvedValueOnce({ ok: true }).mockRejectedValueOnce(new Error('cors'));
     expect(await testWebhooks(['https://a', 'https://b'], { kind: 'list-builder', data: { EMAIL: 'x' } }, fetchImpl)).toEqual({ total: 2, failed: 1 });
     expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toMatchObject({ event: 'video_opted_in', test: true, kind: 'list-builder' });
+  });
+
+  it('runs the webhook test on the server and falls back to the browser when signed out', async () => {
+    const ok = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, signed: true, results: [{ host: 'a.test', ok: true, status: 200, attempts: 1, error: null }, { host: 'b.test', ok: false, status: 500, attempts: 1, error: 'HTTP 500' }] }, error: null }) } };
+    const res = await runWebhookTest(ok, ['https://a.test/h', 'https://b.test/h'], { kind: 'lead-form' });
+    expect(ok.functions.invoke.mock.calls[0][1].body).toMatchObject({ action: 'test-webhooks', kind: 'lead-form' });
+    expect(res).toMatchObject({ via: 'server', total: 2, failed: 1, signed: true });
+    expect(webhookTestMessage(res)).toBe('1/2 failed · b.test: HTTP 500 · signed');
+
+    const signedOut = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: false, error: 'Sign in to test webhooks' }, error: null }) } };
+    const fetchImpl = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true });
+    const fb = await runWebhookTest(signedOut, ['https://a.test/h']);
+    fetchImpl.mockRestore();
+    expect(fb).toMatchObject({ via: 'browser', total: 1, failed: 0 });
+    expect(webhookTestMessage(fb)).toMatch(/^1\/1 succeeded · tested from your browser/);
+  });
+
+  it('summarizes recent deliveries and surfaces the signing secret state', async () => {
+    expect(deliveriesSummary([])).toBe('No deliveries yet');
+    expect(deliveriesSummary([
+      { ok: true, url_host: 'hooks.zapier.com' },
+      { ok: false, url_host: 'x.test', http_status: 500, error: 'HTTP 500', attempts: 3 },
+    ])).toBe('✓ hooks.zapier.com · ✗ x.test (HTTP 500, 3 tries)');
+    const supa = { functions: { invoke: vi.fn().mockResolvedValue({ data: { ok: true, configured: true, secret: 'whsec_abc' }, error: null }) } };
+    expect(await fetchSigningSecret(supa)).toEqual({ ok: true, configured: true, secret: 'whsec_abc', error: null });
   });
 
   it('list builder Integrations tab has a Test Webhook action only while webhooks are on', () => {

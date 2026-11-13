@@ -21,7 +21,10 @@
 //      URLs and notification emails in the request body are ignored.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, savedNotifyEmail, isValidEmail, buildLeadEmail, isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, type Json } from "./logic.ts";
+import {
+  isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, savedNotifyEmail, isValidEmail, buildLeadEmail,
+  isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, type Json,
+} from "./logic.ts";
 export { isForwardableWebhook, savedWebhooks, isCallClip, leadConfigFor };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -36,8 +39,14 @@ const ALLOWED_ORIGINS = (Deno.env.get("LEAD_CAPTURE_ALLOWED_ORIGINS") ?? "*")
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const LEAD_EMAIL_FROM = Deno.env.get("LEAD_EMAIL_FROM") ?? "";
 
+// Webhook signing: every delivery carries X-Remix-Signature, an HMAC with a per-owner secret
+// derived from this master secret (set WEBHOOK_SIGNING_SECRET to any long random string).
+const WEBHOOK_SIGNING_MASTER = Deno.env.get("WEBHOOK_SIGNING_SECRET") ?? "";
+
 const KINDS = new Set(["lead-form", "list-builder", "personalizer", "call-attempt"]);
-const WEBHOOK_TIMEOUT_MS = 8000;
+const WEBHOOK_TIMEOUT_MS = 8000; // email requests
+const ATTEMPT_TIMEOUT_MS = 5000; // one webhook attempt
+const DELIVERY_BUDGET_MS = 12_000; // all attempts for one webhook
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
@@ -91,26 +100,79 @@ async function resolvesPublic(url: string): Promise<boolean> {
   } catch { return false; } // deny on resolver errors: only forward when every resolved address is public
 }
 
-async function forward(urls: string[], payload: unknown): Promise<{ forwarded: number; failed: number }> {
-  const results = await Promise.allSettled(urls.map(async (url) => {
-    if (!(await resolvesPublic(url))) throw new Error("blocked address");
+type Delivery = { deliveryId: string; host: string; ok: boolean; status: number | null; attempts: number; error: string | null };
+type Db = ReturnType<typeof createClient>;
+
+/** One webhook: signed, retried with backoff on network errors / 429 / 5xx, stopped by a total time budget. */
+async function deliver(url: string, body: string, event: string, secret: string, maxAttempts: number): Promise<Delivery> {
+  const deliveryId = crypto.randomUUID();
+  const host = hostOf(url);
+  if (!(await resolvesPublic(url))) return { deliveryId, host, ok: false, status: null, attempts: 0, error: "blocked address" };
+  const started = Date.now();
+  let status: number | null = null;
+  let error: string | null = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), WEBHOOK_TIMEOUT_MS);
+    const timer = setTimeout(() => ctrl.abort(), ATTEMPT_TIMEOUT_MS);
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "User-Agent": "remix-lead-capture/1.0" },
-        body: JSON.stringify(payload),
-        signal: ctrl.signal,
-        redirect: "manual",
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "User-Agent": "remix-lead-capture/1.0",
+        "X-Remix-Event": event,
+        "X-Remix-Delivery": deliveryId, // same id on every retry, so receivers can de-duplicate
+      };
+      if (secret) headers["X-Remix-Signature"] = await signWebhook(secret, body, Math.floor(Date.now() / 1000));
+      const res = await fetch(url, { method: "POST", headers, body, signal: ctrl.signal, redirect: "manual" });
+      status = res.status;
+      await res.body?.cancel();
+      if (res.ok) return { deliveryId, host, ok: true, status, attempts: attempt, error: null };
+      error = `HTTP ${res.status}`;
+    } catch (err) {
+      status = null;
+      error = (err as Error)?.name === "AbortError" ? "timeout" : "network error";
     } finally {
       clearTimeout(timer);
     }
+    const wait = backoffMs(attempt);
+    if (attempt >= maxAttempts || !isRetryable(status) || Date.now() - started + wait + ATTEMPT_TIMEOUT_MS > DELIVERY_BUDGET_MS) {
+      return { deliveryId, host, ok: false, status, attempts: attempt, error };
+    }
+    await new Promise((r) => setTimeout(r, wait));
+  }
+  return { deliveryId, host, ok: false, status, attempts: maxAttempts, error };
+}
+
+async function forward(
+  urls: string[],
+  payload: Record<string, unknown>,
+  { secret = "", maxAttempts = MAX_ATTEMPTS }: { secret?: string; maxAttempts?: number } = {},
+): Promise<{ forwarded: number; failed: number; deliveries: Delivery[] }> {
+  const body = JSON.stringify(payload);
+  const event = typeof payload.event === "string" ? payload.event : "video_opted_in";
+  const deliveries = await Promise.all(urls.map((url) => deliver(url, body, event, secret, maxAttempts)));
+  const failed = deliveries.filter((d) => !d.ok).length;
+  return { forwarded: urls.length - failed, failed, deliveries };
+}
+
+/** Per-owner signing secret ("" when WEBHOOK_SIGNING_SECRET isn't set, so deliveries go unsigned). */
+const ownerSecret = (ownerId: string) => deriveSigningSecret(WEBHOOK_SIGNING_MASTER, ownerId);
+
+/** The caller's verified Clerk user id (PostgREST validated the JWT), or "". */
+async function callerSub(db: Db): Promise<string> {
+  const { data } = await db.rpc("current_clerk_sub");
+  return typeof data === "string" ? data : "";
+}
+
+/** Best-effort delivery log. Pass ownerId when writing with the service role; omit it to use the caller's RLS identity. */
+async function logDeliveries(db: Db, ownerId: string | null, ctx: { projectId: string | null; clipId: string | null; kind: string }, deliveries: Delivery[]): Promise<void> {
+  if (!deliveries.length) return;
+  const rows = deliveries.map((d) => ({
+    ...(ownerId ? { clerk_user_id: ownerId } : {}),
+    delivery_id: d.deliveryId, project_id: ctx.projectId, clip_id: ctx.clipId, kind: ctx.kind,
+    url_host: d.host, ok: d.ok, http_status: d.status, attempts: d.attempts, error: d.error,
   }));
-  const failed = results.filter((r) => r.status === "rejected").length;
-  return { forwarded: urls.length - failed, failed };
+  const { error } = await db.from("webhook_deliveries").insert(rows);
+  if (error) console.warn("[lead-capture] delivery log failed:", error.code);
 }
 
 type EmailStatus = "sent" | "failed" | "not_configured" | null;
@@ -204,13 +266,15 @@ Deno.serve(async (req: Request) => {
     const hooks = leadKind === "call-attempt" ? [] : savedWebhooks(config, listBuilder);
     // The recipient always comes from the saved project, never from the request.
     const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? callNotify : "") : savedNotifyEmail(config, listBuilder);
+    const ownerId = String(video.clerk_user_id ?? "");
     const [sent, email] = await Promise.all([
       hooks.length
-        ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString() })
-        : Promise.resolve({ forwarded: 0, failed: 0 }),
+        ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString() }, { secret: await ownerSecret(ownerId) })
+        : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
       notify(notifyTo, leadKind, leadData),
     ]);
-    return json(req, { ok: true, stored: !insertError, ...sent, email });
+    await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);
+    return json(req, { ok: true, stored: !insertError, forwarded: sent.forwarded, failed: sent.failed, email });
   }
 
   if (body.action === "list") {
@@ -221,6 +285,43 @@ Deno.serve(async (req: Request) => {
     const { data, error } = await query;
     if (error) return json(req, { ok: false, error: "Could not load leads" }, 500);
     return json(req, { ok: true, leads: data ?? [] });
+  }
+
+  // The owner's webhook signing secret, for them to paste into their receiver.
+  if (body.action === "signing-secret") {
+    if (!hasSession) return json(req, { ok: false, error: "Sign in to view your signing secret" }, 401);
+    const secret = await ownerSecret(await callerSub(db));
+    return json(req, { ok: true, configured: !!WEBHOOK_SIGNING_MASTER, secret: secret || null });
+  }
+
+  // Recent webhook deliveries (own rows only, RLS-enforced).
+  if (body.action === "deliveries") {
+    if (!hasSession) return json(req, { ok: true, deliveries: [] });
+    let query = db.from("webhook_deliveries")
+      .select("id, project_id, clip_id, kind, url_host, ok, http_status, attempts, error, created_at")
+      .order("created_at", { ascending: false }).limit(20);
+    if (projectId) query = query.eq("project_id", projectId);
+    const { data, error } = await query;
+    if (error) return json(req, { ok: false, error: "Could not load deliveries" }, 500);
+    return json(req, { ok: true, deliveries: data ?? [] });
+  }
+
+  // Server-side "Test Webhook": no browser CORS limits, signed like a real delivery, one attempt, nothing stored as a lead.
+  if (body.action === "test-webhooks") {
+    if (!hasSession) return json(req, { ok: false, error: "Sign in to test webhooks" }, 401);
+    const urls = (Array.isArray(body.webhooks) ? body.webhooks : []).filter(isForwardableWebhook).slice(0, MAX_WEBHOOKS);
+    if (!urls.length) return json(req, { ok: false, error: "No valid https webhook URL" }, 400);
+    const secret = await ownerSecret(await callerSub(db));
+    const sample = sanitizeData(body.data);
+    const out = await forward(urls, {
+      event: "video_opted_in", test: true, kind: typeof body.kind === "string" && KINDS.has(body.kind) ? body.kind : "lead-form",
+      projectId, clipId, data: Object.keys(sample).length ? sample : { EMAIL: "test@example.com", NAME: "Test" }, submittedAt: new Date().toISOString(),
+    }, { secret, maxAttempts: 1 });
+    await logDeliveries(db, null, { projectId, clipId, kind: "test" }, out.deliveries);
+    return json(req, {
+      ok: true, signed: !!secret,
+      results: out.deliveries.map(({ host, ok, status, attempts, error }) => ({ host, ok, status, attempts, error })),
+    });
   }
 
   const data = sanitizeData(body.data);
@@ -253,12 +354,14 @@ Deno.serve(async (req: Request) => {
   // Editor preview: only a signed-in session may choose the recipient, so anonymous
   // callers can't use this function to send mail to arbitrary addresses.
   const previewTo = hasSession && isValidEmail(body.notificationEmail) ? String(body.notificationEmail).trim() : "";
-  const [{ forwarded, failed }, email] = await Promise.all([
+  const previewSecret = webhooks.length ? await ownerSecret(await callerSub(db)) : "";
+  const [sent, email] = await Promise.all([
     webhooks.length
-      ? forward(webhooks, { event: "video_opted_in", kind, projectId, clipId, data, submittedAt: createdAt })
-      : Promise.resolve({ forwarded: 0, failed: 0 }),
+      ? forward(webhooks, { event: "video_opted_in", kind, projectId, clipId, data, submittedAt: createdAt }, { secret: previewSecret })
+      : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
     notify(previewTo, kind, data),
   ]);
+  await logDeliveries(db, null, { projectId, clipId, kind }, sent.deliveries);
 
-  return json(req, { ok: true, stored, forwarded, failed, email });
+  return json(req, { ok: true, stored, forwarded: sent.forwarded, failed: sent.failed, email });
 });

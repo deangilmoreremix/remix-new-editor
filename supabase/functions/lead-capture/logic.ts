@@ -85,6 +85,45 @@ export function isCallClip(c: Json): boolean {
   return o.linkMode === "phone" ? !!o.phoneNumber : /^tel:/i.test(String(o.linkUrl || ""));
 }
 
+// ------------------------------------------------------- webhook retries + signing
+
+export const MAX_ATTEMPTS = 3;
+
+/** Network errors / timeouts (status null), 408, 429 and 5xx are worth retrying; other 4xx are not. */
+export function isRetryable(status: number | null): boolean {
+  return status === null || status === 408 || status === 429 || status >= 500;
+}
+
+/** Wait before the next attempt, given how many attempts have failed so far (1-based). */
+export function backoffMs(failedAttempts: number): number {
+  return failedAttempts <= 1 ? 300 : 900;
+}
+
+/** Host only: webhook URLs often embed secrets, so logs never keep the path or query. */
+export function hostOf(url: string): string {
+  try { return new URL(url).hostname.slice(0, 255); } catch { return "invalid"; }
+}
+
+async function hmacHex(secret: string, message: string): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
+  return Array.from(new Uint8Array(sig), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** A stable per-owner signing secret derived from a server master secret (nothing to store). */
+export async function deriveSigningSecret(master: string, ownerId: string): Promise<string> {
+  if (!master || !ownerId) return "";
+  return `whsec_${await hmacHex(master, `webhook-signing:${ownerId}`)}`;
+}
+
+/**
+ * Stripe-style signature header value: `t=<unix seconds>,v1=<hex HMAC-SHA256 of "<t>.<body>">`.
+ * Receivers recompute it with their secret and reject old timestamps (replay protection).
+ */
+export async function signWebhook(secret: string, body: string, timestampSec: number): Promise<string> {
+  return `t=${timestampSec},v1=${await hmacHex(secret, `${timestampSec}.${body}`)}`;
+}
+
 // ------------------------------------------------------------- notification email
 
 const EMAIL_RE = /^[^\s@<>"',;]+@[^\s@<>"',;]+\.[^\s@<>"',;]{2,}$/;

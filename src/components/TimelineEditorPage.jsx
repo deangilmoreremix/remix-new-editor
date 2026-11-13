@@ -25,7 +25,7 @@ import {
   INTERACTIVE_ADDONS, PROJECT_FORMS, renderAddonEditor,
   ensureOverlayLayer, clearOverlay, showPauseOverlay, showListBuilderOverlay, formBackground,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
-  submitLead, fetchLeads, postWebhooksDirect, testWebhooks, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
+  submitLead, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
   createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
@@ -3798,6 +3798,14 @@ export function TimelineEditorPage() {
               <span id="lf-webhook-test-result" style="font-size:11px;color:var(--text-dim)"></span>
             </div>
             <div class="clip-editor__field">
+              <button id="lf-webhook-log" type="button" class="mini-btn" style="width:100%">Recent webhook deliveries</button>
+              <span id="lf-webhook-log-result" role="status" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
+              <button id="lf-webhook-secret" type="button" class="mini-btn" style="width:100%">Show webhook signing secret</button>
+              <span id="lf-webhook-secret-result" role="status" style="font-size:11px;color:var(--text-dim);word-break:break-all"></span>
+            </div>
+            <div class="clip-editor__field">
               <label for="lf-email-enabled"><input id="lf-email-enabled" type="checkbox" ${clip.emailNotificationEnabled ? 'checked' : ''} /> Email notification on submit</label>
             </div>
             <div class="clip-editor__field">
@@ -4024,26 +4032,33 @@ export function TimelineEditorPage() {
         });
       });
       els.clipEditorContainer.querySelector('#lf-webhook-test').addEventListener('click', async () => {
-        const urls = [clip.webhookUrl, clip.webhookUrl2, clip.webhookUrl3].filter(Boolean);
+        const urls = webhookUrlsFor({ webhookEnabled: true, webhookUrl: clip.webhookUrl, webhookUrl2: clip.webhookUrl2, webhookUrl3: clip.webhookUrl3 });
         const resultEl = els.clipEditorContainer.querySelector('#lf-webhook-test-result');
         if (!urls.length) {
-          resultEl.textContent = 'No webhook URL configured';
+          resultEl.textContent = 'No valid https webhook URL configured';
           return;
         }
         resultEl.textContent = 'Testing...';
-        const results = await Promise.allSettled(urls.map((url) => fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ test: true, source: 'lead-form-test', clipId: clip.id }),
-        })));
-        const failures = results.filter((r) => r.status === 'rejected' || (r.value && !r.value.ok));
-        if (failures.length) {
-          resultEl.textContent = `${failures.length}/${urls.length} failed`;
-          showToast('Webhook test failed for one or more URLs', 'error');
-        } else {
-          resultEl.textContent = `${urls.length}/${urls.length} succeeded`;
-          showToast('Webhook test succeeded', 'success');
-        }
+        const sample = Object.fromEntries(leadFieldTokens(clip.fields || []).map((t) => [t, /MAIL/.test(t) ? 'test@example.com' : 'Test']));
+        const res = await runWebhookTest(supabase, urls, {
+          kind: 'lead-form', projectId: state.projectId || null, clipId: clip.id, data: sample, submittedAt: new Date().toISOString(),
+        });
+        resultEl.textContent = webhookTestMessage(res);
+        showToast(res.failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', res.failed ? 'error' : 'success');
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-log').addEventListener('click', async () => {
+        const out = els.clipEditorContainer.querySelector('#lf-webhook-log-result');
+        out.textContent = 'Loading...';
+        const r = await fetchDeliveries(supabase);
+        out.textContent = r.ok ? deliveriesSummary(r.rows) : `${r.error} (sign in to see deliveries)`;
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-secret').addEventListener('click', async () => {
+        const out = els.clipEditorContainer.querySelector('#lf-webhook-secret-result');
+        out.textContent = 'Loading...';
+        const r = await fetchSigningSecret(supabase);
+        if (!r.ok) out.textContent = r.error;
+        else if (!r.secret) out.textContent = 'Signing is not set up on the server yet';
+        else out.textContent = `${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`;
       });
       els.clipEditorContainer.querySelector('#lf-email-enabled').addEventListener('change', (e) => {
         clip.emailNotificationEnabled = e.target.checked;
@@ -5372,17 +5387,32 @@ export function TimelineEditorPage() {
         idPrefix: 'listbuilder',
         services: {
           fieldAction: async (action, config, { setResult }) => {
+            if (action === 'webhookLog') {
+              setResult('Loading...');
+              const r = await fetchDeliveries(supabase);
+              setResult(r.ok ? deliveriesSummary(r.rows) : `${r.error} (sign in to see deliveries)`);
+              return;
+            }
+            if (action === 'signingSecret') {
+              setResult('Loading...');
+              const r = await fetchSigningSecret(supabase);
+              if (!r.ok) setResult(r.error);
+              else if (!r.secret) setResult('Signing is not set up on the server yet');
+              else setResult(`${r.secret} — verify X-Remix-Signature (t=…,v1=HMAC-SHA256 of "t.body")`);
+              return;
+            }
             if (action !== 'testWebhooks') return;
             const urls = webhookUrlsFor(listBuilderWebhookConfig(config));
             if (!urls.length) { setResult('No valid https webhook URL configured'); return; }
             setResult('Testing...');
             const tokens = leadFieldTokens(config.elements);
             const sample = Object.fromEntries(tokens.map((t) => [t, /MAIL/.test(t) ? 'test@example.com' : 'Test']));
-            const { total, failed } = await testWebhooks(urls, {
-              kind: config.kind || 'list-builder', projectId: null, clipId: 'list-builder', data: sample, submittedAt: new Date().toISOString(),
+            const res = await runWebhookTest(supabase, urls, {
+              kind: config.kind || 'list-builder', projectId: state.projectId || null, clipId: 'list-builder', data: sample,
+              submittedAt: new Date().toISOString(),
             });
-            setResult(failed ? `${failed}/${total} failed` : `${total}/${total} succeeded`);
-            showToast(failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', failed ? 'error' : 'success');
+            setResult(webhookTestMessage(res));
+            showToast(res.failed ? 'Webhook test failed for one or more URLs' : 'Webhook test succeeded', res.failed ? 'error' : 'success');
           },
         },
         onChange: (next) => {

@@ -7,7 +7,7 @@ export {
   defaultOptin, defaultListBuilder, normalizeListBuilder, listBuilderFields, leadFormToOptin, applyOptinToLeadForm, LEAD_FIELD_TYPES, OPTIN_KINDS, POINTER_DEFAULTS, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile, LIST_BUILDER_KINDS, FORM_FIELD_TYPES, FORM_TRANSITIONS, fieldToken,
 } from './listBuilder.js';
 export {
-  submitLead, fetchLeads, fetchLeadRows, postWebhooksDirect, testWebhooks, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
+  submitLead, fetchLeads, fetchLeadRows, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, leadsToCsv, mergeLeads, webhookUrlsFor, isValidWebhookUrl, sanitizeLeadData, leadFieldTokens,
 } from './leadClient.js';
 export { OVERLAY_ADDONS, SMART_TEXT, TEXT_MASK, PERSONALIZED_IMAGE, IMAGE, STICKER, WRAPPER, LOWER_THIRD, OVERLAY_TRANSITION, VIDEO_TRANSITION, applyPositionPreset } from './overlayAddons.js';
 export { buildLowerThirdLottie, lowerThirdFrame, LOWER_THIRD_TEMPLATES, LOWER_THIRD_DEFAULTS } from './lowerThirds.js';

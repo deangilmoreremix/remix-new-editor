@@ -1,7 +1,9 @@
+import { createHmac } from 'node:crypto';
 import { describe, it, expect } from 'vitest';
 import {
   isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, leadConfigFor, MAX_DATA_BYTES,
   isValidEmail, savedNotifyEmail, buildLeadEmail,
+  isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, MAX_ATTEMPTS,
 } from '../../supabase/functions/lead-capture/logic.ts';
 
 describe('lead-capture webhook safety', () => {
@@ -78,5 +80,36 @@ describe('lead-capture notification email', () => {
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
     expect(text).toContain('NAME: <script>alert(1)</script>');
+  });
+});
+
+describe('lead-capture webhook retries + signing', () => {
+  it('retries only transient failures', () => {
+    for (const st of [null, 408, 429, 500, 502, 503]) expect(isRetryable(st)).toBe(true);
+    for (const st of [200, 301, 400, 401, 403, 404, 410, 422]) expect(isRetryable(st)).toBe(false);
+    expect(MAX_ATTEMPTS).toBe(3);
+    expect(backoffMs(1)).toBeLessThan(backoffMs(2));
+  });
+
+  it('logs the host only, never the path or query (they can hold secrets)', () => {
+    expect(hostOf('https://hooks.zapier.com/hooks/catch/123/secret?token=abc')).toBe('hooks.zapier.com');
+    expect(hostOf('nope')).toBe('invalid');
+  });
+
+  it('signs "<t>.<body>" with HMAC-SHA256 so a receiver can verify it', async () => {
+    const body = JSON.stringify({ event: 'video_opted_in', data: { EMAIL: 'a@b.co' } });
+    const header = await signWebhook('whsec_test', body, 1700000000);
+    const expected = createHmac('sha256', 'whsec_test').update(`1700000000.${body}`).digest('hex');
+    expect(header).toBe(`t=1700000000,v1=${expected}`);
+    expect(await signWebhook('other', body, 1700000000)).not.toBe(header);
+  });
+
+  it('derives a stable, distinct secret per owner and none without a master secret', async () => {
+    const a = await deriveSigningSecret('master', 'user_a');
+    expect(a).toBe(await deriveSigningSecret('master', 'user_a'));
+    expect(a).toBe(`whsec_${createHmac('sha256', 'master').update('webhook-signing:user_a').digest('hex')}`);
+    expect(a).not.toBe(await deriveSigningSecret('master', 'user_b'));
+    expect(await deriveSigningSecret('', 'user_a')).toBe('');
+    expect(await deriveSigningSecret('master', '')).toBe('');
   });
 });

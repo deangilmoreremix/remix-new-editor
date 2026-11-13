@@ -307,6 +307,8 @@ export function listBuilderFields(config) {
       { key: 'webhook2', label: 'Webhook Address 2', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'webhook3', label: 'Webhook Address 3', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: '_webhookTest', label: 'Test Webhook', type: 'action', action: 'testWebhooks', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookLog', label: 'Recent webhook deliveries', type: 'action', action: 'webhookLog', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: '_webhookSecret', label: 'Show webhook signing secret', type: 'action', action: 'signingSecret', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'emailEnabled', label: 'Email Notification', type: 'toggle', tab: 'Integrations' },
       { key: 'emailAddress', label: 'Notification Address', type: 'text', tab: 'Integrations', showIf: (o) => o.emailEnabled },
       { key: 'fbPixelId', label: 'Facebook Pixel ID', type: 'text', tab: 'Integrations' },
