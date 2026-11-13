@@ -15,7 +15,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import type { DiscoveredAsset, DiscoveredAssetBgRemoval } from '../types'
-import { toImageBlob } from '../generationRouter'
+import { loadImageBlob } from './loadImageBlob'
 import { verifyAlphaChannel } from '../alphaVerification'
 import {
   BACKGROUND_REMOVAL_MODEL_MB,
@@ -179,7 +179,7 @@ export function useAutoCutout(
 
       try {
         const source = manual && asset.editedDataUrl ? asset.editedDataUrl : asset.originalPreviewUrl || asset.previewUrl
-        const raw = source.startsWith('data:') ? await (await fetch(source)).blob() : await toImageBlob(source)
+        const raw = await loadImageBlob(source)
         if (controller.signal.aborted) throw new BackgroundRemovalFailure('cancelled', 'Cancelled')
         const blob = await withSniffedType(raw)
         if (!isRemovableImageType(blob.type)) {

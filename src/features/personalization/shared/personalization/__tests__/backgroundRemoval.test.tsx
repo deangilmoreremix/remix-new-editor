@@ -36,9 +36,9 @@ vi.mock('@bg0/browser', () => ({
   }),
 }))
 
-vi.mock('../generationRouter', () => ({
+vi.mock('../backgroundRemoval/loadImageBlob', () => ({
   // The "image" is its own URL, typed as jpeg unless the URL says png.
-  toImageBlob: vi.fn(async (url: string) => new Blob([url], { type: url.endsWith('.png') ? 'image/png' : 'image/jpeg' })),
+  loadImageBlob: vi.fn(async (url: string) => new Blob([url], { type: url.endsWith('.png') ? 'image/png' : 'image/jpeg' })),
 }))
 
 vi.mock('../alphaVerification', () => ({
